@@ -1,0 +1,24 @@
+services:
+  pastil-api:
+    build:
+      context: .
+      dockerfile: Api/Dockerfile
+    ports:
+      - "5000:8080"
+    depends_on:
+      - pastil-file
+      - pastil-payment
+
+  pastil-file:
+    build:
+      context: .
+      dockerfile: File/Dockerfile
+    ports:
+      - "5001:8081"
+
+  pastil-payment:
+    build:
+      context: .
+      dockerfile: Payment/Dockerfile
+    ports:
+      - "5002:8082"

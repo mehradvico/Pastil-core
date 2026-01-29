@@ -24,7 +24,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOutputCache();
 builder.Services.AddSignalR();
 
-builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["conection"], x => x.UseNetTopologySuite()));
+builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
 builder.Services.AddApplicationServices();
 builder.Services.AddScoped<IRestSharpApi, RestSharpApi>();
 builder.Services.AddScoped<IBackgroundTask, HangFireSchedule>();
@@ -126,7 +126,7 @@ builder.Services.AddHangfire(configuration => configuration
        .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
        .UseSimpleAssemblyNameTypeSerializer()
        .UseRecommendedSerializerSettings()
-       .UseSqlServerStorage(builder.Configuration["conection"], new SqlServerStorageOptions
+       .UseSqlServerStorage(builder.Configuration["connection"], new SqlServerStorageOptions
        {
            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),

@@ -1,0 +1,22 @@
+# build outputs
+**/bin/
+**/obj/
+
+# IDE / tooling
+.vs/
+**/.vs
+*.user
+*.suo
+
+# git
+.git/
+**/.git
+.github/
+
+# logs & cache
+*.log
+*.cache
+
+# docker / misc
+Dockerfile
+docker-compose.yml

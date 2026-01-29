@@ -12,15 +12,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    //c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "ZandShop.Api.xml"), true);
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ZandShop.Api", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "MehradVico.Api", Version = "v1" });
     var security = new OpenApiSecurityScheme
     {
         Name = "JWT Auth",
@@ -45,7 +41,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 builder.Services.AddControllers().AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
                 .AddDataAnnotationsLocalization();
-builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["conection"], x => x.UseNetTopologySuite()));
+builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
 builder.Services.AddApplicationServices();
 
 builder.Services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
