@@ -10,7 +10,7 @@ using System.Globalization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["conection"], x => x.UseNetTopologySuite()));
+builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
 builder.Services.AddApplicationServices();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {

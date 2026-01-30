@@ -32,7 +32,7 @@ namespace Application.Services.ProductSrvs.ProductCommentSrv
             this._context = _context;
             this.mapper = mapper;
             this.connectionString = config.GetValue<string>(
-            "conection");
+            "connection");
         }
 
         public override async Task<BaseResultDto<ProductCommentDto>> InsertAsyncDto(ProductCommentDto dto)

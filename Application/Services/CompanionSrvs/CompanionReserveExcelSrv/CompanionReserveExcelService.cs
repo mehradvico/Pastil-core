@@ -39,7 +39,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveExcelSrv
             _mapper = mapper;
             _companionReserveService = companionReserveService;
             connectionString = config.GetValue<string>(
-           "conection");
+           "connection");
         }
 
         public MemoryStream GetReserveExcel(SearchCompanionReserveExcelDto search)

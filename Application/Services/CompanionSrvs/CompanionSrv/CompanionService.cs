@@ -41,7 +41,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             this._codeService = codeService;
             this._notificationService = notificationService;
             this.connectionString = config.GetValue<string>(
-"conection");
+"connection");
         }
 
         public async Task<BaseResultDto<CompanionVDto>> FindAsyncVDto(long id)

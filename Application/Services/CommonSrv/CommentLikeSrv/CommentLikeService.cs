@@ -33,7 +33,7 @@ namespace Application.Services.CommonSrv.CommentLikeSrv
             this.mapper = mapper;
             this.currentUser = currentUserHelper.CurrentUser;
             this.connectionString = config.GetValue<string>(
-           "conection");
+           "connection");
         }
         public override BaseResultDto DeleteDto(CommentLikeDto dto)
         {

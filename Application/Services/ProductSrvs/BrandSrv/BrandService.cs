@@ -31,7 +31,7 @@ namespace Application.Services.ProductSrvs.BrandSrv
             this.mapper = mapper;
             this._categoryService = categoryService;
             this.connectionString = config.GetValue<string>(
-        "conection");
+        "connection");
         }
 
         public BrandSearchDto Search(BrandInputDto baseSearchDto)

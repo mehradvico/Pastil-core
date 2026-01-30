@@ -31,7 +31,7 @@ namespace Application.Services.ProductSrvs.WalletSrv
             this._context = _context;
             this.mapper = mapper;
             this._smsService = smsService;
-            this.connectionString = config.GetValue<string>("conection");
+            this.connectionString = config.GetValue<string>("connection");
             this._notificationService = notificationService;
 
 

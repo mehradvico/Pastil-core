@@ -36,7 +36,7 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
             this._context = _context;
             this.mapper = mapper;
             this.connectionString = config.GetValue<string>(
-            "conection");
+            "connection");
         }
 
         public override async Task<BaseResultDto<PansionCommentDto>> InsertAsyncDto(PansionCommentDto dto)

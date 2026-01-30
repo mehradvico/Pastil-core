@@ -30,7 +30,7 @@ namespace Application.Services.Accounting.UserProductSrv
             this.mapper = mapper;
 
             connectionString = config.GetValue<string>(
-                        "conection");
+                        "connection");
         }
         public UserProductSearchDto SearchDto(UserProductInputDto dto)
         {

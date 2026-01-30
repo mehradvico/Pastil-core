@@ -43,7 +43,7 @@ namespace Application.Services.ProductSrvs.ProductSrv
             this._productCategoryService = productCategoryService;
             this._productPictureService = productPictureService;
             this.connectionString = config.GetValue<string>(
-            "conection");
+            "connection");
         }
 
         private IQueryable<Product> BaseSaerch(ProductInputDto searchDto)

@@ -31,7 +31,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
             this.mapper = mapper;
             this._productService = productService;
             this.connectionString = config.GetValue<string>(
-            "conection");
+            "connection");
         }
         public async Task<BaseResultDto<StoreVDto>> FindAsyncVDto(long id)
         {

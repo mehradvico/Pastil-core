@@ -33,7 +33,7 @@ namespace Application.Services.CategorySrv
             this.mapper = mapper;
             this._baseQuery = _context.Categories.Where(s => !s.Deleted);
             this.connectionString = config.GetValue<string>(
-                "conection");
+                "connection");
         }
         public override async Task<BaseResultDto<CategoryDto>> InsertAsyncDto(CategoryDto dto)
         {

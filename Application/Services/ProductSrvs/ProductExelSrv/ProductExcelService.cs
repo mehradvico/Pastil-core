@@ -46,7 +46,7 @@ namespace Application.Services.ProductSrvs.ProductExelSrv
             _productService = productService;
             _productFeatureValueService = productFeatureValueService;
             connectionString = config.GetValue<string>(
-           "conection");
+           "connection");
         }
 
 

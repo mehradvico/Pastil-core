@@ -48,7 +48,7 @@ namespace Application.Services.Content.PostSrv
             this._postPictureService = postPictureService;
             this._currentUserHelper = currentUserHelper;
             this.connectionString = config.GetValue<string>(
-               "conection");
+               "connection");
         }
         public override async Task<BaseResultDto<PostDto>> FindAsyncDto(long id)
         {
