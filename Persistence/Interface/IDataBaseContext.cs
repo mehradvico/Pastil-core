@@ -143,7 +143,7 @@ namespace Persistence.Interface
         public DbSet<UserPetPicture> UserPetPictures { get; set; }
         public DbSet<StoryGroup> StoryGroups { get; set; }
         public DbSet<StoryItem> StoryItems { get; set; }
-        public DbSet<UserStoryLike> UserStoryLikes { get; set; }
+        public DbSet<StoryUserLike> StoryUserLikes { get; set; }
 
 
         DbSet<TEntity> Set<TEntity>() where TEntity : class;

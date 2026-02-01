@@ -138,6 +138,10 @@ using Application.Services.Content.StaticPageSrv;
 using Application.Services.Content.StaticPageSrv.Iface;
 using Application.Services.Content.StoryGroupSrv;
 using Application.Services.Content.StoryGroupSrv.Iface;
+using Application.Services.Content.StoryItemSrv;
+using Application.Services.Content.StoryItemSrv.Iface;
+using Application.Services.Content.StoryUserLikeSrv.Iface;
+using Application.Services.Content.StoryUserUserLikeSrv;
 using Application.Services.Filing.FileSrv;
 using Application.Services.Filing.FileSrv.Iface;
 using Application.Services.Filing.PictureSrv;
@@ -310,9 +314,6 @@ public static class ConfigureServices
             var supportedCultures = new List<CultureInfo>
                     {
                         new CultureInfo("fa"),
-                        //new CultureInfo("en-US"),
-                        //new CultureInfo("ar"),
-                        //new CultureInfo("tr")
                     };
             options.DefaultRequestCulture = new RequestCulture("fa", "fa");
             options.SupportedCultures = supportedCultures;
@@ -320,16 +321,6 @@ public static class ConfigureServices
             options.ApplyCurrentCultureToResponseHeaders = true;
             options.RequestCultureProviders.Insert(0, new CustomRequestCultureProvider(async context =>
             {
-                //var userLangs = context.Request.Headers["Accept-Language"].ToString().ToLower();
-                //if (userLangs == "en-us,en;q=0.9")
-                //    userLangs = "";
-                //else if (userLangs == "en")
-                //{
-                //    userLangs = "en-us";
-                //}
-                //var firstLang = userLangs.Split(',').FirstOrDefault();
-                //var defaultLang = string.IsNullOrEmpty(firstLang) ? "fa" : firstLang;
-
                 return await Task.FromResult(new ProviderCultureResult("fa", "fa"));
             }));
         });
@@ -489,19 +480,19 @@ public static class ConfigureServices
         services.AddScoped<IPushSubscriptionService, PushSubscriptionService>();
         services.AddScoped<IPushBroadcastService, PushBroadcastService>();
         services.AddScoped<IStoryGroupService, StoryGroupService>();
+        services.AddScoped<IStoryItemService, StoryItemService>();
+        services.AddScoped<IStoryUserLikeService, StoryUserLikeService>();
 
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
-        // تنظیم MapperConfiguration
+
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile(new AllMap());
         });
 
-        // ایجاد Mapper از تنظیمات
         IMapper mapper = mapperConfig.CreateMapper();
 
-        // افزودن Mapper به DI Container
         services.AddSingleton(mapper);
         return services;
     }

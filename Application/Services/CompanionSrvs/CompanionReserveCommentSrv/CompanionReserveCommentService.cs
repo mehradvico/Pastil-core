@@ -40,8 +40,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
             this.mapper = mapper;
             _currentUserHelper = currentUserHelper;
             _commentRate = commentRate;
-            this.connectionString = config.GetValue<string>(
-            "connection");
+            this.connectionString = config.GetValue<string>("connection");
         }
 
         public async Task<BaseResultDto<CompanionReserveCommentVDto>> FindAsyncVDto(long id)

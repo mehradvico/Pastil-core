@@ -23,7 +23,6 @@ namespace Api.Areas.EndUser.Controllers
             _currentUser = currentUser;
         }
 
-        // 🔹 گرفتن PublicKey برای فرانت
         [HttpGet("public-key")]
         [AllowAnonymous]
         public IActionResult PublicKey([FromServices] IOptions<VapidKeysOption> opt)
@@ -33,10 +32,9 @@ namespace Api.Areas.EndUser.Controllers
 
         // 🔹 ثبت Subscription
         [HttpPost("subscribe")]
-        [AllowAnonymous]   // ✅ به جای Authorize
+        [AllowAnonymous]
         public async Task<IActionResult> Subscribe([FromBody] PushSubscribeDto dto)
         {
-            // دیگه userId از توکن نمی‌گیریم
             var res = await _pushSubscriptionService.SubscribeAsync(null, dto);
             return Ok(res);
         }

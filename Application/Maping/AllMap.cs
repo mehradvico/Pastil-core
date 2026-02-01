@@ -62,6 +62,8 @@ using Application.Services.Content.PostProductSrv.Dto;
 using Application.Services.Content.PostSrv.Dto;
 using Application.Services.Content.StaticPageSrv.Dto;
 using Application.Services.Content.StoryGroupSrv.Dto;
+using Application.Services.Content.StoryItemSrv.Dto;
+using Application.Services.Content.StoryUserLikeSrv.Dto;
 using Application.Services.Dto;
 using Application.Services.Filing.FileSrv.Dto;
 using Application.Services.Filing.PictureSrv.Dto;
@@ -634,6 +636,9 @@ namespace Application.Maping
             //Story
             CreateMap<StoryGroup, StoryGroupDto>().ReverseMap();
             CreateMap<StoryGroup, StoryGroupVDto>();
+            CreateMap<StoryItem, StoryItemDto>().ReverseMap();
+            CreateMap<StoryItem, StoryItemVDto>();
+            CreateMap<StoryUserLike, StoryUserLikeDto>().ReverseMap();
             //Story End ----------------------------------------------
 
 

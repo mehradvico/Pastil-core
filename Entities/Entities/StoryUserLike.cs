@@ -8,11 +8,10 @@ using System.Threading.Tasks;
 
 namespace Entities.Entities
 {
-    public class UserStoryLike : Id_Field
+    public class StoryUserLike : Id_Field
     { 
         public long StoryItemId { get; set; }
         public long UserId { get; set; }
-        public bool IsLiked { get; set; }
 
         public StoryItem StoryItem { get; set; }
         public User User { get; set; }

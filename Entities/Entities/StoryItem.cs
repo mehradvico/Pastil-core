@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Entities.Entities
 {
-    public class StoryItem : Name_Field
+    public class StoryItem : Id_Field
     {
 
         public string Url { get; set; }
@@ -27,6 +27,7 @@ namespace Entities.Entities
         public Picture Picture { get; set; }
         public Companion Companion { get; set; }
         public Pansion Pansion { get; set; }
-        ICollection<UserStoryLike> UserStoryLikes { get; set; }
+        public Store Store { get; set; }
+        ICollection<StoryUserLike> StoryUserLikes { get; set; }
     }
 }
