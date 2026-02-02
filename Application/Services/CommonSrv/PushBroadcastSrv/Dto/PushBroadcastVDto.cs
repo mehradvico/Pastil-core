@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Application.Services.CommonSrv.PushBroadcastSrv.Dto
 {
-    internal class PushBroadcastVDto
+    public class PushBroadcastVDto
     {
+        public int Sent { get; set; }
+        public int Failed { get; set; }
     }
 }

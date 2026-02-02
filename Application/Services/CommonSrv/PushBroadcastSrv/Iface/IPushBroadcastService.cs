@@ -10,6 +10,7 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv.Iface
 {
     public interface IPushBroadcastService
     {
-        Task<BaseResultDto> BroadcastAsync(PushBroadcastDto dto);
+        Task<BaseResultDto> BroadcastAsync(PushBroadcastDto req);
     }
+
 }

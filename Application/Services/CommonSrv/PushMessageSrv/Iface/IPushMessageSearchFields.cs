@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Application.Services.CommonSrv.PushBroadcastSrv.Iface
 {
-    public interface IPushBroadcastSearchFields
+    public interface IPushMessageSearchFields
     {
+        public long? PushMessageTypeId { get; set; }
+
     }
 }

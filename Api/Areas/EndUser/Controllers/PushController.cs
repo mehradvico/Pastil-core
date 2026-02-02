@@ -30,7 +30,6 @@ namespace Api.Areas.EndUser.Controllers
             return Ok(new { publicKey = opt.Value.PublicKey });
         }
 
-        // 🔹 ثبت Subscription
         [HttpPost("subscribe")]
         [AllowAnonymous]
         public async Task<IActionResult> Subscribe([FromBody] PushSubscribeDto dto)

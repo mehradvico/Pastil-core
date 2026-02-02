@@ -3563,6 +3563,61 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PushBroadcastController">
+            <summary>
+            مدیریت ارسال پیام پوش
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PushBroadcastController.Post(Application.Services.CommonSrv.PushBroadcastSrv.Dto.PushBroadcastDto)">
+            <summary>
+            ارسال آیتم
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PushMessageController">
+            <summary>
+            مدیریت پیام های پوش
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PushMessageController.#ctor(Application.Services.CommonSrv.PushBroadcastSrv.Iface.IPushMessageService)">
+            <summary>
+            مدیریت پیام های پوش
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PushMessageController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PushMessageController.Get(Application.Services.CommonSrv.PushBroadcastSrv.Dto.PushMessageInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PushMessageController.Post(Application.Services.CommonSrv.PushBroadcastSrv.Dto.PushMessageDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PushMessageController.Put(Application.Services.CommonSrv.PushBroadcastSrv.Dto.PushMessageDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PushMessageController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.RebateController">
              <summary>
              مدیریت کد تخفیف

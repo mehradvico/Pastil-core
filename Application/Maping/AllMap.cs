@@ -17,6 +17,8 @@ using Application.Services.CommonSrv.CitySrv.Dto;
 using Application.Services.CommonSrv.CommentLikeSrv.Dto;
 using Application.Services.CommonSrv.CountrySrv.Dto;
 using Application.Services.CommonSrv.NeighborhoodSrv.Dto;
+using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
+using Application.Services.CommonSrv.PushBroadcastSrv.Dto.Application.Services.CommonSrv.PushBroadcastSrv.Dto;
 using Application.Services.CommonSrv.StateSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
@@ -591,6 +593,13 @@ namespace Application.Maping
             CreateMap<Point, PointDto>();
             CreateMap<PointDto, Point>().ForMember(s => s.SRID, o => o.MapFrom(m => 4326));
             //Point End ----------------------------------------------
+
+
+            //Push
+            CreateMap<PushMessage, PushMessageDto>().ReverseMap();
+            CreateMap<PushMessage, PushMessageVDto>();
+            CreateMap<PushMessage, PushPayloadDto>().ForMember(d => d.Icon, o => o.MapFrom(s => s.Picture.Url));
+            //Push End ----------------------------------------------
 
 
             //Rebate 
