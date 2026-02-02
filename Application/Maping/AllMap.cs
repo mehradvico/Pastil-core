@@ -18,7 +18,6 @@ using Application.Services.CommonSrv.CommentLikeSrv.Dto;
 using Application.Services.CommonSrv.CountrySrv.Dto;
 using Application.Services.CommonSrv.NeighborhoodSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
-using Application.Services.CommonSrv.PushBroadcastSrv.Dto.Application.Services.CommonSrv.PushBroadcastSrv.Dto;
 using Application.Services.CommonSrv.StateSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;

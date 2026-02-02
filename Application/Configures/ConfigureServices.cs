@@ -479,6 +479,7 @@ public static class ConfigureServices
         services.AddScoped<IUserPetPictureService, UserPetPictureService>();
         services.AddScoped<IPushSubscriptionService, PushSubscriptionService>();
         services.AddScoped<IPushMessageService, PushMessageService>();
+        services.AddScoped<IPushBroadcastService, PushBroadcastService>();
         services.AddScoped<IStoryGroupService, StoryGroupService>();
         services.AddScoped<IStoryItemService, StoryItemService>();
         services.AddScoped<IStoryUserLikeService, StoryUserLikeService>();

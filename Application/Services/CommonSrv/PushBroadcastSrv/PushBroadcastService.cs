@@ -1,6 +1,5 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
-using Application.Services.CommonSrv.PushBroadcastSrv.Dto.Application.Services.CommonSrv.PushBroadcastSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using AutoMapper;
