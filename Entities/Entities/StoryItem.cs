@@ -17,14 +17,19 @@ namespace Entities.Entities
         public long? PansionId { get; set; }
         public int Priority { get; set; }
         public long StoryGroupId { get; set; }
-        public long PictureId { get; set; }
+        public long? PictureId { get; set; }
+        public long? FileId { get; set; }
         public int ViewCount { get; set; }
         public int LikeCount { get; set; }
         public bool Active { get; set; }
+        public int DayCount { get; set; }
+        public DateTime CreateDate { get; set; }
+        public DateTime ExpireDate { get; set; }
         public bool Deleted { get; set; }
 
         public StoryGroup StoryGroup { get; set; }
         public Picture Picture { get; set; }
+        public File File { get; set; }
         public Companion Companion { get; set; }
         public Pansion Pansion { get; set; }
         public Store Store { get; set; }

@@ -18,7 +18,9 @@ namespace Application.Services.Content.StoryItemSrv.Dto
         public long? PansionId { get; set; }
         public int Priority { get; set; }
         public long StoryGroupId { get; set; }
-        public long PictureId { get; set; }
+        public long? PictureId { get; set; }
+        public long? FileId { get; set; }
+        public int DayCount { get; set; }
         public bool Active { get; set; }
     }
 }

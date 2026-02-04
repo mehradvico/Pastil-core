@@ -349,6 +349,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Please Enter Day Count.
+        /// </summary>
+        public static string PleaseEnterDayCount {
+            get {
+                return ResourceManager.GetString("PleaseEnterDayCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please enter either mobile or email.
         /// </summary>
         public static string PleaseEnterEitherMobileOrEmail {
@@ -552,6 +561,15 @@ namespace Resource {
         public static string PleaseSpecifyFirstVariationValue {
             get {
                 return ResourceManager.GetString("PleaseSpecifyFirstVariationValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please Upload A Media.
+        /// </summary>
+        public static string PleaseUploadAMedia {
+            get {
+                return ResourceManager.GetString("PleaseUploadAMedia", resourceCulture);
             }
         }
         

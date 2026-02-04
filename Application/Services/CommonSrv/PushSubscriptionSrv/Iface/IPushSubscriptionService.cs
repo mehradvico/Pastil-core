@@ -11,5 +11,6 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv.Iface
     public interface IPushSubscriptionService
     {
         Task<BaseResultDto> SubscribeAsync(long? userId, PushSubscribeDto dto);
+        Task<BaseResultDto> AttachAsync(long userId, Guid deviceKey);
     }
 }

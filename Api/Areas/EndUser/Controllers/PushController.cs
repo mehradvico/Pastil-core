@@ -37,5 +37,14 @@ namespace Api.Areas.EndUser.Controllers
             var res = await _pushSubscriptionService.SubscribeAsync(null, dto);
             return Ok(res);
         }
+
+        [HttpPost("attach")]
+        [Authorize]
+        public async Task<IActionResult> Attach([FromBody] PushAttachDto dto)
+        {
+            var userId = _currentUser.CurrentUser.UserId;
+            var res = await _pushSubscriptionService.AttachAsync(userId, dto.DeviceKey);
+            return Ok(res);
+        }
     }
 }

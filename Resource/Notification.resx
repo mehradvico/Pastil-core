@@ -471,4 +471,10 @@
   <data name="ThisCompanionHasNoActivityInYourZone" xml:space="preserve">
     <value>This Companion Has No Activity In Your Zone</value>
   </data>
+  <data name="PleaseUploadAMedia" xml:space="preserve">
+    <value>Please Upload A Media</value>
+  </data>
+  <data name="PleaseEnterDayCount" xml:space="preserve">
+    <value>Please Enter Day Count</value>
+  </data>
 </root>

@@ -11,7 +11,8 @@ namespace Entities.Entities
     public class PushSubscription : Id_Field
     {
         public long? UserId { get; set; }
-        public User User { get; set; }
+
+        public Guid? DeviceKey { get; set; }
 
         public string Endpoint { get; set; }
         public string P256dh { get; set; }
@@ -21,5 +22,8 @@ namespace Entities.Entities
         public DateTime CreateDate { get; set; }
         public DateTime? LastSeen { get; set; }
         public bool IsActive { get; set; }
+
+        public User User { get; set; }
     }
+
 }

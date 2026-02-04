@@ -1,6 +1,8 @@
 ﻿using Application.Common.Dto.Field;
 using Application.Services.CompanionSrvs.CompanionSrv.Dto;
 using Application.Services.Content.StoryGroupSrv.Dto;
+using Application.Services.Content.StoryUserLikeSrv.Dto;
+using Application.Services.Filing.FileSrv.Dto;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
 using Entities.Entities;
@@ -22,15 +24,18 @@ namespace Application.Services.Content.StoryItemSrv.Dto
         public long? PansionId { get; set; }
         public int Priority { get; set; }
         public long StoryGroupId { get; set; }
-        public long PictureId { get; set; }
+        public long? PictureId { get; set; }
+        public long? FileId { get; set; }
         public int ViewCount { get; set; }
         public int LikeCount { get; set; }
+        public int DayCount { get; set; }
+        public DateTime CreateDate { get; set; }
         public bool Active { get; set; }
 
         public StoryGroupVDto StoryGroup { get; set; }
         public PictureVDto Picture { get; set; }
+        public FileVDto File { get; set; }
         public CompanionMinVDto Companion { get; set; }
         public PansionMinVDto Pansion { get; set; }
-        //ICollection<UserStoryLike> UserStoryLikes { get; set; }
     }
 }

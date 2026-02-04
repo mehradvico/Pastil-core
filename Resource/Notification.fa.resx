@@ -471,4 +471,10 @@
   <data name="ThisCompanionHasNoActivityInYourZone" xml:space="preserve">
     <value>این کلینیک در محدوده آدرس شما فعالیت ندارد</value>
   </data>
+  <data name="PleaseUploadAMedia" xml:space="preserve">
+    <value>لطفا یک تصویر یا ویذیو آپلود کنید</value>
+  </data>
+  <data name="PleaseEnterDayCount" xml:space="preserve">
+    <value>لطفا تعداد روز نمایش را وارد کنید</value>
+  </data>
 </root>

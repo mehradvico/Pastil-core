@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Persistence.Context;
@@ -12,9 +13,11 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260203200401_mig_updatesubscribe")]
+    partial class mig_updatesubscribe
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -5025,20 +5028,8 @@ namespace Persistence.Migrations
                     b.Property<long?>("CompanionId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("DayCount")
-                        .HasColumnType("int");
-
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
-
-                    b.Property<DateTime>("ExpireDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<long?>("FileId")
-                        .HasColumnType("bigint");
 
                     b.Property<int>("LikeCount")
                         .HasColumnType("int");
@@ -5046,7 +5037,7 @@ namespace Persistence.Migrations
                     b.Property<long?>("PansionId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("PictureId")
+                    b.Property<long>("PictureId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("Priority")
@@ -5067,8 +5058,6 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanionId");
-
-                    b.HasIndex("FileId");
 
                     b.HasIndex("PansionId");
 
@@ -8198,17 +8187,15 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CompanionId");
 
-                    b.HasOne("Entities.Entities.File", "File")
-                        .WithMany()
-                        .HasForeignKey("FileId");
-
                     b.HasOne("Entities.Entities.PansionField.Pansion", "Pansion")
                         .WithMany()
                         .HasForeignKey("PansionId");
 
                     b.HasOne("Entities.Entities.Picture", "Picture")
                         .WithMany()
-                        .HasForeignKey("PictureId");
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Entities.Entities.Store", "Store")
                         .WithMany()
@@ -8221,8 +8208,6 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Companion");
-
-                    b.Navigation("File");
 
                     b.Navigation("Pansion");
 
