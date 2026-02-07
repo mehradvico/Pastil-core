@@ -1,4 +1,6 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Enumerable;
+using Application.Common.Enumerable.Code;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
@@ -42,7 +44,11 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
             var payloadDto = _mapper.Map<PushPayloadDto>(msg);
             var payload = JsonSerializer.Serialize(payloadDto);
 
-            var subs = await _context.Set<Entities.Entities.PushSubscription>().Where(x => x.IsActive).ToListAsync();
+            var subsQuery = _context.Set<Entities.Entities.PushSubscription>().Include(x => x.User).Where(x => x.IsActive);
+
+            subsQuery = ApplyTypeFilter(subsQuery, (PushMessageTypeEnum)msg.PushMessageTypeId);
+
+            var subs = await subsQuery.ToListAsync();
 
             int sent = 0, failed = 0;
             var toDelete = new List<Entities.Entities.PushSubscription>();
@@ -64,19 +70,43 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
             }
 
             if (toDelete.Count > 0)
-            {
                 _context.Set<Entities.Entities.PushSubscription>().RemoveRange(toDelete);
-            }
 
             await _context.SaveChangesAsync();
-            return new BaseResultDto<PushBroadcastVDto>(true, new PushBroadcastVDto{Sent = sent, Failed = failed});
+            return new BaseResultDto<PushBroadcastVDto>(true, new PushBroadcastVDto { Sent = sent, Failed = failed });
         }
 
-        private static async Task<bool> TrySendAsync(
-            WebPushClient client,
-            VapidDetails vapid,
-            string payload,
-            Entities.Entities.PushSubscription s)
+        private static IQueryable<Entities.Entities.PushSubscription> ApplyTypeFilter(IQueryable<Entities.Entities.PushSubscription> query, PushMessageTypeEnum type)
+        {
+            switch (type)
+            {
+                case PushMessageTypeEnum.PushMessageType_All:
+                    return query;
+
+                case PushMessageTypeEnum.PushMessageType_Admin:
+                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Admin);
+
+                case PushMessageTypeEnum.PushMessageType_Companion:
+                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Companion);
+
+                case PushMessageTypeEnum.PushMessageType_Store:
+                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Store);
+
+                case PushMessageTypeEnum.PushMessageType_Operator:
+                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Operator);
+
+                case PushMessageTypeEnum.PushMessageType_EndUser:
+                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Customer);
+
+                case PushMessageTypeEnum.PushMessageType_Pansion:
+                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Companion);
+
+                default:
+                    return query;
+            }
+        }
+
+        private static async Task<bool> TrySendAsync(WebPushClient client, VapidDetails vapid, string payload, Entities.Entities.PushSubscription s)
         {
             try
             {

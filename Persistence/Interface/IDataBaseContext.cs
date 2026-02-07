@@ -145,6 +145,10 @@ namespace Persistence.Interface
         public DbSet<StoryItem> StoryItems { get; set; }
         public DbSet<StoryUserLike> StoryUserLikes { get; set; }
         public DbSet<PushMessage> PushMessages { get; set; }
+        public DbSet<PushPattern> PushPatterns { get; set; }
+        public DbSet<PushNotification> PushNotifications { get; set; }
+        public DbSet<PushSetting> PushSettings { get; set; }
+        public DbSet<PushType> PushTypes { get; set; }
 
         DbSet<TEntity> Set<TEntity>() where TEntity : class;
         EntityEntry Entry(object entity);

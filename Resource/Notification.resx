@@ -153,9 +153,6 @@
   <data name="GoldAccountNowIsAvailable" xml:space="preserve">
     <value>Gold Account Now Is Available</value>
   </data>
-  <data name="HaveBeenReserved" xml:space="preserve">
-    <value>Have Been Reserved</value>
-  </data>
   <data name="InsufficientFunds" xml:space="preserve">
     <value>Insufficient funds</value>
   </data>
@@ -476,5 +473,14 @@
   </data>
   <data name="PleaseEnterDayCount" xml:space="preserve">
     <value>Please Enter Day Count</value>
+  </data>
+  <data name="InvalidUser" xml:space="preserve">
+    <value>Invalid User</value>
+  </data>
+  <data name="HaveBeenReserved" xml:space="preserve">
+    <value>Have Been Reserved</value>
+  </data>
+  <data name="InvalidDeviceKey" xml:space="preserve">
+    <value>Invalid Device Key</value>
   </data>
 </root>

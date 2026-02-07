@@ -13,6 +13,7 @@ namespace Application.Common.Enumerable.Code
         PushMessageType_Pansion = 10101,
         PushMessageType_EndUser = 10102,
         PushMessageType_Store = 10103,
-        PushMessageType_Operator = 10104
+        PushMessageType_Operator = 10104,
+        PushMessageType_All = 10105
     }
 }

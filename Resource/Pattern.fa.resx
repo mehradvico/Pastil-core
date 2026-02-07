@@ -118,8 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AmountsLessT1CannotPaid" xml:space="preserve">
-    <value>مبلغ کمتر از {0} تومان قابل پرداخت نیست
-</value>
+    <value>مبلغ کمتر از {0} تومان قابل پرداخت نیست</value>
   </data>
   <data name="CourseT1IsPrerequisiteForThisCourse" xml:space="preserve">
     <value>دوره ({0}) پیش نیاز این دوره میباشد</value>
@@ -142,10 +141,43 @@
   <data name="ProductOrderTrakingCode" xml:space="preserve">
     <value>{0} با شماره پیگیری {1}</value>
   </data>
+  <data name="PushCancelReserveCompanion" xml:space="preserve">
+    <value>مشتری {0} رزرو {1} خود را لغو کرد</value>
+  </data>
+  <data name="PushCancelReserveUser" xml:space="preserve">
+    <value>{0} عزیز، رزرو شما برای {1} لغو شد</value>
+  </data>
+  <data name="PushCompleteReserveUser" xml:space="preserve">
+    <value>{0} عزیز، رزرو شما با موفقیت تکمیل شد</value>
+  </data>
+  <data name="PushProccessOrderUser" xml:space="preserve">
+    <value>{0} عزیز، سفارش شما با شماره {1} در حال پردازش است.</value>
+  </data>
+  <data name="PushRegisterReserveCompanion" xml:space="preserve">
+    <value>شما یک رزرو از طرف {0} برای {1} دارید</value>
+  </data>
+  <data name="PushRegisterReserveUser" xml:space="preserve">
+    <value>{0} عزیز، {1} برای پت شما رزرو شد</value>
+  </data>
+  <data name="PushSentOrderUser" xml:space="preserve">
+    <value>{0} عزیز، سفارش شما با شماره {1} ارسال شد.</value>
+  </data>
+  <data name="PushSignInUser" xml:space="preserve">
+    <value> خوش برگشتی {0} عزیز</value>
+  </data>
+  <data name="PushSignUpUser" xml:space="preserve">
+    <value>به پاستیل خوش اومدی {0} عزیز</value>
+  </data>
+  <data name="Push_Title" xml:space="preserve">
+    <value>پاستیل</value>
+  </data>
   <data name="RebateMinCartPrice" xml:space="preserve">
     <value>حداقل مبلغ سفارش باید {0} باشد</value>
   </data>
   <data name="WrongVrifyCodeCount" xml:space="preserve">
     <value>به دلیل ورود بیش از سه بار کد اشتباه امکان ارسال مجدد تا  {0} دقیقه بعد فراهم نیست</value>
+  </data>
+  <data name="YouCanBuyUpToT1Product" xml:space="preserve">
+    <value>شما می توانید حداکثر {0} عدد از این محصول را خریداری کنید</value>
   </data>
 </root>

@@ -4,6 +4,8 @@
     {
         Customer = 1,
         Admin = 2,
-        Oprator = 3
+        Companion = 3,
+        Operator = 4,
+        Store = 5
     }
 }

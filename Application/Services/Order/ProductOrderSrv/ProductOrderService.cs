@@ -7,6 +7,7 @@ using Application.Common.Helpers.Iface;
 using Application.Common.Service;
 using Application.Services.Accounting.UserProductSrv.Iface;
 using Application.Services.Accounting.UserSrv.Iface;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.Order.ProductOrderOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
@@ -14,6 +15,7 @@ using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.ProductSrvs.ProductSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
+using Application.Services.Setting.CodeSrv;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
 using Application.Services.Setting.NoticeSrv.Iface;
@@ -42,8 +44,10 @@ namespace Application.Services.Order.ProductOrderSrv
         private readonly IAdminSettingHelper _adminSettingHelperService;
         private readonly IUserProductService _userProductService;
         private readonly INoticeService _notificationService;
+        private readonly IPushNotificationService _pushNotificationService;
+        private readonly ICodeService _codeService;
 
-        public ProductOrderService(IDataBaseContext _context, IUserProductService userProductService, INoticeService notificationService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IWalletService walletService, IUserService userService, IProductService productService, IRebateService rebateService, IMessageSenderService messageSenderService) : base(_context, mapper)
+        public ProductOrderService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserProductService userProductService, INoticeService notificationService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IWalletService walletService, IUserService userService, IProductService productService, IRebateService rebateService, IMessageSenderService messageSenderService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -55,6 +59,8 @@ namespace Application.Services.Order.ProductOrderSrv
             this._adminSettingHelperService = adminSettingHelper;
             this._userProductService = userProductService;
             this._notificationService = notificationService;
+            this._pushNotificationService = pushNotificationService;
+            this._codeService = codeService;
         }
         public async Task<BaseResultDto> FindAsyncVDto(string id)
         {
@@ -215,6 +221,7 @@ namespace Application.Services.Order.ProductOrderSrv
             string nameText = string.Format("{0}_{1}", productOrder.User.FirstName, productOrder.User.LastName).Replace(" ", "_");
 
             string bonusCode = productOrder.BonusCode;
+
             if (!string.IsNullOrEmpty(bonusCode))
             {
                 await AddBonusAmountToWalletAsync(productOrder);
@@ -222,7 +229,8 @@ namespace Application.Services.Order.ProductOrderSrv
 
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
-            await _notificationService.InsertNoticeAsync(long.Parse(productOrder.Id), NoticeTypeEnum.NotifType_UserSignUp, NoticeUserTypeEnum.NoticeUserType_User);
+            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: productOrder.UserId, token1: nameText, token2: productOrder.Id);
+            await _notificationService.InsertNoticeAsync(long.Parse(productOrder.Id), NoticeTypeEnum.NotifType_UserRegisterOrder, NoticeUserTypeEnum.NoticeUserType_User);
 
             foreach (var productOrderStore in productOrder.ProductOrderStores)
             {
@@ -239,6 +247,16 @@ namespace Application.Services.Order.ProductOrderSrv
             var item = await _context.ProductOrders.AsTracking().Include(s => s.User).FirstOrDefaultAsync(s => s.Id == dto.Id);
             item.ProductOrderStatus = null;
             item.ProductOrderStatusId = dto.ProductOrderStatusId;
+            var statusProccess = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Proccess.ToString());
+            var statusSend = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Send.ToString());
+            if (dto.ProductOrderStatusId == statusProccess)
+            {
+                await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
+            }
+            if (dto.ProductOrderStatusId == statusSend)
+            {
+                await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSentOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
+            }
             _context.ProductOrders.Update(item);
             _context.SaveChanges();
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderChangeStatus, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: item.User.FirstName, token2: item.Id);

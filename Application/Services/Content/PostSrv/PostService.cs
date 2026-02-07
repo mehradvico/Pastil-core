@@ -268,7 +268,7 @@ namespace Application.Services.Content.PostSrv
             {
 
                 var orginal = _context.Posts.AsTracking().FirstOrDefault(p => p.Id == dto.Id);
-                if (_currentUserHelper.CurrentUser.RoleEnum == RoleEnum.Oprator.ToString())
+                if (_currentUserHelper.CurrentUser.RoleEnum == RoleEnum.Operator.ToString())
                 {
                     if (orginal.UserId != _currentUserHelper.CurrentUser.UserId)
                     {
@@ -444,7 +444,7 @@ namespace Application.Services.Content.PostSrv
             try
             {
                 var item = _context.Posts.Include(s => s.Parent).Include(s => s.Children).FirstOrDefault(s => s.Id == id);
-                if (_currentUserHelper.CurrentUser.RoleEnum == RoleEnum.Oprator.ToString())
+                if (_currentUserHelper.CurrentUser.RoleEnum == RoleEnum.Operator.ToString())
                 {
                     if (item.UserId != _currentUserHelper.CurrentUser.UserId)
                     {

@@ -153,17 +153,14 @@
   <data name="GoldAccountNowIsAvailable" xml:space="preserve">
     <value>اکانت طلایی هم اکنون موجود است</value>
   </data>
-  <data name="HaveBeenReserved" xml:space="preserve">
-    <value>قبلا رزرو شده است</value>
-  </data>
   <data name="InsufficientFunds" xml:space="preserve">
-    <value>موجودی کافی نیست.</value>
+    <value>موجودی کافی نیست</value>
   </data>
   <data name="InsufficientInventory" xml:space="preserve">
     <value>موجودی کافی نیست</value>
   </data>
   <data name="InvalidBonusCode" xml:space="preserve">
-    <value>کد معرف نامعتبر است.</value>
+    <value>کد معرف نامعتبر است</value>
   </data>
   <data name="InvalidCode" xml:space="preserve">
     <value>کد اشتباه است</value>
@@ -476,5 +473,14 @@
   </data>
   <data name="PleaseEnterDayCount" xml:space="preserve">
     <value>لطفا تعداد روز نمایش را وارد کنید</value>
+  </data>
+  <data name="InvalidUser" xml:space="preserve">
+    <value>کاربر نامعتبر است</value>
+  </data>
+  <data name="HaveBeenReserved" xml:space="preserve">
+    <value>قبلا رزرو شده است</value>
+  </data>
+  <data name="InvalidDeviceKey" xml:space="preserve">
+    <value>کلید دیوایس نامعتبر است</value>
   </data>
 </root>

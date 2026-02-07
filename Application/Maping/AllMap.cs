@@ -18,6 +18,7 @@ using Application.Services.CommonSrv.CommentLikeSrv.Dto;
 using Application.Services.CommonSrv.CountrySrv.Dto;
 using Application.Services.CommonSrv.NeighborhoodSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
+using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using Application.Services.CommonSrv.StateSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
@@ -598,6 +599,10 @@ namespace Application.Maping
             CreateMap<PushMessage, PushMessageDto>().ReverseMap();
             CreateMap<PushMessage, PushMessageVDto>();
             CreateMap<PushMessage, PushPayloadDto>().ForMember(d => d.Icon, o => o.MapFrom(s => s.Picture.Url));
+            CreateMap<PushSubscribeDto, PushSubscription>().ForMember(d => d.P256dh, o => o.MapFrom(s => s.Keys.P256dh)).ForMember(d => d.Auth, o => o.MapFrom(s => s.Keys.Auth))
+                     .ForMember(d => d.Endpoint, o => o.MapFrom(s => s.Endpoint)).ForMember(d => d.UserAgent, o => o.MapFrom(s => s.UserAgent))
+                     .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.UserId, o => o.Ignore()).ForMember(d => d.DeviceKey, o => o.Ignore())
+                     .ForMember(d => d.CreateDate, o => o.Ignore()).ForMember(d => d.LastSeen, o => o.Ignore()).ForMember(d => d.IsActive, o => o.Ignore());
             //Push End ----------------------------------------------
 
 

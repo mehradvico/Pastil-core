@@ -141,6 +141,36 @@
   <data name="ProductOrderTrakingCode" xml:space="preserve">
     <value>{0} با شماره پیگیری {1}</value>
   </data>
+  <data name="PushCancelReserveCompanion" xml:space="preserve">
+    <value>Customer {0} canceled their {1} reservation</value>
+  </data>
+  <data name="PushCancelReserveUser" xml:space="preserve">
+    <value>Dear {0}, Your reservation for {1} has been canceled</value>
+  </data>
+  <data name="PushCompleteReserveUser" xml:space="preserve">
+    <value>Dear {0}, Your reservation has been completed</value>
+  </data>
+  <data name="PushProccessOrderUser" xml:space="preserve">
+    <value>Dear {0}, Your Order with order number {1} is Processing.</value>
+  </data>
+  <data name="PushRegisterReserveCompanion" xml:space="preserve">
+    <value>You have a new reservation from {0} for {1}</value>
+  </data>
+  <data name="PushRegisterReserveUser" xml:space="preserve">
+    <value>Dear {0}, {1} has been reserved for your pet.</value>
+  </data>
+  <data name="PushSentOrderUser" xml:space="preserve">
+    <value>Dear {0}, Your order #{1} has been sent</value>
+  </data>
+  <data name="PushSignInUser" xml:space="preserve">
+    <value>Dear {0}, Welcome Back to Pastil</value>
+  </data>
+  <data name="PushSignUpUser" xml:space="preserve">
+    <value>Dear {0}, Welcome to Pastil</value>
+  </data>
+  <data name="Push_Title" xml:space="preserve">
+    <value>Pastil</value>
+  </data>
   <data name="RebateMinCartPrice" xml:space="preserve">
     <value>حداقل مبلغ سفارش باید {0} باشد</value>
   </data>

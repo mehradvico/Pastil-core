@@ -4732,1015 +4732,6 @@
              حذف آیتم 
             </summary>  
         </member>
-        <member name="T:Api.Areas.Common.Controllers.CityController">
-             <summary>
-             مدیریت شهرها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.CityController.#ctor(Application.Services.CommonSrv.CitySrv.Iface.ICityService)">
-             <summary>
-             مدیریت شهر ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.CityController.Get">
-            <summary>
-             همه شهرها با استان
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.CityController.Get(Application.Services.CommonSrv.CitySrv.Dto.CityInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="T:Api.Areas.Common.Controllers.CountryController">
-             <summary>
-             مدیریت کشورها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.CountryController.#ctor(Application.Services.CommonSrv.CountrySrv.Iface.ICountryService)">
-             <summary>
-             مدیریت کشورها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.CountryController.Get(Application.Common.Dto.Input.BaseInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="T:Api.Areas.Common.Controllers.FileController">
-             <summary>
-             فایل
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.FileController.#ctor(Application.Services.Filing.FileSrv.Iface.IFileService)">
-            <summary>
-            فایل
-            </summary>
-                   
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.FileController.Get(System.Int64)">
-            <summary>
-             دریافت 
-            </summary>
-        </member>
-        <member name="T:Api.Areas.Common.Controllers.PictureController">
-             <summary>
-             مدیا
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.PictureController.#ctor(Application.Services.Filing.PictureSrv.Iface.IPictureService)">
-            <summary>
-            مدیا
-            </summary>
-                   
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.PictureController.Get(System.Int64)">
-            <summary>
-             دریافت 
-            </summary>
-        </member>
-        <member name="T:Api.Areas.Common.Controllers.StateController">
-             <summary>
-             مدیریت استانها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.StateController.#ctor(Application.Services.CommonSrv.StateSrv.Iface.IStateService)">
-             <summary>
-             مدیریت استانها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Common.Controllers.StateController.Get(Application.Services.CommonSrv.StateSrv.Dto.StateInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceController">
-            <summary>
-            مدیریت خدمات همکاران 
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Get(Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto.CompanionAssistanceInputDto)">
-            <summary>
-            جستجو 
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه خدمات همکار</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Post(Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto.CompanionAssistanceDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Put(Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto.CompanionAssistanceDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Delete(System.Int64)">
-            <summary>
-             حذف آیتم 
-            </summary>  
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistancePackageController">
-            <summary>
-            مدیریت پکیج های خدماتی همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Get(Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto.CompanionAssistancePackageInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه پکیج خدمات همکاران</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Post(Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto.CompanionAssistancePackageDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Put(Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto.CompanionAssistancePackageDto)">
-            <summary>
-            ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Delete(System.Int64)">
-            <summary>
-            حذف آیتم 
-            </summary>  
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController">
-            <summary>
-            مدیریت تصویر پکیج ها
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.#ctor(Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Iface.ICompanionAssistancePackagePictureService,Application.Common.Interface.ICurrentUserHelper)">
-            <summary>
-            مدیریت تصویر محصول ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Get(Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Dto.CompanionAssistancePackagePictureInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Post(Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Dto.CompanionAssistancePackagePictureDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Put(Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Dto.CompanionAssistancePackagePictureDto)">
-            <summary>
-            ویرایش آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Delete(System.Int64)">
-            <summary>
-            حذف آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController">
-            <summary>
-            مدیریت زمان های خدمات همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController.Get(Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto.Dto.CompanionAssistanceTimeInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه زمان خدمات همکاران</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController.Post(Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto.CompanionAssistanceTimeUpdateListDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController.Put(Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto.CompanionAssistanceTimeDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceUserController">
-            <summary>
-            مدیریت کاربران خدمات همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Get(Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto.CompanionAssistanceUserInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Post(Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto.CompanionAssistanceUserDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Put(Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto.CompanionAssistanceUserDto)">
-            <summary>
-            ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Delete(System.Int64)">
-            <summary>
-            حذف آیتم 
-            </summary>  
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionCommentController">
-             <summary>
-             مدیریت نظرات همکاران
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionCommentController.#ctor(Application.Services.CompanionSrvs.CompanionCommentSrv.Iface.ICompanionCommentService,Application.Common.Interface.ICurrentUserHelper)">
-             <summary>
-             مدیریت نظرات همکاران
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionCommentController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id">شناسه دسته بندی</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionCommentController.Get(Application.Services.CompanionSrvs.CompanionCommentSrv.Dto.CompanionCommentInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionCommentController.Put(Application.Services.CompanionSrvs.CompanionCommentSrv.Dto.CompanionCommentDto)">
-            <summary>
-            ویرایش نظرات
-            </summary>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionInsuranceManualPayController">
-             <summary>
-              پرداخت دستی بیمه ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionInsuranceManualPayController.Put(Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv.Dto.CompanionInsurancePackageSaleManualPayDto)">
-            <summary>
-             پرداخت دستی بیمه ها
-            </summary>
-            
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionInsurancePackageController">
-            <summary>
-            مدیریت پکیج های بیمه همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Get(Application.Services.CompanionSrvs.CompanionInsurancePackageSrv.Dto.CompanionInsurancePackageInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Post(Application.Services.CompanionSrvs.CompanionInsurancePackageSrv.Dto.CompanionInsurancePackageDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Put(Application.Services.CompanionSrvs.CompanionInsurancePackageSrv.Dto.CompanionInsurancePackageDto)">
-            <summary>
-            ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Delete(System.Int64)">
-            <summary>
-            حذف آیتم 
-            </summary>  
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionInsurancePackageSaleController">
-            <summary>
-            مدیریت فروش پکیج های بیمه همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageSaleController.Get(Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv.Dto.CompanionInsurancePackageSaleInputDto)">
-            <summary>
-            جستجو 
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageSaleController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionPetController">
-            <summary>
-            مدیریت پت های همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.#ctor(Application.Services.CompanionSrvs.CompanionPetSrv.Iface.ICompanionPetService,Application.Common.Interface.ICurrentUserHelper)">
-            <summary>
-            مدیریت پت های همکاران
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Get(Application.Services.CompanionSrvs.CompanionPetSrv.Dto.CompanionPetInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Post(Application.Services.CompanionSrvs.CompanionPetSrv.Dto.CompanionPetDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Put(Application.Services.CompanionSrvs.CompanionPetSrv.Dto.CompanionPetDto)">
-            <summary>
-            ویرایش آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Delete(System.Int64)">
-            <summary>
-            حذف آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveCancelController">
-            <summary>
-            مدیریت کنسلی رزرو همکار
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCancelController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveCancelDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveChangeStateController">
-            <summary>
-            مدیریت تغییر وضعیت رزرو همکار
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveChangeStateController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveChangeStateDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveCommentController">
-            <summary>
-            مدیریت کامنت های رزرو همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.#ctor(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Iface.ICompanionReserveCommentService)">
-            <summary>
-            مدیریت کامنت های رزرو همکاران
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.Get(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Dto.CompanionReserveCommentInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveOperatorUpdateController">
-            <summary>
-            مدیریت انجام رزرو همکار
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveOperatorUpdateController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveOperatorDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveController">
-            <summary>
-            مدیریت رزرو همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveController.Get(Application.Services.CompanionSrv.CompanionReserveSrv.Dto.CompanionReserveInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه همکار</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveController.Post(Application.Services.CompanionSrv.CompanionReserveSrv.Dto.CompanionReserveDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveController.Put(Application.Services.CompanionSrv.CompanionReserveSrv.Dto.CompanionReserveDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionTypeController">
-            <summary>
-            مدیریت انواع همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.#ctor(Application.Services.CompanionSrvs.CompanionTypeSrv.Iface.ICompanionTypeService,Application.Common.Interface.ICurrentUserHelper)">
-            <summary>
-            مدیریت انواع همکاران
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Get(Application.Services.CompanionSrvs.CompanionTypeSrv.Dto.CompanionTypeInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Post(Application.Services.CompanionSrvs.CompanionTypeSrv.Dto.CompanionTypeDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Put(Application.Services.CompanionSrvs.CompanionTypeSrv.Dto.CompanionTypeDto)">
-            <summary>
-            ویرایش آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Delete(System.Int64)">
-            <summary>
-            حذف آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionUserController">
-            <summary>
-            مدیریت کاربران همکار
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.#ctor(Application.Services.CompanionSrvs.CompanionUserSrv.Iface.ICompanionUserService,Application.Common.Interface.ICurrentUserHelper)">
-            <summary>
-            مدیریت کاربران همکار
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Get(Application.Services.CompanionSrvs.CompanionUserSrv.Dto.CompanionUserInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Post(Application.Services.CompanionSrvs.CompanionUserSrv.Dto.CompanionUserDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Put(Application.Services.CompanionSrvs.CompanionUserSrv.Dto.CompanionUserDto)">
-            <summary>
-            ویرایش آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Delete(System.Int64)">
-            <summary>
-            حذف آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionUserGetMobileController">
-            <summary>
-            دریافت تلفن همراه کاربر
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionUserGetMobileController.#ctor(Application.Services.Accounting.UserSrv.Iface.IUserService)">
-            <summary>
-            دریافت تلفن همراه کاربر
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionUserGetMobileController.Get(System.String)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionZoneController">
-            <summary>
-            مدیریت محل فعالیت همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Get(Application.Services.CompanionSrvs.CompanionZoneSrv.Dto.CompanionZoneInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Post(Application.Services.CompanionSrvs.CompanionZoneSrv.Dto.CompanionZoneDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Put(Application.Services.CompanionSrvs.CompanionZoneSrv.Dto.CompanionZoneDto)">
-            <summary>
-            ویرایش آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Delete(System.Int64)">
-            <summary>
-            حذف آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.PansionActiveController">
-            <summary>
-            فعال سازی پانسیون
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionActiveController.Put(Application.Services.PansionSrvs.PansionSrv.Dto.PansionActiveDto)">
-            <summary>
-             فعال سازی آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.PansionController">
-            <summary>
-            مدیریت پانسیون
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionController.Get(Application.Services.PansionSrvs.PansionSrv.Dto.PansionInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه پانسیون</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionController.Post(Application.Services.PansionSrvs.PansionSrv.Dto.PansionDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionController.Put(Application.Services.PansionSrvs.PansionSrv.Dto.PansionDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.PansionPetController">
-            <summary>
-            مدیریت پت های پانسیون
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Get(Application.Services.PansionSrvs.PansionPetSrv.Dto.PansionPetInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه خدمات</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Post(Application.Services.PansionSrvs.PansionPetSrv.Dto.PansionPetDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Put(Application.Services.PansionSrvs.PansionPetSrv.Dto.PansionPetDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Delete(System.Int64)">
-            <summary>
-             حذف آیتم 
-            </summary>  
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.PansionPictureController">
-            <summary>
-            مدیریت تصویر پانسیون ها
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Get(Application.Services.PansionSrvs.PansionPictureSrv.Dto.PansionPictureInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Pansion(Application.Services.PansionSrvs.PansionPictureSrv.Dto.PansionPictureDto)">
-            <summary>
-            آیتم جدید
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Put(Application.Services.PansionSrvs.PansionPictureSrv.Dto.PansionPictureDto)">
-            <summary>
-            ویرایش آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Delete(System.Int64)">
-            <summary>
-            حذف آیتم
-            </summary>
-            <returns></returns>
-            
-        </member>
-        <member name="T:Api.Areas.Companion.Controllers.WeekDayController">
-            <summary>
-            مدیریت روزهای هفته
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.WeekDayController.Get(Application.Services.WeekDaySrv.WeekDaySrv.Dto.WeekDayInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.WeekDayController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه روز هفته</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Agent.Controllers.CompanionController">
-            <summary>
-            مدیریت همکاران 
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Agent.Controllers.CompanionController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه نمایندگی</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Agent.Controllers.CompanionController.Put(Application.Services.CompanionSrvs.CompanionSrv.Dto.CompanionDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Pansion.Controllers.PansionReserveCancelController">
-            <summary>
-            مدیریت کنسلی رزرو همکار
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Pansion.Controllers.PansionReserveCancelController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveCancelDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Pansion.Controllers.PansionReserveChangeStatusController">
-            <summary>
-            مدیریت تغییر وضعیت رزرو پانسیون
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Pansion.Controllers.PansionReserveChangeStatusController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveStatusDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Pansion.Controllers.PansionReserveController">
-            <summary>
-            مدیریت رزرو همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Pansion.Controllers.PansionReserveController.Get(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Pansion.Controllers.PansionReserveController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه همکار</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Driver.Controllers.DriverController">
-            <summary>
-            مدیریت رانندگان
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.DriverController.Get(Application.Services.Accounting.DriverSrv.Dto.DriverInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.DriverController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه همکار</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.DriverController.Put(Application.Services.Accounting.DriverSrv.Dto.DriverDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Driver.Controllers.ManualTripPaymentController">
-             <summary>
-              پرداخت دستی سفر ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.ManualTripPaymentController.Put(Application.Services.TripSrv.TripSrv.Dto.ManualPayTripDto)">
-            <summary>
-             پرداخت دستی سفر ها
-            </summary>
-            
-        </member>
-        <member name="T:Api.Areas.Driver.Controllers.TripChangeStatusController">
-            <summary>
-            مدیریت تغییر وضعیت سفر
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.TripChangeStatusController.Put(Application.Services.TripSrv.TripSrv.Dto.TripChangeStatusDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Driver.Controllers.TripController">
-            <summary>
-            مدیریت  سفر ها
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.TripController.Get(Application.Services.TripSrv.TripSrv.Dto.TripInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.TripController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه سفر</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Driver.Controllers.TripCurrentController">
-            <summary>
-            مدیریت  سفر ها
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.TripCurrentController.Get">
-            <summary>
-             سفر جاری 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Driver.Controllers.TripOptionController">
-            <summary>
-            مدیریت گزینه های سفر
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.TripOptionController.Get(Application.Services.TripSrv.TripOptionSrv.Dto.TripOptionInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.TripOptionController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه خدمات</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Driver.Controllers.TripStopController">
-            <summary>
-            مدیریت توقف های سفر
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.TripStopController.Get(Application.Services.TripSrv.TripStopSrv.Dto.TripStopInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.TripStopController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه خدمات</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Driver.Controllers.UpdateTripDriverStatusController">
-             <summary>
-              تغییر وضعیت راننده برای سفر
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Driver.Controllers.UpdateTripDriverStatusController.Put(Application.Services.TripSrv.TripSrv.Dto.TripDriverChangeStatusDto)">
-            <summary>
-            تغییر وضعیت راننده
-            </summary>
-        </member>
         <member name="T:Api.Areas.EndUser.Controllers.AddressController">
              <summary>
              مدیریت آدرس ها
@@ -7194,6 +6185,1015 @@
             <summary>
             آیتم جدید
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Common.Controllers.CityController">
+             <summary>
+             مدیریت شهرها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.CityController.#ctor(Application.Services.CommonSrv.CitySrv.Iface.ICityService)">
+             <summary>
+             مدیریت شهر ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.CityController.Get">
+            <summary>
+             همه شهرها با استان
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.CityController.Get(Application.Services.CommonSrv.CitySrv.Dto.CityInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Common.Controllers.CountryController">
+             <summary>
+             مدیریت کشورها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.CountryController.#ctor(Application.Services.CommonSrv.CountrySrv.Iface.ICountryService)">
+             <summary>
+             مدیریت کشورها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.CountryController.Get(Application.Common.Dto.Input.BaseInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Common.Controllers.FileController">
+             <summary>
+             فایل
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.FileController.#ctor(Application.Services.Filing.FileSrv.Iface.IFileService)">
+            <summary>
+            فایل
+            </summary>
+                   
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.FileController.Get(System.Int64)">
+            <summary>
+             دریافت 
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Common.Controllers.PictureController">
+             <summary>
+             مدیا
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.PictureController.#ctor(Application.Services.Filing.PictureSrv.Iface.IPictureService)">
+            <summary>
+            مدیا
+            </summary>
+                   
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.PictureController.Get(System.Int64)">
+            <summary>
+             دریافت 
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Common.Controllers.StateController">
+             <summary>
+             مدیریت استانها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.StateController.#ctor(Application.Services.CommonSrv.StateSrv.Iface.IStateService)">
+             <summary>
+             مدیریت استانها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.StateController.Get(Application.Services.CommonSrv.StateSrv.Dto.StateInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceController">
+            <summary>
+            مدیریت خدمات همکاران 
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Get(Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto.CompanionAssistanceInputDto)">
+            <summary>
+            جستجو 
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه خدمات همکار</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Post(Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto.CompanionAssistanceDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Put(Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto.CompanionAssistanceDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceController.Delete(System.Int64)">
+            <summary>
+             حذف آیتم 
+            </summary>  
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistancePackageController">
+            <summary>
+            مدیریت پکیج های خدماتی همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Get(Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto.CompanionAssistancePackageInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه پکیج خدمات همکاران</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Post(Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto.CompanionAssistancePackageDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Put(Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto.CompanionAssistancePackageDto)">
+            <summary>
+            ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم 
+            </summary>  
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController">
+            <summary>
+            مدیریت تصویر پکیج ها
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.#ctor(Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Iface.ICompanionAssistancePackagePictureService,Application.Common.Interface.ICurrentUserHelper)">
+            <summary>
+            مدیریت تصویر محصول ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Get(Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Dto.CompanionAssistancePackagePictureInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Post(Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Dto.CompanionAssistancePackagePictureDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Put(Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Dto.CompanionAssistancePackagePictureDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController">
+            <summary>
+            مدیریت زمان های خدمات همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController.Get(Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto.Dto.CompanionAssistanceTimeInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه زمان خدمات همکاران</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController.Post(Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto.CompanionAssistanceTimeUpdateListDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController.Put(Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto.CompanionAssistanceTimeDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceUserController">
+            <summary>
+            مدیریت کاربران خدمات همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Get(Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto.CompanionAssistanceUserInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Post(Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto.CompanionAssistanceUserDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Put(Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto.CompanionAssistanceUserDto)">
+            <summary>
+            ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistanceUserController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم 
+            </summary>  
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionCommentController">
+             <summary>
+             مدیریت نظرات همکاران
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionCommentController.#ctor(Application.Services.CompanionSrvs.CompanionCommentSrv.Iface.ICompanionCommentService,Application.Common.Interface.ICurrentUserHelper)">
+             <summary>
+             مدیریت نظرات همکاران
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionCommentController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            <param name="id">شناسه دسته بندی</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionCommentController.Get(Application.Services.CompanionSrvs.CompanionCommentSrv.Dto.CompanionCommentInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionCommentController.Put(Application.Services.CompanionSrvs.CompanionCommentSrv.Dto.CompanionCommentDto)">
+            <summary>
+            ویرایش نظرات
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionInsuranceManualPayController">
+             <summary>
+              پرداخت دستی بیمه ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionInsuranceManualPayController.Put(Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv.Dto.CompanionInsurancePackageSaleManualPayDto)">
+            <summary>
+             پرداخت دستی بیمه ها
+            </summary>
+            
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionInsurancePackageController">
+            <summary>
+            مدیریت پکیج های بیمه همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Get(Application.Services.CompanionSrvs.CompanionInsurancePackageSrv.Dto.CompanionInsurancePackageInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Post(Application.Services.CompanionSrvs.CompanionInsurancePackageSrv.Dto.CompanionInsurancePackageDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Put(Application.Services.CompanionSrvs.CompanionInsurancePackageSrv.Dto.CompanionInsurancePackageDto)">
+            <summary>
+            ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم 
+            </summary>  
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionInsurancePackageSaleController">
+            <summary>
+            مدیریت فروش پکیج های بیمه همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageSaleController.Get(Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv.Dto.CompanionInsurancePackageSaleInputDto)">
+            <summary>
+            جستجو 
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionInsurancePackageSaleController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionPetController">
+            <summary>
+            مدیریت پت های همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.#ctor(Application.Services.CompanionSrvs.CompanionPetSrv.Iface.ICompanionPetService,Application.Common.Interface.ICurrentUserHelper)">
+            <summary>
+            مدیریت پت های همکاران
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Get(Application.Services.CompanionSrvs.CompanionPetSrv.Dto.CompanionPetInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Post(Application.Services.CompanionSrvs.CompanionPetSrv.Dto.CompanionPetDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Put(Application.Services.CompanionSrvs.CompanionPetSrv.Dto.CompanionPetDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveCancelController">
+            <summary>
+            مدیریت کنسلی رزرو همکار
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCancelController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveCancelDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveChangeStateController">
+            <summary>
+            مدیریت تغییر وضعیت رزرو همکار
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveChangeStateController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveChangeStateDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveCommentController">
+            <summary>
+            مدیریت کامنت های رزرو همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.#ctor(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Iface.ICompanionReserveCommentService)">
+            <summary>
+            مدیریت کامنت های رزرو همکاران
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.Get(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Dto.CompanionReserveCommentInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveOperatorUpdateController">
+            <summary>
+            مدیریت انجام رزرو همکار
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveOperatorUpdateController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveOperatorDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveController">
+            <summary>
+            مدیریت رزرو همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveController.Get(Application.Services.CompanionSrv.CompanionReserveSrv.Dto.CompanionReserveInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه همکار</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveController.Post(Application.Services.CompanionSrv.CompanionReserveSrv.Dto.CompanionReserveDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveController.Put(Application.Services.CompanionSrv.CompanionReserveSrv.Dto.CompanionReserveDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionTypeController">
+            <summary>
+            مدیریت انواع همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.#ctor(Application.Services.CompanionSrvs.CompanionTypeSrv.Iface.ICompanionTypeService,Application.Common.Interface.ICurrentUserHelper)">
+            <summary>
+            مدیریت انواع همکاران
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Get(Application.Services.CompanionSrvs.CompanionTypeSrv.Dto.CompanionTypeInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Post(Application.Services.CompanionSrvs.CompanionTypeSrv.Dto.CompanionTypeDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Put(Application.Services.CompanionSrvs.CompanionTypeSrv.Dto.CompanionTypeDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionUserController">
+            <summary>
+            مدیریت کاربران همکار
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.#ctor(Application.Services.CompanionSrvs.CompanionUserSrv.Iface.ICompanionUserService,Application.Common.Interface.ICurrentUserHelper)">
+            <summary>
+            مدیریت کاربران همکار
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Get(Application.Services.CompanionSrvs.CompanionUserSrv.Dto.CompanionUserInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Post(Application.Services.CompanionSrvs.CompanionUserSrv.Dto.CompanionUserDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Put(Application.Services.CompanionSrvs.CompanionUserSrv.Dto.CompanionUserDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionUserGetMobileController">
+            <summary>
+            دریافت تلفن همراه کاربر
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionUserGetMobileController.#ctor(Application.Services.Accounting.UserSrv.Iface.IUserService)">
+            <summary>
+            دریافت تلفن همراه کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionUserGetMobileController.Get(System.String)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionZoneController">
+            <summary>
+            مدیریت محل فعالیت همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Get(Application.Services.CompanionSrvs.CompanionZoneSrv.Dto.CompanionZoneInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Post(Application.Services.CompanionSrvs.CompanionZoneSrv.Dto.CompanionZoneDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Put(Application.Services.CompanionSrvs.CompanionZoneSrv.Dto.CompanionZoneDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionZoneController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.PansionActiveController">
+            <summary>
+            فعال سازی پانسیون
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionActiveController.Put(Application.Services.PansionSrvs.PansionSrv.Dto.PansionActiveDto)">
+            <summary>
+             فعال سازی آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.PansionController">
+            <summary>
+            مدیریت پانسیون
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionController.Get(Application.Services.PansionSrvs.PansionSrv.Dto.PansionInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه پانسیون</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionController.Post(Application.Services.PansionSrvs.PansionSrv.Dto.PansionDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionController.Put(Application.Services.PansionSrvs.PansionSrv.Dto.PansionDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.PansionPetController">
+            <summary>
+            مدیریت پت های پانسیون
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Get(Application.Services.PansionSrvs.PansionPetSrv.Dto.PansionPetInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه خدمات</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Post(Application.Services.PansionSrvs.PansionPetSrv.Dto.PansionPetDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Put(Application.Services.PansionSrvs.PansionPetSrv.Dto.PansionPetDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPetController.Delete(System.Int64)">
+            <summary>
+             حذف آیتم 
+            </summary>  
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.PansionPictureController">
+            <summary>
+            مدیریت تصویر پانسیون ها
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Get(Application.Services.PansionSrvs.PansionPictureSrv.Dto.PansionPictureInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Pansion(Application.Services.PansionSrvs.PansionPictureSrv.Dto.PansionPictureDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Put(Application.Services.PansionSrvs.PansionPictureSrv.Dto.PansionPictureDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionPictureController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.WeekDayController">
+            <summary>
+            مدیریت روزهای هفته
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.WeekDayController.Get(Application.Services.WeekDaySrv.WeekDaySrv.Dto.WeekDayInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.WeekDayController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه روز هفته</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Agent.Controllers.CompanionController">
+            <summary>
+            مدیریت همکاران 
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Agent.Controllers.CompanionController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه نمایندگی</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Agent.Controllers.CompanionController.Put(Application.Services.CompanionSrvs.CompanionSrv.Dto.CompanionDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Pansion.Controllers.PansionReserveCancelController">
+            <summary>
+            مدیریت کنسلی رزرو همکار
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Pansion.Controllers.PansionReserveCancelController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveCancelDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Pansion.Controllers.PansionReserveChangeStatusController">
+            <summary>
+            مدیریت تغییر وضعیت رزرو پانسیون
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Pansion.Controllers.PansionReserveChangeStatusController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveStatusDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Pansion.Controllers.PansionReserveController">
+            <summary>
+            مدیریت رزرو همکاران
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Pansion.Controllers.PansionReserveController.Get(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Pansion.Controllers.PansionReserveController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه همکار</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.DriverController">
+            <summary>
+            مدیریت رانندگان
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.DriverController.Get(Application.Services.Accounting.DriverSrv.Dto.DriverInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.DriverController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه همکار</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.DriverController.Put(Application.Services.Accounting.DriverSrv.Dto.DriverDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.ManualTripPaymentController">
+             <summary>
+              پرداخت دستی سفر ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.ManualTripPaymentController.Put(Application.Services.TripSrv.TripSrv.Dto.ManualPayTripDto)">
+            <summary>
+             پرداخت دستی سفر ها
+            </summary>
+            
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripChangeStatusController">
+            <summary>
+            مدیریت تغییر وضعیت سفر
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripChangeStatusController.Put(Application.Services.TripSrv.TripSrv.Dto.TripChangeStatusDto)">
+            <summary>
+             ویرایش آیتم 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripController">
+            <summary>
+            مدیریت  سفر ها
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripController.Get(Application.Services.TripSrv.TripSrv.Dto.TripInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه سفر</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripCurrentController">
+            <summary>
+            مدیریت  سفر ها
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripCurrentController.Get">
+            <summary>
+             سفر جاری 
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripOptionController">
+            <summary>
+            مدیریت گزینه های سفر
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripOptionController.Get(Application.Services.TripSrv.TripOptionSrv.Dto.TripOptionInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripOptionController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه خدمات</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripStopController">
+            <summary>
+            مدیریت توقف های سفر
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripStopController.Get(Application.Services.TripSrv.TripStopSrv.Dto.TripStopInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripStopController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه خدمات</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.UpdateTripDriverStatusController">
+             <summary>
+              تغییر وضعیت راننده برای سفر
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.UpdateTripDriverStatusController.Put(Application.Services.TripSrv.TripSrv.Dto.TripDriverChangeStatusDto)">
+            <summary>
+            تغییر وضعیت راننده
+            </summary>
         </member>
         <member name="T:Api.Areas.Operator.Controllers.CompanionReserveController">
             <summary>

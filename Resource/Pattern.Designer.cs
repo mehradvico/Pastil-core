@@ -133,6 +133,96 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pastil.
+        /// </summary>
+        public static string Push_Title {
+            get {
+                return ResourceManager.GetString("Push_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Customer {0} canceled their {1} reservation.
+        /// </summary>
+        public static string PushCancelReserveCompanion {
+            get {
+                return ResourceManager.GetString("PushCancelReserveCompanion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, Your reservation for {1} has been canceled.
+        /// </summary>
+        public static string PushCancelReserveUser {
+            get {
+                return ResourceManager.GetString("PushCancelReserveUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, Your reservation has been completed.
+        /// </summary>
+        public static string PushCompleteReserveUser {
+            get {
+                return ResourceManager.GetString("PushCompleteReserveUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, Your Order with order number {1} is Processing..
+        /// </summary>
+        public static string PushProccessOrderUser {
+            get {
+                return ResourceManager.GetString("PushProccessOrderUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have a new reservation from {0} for {1}.
+        /// </summary>
+        public static string PushRegisterReserveCompanion {
+            get {
+                return ResourceManager.GetString("PushRegisterReserveCompanion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, {1} has been reserved for your pet..
+        /// </summary>
+        public static string PushRegisterReserveUser {
+            get {
+                return ResourceManager.GetString("PushRegisterReserveUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, Your order #{1} has been sent.
+        /// </summary>
+        public static string PushSentOrderUser {
+            get {
+                return ResourceManager.GetString("PushSentOrderUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, Welcome Back to Pastil.
+        /// </summary>
+        public static string PushSignInUser {
+            get {
+                return ResourceManager.GetString("PushSignInUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, Welcome to Pastil.
+        /// </summary>
+        public static string PushSignUpUser {
+            get {
+                return ResourceManager.GetString("PushSignUpUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to حداقل مبلغ سفارش باید {0} باشد.
         /// </summary>
         public static string RebateMinCartPrice {

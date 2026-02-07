@@ -11,12 +11,14 @@ using Application.Services.Accounting.UserSrv.Dto;
 using Application.Services.Accounting.UserSrv.Iface;
 using Application.Services.Accounting.UserTokenSrv.Dto;
 using Application.Services.Accounting.UserTokenSrv.Iface;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.Dto;
 using Application.Services.Setting.BaseDetailSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
 using Application.Services.Setting.NoticeSrv;
 using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
+using Entities.Entities;
 using Entities.Entities.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -38,8 +40,9 @@ namespace Application.Services.UserSrv
         private readonly IRegixHelper RegixHelper;
         private readonly IBaseDetailService _baseDetailService;
         private readonly IMessageSenderService _messageSenderService;
+        private readonly IPushNotificationService _pushNotificationService;
 
-        public UserService(IDataBaseContext _context, IUserTokenService userTokenSevice, IOtpVerifyService otpVerifyService, IMapper mapper, IConfiguration configuration, IRegixHelper RegixHelper, IBaseDetailService baseDetailService, IMessageSenderService messageSenderService) : base(_context, mapper)
+        public UserService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserTokenService userTokenSevice, IOtpVerifyService otpVerifyService, IMapper mapper, IConfiguration configuration, IRegixHelper RegixHelper, IBaseDetailService baseDetailService, IMessageSenderService messageSenderService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -49,6 +52,7 @@ namespace Application.Services.UserSrv
             this.RegixHelper = RegixHelper;
             this._baseDetailService = baseDetailService;
             this._messageSenderService = messageSenderService;
+            this._pushNotificationService = pushNotificationService;
         }
         public override async Task<BaseResultDto<UserDto>> InsertAsyncDto(UserDto dto)
         {
@@ -385,6 +389,7 @@ namespace Application.Services.UserSrv
 
             var token = userTokenSevice.CreateToken(item, user.IsAdmin);
             await ChangUserCartAsync(item.Id, user.CartCode);
+            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSignInUser, userId: item.Id, token1: item.FirstName);
             return new BaseResultDto<UserTokenDto>(isSuccess: true, data: token);
         }
         private UserTokenDto CreateToken(long userId)

@@ -250,6 +250,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid Device Key.
+        /// </summary>
+        public static string InvalidDeviceKey {
+            get {
+                return ResourceManager.GetString("InvalidDeviceKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid time format.
         /// </summary>
         public static string InvalidTimeFormat {
@@ -264,6 +273,15 @@ namespace Resource {
         public static string InvalidToken {
             get {
                 return ResourceManager.GetString("InvalidToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid User.
+        /// </summary>
+        public static string InvalidUser {
+            get {
+                return ResourceManager.GetString("InvalidUser", resourceCulture);
             }
         }
         

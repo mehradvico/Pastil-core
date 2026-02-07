@@ -44,6 +44,8 @@ using Application.Services.CommonSrv.NeighborhoodSrv;
 using Application.Services.CommonSrv.NeighborhoodSrv.Iface;
 using Application.Services.CommonSrv.PushBroadcastSrv;
 using Application.Services.CommonSrv.PushBroadcastSrv.Iface;
+using Application.Services.CommonSrv.PushNotificationSrv;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Iface;
 using Application.Services.CommonSrv.SearchSrv;
@@ -483,6 +485,7 @@ public static class ConfigureServices
         services.AddScoped<IStoryGroupService, StoryGroupService>();
         services.AddScoped<IStoryItemService, StoryItemService>();
         services.AddScoped<IStoryUserLikeService, StoryUserLikeService>();
+        services.AddScoped<IPushNotificationService, PushNotificationService>();
 
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));

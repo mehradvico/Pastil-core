@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Iface;
+using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
@@ -13,52 +14,48 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
     public class PushSubscriptionService : IPushSubscriptionService
     {
         private readonly IDataBaseContext _context;
+        private readonly IMapper _mapper;
 
-        public PushSubscriptionService(IDataBaseContext context)
+        public PushSubscriptionService(IDataBaseContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         public async Task<BaseResultDto> SubscribeAsync(long? userId, PushSubscribeDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Endpoint) || dto.Keys == null)
-                return new BaseResultDto(false, "Invalid payload");
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
 
             var sub = await _context.PushSubscriptions.FirstOrDefaultAsync(x => x.Endpoint == dto.Endpoint);
 
             if (sub == null)
             {
-                sub = new PushSubscription
-                {
-                    Endpoint = dto.Endpoint,
-                    P256dh = dto.Keys.P256dh,
-                    Auth = dto.Keys.Auth,
-                    UserAgent = dto.UserAgent,
-                    IsActive = true,
-                    CreateDate = DateTime.UtcNow,
-                    LastSeen = DateTime.UtcNow,
-                    UserId = userId,
-                    DeviceKey = userId.HasValue ? null : dto.DeviceKey
-                };
+                sub = _mapper.Map<PushSubscription>(dto);
+
+                sub.UserId = userId;
+                sub.DeviceKey = userId.HasValue ? null : dto.DeviceKey;
+                sub.IsActive = true;
+                sub.CreateDate = DateTime.UtcNow;
+                sub.LastSeen = DateTime.UtcNow;
 
                 _context.PushSubscriptions.Add(sub);
             }
             else
             {
-                sub.P256dh = dto.Keys.P256dh;
-                sub.Auth = dto.Keys.Auth;
-                sub.UserAgent = dto.UserAgent;
+                _mapper.Map(dto, sub);
+
                 sub.IsActive = true;
                 sub.LastSeen = DateTime.UtcNow;
 
-                if (!userId.HasValue)
-                {
-                    sub.DeviceKey = dto.DeviceKey;
-                }
-                else
+                if (userId.HasValue)
                 {
                     sub.UserId = userId.Value;
                     sub.DeviceKey = null;
+                }
+                else
+                {
+                    sub.DeviceKey = dto.DeviceKey;
                 }
             }
 
@@ -68,13 +65,16 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
 
         public async Task<BaseResultDto> AttachAsync(long userId, Guid deviceKey)
         {
-            if (userId <= 0) return new BaseResultDto(false, "Invalid user");
-            if (deviceKey == Guid.Empty) return new BaseResultDto(false, "Invalid deviceKey");
+            if (userId <= 0)
+                return new BaseResultDto(false, Resource.Notification.InvalidUser);
+
+            if (deviceKey == Guid.Empty)
+                return new BaseResultDto(false, Resource.Notification.InvalidDeviceKey);
 
             var subs = await _context.PushSubscriptions.Where(x => x.UserId == null && x.DeviceKey == deviceKey).ToListAsync();
 
             if (subs.Count == 0)
-                return new BaseResultDto(true); 
+                return new BaseResultDto(true);
 
             foreach (var s in subs)
             {
@@ -83,9 +83,10 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
                 s.IsActive = true;
                 s.LastSeen = DateTime.UtcNow;
             }
-
+            _context.PushSubscriptions.UpdateRange(subs);
             await _context.SaveChangesAsync();
             return new BaseResultDto(true);
         }
     }
+
 }

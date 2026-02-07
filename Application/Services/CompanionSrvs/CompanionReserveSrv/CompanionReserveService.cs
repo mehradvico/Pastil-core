@@ -6,6 +6,7 @@ using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
 using Application.Services.CompanionSrv.CompanionReserveSrv.Dto;
 using Application.Services.CompanionSrv.CompanionReserveSrv.Iface;
@@ -42,7 +43,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         private readonly IRebateService _rebateService;
         private readonly IWalletService _walletService;
         private readonly ICompanionReserveUserPetService _companionReserveUserPetService;
-        public CompanionReserveService(IDataBaseContext _context, IMapper mapper, ICompanionReserveUserPetService companionReserveUserPetService, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService, IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService) : base(_context, mapper)
+        private readonly IPushNotificationService _pushNotificationService;
+        public CompanionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper, ICompanionReserveUserPetService companionReserveUserPetService, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService, IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -53,7 +55,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             this._adminSettingHelper = adminSettingHelper;
             this._rebateService = rebateService;
             this._walletService = walletService;
-            this._companionReserveUserPetService = companionReserveUserPetService; 
+            this._companionReserveUserPetService = companionReserveUserPetService;
+            this._pushNotificationService = pushNotificationService;
         }
 
         public async Task<BaseResultDto<CompanionReserveAdminVDto>> FindAsyncAdminVDto(long id)
@@ -252,10 +255,14 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     var companion = _context.Companions.Include(s => s.Owner).FirstOrDefault(a => a.Id == companionAssistances.CompanionId);
                     var companionAssistanceUser = _context.CompanionAssistanceUsers.Include(s => s.User).FirstOrDefault(a => a.Id == item.CompanionAssistanceUserId);
                     var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
+                    string nameText = string.Format("{0}_{1}", booker.FirstName, booker.LastName).Replace(" ", "_");
 
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForUser, mobileReceptor: booker.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForCompanion, mobileReceptor: companion.Owner.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: booker.FirstName);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForAdmin, mobileReceptor: adminMobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: companion.Name);
+                    await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterReserveUser, userId: booker.Id, token1: item.Booker.FirstName, token2: companionAssistances.Assistance.Name);
+                    await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterReserveCompanion, userId: companion.Owner.Id , token1: companionAssistances.Assistance.Name, token2: nameText);
+
                     if (companionAssistanceUser != null)
                     {
                         await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForCompanionUser, mobileReceptor: companionAssistanceUser.User.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: companion.Name);
@@ -361,6 +368,14 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             }
             _context.CompanionReserves.Update(model);
             await _context.SaveChangesAsync();
+
+            var booker = _context.Users.FirstOrDefault(u => u.Id == model.BookerId);
+            var companionAssistances = _context.CompanionAssistances.Include(s => s.Assistance).Include(s => s.Companion).FirstOrDefault(a => a.Id == model.CompanionAssistanceId);
+            var companion = _context.Companions.Include(s => s.Owner).FirstOrDefault(a => a.Id == companionAssistances.CompanionId);
+            string nameText = string.Format("{0}_{1}", booker.FirstName, booker.LastName).Replace(" ", "_");
+
+            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushCancelReserveUser, userId: booker.Id, token1: booker.FirstName, token2: companionAssistances.Assistance.Name);
+            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushCancelReserveCompanion, userId: companion.Owner.Id, token1: companionAssistances.Assistance.Name, token2: nameText);
             await _notificationService.InsertNoticeAsync(model.Id, NoticeTypeEnum.NotifType_UserReserveCancell, NoticeUserTypeEnum.NoticeUserType_User);
             return new BaseResultDto<CompanionReserveCancelDto>(true, mapper.Map<CompanionReserveCancelDto>(model));
         }
@@ -434,6 +449,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 token2: item.PaymentPrice.ToString(),
                 token3: item.CompanionAssistance.Assistance.Name
             );
+            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushCompleteReserveUser, userId: item.Booker.Id, token1: item.Booker.FirstName);
 
             return new BaseResultDto<CompanionReserveOperatorDto>(true, mapper.Map<CompanionReserveOperatorDto>(item));
         }
@@ -491,6 +507,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 token2: item.PaymentPrice.ToString(),
                 token3: item.CompanionAssistance.Assistance.Name
             );
+            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushCompleteReserveUser, userId: item.Booker.Id, token1: item.Booker.FirstName);
 
             return new BaseResultDto<CompanionReserveOperatorDto>(true, mapper.Map<CompanionReserveOperatorDto>(item));
         }

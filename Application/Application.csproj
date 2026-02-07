@@ -70,6 +70,7 @@
     <Folder Include="Services\Accounting\DriverUserSrv\" />
     <Folder Include="Services\Accounting\UserSrv\UserSrv\" />
     <Folder Include="Services\CommonSrv\CommentSrv\Iface\" />
+    <Folder Include="Services\CommonSrv\PushNotificationSrv\Dto\" />
     <Folder Include="Services\Setting\EmailSrv\Dto\" />
   </ItemGroup>
 
