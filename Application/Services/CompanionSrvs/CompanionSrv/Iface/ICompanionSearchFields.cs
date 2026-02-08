@@ -1,4 +1,5 @@
 ﻿using Application.Common.Enumerable.Code;
+using System.Collections.Generic;
 
 namespace Application.Services.CompanionSrvs.CompanionSrv.Iface
 {
@@ -9,7 +10,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Iface
         public long? PetId  { get; set; }
         public long? CityId { get; set; }
         public long? StateId { get; set; }
-        public long? NeighborhoodId { get; set; }
+        List<long>? NeighborhoodIds { get; set; }
         public bool? Approved { get; set; }
         public bool? GoldAccount { get; set; }
         public bool? SilverAccount { get; set; }

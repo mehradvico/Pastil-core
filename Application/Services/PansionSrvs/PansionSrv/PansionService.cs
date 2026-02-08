@@ -42,7 +42,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
 
         public PansionSearchDto Search(PansionInputDto baseSearchDto)
         {
-            var model = _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.PansionComments)
+            var model = _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).ThenInclude(s => s.Neighborhood).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.PansionComments)
                 .Include(s => s.PansionPictures).ThenInclude(s => s.Picture).AsQueryable();
 
             if (baseSearchDto.Available.HasValue)
@@ -70,6 +70,13 @@ namespace Application.Services.PansionSrvs.PansionSrv
             {
                 model = model.Where(s => s.CityId == baseSearchDto.CityId.Value);
             }
+            if (baseSearchDto.NeighborhoodIds != null && baseSearchDto.NeighborhoodIds.Any())
+            {
+                model = model.Where(s => s.Companion.NeighborhoodId != null &&
+                    baseSearchDto.NeighborhoodIds.Contains(s.Companion.Neighborhood.Id)
+                );
+            }
+
             if (baseSearchDto.Suggested.HasValue)
             {
                 model = model.Where(s => s.Suggested == baseSearchDto.Suggested.Value);

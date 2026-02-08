@@ -153,6 +153,12 @@
   <data name="PushProccessOrderUser" xml:space="preserve">
     <value>Dear {0}, Your Order with order number {1} is Processing.</value>
   </data>
+  <data name="PushRegisterPansionCompanion" xml:space="preserve">
+    <value>You have a new reservation from {0}.</value>
+  </data>
+  <data name="PushRegisterPansionUser" xml:space="preserve">
+    <value>Dear {0}, You have Reserved {1} Pension.</value>
+  </data>
   <data name="PushRegisterReserveCompanion" xml:space="preserve">
     <value>You have a new reservation from {0} for {1}</value>
   </data>

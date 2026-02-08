@@ -6,6 +6,7 @@ using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
@@ -39,7 +40,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
         private readonly IAdminSettingHelper _adminSettingHelper;
         private readonly IRebateService _rebateService;
         private readonly IWalletService _walletService;
-        public PansionReserveService(IDataBaseContext _context, IMapper mapper, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService, IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService) : base(_context, mapper)
+        private readonly IPushNotificationService _pushNotificationService;
+        public PansionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService, IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -50,6 +52,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             this._adminSettingHelper = adminSettingHelper;
             this._rebateService = rebateService;
             this._walletService = walletService;
+            this._pushNotificationService = pushNotificationService;
         }
         public async Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id)
         {
@@ -197,6 +200,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     var booker = _context.Users.FirstOrDefault(u => u.Id == item.BookerId);
                     var Pansion = _context.Pansions.Include(s => s.Companion).ThenInclude(s => s.Owner).FirstOrDefault(a => a.Id == item.PansionId);
                     var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
+                    string nameText = string.Format("{0}_{1}", booker.FirstName, booker.LastName).Replace(" ", "_");
+
                     string dateOnly = null;
                     if (hasSchoolInputs)
                     {
@@ -209,6 +214,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveForUser, mobileReceptor: booker.Mobile, emailReceptor: null, token1: Pansion.Name, token2: dateOnly);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveForPansion, mobileReceptor: Pansion.Companion.Owner.Mobile, emailReceptor: null, token1: Pansion.Name, token2: booker.LastName, token3: dateOnly);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveForAdmin, mobileReceptor: adminMobile, emailReceptor: null, token1: booker.Id.ToString(), token2: Pansion.Name);
+                    await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterPansionUser, userId: booker.Id, token1: booker.FirstName, token2: Pansion.Name);
+                    await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterPansionCompanion, userId: Pansion.Companion.Owner.Id, token1: nameText);
+
                     return new BaseResultDto<PansionReserveDto>(true, mapper.Map<PansionReserveDto>(item));
                 }
 

@@ -40,8 +40,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             this._userService = userService;
             this._codeService = codeService;
             this._notificationService = notificationService;
-            this.connectionString = config.GetValue<string>(
-"connection");
+            this.connectionString = config.GetValue<string>("connection");
         }
 
         public async Task<BaseResultDto<CompanionVDto>> FindAsyncVDto(long id)
@@ -89,10 +88,11 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             {
                 model = model.Where(s => s.CompanionAssistances.Any(ca => ca.AssistanceId == baseSearchDto.AssistanceId.Value));
             }
-            if (baseSearchDto.NeighborhoodId.HasValue)
+            if (baseSearchDto.NeighborhoodIds != null && baseSearchDto.NeighborhoodIds.Any())
             {
-                model = model.Where(s => s.Neighborhood.Id == baseSearchDto.NeighborhoodId.Value);
+                model = model.Where(s => s.Neighborhood != null && baseSearchDto.NeighborhoodIds.Contains(s.Neighborhood.Id));
             }
+
             if (baseSearchDto.IsPersonal.HasValue)
             {
                 model = model.Where(s => s.IsPersonal == baseSearchDto.IsPersonal.Value);

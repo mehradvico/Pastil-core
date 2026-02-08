@@ -153,6 +153,12 @@
   <data name="PushProccessOrderUser" xml:space="preserve">
     <value>{0} عزیز، سفارش شما با شماره {1} در حال پردازش است.</value>
   </data>
+  <data name="PushRegisterPansionCompanion" xml:space="preserve">
+    <value>شما یک رزرو جدید از طرف {0} دارید</value>
+  </data>
+  <data name="PushRegisterPansionUser" xml:space="preserve">
+    <value>{0} عزیز، پانسیون {1} برای شما رزرو شد</value>
+  </data>
   <data name="PushRegisterReserveCompanion" xml:space="preserve">
     <value>شما یک رزرو از طرف {0} برای {1} دارید</value>
   </data>
@@ -163,7 +169,7 @@
     <value>{0} عزیز، سفارش شما با شماره {1} ارسال شد.</value>
   </data>
   <data name="PushSignInUser" xml:space="preserve">
-    <value> خوش برگشتی {0} عزیز</value>
+    <value>خوش برگشتی {0} عزیز</value>
   </data>
   <data name="PushSignUpUser" xml:space="preserve">
     <value>به پاستیل خوش اومدی {0} عزیز</value>

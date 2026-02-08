@@ -417,6 +417,7 @@ namespace Application.Services.UserSrv
                 await ChangUserCartAsync(insertResult.Data.Id, user.CartCode);
 
                 await _messageSenderService.SendMessageAsync(messageType: Common.Enumerable.Message.MessageTypeEnum.UserSignUp, mobileReceptor: user.Mobile, emailReceptor: user.Email, token1: user.FirstName);
+                await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSignUpUser, userId: insertResult.Data.Id, token1: user.FirstName);
 
                 return new BaseResultDto<UserTokenDto>(isSuccess: true, data: token);
             }

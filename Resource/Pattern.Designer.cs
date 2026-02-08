@@ -178,6 +178,24 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You have a new reservation from {0}..
+        /// </summary>
+        public static string PushRegisterPansionCompanion {
+            get {
+                return ResourceManager.GetString("PushRegisterPansionCompanion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, You have Reserved {1} Pension..
+        /// </summary>
+        public static string PushRegisterPansionUser {
+            get {
+                return ResourceManager.GetString("PushRegisterPansionUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You have a new reservation from {0} for {1}.
         /// </summary>
         public static string PushRegisterReserveCompanion {

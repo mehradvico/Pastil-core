@@ -3,6 +3,7 @@ using Application.Common.Enumerable.Code;
 using Application.Services.CompanionSrvs.CompanionSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
@@ -15,7 +16,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
             this.OwnerId = dto.OwnerId;
             this.CityId = dto.CityId;
             this.StateId = dto.StateId;
-            this.NeighborhoodId = dto.NeighborhoodId;
+            this.NeighborhoodIds = dto.NeighborhoodIds;
             this.GoldAccount = dto.GoldAccount;
             this.SilverAccount = dto.SilverAccount;
             this.HasInsurance = dto.HasInsurance;
@@ -29,7 +30,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public long? StateId { get; set; }
         public long? TypeId { get; set; }
         public long? PetId { get; set; }
-        public long? NeighborhoodId { get; set; }
+        public List<long>? NeighborhoodIds { get; set; }
         public bool? Approved { get; set; }
         public bool? GoldAccount { get; set; }
         public bool? SilverAccount { get; set; }
