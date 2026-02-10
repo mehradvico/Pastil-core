@@ -8647,12 +8647,7 @@
         </member>
         <member name="T:Api.Controllers.SearchController">
             <summary>
-            مرتبط با برند ها
-            </summary>
-        </member>
-        <member name="M:Api.Controllers.SearchController.#ctor(Application.Services.CommonSrv.SearchSrv.Iface.ISearchService)">
-            <summary>
-            مرتبط با برند ها
+            مدیریت جستجو
             </summary>
         </member>
         <member name="M:Api.Controllers.SearchController.Post(Application.Services.CommonSrv.SearchSrv.Dto.SearchRequestDto)">

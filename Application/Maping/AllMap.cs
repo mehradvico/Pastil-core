@@ -487,6 +487,7 @@ namespace Application.Maping
             CreateMap<PansionReserve, PansionReserveDto>();
             CreateMap<PansionReserve, PansionReserveShareDto>().ReverseMap();
             CreateMap<PansionReserve, PansionReserveVDto>();
+            CreateMap<Pansion, SearchPansionDto>().ForMember(d => d.Picture, o => o.MapFrom(s => s.Picture));
             //Pansion ----------------------------------------------
 
 
@@ -643,6 +644,7 @@ namespace Application.Maping
             CreateMap<Store, StoreVDto>();
             CreateMap<StoreComment, StoreCommentVDto>().ForMember(x => x.CreateDate, o => o.MapFrom(m => m.CreateDate.ToShortDate())).ForMember(x => x.StoreName, o => o.MapFrom(m => m.Store.Name));
             CreateMap<StoreComment, StoreCommentDto>().ReverseMap();
+            CreateMap<Store, SearchStoreDto>().ForMember(d => d.Icon, o => o.MapFrom(s => s.Icon)).ForMember(d => d.Picture, o => o.MapFrom(s => s.Picture));
             //Store End ----------------------------------------------
 
 

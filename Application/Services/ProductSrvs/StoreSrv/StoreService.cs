@@ -2,10 +2,13 @@
 using Application.Common.Enumerable;
 using Application.Common.Helpers;
 using Application.Common.Service;
+using Application.Services.CommonSrv.SearchSrv.Dto;
+using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.ProductSrvs.ProductSrv.Iface;
 using Application.Services.ProductSrvs.StoreSrv.Dto;
 using Application.Services.StoreSrv.Iface;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Dapper;
 using Entities.Entities;
 using Microsoft.Data.SqlClient;
@@ -13,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -206,6 +210,13 @@ namespace Application.Services.ProductSrvs.StoreSrv
             await connection.ExecuteAsync("UpdateStoreCommentsRate", new { FilterIds = Id }, commandType: System.Data.CommandType.StoredProcedure);
         }
 
+        public async Task<List<SearchStoreDto>> SearchMinAsync(SearchRequestDto request)
+        {
+            var q = request.Q;
+            return await _context.Stores.Where(s => !s.Deleted && s.Active && (s.Name.Contains(q))).OrderByDescending(s => s.RateAvg).Take(request.StoreCount).ProjectTo<SearchStoreDto>(mapper.ConfigurationProvider).ToListAsync();
+        }
 
     }
+
 }
+

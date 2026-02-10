@@ -433,82 +433,106 @@ namespace Application.Services.ProductSrvs.ProductSrv
         }
         public async Task<List<SearchProductDto>> SearchMinAsync(SearchRequestDto request)
         {
-            var connection = new SqlConnection(connectionString);
-            if (!string.IsNullOrEmpty(request.Q))
+            using var connection = new SqlConnection(connectionString);
+
+            var parameters = new
             {
-                request.Q = request.Q.Replace("%", "").Replace("ي", "ی").Replace("ك", "ک");
-            }
-            var parameters = new { ProductCount = request.ProductCount, ProductNotId = request.ProductNotId };
+                ProductCount = request.ProductCount,
+                ProductNotId = request.ProductNotId
+            };
+
             var query = $@"
 DECLARE @Keywords TABLE (Keyword NVARCHAR(255));
-
 
 INSERT INTO @Keywords (Keyword)
 SELECT value
 FROM STRING_SPLIT(N'{request.Q}', ' ');
 
 SELECT TOP(@ProductCount)
-    p.Id, 
+    p.Id,
     p.Name,
-p.BasePrice,
-p.Price,
-p.DiscountPercent,
+
+    pi.BasePrice,
+    pi.Price,
+    pi.DiscountPercent,
+
+    st.Id AS StoreId,
+    ISNULL(st.Name, '') AS StoreName,
+
     picture.Id AS PictureId,
     picture.Url + '/' + picture.Name AS Url,
     picture.Url AS BaseUrl,
     picture.Name,
     picture.GuidName,
     picture.Extension,
-    p.CategoryId,
-    p.BrandId,
+
     c.Label AS CategoryName,
     ISNULL(br.Name, '') AS BrandName,
+
     (
         SELECT COUNT(*)
         FROM @Keywords k
-        WHERE p.Name COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%' 
-           OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%' 
-           OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%' 
-           OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%' 
+        WHERE p.Name COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
     ) AS MatchScore
-FROM products p
-LEFT JOIN pictures picture ON p.PictureId = picture.Id
-LEFT JOIN categories c ON p.CategoryId = c.Id
+FROM Products p
+
+CROSS APPLY (
+    SELECT TOP 1 pi.*
+    FROM ProductItems pi
+    WHERE pi.ProductId = p.Id
+      AND pi.Active = 1
+      AND pi.SystemActive = 1
+      AND pi.Deleted = 0
+      AND pi.Quantity > 0
+    ORDER BY pi.Price ASC, pi.Quantity DESC, pi.Id ASC
+) pi
+
+INNER JOIN Stores st ON pi.StoreId = st.Id
+LEFT JOIN Pictures picture ON p.PictureId = picture.Id
+LEFT JOIN Categories c ON p.CategoryId = c.Id
 LEFT JOIN Brands br ON p.BrandId = br.Id
-WHERE 
-    p.active = 1 
-    AND p.deleted = 0 
+
+WHERE
+    p.Active = 1
+    AND p.Deleted = 0
     AND (p.Id != @ProductNotId OR @ProductNotId IS NULL)
     AND (
-        p.Name COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%' 
-       OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%' 
-       OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%' 
-       OR EXISTS (
-           SELECT 1
-           FROM @Keywords k
-           WHERE p.Name COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%' 
-              OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%' 
-              OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%' 
-              OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%' 
-       )
+        p.Name COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%'
+        OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%'
+        OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%'
+        OR EXISTS (
+            SELECT 1
+            FROM @Keywords k
+            WHERE p.Name COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+        )
     )
 ORDER BY p.StatusId DESC, MatchScore DESC;";
+
             var result = await connection.QueryAsync<SearchProductDto, PictureVDto, string, string, SearchProductDto>(
                 query,
-             (product, picture, CategoryName, BrandName) =>
-             {
+                (product, picture, categoryName, brandName) =>
+                {
+                    product.Picture = picture;
+                    product.CategoryName = categoryName;
+                    product.BrandName = brandName;
+                    return product;
+                },
+                parameters,
+                commandType: CommandType.Text,
+                splitOn: "PictureId,CategoryName,BrandName"
+            );
 
-                 product.Picture = picture;
-                 product.CategoryName = CategoryName;
-                 product.BrandName = BrandName;
-
-                 return product;
-             },
-            parameters,
-            commandType: CommandType.Text,
-            splitOn: "PictureId,CategoryName,BrandName");
             return result.ToList();
         }
+
+
+
         public async Task<BaseResultDto<ProductDto>> DuplicateAsyncDto(ProductDuplicateDto productDuplicateDto)
         {
             var orgProduct = await _context.Products.Include(s => s.ProductPictures).Include(s => s.Categories).Include(s => s.Picture).Include(s => s.ProductFeatureValues).SingleOrDefaultAsync(s => s.Id == productDuplicateDto.ProductId);

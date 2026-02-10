@@ -379,9 +379,40 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
 
         public async Task<List<SearchCompanionDto>> SearchMinAsync(SearchRequestDto request)
         {
-            var list = await _context.Companions.Where(s => s.Deleted == false && s.Active && s.SearchKey.Contains(request.Q) && (s.Name.Contains(request.Q) || s.CompanionAssistances.Any(a => a.Active && a.Approved && a.Assistance.Deleted == false && a.Assistance.Active && a.Assistance.Name.Contains(request.Q)))).Take(request.CompanionCount).Select(s => new SearchCompanionDto { Id = s.Id, Name = s.Name, RateAvg = s.RateAvg, RateCount = s.RateCount, IconId = s.IconId, Icon = mapper.Map<PictureVDto>(s.Icon) }).ToListAsync();
+            var q = request.Q;
+
+            var list = await _context.Companions
+                .AsNoTracking()
+                .Where(s =>
+                    !s.Deleted &&
+                    s.Active &&
+                    (
+                        s.Name.Contains(q) ||
+                        (!string.IsNullOrEmpty(s.SearchKey) && s.SearchKey.Contains(q)) ||
+                        s.CompanionAssistances.Any(a =>
+                            a.Active &&
+                            a.Approved &&
+                            !a.Assistance.Deleted &&
+                            a.Assistance.Active &&
+                            a.Assistance.Name.Contains(q)
+                        )
+                    )
+                )
+                .Take(request.CompanionCount)
+                .Select(s => new SearchCompanionDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    IconId = s.IconId,
+                    RateAvg = s.RateAvg,
+                    RateCount = s.RateCount,
+                    Icon = mapper.Map<PictureVDto>(s.Icon)
+                })
+                .ToListAsync();
+
             return list;
         }
+
 
         public void UpdateCompanionCommentCount(long CompanionId)
         {

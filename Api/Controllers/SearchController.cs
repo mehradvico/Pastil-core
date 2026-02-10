@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers
 {
     /// <summary>
-    /// مرتبط با برند ها
+    /// مدیریت جستجو
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
@@ -15,14 +15,11 @@ namespace Api.Controllers
     public class SearchController : ControllerBase
     {
         private ISearchService _searchService;
-        /// <summary>
-        /// مرتبط با برند ها
-        /// </summary>
+
         public SearchController(ISearchService searchService)
         {
             this._searchService = searchService;
         }
-
 
         /// <summary>
         /// جستجو

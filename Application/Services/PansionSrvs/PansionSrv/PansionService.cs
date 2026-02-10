@@ -3,10 +3,13 @@ using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Service;
+using Application.Services.CommonSrv.SearchSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Iface;
+using Application.Services.ProductSrvs.StoreSrv.Dto;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Entities.Entities;
 using Entities.Entities.PansionField;
 using Microsoft.EntityFrameworkCore;
@@ -202,5 +205,13 @@ namespace Application.Services.PansionSrvs.PansionSrv
             _context.Pansions.Update(item);
             _context.SaveChanges();
         }
+
+        public async Task<List<SearchPansionDto>> SearchMinAsync(SearchRequestDto request)
+        {
+            var q = request.Q;
+
+            return await _context.Pansions.Where(p => p.Active && p.Approve && (p.Name.Contains(q))).OrderByDescending(p => p.RateAvg).Take(request.PansionCount).ProjectTo<SearchPansionDto>(mapper.ConfigurationProvider).ToListAsync();
+        }
+
     }
 }
