@@ -229,7 +229,7 @@ namespace Application.Services.Order.ProductOrderSrv
 
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
-            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: productOrder.UserId, token1: nameText, token2: productOrder.Id);
+            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: productOrder.UserId, token1: nameText, token2: productOrder.Id.ToString());
             await _notificationService.InsertNoticeAsync(long.Parse(productOrder.Id), NoticeTypeEnum.NotifType_UserRegisterOrder, NoticeUserTypeEnum.NoticeUserType_User);
 
             foreach (var productOrderStore in productOrder.ProductOrderStores)
@@ -251,7 +251,7 @@ namespace Application.Services.Order.ProductOrderSrv
             var statusSend = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Send.ToString());
             if (dto.ProductOrderStatusId == statusProccess)
             {
-                await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
+                await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushProccessOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
             }
             if (dto.ProductOrderStatusId == statusSend)
             {

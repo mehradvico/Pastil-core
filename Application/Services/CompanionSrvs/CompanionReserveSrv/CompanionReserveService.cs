@@ -260,7 +260,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForUser, mobileReceptor: booker.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForCompanion, mobileReceptor: companion.Owner.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: booker.FirstName);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForAdmin, mobileReceptor: adminMobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: companion.Name);
-                    await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterReserveUser, userId: booker.Id, token1: item.Booker.FirstName, token2: companionAssistances.Assistance.Name);
+                    await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterReserveUser, userId: booker.Id, token1: booker.FirstName, token2: companionAssistances.Assistance.Name);
                     await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterReserveCompanion, userId: companion.Owner.Id , token1: companionAssistances.Assistance.Name, token2: nameText);
 
                     if (companionAssistanceUser != null)

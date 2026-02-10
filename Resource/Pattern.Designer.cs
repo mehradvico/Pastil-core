@@ -178,6 +178,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, Your order with order number {1} has been registered.
+        /// </summary>
+        public static string PushRegisterOrderUser {
+            get {
+                return ResourceManager.GetString("PushRegisterOrderUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You have a new reservation from {0}..
         /// </summary>
         public static string PushRegisterPansionCompanion {
@@ -214,7 +223,7 @@ namespace Resource {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dear {0}, Your order #{1} has been sent.
+        ///   Looks up a localized string similar to Dear {0}, Your order {1} has been sent.
         /// </summary>
         public static string PushSentOrderUser {
             get {

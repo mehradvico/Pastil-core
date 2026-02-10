@@ -153,6 +153,9 @@
   <data name="PushProccessOrderUser" xml:space="preserve">
     <value>Dear {0}, Your Order with order number {1} is Processing.</value>
   </data>
+  <data name="PushRegisterOrderUser" xml:space="preserve">
+    <value>Dear {0}, Your order with order number {1} has been registered</value>
+  </data>
   <data name="PushRegisterPansionCompanion" xml:space="preserve">
     <value>You have a new reservation from {0}.</value>
   </data>
@@ -166,7 +169,7 @@
     <value>Dear {0}, {1} has been reserved for your pet.</value>
   </data>
   <data name="PushSentOrderUser" xml:space="preserve">
-    <value>Dear {0}, Your order #{1} has been sent</value>
+    <value>Dear {0}, Your order {1} has been sent</value>
   </data>
   <data name="PushSignInUser" xml:space="preserve">
     <value>Dear {0}, Welcome Back to Pastil</value>
