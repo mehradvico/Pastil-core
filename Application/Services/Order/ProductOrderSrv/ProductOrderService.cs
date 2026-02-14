@@ -226,8 +226,9 @@ namespace Application.Services.Order.ProductOrderSrv
             {
                 await AddBonusAmountToWalletAsync(productOrder);
             }
+            var orderUrl = $"https://app.pastil.pet/orders/{productOrder.Id}";
 
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
+            await _messageSenderService.SendMessageAsync( messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token3: orderUrl);
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
             await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: productOrder.UserId, token1: nameText, token2: productOrder.Id.ToString());
             await _notificationService.InsertNoticeAsync(long.Parse(productOrder.Id), NoticeTypeEnum.NotifType_UserRegisterOrder, NoticeUserTypeEnum.NoticeUserType_User);

@@ -32,10 +32,10 @@ namespace Api.Areas.Admin.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<BrandDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<BrandVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var role = await brandService.FindAsyncDto(id);
+            var role = await brandService.FindAsyncVDto(id);
             return Ok(role);
         }
         /// <summary>
@@ -58,9 +58,6 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto<BrandDto>), 200)]
         public async Task<IActionResult> Post(BrandDto brandDto)
         {
-            //var results = new List<ValidationResult>();
-            //var context = new ValidationContext(brandDto);
-            //bool validate=Validator.TryValidateObject(brandDto, context, results);
             var dto = await brandService.InsertAsyncDto(brandDto);
             return Ok(dto);
         }
