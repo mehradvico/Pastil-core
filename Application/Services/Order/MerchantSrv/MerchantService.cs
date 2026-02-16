@@ -6,6 +6,7 @@ using Application.Common.Service;
 using Application.Services.Order.MerchantSrv.Dto;
 using Application.Services.Order.MerchantSrv.Dto.SamanKishDto;
 using Application.Services.Order.MerchantSrv.Iface;
+using Application.Services.Order.PaymentGatewaySrv.Iface;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using AutoMapper;
 using Entities.Entities;
@@ -29,17 +30,18 @@ namespace Application.Services.MerchantSrv
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IAdminSettingHelper _adminSettingHelper;
-        private const string ZarinPalApiUrl = "https://api.zarinpal.com/pg/v4/payment/request.json"; // URL زرین پال
-        private const string ZarinPalVerificationUrl = "https://api.zarinpal.com/pg/v4/payment/verify.json"; // URL برای تایید
+        private readonly IPaymentGatewayResolver _gatewayResolver;
 
 
-        public MerchantService(HttpClient httpClient, IDataBaseContext _context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IAdminSettingHelper adminSettingHelper) : base(_context, mapper)
+
+        public MerchantService(HttpClient httpClient, IDataBaseContext _context, IMapper mapper, IHttpContextAccessor httpContextAccessor, IAdminSettingHelper adminSettingHelper, IPaymentGatewayResolver gatewayResolver) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _adminSettingHelper = adminSettingHelper;
             _httpClient = httpClient;
+            _gatewayResolver = gatewayResolver;
         }
 
 
@@ -58,39 +60,41 @@ namespace Application.Services.MerchantSrv
         }
         public async Task<BaseResultDto> StartAsync(PaymentStartDto dto)
         {
-            switch (dto.MerchantId)
-            {
-                case (long)MerchantEnum.zarinpal:
-                    {
-                        return await ZarinPalStartAsync(dto);
-                    }
-                case (long)MerchantEnum.SamanKish:
-                    {
-                        return await SamanKishStartAsync(dto);
-                    }
-                default:
-                    {
-                        return new BaseResultDto<PaymentStartDto>(isSuccess: false, val: Resource.Notification.Unsuccess, dto);
-                    }
-            }
+            var merchant = await _context.Merchants.Include(s => s.Bank).FirstOrDefaultAsync(s => s.Id == dto.MerchantId);
+            if (merchant == null || !merchant.Active)
+                return new BaseResultDto<PaymentStartDto>(false, Resource.Notification.Unsuccess, dto);
+
+            var provider = (MerchantEnum)merchant.BankId;
+            var gateway = _gatewayResolver.Resolve(provider);
+
+            var res = await gateway.StartAsync(dto, merchant);
+            if (!res.IsSuccess)
+                return new BaseResultDto<PaymentStartDto>(false, res.ErrorMessage, dto);
+
+            dto.PaymentIsLink = res.PaymentIsLink;
+            dto.PaymentUrl = res.PaymentIsLink ? res.PaymentUrl : res.HtmlForm;
+
+            return new BaseResultDto<PaymentStartDto>(true, dto);
         }
-        public async Task<BaseResultDto> CallbackAsync(Entities.Entities.Payment payment, bool test)
+        public async Task<BaseResultDto> CallbackAsync(Payment payment, bool test)
         {
-            switch (payment.MerchantId)
-            {
-                case (long)MerchantEnum.zarinpal:
-                    {
-                        return await ZarinPalCallbackAsync(payment, test);
-                    }
-                case (long)MerchantEnum.SamanKish:
-                    {
-                        return await SamanKishCallbackAsync(payment);
-                    }
-                default:
-                    {
-                        return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
-                    }
-            }
+            var merchant = await _context.Merchants.Include(s => s.Bank).FirstOrDefaultAsync(s => s.Id == payment.MerchantId);
+            if (merchant == null)
+                return new BaseResultDto(false, Resource.Notification.Unsuccess);
+
+            var provider = (MerchantEnum)merchant.BankId;
+            var gateway = _gatewayResolver.Resolve(provider);
+
+            var res = await gateway.CallbackAsync(payment, merchant, _httpContextAccessor.HttpContext.Request, test);
+
+            payment.IsSuccess = res.IsSuccess;
+            payment.RefNumber = res.RefNumber;
+            payment.Description = res.Description ?? res.ErrorMessage;
+
+            _context.Payments.Update(payment);
+            await _context.SaveChangesAsync();
+
+            return new BaseResultDto(res.IsSuccess, res.ErrorMessage);
         }
 
         private async Task<BaseResultDto> ZarinPalStartAsync(PaymentStartDto dto)

@@ -142,7 +142,7 @@ namespace Application.Services.Order.PaymentSrv
                         {
                             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserve.ToString())
                             {
-                                if (long.TryParse(payment.CallBackTypeLabel, out var reserveId))
+                                if (long.TryParse(payment.CallBackId, out var reserveId))
                                 {
                                     var productPaymentCallback = await _companionReserveService.CompanionReservePaymentCallback(reserveId, fromWallet: true);
                                     if (!productPaymentCallback.IsSuccess)
@@ -156,7 +156,7 @@ namespace Application.Services.Order.PaymentSrv
                         {
                             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.PansionReserve.ToString())
                             {
-                                if (long.TryParse(payment.CallBackTypeLabel, out var reserveId))
+                                if (long.TryParse(payment.CallBackId, out var reserveId))
                                 {
                                     var productPaymentCallback = await _pansionReserve.PansionReservePaymentCallback(reserveId, fromWallet: true);
                                     if (!productPaymentCallback.IsSuccess)
@@ -170,7 +170,7 @@ namespace Application.Services.Order.PaymentSrv
                         {
                             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.Trip.ToString())
                             {
-                                if (long.TryParse(payment.CallBackTypeLabel, out var tripId))
+                                if (long.TryParse(payment.CallBackId, out var tripId))
                                 {
                                     var productPaymentCallback = await _tripService.TripPaymentCallback(tripId, fromWallet: true);
                                     if (!productPaymentCallback.IsSuccess)
@@ -184,7 +184,7 @@ namespace Application.Services.Order.PaymentSrv
                         {
                             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.Cargo.ToString())
                             {
-                                if (long.TryParse(payment.CallBackTypeLabel, out var cargoId))
+                                if (long.TryParse(payment.CallBackId, out var cargoId))
                                 {
                                     var productPaymentCallback = await _cargoService.CargoPaymentCallback(cargoId, fromWallet: true);
                                     if (!productPaymentCallback.IsSuccess)
@@ -198,9 +198,9 @@ namespace Application.Services.Order.PaymentSrv
                         {
                             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.Insurance.ToString())
                             {
-                                if (long.TryParse(payment.CallBackTypeLabel, out var insurabceId))
+                                if (long.TryParse(payment.CallBackId, out var insuranceId))
                                 {
-                                    var productPaymentCallback = await _companionInsurance.CompanionInsurancePackageSalePaymentCallback(insurabceId, fromWallet: true);
+                                    var productPaymentCallback = await _companionInsurance.CompanionInsurancePackageSalePaymentCallback(insuranceId, fromWallet: true);
                                     if (!productPaymentCallback.IsSuccess)
                                     {
                                         return new BaseResultDto<PaymentDto>(isSuccess: false, val: Resource.Notification.Unsuccess, null);

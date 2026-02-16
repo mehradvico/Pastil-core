@@ -3,7 +3,8 @@
     public enum MerchantEnum : long
     {
         zarinpal = 1,
-        SamanKish = 2
-
+        parsian = 2,
+        mellat = 3,
+        samanKish = 4
     }
 }

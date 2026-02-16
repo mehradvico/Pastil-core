@@ -186,6 +186,9 @@ using Application.Services.Order.CartSrv.Iface;
 using Application.Services.Order.DeliveryDistanceSrv.iface;
 using Application.Services.Order.DeliverySrv.iface;
 using Application.Services.Order.MerchantSrv.Iface;
+using Application.Services.Order.PaymentGatewaySrv;
+using Application.Services.Order.PaymentGatewaySrv.Gateways;
+using Application.Services.Order.PaymentGatewaySrv.Iface;
 using Application.Services.Order.PaymentSrv;
 using Application.Services.Order.PaymentSrv.Iface;
 using Application.Services.Order.ProductOrderItemItemSrv;
@@ -486,7 +489,10 @@ public static class ConfigureServices
         services.AddScoped<IStoryItemService, StoryItemService>();
         services.AddScoped<IStoryUserLikeService, StoryUserLikeService>();
         services.AddScoped<IPushNotificationService, PushNotificationService>();
-
+        services.AddScoped<IPaymentGatewayResolver, PaymentGatewayResolver>();
+        services.AddScoped<IPaymentGateway, ZarinPalGateway>();
+        services.AddScoped<IPaymentGateway, SamanKishGateway>();
+        services.AddHttpClient<ZarinPalGateway>();
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
