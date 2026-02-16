@@ -596,8 +596,9 @@ namespace Application.Services.Order.CartSrv
                     ProductOrderId = insertedProductOrder.Data.Id,
                     User = mapper.Map<UserMinVDto>(cart.User),
                     TypeId = paymentTypeProductOrder.Id,
-                    UserId = _currentUser.CurrentUser.UserId
-
+                    UserId = _currentUser.CurrentUser.UserId,
+                    CallBackTypeLabel = PaymentCallbackTypeEnum.ProductOrder.ToString(),
+                    CallBackId = insertedProductOrder.Data.Id
                 };
                 if (cartUpdate.FromWallet)
                 {
