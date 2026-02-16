@@ -130,7 +130,7 @@ namespace Application.Services.Order.PaymentSrv
                         {
                             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ProductOrder.ToString())
                             {
-                                var productPaymentCallback = await _productOrderService.ProductPaymentCallback(payment.CallBackTypeLabel, fromWallet: true);
+                                var productPaymentCallback = await _productOrderService.ProductPaymentCallback(payment.ProductOrderId, fromWallet: true);
                                 if (!productPaymentCallback.IsSuccess)
                                 {
                                     return new BaseResultDto<PaymentDto>(isSuccess: false, val: Resource.Notification.Unsuccess, null);
