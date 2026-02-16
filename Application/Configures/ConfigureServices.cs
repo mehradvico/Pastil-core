@@ -489,10 +489,11 @@ public static class ConfigureServices
         services.AddScoped<IStoryItemService, StoryItemService>();
         services.AddScoped<IStoryUserLikeService, StoryUserLikeService>();
         services.AddScoped<IPushNotificationService, PushNotificationService>();
-        services.AddScoped<IPaymentGatewayResolver, PaymentGatewayResolver>();
         services.AddScoped<IPaymentGateway, ZarinPalGateway>();
         services.AddScoped<IPaymentGateway, SamanKishGateway>();
-        services.AddHttpClient<ZarinPalGateway>();
+        services.AddScoped<IPaymentGatewayResolver, PaymentGatewayResolver>();
+        services.AddScoped<IPaymentGateway, ParsianGateway>();
+        services.AddScoped<IPaymentGateway, MellatGateway>();
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 

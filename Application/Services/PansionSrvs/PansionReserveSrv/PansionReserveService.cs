@@ -201,8 +201,6 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     var Pansion = _context.Pansions.Include(s => s.Companion).ThenInclude(s => s.Owner).FirstOrDefault(a => a.Id == item.PansionId);
                     var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
                     string nameText = string.Format("{0}_{1}", booker.FirstName, booker.LastName).Replace(" ", "_");
-                    var orderUrl = $"https://app.pastil.pet/reserve";
-
 
                     string dateOnly = null;
                     if (hasSchoolInputs)
@@ -213,7 +211,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     {
                         dateOnly = item.FromDate?.ToString("yyyy/MM/dd");
                     }
-                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveForUser, mobileReceptor: booker.Mobile, emailReceptor: null, token1: Pansion.Name, token2: dateOnly, token3: orderUrl);
+                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveForUser, mobileReceptor: booker.Mobile, emailReceptor: null, token1: Pansion.Name, token2: dateOnly);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveForPansion, mobileReceptor: Pansion.Companion.Owner.Mobile, emailReceptor: null, token1: Pansion.Name, token2: booker.LastName, token3: dateOnly);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveForAdmin, mobileReceptor: adminMobile, emailReceptor: null, token1: booker.Id.ToString(), token2: Pansion.Name);
                     await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterPansionUser, userId: booker.Id, token1: booker.FirstName, token2: Pansion.Name);

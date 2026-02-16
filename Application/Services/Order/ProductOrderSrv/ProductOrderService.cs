@@ -226,7 +226,7 @@ namespace Application.Services.Order.ProductOrderSrv
             {
                 await AddBonusAmountToWalletAsync(productOrder);
             }
-            var orderUrl = $"https://app.pastil.pet/orders/{productOrder.Id}";
+            var orderUrl = productOrder.Id;
 
             await _messageSenderService.SendMessageAsync( messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token3: orderUrl);
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);

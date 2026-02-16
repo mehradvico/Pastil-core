@@ -256,10 +256,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     var companionAssistanceUser = _context.CompanionAssistanceUsers.Include(s => s.User).FirstOrDefault(a => a.Id == item.CompanionAssistanceUserId);
                     var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
                     string nameText = string.Format("{0}_{1}", booker.FirstName, booker.LastName).Replace(" ", "_");
-                    var orderUrl = $"https://app.pastil.pet/reserve";
 
-
-                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForUser, mobileReceptor: booker.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: orderUrl);
+                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForUser, mobileReceptor: booker.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForCompanion, mobileReceptor: companion.Owner.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: booker.FirstName);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForAdmin, mobileReceptor: adminMobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: companion.Name);
                     await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterReserveUser, userId: booker.Id, token1: booker.FirstName, token2: companionAssistances.Assistance.Name);
