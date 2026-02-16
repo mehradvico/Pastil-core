@@ -22,7 +22,6 @@ namespace Payment.Controllers
             var payment = await _paymentService.CallbackPayment(id, test);
 
             TempData["ReturnToSiteUrl"] = AppSettingsHelper.BaseUrl;
-            TempData["ReturnToOrderUrl"] = _adminSettingHelper.BaseAdminSetting.ReturnToOrderUrl;
             return View(payment);
         }
     }

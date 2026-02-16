@@ -4,7 +4,7 @@ namespace Application.Services.Order.CartSrv.Dto
 {
     public class CartUpdateDto
     {
-        public CartUpdateEnum CartUpdateType { get; set; }
+        public long CartUpdateType { get; set; }
         public bool FromWallet { get; set; }
         public long? UserId { get; set; }
         public string UniqueId { get; set; }

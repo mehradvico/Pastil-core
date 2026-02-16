@@ -22,7 +22,6 @@ namespace Application.Services.Setting.SettingSrv
         public AdminSetting GetByLabel(string label)
         {
             return _context.AdminSettings.FirstOrDefault(s => s.Label == label);
-
         }
         public BaseSearchDto<AdminSettingDto> Search(BaseInputDto baseSearchDto)
         {

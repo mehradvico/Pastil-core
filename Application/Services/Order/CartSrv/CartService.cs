@@ -61,7 +61,7 @@ namespace Application.Services.Order.CartSrv
             _addressService = addressService;
         }
         public async Task<BaseResultDto> CartUpdateAsync(CartUpdateDto cartUpdate)
-        {
+            {
             if (cartUpdate.CartUpdateType == CartUpdateEnum.GetCount)
             {
                 return await CartGetCountAsync(cartUpdate);
