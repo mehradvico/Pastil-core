@@ -45,14 +45,6 @@ namespace Application.Services.ProductSrvs.StoreSrv
             return new BaseResultDto<StoreVDto>(true, mapper.Map<StoreVDto>(item));
         }
 
-        public override async Task<BaseResultDto<StoreDto>> FindAsyncDto(long id)
-        {
-            var item = await _context.Stores.Include(s => s.City).ThenInclude(p => p.State).Include(s => s.Picture).Include(s => s.Users).FirstOrDefaultAsync(s => s.Id == id && s.Active && s.Deleted == false);
-            if (item == null)
-                return new BaseResultDto<StoreDto>(false, null);
-            return new BaseResultDto<StoreDto>(true, mapper.Map<StoreDto>(item));
-        }
-
         public StoreSearchDto Search(StoreInputDto baseSearchDto)
         {
             var model = _context.Stores.Include(s => s.City).ThenInclude(p => p.State).Include(s => s.Type).Include(s => s.Picture).Include(s => s.Users).Where(s => s.Deleted == false).AsQueryable();

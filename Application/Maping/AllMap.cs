@@ -235,7 +235,6 @@ namespace Application.Maping
             CreateMap<Companion, CompanionSilverAccountDto>().ReverseMap();
             CreateMap<Companion, CompanionDto>();
             CreateMap<Companion, CompanionActivationDto>().ReverseMap();
-            CreateMap<Companion, CompanionShareDto>().ReverseMap();
             CreateMap<CompanionDto, Companion>()
                 .ForMember(x => x.CompanionPets, y => y.Ignore()).ForMember(x => x.CompanionTypes, y => y.Ignore()).ForMember(x => x.ActivationValue, y => y.Ignore())
                 .ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore())
@@ -248,6 +247,8 @@ namespace Application.Maping
                 .ForMember(dest => dest.IsGold, opt => opt.MapFrom(src => src.GoldAccountDate.HasValue && src.GoldAccountDate > DateTime.Now))
                 .ForMember(dest => dest.IsSilver, opt => opt.MapFrom(src => src.SilverAccountDate.HasValue && src.SilverAccountDate > DateTime.Now))
                 .ForMember(dest => dest.HasPansion, opt => opt.MapFrom(src => src.Pansions != null && src.Pansions.Any()));
+            CreateMap<Companion, CompanionFinanceVDto>();
+            CreateMap<Companion, CompanionFinanceDetailVDto>();
             CreateMap<Companion, CompanionMinVDto>()
                 .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.Owner))
                 .ForMember(dest => dest.IsGold, opt => opt.MapFrom(src => src.GoldAccountDate.HasValue && src.GoldAccountDate > DateTime.Now))
@@ -259,6 +260,7 @@ namespace Application.Maping
             CreateMap<CompanionAssistanceDto, CompanionAssistance>()
                 .ForMember(dest => dest.CompanionType, opt => opt.Ignore());
             CreateMap<CompanionAssistance, CompanionAssistanceVDto>();
+            CreateMap<CompanionAssistance, CompanionAssistanceFinanceVDto>();
             CreateMap<CompanionAssistance, CompanionAssistanceActivationDto>().ReverseMap();
             CreateMap<CompanionAssistancePackageDto, CompanionAssistancePackage>()
                 .ForMember(x => x.ActivationValue, y => y.Ignore()).ForMember(x => x.CompanionAssistance, y => y.Ignore());
@@ -470,6 +472,7 @@ namespace Application.Maping
             CreateMap<Pansion, PansionDto>().ReverseMap();
             CreateMap<Pansion, PansionVDto>();
             CreateMap<Pansion, PansionMinVDto>();
+            CreateMap<Pansion, PansionFinanceVDto>();
             CreateMap<PansionComment, PansionCommentDto>().ReverseMap();
             CreateMap<PansionComment, PansionCommentVDto>().ForMember(x => x.CreateDate, o => o.MapFrom(m => m.CreateDate.ToShortDate())).ForMember(x => x.PansionName, o => o.MapFrom(m => m.Pansion.Name));
             CreateMap<PansionPictureDto, PansionPicture>().ForMember(x => x.Id, opt => opt.Ignore()).ForMember(x => x.Picture, opt => opt.Ignore());
@@ -485,7 +488,6 @@ namespace Application.Maping
             CreateMap<PansionReserveWalletDto, PansionReserve>();
             CreateMap<PansionReserveStatusDto, PansionReserve>().ReverseMap();
             CreateMap<PansionReserve, PansionReserveDto>();
-            CreateMap<PansionReserve, PansionReserveShareDto>().ReverseMap();
             CreateMap<PansionReserve, PansionReserveVDto>();
             CreateMap<Pansion, SearchPansionDto>().ForMember(d => d.Picture, o => o.MapFrom(s => s.Picture));
             //Pansion ----------------------------------------------
@@ -642,6 +644,7 @@ namespace Application.Maping
             CreateMap<StoreDto, Store>().ForMember(x => x.Users, opt => opt.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.MaxDiscountPercent, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.Icon, y => y.Ignore());
             CreateMap<Store, StoreMinVDto>().ForMember(x => x.StoreId, o => o.MapFrom(m => m.Id));
             CreateMap<Store, StoreVDto>();
+            CreateMap<Store, StoreFinanceVDto>();
             CreateMap<StoreComment, StoreCommentVDto>().ForMember(x => x.CreateDate, o => o.MapFrom(m => m.CreateDate.ToShortDate())).ForMember(x => x.StoreName, o => o.MapFrom(m => m.Store.Name));
             CreateMap<StoreComment, StoreCommentDto>().ReverseMap();
             CreateMap<Store, SearchStoreDto>().ForMember(d => d.Icon, o => o.MapFrom(s => s.Icon)).ForMember(d => d.Picture, o => o.MapFrom(s => s.Picture));

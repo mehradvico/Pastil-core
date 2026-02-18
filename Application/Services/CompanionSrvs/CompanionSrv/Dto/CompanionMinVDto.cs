@@ -20,7 +20,6 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public int CommentCount { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
-        public int CompanionShare { get; set; }
 
         public bool IsSilver { get; set; }
         public bool IsGold { get; set; }

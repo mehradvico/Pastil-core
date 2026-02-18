@@ -1281,32 +1281,6 @@
             <returns>
             </returns>
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.CompanionReserveShareController">
-            <summary>
-            مدیریت تغییر وضعیت رزرو همکار
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionReserveShareController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveShareDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.CompanionShareController">
-            <summary>
-            درصد سهم همکاران
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionShareController.Put(Application.Services.CompanionSrvs.CompanionSrv.Dto.CompanionShareDto)">
-            <summary>
-             فعال سازی آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionTypeController">
             <summary>
             مدیریت انواع همکاران
@@ -2103,6 +2077,29 @@
              جستجو 
             </summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.FinanceController">
+             <summary>
+             مدیریت حسابداری ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceController.#ctor(Application.Services.Accounting.FinanceSrv.Iface.IFinanceService)">
+             <summary>
+             مدیریت گالری ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceController.Get(Application.Services.Accounting.FinanceSrv.Dto.FinanceInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.GalleryController">
              <summary>
              مدیریت گالری ها
@@ -2655,19 +2652,6 @@
             <returns></returns>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PansionReserveController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveDto)">
-            <summary>
-             ویرایش آیتم 
-            </summary>
-            <returns>
-            </returns>
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.PansionReserveShareController">
-            <summary>
-            مدیریت محاسبه درصد رزرو پانسیون
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PansionReserveShareController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveShareDto)">
             <summary>
              ویرایش آیتم 
             </summary>
@@ -8707,14 +8691,12 @@
             </summary>
             <param name="id"></param>
             <returns></returns>
-            
         </member>
         <member name="M:Api.Controllers.StoreController.Get(Application.Services.ProductSrvs.StoreSrv.Dto.StoreInputDto)">
             <summary>
             جستجو
             </summary>
-            <returns></returns>
-            
+            <returns></returns> 
         </member>
         <member name="T:Api.Controllers.StoryGroupController">
             <summary>

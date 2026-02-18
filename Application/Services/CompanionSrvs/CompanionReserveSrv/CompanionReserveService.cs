@@ -625,31 +625,31 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
 
-        public async Task<BaseResultDto> UpdateShareDto(CompanionReserveShareDto dto)
-        {
-            var item = await _context.CompanionReserves.Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion).FirstOrDefaultAsync(s => s.Id == dto.Id);
+        //public async Task<BaseResultDto> UpdateShareDto(CompanionReserveShareDto dto)
+        //{
+        //    var item = await _context.CompanionReserves.Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion).FirstOrDefaultAsync(s => s.Id == dto.Id);
 
-            if (item.CompanionShare > 0)
-            {
-                return new BaseResultDto<CompanionReserveShareDto>(false, Resource.Notification.TheCalculationOfSharesHasAlreadyBeenDone, dto);
-            }
+        //    if (item.CompanionShare > 0)
+        //    {
+        //        return new BaseResultDto<CompanionReserveShareDto>(false, Resource.Notification.TheCalculationOfSharesHasAlreadyBeenDone, dto);
+        //    }
 
-            if (item.PaymentPrice > 0 && item.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Complete)
-            {
-                var sharePercent = item.CompanionAssistance.Companion.SharePercent;
-                var total = item.PaymentPrice;
+        //    if (item.PaymentPrice > 0 && item.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Complete)
+        //    {
+        //        var sharePercent = item.CompanionAssistance.Companion.SharePercent;
+        //        var total = item.PaymentPrice;
 
-                item.CompanionShare = (total * sharePercent) / 100;
-                item.SiteShare = total - item.CompanionShare;
-            }
-            else
-            {
-                return new BaseResultDto<CompanionReserveShareDto>(false, Resource.Notification.ReservehasNotCompletedYet, dto);
-            }
-            _context.CompanionReserves.Update(item);
-            _context.SaveChanges();
-            return new BaseResultDto<CompanionReserveShareDto>(true, mapper.Map<CompanionReserveShareDto>(item));
-        }
+        //        item.CompanionShare = (total * sharePercent) / 100;
+        //        item.SiteShare = total - item.CompanionShare;
+        //    }
+        //    else
+        //    {
+        //        return new BaseResultDto<CompanionReserveShareDto>(false, Resource.Notification.ReservehasNotCompletedYet, dto);
+        //    }
+        //    _context.CompanionReserves.Update(item);
+        //    _context.SaveChanges();
+        //    return new BaseResultDto<CompanionReserveShareDto>(true, mapper.Map<CompanionReserveShareDto>(item));
+        //}
 
         public async Task<BaseResultDto<int>> ReserveCountAsync(long id)
         {

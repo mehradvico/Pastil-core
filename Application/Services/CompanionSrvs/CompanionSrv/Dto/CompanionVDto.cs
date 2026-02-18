@@ -37,7 +37,6 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public int RateCount { get; set; }
         public bool IsSilver { get; set; }
         public bool IsGold { get; set; }
-        public int SharePercent { get; set; }
         public string SearchKey { get; set; }
         public bool HasPansion { get; set; }
 

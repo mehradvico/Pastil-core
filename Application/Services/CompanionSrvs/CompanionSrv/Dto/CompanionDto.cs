@@ -25,7 +25,6 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public string Phone { get; set; }
         public long CityId { get; set; }
         public long? NeighborhoodId { get; set; }
-        public int SharePercent { get; set; }
         public string SearchKey { get; set; }
 
         public PointDto Location { get; set; }

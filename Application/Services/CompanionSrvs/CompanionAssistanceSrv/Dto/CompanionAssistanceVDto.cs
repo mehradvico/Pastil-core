@@ -17,6 +17,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto
         public bool Active { get; set; }
         public bool Approved { get; set; }
         public string ActivationValue { get; set; }
+        public decimal CommissionPercent { get; set; }
 
         public CompanionVDto Companion { get; set; }
         public AssistanceVDto Assistance { get; set; }

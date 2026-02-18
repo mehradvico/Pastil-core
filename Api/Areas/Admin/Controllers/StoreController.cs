@@ -34,7 +34,7 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto<StoreDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var Store = await StoreService.FindAsyncDto(id);
+            var Store = await StoreService.FindAsyncVDto(id);
             return Ok(Store);
         }
         /// <summary>

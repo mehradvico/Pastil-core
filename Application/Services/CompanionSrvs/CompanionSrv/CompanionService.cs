@@ -368,15 +368,6 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             return new BaseResultDto(isSuccess: true);
         }
 
-        public BaseResultDto CompanionShareDto(CompanionShareDto dto)
-        {
-            var item = _context.Companions.FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
-            item.SharePercent = dto.SharePercent;
-            _context.Companions.Update(item);
-            _context.SaveChanges();
-            return new BaseResultDto(isSuccess: true);
-        }
-
         public async Task<List<SearchCompanionDto>> SearchMinAsync(SearchRequestDto request)
         {
             var q = request.Q;

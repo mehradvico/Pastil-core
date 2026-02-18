@@ -100,7 +100,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveExcelSrv
                 OperatorFinalPrice = s.OperatorFinalPrice,
                 OperatorDetail = s.OperatorDetail,
                 RebatePrice = s.RebatePrice,
-                SharePercent = s.CompanionAssistance.Companion.SharePercent,
+                //SharePercent = s.CompanionAssistance.Companion.SharePercent,
                 CompanionShare = s.CompanionShare,
                 SiteShare = s.SiteShare,
                 PaymentPrice = s.PaymentPrice,

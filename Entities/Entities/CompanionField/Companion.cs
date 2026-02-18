@@ -29,7 +29,6 @@ namespace Entities.Entities
         public int CommentCount { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
-        public int SharePercent { get; set; }
         public string SearchKey { get; set; }
         public City City { get; set; }
         public Neighborhood Neighborhood { get; set; }

@@ -24,6 +24,7 @@ namespace Entities.Entities
         public int CommentCount { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
+        public decimal CommissionPercent { get; set; } 
         public Picture Picture { get; set; }
         public Picture Icon { get; set; }
         public Code Type { get; set; }

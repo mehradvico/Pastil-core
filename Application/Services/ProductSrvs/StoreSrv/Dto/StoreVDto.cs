@@ -27,6 +27,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
         public bool Active { get; set; }
+        public decimal CommissionPercent { get; set; }
         public PointDto Location { get; set; }
         public PictureVDto Picture { get; set; }
         public PictureVDto Icon { get; set; }

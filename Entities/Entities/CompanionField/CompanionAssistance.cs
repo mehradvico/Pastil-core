@@ -15,6 +15,7 @@ namespace Entities.Entities
         public long CompanionTypeId { get; set; }
         public bool Approved { get; set; }
         public bool Deleted { get; set; }
+        public decimal CommissionPercent { get; set; }
         public Code CompanionType { get; set; }
         public Companion Companion { get; set; }
         public Assistance Assistance { get; set; }

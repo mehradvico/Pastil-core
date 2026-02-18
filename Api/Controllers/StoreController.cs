@@ -27,11 +27,8 @@ namespace Api.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        /// 
 
         [HttpGet("{id}")]
-        //[OutputCache(Duration = 5000)]
-
         [ProducesResponseType(typeof(BaseResultDto<StoreDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
@@ -41,11 +38,8 @@ namespace Api.Controllers
         /// <summary>
         /// جستجو
         /// </summary>
-        /// <returns></returns>
-        /// 
+        /// <returns></returns> 
         [HttpGet]
-        //[OutputCache(Duration = 5000)]
-
         [ProducesResponseType(typeof(StoreSearchDto), 200)]
         public IActionResult Get([FromQuery] StoreInputDto dto)
         {
@@ -53,9 +47,5 @@ namespace Api.Controllers
             var Store = StoreService.Search(dto);
             return Ok(Store);
         }
-
-
-
-
     }
 }

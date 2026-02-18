@@ -29,7 +29,8 @@ namespace Entities.Entities.PansionField
         public string Regulations { get; set; }
         public string OpenHour { get; set; }
         public string CloseHour { get; set; }
-
+        public decimal DailyCommissionPercent { get; set; }
+        public decimal HourlyCommissionPercent { get; set; }
         public Companion Companion { get; set; }
         public State State { get; set; }
         public City City { get; set; }  

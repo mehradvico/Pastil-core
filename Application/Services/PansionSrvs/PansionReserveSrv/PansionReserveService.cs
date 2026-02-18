@@ -404,31 +404,31 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
 
-        public async Task<BaseResultDto> UpdateShareDto(PansionReserveShareDto dto)
-        {
-            var item = await _context.PansionReserves.Include(s => s.Pansion).ThenInclude(s => s.Companion).FirstOrDefaultAsync(s => s.Id == dto.Id);
+        //public async Task<BaseResultDto> UpdateShareDto(PansionReserveShareDto dto)
+        //{
+        //    var item = await _context.PansionReserves.Include(s => s.Pansion).ThenInclude(s => s.Companion).FirstOrDefaultAsync(s => s.Id == dto.Id);
 
-            if (item.CompanionShare > 0)
-            {
-                return new BaseResultDto<PansionReserveShareDto>(false, Resource.Notification.TheCalculationOfSharesHasAlreadyBeenDone, dto);
-            }
+        //    if (item.CompanionShare > 0)
+        //    {
+        //        return new BaseResultDto<PansionReserveShareDto>(false, Resource.Notification.TheCalculationOfSharesHasAlreadyBeenDone, dto);
+        //    }
 
-            if (item.PaymentPrice > 0 && item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete)
-            {
-                var sharePercent = item.Pansion.Companion.SharePercent;
-                var total = item.PaymentPrice;
+        //    if (item.PaymentPrice > 0 && item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete)
+        //    {
+        //        var sharePercent = item.Pansion.Companion.SharePercent;
+        //        var total = item.PaymentPrice;
 
-                item.CompanionShare = (total * sharePercent) / 100;
-                item.SiteShare = total - item.CompanionShare;
-            }
-            else
-            {
-                return new BaseResultDto<PansionReserveShareDto>(false, Resource.Notification.ReservehasNotCompletedYet, dto);
-            }
-            _context.PansionReserves.Update(item);
-            _context.SaveChanges();
-            return new BaseResultDto<PansionReserveShareDto>(true, mapper.Map<PansionReserveShareDto>(item));
-        }
+        //        item.CompanionShare = (total * sharePercent) / 100;
+        //        item.SiteShare = total - item.CompanionShare;
+        //    }
+        //    else
+        //    {
+        //        return new BaseResultDto<PansionReserveShareDto>(false, Resource.Notification.ReservehasNotCompletedYet, dto);
+        //    }
+        //    _context.PansionReserves.Update(item);
+        //    _context.SaveChanges();
+        //    return new BaseResultDto<PansionReserveShareDto>(true, mapper.Map<PansionReserveShareDto>(item));
+        //}
 
         public async Task<BaseResultDto<int>> ReserveCountAsync(long id)
         {

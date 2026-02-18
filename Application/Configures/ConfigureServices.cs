@@ -10,6 +10,7 @@ using Application.Common.SpotPlayer;
 using Application.Maping;
 using Application.Services.Accounting.DriverSrv;
 using Application.Services.Accounting.DriverSrv.Iface;
+using Application.Services.Accounting.FinanceSrv.Iface;
 using Application.Services.Accounting.OtpVerifySrv;
 using Application.Services.Accounting.OtpVerifySrv.Iface;
 using Application.Services.Accounting.PermissionSrv.Iface;
@@ -148,6 +149,7 @@ using Application.Services.Filing.FileSrv;
 using Application.Services.Filing.FileSrv.Iface;
 using Application.Services.Filing.PictureSrv;
 using Application.Services.Filing.PictureSrv.Iface;
+using Application.Services.FinanceSrv;
 using Application.Services.Language.BrandLangSrv;
 using Application.Services.Language.BrandLangSrv.Iface;
 using Application.Services.Language.CategoryLangSrv;
@@ -494,6 +496,7 @@ public static class ConfigureServices
         services.AddScoped<IPaymentGatewayResolver, PaymentGatewayResolver>();
         services.AddScoped<IPaymentGateway, ParsianGateway>();
         services.AddScoped<IPaymentGateway, MellatGateway>();
+        services.AddScoped<IFinanceService, FinanceService>();
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 

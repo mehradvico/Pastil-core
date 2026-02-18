@@ -15,7 +15,6 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Iface
         Task<BaseResultDto> UpdateGoldAccountDto(CompanionGoldAccountDto dto);
         BaseResultDto UpdateSilverAccountDto(CompanionSilverAccountDto dto);
         BaseResultDto ActivationDto(CompanionActivationDto dto);
-        BaseResultDto CompanionShareDto(CompanionShareDto dto);
         Task<BaseResultDto> UpdateAsyncDto(CompanionDto dto);
         Task<List<SearchCompanionDto>> SearchMinAsync(SearchRequestDto request);
         void UpdateCompanionCommentCount(long companionId);
