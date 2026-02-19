@@ -13,6 +13,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
         public string Mobile { get; set; }
         public long? PictureId { get; set; }
         public decimal CommissionPercent { get; set; }
+        public bool HasCommission { get; set; }
         public PictureVDto Picture { get; set; }
     }
 }

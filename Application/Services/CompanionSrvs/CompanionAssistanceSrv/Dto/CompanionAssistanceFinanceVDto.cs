@@ -14,7 +14,7 @@ namespace Application.Services.CompanionSrvs.CompanionAssistanceSrv.Dto
         public long CompanionId { get; set; }
         public long AssistanceId { get; set; }
         public decimal CommissionPercent { get; set; }
-
+        public bool HasCommission { get; set; }
         public CompanionMinVDto Companion { get; set; }
         public AssistanceVDto Assistance { get; set; }
 

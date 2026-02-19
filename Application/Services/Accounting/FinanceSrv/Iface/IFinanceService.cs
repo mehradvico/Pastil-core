@@ -1,4 +1,5 @@
-﻿using Application.Services.Accounting.FinanceSrv.Dto;
+﻿using Application.Common.Dto.Result;
+using Application.Services.Accounting.FinanceSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionSrv.Dto;
 using Application.Services.FinanceSrv.Dto;
 using System;
@@ -13,5 +14,8 @@ namespace Application.Services.Accounting.FinanceSrv.Iface
     {
         FinanceSearchDto Search(FinanceInputDto dto);
         CompanionFinanceDetailVDto SearchCompanionDetail(long companionId);
+        Task<BaseResultDto> UpdateStoreCommissionAsyncDto(FinanceStoreDto dto);
+        Task<BaseResultDto> UpdateCompanionAssistanceCommissionAsyncDto(FinanceCompanionAssistanceDto dto);
+        Task<BaseResultDto> UpdatePansionCommissionAsyncDto(FinancePansionDto dto);
     }
 }

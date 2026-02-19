@@ -2077,15 +2077,21 @@
              جستجو 
             </summary>
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.FinanceController">
+        <member name="T:Api.Areas.Admin.Controllers.FinanceCompanionAssistanceController">
              <summary>
-             مدیریت حسابداری ها
+             مدیریت حسابداری خدمات
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.FinanceController.#ctor(Application.Services.Accounting.FinanceSrv.Iface.IFinanceService)">
+        <member name="M:Api.Areas.Admin.Controllers.FinanceCompanionAssistanceController.Put(Application.Services.Accounting.FinanceSrv.Dto.FinanceCompanionAssistanceDto)">
+            <summary>
+             ویرایش آیتم
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.FinanceController">
              <summary>
-             مدیریت گالری ها
+             مدیریت حسابداری ها
              </summary>
             
         </member>
@@ -2099,6 +2105,30 @@
             <summary>
              اطلاعات آیتم 
             </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.FinancePansionController">
+             <summary>
+             مدیریت حسابداری پانسیون ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinancePansionController.Put(Application.Services.Accounting.FinanceSrv.Dto.FinancePansionDto)">
+            <summary>
+             ویرایش آیتم
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.FinanceStoreController">
+             <summary>
+             مدیریت حسابداری فروشگاه ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceStoreController.Put(Application.Services.Accounting.FinanceSrv.Dto.FinanceStoreDto)">
+            <summary>
+             ویرایش آیتم
+            </summary>
+            <returns></returns> 
         </member>
         <member name="T:Api.Areas.Admin.Controllers.GalleryController">
              <summary>

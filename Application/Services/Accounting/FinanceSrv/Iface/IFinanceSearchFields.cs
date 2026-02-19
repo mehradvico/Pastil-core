@@ -9,5 +9,6 @@ namespace Application.Services.Accounting.FinanceSrv.Iface
     public interface IFinanceSearchFields
     {
         public bool? IsCompanion { get; set; }
+        public bool? HasCommission { get; set; }
     }
 }

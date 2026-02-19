@@ -15,7 +15,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
 
         public decimal DailyCommissionPercent { get; set; }
         public decimal HourlyCommissionPercent { get; set; }
-
+        public bool HasCommission { get; set; }
 
         public PictureVDto Picture { get; set; }
 

@@ -11,5 +11,6 @@ namespace Application.Services.Accounting.FinanceSrv.Dto
     public class FinanceInputDto : BaseInputDto, IFinanceSearchFields
     {
         public bool? IsCompanion { get; set; }
+        public bool? HasCommission { get; set; }
     }
 }

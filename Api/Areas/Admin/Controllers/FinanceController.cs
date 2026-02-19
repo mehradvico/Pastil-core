@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class FinanceController : ControllerBase
     {
         private IFinanceService _financeService;
-        /// <summary>
-        /// مدیریت گالری ها
-        /// </summary>
-        ///
         public FinanceController(IFinanceService financeService)
         {
             this._financeService = financeService;
@@ -30,7 +26,6 @@ namespace Api.Areas.Admin.Controllers
         ///  جستجو
         /// </summary>
         /// <returns></returns> 
-
         [HttpGet]
         [ProducesResponseType(typeof(BaseResultDto<FinanceVDto>), 200)]
         public IActionResult Get([FromQuery] FinanceInputDto dto)

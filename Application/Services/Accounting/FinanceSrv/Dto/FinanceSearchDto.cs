@@ -9,22 +9,8 @@ using System.Linq;
 
 namespace Application.Services.FinanceSrv.Dto
 {
-    public class FinanceSearchDto : IFinanceSearchFields
+    public class FinanceSearchDto
     {
-        public FinanceSearchDto(
-            FinanceInputDto dto,
-            IQueryable<Store> stores,
-            IQueryable<Companion> companions,
-            IMapper mapper)
-        {
-            IsCompanion = dto.IsCompanion;
-
-            Stores = stores.Select(s => mapper.Map<StoreFinanceVDto>(s)).ToList();
-            Companions = companions.Select(c => mapper.Map<CompanionFinanceVDto>(c)).ToList();
-        }
-
-        public bool? IsCompanion { get; set; }
-
         public List<StoreFinanceVDto> Stores { get; set; } = new();
         public List<CompanionFinanceVDto> Companions { get; set; } = new();
     }
