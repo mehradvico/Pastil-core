@@ -1,5 +1,6 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Interface;
+using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.Order.ProductOrderOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using Entities.Entities;
@@ -19,9 +20,9 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
         Task<BaseResultDto> ChangeDescriptions(ProductOrderDto order);
         Task UpdateWalletAsync(string productOrderId, bool complete);
         BaseResultDto<List<ProductOrderVDto>> GetReserved(long userId, long addressId);
-        //Task<BaseResultDto> SetReserveAsync(ProductOrderDto productOrder);
         Task<BaseResultDto> SetCancelRequestAsync(ProductOrderDto productOrder);
         Task<BaseResultDto> AnswerCancelRequestAsync(ProductOrderDto productOrder);
+
     }
 }
 

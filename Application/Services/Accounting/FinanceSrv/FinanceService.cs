@@ -1,5 +1,6 @@
 ﻿using AngleSharp.Dom;
 using Application.Common.Dto.Result;
+using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Services.Accounting.FinanceSrv.Dto;
 using Application.Services.Accounting.FinanceSrv.Iface;
@@ -35,14 +36,16 @@ namespace Application.Services.FinanceSrv
 
         public FinanceSearchDto Search(FinanceInputDto dto)
         {
-            var storesQ = _context.Stores.Include(s => s.Picture).Where(s => !s.Deleted).AsQueryable();
-            var companionsQ = _context.Companions.Include(c => c.Picture).Include(c => c.Owner).Where(c => !c.Deleted).AsQueryable();
+            var storesQ = _context.Stores.Where(s => !s.Deleted).AsQueryable();
+
+            var companionsQ = _context.Companions.Include(c => c.Owner).Where(c => !c.Deleted).AsQueryable();
 
             if (dto.Available.HasValue)
             {
                 storesQ = storesQ.Where(s => s.Active == dto.Available);
                 companionsQ = companionsQ.Where(c => c.Active && c.Approved == dto.Available);
             }
+
             if (!string.IsNullOrEmpty(dto.Q))
             {
                 storesQ = storesQ.Where(s => s.Name.Contains(dto.Q));
@@ -70,35 +73,73 @@ namespace Application.Services.FinanceSrv
                     companionsQ = Enumerable.Empty<Companion>().AsQueryable();
             }
 
+            var storeIds = storesQ.Select(s => s.Id).ToList();
+
+            var orderStats = _context.ProductOrderStores.Where(pos =>storeIds.Contains(pos.StoreId) && !pos.Deleted && !pos.ProductOrder.Deleted && pos.ProductOrder.IsPaid)
+                .GroupBy(pos => pos.StoreId).Select(g => new
+                {
+                    StoreId = g.Key,
+                    OrderCount = g.Select(x => x.ProductOrderId).Distinct().Count()
+                }).ToList().ToDictionary(x => x.StoreId, x => x.OrderCount);
+
             var stores = storesQ.Select(s => mapper.Map<StoreFinanceVDto>(s)).ToList();
+
+            foreach (var s in stores)
+            {
+                s.OrderCount = orderStats.TryGetValue(s.Id, out var cnt) ? cnt : 0;
+            }
+
             if (dto.HasCommission.HasValue)
             {
-                stores = dto.HasCommission.Value ? stores.Where(s => s.CommissionPercent != 0).ToList() : stores.Where(s => s.CommissionPercent == 0).ToList();
+                stores = dto.HasCommission.Value? stores.Where(s => s.CommissionPercent != 0).ToList() : stores.Where(s => s.CommissionPercent == 0).ToList();
             }
 
             var companionIds = companionsQ.Select(c => c.Id).ToList();
 
-            var assistanceStats = _context.CompanionAssistances.Where(a => companionIds.Contains(a.CompanionId) && !a.Deleted).GroupBy(a => a.CompanionId)
-                .Select(g => new
+            var assistanceStats = _context.CompanionAssistances
+                .Where(a => companionIds.Contains(a.CompanionId) && !a.Deleted).GroupBy(a => a.CompanionId).Select(g => new
                 {
                     CompanionId = g.Key,
                     Total = g.Count(),
                     With = g.Count(x => x.CommissionPercent > 0)
-                })
-                .ToList().ToDictionary(x => x.CompanionId);
+                }).ToList().ToDictionary(x => x.CompanionId);
 
-            var pansionStats = _context.Pansions.Where(p => companionIds.Contains(p.CompanionId)).GroupBy(p => p.CompanionId)
-                .Select(g => new
+            var pansionStats = _context.Pansions.Where(p => companionIds.Contains(p.CompanionId)).GroupBy(p => p.CompanionId).Select(g => new
                 {
                     CompanionId = g.Key,
                     Has = 1,
-                    With = g.Any(x =>
-                        x.DailyCommissionPercent > 0 &&
-                        x.HourlyCommissionPercent > 0) ? 1 : 0
-
+                    With = g.Any(x => x.DailyCommissionPercent > 0 && x.HourlyCommissionPercent > 0) ? 1 : 0
                 }).ToList().ToDictionary(x => x.CompanionId);
 
-            var companions = companionsQ.AsEnumerable()
+            var companionReserveStats =
+                (from r in _context.CompanionReserves
+                 join a in _context.CompanionAssistances on r.CompanionAssistanceId equals a.Id
+                 where companionIds.Contains(a.CompanionId) && r.IsReserved && !r.IsCancel
+                 group r by a.CompanionId into g
+                 select new
+                 {
+                     CompanionId = g.Key,
+                     Count = g.Count()
+
+                 }).ToList().ToDictionary(x => x.CompanionId, x => x.Count);
+
+            var pansionReserveStats =
+                (from r in _context.PansionReserves
+                 join p in _context.Pansions on r.PansionId equals p.Id
+                 where companionIds.Contains(p.CompanionId)
+                       && r.IsReserved
+                       && !r.IsCancel
+                 group r by p.CompanionId into g
+                 select new
+                 {
+                     CompanionId = g.Key,
+                     Count = g.Count()
+                 })
+                .ToList()
+                .ToDictionary(x => x.CompanionId, x => x.Count);
+
+            var companions = companionsQ
+                .AsEnumerable()
                 .Select(c =>
                 {
                     var dtoC = mapper.Map<CompanionFinanceVDto>(c);
@@ -113,9 +154,13 @@ namespace Application.Services.FinanceSrv
                     dtoC.ItemsWithCommissionCount = withItems;
                     dtoC.HasCommission = totalItems > 0 && totalItems == withItems;
 
-                    return dtoC;
+                    dtoC.CompanionReserveCount = companionReserveStats.TryGetValue(c.Id, out var cr) ? cr : 0;
+                    dtoC.PansionReserveCount = pansionReserveStats.TryGetValue(c.Id, out var pr) ? pr : 0;
+                    dtoC.TotalReserveCount = dtoC.CompanionReserveCount + dtoC.PansionReserveCount;
 
-                }).ToList();
+                    return dtoC;
+                })
+                .ToList();
 
             if (dto.HasCommission.HasValue)
             {

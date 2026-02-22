@@ -14,12 +14,12 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
     public class CompanionFinanceVDto : Name_FieldDto
     {
         public long OwnerId { get; set; }
-        public long? PictureId { get; set; }
-        public string Phone { get; set; }
         public bool HasCommission { get; set; }
         public int TotalItemsCount { get; set; } 
         public int ItemsWithCommissionCount { get; set; }
+        public int TotalReserveCount { get; set; }
+        public int CompanionReserveCount { get; set; }
+        public int PansionReserveCount { get; set; }
         public UserMinVDto Owner { get; set; }
-
     }
 }

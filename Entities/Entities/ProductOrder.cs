@@ -18,6 +18,8 @@ namespace Entities.Entities
         public double DiscountPrice { get; set; }
         public double WalletPrice { get; set; }
         public double PaymentPrice { get; set; }
+        public double SiteShare {  get; set; }
+        public double StoreShare { get; set; }
         public System.DateTime CreateDate { get; set; }
         public string UserDescription { get; set; }
         public string AdminDescription { get; set; }

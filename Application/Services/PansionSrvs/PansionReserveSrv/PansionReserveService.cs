@@ -7,6 +7,7 @@ using Application.Common.Helpers.Iface;
 using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
+using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
@@ -230,14 +231,20 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
         {
             try
             {
-                var reserve = await _context.PansionReserves.Include(s => s.Booker).AsTracking().FirstOrDefaultAsync(s => s.Id == reserveId);
+                var reserve = await _context.PansionReserves.Include(s => s.Booker).Include(s => s.Pansion).AsTracking().FirstOrDefaultAsync(s => s.Id == reserveId);
 
-                if (fromWallet)
+                if (reserve.FromWallet)
                 {
                     var amount = await _walletService.GetAmountValueAsync(reserve.Booker.Id);
                     if (amount >= reserve.WalletPrice)
                     {
-                        var walletItem = new WalletDto() { Painding = false, Amount = reserve.WalletPrice, UserId = reserve.Booker.Id, PansionReserveId = reserve.Id };
+                        var walletItem = new WalletDto()
+                        {
+                            Painding = false,
+                            Amount = reserve.WalletPrice,
+                            UserId = reserve.Booker.Id,
+                            PansionReserveId = reserve.Id
+                        };
                         await _walletService.InsertUpdatePansionReserveAsync(walletItem, true);
                     }
                     else
@@ -247,18 +254,53 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 }
 
                 reserve.IsReserved = true;
-                var prePaidStatus = await _codeService.GetIdByLabelAsync(PansionReserveStatusEnum.PansionReserveState_Paid.ToString());
-                reserve.StatusId = prePaidStatus;
 
-                _context.PansionReserves.Update(reserve);
+                var paidStatus = await _codeService.GetIdByLabelAsync(PansionReserveStatusEnum.PansionReserveState_Paid.ToString());
+                reserve.StatusId = paidStatus;
+
+                await UpdatePansionReserveCommissionDto(reserve);
+
                 await _context.SaveChangesAsync();
+
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
             catch (Exception ex)
             {
                 return new BaseResultDto(false);
-
             }
+        }
+
+        public Task UpdatePansionReserveCommissionDto(PansionReserve item)
+        {
+            if (item == null || item.Pansion == null)
+                return Task.CompletedTask;
+
+            decimal total = (decimal)item.PaymentPrice;
+
+            decimal hourlyPercent = item.Pansion.HourlyCommissionPercent;
+            decimal dailyPercent = item.Pansion.DailyCommissionPercent;
+
+            var hasHour = item.HourCount > 0;
+            var hasDay = item.DayCount > 0;
+
+            decimal sharePercent;
+
+            if (hasHour && !hasDay)
+            {
+                sharePercent = hourlyPercent;
+            }
+            else
+            {
+                sharePercent = dailyPercent;
+            }
+
+            decimal siteShare = (total * sharePercent) / 100m;
+            decimal companionShare = total - siteShare;
+
+            item.CompanionShare = (double)companionShare;
+            item.SiteShare = (double)siteShare;
+
+            return Task.CompletedTask;
         }
         public async Task<BaseResultDto> UpdatePansionReserveCancelDto(PansionReserveCancelDto dto)
         {
@@ -403,32 +445,6 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             await _context.SaveChangesAsync();
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
-
-        //public async Task<BaseResultDto> UpdateShareDto(PansionReserveShareDto dto)
-        //{
-        //    var item = await _context.PansionReserves.Include(s => s.Pansion).ThenInclude(s => s.Companion).FirstOrDefaultAsync(s => s.Id == dto.Id);
-
-        //    if (item.CompanionShare > 0)
-        //    {
-        //        return new BaseResultDto<PansionReserveShareDto>(false, Resource.Notification.TheCalculationOfSharesHasAlreadyBeenDone, dto);
-        //    }
-
-        //    if (item.PaymentPrice > 0 && item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete)
-        //    {
-        //        var sharePercent = item.Pansion.Companion.SharePercent;
-        //        var total = item.PaymentPrice;
-
-        //        item.CompanionShare = (total * sharePercent) / 100;
-        //        item.SiteShare = total - item.CompanionShare;
-        //    }
-        //    else
-        //    {
-        //        return new BaseResultDto<PansionReserveShareDto>(false, Resource.Notification.ReservehasNotCompletedYet, dto);
-        //    }
-        //    _context.PansionReserves.Update(item);
-        //    _context.SaveChanges();
-        //    return new BaseResultDto<PansionReserveShareDto>(true, mapper.Map<PansionReserveShareDto>(item));
-        //}
 
         public async Task<BaseResultDto<int>> ReserveCountAsync(long id)
         {

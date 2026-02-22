@@ -3,6 +3,7 @@ using Application.Common.Interface;
 using Application.Services.CompanionSrv.CompanionReserveSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.Content.CargoSrv.Dto;
+using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Entities.Entities;
 using System.Threading.Tasks;
 
@@ -20,7 +21,6 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Iface
 
         Task<BaseResultDto> CompanionReserveUserResponseAsyncDto(CompanionReserveUserResponseDto dto);
         Task<BaseResultDto> UpdateReserveStateDto(CompanionReserveChangeStateDto dto);
-        //Task<BaseResultDto> UpdateShareDto(CompanionReserveShareDto dto);
         Task<BaseResultDto> SetRebateCodeAsyncDto(CompanionReserveSetRebateCodeDto dto);
         Task<BaseResultDto> SetWalletAsyncDto(CompanionReserveSetWalletDto dto);
         Task<BaseResultDto> ClearRebateCodeAsync(long id);

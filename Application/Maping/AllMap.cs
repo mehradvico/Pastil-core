@@ -285,13 +285,13 @@ namespace Application.Maping
                 .ForMember(x => x.Address, y => y.Ignore()).ForMember(x => x.Booker, y => y.Ignore()).ForMember(x => x.CompanionAssistance, y => y.Ignore())
                 .ForMember(x => x.CompanionAssistanceTime, y => y.Ignore()).ForMember(x => x.CompanionAssistanceUser, y => y.Ignore())
                 .ForMember(x => x.UserPets, y => y.Ignore()).ForMember(x => x.State, y => y.Ignore()).ForMember(x => x.CompanionAssistanceType, y => y.Ignore())
-                .ForMember(x => x.OperatorStateId, y => y.Ignore());
+                .ForMember(x => x.OperatorStateId, y => y.Ignore()).ForMember(x => x.CompanionAssistancePackages, y => y.Ignore());
             CreateMap<CompanionReserveSetRebateCodeDto, CompanionReserve>();
             CreateMap<CompanionReserveSetWalletDto, CompanionReserve>();
             CreateMap<CompanionReserve, CompanionReserveAdminVDto>();
             CreateMap<CompanionReserveChangeStateDto, CompanionReserve>().ReverseMap();
             CreateMap<CompanionReserve, CompanionReserveDto>();
-            CreateMap<CompanionReserve, CompanionReserveShareDto>().ReverseMap();
+            CreateMap<CompanionReserve, CompanionUpdateCommissionDto>().ReverseMap();
             CreateMap<CompanionReserve, CompanionReserveVDto>();
             CreateMap<CompanionReserveComment, CompanionReserveCommentDto>();
             CreateMap<CompanionReserveCommentDto, CompanionReserveComment>().ForMember(x => x.CompanionReserveCommentRates, y => y.Ignore());
@@ -489,6 +489,7 @@ namespace Application.Maping
             CreateMap<PansionReserveStatusDto, PansionReserve>().ReverseMap();
             CreateMap<PansionReserve, PansionReserveDto>();
             CreateMap<PansionReserve, PansionReserveVDto>();
+            CreateMap<PansionReserve, PansionUpdateCommissionDto>();
             CreateMap<Pansion, SearchPansionDto>().ForMember(d => d.Picture, o => o.MapFrom(s => s.Picture));
             //Pansion ----------------------------------------------
 

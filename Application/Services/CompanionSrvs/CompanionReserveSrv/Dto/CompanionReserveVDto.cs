@@ -16,8 +16,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
     public class CompanionReserveVDto : Id_FieldDto
     {
         public long BookerId { get; set; }
-
-        public double PrePaymentPrice { get; set; }
+        public int PetCount { get; set; }
+        public double PrePaymentPrice { get; set; } 
         public double OperatorFinalPrice { get; set; }
         public double OperatorStuffPrice { get; set; }
         public double OperatorWagesPrice { get; set; }

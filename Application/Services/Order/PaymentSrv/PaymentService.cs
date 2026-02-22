@@ -310,6 +310,8 @@ namespace Application.Services.Order.PaymentSrv
             dto.IsOnline = true;
             dto.ProductOrderId = null;
             dto.TypeId = PaymentType_AgencyReserve;
+            dto.CallBackTypeLabel = PaymentCallbackTypeEnum.CompanionReserve.ToString();
+            dto.CallBackId = reservedetail.Id.ToString();
             return await StartPayment(dto);
         }
 
@@ -351,6 +353,8 @@ namespace Application.Services.Order.PaymentSrv
             dto.IsOnline = true;
             dto.ProductOrderId = null;
             dto.TypeId = PaymentType_AgencyReserve;
+            dto.CallBackTypeLabel = PaymentCallbackTypeEnum.PansionReserve.ToString();
+            dto.CallBackId = reservedetail.Id.ToString();
             return await StartPayment(dto);
         }
 

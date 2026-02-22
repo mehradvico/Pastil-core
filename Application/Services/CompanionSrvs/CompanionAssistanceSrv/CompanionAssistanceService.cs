@@ -165,7 +165,6 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 var item = await _context.CompanionAssistances.Include(s => s.Codes).AsNoTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
                 item.Active = dto.Active;
                 item.AssistanceId = dto.AssistanceId;
-                item.PrePaymentPrice = dto.PrePaymentPrice;
                 item.IsSinglePackage = dto.IsSinglePackage;
                 if (_currentUser.CompanionId == null)
                 {

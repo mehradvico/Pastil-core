@@ -8,7 +8,6 @@ namespace Entities.Entities
     {
         public long CompanionId { get; set; }
         public long AssistanceId { get; set; }
-        public double PrePaymentPrice { get; set; }
         public bool IsSinglePackage { get; set; }
         public bool Active { get; set; }
         public string ActivationValue { get; set; }

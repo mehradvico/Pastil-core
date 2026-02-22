@@ -87,6 +87,8 @@ using Application.Services.CompanionSrvs.CompanionReserveCommentSrv;
 using Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveExcelSrv;
 using Application.Services.CompanionSrvs.CompanionReserveExcelSrv.Iface;
+using Application.Services.CompanionSrvs.CompanionReservePackageSrv;
+using Application.Services.CompanionSrvs.CompanionReservePackageSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveUserPetSrv;
 using Application.Services.CompanionSrvs.CompanionReserveUserPetSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionSrv;
@@ -476,6 +478,7 @@ public static class ConfigureServices
         services.AddScoped<ICompanionReserveExcelService, CompanionReserveExcelService>();
         services.AddScoped<INotifyMessageService, NotifyMessageService>();
         services.AddScoped<ICompanionReserveUserPetService, CompanionReserveUserPetService>();
+        services.AddScoped<ICompanionReservePackageService, CompanionReservePackageService>();
         services.AddScoped<ICompanionAssistancePackagePictureService, CompanionAssistancePackagePictureService>();
         services.AddScoped<IPansionService, PansionService>();
         services.AddScoped<IPansionPetService, PansionPetService>();

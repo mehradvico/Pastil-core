@@ -190,7 +190,7 @@ namespace Application.Services.Order.ProductOrderSrv
         public async Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false)
         {
             var productOrder = await _context.ProductOrders.AsTracking().Include(s => s.User).Include(s => s.ProductOrderStores).ThenInclude(s => s.Store).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).ThenInclude(s => s.ProductItem).ThenInclude(s => s.Product).FirstOrDefaultAsync(s => s.Id == productOrderId);
-            if (fromWallet)
+            if (productOrder.Wallet != null)
             {
                 var amount = await _walletService.GetAmountValueAsync(productOrder.UserId);
                 if (amount >= productOrder.WalletPrice)
@@ -205,7 +205,7 @@ namespace Application.Services.Order.ProductOrderSrv
                 }
             }
             productOrder.IsPaid = true;
-            _context.ProductOrders.Update(productOrder);
+            await UpdateProductOrderCommissionDto(productOrder);
             await _context.SaveChangesAsync();
             var cart = await _context.Carts.AsTracking().Include(s => s.CartStores.Where(a => a.Active)).ThenInclude(s => s.CartItems).FirstOrDefaultAsync(s => s.UserId == productOrder.UserId);
             cart.DeliveryId = null;
@@ -228,7 +228,7 @@ namespace Application.Services.Order.ProductOrderSrv
             }
             var orderUrl = productOrder.Id;
 
-            await _messageSenderService.SendMessageAsync( messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token3: orderUrl);
+            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token3: orderUrl);
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
             await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: productOrder.UserId, token1: nameText, token2: productOrder.Id.ToString());
             await _notificationService.InsertNoticeAsync(long.Parse(productOrder.Id), NoticeTypeEnum.NotifType_UserRegisterOrder, NoticeUserTypeEnum.NoticeUserType_User);
@@ -242,6 +242,40 @@ namespace Application.Services.Order.ProductOrderSrv
                 }
             }
             return new BaseResultDto(true);
+        }
+
+        public Task UpdateProductOrderCommissionDto(ProductOrder order)
+        {
+            if (order == null || order.StoreShare > 0 || order.SiteShare > 0)
+                return Task.CompletedTask;
+
+            decimal totalStoreShare = 0m;
+            decimal totalSiteShare = 0m;
+
+            foreach (var s in order.ProductOrderStores ?? Enumerable.Empty<ProductOrderStore>())
+            {
+                if (s.Store == null || s.PaymentPrice <= 0)
+                    continue;
+
+                decimal percent = s.Store.CommissionPercent;
+                if (percent < 0 || percent > 100)
+                    continue;
+
+                decimal payment = (decimal)s.PaymentPrice;
+                decimal siteShare = (payment * percent) / 100m;
+                decimal storeShare = payment - siteShare;
+
+                totalStoreShare += storeShare;
+                totalSiteShare += siteShare;
+            }
+
+            if (totalStoreShare == 0 && totalSiteShare == 0)
+                return Task.CompletedTask;
+
+            order.StoreShare = (double)totalStoreShare;
+            order.SiteShare = (double)totalSiteShare;
+
+            return Task.CompletedTask;
         }
         public async Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto)
         {
@@ -346,21 +380,7 @@ namespace Application.Services.Order.ProductOrderSrv
             var items = _context.ProductOrders.Where(s => s.UserId == userId && s.AddressId == addressId && string.IsNullOrEmpty(s.ChildOrderId) && s.ReserveDate.HasValue && s.ReserveDate.Value > DateTime.Now && s.ProductOrderState.Label == ProductOrderStateEnum.ProductOrderState_Normal.ToString() && s.ProductOrderStatus.Label == ProductOrderStatusEnum.ProductOrderStatus_Insert.ToString() && s.IsPaid);
             return new BaseResultDto<List<ProductOrderVDto>>(items.Any(), mapper.Map<List<ProductOrderVDto>>(items));
         }
-        //public async Task<BaseResultDto> SetReserveAsync(ProductOrderDto productOrder)
-        //{
-        //    var item = await _context.ProductOrders.FirstOrDefaultAsync(s => s.Id == productOrder.Id && s.UserId == productOrder.UserId);
-        //    if (item != null)
-        //    {
-        //        item.ReserveDate = productOrder.ReserveDate;
-        //        _context.ProductOrders.Update(item);
-        //        _context.SaveChanges();
-        //        await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderReserve, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: item.User.Email, token1: productOrder.Id);
 
-        //        return new BaseResultDto(true);
-        //    }
-        //    return new BaseResultDto(false, val: Resource.Notification.NothingFound);
-
-        //}
         public async Task<BaseResultDto> SetCancelRequestAsync(ProductOrderDto productOrder)
         {
             var item = await _context.ProductOrders.FirstOrDefaultAsync(s => s.Id == productOrder.Id && s.UserId == productOrder.UserId);
@@ -396,7 +416,5 @@ namespace Application.Services.Order.ProductOrderSrv
             return new BaseResultDto(false, val: Resource.Notification.InvalidData);
 
         }
-
-
     }
 }

@@ -12,7 +12,6 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto
         public long CompanionId { get; set; }
         public long AssistanceId { get; set; }
         public long CompanionTypeId { get; set; }
-        public double PrePaymentPrice { get; set; }
         public bool IsSinglePackage { get; set; }
         public bool Active { get; set; }
         public bool Approved { get; set; }

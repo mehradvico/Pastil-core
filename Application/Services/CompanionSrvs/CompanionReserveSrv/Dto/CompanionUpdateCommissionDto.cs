@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
 {
-    public class CompanionReserveShareDto : Id_FieldDto
-    {
+    public class CompanionUpdateCommissionDto
+    { 
+        public long CompanionReserveId { get; set; }
     }
 }

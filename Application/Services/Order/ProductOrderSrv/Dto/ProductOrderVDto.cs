@@ -34,7 +34,8 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public string TrackingCode { get; set; }
         public DateTime? HasCancelRequestDate { get; set; }
         public double WalletPrice { get; set; }
-
+        public double SiteShare { get; set; }
+        public double StoreShare { get; set; }
         public RebateVDto Rebate { get; set; }
         public UserVDto User { get; set; }
         public AddressVDto Address { get; set; }

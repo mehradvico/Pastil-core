@@ -18,7 +18,6 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv.Iface
         Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto> UpdatePansionReserveCancelDto(PansionReserveCancelDto dto);
         Task<BaseResultDto> UpdatePansionReserveStatusDto(PansionReserveStatusDto dto);
-        //Task<BaseResultDto> UpdateShareDto(PansionReserveShareDto dto);
         Task<BaseResultDto> SetRebateCodeAsyncDto(PansionReserveRebateCodeDto dto);
         Task<BaseResultDto> SetWalletAsyncDto(PansionReserveWalletDto dto);
         Task<BaseResultDto> ClearRebateCodeAsync(long id);
