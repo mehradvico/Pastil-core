@@ -1274,7 +1274,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionReserveController.Put(Application.Services.CompanionSrv.CompanionReserveSrv.Dto.CompanionReserveDto)">
+        <member name="M:Api.Areas.Admin.Controllers.CompanionReserveController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveUpdateDto)">
             <summary>
              ویرایش آیتم 
             </summary>

@@ -203,28 +203,6 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                     }
 
-                    if (companionAssistance.CompanionTypeId == (long)CompanionTypeEnum.CompanionType_DogWalker || companionAssistance.CompanionTypeId == (long)CompanionTypeEnum.CompanionType_Nurse || companionAssistance.CompanionTypeId == (long)CompanionTypeEnum.CompanionType_Grooming)
-                    {
-                        if (string.IsNullOrEmpty(dto.StartTime) || string.IsNullOrEmpty(dto.EndTime))
-                        {
-                            return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.PleaseEnterTimeRange, dto);
-                        }
-                        if (!TimeSpan.TryParseExact(dto.StartTime, "hh\\:mm", CultureInfo.InvariantCulture, out var startTime) ||
-                !TimeSpan.TryParseExact(dto.EndTime, "hh\\:mm", CultureInfo.InvariantCulture, out var endTime))
-                        {
-                            return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidTimeFormat, dto);
-                        }
-                        if (startTime.TotalHours < 0 || startTime.TotalHours > 23 || endTime.TotalHours < 0 || endTime.TotalHours > 23)
-                        {
-                            return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.TheTimeRangeMustBeBetween0And23, dto);
-                        }
-
-                        if (startTime >= endTime)
-                        {
-                            return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.ToTimeMustBeBiggerThanFromTime, dto);
-                        }
-                    }
-
                     if (dto.CompanionAssistancePackagesIds == null)
                     {
                         dto.CompanionAssistancePackagesIds = new List<long>();
@@ -308,24 +286,54 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 return new BaseResultDto<CompanionReserveDto>(isSuccess: false, val: ex.Message, data: dto);
             }
         }
-        public override BaseResultDto UpdateDto(CompanionReserveDto dto)
+        public async Task<BaseResultDto> UpdateAsyncDto(CompanionReserveUpdateDto dto)
         {
             try
             {
-                var modelCheker = ModelHelper<CompanionReserveDto>.ModelErrors(dto);
+                var modelCheker = ModelHelper<CompanionReserveUpdateDto>.ModelErrors(dto);
                 if (!modelCheker.IsSuccess)
-                {
                     return modelCheker;
+
+                var item = await _context.CompanionReserves.AsTracking().Include(r => r.CompanionAssistance).Include(r => r.CompanionAssistancePackages).FirstOrDefaultAsync(r => r.Id == dto.Id);
+
+                if (item == null)
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
+
+                if (item.IsCancel)
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
+
+                item.CompanionAssistanceTimeId = dto.CompanionAssistanceTimeId;
+                item.IsFemale = dto.IsFemale;
+
+                var oldPaymentPrice = item.PaymentPrice;
+                if (dto.UserPetIds == null) 
+                { 
+                    dto.UserPetIds = new List<long>(); 
                 }
-                else
-                {
-                    var item = mapper.Map<CompanionReserve>(dto);
-                    _context.CompanionReserves.Attach(item);
-                    _context.Entry(item).State = EntityState.Modified;
-                    _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_EditCompanionReserve, NoticeUserTypeEnum.NoticeUserType_Admin);
-                    _context.SaveChanges();
-                    return new BaseResultDto(isSuccess: true);
+                if (!dto.UserPetIds.Any())
+                { 
+                    return new BaseResultDto<CompanionReserveUpdateDto>(false, Resource.Notification.SelectAtLeastOneType, dto);
                 }
+                await (_context as DbContext).Database.ExecuteSqlRawAsync("DELETE FROM CompanionReserveUserPet WHERE CompanionReserveId = {0}", item.Id);
+
+                await _companionReserveUserPetService.InsertOrUpdateAsync(item, dto.UserPetIds);
+
+                dto.UserPetIds = dto.UserPetIds.Distinct().ToList();
+                var petCount = dto.UserPetIds.Count;
+                var packages = item.CompanionAssistancePackages.ToList();
+
+                item.PackagePrice = packages.Sum(p => p.Price) * petCount;
+                item.PrePaymentPrice = packages.Sum(p => p.PrePaymentPrice) * petCount;
+                item.PaymentPrice = item.PrePaymentPrice;
+
+                if (oldPaymentPrice != item.PaymentPrice)
+                    UpdateCompanionReserveCommission(item);
+
+                await _context.SaveChangesAsync();
+
+                await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_EditCompanionReserve, NoticeUserTypeEnum.NoticeUserType_Admin);
+
+                return new BaseResultDto(isSuccess: true);
             }
             catch (Exception ex)
             {

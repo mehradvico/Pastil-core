@@ -28,8 +28,6 @@ namespace Entities.Entities
         public bool IsCancel { get; set; }
         public string CancelDetail { get; set; }
         public long StateId { get; set; }
-        public string StartTime { get; set; } // DogWalker
-        public string EndTime { get; set; }
         public DateTime DoDate { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime? DoneDate { get; set; }

@@ -11,8 +11,6 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
         public DateTime DoDate { get; set; }
         public DateTime? DoneDate { get; set; }
 
-        public string StartTime { get; set; } // DogWalker
-        public string EndTime { get; set; }
         public double PrePaymentPrice { get; set; }
         public bool FromWallet { get; set; }
         public double WalletPrice { get; set; }

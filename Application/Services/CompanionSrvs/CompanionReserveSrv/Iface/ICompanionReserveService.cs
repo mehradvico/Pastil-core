@@ -16,6 +16,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Iface
         Task<BaseResultDto<CompanionReserveVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto<CompanionReserveAdminVDto>> FindAsyncAdminVDto(long id);
         Task<BaseResultDto> UpdateCancelDto(CompanionReserveCancelDto dto);
+        Task<BaseResultDto> UpdateAsyncDto(CompanionReserveUpdateDto dto);
         Task<BaseResultDto> CompanionReserveOperatorUpdateAsyncDto(CompanionReserveOperatorDto dto);
         Task<BaseResultDto> CompanionReserveCompanionUpdateAsyncDto(CompanionReserveOperatorDto dto);
 

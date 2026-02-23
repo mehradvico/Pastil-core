@@ -73,9 +73,9 @@ namespace Api.Areas.Admin.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(CompanionReserveDto dto)
+        public async Task<IActionResult> Put(CompanionReserveUpdateDto dto)
         {
-            var companion = _companionReserveService.UpdateDto(dto);
+            var companion = await _companionReserveService.UpdateAsyncDto(dto);
             return Ok(companion);
         }
     }

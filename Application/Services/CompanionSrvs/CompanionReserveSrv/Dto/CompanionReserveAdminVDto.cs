@@ -32,8 +32,6 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
         public DateTime CreateDate { get; set; }
         public DateTime DoDate { get; set; }
         public DateTime? DoneDate { get; set; }
-        public string StartTime { get; set; } // DogWalker
-        public string EndTime { get; set; }
         public bool IsReserved { get; set; }
         public bool IsCancel { get; set; }
         public string CancelDetail { get; set; }
