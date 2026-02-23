@@ -483,4 +483,22 @@
   <data name="InvalidDeviceKey" xml:space="preserve">
     <value>Invalid Device Key</value>
   </data>
+  <data name="PleaseEnterCardHolderName" xml:space="preserve">
+    <value>Please Enter Card Holder Name</value>
+  </data>
+  <data name="PleaseEnterCardNumber" xml:space="preserve">
+    <value>Please Enter Card Number</value>
+  </data>
+  <data name="CartNumberMustBe16Digit" xml:space="preserve">
+    <value>Cart Number Must Be 16 Digit</value>
+  </data>
+  <data name="BankCartIsNotAvailable" xml:space="preserve">
+    <value>Bank Cart Is Not Available</value>
+  </data>
+  <data name="ShebaNumberMustBe24Digit" xml:space="preserve">
+    <value>Sheba Number Must Be 24 Digit</value>
+  </data>
+  <data name="EditIsNotAvailable" xml:space="preserve">
+    <value>Edit Is Not Available</value>
+  </data>
 </root>

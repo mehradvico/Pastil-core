@@ -4463,6 +4463,43 @@
              حذف آیتم 
             </summary>  
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.UserBankCardController">
+            <summary>
+            مدیریت کارت های بانکی کاربر ها
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Get(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Post(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Put(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.UserController">
              <summary>
              مدیریت کاربران
@@ -4548,7 +4585,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.UserPetPictureController.UserPet(Application.Services.Accounting.UserPetPictureSrv.Dto.UserPetPictureDto)">
+        <member name="M:Api.Areas.Admin.Controllers.UserPetPictureController.Post(Application.Services.Accounting.UserPetPictureSrv.Dto.UserPetPictureDto)">
             <summary>
             آیتم جدید
             </summary>
@@ -4745,6 +4782,18 @@
             <summary>
              حذف آیتم 
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Common.Controllers.BankCardController">
+             <summary>
+             مدیریت اطلاعات بانک ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.BankCardController.Get(Application.Services.CommonSrv.BankCardSrv.Dto.BankCardInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
         </member>
         <member name="T:Api.Areas.Common.Controllers.CityController">
              <summary>
@@ -7007,6 +7056,43 @@
             <summary>
             تغییر وضعیت کاربر
             </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.UserBankCardController">
+            <summary>
+            مدیریت کارت های بانکی کاربر ها
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Get(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Post(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Put(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.UserController">
              <summary>

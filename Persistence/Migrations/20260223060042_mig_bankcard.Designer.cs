@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Persistence.Context;
@@ -12,9 +13,11 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260223060042_mig_bankcard")]
+    partial class mig_bankcard
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -5588,12 +5591,6 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("AdminDetail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("Approved")
-                        .HasColumnType("bit");
-
                     b.Property<long>("BankCardId")
                         .HasColumnType("bigint");
 
@@ -5602,15 +5599,6 @@ namespace Persistence.Migrations
 
                     b.Property<string>("CardNumber")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("LastUpdateDate")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("ShebaNumber")
                         .HasColumnType("nvarchar(max)");

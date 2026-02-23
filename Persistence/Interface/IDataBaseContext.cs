@@ -149,6 +149,8 @@ namespace Persistence.Interface
         public DbSet<PushNotification> PushNotifications { get; set; }
         public DbSet<PushSetting> PushSettings { get; set; }
         public DbSet<PushType> PushTypes { get; set; }
+        public DbSet<BankCard> BankCards { get; set; }
+        public DbSet<UserBankCard> UserBankCards { get; set; }
 
         DbSet<TEntity> Set<TEntity>() where TEntity : class;
         EntityEntry Entry(object entity);

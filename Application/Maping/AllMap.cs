@@ -7,12 +7,14 @@ using Application.Services.Accounting.PetSrv.Dto;
 using Application.Services.Accounting.RolePermission.Dto;
 using Application.Services.Accounting.TicketItemSrv.Dto;
 using Application.Services.Accounting.TicketSrv.Dto;
+using Application.Services.Accounting.UserBankCardSrv.Dto;
 using Application.Services.Accounting.UserPerRecordSrv.Dto;
 using Application.Services.Accounting.UserPetPictureSrv.Dto;
 using Application.Services.Accounting.UserPetSrv.Dto;
 using Application.Services.Accounting.UserProductSrv.Dto;
 using Application.Services.Accounting.UserTokenSrv.Dto;
 using Application.Services.CategorySrv.Dto;
+using Application.Services.CommonSrv.BankCardSrv.Dto;
 using Application.Services.CommonSrv.CitySrv.Dto;
 using Application.Services.CommonSrv.CommentLikeSrv.Dto;
 using Application.Services.CommonSrv.CountrySrv.Dto;
@@ -159,6 +161,12 @@ namespace Application.Maping
             //Bank
             CreateMap<Bank, BankDto>().ReverseMap();
             CreateMap<Bank, BankVDto>();
+            CreateMap<BankCard, BankCardDto>().ReverseMap();
+            CreateMap<BankCard, BankCardVDto>();
+            CreateMap<UserBankCard, UserBankCardDto>();
+            CreateMap<UserBankCardDto, UserBankCard>().ForMember(x => x.CreateDate, y => y.Ignore()).ForMember(x => x.LastUpdateDate, y => y.Ignore()).ForMember(x => x.Approved, y => y.Ignore()).ForMember(x => x.AdminDetail, y => y.Ignore());
+            CreateMap<UserBankCard, UserBankCardApproveDto>().ReverseMap();
+            CreateMap<UserBankCard, UserBankCardVDto>();
             //Bank End ----------------------------------------------
 
 

@@ -21,6 +21,8 @@ using Application.Services.Accounting.RolePermission.Iface;
 using Application.Services.Accounting.RoleSrv.Iface;
 using Application.Services.Accounting.TicketItemSrv.Iface;
 using Application.Services.Accounting.TicketSrv.Iface;
+using Application.Services.Accounting.UserBankCardSrv;
+using Application.Services.Accounting.UserBankCardSrv.Iface;
 using Application.Services.Accounting.UserPerRecordSrv;
 using Application.Services.Accounting.UserPerRecordSrv.Iface;
 using Application.Services.Accounting.UserPetPictureSrv;
@@ -35,6 +37,8 @@ using Application.Services.Accounting.UserTokenSrv.Srv;
 using Application.Services.BankSrv;
 using Application.Services.CategorySrv;
 using Application.Services.CategorySrv.Iface;
+using Application.Services.CommonSrv.BankCardSrv;
+using Application.Services.CommonSrv.BankCardSrv.Iface;
 using Application.Services.CommonSrv.CitySrv;
 using Application.Services.CommonSrv.CitySrv.Iface;
 using Application.Services.CommonSrv.CommentLikeSrv;
@@ -500,6 +504,8 @@ public static class ConfigureServices
         services.AddScoped<IPaymentGateway, ParsianGateway>();
         services.AddScoped<IPaymentGateway, MellatGateway>();
         services.AddScoped<IFinanceService, FinanceService>();
+        services.AddScoped<IBankCardService, BankCardService>();
+        services.AddScoped<IUserBankCardService, UserBankCardService>();
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 

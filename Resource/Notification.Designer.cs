@@ -19,7 +19,7 @@ namespace Resource {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Notification {
@@ -106,6 +106,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bank Cart Is Not Available.
+        /// </summary>
+        public static string BankCartIsNotAvailable {
+            get {
+                return ResourceManager.GetString("BankCartIsNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bonus amount added to wallet successfully.
         /// </summary>
         public static string BonusAmountAddedToWalletSuccessfully {
@@ -142,6 +151,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cart Number Must Be 16 Digit.
+        /// </summary>
+        public static string CartNumberMustBe16Digit {
+            get {
+                return ResourceManager.GetString("CartNumberMustBe16Digit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code Value.
         /// </summary>
         public static string CodeValue {
@@ -156,6 +174,15 @@ namespace Resource {
         public static string DuplicateValue {
             get {
                 return ResourceManager.GetString("DuplicateValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Is Not Available.
+        /// </summary>
+        public static string EditIsNotAvailable {
+            get {
+                return ResourceManager.GetString("EditIsNotAvailable", resourceCulture);
             }
         }
         
@@ -363,6 +390,24 @@ namespace Resource {
         public static string PleaseEnterCancelDetail {
             get {
                 return ResourceManager.GetString("PleaseEnterCancelDetail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please Enter Card Holder Name.
+        /// </summary>
+        public static string PleaseEnterCardHolderName {
+            get {
+                return ResourceManager.GetString("PleaseEnterCardHolderName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please Enter Card Number.
+        /// </summary>
+        public static string PleaseEnterCardNumber {
+            get {
+                return ResourceManager.GetString("PleaseEnterCardNumber", resourceCulture);
             }
         }
         
@@ -624,6 +669,15 @@ namespace Resource {
         public static string SettingsAreNotComplete {
             get {
                 return ResourceManager.GetString("SettingsAreNotComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sheba Number Must Be 24 Digit.
+        /// </summary>
+        public static string ShebaNumberMustBe24Digit {
+            get {
+                return ResourceManager.GetString("ShebaNumberMustBe24Digit", resourceCulture);
             }
         }
         

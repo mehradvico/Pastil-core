@@ -51,7 +51,7 @@ namespace Api.Areas.Admin.Controllers
         /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(typeof(BaseResultDto<UserPetPictureDto>), 200)]
-        public async Task<IActionResult> UserPet(UserPetPictureDto UserPetPictureDto)
+        public async Task<IActionResult> Post(UserPetPictureDto UserPetPictureDto)
         {
             var result = await UserPetPictureService.InsertAsyncDto(UserPetPictureDto);
             return Ok(result);

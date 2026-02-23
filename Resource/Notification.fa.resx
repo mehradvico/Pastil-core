@@ -483,4 +483,22 @@
   <data name="InvalidDeviceKey" xml:space="preserve">
     <value>کلید دیوایس نامعتبر است</value>
   </data>
+  <data name="PleaseEnterCardHolderName" xml:space="preserve">
+    <value>لطفا مشخصات کامل دارنده کارت را وارد نمایید</value>
+  </data>
+  <data name="PleaseEnterCardNumber" xml:space="preserve">
+    <value>لطفا شماره کارت را وارد نمایید</value>
+  </data>
+  <data name="CartNumberMustBe16Digit" xml:space="preserve">
+    <value>شماره کارت وارد حتما باید 16 رقم باشد</value>
+  </data>
+  <data name="BankCartIsNotAvailable" xml:space="preserve">
+    <value>متاسفانه کارت وارد شده معتبر نیست</value>
+  </data>
+  <data name="ShebaNumberMustBe24Digit" xml:space="preserve">
+    <value>شماره شبا باید 24 رقم باشد</value>
+  </data>
+  <data name="EditIsNotAvailable" xml:space="preserve">
+    <value>امکان ویرایش وجود ندارد</value>
+  </data>
 </root>
