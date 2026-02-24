@@ -16,6 +16,6 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv.Dto
         public double SiteShare { get; set; }
         public string StatusLabel { get; set; }
         public bool IsPansion { get; set; }
-        public bool Paid { get; set; }
+        public bool Permitted { get; set; }
     }
 }

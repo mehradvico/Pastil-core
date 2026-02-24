@@ -34,6 +34,8 @@ namespace Entities.Entities
         public DateTime? CancelRequestDate { get; set; }
         public string ParentOrderId { get; set; }
         public string ChildOrderId { get; set; }
+        public bool Permitted { get; set; }
+
         public DateTime? ReserveDate { get; set; }
         public Rebate Rebate { get; set; }
         public User User { get; set; }

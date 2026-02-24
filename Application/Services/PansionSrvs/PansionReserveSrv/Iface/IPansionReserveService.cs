@@ -22,5 +22,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv.Iface
         Task<BaseResultDto> SetWalletAsyncDto(PansionReserveWalletDto dto);
         Task<BaseResultDto> ClearRebateCodeAsync(long id);
         Task<BaseResultDto<int>> ReserveCountAsync(long id);
+        Task<BaseResultDto> UpdatePermittedAsyncDto(long id);
+
     }
 }

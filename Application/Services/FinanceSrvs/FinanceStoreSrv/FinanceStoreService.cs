@@ -34,25 +34,28 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv
                     .Where(o => o.ProductOrderStores.Any(s => s.StoreId == dto.StoreId))
                     .Include(o => o.User)
                     .Include(o => o.ProductOrderStatus)
-                    .Include(o => o.ProductOrderStores)
-                        .ThenInclude(s => s.Store)
                     .AsQueryable();
 
-                if (dto.Paid.HasValue)
-                    baseQ = baseQ.Where(o => o.IsPaid == dto.Paid.Value);
+                if (dto.Permitted.HasValue)
+                    baseQ = baseQ.Where(o => o.Permitted == dto.Permitted.Value);
 
                 var list = baseQ
                     .OrderByDescending(o => o.CreateDate)
                     .Select(o => new FinanceProductOrderVDto
                     {
                         ProductOrderId = o.Id,
-                        BuyerFullName = (o.User != null ? ((o.User.FirstName ?? "") + " " + (o.User.LastName ?? "")).Trim() : ""),
+                        BuyerFullName = o.User != null ? ((o.User.FirstName ?? "") + " " + (o.User.LastName ?? "")).Trim() : "",
                         PaymentPrice = o.PaymentPrice,
-                        CommissionPercent = o.ProductOrderStores.Where(s => s.StoreId == dto.StoreId).Select(s => (decimal?)s.Store.CommissionPercent).FirstOrDefault() ?? 0,
+
+                        CommissionPercent = o.ProductOrderStores
+                            .Where(s => s.StoreId == dto.StoreId)
+                            .Select(s => (decimal?)s.Store.CommissionPercent)
+                            .FirstOrDefault() ?? 0,
+
                         StoreShare = o.StoreShare,
                         SiteShare = o.SiteShare,
                         StatusLabel = o.ProductOrderStatus != null ? o.ProductOrderStatus.Name : null,
-                        Paid = false
+                        Permitted = o.Permitted
                     })
                     .ToList();
 

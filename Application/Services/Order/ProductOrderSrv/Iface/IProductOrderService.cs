@@ -22,6 +22,8 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
         BaseResultDto<List<ProductOrderVDto>> GetReserved(long userId, long addressId);
         Task<BaseResultDto> SetCancelRequestAsync(ProductOrderDto productOrder);
         Task<BaseResultDto> AnswerCancelRequestAsync(ProductOrderDto productOrder);
+        Task<BaseResultDto> UpdatePermittedAsyncDto(string id);
+
 
     }
 }

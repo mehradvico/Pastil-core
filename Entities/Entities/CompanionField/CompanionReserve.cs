@@ -46,6 +46,7 @@ namespace Entities.Entities
 
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
+        public bool Permitted { get; set; }
 
         public User Booker { get; set; }
         public Code CompanionAssistanceType { get; set; }

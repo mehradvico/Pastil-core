@@ -451,5 +451,14 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             var count = await _context.PansionReserves.CountAsync(s => s.PansionId == id);
             return new BaseResultDto<int>(true, count);
         }
+
+        public async Task<BaseResultDto> UpdatePermittedAsyncDto(long id)
+        {
+            var item = await _context.PansionReserves.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
+            item.Permitted = true;
+            _context.PansionReserves.Update(item);
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
+        }
     }
 }

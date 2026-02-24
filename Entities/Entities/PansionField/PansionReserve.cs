@@ -37,7 +37,7 @@ namespace Entities.Entities.PansionField
 
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
-
+        public bool Permitted { get; set; }
         public Pansion Pansion { get; set; }
         public UserPet UserPet { get; set; }
         public Code Status { get; set; }

@@ -158,6 +158,12 @@ using Application.Services.FinanceSrvs.FinanceSrv;
 using Application.Services.FinanceSrvs.FinanceSrv.Iface;
 using Application.Services.FinanceSrvs.FinanceStoreSrv;
 using Application.Services.FinanceSrvs.FinanceStoreSrv.Iface;
+using Application.Services.FinanceSrvs.SettlementCompanionSrv;
+using Application.Services.FinanceSrvs.SettlementCompanionSrv.Iface;
+using Application.Services.FinanceSrvs.SettlementSrv;
+using Application.Services.FinanceSrvs.SettlementSrv.Iface;
+using Application.Services.FinanceSrvs.SettlementStoreSrv;
+using Application.Services.FinanceSrvs.SettlementStoreSrv.Iface;
 using Application.Services.FinanceSrvs.UserBankCardSrv;
 using Application.Services.FinanceSrvs.UserBankCardSrv.Iface;
 using Application.Services.Language.BrandLangSrv;
@@ -512,6 +518,9 @@ public static class ConfigureServices
         services.AddScoped<IUserBankCardService, UserBankCardService>();
         services.AddScoped<IFinanceStoreService, FinanceStoreService>();
         services.AddScoped<IFinanceCompanionService, FinanceCompanionService>();
+        services.AddScoped<ISettlementService, SettlementService>();
+        services.AddScoped<ISettlementCompanionService, SettlementCompanionService>();
+        services.AddScoped<ISettlementStoreService, SettlementStoreService>();
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 

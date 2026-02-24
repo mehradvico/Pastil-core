@@ -10,6 +10,6 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv.Dto
     public class FinanceStoreInputDto : IFinanceStoreSearchFields
     {
         public long StoreId { get; set; }
-        public bool? Paid { get; set; }
+        public bool? Permitted { get; set; }
     }
 }

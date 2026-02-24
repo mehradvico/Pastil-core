@@ -1,6 +1,9 @@
-﻿using Application.Common.Service;
+﻿using Application.Common.Dto.Result;
+using Application.Common.Helpers;
+using Application.Common.Service;
 using Application.Services.FinanceSrvs.SettlementCompanionSrv.Dto;
 using Application.Services.FinanceSrvs.SettlementCompanionSrv.Iface;
+using Application.Services.FinanceSrvs.SettlementStoreSrv.Dto;
 using AutoMapper;
 using Entities.Entities;
 using Persistence.Interface;
@@ -20,6 +23,30 @@ namespace Application.Services.FinanceSrvs.SettlementCompanionSrv
         {
             this._context = _context;
             this.mapper = mapper;
+        }
+
+        public override async Task<BaseResultDto<SettlementCompanionDto>> InsertAsyncDto(SettlementCompanionDto dto)
+        {
+            try
+            {
+                var modelCheker = ModelHelper<SettlementCompanionDto>.ModelErrors(dto);
+                if (!modelCheker.IsSuccess)
+                {
+                    return modelCheker;
+                }
+                else
+                {
+                    var item = mapper.Map<SettlementCompanion>(dto);
+                    await _context.SettlementCompanions.AddAsync(item);
+                    await _context.SaveChangesAsync();
+                    return new BaseResultDto<SettlementCompanionDto>(true, mapper.Map<SettlementCompanionDto>(item));
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<SettlementCompanionDto>(isSuccess: false, val: ex.Message, data: dto);
+            }
         }
     }
 }

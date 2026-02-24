@@ -12,7 +12,7 @@ namespace Api.Areas.Seller.Controllers
     /// مدیریت حسابداری فروشگاه ها
     /// </summary>
     ///
-    [Area("Store")]
+    [Area("Seller")]
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]

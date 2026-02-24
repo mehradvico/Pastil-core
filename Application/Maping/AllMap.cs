@@ -70,6 +70,9 @@ using Application.Services.Dto;
 using Application.Services.Filing.FileSrv.Dto;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.FinanceSrvs.BankCardSrv.Dto;
+using Application.Services.FinanceSrvs.SettlementCompanionSrv.Dto;
+using Application.Services.FinanceSrvs.SettlementSrv.Dto;
+using Application.Services.FinanceSrvs.SettlementStoreSrv.Dto;
 using Application.Services.FinanceSrvs.UserBankCardSrv.Dto;
 using Application.Services.Language.FullNameFieldLangSrv.Dto;
 using Application.Services.Language.LanguageSrv.Dto;
@@ -634,6 +637,14 @@ namespace Application.Maping
             CreateMap<ReminderDto, Reminder>().ForMember(x => x.UserPet, y => y.Ignore()).ForMember(x => x.ReminderCycle, y => y.Ignore()).ForMember(x => x.ReminderType, y => y.Ignore());
             CreateMap<Reminder, ReminderVDto>();
             //Reminder End ----------------------------------------------
+
+
+            //Settlement
+            CreateMap<Settlement, SettlementDto>().ReverseMap();
+            CreateMap<Settlement, SettlementVDto>();
+            CreateMap<SettlementStoreDto, SettlementStore>().ReverseMap();
+            CreateMap<SettlementCompanionDto, SettlementCompanion>().ReverseMap();
+            //Settlement End ----------------------------------------------
 
 
             //State

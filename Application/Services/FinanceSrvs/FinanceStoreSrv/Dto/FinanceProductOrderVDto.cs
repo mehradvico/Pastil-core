@@ -15,6 +15,6 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv.Dto
         public double StoreShare { get; set; }
         public double SiteShare { get; set; }
         public string StatusLabel { get; set; }
-        public bool Paid { get; set; }
+        public bool Permitted { get; set; }
     }
 }

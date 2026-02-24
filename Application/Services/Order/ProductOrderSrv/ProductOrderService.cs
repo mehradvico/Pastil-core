@@ -416,5 +416,14 @@ namespace Application.Services.Order.ProductOrderSrv
             return new BaseResultDto(false, val: Resource.Notification.InvalidData);
 
         }
+
+        public async Task<BaseResultDto> UpdatePermittedAsyncDto(string id)
+        {
+            var item = await _context.ProductOrders.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
+            item.Permitted = true;
+            _context.ProductOrders.Update(item);
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
+        }
     }
 }

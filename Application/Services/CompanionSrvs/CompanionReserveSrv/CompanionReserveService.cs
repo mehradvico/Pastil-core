@@ -689,5 +689,14 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             var count = await _context.CompanionReserves.Include(s => s.CompanionAssistance).CountAsync(s => s.CompanionAssistance.CompanionId == id);
             return new BaseResultDto<int>(true, count);
         }
+
+        public async Task<BaseResultDto> UpdatePermittedAsyncDto(long id)
+        {
+            var item = await _context.CompanionReserves.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
+            item.Permitted = true;
+            _context.CompanionReserves.Update(item);
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
+        }
     }
 }

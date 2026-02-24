@@ -8,6 +8,6 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv.Iface
 {
     public interface IFinanceCompanionSearchFields
     {
-        public bool? Paid { get; set; }
+        public bool? Permitted { get; set; }
     }
 }

@@ -28,26 +28,19 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                 if (dto.CompanionId <= 0)
                     return new BaseResultDto<FinanceCompanionVDto>(false, null);
 
-                if (dto.Paid.HasValue && dto.Paid.Value)
-                {
-                    var empty = new FinanceCompanionVDto
-                    {
-                        CompanionId = dto.CompanionId,
-                        ReserveCount = 0,
-                        TotalCompanionShare = 0,
-                        TotalSiteShare = 0,
-                        FinanceCompanionReserves = new List<FinanceCompanionReserveVDto>()
-                    };
-                    return new BaseResultDto<FinanceCompanionVDto>(true, empty);
-                }
-
-                var companionReserves = _context.CompanionReserves
+                var companionReservesQ = _context.CompanionReserves
                     .AsNoTracking()
                     .Where(r => r.IsReserved && !r.IsCancel)
                     .Where(r => r.CompanionAssistance.CompanionId == dto.CompanionId)
                     .Include(r => r.Booker)
                     .Include(r => r.State)
                     .Include(r => r.CompanionAssistance)
+                    .AsQueryable();
+
+                if (dto.Permitted.HasValue)
+                    companionReservesQ = companionReservesQ.Where(r => r.Permitted == dto.Permitted.Value);
+
+                var companionReserves = companionReservesQ
                     .Select(r => new FinanceCompanionReserveVDto
                     {
                         ReserveId = r.Id.ToString(),
@@ -58,17 +51,23 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                         SiteShare = r.SiteShare,
                         StatusLabel = r.State != null ? r.State.Name : null,
                         IsPansion = false,
-                        Paid = false
+                        Permitted = r.Permitted
                     })
                     .ToList();
 
-                var pansionReserves = _context.PansionReserves
+                var pansionReservesQ = _context.PansionReserves
                     .AsNoTracking()
                     .Where(r => r.IsReserved && !r.IsCancel)
                     .Where(r => r.Pansion.CompanionId == dto.CompanionId)
                     .Include(r => r.Booker)
                     .Include(r => r.Status)
                     .Include(r => r.Pansion)
+                    .AsQueryable();
+
+                if (dto.Permitted.HasValue)
+                    pansionReservesQ = pansionReservesQ.Where(r => r.Permitted == dto.Permitted.Value);
+
+                var pansionReserves = pansionReservesQ
                     .Select(r => new FinanceCompanionReserveVDto
                     {
                         ReserveId = r.Id.ToString(),
@@ -79,7 +78,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                         SiteShare = r.SiteShare,
                         StatusLabel = r.Status != null ? r.Status.Name : null,
                         IsPansion = true,
-                        Paid = false
+                        Permitted = r.Permitted
                     })
                     .ToList();
 
