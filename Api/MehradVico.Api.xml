@@ -3870,6 +3870,31 @@
             اضافه و ویرایش دسترسی های نقش
             </summary>  
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.SettlementController">
+             <summary>
+             مدیریت تسویه حساب ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SettlementController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه دسته بندی</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SettlementController.Get(Application.Services.FinanceSrvs.SettlementSrv.Dto.SettlementInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SettlementController.Post(Application.Services.FinanceSrvs.SettlementSrv.Dto.SettlementDto)">
+            <summary>
+            آیتم جدید
+            </summary>  
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.StateController">
              <summary>
              مدیریت استان ها
@@ -5610,6 +5635,26 @@
             </summary>
             <returns></returns>
             
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SettlementController">
+             <summary>
+             مدیریت تسویه حساب ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SettlementController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه دسته بندی</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SettlementController.Get(Application.Services.FinanceSrvs.SettlementSrv.Dto.SettlementInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
         </member>
         <member name="T:Api.Areas.Companion.Controllers.WeekDayController">
             <summary>
@@ -7735,6 +7780,26 @@
             <summary>
             تغییر کد پیگیری سفارش ها
             </summary>
+        </member>
+        <member name="T:Api.Areas.Seller.Controllers.SettlementController">
+             <summary>
+             مدیریت تسویه حساب ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.SettlementController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه دسته بندی</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.SettlementController.Get(Application.Services.FinanceSrvs.SettlementSrv.Dto.SettlementInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
         </member>
         <member name="T:Api.Areas.Seller.Controllers.StoreCommentController">
              <summary>
