@@ -314,7 +314,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 { 
                     return new BaseResultDto<CompanionReserveUpdateDto>(false, Resource.Notification.SelectAtLeastOneType, dto);
                 }
-                await (_context as DbContext).Database.ExecuteSqlRawAsync("DELETE FROM CompanionReserveUserPet WHERE CompanionReserveId = {0}", item.Id);
+                await (_context as DbContext).Database.ExecuteSqlRawAsync("DELETE FROM CompanionReserveUserPet WHERE CompanionReservesId = {0}", item.Id);
 
                 await _companionReserveUserPetService.InsertOrUpdateAsync(item, dto.UserPetIds);
 

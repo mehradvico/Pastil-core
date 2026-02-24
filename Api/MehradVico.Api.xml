@@ -2083,9 +2083,21 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.FinanceCompanionAssistanceController.Put(Application.Services.Accounting.FinanceSrv.Dto.FinanceCompanionAssistanceDto)">
+        <member name="M:Api.Areas.Admin.Controllers.FinanceCompanionAssistanceController.Put(Application.Services.FinanceSrvs.FinanceSrv.Dto.FinanceCompanionAssistanceDto)">
             <summary>
              ویرایش آیتم
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.FinanceCompanionController">
+             <summary>
+             مدیریت حسابداری کلینیک ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceCompanionController.Get(Application.Services.FinanceSrvs.FinanceCompanionSrv.Dto.FinanceCompanionInputDto)">
+            <summary>
+             جستجو
             </summary>
             <returns></returns> 
         </member>
@@ -2095,7 +2107,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.FinanceController.Get(Application.Services.Accounting.FinanceSrv.Dto.FinanceInputDto)">
+        <member name="M:Api.Areas.Admin.Controllers.FinanceController.Get(Application.Services.FinanceSrvs.FinanceSrv.Dto.FinanceInputDto)">
             <summary>
              جستجو
             </summary>
@@ -2112,7 +2124,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.FinancePansionController.Put(Application.Services.Accounting.FinanceSrv.Dto.FinancePansionDto)">
+        <member name="M:Api.Areas.Admin.Controllers.FinancePansionController.Put(Application.Services.FinanceSrvs.FinanceSrv.Dto.FinancePansionDto)">
             <summary>
              ویرایش آیتم
             </summary>
@@ -2124,7 +2136,13 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.FinanceStoreController.Put(Application.Services.Accounting.FinanceSrv.Dto.FinanceStoreDto)">
+        <member name="M:Api.Areas.Admin.Controllers.FinanceStoreController.Get(Application.Services.FinanceSrvs.FinanceStoreSrv.Dto.FinanceStoreInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceStoreController.Put(Application.Services.FinanceSrvs.FinanceSrv.Dto.FinanceStoreDto)">
             <summary>
              ویرایش آیتم
             </summary>
@@ -4475,19 +4493,19 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Get(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardInputDto)">
+        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Get(Application.Services.FinanceSrvs.UserBankCardSrv.Dto.UserBankCardInputDto)">
             <summary>
             جستجو
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Post(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardDto)">
+        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Post(Application.Services.FinanceSrvs.UserBankCardSrv.Dto.UserBankCardDto)">
             <summary>
             آیتم جدید
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Put(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardDto)">
+        <member name="M:Api.Areas.Admin.Controllers.UserBankCardController.Put(Application.Services.FinanceSrvs.UserBankCardSrv.Dto.UserBankCardDto)">
             <summary>
             ویرایش آیتم
             </summary>
@@ -4789,7 +4807,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Common.Controllers.BankCardController.Get(Application.Services.CommonSrv.BankCardSrv.Dto.BankCardInputDto)">
+        <member name="M:Api.Areas.Common.Controllers.BankCardController.Get(Application.Services.FinanceSrvs.BankCardSrv.Dto.BankCardInputDto)">
             <summary>
              جستجو
             </summary>
@@ -5458,6 +5476,18 @@
             </summary>
             <returns></returns>
             
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.FinanceCompanionController">
+             <summary>
+             مدیریت حسابداری کلینیک ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.FinanceCompanionController.Get(Application.Services.FinanceSrvs.FinanceCompanionSrv.Dto.FinanceCompanionInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
         </member>
         <member name="T:Api.Areas.Companion.Controllers.PansionActiveController">
             <summary>
@@ -7069,19 +7099,19 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Get(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardInputDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Get(Application.Services.FinanceSrvs.UserBankCardSrv.Dto.UserBankCardInputDto)">
             <summary>
             جستجو
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Post(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Post(Application.Services.FinanceSrvs.UserBankCardSrv.Dto.UserBankCardDto)">
             <summary>
             آیتم جدید
             </summary>
             <returns></returns>
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Put(Application.Services.Accounting.UserBankCardSrv.Dto.UserBankCardDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.UserBankCardController.Put(Application.Services.FinanceSrvs.UserBankCardSrv.Dto.UserBankCardDto)">
             <summary>
             ویرایش آیتم
             </summary>
@@ -7468,6 +7498,18 @@
             </returns>
         </member>
         <member name="M:Api.Areas.Seller.Controllers.DiscountGroupController.Get(Application.Common.Dto.Input.BaseInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Seller.Controllers.FinanceStoreController">
+             <summary>
+             مدیریت حسابداری فروشگاه ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.FinanceStoreController.Get(Application.Services.FinanceSrvs.FinanceStoreSrv.Dto.FinanceStoreInputDto)">
             <summary>
              جستجو
             </summary>

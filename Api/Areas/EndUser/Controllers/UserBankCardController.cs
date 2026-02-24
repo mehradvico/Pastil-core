@@ -1,7 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Interface;
-using Application.Services.Accounting.UserBankCardSrv.Dto;
-using Application.Services.Accounting.UserBankCardSrv.Iface;
+using Application.Services.FinanceSrvs.UserBankCardSrv.Dto;
+using Application.Services.FinanceSrvs.UserBankCardSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

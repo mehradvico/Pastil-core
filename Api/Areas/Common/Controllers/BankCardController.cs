@@ -1,6 +1,6 @@
 ﻿using Application.Common.Dto.Result;
-using Application.Services.CommonSrv.BankCardSrv.Dto;
-using Application.Services.CommonSrv.BankCardSrv.Iface;
+using Application.Services.FinanceSrvs.BankCardSrv.Dto;
+using Application.Services.FinanceSrvs.BankCardSrv.Iface;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Common.Controllers

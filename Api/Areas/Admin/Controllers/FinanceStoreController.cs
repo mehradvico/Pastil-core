@@ -1,6 +1,8 @@
 ﻿using Application.Common.Dto.Result;
-using Application.Services.Accounting.FinanceSrv.Dto;
-using Application.Services.Accounting.FinanceSrv.Iface;
+using Application.Services.FinanceSrvs.FinanceSrv.Dto;
+using Application.Services.FinanceSrvs.FinanceSrv.Iface;
+using Application.Services.FinanceSrvs.FinanceStoreSrv.Dto;
+using Application.Services.FinanceSrvs.FinanceStoreSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,10 +19,23 @@ namespace Api.Areas.Admin.Controllers
     public class FinanceStoreController : ControllerBase
     {
         private readonly IFinanceService _financeService;
+        private readonly Application.Services.FinanceSrvs.FinanceStoreSrv.Iface.IFinanceStoreService _financeStoreService;
 
-        public FinanceStoreController(IFinanceService financeService)
+        public FinanceStoreController(IFinanceService financeService, Application.Services.FinanceSrvs.FinanceStoreSrv.Iface.IFinanceStoreService financeStoreService)
         {
             _financeService = financeService;
+            _financeStoreService = financeStoreService;
+        }
+        /// <summary>
+        ///  جستجو
+        /// </summary>
+        /// <returns></returns> 
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResultDto<FinanceStoreVDto>), 200)]
+        public IActionResult Get([FromQuery] FinanceStoreInputDto dto)
+        {
+            var searchDto = _financeStoreService.Search(dto);
+            return Ok(searchDto);
         }
 
         /// <summary>

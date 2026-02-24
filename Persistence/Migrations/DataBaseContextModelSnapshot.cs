@@ -4826,6 +4826,97 @@ namespace Persistence.Migrations
                     b.ToTable("SeoFieldLangs");
                 });
 
+            modelBuilder.Entity("Entities.Entities.Settlement", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("CompanionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("ItemCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("PaidPrice")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("StoreId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TrackingCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("UserBankCardId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionId");
+
+                    b.HasIndex("StoreId");
+
+                    b.HasIndex("UserBankCardId");
+
+                    b.ToTable("Settlements");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SettlementCompanion", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("CompanionReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PansionReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SettlementId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionReserveId");
+
+                    b.HasIndex("PansionReserveId");
+
+                    b.HasIndex("SettlementId");
+
+                    b.ToTable("SettlementCompanions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SettlementStore", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ProductOrderId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<long>("SettlementId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductOrderId");
+
+                    b.HasIndex("SettlementId");
+
+                    b.ToTable("SettlementStores");
+                });
+
             modelBuilder.Entity("Entities.Entities.Sms", b =>
                 {
                     b.Property<long>("Id")
@@ -8346,6 +8437,69 @@ namespace Persistence.Migrations
                         .HasForeignKey("StaticPageId");
 
                     b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("Entities.Entities.Settlement", b =>
+                {
+                    b.HasOne("Entities.Entities.Companion", "Companion")
+                        .WithMany()
+                        .HasForeignKey("CompanionId");
+
+                    b.HasOne("Entities.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId");
+
+                    b.HasOne("Entities.Entities.UserBankCard", "UserBankCard")
+                        .WithMany()
+                        .HasForeignKey("UserBankCardId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Companion");
+
+                    b.Navigation("Store");
+
+                    b.Navigation("UserBankCard");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SettlementCompanion", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionReserve", "CompanionReserve")
+                        .WithMany()
+                        .HasForeignKey("CompanionReserveId");
+
+                    b.HasOne("Entities.Entities.PansionField.PansionReserve", "PansionReserve")
+                        .WithMany()
+                        .HasForeignKey("PansionReserveId");
+
+                    b.HasOne("Entities.Entities.Settlement", "Settlement")
+                        .WithMany()
+                        .HasForeignKey("SettlementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CompanionReserve");
+
+                    b.Navigation("PansionReserve");
+
+                    b.Navigation("Settlement");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SettlementStore", b =>
+                {
+                    b.HasOne("Entities.Entities.ProductOrder", "ProductOrder")
+                        .WithMany()
+                        .HasForeignKey("ProductOrderId");
+
+                    b.HasOne("Entities.Entities.Settlement", "Settlement")
+                        .WithMany()
+                        .HasForeignKey("SettlementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ProductOrder");
+
+                    b.Navigation("Settlement");
                 });
 
             modelBuilder.Entity("Entities.Entities.Sms", b =>

@@ -151,6 +151,9 @@ namespace Persistence.Interface
         public DbSet<PushType> PushTypes { get; set; }
         public DbSet<BankCard> BankCards { get; set; }
         public DbSet<UserBankCard> UserBankCards { get; set; }
+        public DbSet<Settlement> Settlements { get; set; }
+        public DbSet<SettlementStore> SettlementStores { get; set; }
+        public DbSet<SettlementCompanion> SettlementCompanions { get; set; }
 
         DbSet<TEntity> Set<TEntity>() where TEntity : class;
         EntityEntry Entry(object entity);

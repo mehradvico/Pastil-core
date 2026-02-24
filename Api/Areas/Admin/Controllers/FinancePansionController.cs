@@ -1,6 +1,6 @@
 ﻿using Application.Common.Dto.Result;
-using Application.Services.Accounting.FinanceSrv.Dto;
-using Application.Services.Accounting.FinanceSrv.Iface;
+using Application.Services.FinanceSrvs.FinanceSrv.Dto;
+using Application.Services.FinanceSrvs.FinanceSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

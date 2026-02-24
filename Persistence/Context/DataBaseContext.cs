@@ -159,7 +159,9 @@ namespace Persistence.Context
         public DbSet<PushType> PushTypes { get; set; }
         public DbSet<BankCard> BankCards { get; set; }
         public DbSet<UserBankCard> UserBankCards { get; set; }
-
+        public DbSet<Settlement> Settlements { get; set; }
+        public DbSet<SettlementStore> SettlementStores { get; set; }
+        public DbSet<SettlementCompanion> SettlementCompanions { get; set; }
         public IDbContextTransaction CurrentTransaction => base.Database.CurrentTransaction;
 
 
