@@ -22,6 +22,7 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public long TypeId { get; set; }
         public string CallBackTypeLabel { get; set; }
         public string CallBackId { get; set; }
+        public string CallbackUrl { get; set; }
         public UserMinVDto User { get; set; }
 
     }

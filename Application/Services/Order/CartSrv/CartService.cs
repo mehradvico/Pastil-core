@@ -598,7 +598,8 @@ namespace Application.Services.Order.CartSrv
                     TypeId = paymentTypeProductOrder.Id,
                     UserId = _currentUser.CurrentUser.UserId,
                     CallBackTypeLabel = PaymentCallbackTypeEnum.ProductOrder.ToString(),
-                    CallBackId = insertedProductOrder.Data.Id
+                    CallBackId = insertedProductOrder.Data.Id,
+                    CallbackUrl ="https://app.pastil.pet/api/payment/callback"
                 };
                 if (cartUpdate.FromWallet)
                 {

@@ -2,21 +2,31 @@
 **/bin/
 **/obj/
 
-# IDE / tooling
+# IDE
 .vs/
-**/.vs
-*.user
-*.suo
+**/.vs/
+.idea/
+.vscode/
 
 # git
 .git/
-**/.git
 .github/
 
-# logs & cache
+# logs
 *.log
-*.cache
 
-# docker / misc
-Dockerfile
-docker-compose.yml
+# node
+node_modules/
+
+# docker
+**/*.tar
+docker-compose*
+Dockerfile*
+
+# temp
+tmp/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db
