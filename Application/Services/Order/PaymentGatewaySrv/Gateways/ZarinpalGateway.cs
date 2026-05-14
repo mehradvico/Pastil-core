@@ -65,12 +65,12 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
             }
         }
 
-        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request, bool testMode)
+        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request/*, bool testMode*/)
         {
             try
             {
-                if (testMode)
-                    return new GatewayCallbackResultDto { IsSuccess = true, Description = "TEST_MODE" };
+                //if (testMode)
+                //    return new GatewayCallbackResultDto { IsSuccess = true, Description = "TEST_MODE" };
 
                 var status = request.Query["Status"].ToString();
                 var authority = request.Query["Authority"].ToString();

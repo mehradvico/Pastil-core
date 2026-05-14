@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Remove="Services\Accounting\DriverUserSrv\**" />
     <Compile Remove="Services\Language\FileLangSrv\**" />
@@ -25,19 +24,17 @@
     <None Remove="Services\Language\FileLangSrv\**" />
     <None Remove="Services\Language\PictureLangSrv\**" />
     <None Remove="Services\Language\StoreLangSrv\**" />
-    <None Remove="Services\CompanionReserveSrvs\CompanionReserveVariety\**" /> 
-    <None Remove="Services\CompanionReserveSrv\**" /> 
+    <None Remove="Services\CompanionReserveSrvs\CompanionReserveVariety\**" />
+    <None Remove="Services\CompanionReserveSrv\**" />
     <None Remove="Services\StoreSrvs\**" />
     <None Remove="Services\StoreSrv\**" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Remove="Common\SignalR\Driver\DriverHub.cs" />
     <Compile Remove="GetUserListService.cs" />
     <Compile Remove="Services\Language\PictureLangSrv\PictureLangService.cs" />
     <Compile Remove="Services\Setting\CodeGroupSrv\Dto\CodeGroupEditDto.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="ClosedXML" Version="0.104.2" />
@@ -61,12 +58,10 @@
     <PackageReference Include="WebPush" Version="1.0.12" />
     <PackageReference Include="zarinpal" Version="3.0.1" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Persistence\Persistence.csproj" />
     <ProjectReference Include="..\Resource\Resource.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Common\Context\" />
     <Folder Include="Common\SignalR\Driver\" />
@@ -75,5 +70,9 @@
     <Folder Include="Services\CommonSrv\PushNotificationSrv\Dto\" />
     <Folder Include="Services\Setting\EmailSrv\Dto\" />
   </ItemGroup>
-
+  <ItemGroup>
+	  <PackageReference Include="System.ServiceModel.Http" Version="8.0.0" />
+	  <PackageReference Include="System.ServiceModel.NetTcp" Version="8.0.0" />
+	  <PackageReference Include="System.ServiceModel.Primitives" Version="8.0.0" />
+  </ItemGroup>
 </Project>

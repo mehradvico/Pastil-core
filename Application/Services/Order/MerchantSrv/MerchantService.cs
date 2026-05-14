@@ -68,7 +68,7 @@ namespace Application.Services.MerchantSrv
             return new BaseResultDto<PaymentStartDto>(true, dto);
         }
 
-        public async Task<BaseResultDto> CallbackAsync(Payment payment, bool test)
+        public async Task<BaseResultDto> CallbackAsync(Payment payment/*, bool test*/)
         {
             var merchant = await _context.Merchants.Include(s => s.Bank).FirstOrDefaultAsync(s => s.Id == payment.MerchantId);
             if (merchant == null)
@@ -79,7 +79,7 @@ namespace Application.Services.MerchantSrv
             var provider = (MerchantEnum)merchant.BankId;
             var gateway = _gatewayResolver.Resolve(provider);
 
-            var res = await gateway.CallbackAsync(payment, merchant, _httpContextAccessor.HttpContext.Request, test);
+            var res = await gateway.CallbackAsync(payment, merchant, _httpContextAccessor.HttpContext.Request/*, test*/);
 
             payment.IsSuccess = res.IsSuccess;
             payment.RefNumber = res.RefNumber;

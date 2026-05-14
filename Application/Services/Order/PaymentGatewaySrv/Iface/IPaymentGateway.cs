@@ -11,6 +11,6 @@ namespace Application.Services.Order.PaymentGatewaySrv.Iface
     {
         MerchantEnum Provider { get; }
         Task<GatewayStartResultDto> StartAsync(PaymentStartDto dto, Merchant merchant);
-        Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request, bool testMode);
+        Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request/*, bool testMode*/);
     }
 }

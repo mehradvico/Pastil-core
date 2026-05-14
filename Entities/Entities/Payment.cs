@@ -23,6 +23,8 @@ namespace Entities.Entities
         public long TypeId { get; set; }
         public string CallBackTypeLabel { get; set; }
         public string CallBackId { get; set; }
+        public string Token { get; set; }
+        public string GatewayStatus { get; set; }
         public Merchant Merchant { get; set; }
         public File File { get; set; }
         public ProductOrder ProductOrder { get; set; }

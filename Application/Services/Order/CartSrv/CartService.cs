@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ZarinPal.Class;
 
 namespace Application.Services.Order.CartSrv
 {
@@ -599,7 +600,7 @@ namespace Application.Services.Order.CartSrv
                     UserId = _currentUser.CurrentUser.UserId,
                     CallBackTypeLabel = PaymentCallbackTypeEnum.ProductOrder.ToString(),
                     CallBackId = insertedProductOrder.Data.Id,
-                    CallbackUrl ="https://app.pastil.pet/api/payment/callback"
+                    CallbackUrl = null
                 };
                 if (cartUpdate.FromWallet)
                 {

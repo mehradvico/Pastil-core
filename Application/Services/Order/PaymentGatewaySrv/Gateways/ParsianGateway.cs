@@ -4,11 +4,15 @@ using Application.Services.Order.PaymentGatewaySrv.Dto;
 using Application.Services.Order.PaymentGatewaySrv.Iface;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using Entities.Entities;
+using IPGServices;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.ServiceModel;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -24,140 +28,166 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
         {
             try
             {
-                using var client = new HttpClient();
+                var t1 = typeof(BasicHttpBinding);
+                var t2 = typeof(BasicHttpSecurityMode);
+                var binding = new BasicHttpBinding(BasicHttpSecurityMode.Transport)
+                {
+                    MaxReceivedMessageSize = 20000000,
+                    MaxBufferSize = 20000000,
+                    AllowCookies = true,
 
-                var soapBody = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<soap:Envelope
-xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-  <soap:Body>
-    <SalePaymentRequest xmlns=""https://pec.Shaparak.ir/NewIPGServices/Sale/SaleService"">
-<requestData>
-        <LoginAccount>{merchant.Username}</LoginAccount>
-        <Amount>{Convert.ToInt64(dto.Amount)}</Amount>
-        <OrderId>{dto.PaymentId}</OrderId>
-        <CallBackUrl>{dto.CallbackUrl}</CallBackUrl>
-        <AdditionalData></AdditionalData>
-      </requestData>
-    </SalePaymentRequest>
-  </soap:Body>
-</soap:Envelope>";
+                    OpenTimeout = TimeSpan.FromSeconds(30),
+                    CloseTimeout = TimeSpan.FromSeconds(30),
+                    SendTimeout = TimeSpan.FromSeconds(30),
+                    ReceiveTimeout = TimeSpan.FromSeconds(30),
 
-                var content = new StringContent(
-                    soapBody,
-                    Encoding.UTF8,
-                    "text/xml"
+                    ReaderQuotas = System.Xml.XmlDictionaryReaderQuotas.Max,
+                    Security =
+                    {
+                        Mode = BasicHttpSecurityMode.Transport,
+                        Transport =
+                        {
+                            ClientCredentialType = HttpClientCredentialType.None
+                        }
+                    }
+                };
+
+                var endpoint = new EndpointAddress(
+                    "https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx"
                 );
 
-                content.Headers.Add(
-                    "SOAPAction",
-                    "\"https://pec.Shaparak.ir/NewIPGServices/Sale/SaleService/SalePaymentRequest\""
-                );
+                var client = new IPGServices.SaleServiceSoapClient(binding, endpoint);
 
-                var response = await client.PostAsync(
-                    "https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx",
-                    content
-                );
-
-                var xml = await response.Content.ReadAsStringAsync();
-                Console.WriteLine(xml);
-
-                var doc = XDocument.Parse(xml);
-
-                var resultNode = doc
-                    .Descendants()
-                    .FirstOrDefault(x =>
-                        x.Name.LocalName == "SalePaymentRequestResult");
-
-                if (resultNode == null)
+                var request = new IPGServices.ClientSaleRequestData
                 {
-                    return new GatewayStartResultDto
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = "Invalid bank response"
-                    };
-                }
+                    LoginAccount = merchant.Username,
+                    Amount = Convert.ToInt64(dto.Amount * 10),
+                    OrderId = dto.PaymentId,
+                    CallBackUrl = dto.CallbackUrl
+                };
 
-                var result = resultNode.Value;
+                var response = await client.SalePaymentRequestAsync(request);
 
-                var parts = result.Split(',');
+                var result = response.Body?.SalePaymentRequestResult;
 
-                if (parts.Length < 2)
-                {
-                    return new GatewayStartResultDto
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = result
-                    };
-                }
+                if (result == null)
+                    return Fail("Empty response from Parsian");
 
-                var status = parts[0];
+                if (result.Status != 0)
+                    return Fail($"Parsian Error - Status:{result.Status} Message:{result.Message}");
 
-                if (status != "0")
-                {
-                    return new GatewayStartResultDto
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = $"Parsian Error: {status}"
-                    };
-                }
-
-                var token = parts[1];
+                if (result.Token <= 0)
+                    return Fail("Invalid token from Parsian");
 
                 return new GatewayStartResultDto
                 {
                     IsSuccess = true,
                     PaymentIsLink = true,
-                    PaymentUrl =
-                        $"{merchant.Bank.PaymentUrl}?Token={token}",
-                    Token = token,
-                    GatewayOrderId = dto.PaymentId.ToString()
+                    Token = result.Token.ToString(),
+                    GatewayOrderId = dto.PaymentId.ToString(),
+                    PaymentUrl = $"https://pec.shaparak.ir/NewIPG/?Token={result.Token}"
                 };
             }
             catch (Exception ex)
             {
-                return new GatewayStartResultDto
+                return Fail(ex.ToString());
+            }
+        }
+
+        private GatewayStartResultDto Fail(string message)
+        {
+            return new GatewayStartResultDto
+            {
+                IsSuccess = false,
+                ErrorMessage = message
+            };
+        }
+
+
+
+        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request)
+        {
+            try
+            {
+                string status = null;
+                string token = null;
+                string rrn = null;
+                string amountStr = null;
+
+                if (request.HasFormContentType)
+                {
+                    status = request.Form["status"].FirstOrDefault() ?? request.Form["Status"].FirstOrDefault();
+                    token = request.Form["Token"].FirstOrDefault() ?? request.Form["token"].FirstOrDefault();
+                    rrn = request.Form["RRN"].FirstOrDefault() ?? request.Form["rrn"].FirstOrDefault();
+                    amountStr = request.Form["Amount"].FirstOrDefault();
+                }
+
+                status ??= request.Query["status"].FirstOrDefault() ?? request.Query["Status"].FirstOrDefault();
+                token ??= request.Query["Token"].FirstOrDefault() ?? request.Query["token"].FirstOrDefault();
+                rrn ??= request.Query["RRN"].FirstOrDefault() ?? request.Query["rrn"].FirstOrDefault();
+                amountStr ??= request.Query["Amount"].FirstOrDefault();
+
+                payment.Token = token;
+                payment.RefNumber = rrn;
+                payment.GatewayStatus = status;
+
+                if (!string.IsNullOrWhiteSpace(status))
+                {
+                    var cleanStatus = status.Trim();
+                }
+
+                if (!string.IsNullOrWhiteSpace(amountStr) &&
+                    long.TryParse(amountStr, out var callbackAmount))
+                {
+                    var dbAmount = Convert.ToInt64(payment.Amount * 10);
+                }
+
+                var verifyBody = $@"<?xml version=""1.0"" encoding=""utf-8""?>
+<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
+xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
+    <soap:Body>
+        <ConfirmPayment xmlns=""https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService"">
+            <requestData>
+                <LoginAccount>{merchant.Username}</LoginAccount>
+                <Token>{token}</Token>
+            </requestData>
+        </ConfirmPayment>
+    </soap:Body>
+</soap:Envelope>";
+
+                using var client = new HttpClient();
+                using var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx");
+
+                requestMessage.Content = new StringContent(verifyBody, Encoding.UTF8, "text/xml");
+                requestMessage.Headers.TryAddWithoutValidation("SOAPAction", "https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService/ConfirmPayment");
+
+                var response = await client.SendAsync(requestMessage);
+                var responseXml = await response.Content.ReadAsStringAsync();
+
+                var doc = XDocument.Parse(responseXml);
+                var resultNode = doc.Descendants().FirstOrDefault(x => x.Name.LocalName == "ConfirmPaymentResult");
+                var statusNode = resultNode.Descendants().FirstOrDefault(x => x.Name.LocalName == "Status");
+                var verifyStatus = statusNode?.Value?.Trim();
+
+                return new GatewayCallbackResultDto
+                {
+                    IsSuccess = true,
+                    Token = token,
+                    RefNumber = rrn,
+                    Description = payment.Description
+                };
+            }
+            catch (Exception ex)
+            {
+                payment.Description = ex.Message;
+
+                return new GatewayCallbackResultDto
                 {
                     IsSuccess = false,
                     ErrorMessage = ex.Message
                 };
             }
-        }
-
-        public Task<GatewayCallbackResultDto> CallbackAsync(
-            Payment payment,
-            Merchant merchant,
-            HttpRequest request,
-            bool testMode)
-        {
-            var status =
-                HttpRequestParamReaderHelper.Get(request, "status")
-                ?? HttpRequestParamReaderHelper.Get(request, "Status");
-
-            var token =
-                HttpRequestParamReaderHelper.Get(request, "Token");
-
-            var rrn =
-                HttpRequestParamReaderHelper.Get(request, "RRN");
-
-            if (status != "0")
-            {
-                return Task.FromResult(new GatewayCallbackResultDto
-                {
-                    IsSuccess = false,
-                    ErrorMessage = $"Bank Status: {status}",
-                    Token = token
-                });
-            }
-
-            return Task.FromResult(new GatewayCallbackResultDto
-            {
-                IsSuccess = true,
-                RefNumber = rrn,
-                Token = token,
-                Description = "SUCCESS"
-            });
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Application.Services.Order.MerchantSrv.Iface
     {
         BaseSearchDto<MerchantVDto> Search(BaseInputDto baseSearchDto);
         Task<BaseResultDto> StartAsync(PaymentStartDto dto);
-        Task<BaseResultDto> CallbackAsync(Entities.Entities.Payment payment, bool test);
+        Task<BaseResultDto> CallbackAsync(Entities.Entities.Payment payment/*, bool test*/);
     }
 }
 
