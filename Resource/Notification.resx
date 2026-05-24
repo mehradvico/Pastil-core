@@ -501,4 +501,10 @@
   <data name="EditIsNotAvailable" xml:space="preserve">
     <value>Edit Is Not Available</value>
   </data>
+  <data name="EmptyResponseFromParsian" xml:space="preserve">
+    <value>Empty response from Parsian</value>
+  </data>
+  <data name="InvalidTokenFromParsian" xml:space="preserve">
+    <value>Invalid token from Parsian</value>
+  </data>
 </root>

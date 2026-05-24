@@ -501,4 +501,10 @@
   <data name="EditIsNotAvailable" xml:space="preserve">
     <value>امکان ویرایش وجود ندارد</value>
   </data>
+  <data name="EmptyResponseFromParsian" xml:space="preserve">
+    <value>پاسخی از درگاه پارسیان دریافت نشد</value>
+  </data>
+  <data name="InvalidTokenFromParsian" xml:space="preserve">
+    <value>درگاه نامعتبر می باشد</value>
+  </data>
 </root>

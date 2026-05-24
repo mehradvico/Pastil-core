@@ -187,6 +187,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Empty response from Parsian.
+        /// </summary>
+        public static string EmptyResponseFromParsian {
+            get {
+                return ResourceManager.GetString("EmptyResponseFromParsian", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error on start payment.
         /// </summary>
         public static string ErrorOnStartPayment {
@@ -300,6 +309,15 @@ namespace Resource {
         public static string InvalidToken {
             get {
                 return ResourceManager.GetString("InvalidToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid token from Parsian.
+        /// </summary>
+        public static string InvalidTokenFromParsian {
+            get {
+                return ResourceManager.GetString("InvalidTokenFromParsian", resourceCulture);
             }
         }
         

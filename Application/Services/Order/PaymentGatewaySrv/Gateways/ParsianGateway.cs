@@ -22,42 +22,11 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
     {
         public MerchantEnum Provider => MerchantEnum.parsian;
 
-        public async Task<GatewayStartResultDto> StartAsync(
-            PaymentStartDto dto,
-            Merchant merchant)
+        public async Task<GatewayStartResultDto> StartAsync(PaymentStartDto dto, Merchant merchant)
         {
             try
             {
-                var t1 = typeof(BasicHttpBinding);
-                var t2 = typeof(BasicHttpSecurityMode);
-                var binding = new BasicHttpBinding(BasicHttpSecurityMode.Transport)
-                {
-                    MaxReceivedMessageSize = 20000000,
-                    MaxBufferSize = 20000000,
-                    AllowCookies = true,
-
-                    OpenTimeout = TimeSpan.FromSeconds(30),
-                    CloseTimeout = TimeSpan.FromSeconds(30),
-                    SendTimeout = TimeSpan.FromSeconds(30),
-                    ReceiveTimeout = TimeSpan.FromSeconds(30),
-
-                    ReaderQuotas = System.Xml.XmlDictionaryReaderQuotas.Max,
-                    Security =
-                    {
-                        Mode = BasicHttpSecurityMode.Transport,
-                        Transport =
-                        {
-                            ClientCredentialType = HttpClientCredentialType.None
-                        }
-                    }
-                };
-
-                var endpoint = new EndpointAddress(
-                    "https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx"
-                );
-
-                var client = new IPGServices.SaleServiceSoapClient(binding, endpoint);
-
+                var client = new SaleServiceSoapClient(SaleServiceSoapClient.EndpointConfiguration.SaleServiceSoap);
                 var request = new IPGServices.ClientSaleRequestData
                 {
                     LoginAccount = merchant.Username,
@@ -71,13 +40,13 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                 var result = response.Body?.SalePaymentRequestResult;
 
                 if (result == null)
-                    return Fail("Empty response from Parsian");
+                    return Fail(Resource.Notification.EmptyResponseFromParsian);
 
                 if (result.Status != 0)
                     return Fail($"Parsian Error - Status:{result.Status} Message:{result.Message}");
 
                 if (result.Token <= 0)
-                    return Fail("Invalid token from Parsian");
+                    return Fail(Resource.Notification.InvalidTokenFromParsian);
 
                 return new GatewayStartResultDto
                 {
@@ -102,8 +71,6 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                 ErrorMessage = message
             };
         }
-
-
 
         public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request)
         {
@@ -143,18 +110,18 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                 }
 
                 var verifyBody = $@"<?xml version=""1.0"" encoding=""utf-8""?>
-<soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
-xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
-xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
-    <soap:Body>
-        <ConfirmPayment xmlns=""https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService"">
-            <requestData>
-                <LoginAccount>{merchant.Username}</LoginAccount>
-                <Token>{token}</Token>
-            </requestData>
-        </ConfirmPayment>
-    </soap:Body>
-</soap:Envelope>";
+                                <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+                                xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
+                                xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
+                                <soap:Body>
+                                    <ConfirmPayment xmlns=""https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService"">
+                                        <requestData>
+                                            <LoginAccount>{merchant.Username}</LoginAccount>
+                                            <Token>{token}</Token>
+                                        </requestData>
+                                    </ConfirmPayment>
+                                </soap:Body>
+                                </soap:Envelope>";
 
                 using var client = new HttpClient();
                 using var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx");
@@ -169,7 +136,14 @@ xmlns:soap=""http://schemas.xmlsoap.org/soap/envelope/"">
                 var resultNode = doc.Descendants().FirstOrDefault(x => x.Name.LocalName == "ConfirmPaymentResult");
                 var statusNode = resultNode.Descendants().FirstOrDefault(x => x.Name.LocalName == "Status");
                 var verifyStatus = statusNode?.Value?.Trim();
-
+                if (verifyStatus != "0")
+                {
+                    return new GatewayCallbackResultDto
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = $"Verify failed : {verifyStatus}"
+                    };
+                }
                 return new GatewayCallbackResultDto
                 {
                     IsSuccess = true,
