@@ -345,4 +345,10 @@
   <data name="SharePercent" xml:space="preserve">
     <value>SharePercent</value>
   </data>
+  <data name="AssistanceType" xml:space="preserve">
+    <value>Assistance Type</value>
+  </data>
+  <data name="CompanionReserveReports" xml:space="preserve">
+    <value>Companion Reserve Reports</value>
+  </data>
 </root>

@@ -345,4 +345,10 @@
   <data name="SharePercent" xml:space="preserve">
     <value>درصد سهم کلینیک</value>
   </data>
+  <data name="AssistanceType" xml:space="preserve">
+    <value>نوع خدمات</value>
+  </data>
+  <data name="CompanionReserveReports" xml:space="preserve">
+    <value>گزارش رزرو های همکار</value>
+  </data>
 </root>

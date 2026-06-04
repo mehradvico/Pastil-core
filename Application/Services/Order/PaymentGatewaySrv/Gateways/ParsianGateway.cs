@@ -72,7 +72,7 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
             };
         }
 
-        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request)
+        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request, bool testMode)
         {
             try
             {

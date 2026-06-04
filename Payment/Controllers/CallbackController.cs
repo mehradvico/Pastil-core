@@ -17,9 +17,9 @@ namespace Payment.Controllers
             _adminSettingHelper = adminSettingHelper;
         }
         [Route("callback/{id}")]
-        public async Task<IActionResult> Index(long id/*, bool test = false*/)
+        public async Task<IActionResult> Index(long id, bool test = false)
         {
-            var payment = await _paymentService.CallbackPayment(id/*, test*/);
+            var payment = await _paymentService.CallbackPayment(id, test);
 
             TempData["ReturnToSiteUrl"] = AppSettingsHelper.BaseUrl;
             return View(payment);

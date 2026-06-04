@@ -1,14 +1,12 @@
 ﻿using Application.Common.Dto.Field;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
 {
     public class CompanionReserveExcelVDto : Id_FieldDto
     {
+        public string ReserveType { get; set; }
+
         public string BookerName { get; set; }
         public string PetType { get; set; }
         public string CompanionName { get; set; }
@@ -21,7 +19,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
         public double OperatorFinalPrice { get; set; }
         public double Discount { get; set; }
         public double RebatePrice { get; set; }
-        public double SharePercent { get; set; }
+        public decimal ComissionPercent { get; set; }
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
         public double PaymentPrice { get; set; }

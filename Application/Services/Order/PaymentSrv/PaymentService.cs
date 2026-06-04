@@ -109,7 +109,7 @@ namespace Application.Services.Order.PaymentSrv
                 return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
         }
-        public async Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId/*, bool test = false*/)
+        public async Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId, bool test = false)
         {
             try
             {
@@ -124,7 +124,7 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 else
                 {
-                    var callback = await _merchantService.CallbackAsync(payment/*, test*/);
+                    var callback = await _merchantService.CallbackAsync(payment, test);
                     if (callback.IsSuccess)
                     {
                         if (payment.Type.Label == PaymentTypeEnum.PaymentType_ProductOrder.ToString())

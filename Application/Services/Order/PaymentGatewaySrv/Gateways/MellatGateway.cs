@@ -36,19 +36,20 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
             });
         }
 
-        public Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request/*, bool testMode*/)
+        public Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request, bool testMode)
         {
-            //if (testMode)
-            //{
-            //    return Task.FromResult(new GatewayCallbackResultDto
-            //    {
-            //        IsSuccess = true,
-            //        RefNumber = $"TEST-MELLAT-{payment.Id}",
-            //        Description = "TEST_MODE"
-            //    });
-            //}
+            if (testMode)
+            {
+                return Task.FromResult(new GatewayCallbackResultDto
+                {
+                    IsSuccess = true,
+                    RefNumber = $"TEST-MELLAT-{payment.Id}",
+                    Description = "TEST_MODE"
+                });
+            }
 
-            // ملت معمولاً POST برمی‌گرداند: SaleOrderId, SaleReferenceId, RefId, ResCode ...
+            //ملت معمولاً POST برمی‌گرداند: SaleOrderId, SaleReferenceId, RefId, ResCode...
+
             var resCode = HttpRequestParamReaderHelper.Get(request, "ResCode");
             var saleOrderId = HttpRequestParamReaderHelper.Get(request, "SaleOrderId");
             var saleReferenceId = HttpRequestParamReaderHelper.Get(request, "SaleReferenceId");
