@@ -19,7 +19,7 @@ namespace Entities.Entities
         public double PaymentPrice { get; set; }
         public long? UserId { get; set; }
         public long? RebateId { get; set; }
-        public string BonusCode { get; set; }
+        public string ReferralCode { get; set; }
         public double RebatePrice { get; set; }
         public long? DeliveryId { get; set; }
         public double DeliveryPrice { get; set; }

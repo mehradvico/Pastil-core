@@ -11,7 +11,7 @@ namespace Application.Services.Dto
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string FullName { get; set; }
-        public string BonusCode { get; set; }
+        public string ReferralCode { get; set; }
         public long? PictureId { get; set; }
         public long? CompanionId { get; set; }
         public long? DriverId { get; set; }

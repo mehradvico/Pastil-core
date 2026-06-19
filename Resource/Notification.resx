@@ -132,8 +132,8 @@
   <data name="BonusAmountAddedToWalletSuccessfully" xml:space="preserve">
     <value>Bonus amount added to wallet successfully</value>
   </data>
-  <data name="BonusCodeCanNotBeYours" xml:space="preserve">
-    <value>Bonus code can not be yours</value>
+  <data name="TheReferralCodeIsWrong" xml:space="preserve">
+    <value>The Referral code is wrong</value>
   </data>
   <data name="BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder" xml:space="preserve">
     <value>Bonus has already been added to the wallet for this ProductOrder</value>
@@ -506,5 +506,14 @@
   </data>
   <data name="InvalidTokenFromParsian" xml:space="preserve">
     <value>Invalid token from Parsian</value>
+  </data>
+  <data name="ReferralCode" xml:space="preserve">
+    <value>Referral code</value>
+  </data>
+  <data name="ScoreNotEnough" xml:space="preserve">
+    <value>score is not enough</value>
+  </data>
+  <data name="ReferralCodeCanNotBeYours" xml:space="preserve">
+    <value>Referral code can not be yours</value>
   </data>
 </root>

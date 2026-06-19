@@ -249,6 +249,9 @@
   <data name="Quantity" xml:space="preserve">
     <value>Quantity</value>
   </data>
+  <data name="ReferralCode" xml:space="preserve">
+    <value>Referral code</value>
+  </data>
   <data name="Status" xml:space="preserve">
     <value>Status</value>
   </data>

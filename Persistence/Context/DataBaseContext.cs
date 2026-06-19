@@ -162,6 +162,9 @@ namespace Persistence.Context
         public DbSet<Settlement> Settlements { get; set; }
         public DbSet<SettlementStore> SettlementStores { get; set; }
         public DbSet<SettlementCompanion> SettlementCompanions { get; set; }
+        public DbSet<ClubReward> ClubRewards { get; set; }
+        public DbSet<ScoreTransaction> ScoreTransactions { get; set; }
+        public DbSet<UserRebate> UserRebates { get; set; }
         public IDbContextTransaction CurrentTransaction => base.Database.CurrentTransaction;
 
 

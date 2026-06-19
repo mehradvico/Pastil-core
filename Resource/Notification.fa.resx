@@ -132,8 +132,8 @@
   <data name="BonusAmountAddedToWalletSuccessfully" xml:space="preserve">
     <value>مبلغ جایزه با موفقیت به کیف پول اضافه شد</value>
   </data>
-  <data name="BonusCodeCanNotBeYours" xml:space="preserve">
-    <value>نمی توانید کد معرف خود را وارد نمایید</value>
+  <data name="TheReferralCodeIsWrong" xml:space="preserve">
+    <value>کد معرف وارد شده صحیح نمی باشد</value>
   </data>
   <data name="BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder" xml:space="preserve">
     <value>پاداش قبلاً برای این سفارش به کیف پول اضافه شده است</value>
@@ -506,5 +506,14 @@
   </data>
   <data name="InvalidTokenFromParsian" xml:space="preserve">
     <value>درگاه نامعتبر می باشد</value>
+  </data>
+  <data name="ReferralCode" xml:space="preserve">
+    <value>کد معرفی</value>
+  </data>
+  <data name="ScoreNotEnough" xml:space="preserve">
+    <value>امتیاز شما کافی نیست</value>
+  </data>
+  <data name="ReferralCodeCanNotBeYours" xml:space="preserve">
+    <value>نمی توانید کد معرفی خودتان را استفاده کنید</value>
   </data>
 </root>

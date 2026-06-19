@@ -12,5 +12,6 @@ namespace Application.Services.Order.RebateSrv.Dto
         public double FinalPrice { get; set; }
         public long? ProductId { get; set; }
         public long TypeId { get; set; }
+        public long? ClubRewardId { get; set; }
     }
 }

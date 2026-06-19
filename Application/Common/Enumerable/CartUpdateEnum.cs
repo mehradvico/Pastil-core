@@ -19,8 +19,8 @@
         GetCart,
         GetDelivery,
         DeleteAddress,
-        SetBonus,
-        RemoveBonus,
+        SetReferralCode,
+        RemoveReferralCode,
         SetReserve,
         SetParentOrder,
         SetActiveCart

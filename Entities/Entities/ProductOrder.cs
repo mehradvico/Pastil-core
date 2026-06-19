@@ -12,7 +12,7 @@ namespace Entities.Entities
         public long PaymentTypeId { get; set; }
         public long ProductOrderStatusId { get; set; }
         public long ProductOrderStateId { get; set; }
-        public string BonusCode { get; set; }
+        public string ReferralCode { get; set; }
         public double Price { get; set; }
         public double BasePrice { get; set; }
         public double DiscountPrice { get; set; }

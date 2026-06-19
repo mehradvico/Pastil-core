@@ -17,7 +17,7 @@ namespace Application.Services.Order.CartSrv.Dto
         public long? MerchantId { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
-        public string BonusCode { get; set; }
+        public string ReferralCode { get; set; }
         public int ItemCount { get; set; }
         public double BasePrice { get; set; }
         public double Price { get; set; }

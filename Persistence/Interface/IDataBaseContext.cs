@@ -154,6 +154,10 @@ namespace Persistence.Interface
         public DbSet<Settlement> Settlements { get; set; }
         public DbSet<SettlementStore> SettlementStores { get; set; }
         public DbSet<SettlementCompanion> SettlementCompanions { get; set; }
+        public DbSet<ClubReward> ClubRewards { get; set; }
+        public DbSet<ScoreTransaction> ScoreTransactions { get; set; }
+        public DbSet<UserRebate> UserRebates { get; set; }
+
 
         DbSet<TEntity> Set<TEntity>() where TEntity : class;
         EntityEntry Entry(object entity);

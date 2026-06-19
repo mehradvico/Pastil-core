@@ -4,7 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Services\Accounting\DriverUserSrv\**" />
+    <Compile Remove="Services\Accounting\ClubRewardUserSrv\**" />
     <Compile Remove="Services\Language\FileLangSrv\**" />
     <Compile Remove="Services\Language\PictureLangSrv\**" />
     <Compile Remove="Services\Language\StoreLangSrv\**" />
@@ -12,7 +12,7 @@
     <Compile Remove="Services\CompanionReserveSrv\**" />
     <Compile Remove="Services\StoreSrvs\**" />
     <Compile Remove="Services\StoreSrv\**" />
-    <EmbeddedResource Remove="Services\Accounting\DriverUserSrv\**" />
+    <EmbeddedResource Remove="Services\Accounting\ClubRewardUserSrv\**" />
     <EmbeddedResource Remove="Services\Language\FileLangSrv\**" />
     <EmbeddedResource Remove="Services\Language\PictureLangSrv\**" />
     <EmbeddedResource Remove="Services\Language\StoreLangSrv\**" />
@@ -20,7 +20,7 @@
     <EmbeddedResource Remove="Services\CompanionReserveSrv\**" />
     <EmbeddedResource Remove="Services\StoreSrvs\**" />
     <EmbeddedResource Remove="Services\StoreSrv\**" />
-    <None Remove="Services\Accounting\DriverUserSrv\**" />
+    <None Remove="Services\Accounting\ClubRewardUserSrv\**" />
     <None Remove="Services\Language\FileLangSrv\**" />
     <None Remove="Services\Language\PictureLangSrv\**" />
     <None Remove="Services\Language\StoreLangSrv\**" />
@@ -30,7 +30,7 @@
     <None Remove="Services\StoreSrv\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Common\SignalR\Driver\DriverHub.cs" />
+    <Compile Remove="Common\SignalR\ClubReward\ClubRewardHub.cs" />
     <Compile Remove="GetUserListService.cs" />
     <Compile Remove="Services\Language\PictureLangSrv\PictureLangService.cs" />
     <Compile Remove="Services\Setting\CodeGroupSrv\Dto\CodeGroupEditDto.cs" />
@@ -64,7 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Common\Context\" />
-    <Folder Include="Common\SignalR\Driver\" />
+    <Folder Include="Common\SignalR\ClubReward\" />
     <Folder Include="Services\Accounting\UserSrv\UserSrv\" />
     <Folder Include="Services\CommonSrv\CommentSrv\Iface\" />
     <Folder Include="Services\CommonSrv\PushNotificationSrv\Dto\" />

@@ -6,6 +6,7 @@ using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Services.Accounting.ScoreTransactionSrv.Iface;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.Order.RebateSrv.Iface;
@@ -42,7 +43,10 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
         private readonly IRebateService _rebateService;
         private readonly IWalletService _walletService;
         private readonly IPushNotificationService _pushNotificationService;
-        public PansionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService, IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService) : base(_context, mapper)
+        private readonly IScoreTransactionService _scoreService;
+        public PansionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper, IWalletService walletService,
+            IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService, IMessageSenderService messageSender,
+            ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -54,6 +58,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             this._rebateService = rebateService;
             this._walletService = walletService;
             this._pushNotificationService = pushNotificationService;
+            this._scoreService = scoreService;
         }
         public async Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id)
         {
@@ -231,7 +236,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
         {
             try
             {
-                var reserve = await _context.PansionReserves.Include(s => s.Booker).Include(s => s.Pansion).AsTracking().FirstOrDefaultAsync(s => s.Id == reserveId);
+                var reserve = await _context.PansionReserves.Include(s => s.Booker).Include(s => s.Pansion).Include(s => s.Rebate).AsTracking().FirstOrDefaultAsync(s => s.Id == reserveId);
 
                 if (reserve.FromWallet)
                 {
@@ -252,13 +257,29 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         return new BaseResultDto(false);
                     }
                 }
-
+                if (reserve.Rebate != null)
+                {
+                    _rebateService.IncreaseUseCount(reserve);
+                }
                 reserve.IsReserved = true;
 
                 var paidStatus = await _codeService.GetIdByLabelAsync(PansionReserveStatusEnum.PansionReserveState_Paid.ToString());
                 reserve.StatusId = paidStatus;
 
                 await UpdatePansionReserveCommissionDto(reserve);
+
+                double scoreRatio = 10000;
+                double earnedScore = Math.Floor(reserve.PaymentPrice / scoreRatio);
+
+                if (earnedScore > 0)
+                {
+                    await _scoreService.AddScoreAsync(
+                        userId: reserve.BookerId,
+                        amount: earnedScore,
+                        type: ScoreTransactionType.ScoreTransactionType_PansionReserve,
+                        referenceId: reserve.Id.ToString()
+                    );
+                }
 
                 await _context.SaveChangesAsync();
 

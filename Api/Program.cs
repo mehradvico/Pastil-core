@@ -24,6 +24,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOutputCache();
 builder.Services.AddSignalR();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowPanel", policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "https://panel.pastil.pet",
+                "https://app.pastil.pet",
+                "https://pastil.pet",
+                "https://www.pastil.pet"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
 builder.Services.AddApplicationServices();
 builder.Services.AddScoped<IRestSharpApi, RestSharpApi>();
@@ -92,7 +110,6 @@ builder.Services.AddAuthentication(Options =>
                  },
                  OnTokenValidated = context =>
                  {
-                     //log
                      var tokenValidatorService = context.HttpContext.RequestServices.GetRequiredService<IOnTokenValidatedService>();
                      return tokenValidatorService.Execute(context);
 
@@ -146,7 +163,7 @@ if (app.Environment.IsDevelopment())
 
 }
 app.UseStaticFiles();
-app.UseCors("AllowAnyOrigin");
+app.UseCors("AllowPanel"); 
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -157,6 +174,5 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
     options.DefaultModelsExpandDepth(-1);
 });
-app.UseStaticFiles();
 app.UseOutputCache();
 app.Run();

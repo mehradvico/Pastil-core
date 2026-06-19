@@ -17,12 +17,13 @@ namespace Entities.Entities.Security
         public bool Locked { get; set; }
         public bool Deleted { get; set; }
         public long RoleId { get; set; }
-        public string BonusCode { get; set; }
+        public string ReferralCode { get; set; }
         public string RequestCode { get; set; }
         public string Expertise { get; set; }
         public int RequestCodeTryCount { get; set; }
         public bool IsFemale { get; set; }
         public long? PictureId { get; set; }
+        public double CurrentScore { get; set; }
         public DateTime CreateDate { get; set; }
         public Role Role { get; set; }
         public ICollection<UserToken> UserTokens { get; set; }

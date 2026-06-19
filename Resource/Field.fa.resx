@@ -249,6 +249,9 @@
   <data name="Quantity" xml:space="preserve">
     <value>مقدار</value>
   </data>
+  <data name="ReferralCode" xml:space="preserve">
+    <value>کد معرفی</value>
+  </data>
   <data name="Status" xml:space="preserve">
     <value>وضعیت</value>
   </data>

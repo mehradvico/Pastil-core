@@ -1,10 +1,12 @@
 ﻿using Application.Common.Dto.LocationPoint;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
+using Application.Services.Accounting.ClubRewardSrv.Dto;
 using Application.Services.Accounting.DriverSrv.Dto;
 using Application.Services.Accounting.PermissionSrv.Dto;
 using Application.Services.Accounting.PetSrv.Dto;
 using Application.Services.Accounting.RolePermission.Dto;
+using Application.Services.Accounting.ScoreTransactionSrv.Dto;
 using Application.Services.Accounting.TicketItemSrv.Dto;
 using Application.Services.Accounting.TicketSrv.Dto;
 using Application.Services.Accounting.UserPerRecordSrv.Dto;
@@ -220,6 +222,12 @@ namespace Application.Maping
             //Category End ----------------------------------------------
 
 
+            //ClubReward
+            CreateMap<ClubReward, ClubRewardDto>().ReverseMap();
+            CreateMap<ClubReward, ClubRewardVDto>();
+            //ClubReward End ----------------------------------------------
+
+
             //Code
             CreateMap<CodeGroup, CodeGroupDto>().ReverseMap();
             CreateMap<Code, CodeDto>().ReverseMap();
@@ -355,6 +363,12 @@ namespace Application.Maping
             //Country
             CreateMap<Country, CountryDto>().ReverseMap();
             CreateMap<Country, CountryVDto>();
+            //Country End ----------------------------------------------
+
+
+            //Country
+            CreateMap<ClubReward, ClubRewardDto>().ReverseMap();
+            CreateMap<ClubReward, ClubRewardVDto>();
             //Country End ----------------------------------------------
 
 
@@ -637,6 +651,12 @@ namespace Application.Maping
             CreateMap<ReminderDto, Reminder>().ForMember(x => x.UserPet, y => y.Ignore()).ForMember(x => x.ReminderCycle, y => y.Ignore()).ForMember(x => x.ReminderType, y => y.Ignore());
             CreateMap<Reminder, ReminderVDto>();
             //Reminder End ----------------------------------------------
+
+
+            //ScoreTransaction
+            CreateMap<ScoreTransaction, ScoreTransactionDto>().ReverseMap();
+            CreateMap<ScoreTransaction, ScoreTransactionVDto>();
+            //ScoreTransaction End ----------------------------------------------
 
 
             //Settlement

@@ -178,48 +178,44 @@ namespace Application.Services.Order.RebateSrv
         {
             return _context.Rebate.FirstOrDefault(x => x.Deleted == false && x.CodeValue == CodeValue);
         }
-        public void IncreaseUseCount(ProductOrder order)
-        {
-            if (order.Rebate != null)
-            {
-                order.Rebate.UsedCount++;
-                _context.Rebate.Update(order.Rebate);
-                _context.SaveChanges();
-
-            }
-        }
 
         private BaseResultDto<RebateVDto> ValidateRebateCommon(Rebate rebate, long typeId, DateTime justNow, long? userId, long? rebateUserId, double basePrice)
         {
-            if (rebate == null)
+            if (rebate == null || !rebate.Active || rebate.Deleted)
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.NothingFound, null);
             }
-            else if (!rebate.Active)
+            if (rebate.TypeId != typeId)
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.NothingFound, null);
             }
-            else if (rebate.TypeId != typeId)
+            if (rebateUserId.HasValue && rebateUserId != userId)
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.NothingFound, null);
             }
-            else if (rebateUserId.HasValue && rebateUserId != userId)
-            {
-                return new BaseResultDto<RebateVDto>(false, Resource.Notification.NothingFound, null);
-            }
-            else if (rebate.StartDatetime.Date > justNow)
+            if (rebate.StartDatetime.Date > justNow)
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.TheTimeUseCodeNotArrived, null);
             }
-            else if (rebate.EndDatetime.Date < justNow)
+            if (rebate.EndDatetime.Date < justNow)
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.ThisDiscountCodeExpired, null);
             }
-            else if (rebate.UsedCount >= rebate.UseCount)
+            if (rebate.UsedCount >= rebate.UseCount)
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.TheLimitUsesDiscountCodeReached, null);
             }
-            else if (rebate.IsPriceRebate && rebate.MinCartPrice > basePrice)
+            if (userId.HasValue)
+            {
+                var userUsage = _context.UserRebates.FirstOrDefault(x => x.UserId == userId.Value && x.RebateId == rebate.Id);
+
+                if (userUsage != null && userUsage.UsageCount >= rebate.MaxUsePerUser)
+                {
+                    return new BaseResultDto<RebateVDto>(false, Resource.Notification.TheLimitUsesDiscountCodeReached, null);
+                }
+            }
+
+            if (rebate.IsPriceRebate && rebate.MinCartPrice > basePrice)
             {
                 return new BaseResultDto<RebateVDto>(
                     false,
@@ -227,7 +223,6 @@ namespace Application.Services.Order.RebateSrv
                     null
                 );
             }
-
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, null);
         }
 
@@ -334,54 +329,65 @@ namespace Application.Services.Order.RebateSrv
 
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
+        private void UpdateUsageStatistics(Rebate rebate, long userId)
+        {
+            if (rebate == null) return;
+            rebate.UsedCount++;
+            _context.Rebate.Update(rebate);
+
+            var userUsage = _context.UserRebates.FirstOrDefault(x => x.UserId == userId && x.RebateId == rebate.Id);
+            if (userUsage == null)
+            {
+                _context.UserRebates.Add(new UserRebate
+                {
+                    UserId = userId,
+                    RebateId = rebate.Id,
+                    UsageCount = 1
+                });
+            }
+            else
+            {
+                userUsage.UsageCount++;
+                _context.UserRebates.Update(userUsage);
+            }
+
+            _context.SaveChanges();
+        }
+
+        public void IncreaseUseCount(ProductOrder order)
+        {
+            if (order.Rebate != null)
+                UpdateUsageStatistics(order.Rebate, order.UserId);
+        }
+
         public void IncreaseUseCount(CompanionReserve reserve)
         {
             if (reserve.Rebate != null)
-            {
-                reserve.Rebate.UsedCount++;
-                _context.Rebate.Update(reserve.Rebate);
-                _context.SaveChanges();
-            }
+                UpdateUsageStatistics(reserve.Rebate, reserve.BookerId);
         }
 
         public void IncreaseUseCount(Cargo cargo)
         {
             if (cargo.Rebate != null)
-            {
-                cargo.Rebate.UsedCount++;
-                _context.Rebate.Update(cargo.Rebate);
-                _context.SaveChanges();
-            }
+                UpdateUsageStatistics(cargo.Rebate, cargo.UserPet.UserId);
         }
 
         public void IncreaseUseCount(Trip trip)
         {
             if (trip.Rebate != null)
-            {
-                trip.Rebate.UsedCount++;
-                _context.Rebate.Update(trip.Rebate);
-                _context.SaveChanges();
-            }
+                UpdateUsageStatistics(trip.Rebate, trip.UserPet.UserId);
         }
 
         public void IncreaseUseCount(CompanionInsurancePackageSale insurance)
         {
             if (insurance.Rebate != null)
-            {
-                insurance.Rebate.UsedCount++;
-                _context.Rebate.Update(insurance.Rebate);
-                _context.SaveChanges();
-            }
+                UpdateUsageStatistics(insurance.Rebate, insurance.UserPet.UserId);
         }
 
         public void IncreaseUseCount(PansionReserve pansion)
         {
             if (pansion.Rebate != null)
-            {
-                pansion.Rebate.UsedCount++;
-                _context.Rebate.Update(pansion.Rebate);
-                _context.SaveChanges();
-            }
+                UpdateUsageStatistics(pansion.Rebate, pansion.BookerId);
         }
     }
 }

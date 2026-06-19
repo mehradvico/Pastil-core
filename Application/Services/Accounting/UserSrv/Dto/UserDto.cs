@@ -25,12 +25,10 @@ namespace Application.Services.Dto
        ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
 
         public string LastName { get; set; }
-        [Display(Name = nameof(Resource.Field.BonusCode), ResourceType = typeof(Resource.Field))]
-        public string BonusCode { get; set; }
+        [Display(Name = nameof(Resource.Field.ReferralCode), ResourceType = typeof(Resource.Field))]
+        public string ReferralCode { get; set; }
 
         [Display(Name = nameof(Resource.Field.Password), ResourceType = typeof(Resource.Field))]
-        //[Required(ErrorMessageResourceType = typeof(Resource.Pattern),
-        //ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
         public string Password { get; set; }
         [Display(Name = nameof(Resource.Field.TwoFactorEnabled), ResourceType = typeof(Resource.Field))]
         [Required(ErrorMessageResourceType = typeof(Resource.Pattern),

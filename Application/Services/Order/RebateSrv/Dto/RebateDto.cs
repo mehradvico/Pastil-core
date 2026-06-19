@@ -23,13 +23,14 @@ namespace Application.Services.Order.RebateSrv.Dto
         public bool Active { get; set; }
         [Display(Name = nameof(Resource.Field.UseCount), ResourceType = typeof(Resource.Field))]
         [Required(ErrorMessageResourceType = typeof(Resource.Pattern),
-ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
+        ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
 
         public int UseCount { get; set; }
         [IgnoreDataMember]
         public int UsedCount { get; set; }
         public long? ProductId { get; set; }
         public long? UserId { get; set; }
+        public long? ClubRewardId { get; set; }
         public long TypeId { get; set; }
         public double MinCartPrice { get; set; }
 

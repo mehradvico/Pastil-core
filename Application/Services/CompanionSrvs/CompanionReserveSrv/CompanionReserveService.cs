@@ -6,6 +6,7 @@ using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Services.Accounting.ScoreTransactionSrv.Iface;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
 using Application.Services.CompanionSrv.CompanionReserveSrv.Dto;
@@ -46,7 +47,11 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         private readonly ICompanionReserveUserPetService _companionReserveUserPetService;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ICompanionReservePackageService _companionReservePackageService;
-        public CompanionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper, ICompanionReservePackageService companionReservePackageService, ICompanionReserveUserPetService companionReserveUserPetService, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService, IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService) : base(_context, mapper)
+        private readonly IScoreTransactionService _scoreService;
+        public CompanionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper,
+            ICompanionReservePackageService companionReservePackageService, ICompanionReserveUserPetService companionReserveUserPetService,
+            IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService,
+            IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -60,6 +65,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             this._companionReserveUserPetService = companionReserveUserPetService;
             this._companionReservePackageService = companionReservePackageService;
             this._pushNotificationService = pushNotificationService;
+            this._scoreService = scoreService;
         }
 
         public async Task<BaseResultDto<CompanionReserveAdminVDto>> FindAsyncAdminVDto(long id)
@@ -345,7 +351,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         {
             try
             {
-                var reserve = await _context.CompanionReserves.Include(s => s.Booker).Include(s => s.CompanionAssistance).AsTracking().FirstOrDefaultAsync(s => s.Id == reserveId);
+                var reserve = await _context.CompanionReserves.Include(s => s.Booker).Include(s => s.Rebate).Include(s => s.CompanionAssistance).AsTracking().FirstOrDefaultAsync(s => s.Id == reserveId);
 
                 if (reserve == null)
                     return new BaseResultDto(false);
@@ -369,13 +375,29 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         return new BaseResultDto(false);
                     }
                 }
-
+                if (reserve.Rebate != null)
+                {
+                    _rebateService.IncreaseUseCount(reserve);
+                }
                 reserve.IsReserved = true;
                 var prePaidStatus = await _codeService.GetIdByLabelAsync(CompanionReserveStateEnum.CompanianReserveState_PrePaid.ToString());
                 reserve.StateId = prePaidStatus;
 
                 if (reserve.CompanionAssistance != null)
                     UpdateCompanionReserveCommission(reserve);
+
+                double scoreRatio = 10000;
+                double earnedScore = Math.Floor(reserve.PaymentPrice / scoreRatio);
+
+                if (earnedScore > 0)
+                {
+                    await _scoreService.AddScoreAsync(
+                        userId: reserve.BookerId,
+                        amount: earnedScore,
+                        type: ScoreTransactionType.ScoreTransactionType_CompanionReserve,
+                        referenceId: reserve.Id.ToString()
+                    );
+                }
 
                 await _context.SaveChangesAsync();
 

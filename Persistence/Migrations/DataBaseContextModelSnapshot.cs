@@ -671,9 +671,6 @@ namespace Persistence.Migrations
                     b.Property<double>("BasePrice")
                         .HasColumnType("float");
 
-                    b.Property<string>("BonusCode")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("Changed")
                         .HasColumnType("bit");
 
@@ -706,6 +703,9 @@ namespace Persistence.Migrations
 
                     b.Property<double>("RebatePrice")
                         .HasColumnType("float");
+
+                    b.Property<string>("ReferralCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UniqueId")
                         .HasColumnType("nvarchar(max)");
@@ -912,6 +912,42 @@ namespace Persistence.Migrations
                     b.HasIndex("StateId");
 
                     b.ToTable("Cities");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClubReward", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("RebateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("RebateId1")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RequiredScore")
+                        .HasColumnType("float");
+
+                    b.Property<int>("ValidityDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RebateId1");
+
+                    b.ToTable("ClubRewards");
                 });
 
             modelBuilder.Entity("Entities.Entities.Code", b =>
@@ -3914,9 +3950,6 @@ namespace Persistence.Migrations
                     b.Property<double>("BasePrice")
                         .HasColumnType("float");
 
-                    b.Property<string>("BonusCode")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("CancelRequestDate")
                         .HasColumnType("datetime2");
 
@@ -3967,6 +4000,9 @@ namespace Persistence.Migrations
 
                     b.Property<double>("RebatePrice")
                         .HasColumnType("float");
+
+                    b.Property<string>("ReferralCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("ReserveDate")
                         .HasColumnType("datetime2");
@@ -4461,6 +4497,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("ClubRewardId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("CodeValue")
                         .HasColumnType("nvarchar(max)");
 
@@ -4472,6 +4511,9 @@ namespace Persistence.Migrations
 
                     b.Property<bool>("IsPriceRebate")
                         .HasColumnType("bit");
+
+                    b.Property<int>("MaxUsePerUser")
+                        .HasColumnType("int");
 
                     b.Property<double>("MinCartPrice")
                         .HasColumnType("float");
@@ -4589,6 +4631,41 @@ namespace Persistence.Migrations
                     b.ToTable("ReminderTypes");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ScoreTransaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReferenceId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("TransactionTypeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TransactionTypeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ScoreTransactions");
+                });
+
             modelBuilder.Entity("Entities.Entities.Security.OtpVerify", b =>
                 {
                     b.Property<long>("Id")
@@ -4692,11 +4769,11 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("BonusCode")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<double>("CurrentScore")
+                        .HasColumnType("float");
 
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
@@ -4730,6 +4807,9 @@ namespace Persistence.Migrations
 
                     b.Property<long?>("PictureId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("ReferralCode")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RequestCode")
                         .HasColumnType("nvarchar(max)");
@@ -5916,6 +5996,32 @@ namespace Persistence.Migrations
                     b.ToTable("UserProducts");
                 });
 
+            modelBuilder.Entity("Entities.Entities.UserRebate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("RebateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("UsageCount")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RebateId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserRebates");
+                });
+
             modelBuilder.Entity("Entities.Entities.Variety", b =>
                 {
                     b.Property<long>("Id")
@@ -6802,6 +6908,15 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("State");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClubReward", b =>
+                {
+                    b.HasOne("Entities.Entities.Rebate", "Rebate")
+                        .WithMany()
+                        .HasForeignKey("RebateId1");
+
+                    b.Navigation("Rebate");
                 });
 
             modelBuilder.Entity("Entities.Entities.Code", b =>
@@ -8402,6 +8517,25 @@ namespace Persistence.Migrations
                     b.Navigation("UserPet");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ScoreTransaction", b =>
+                {
+                    b.HasOne("Entities.Entities.Code", "TransactionType")
+                        .WithMany()
+                        .HasForeignKey("TransactionTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("TransactionType");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Entities.Entities.Security.Permission", b =>
                 {
                     b.HasOne("Entities.Entities.Security.Permission", "Parent")
@@ -8926,6 +9060,25 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.UserRebate", b =>
+                {
+                    b.HasOne("Entities.Entities.Rebate", "Rebate")
+                        .WithMany()
+                        .HasForeignKey("RebateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Rebate");
 
                     b.Navigation("User");
                 });

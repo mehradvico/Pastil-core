@@ -10,7 +10,7 @@ namespace Application.Services.Dto
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string FullName { get; set; }
-        public string BonusCode { get; set; }
+        public string ReferralCode { get; set; }
         public bool IsFemale { get; set; }
         public string Expertise { get; set; }
         public long PictureId { get; set; }

@@ -94,10 +94,10 @@ namespace Application.Services.UserSrv
                     {
                         errors.Add(new Tuple<string, string>(Resource.Notification.ThePasswordIsWrong, nameof(dto.Password)));
                     }
-                    dto.BonusCode = await dto.BonusCode.ToEnglishDigitsAsync();
-                    if (!string.IsNullOrEmpty(dto.BonusCode) && !BounsCodeIsUnique(dto.BonusCode))
+                    dto.ReferralCode = await dto.ReferralCode.ToEnglishDigitsAsync();
+                    if (!string.IsNullOrEmpty(dto.ReferralCode) && !ReferralCodeIsUnique(dto.ReferralCode))
                     {
-                        errors.Add(new Tuple<string, string>(Resource.Notification.TheBonusCodeIsWrong, nameof(dto.BonusCode)));
+                        errors.Add(new Tuple<string, string>(Resource.Notification.TheBonusCodeIsWrong, nameof(dto.ReferralCode)));
                     }
                     if (errors.Any())
                     {
@@ -111,8 +111,8 @@ namespace Application.Services.UserSrv
                     var random = new Random();
                     do
                     {
-                        item.BonusCode = random.Next(1_000_000, 10_000_000).ToString();
-                    } while (await _context.Users.AnyAsync(u => u.BonusCode == item.BonusCode));
+                        item.ReferralCode = random.Next(1_000_000, 10_000_000).ToString();
+                    } while (await _context.Users.AnyAsync(u => u.ReferralCode == item.ReferralCode));
 
                     await _context.Users.AddAsync(item);
                     await _context.SaveChangesAsync();
@@ -192,7 +192,7 @@ namespace Application.Services.UserSrv
                     }
 
                     mapper.Map(dto, item);
-                    item.BonusCode = item.BonusCode;
+                    item.ReferralCode = item.ReferralCode;
 
                     _context.Users.Update(item);
                     _context.SaveChanges();
@@ -238,16 +238,16 @@ namespace Application.Services.UserSrv
         {
             return _context.Users.FirstOrDefault(x => x.Email == email);
         }
-        bool BounsCodeIsUnique(string bouns)
+        bool ReferralCodeIsUnique(string bouns)
         {
-            var item = GetUserByBounsCode(bouns);
+            var item = GetUserByReferralCode(bouns);
             if (item == null)
                 return true;
             return false;
         }
-        User GetUserByBounsCode(string bouns)
+        User GetUserByReferralCode(string bouns)
         {
-            return _context.Users.FirstOrDefault(x => x.BonusCode == bouns);
+            return _context.Users.FirstOrDefault(x => x.ReferralCode == bouns);
         }
         public UserSearchDto Search(UserInputDto searchDto)
         {
@@ -297,7 +297,7 @@ namespace Application.Services.UserSrv
 
             return new UserSearchDto(searchDto, query, mapper);
         }
-        public async Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action/*, long storeId*/)
+        public async Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action)
         {
 
             var hashed = token.Tosha256Hash();
@@ -317,8 +317,6 @@ namespace Application.Services.UserSrv
             }
             else if ((!string.IsNullOrEmpty(area)) && (area.ToLower().Equals("admin")) && !userToken.User.Role.Permissions.Any(s => s.Area.ToLower().Equals(area.ToLower()) && s.Controller.ToLower().Equals(controller.ToLower()) && s.Action.ToLower().Equals(action.ToLower())))
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.YouHaveNotPermission);
-            //else if ((!string.IsNullOrEmpty(area)) && (area.ToLower().Equals("seller")) && !userToken.User.Stores.Any(s => s.Id == storeId))
-            //    return new BaseResultDto(isSuccess: false, val: Resource.Notification.YouHaveNotPermission);
             else
             {
                 return new BaseResultDto(isSuccess: true);
@@ -338,11 +336,21 @@ namespace Application.Services.UserSrv
 
             var item = await _context.Users.Include(s => s.Role).FirstOrDefaultAsync(x => (!string.IsNullOrEmpty(x.Mobile) && x.Mobile == user.Mobile) || (!string.IsNullOrEmpty(x.Email) && x.Email == user.Mobile));
             if (item == null)
+            {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
+            }
             else if (item.Deleted)
+            {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
+            }
             else if (item.Locked)
+            {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked);
+            }
+            if (user.IsAdmin && item.Role.Label == RoleEnum.Customer.ToString())
+            {
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
+            }
 
             var codeVerified = await otpVerifyService.IsVerified(new OtpVerifyVDto() { Mobile = item.Mobile, Email = item.Email, Code = user.Code });
             if (item.TwoFactorEnabled)
@@ -567,20 +575,22 @@ namespace Application.Services.UserSrv
         public async Task<BaseResultDto> UserRole(string mobile)
         {
             mobile = await mobile.ToEnglishDigitsAsync();
-            var item = await _context.Users.Include(s => s.Role).FirstOrDefaultAsync(x => x.Mobile == mobile);
+
+            var item = await _context.Users.Include(s => s.Role).FirstOrDefaultAsync(x => !x.Deleted &&(x.Mobile == mobile || x.Email == mobile));
+
             if (item == null)
-                return new BaseResultDto(isSuccess: true, code: 0);
-            else
             {
-                if (item.Role.Label == RoleEnum.Customer.ToString())
-                {
-                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied, code: 1);
-                }
-                else
-                {
-                    return new BaseResultDto(isSuccess: true, code: 0);
-                }
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound, code: 2);
             }
+            if (item.Locked)
+            {
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked, code: 4);
+            }
+            if (item.Role.Label == RoleEnum.Customer.ToString())
+            {
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied, code: 1);
+            }
+            return new BaseResultDto(isSuccess: true, code: 0);
         }
         private async Task ChangUserCartAsync(long userId, string cartCode)
         {
@@ -719,10 +729,10 @@ namespace Application.Services.UserSrv
 
         }
 
-        public async Task<UserDto> GetUserByBonusCodeAsync(string bonusCode)
+        public async Task<UserDto> GetUserByReferralCodeAsync(string referralCode)
         {
             var user = await _context.Users
-                .Where(u => u.BonusCode == bonusCode)
+                .Where(u => u.ReferralCode == referralCode)
                 .FirstOrDefaultAsync();
 
             if (user == null)
@@ -733,7 +743,7 @@ namespace Application.Services.UserSrv
             var userDto = new UserDto
             {
                 Id = user.Id,
-                BonusCode = user.BonusCode,
+                ReferralCode = user.ReferralCode,
             };
 
             return userDto;

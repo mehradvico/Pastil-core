@@ -18,7 +18,9 @@ namespace Entities.Entities
         public bool Deleted { get; set; }
         public int UseCount { get; set; }
         public int UsedCount { get; set; }
+        public int MaxUsePerUser { get; set; }
         public long? ProductId { get; set; }
+        public long? ClubRewardId { get; set; }
         public User User { get; set; }
         public Product Product { get; set; }
         public Code Type { get; set; }

@@ -8,6 +8,8 @@ using Application.Common.Helpers.Iface;
 using Application.Common.Interface;
 using Application.Common.SpotPlayer;
 using Application.Maping;
+using Application.Services.Accounting.ClubRewardSrv;
+using Application.Services.Accounting.ClubRewardSrv.Iface;
 using Application.Services.Accounting.DriverSrv;
 using Application.Services.Accounting.DriverSrv.Iface;
 using Application.Services.Accounting.OtpVerifySrv;
@@ -18,6 +20,8 @@ using Application.Services.Accounting.PetSrv.Iface;
 using Application.Services.Accounting.RolePermission;
 using Application.Services.Accounting.RolePermission.Iface;
 using Application.Services.Accounting.RoleSrv.Iface;
+using Application.Services.Accounting.ScoreTransactionSrv;
+using Application.Services.Accounting.ScoreTransactionSrv.Iface;
 using Application.Services.Accounting.TicketItemSrv.Iface;
 using Application.Services.Accounting.TicketSrv.Iface;
 using Application.Services.Accounting.UserPerRecordSrv;
@@ -521,6 +525,8 @@ public static class ConfigureServices
         services.AddScoped<ISettlementService, SettlementService>();
         services.AddScoped<ISettlementCompanionService, SettlementCompanionService>();
         services.AddScoped<ISettlementStoreService, SettlementStoreService>();
+        services.AddScoped<IClubRewardService, ClubRewardService>();
+        services.AddScoped<IScoreTransactionService, ScoreTransactionService>();
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 

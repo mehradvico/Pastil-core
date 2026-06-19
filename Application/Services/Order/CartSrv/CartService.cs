@@ -109,15 +109,15 @@ namespace Application.Services.Order.CartSrv
                         break;
 
                     }
-                case Common.Enumerable.CartUpdateEnum.SetBonus:
+                case Common.Enumerable.CartUpdateEnum.SetReferralCode:
                     {
-                        result = await CartSetBonusAsync(cartUpdate, cart);
+                        result = await CartSetReferralCodeAsync(cartUpdate, cart);
                         break;
 
                     }
-                case Common.Enumerable.CartUpdateEnum.RemoveBonus:
+                case Common.Enumerable.CartUpdateEnum.RemoveReferralCode:
                     {
-                        result = await CartRemoveBonusAsync(cartUpdate, cart);
+                        result = await CartRemoveReferralCodeAsync(cartUpdate, cart);
                         break;
 
                     }
@@ -193,7 +193,7 @@ namespace Application.Services.Order.CartSrv
         {
             await CartRemoveRebateAsync(cart);
             await CartRemoveDeliveryAsync(cart);
-            await CartRemoveBonusAsync(cart);
+            await CartRemoveReferralCodeAsync(cart);
         }
         private BaseResultDto<CartVDto> CartGetDto(Cart cart)
         {
@@ -412,24 +412,24 @@ namespace Application.Services.Order.CartSrv
             }
 
         }
-        private async Task<BaseResultDto> CartSetBonusAsync(CartUpdateDto cartUpdate, Cart cart)
+        private async Task<BaseResultDto> CartSetReferralCodeAsync(CartUpdateDto cartUpdate, Cart cart)
         {
-            if (string.IsNullOrEmpty(cartUpdate.BonusCode))
+            if (string.IsNullOrEmpty(cartUpdate.ReferralCode))
             {
-                cart.BonusCode = null;
+                cart.ReferralCode = null;
                 _context.Carts.Update(cart);
                 await _context.SaveChangesAsync();
 
                 return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
             }
 
-            var bonusUser = await _userService.GetUserByBonusCodeAsync(cartUpdate.BonusCode);
+            var refferalUser = await _userService.GetUserByReferralCodeAsync(cartUpdate.ReferralCode);
 
-            if (bonusUser == null || (bonusUser != null && bonusUser.Id == cart.UserId))
+            if (refferalUser == null || (refferalUser != null && refferalUser.Id == cart.UserId))
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidBonusCode);
             }
-            cart.BonusCode = bonusUser.BonusCode;
+            cart.ReferralCode = refferalUser.ReferralCode;
             _context.Carts.Update(cart);
             await _context.SaveChangesAsync();
 
@@ -507,14 +507,14 @@ namespace Application.Services.Order.CartSrv
             _context.Carts.Update(cart);
             await _context.SaveChangesAsync();
         }
-        private async Task<BaseResultDto> CartRemoveBonusAsync(CartUpdateDto cartUpdate, Cart cart)
+        private async Task<BaseResultDto> CartRemoveReferralCodeAsync(CartUpdateDto cartUpdate, Cart cart)
         {
-            await CartRemoveBonusAsync(cart);
+            await CartRemoveReferralCodeAsync(cart);
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
-        private async Task CartRemoveBonusAsync(Cart cart)
+        private async Task CartRemoveReferralCodeAsync(Cart cart)
         {
-            cart.BonusCode = null;
+            cart.ReferralCode = null;
             _context.Carts.Update(cart);
             await _context.SaveChangesAsync();
         }

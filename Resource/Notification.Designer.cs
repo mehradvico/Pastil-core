@@ -124,15 +124,6 @@ namespace Resource {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Bonus code can not be yours.
-        /// </summary>
-        public static string BonusCodeCanNotBeYours {
-            get {
-                return ResourceManager.GetString("BonusCodeCanNotBeYours", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Bonus has already been added to the wallet for this ProductOrder.
         /// </summary>
         public static string BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder {
@@ -655,6 +646,24 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Referral code.
+        /// </summary>
+        public static string ReferralCode {
+            get {
+                return ResourceManager.GetString("ReferralCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Referral code can not be yours.
+        /// </summary>
+        public static string ReferralCodeCanNotBeYours {
+            get {
+                return ResourceManager.GetString("ReferralCodeCanNotBeYours", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reserve has Not Completed Yet.
         /// </summary>
         public static string ReservehasNotCompletedYet {
@@ -669,6 +678,15 @@ namespace Resource {
         public static string ResourceNotFind {
             get {
                 return ResourceManager.GetString("ResourceNotFind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to score is not enough.
+        /// </summary>
+        public static string ScoreNotEnough {
+            get {
+                return ResourceManager.GetString("ScoreNotEnough", resourceCulture);
             }
         }
         
@@ -948,6 +966,15 @@ namespace Resource {
         public static string TheRecoveryCodeWasSentBySMS {
             get {
                 return ResourceManager.GetString("TheRecoveryCodeWasSentBySMS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Referral code is wrong.
+        /// </summary>
+        public static string TheReferralCodeIsWrong {
+            get {
+                return ResourceManager.GetString("TheReferralCodeIsWrong", resourceCulture);
             }
         }
         

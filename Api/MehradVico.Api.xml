@@ -537,6 +537,46 @@
             <param name="dto"></param>
             <returns></returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClubRewardController">
+            <summary>
+            مدیریت کلاب
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClubRewardController.#ctor(Application.Services.Accounting.ClubRewardSrv.Iface.IClubRewardService)">
+            <summary>
+            مدیریت کلاب
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClubRewardController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            <param name="id">شناسه دسته بندی</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClubRewardController.Get(Application.Services.Accounting.ClubRewardSrv.Dto.ClubRewardInputDto)">
+             <summary>
+             جستجو
+             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClubRewardController.Post(Application.Services.Accounting.ClubRewardSrv.Dto.ClubRewardDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClubRewardController.Put(Application.Services.Accounting.ClubRewardSrv.Dto.ClubRewardDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClubRewardController.Delete(System.Int64)">
+             <summary>
+             حذف آیتم
+             </summary>
+            
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.CodeController">
             <summary>
             مدیریت کد
@@ -6082,6 +6122,28 @@
              تغییر موبایل
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ClubRewardController">
+            <summary>
+            مدیریت کلاب
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClubRewardController.#ctor(Application.Services.Accounting.ClubRewardSrv.Iface.IClubRewardService,Application.Common.Interface.ICurrentUserHelper)">
+            <summary>
+            مدیریت کلاب
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClubRewardController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            <param name="id">شناسه دسته بندی</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClubRewardController.Get(Application.Services.Accounting.ClubRewardSrv.Dto.ClubRewardInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.CommentLikeController">
             <summary>
             مرتبط با لایک کامنت ها
@@ -8114,6 +8176,28 @@
             <param name="storeId">فروشگاه</param>
             <returns></returns>
             
+        </member>
+        <member name="T:Api.Controllers.ClubRewardController">
+            <summary>
+            مدیریت کلاب
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.ClubRewardController.#ctor(Application.Services.Accounting.ClubRewardSrv.Iface.IClubRewardService)">
+            <summary>
+            مدیریت کلاب
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.ClubRewardController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            <param name="id">شناسه دسته بندی</param>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Controllers.ClubRewardController.Get(Application.Services.Accounting.ClubRewardSrv.Dto.ClubRewardInputDto)">
+            <summary>
+            جستجو
+            </summary>
         </member>
         <member name="T:Api.Controllers.CompanionAssistanceController">
             <summary>

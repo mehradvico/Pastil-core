@@ -6,7 +6,6 @@ using Application.Services.Accounting.UserSrv.Iface;
 using Application.Services.Accounting.UserTokenSrv.Dto;
 using Application.Services.Accounting.UserTokenSrv.Iface;
 using Application.Services.Dto;
-using Application.Services.ReminderSrvs.ReminderSrv.Iface;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,7 +26,7 @@ namespace Api.Controllers
         /// <summary> 
         /// مدیریت حساب کاربری
         /// </summary>
-        public AccountController(IUserService userService, IUserTokenService userTokenService, IOtpVerifyService otpVerifyService/*, IReminderService reminderService*/)
+        public AccountController(IUserService userService, IUserTokenService userTokenService, IOtpVerifyService otpVerifyService)
         {
             this.userService = userService;
             this.userTokenService = userTokenService;
@@ -52,7 +51,6 @@ namespace Api.Controllers
         [Route("userrole")]
         public async Task<IActionResult> Get(string mobile)
         {
-            //await reminderService.SyncReminderAsync();
             var userrole = await userService.UserRole(mobile);
             return Ok(userrole);
         }

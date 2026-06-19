@@ -5,6 +5,7 @@ using Application.Common.Enumerable.Message;
 using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Service;
+using Application.Services.Accounting.ScoreTransactionSrv.Iface;
 using Application.Services.Accounting.UserProductSrv.Iface;
 using Application.Services.Accounting.UserSrv.Iface;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
@@ -46,8 +47,12 @@ namespace Application.Services.Order.ProductOrderSrv
         private readonly INoticeService _notificationService;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ICodeService _codeService;
+        private readonly IScoreTransactionService _scoreService;
 
-        public ProductOrderService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserProductService userProductService, INoticeService notificationService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IWalletService walletService, IUserService userService, IProductService productService, IRebateService rebateService, IMessageSenderService messageSenderService) : base(_context, mapper)
+        public ProductOrderService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserProductService userProductService,
+            INoticeService notificationService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IWalletService walletService,
+            IUserService userService, IProductService productService, IRebateService rebateService, IScoreTransactionService scoreService,
+            IMessageSenderService messageSenderService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -61,6 +66,7 @@ namespace Application.Services.Order.ProductOrderSrv
             this._notificationService = notificationService;
             this._pushNotificationService = pushNotificationService;
             this._codeService = codeService;
+            this._scoreService = scoreService;
         }
         public async Task<BaseResultDto> FindAsyncVDto(string id)
         {
@@ -189,7 +195,7 @@ namespace Application.Services.Order.ProductOrderSrv
 
         public async Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false)
         {
-            var productOrder = await _context.ProductOrders.AsTracking().Include(s => s.User).Include(s => s.ProductOrderStores).ThenInclude(s => s.Store).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).ThenInclude(s => s.ProductItem).ThenInclude(s => s.Product).FirstOrDefaultAsync(s => s.Id == productOrderId);
+            var productOrder = await _context.ProductOrders.AsTracking().Include(s => s.User).Include(s => s.Rebate).Include(s => s.ProductOrderStores).ThenInclude(s => s.Store).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).ThenInclude(s => s.ProductItem).ThenInclude(s => s.Product).FirstOrDefaultAsync(s => s.Id == productOrderId);
             if (productOrder.Wallet != null)
             {
                 var amount = await _walletService.GetAmountValueAsync(productOrder.UserId);
@@ -204,8 +210,24 @@ namespace Application.Services.Order.ProductOrderSrv
 
                 }
             }
+            if (productOrder.Rebate != null)
+            {
+                _rebateService.IncreaseUseCount(productOrder);
+            }
             productOrder.IsPaid = true;
             await UpdateProductOrderCommissionDto(productOrder);
+            double scoreRatio = 10000;
+            double earnedScore = Math.Floor(productOrder.PaymentPrice / scoreRatio);
+
+            if (earnedScore > 0)
+            {
+                await _scoreService.AddScoreAsync(
+                    userId: productOrder.UserId,
+                    amount: earnedScore,
+                    type: ScoreTransactionType.ScoreTransactionType_ProductOrder,
+                    referenceId: productOrder.Id.ToString()
+                );
+            }
             await _context.SaveChangesAsync();
             var cart = await _context.Carts.AsTracking().Include(s => s.CartStores.Where(a => a.Active)).ThenInclude(s => s.CartItems).FirstOrDefaultAsync(s => s.UserId == productOrder.UserId);
             cart.DeliveryId = null;
@@ -220,7 +242,7 @@ namespace Application.Services.Order.ProductOrderSrv
             _rebateService.IncreaseUseCount(productOrder);
             string nameText = string.Format("{0}_{1}", productOrder.User.FirstName, productOrder.User.LastName).Replace(" ", "_");
 
-            string bonusCode = productOrder.BonusCode;
+            string bonusCode = productOrder.ReferralCode;
 
             if (!string.IsNullOrEmpty(bonusCode))
             {
@@ -346,7 +368,7 @@ namespace Application.Services.Order.ProductOrderSrv
 
         public async Task<BaseResultDto> AddBonusAmountToWalletAsync(ProductOrder productOrder)
         {
-            var user = await _userService.GetUserByBonusCodeAsync(productOrder.BonusCode);
+            var user = await _userService.GetUserByReferralCodeAsync(productOrder.ReferralCode);
             if (user == null)
             {
                 return new BaseResultDto(false, Resource.Notification.UserWithTheProvidedBonusCodeNotFound);

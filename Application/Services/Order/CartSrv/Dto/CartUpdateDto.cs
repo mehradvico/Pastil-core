@@ -9,7 +9,7 @@ namespace Application.Services.Order.CartSrv.Dto
         public long? UserId { get; set; }
         public string UniqueId { get; set; }
         public long? AddressId { get; set; }
-        public string BonusCode { get; set; }
+        public string ReferralCode { get; set; }
         public string RebateCode { get; set; }
         public long? DeliveryId { get; set; }
         public long? MerchantId { get; set; }

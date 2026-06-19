@@ -13,7 +13,7 @@ namespace Application.Services.Accounting.UserSrv.Iface
     {
         UserVDto GetVDto(long userId);
         public UserSearchDto Search(UserInputDto searchDto);
-        Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action/*, long storeId*/);
+        Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action);
         Task<BaseResultDto> SignIn(SignInDto user);
         Task<BaseResultDto> SignUp(SignUpDto user);
         Task<BaseResultDto> ChangePassword(ChangePasswordDto user);
@@ -28,7 +28,7 @@ namespace Application.Services.Accounting.UserSrv.Iface
         Task<BaseResultDto> ChangeMobileAsync(ChangeMobileDto dto);
         Task<BaseResultDto> ChangeEmailRequestAsync(ChangeEmailDto dto);
         Task<BaseResultDto> ChangeEmailAsync(ChangeEmailDto dto);
-        Task<UserDto> GetUserByBonusCodeAsync(string bonusCode);
+        Task<UserDto> GetUserByReferralCodeAsync(string referralCode);
         BaseResultDto<User> GetUserByMobile(string mobile);
     }
 }
