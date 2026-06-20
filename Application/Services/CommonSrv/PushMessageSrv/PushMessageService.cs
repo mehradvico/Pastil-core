@@ -37,7 +37,7 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
 
         public virtual async Task<BaseResultDto<PushMessageVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.PushMessages.Include(s => s.Picture).Include(s => s.PushMessageTypeId).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.PushMessages.Include(s => s.Picture).Include(s => s.PushMessageType).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
                 return new BaseResultDto<PushMessageVDto>(true, _mapper.Map<PushMessageVDto>(item));
             return new BaseResultDto<PushMessageVDto>(false, _mapper.Map<PushMessageVDto>(item));

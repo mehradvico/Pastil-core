@@ -1,5 +1,6 @@
 ﻿using Application.Common.Dto.Field;
 using Application.Services.Filing.PictureSrv.Dto;
+using System;
 
 namespace Application.Services.Dto
 {
@@ -17,6 +18,7 @@ namespace Application.Services.Dto
         public long? DriverId { get; set; }
         public string Expertise { get; set; }
         public bool IsCompanion { get; set; }
+        public DateTime CreateDate { get; set; }
 
         public long RoleId { get; set; }
         public string RoleName { get; set; }

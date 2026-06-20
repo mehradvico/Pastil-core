@@ -1,6 +1,8 @@
 # build outputs
 **/bin/
 **/obj/
+**/publish/
+publish-test/
 
 # IDE
 .vs/
@@ -14,18 +16,27 @@
 
 # logs
 *.log
+**/*.log
 
-# node
+# node / frontend
 node_modules/
+**/node_modules/
+.nuxt/
+**/.nuxt/
+.output/
+**/.output/
+dist/
+**/dist/
 
-# docker
+# docker exports
 **/*.tar
-docker-compose*
-Dockerfile*
+docker-compose.override.yml
 
 # temp
 tmp/
 temp/
+**/tmp/
+**/temp/
 
 # OS
 .DS_Store
