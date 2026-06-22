@@ -4,5 +4,6 @@
     {
         public long? CompanionAssistanceId { get; set; }
         public long? UserId { get; set; }
+        public long? CompanionId { get; set; }
     }
 }

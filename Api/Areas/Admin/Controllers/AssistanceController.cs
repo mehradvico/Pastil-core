@@ -43,10 +43,10 @@ namespace Api.Areas.Admin.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<AssistanceDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<AssistanceVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var agency = await _assistanceService.FindAsyncDto(id);
+            var agency = await _assistanceService.FindAsyncVDto(id);
             return Ok(agency);
         }
 

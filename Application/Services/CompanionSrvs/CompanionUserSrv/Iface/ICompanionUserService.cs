@@ -13,6 +13,7 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv.Iface
         CompanionUserSearchDto SearchDto(CompanionUserInputDto dto);
         void InsertOrUpdate(CompanionUserDto CompanionUser);
         void InsertOrUpdate(Companion companion, List<CompanionUserDto> CompanionUsersDto);
+        Task<BaseResultDto<List<CompanionUserDto>>> GetAvailableCompanionUsersAsync(long companionAssistanceId);
         Task<BaseResultDto> Active(CompanionUserDto user);
         Task<BaseResultDto> UserAccept(CompanionUserDto user);
     }

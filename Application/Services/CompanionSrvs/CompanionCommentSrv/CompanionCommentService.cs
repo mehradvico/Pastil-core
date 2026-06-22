@@ -98,41 +98,49 @@ namespace Application.Services.CompanionSrvs.CompanionCommentSrv
         }
         private IQueryable<CompanionComment> BaseSaerch(CompanionCommentInputDto searchDto)
         {
-            var query = _context.CompanionComments.Include(s => s.Companion).AsQueryable();
-            if (searchDto.CompanionId.HasValue)
-                query = query.Where(s => s.CompanionId == searchDto.CompanionId).Include(s => s.User);
-            if (searchDto.AllStatus == false)
-            {
+            var query = _context.CompanionComments.Include(s => s.Companion).Include(s => s.User).Include(s => s.Status).AsQueryable();
 
+            if (searchDto.CompanionId.HasValue)
+            {
+                query = query.Where(s => s.CompanionId == searchDto.CompanionId.Value);
+            }
+
+            if (searchDto.AllStatus != true)
+            {
                 switch (searchDto.SortBy)
                 {
+                    case SortEnum.Old:
+                        query = query
+                            .OrderBy(s => s.StatusId)
+                            .ThenBy(s => s.Id);
+                        break;
 
-                    case Common.Enumerable.SortEnum.Default:
-                        {
-                            query = query.OrderBy(s => s.StatusId).ThenByDescending(s => s.Id);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.New:
-                        {
-                            query = query.OrderBy(s => s.StatusId).ThenByDescending(s => s.Id);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.Old:
-                        {
-                            query = query.OrderBy(s => s.StatusId).ThenBy(s => s.Id);
-                            break;
-                        }
-
+                    case SortEnum.Default:
+                    case SortEnum.New:
                     default:
-                        query = query.OrderBy(s => s.StatusId).ThenByDescending(s => s.Id);
+                        query = query
+                            .OrderBy(s => s.StatusId)
+                            .ThenByDescending(s => s.Id);
+                        break;
+                }
+            }
+            else
+            {
+                switch (searchDto.SortBy)
+                {
+                    case SortEnum.Old:
+                        query = query.OrderBy(s => s.Id);
+                        break;
 
+                    case SortEnum.Default:
+                    case SortEnum.New:
+                    default:
+                        query = query.OrderByDescending(s => s.Id);
                         break;
                 }
             }
 
-
             return query;
         }
-
     }
 }

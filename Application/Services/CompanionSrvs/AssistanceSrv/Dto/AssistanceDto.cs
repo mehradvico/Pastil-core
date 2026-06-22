@@ -9,7 +9,6 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
         public bool IsPersonal { get; set; }
         public long? PictureId { get; set; }
         public bool Active { get; set; }
-        [HtmlAttributeNotBound]
-        public PictureVDto Picture { get; set; }
+
     }
 }

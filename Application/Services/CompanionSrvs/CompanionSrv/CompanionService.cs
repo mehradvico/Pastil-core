@@ -80,10 +80,6 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             {
                 model = model.Where(s => s.Name.Contains(baseSearchDto.Q) || s.Phone.Equals(baseSearchDto.Q));
             }
-            if (!string.IsNullOrEmpty(baseSearchDto.Q))
-            {
-                model = model.Where(s => s.Name == baseSearchDto.Q || s.Phone == baseSearchDto.Q);
-            }
             if (baseSearchDto.AssistanceId.HasValue)
             {
                 model = model.Where(s => s.CompanionAssistances.Any(ca => ca.AssistanceId == baseSearchDto.AssistanceId.Value));

@@ -148,6 +148,45 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv
             }
         }
 
+        public async Task<BaseResultDto<List<CompanionUserDto>>> GetAvailableCompanionUsersAsync(long companionAssistanceId)
+        {
+            var companionAssistance = await _context.CompanionAssistances
+                .Include(s => s.Companion)
+                .FirstOrDefaultAsync(s => s.Id == companionAssistanceId && !s.Deleted);
+
+            if (companionAssistance == null)
+            {
+                return new BaseResultDto<List<CompanionUserDto>>(false, Resource.Notification.NothingFound, new List<CompanionUserDto>());
+            }
+
+            if (companionAssistance.Companion != null && companionAssistance.Companion.IsPersonal)
+            {
+                return new BaseResultDto<List<CompanionUserDto>>(false, Resource.Notification.AccessDenied, new List<CompanionUserDto>());
+            }
+
+            var assignedUserIds = await _context.CompanionAssistanceUsers
+                .Where(s => s.CompanionAssistanceId == companionAssistanceId && !s.Deleted)
+                .Select(s => s.UserId)
+                .ToListAsync();
+
+            var companionUsers = await _context.CompanionUsers
+                .Include(s => s.User)
+                .ThenInclude(s => s.Picture)
+                .Include(s => s.Companion)
+                .Where(s =>
+                    s.CompanionId == companionAssistance.CompanionId &&
+                    !s.Deleted &&
+                    s.Active &&
+                    !assignedUserIds.Contains(s.UserId)
+                )
+                .ToListAsync();
+
+            return new BaseResultDto<List<CompanionUserDto>>(
+                true,
+                mapper.Map<List<CompanionUserDto>>(companionUsers)
+            );
+        }
+
         public async Task<BaseResultDto> Active(CompanionUserDto user)
         {
             var item = await _context.CompanionUsers.FirstOrDefaultAsync(x => x.CompanionId == user.CompanionId && x.Id == user.Id);

@@ -5,11 +5,13 @@ using Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionAssistanceSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistanceUserSrv.Dto;
+using Application.Services.CompanionSrvs.CompanionUserSrv.Dto;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -52,6 +54,10 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceUserSrv
             {
                 model = model.Where(s => s.Active == baseSearchDto.Available.Value);
             }
+            if (baseSearchDto.CompanionId.HasValue)
+            {
+                model = model.Where(s => s.CompanionAssistance.CompanionId == baseSearchDto.CompanionId.Value);
+            }
             if (baseSearchDto.CompanionAssistanceId.HasValue)
             {
                 model = model.Where(s => s.CompanionAssistanceId == baseSearchDto.CompanionAssistanceId.Value);
@@ -91,14 +97,48 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceUserSrv
                 {
                     return modelCheker;
                 }
-                bool exists = await _context.CompanionAssistanceUsers.AnyAsync(a => a.UserId == dto.UserId && a.CompanionAssistanceId == dto.CompanionAssistanceId && !a.Deleted);
+
+                var companionAssistance = await _context.CompanionAssistances
+                    .Include(s => s.Companion)
+                    .FirstOrDefaultAsync(s => s.Id == dto.CompanionAssistanceId && !s.Deleted);
+
+                if (companionAssistance == null)
+                {
+                    return new BaseResultDto<CompanionAssistanceUserDto>(false, Resource.Notification.NothingFound, dto);
+                }
+
+                if (companionAssistance.Companion != null && companionAssistance.Companion.IsPersonal)
+                {
+                    return new BaseResultDto<CompanionAssistanceUserDto>(false, Resource.Notification.AccessDenied, dto);
+                }
+
+                var hasCompanionUser = await _context.CompanionUsers.AnyAsync(s =>
+                    s.CompanionId == companionAssistance.CompanionId &&
+                    s.UserId == dto.UserId &&
+                    !s.Deleted &&
+                    s.Active
+                );
+
+                if (!hasCompanionUser)
+                {
+                    return new BaseResultDto<CompanionAssistanceUserDto>(false, Resource.Notification.AccessDenied, dto);
+                }
+
+                bool exists = await _context.CompanionAssistanceUsers.AnyAsync(a =>
+                    a.UserId == dto.UserId &&
+                    a.CompanionAssistanceId == dto.CompanionAssistanceId &&
+                    !a.Deleted
+                );
 
                 if (exists)
                 {
                     return new BaseResultDto<CompanionAssistanceUserDto>(false, Resource.Notification.DuplicateValue, dto);
                 }
 
+                dto.Active = true;
+
                 var item = mapper.Map<CompanionAssistanceUser>(dto);
+
                 await _context.CompanionAssistanceUsers.AddAsync(item);
                 await _context.SaveChangesAsync();
 

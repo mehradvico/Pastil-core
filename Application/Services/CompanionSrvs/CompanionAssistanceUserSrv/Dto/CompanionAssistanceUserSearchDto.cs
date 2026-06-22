@@ -13,9 +13,11 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto
 
             this.CompanionAssistanceId = dto.CompanionAssistanceId;
             this.UserId = dto.UserId;
+            this.CompanionId = dto.CompanionId;
         }
 
         public long? CompanionAssistanceId { get; set; }
         public long? UserId { get; set; }
+        public long? CompanionId { get; set; }
     }
 }

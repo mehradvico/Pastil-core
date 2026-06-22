@@ -1390,6 +1390,17 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionUserAvailableController">
+            <summary>
+            کاربران قابل انتخاب نمایندگی برای خدمت همکار
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionUserAvailableController.Get(System.Int64)">
+            <summary>
+            دریافت کاربران قابل انتخاب برای یک خدمت نمایندگی
+            </summary>
+            <param name="companionAssistanceId">شناسه خدمت نمایندگی</param>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionUserController">
             <summary>
             مدیریت کاربران همکار
@@ -2424,13 +2435,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.NeighborhoodController">
              <summary>
-             مدیریت شهرها
+             مدیریت محله ها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.#ctor(Application.Services.CommonSrv.NeighborhoodSrv.Iface.INeighborhoodService)">
              <summary>
-             مدیریت شهر ها
+             مدیریت محله ها
              </summary>
             
         </member>

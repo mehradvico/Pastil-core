@@ -76,6 +76,8 @@ using Application.Services.CompanionSrvs.AssistanceSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionAssistanceReportSrv.Iface;
+using Application.Services.CompanionSrvs.CompanionCommentSrv;
+using Application.Services.CompanionSrvs.CompanionCommentSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv;
 using Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionInsurancePackageSrv;
@@ -463,6 +465,7 @@ public static class ConfigureServices
         services.AddScoped<ICompanionAssistanceTimeService, CompanionAssistanceTimeService>();
         services.AddScoped<ICompanionAssistanceUserService, CompanionAssistanceUserService>();
         services.AddScoped<ICompanionReserveService, CompanionReserveService>();
+        services.AddScoped<ICompanionCommentService, CompanionCommentService>();
         services.AddScoped<IWeekDayService, WeekDayService>();
         services.AddScoped<INeighborhoodService, NeighborhoodService>();
         services.AddScoped<ICompanionAssistanceTypeService, CompanionAssistanceTypeService>();
@@ -500,7 +503,7 @@ public static class ConfigureServices
         services.AddScoped<ICompanionAssistancePackagePictureService, CompanionAssistancePackagePictureService>();
         services.AddScoped<IPansionService, PansionService>();
         services.AddScoped<IPansionPetService, PansionPetService>();
-        services.AddScoped<IPansionCommentService, PansionReserveCommentService>();
+        services.AddScoped<IPansionCommentService, PansionCommentService>();
         services.AddScoped<IPansionPictureService, PansionPictureService>();
         services.AddScoped<IPansionReserveService, PansionReserveService>();
         services.AddScoped<ICompanionZoneService, CompanionZoneService>();

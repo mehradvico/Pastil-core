@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت شهرها
+    /// مدیریت محله ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,7 +18,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private INeighborhoodService neighborhoodService;
         /// <summary>
-        /// مدیریت شهر ها
+        /// مدیریت محله ها
         /// </summary>
         ///
         public NeighborhoodController(INeighborhoodService neighborhoodService)

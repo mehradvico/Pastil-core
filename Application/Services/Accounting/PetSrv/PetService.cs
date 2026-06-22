@@ -20,7 +20,7 @@ namespace Application.Services.Accounting.PetSrv
         public PetSearchDto Search(PetInputDto baseSearchDto)
         {
             {
-                var model = _context.Pets.AsQueryable().Where(s => s.Deleted == false && s.Active == true);
+                var model = _context.Pets.AsQueryable().Where(s => s.Deleted == false);
                 if (baseSearchDto.Available.HasValue)
                 {
                     model = model.Where(s => s.Active == baseSearchDto.Available.Value);

@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services.PansionSrvs.PansionCommentSrv
 {
-    public class PansionReserveCommentService : CommonSrv<PansionComment, PansionCommentDto>, IPansionCommentService
+    public class PansionCommentService : CommonSrv<PansionComment, PansionCommentDto>, IPansionCommentService
     {
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
@@ -30,7 +30,7 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
         private readonly string connectionString;
 
 
-        public PansionReserveCommentService(IDataBaseContext _context, IConfiguration config, IMapper mapper, ICodeService codeService) : base(_context, mapper)
+        public PansionCommentService(IDataBaseContext _context, IConfiguration config, IMapper mapper, ICodeService codeService) : base(_context, mapper)
         {
             this.codeService = codeService;
             this._context = _context;
