@@ -32,7 +32,8 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
         }
         public async Task<BaseResultDto<ReminderVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Reminders.Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.ReminderCycle).Include(s => s.ReminderType).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+            var item = await _context.Reminders.Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User)
+                .Include(s => s.ReminderCycle).Include(s => s.ReminderType).Include(s => s.UserPet).ThenInclude(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
                 return new BaseResultDto<ReminderVDto>(true, mapper.Map<ReminderVDto>(item));
@@ -42,7 +43,8 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
 
         public ReminderSearchDto Search(ReminderInputDto baseSearchDto)
         {
-            var model = _context.Reminders.Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.ReminderCycle).Include(s => s.ReminderType).AsQueryable().Where(s => !s.Deleted);
+            var model = _context.Reminders.Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User)
+                .Include(s => s.ReminderCycle).Include(s => s.ReminderType).Include(s => s.UserPet).ThenInclude(s => s.Picture).AsQueryable().Where(s => !s.Deleted);
 
             if (baseSearchDto.UserId.HasValue)
             {

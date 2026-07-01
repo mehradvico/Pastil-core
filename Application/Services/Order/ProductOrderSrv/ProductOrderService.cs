@@ -70,7 +70,9 @@ namespace Application.Services.Order.ProductOrderSrv
         }
         public async Task<BaseResultDto> FindAsyncVDto(string id)
         {
-            var item = await _context.ProductOrders.Include(s => s.User).Include(s => s.Address).Include(s => s.ProductOrderState).Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.ProductOrders.Include(s => s.User).Include(s => s.Address).Include(s => s.ProductOrderState)
+                .Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems)
+                .Include(s => s.ProductOrderStores).ThenInclude(s => s.Delivery).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 return new BaseResultDto<ProductOrderVDto>(true, data: mapper.Map<ProductOrderVDto>(item));
@@ -109,7 +111,10 @@ namespace Application.Services.Order.ProductOrderSrv
 
         public ProductOrderSearchDto Search(ProductOrderInputDto baseSearchDto)
         {
-            var query = _context.ProductOrders.Include(s => s.Rebate).Include(s => s.Address).Include(s => s.DeliveryType).Include(s => s.PaymentType).Include(s => s.User).Include(s => s.ProductOrderState).Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).Where(s => s.Deleted == false).AsQueryable();
+            var query = _context.ProductOrders.Include(s => s.Rebate).Include(s => s.Address).Include(s => s.DeliveryType).Include(s => s.PaymentType)
+                .Include(s => s.User).Include(s => s.ProductOrderState).Include(s => s.ProductOrderStatus).Include(s => s.PaymentType)
+                .Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems)
+                .Include(s => s.ProductOrderStores).ThenInclude(s => s.Delivery).Where(s => s.Deleted == false).AsQueryable();
 
             if (baseSearchDto.UserId.HasValue)
             {

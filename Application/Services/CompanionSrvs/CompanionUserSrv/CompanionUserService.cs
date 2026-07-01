@@ -117,34 +117,62 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv
                 {
                     return modelCheker;
                 }
+
+                var item = mapper.Map<CompanionUser>(dto);
+
+                if (!string.IsNullOrWhiteSpace(dto.Phone))
+                {
+                    dto.Phone = await dto.Phone.Trim().ToEnglishDigitsAsync();
+
+                    dto.Phone = dto.Phone.Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "");
+
+                    if (dto.Phone.StartsWith("+98"))
+                        dto.Phone = "0" + dto.Phone.Substring(3);
+
+                    if (dto.Phone.StartsWith("98") && dto.Phone.Length == 12)
+                        dto.Phone = "0" + dto.Phone.Substring(2);
+
+                    var user = await _userService.GetByMobileDto(dto.Phone);
+
+                    if (user == null)
+                    {
+                        return new BaseResultDto<CompanionUserDto>(false, Resource.Notification.UserNotFound, dto);
+                    }
+
+                    item.UserId = user.Id;
+                    dto.UserId = user.Id;
+                }
                 else
                 {
-                    var item = mapper.Map<CompanionUser>(dto);
-                    if (string.IsNullOrEmpty(dto.Phone))
+                    if (dto.UserId <= 0)
                     {
-                        item.UserId = dto.UserId;
-                        item.CompanionId = dto.CompanionId;
+                        return new BaseResultDto<CompanionUserDto>(false, Resource.Notification.UserNotFound, dto);
                     }
-                    else
-                    {
-                        var user = await _userService.GetByMobileDto(dto.Phone);
-                        item.UserId = user.Id;
-                    }
-                    var isDuplicate = _context.CompanionUsers.AsNoTracking().Any(x => x.CompanionId == dto.CompanionId && x.UserId == dto.UserId && !x.Deleted);
-                    if (isDuplicate)
-                    {
-                        return new BaseResultDto<CompanionUserDto>(false, Resource.Notification.DuplicateValue, dto);
-                    }
-                    await _context.CompanionUsers.AddAsync(item);
-                    await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_AddCompanionUser, NoticeUserTypeEnum.NoticeUserType_Admin);
-                    await _context.SaveChangesAsync();
-                    return new BaseResultDto<CompanionUserDto>(true, mapper.Map<CompanionUserDto>(item));
+
+                    item.UserId = dto.UserId;
                 }
 
+                item.CompanionId = dto.CompanionId;
+                item.Active = dto.Active;
+                item.UserAccept = dto.UserAccept;
+
+                var isDuplicate = await _context.CompanionUsers.AsNoTracking().AnyAsync(x => x.CompanionId == item.CompanionId && x.UserId == item.UserId && !x.Deleted);
+
+                if (isDuplicate)
+                {
+                    return new BaseResultDto<CompanionUserDto>(false, Resource.Notification.DuplicateValue,dto);
+                }
+
+                await _context.CompanionUsers.AddAsync(item);
+                await _context.SaveChangesAsync();
+
+                await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_AddCompanionUser, NoticeUserTypeEnum.NoticeUserType_Admin);
+
+                return new BaseResultDto<CompanionUserDto>(true,mapper.Map<CompanionUserDto>(item));
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionUserDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionUserDto>(isSuccess: false,val: ex.Message,data: dto);
             }
         }
 

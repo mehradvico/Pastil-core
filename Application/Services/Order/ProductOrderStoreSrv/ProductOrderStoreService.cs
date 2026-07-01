@@ -132,5 +132,7 @@ namespace Application.Services.Order.ProductOrderStoreItemSrv
 
             return new ProductOrderStoreSearchDto(baseSearchDto, query, mapper);
         }
+
+
     }
 }

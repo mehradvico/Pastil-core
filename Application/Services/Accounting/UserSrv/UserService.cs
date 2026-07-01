@@ -524,9 +524,24 @@ namespace Application.Services.UserSrv
         }
         public async Task<UserDto> GetByMobileDto(string mobile)
         {
-            var item = await _context.Users.FirstOrDefaultAsync(s => s.Mobile == mobile && s.Deleted == false);
+            if (string.IsNullOrWhiteSpace(mobile))
+                return null;
+
+            mobile = await mobile.Trim().ToEnglishDigitsAsync();
+
+            mobile = mobile.Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "");
+
+            if (mobile.StartsWith("+98"))
+                mobile = "0" + mobile.Substring(3);
+
+            if (mobile.StartsWith("98") && mobile.Length == 12)
+                mobile = "0" + mobile.Substring(2);
+
+            var item = await _context.Users.AsNoTracking().FirstOrDefaultAsync(s => !s.Deleted && !s.Locked &&s.Mobile == mobile);
+
             if (item != null)
                 return mapper.Map<UserDto>(item);
+
             return null;
         }
         public async Task<CurrentUserDto> GetByTokenDto(string token)
