@@ -16,7 +16,6 @@ namespace Entities.Entities
         public long StatusId { get; set; }
         public long TypeId { get; set; }
         public string CodeValue { get; set; }
-        //public int Quantity { get; set; }
         public long BasePrice { get; set; }
         public long Price { get; set; }
         public int DiscountPercent { get; set; }

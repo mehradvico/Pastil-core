@@ -1812,13 +1812,30 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.DiscussionAnswerActiveController">
+             <summary>
+             مدیریت پاسخ های تالار گفت و گو
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.DiscussionAnswerActiveController.#ctor(Application.Services.Content.DiscussionAnswerSrv.Iface.IDiscussionAnswerService)">
+             <summary>
+             مدیریت پاسخ گفت و گو
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.DiscussionAnswerActiveController.Put(Application.Services.Content.DiscussionAnswerSrv.Dto.DiscussionAnswerActiveDto)">
+            <summary>
+            فعالسازی آیتم
+            </summary>  
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.DiscussionAnswerController">
              <summary>
              مدیریت پاسخ های تالار گفت و گو
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.DiscussionAnswerController.#ctor(Application.Services.Content.DiscussionAnswerSrv.Iface.IDiscussionAnswerService,Application.Common.Interface.ICurrentUserHelper)">
+        <member name="M:Api.Areas.Admin.Controllers.DiscussionAnswerController.#ctor(Application.Services.Content.DiscussionAnswerSrv.Iface.IDiscussionAnswerService)">
              <summary>
              مدیریت پاسخ گفت و گو
              </summary>
@@ -1842,17 +1859,6 @@
             <summary>
             آیتم جدید
             </summary>  
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DiscussionAnswerController.Put(Application.Services.Content.DiscussionAnswerSrv.Dto.DiscussionAnswerDto)">
-            <summary>
-            ویرایش آیتم
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DiscussionAnswerController.Delete(System.Int64)">
-             <summary>
-             حذف آیتم
-             </summary>
-            
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DiscussionQuestionController">
              <summary>

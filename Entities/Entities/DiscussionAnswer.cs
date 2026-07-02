@@ -13,7 +13,6 @@ namespace Entities.Entities
         public DateTime CreateDate { get; set; }
         public int LikeCount { get; set; }
         public int DisLikeCount { get; set; }
-        public bool? AdminConfirm { get; set; }
         public bool Deleted { get; set; }
         public bool Active { get; set; }
 

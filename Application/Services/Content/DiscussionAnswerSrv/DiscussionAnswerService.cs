@@ -28,45 +28,45 @@ namespace Application.Services.Content.DiscussionAnswerSrv
         }
         public async Task<BaseResultDto<DiscussionAnswerVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.DiscussionAnswers.Include(s => s.User).Include(s => s.DiscussionQuestion).FirstOrDefaultAsync(s => s.Id == id && s.Active && s.Deleted != true);
+            var item = await _context.DiscussionAnswers.Include(s => s.User).Include(s => s.DiscussionQuestion).FirstOrDefaultAsync(s => s.Id == id && s.Deleted != true);
             if (item != null)
             {
                 return new BaseResultDto<DiscussionAnswerVDto>(true, mapper.Map<DiscussionAnswerVDto>(item));
             }
             return new BaseResultDto<DiscussionAnswerVDto>(false, mapper.Map<DiscussionAnswerVDto>(item));
         }
-        public DiscussionAnswerSearchDto Search(DiscussionAnswerInputDto baseSearchDto)
+        public DiscussionAnswerSearchDto Search(DiscussionAnswerInputDto searchDto)
         {
-            var model = _context.DiscussionAnswers.Include(s => s.User).Where(s => s.Deleted == false).IgnoreQueryFilters().AsQueryable();
+            var query = _context.DiscussionAnswers.Include(s => s.User).Where(s => !s.Deleted).IgnoreQueryFilters().AsQueryable();
 
-            if (baseSearchDto.Available.HasValue)
+            if (searchDto.Available.HasValue)
             {
-                model = model.Where(s => s.Active == baseSearchDto.Available.Value);
+                query = query.Where(s => s.Active == searchDto.Available.Value);
             }
-            if (baseSearchDto.DiscussionQuestionId.HasValue)
+
+            if (searchDto.DiscussionQuestionId.HasValue)
             {
-                model = model.Where(s => s.DiscussionQuestionId == baseSearchDto.DiscussionQuestionId);
+                query = query.Where(s => s.DiscussionQuestionId == searchDto.DiscussionQuestionId.Value);
             }
-            if (baseSearchDto.UserId.HasValue)
+
+            if (searchDto.UserId.HasValue)
             {
-                model = model.Include(s => s.DiscussionAnswerLikes.Where(a => a.UserId == baseSearchDto.UserId)).Where(s => s.UserId == baseSearchDto.UserId);
+                query = query.Include(s => s.DiscussionAnswerLikes.Where(a => a.UserId == searchDto.UserId.Value)).Where(s => s.UserId == searchDto.UserId.Value);
             }
-            switch (baseSearchDto.SortBy)
+
+            switch (searchDto.SortBy)
             {
-                case Common.Enumerable.SortEnum.New:
-                    {
-                        model = model.OrderByDescending(s => s.Id);
-                        break;
-                    }
                 case Common.Enumerable.SortEnum.Old:
-                    {
-                        model = model.OrderBy(s => s.Id);
-                        break;
-                    }
+                    query = query.OrderBy(s => s.Id);
+                    break;
+
+                case Common.Enumerable.SortEnum.New:
                 default:
+                    query = query.OrderByDescending(s => s.Id);
                     break;
             }
-            return new DiscussionAnswerSearchDto(baseSearchDto, model, mapper);
+
+            return new DiscussionAnswerSearchDto(searchDto, query, mapper);
         }
         public override async Task<BaseResultDto<DiscussionAnswerDto>> InsertAsyncDto(DiscussionAnswerDto dto)
         {
@@ -81,8 +81,8 @@ namespace Application.Services.Content.DiscussionAnswerSrv
                 {
                     var item = mapper.Map<DiscussionAnswer>(dto);
                     item.CreateDate = DateTime.Now;
+                    item.Active = false;
                     await _context.DiscussionAnswers.AddAsync(item);
-                    var updateResult = _topicService.UpdateAnswerCountDto(new DiscussionQuestionDto { Id = dto.DiscussionQuestionId });
                     await _context.SaveChangesAsync();
                     return new BaseResultDto<DiscussionAnswerDto>(true, mapper.Map<DiscussionAnswerDto>(item));
                 }
@@ -91,6 +91,33 @@ namespace Application.Services.Content.DiscussionAnswerSrv
             catch (Exception ex)
             {
                 return new BaseResultDto<DiscussionAnswerDto>(isSuccess: false, val: ex.Message, data: dto);
+            }
+        }
+
+        public BaseResultDto DiscussionAnswerActivation(DiscussionAnswerActiveDto dto)
+        {
+            try
+            {
+                var item = _context.DiscussionAnswers.FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
+
+                if (item == null)
+                {
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
+                }
+
+                item.Active = dto.Active;
+                _context.SaveChanges();
+
+                var updateCountResult = _topicService.UpdateAnswerCountDto(new DiscussionQuestionDto
+                {
+                    Id = item.DiscussionQuestionId
+                });
+
+                return new BaseResultDto(isSuccess: true);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
         }
     }

@@ -32,11 +32,11 @@ namespace Api.Areas.Admin.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<DiscussionQuestionDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<DiscussionQuestionVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
 
-            var dto = await _DiscussionQuestionService.FindAsyncDto(id);
+            var dto = await _DiscussionQuestionService.FindAdminAsyncVDto(id);
             return Ok(dto);
         }
         /// <summary>

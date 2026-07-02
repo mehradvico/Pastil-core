@@ -17,16 +17,14 @@ namespace Api.Areas.Admin.Controllers
     [Authorize]
     public class DiscussionAnswerController : ControllerBase
     {
-        private readonly ICurrentUserHelper _currentUserHelper;
         private IDiscussionAnswerService _discussionAnswerService;
         /// <summary>
         /// مدیریت پاسخ گفت و گو
         /// </summary>
         ///
-        public DiscussionAnswerController(IDiscussionAnswerService discussionAnswerService, ICurrentUserHelper currentUserHelper)
+        public DiscussionAnswerController(IDiscussionAnswerService discussionAnswerService)
         {
             _discussionAnswerService = discussionAnswerService;
-            _currentUserHelper = currentUserHelper;
         }
         /// <summary>
         ///  اطلاعات آیتم 
@@ -35,11 +33,10 @@ namespace Api.Areas.Admin.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<DiscussionAnswerDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<DiscussionAnswerVDto>),200)]
         public async Task<IActionResult> Get(long id)
         {
-
-            var dto = await _discussionAnswerService.FindAsyncDto(id);
+            var dto = await _discussionAnswerService.FindAsyncVDto(id);
             return Ok(dto);
         }
         /// <summary>
@@ -62,28 +59,6 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Post(DiscussionAnswerDto discussionAnswerDto)
         {
             var dto = await _discussionAnswerService.InsertAsyncDto(discussionAnswerDto);
-            return Ok(dto);
-        }
-        /// <summary>
-        /// ویرایش آیتم
-        /// </summary>
-
-        [HttpPut]
-        [ProducesResponseType(typeof(DiscussionAnswerDto), 200)]
-        public IActionResult Put(DiscussionAnswerDto discussionAnswerDto)
-        {
-            var dto = _discussionAnswerService.UpdateDto(discussionAnswerDto);
-            return Ok(dto);
-        }
-        /// <summary>
-        /// حذف آیتم
-        /// </summary>
-        ///
-        [HttpDelete]
-        [ProducesResponseType(typeof(DiscussionAnswerDto), 200)]
-        public IActionResult Delete(long id)
-        {
-            var dto = _discussionAnswerService.DeleteDto(id);
             return Ok(dto);
         }
     }

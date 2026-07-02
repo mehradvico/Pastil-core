@@ -78,7 +78,7 @@ namespace Application.Services.ProductSrvs.ProductSrv
             }
             if (searchDto.CreateStoreId.HasValue)
             {
-                query = query.Where(s => s.StoreId == searchDto.StoreId);
+                query = query.Where(s => s.StoreId == searchDto.CreateStoreId);
             }
             if (searchDto.Status.HasValue)
             {

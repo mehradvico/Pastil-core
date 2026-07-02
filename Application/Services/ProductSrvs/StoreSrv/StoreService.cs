@@ -39,7 +39,13 @@ namespace Application.Services.ProductSrvs.StoreSrv
         }
         public async Task<BaseResultDto<StoreVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Stores.Include(s => s.City).ThenInclude(p => p.State).Include(s => s.Picture).Include(s => s.Users).FirstOrDefaultAsync(s => s.Id == id && s.Active && s.Deleted == false);
+            var item = await _context.Stores
+                .Include(s => s.City).ThenInclude(p => p.State)
+                .Include(s => s.Picture)
+                .Include(s => s.Icon)
+                .Include(s => s.Type)
+                .Include(s => s.Users)
+                .FirstOrDefaultAsync(s => s.Id == id && s.Deleted == false); 
             if (item == null)
                 return new BaseResultDto<StoreVDto>(false, null);
             return new BaseResultDto<StoreVDto>(true, mapper.Map<StoreVDto>(item));

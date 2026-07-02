@@ -28,7 +28,7 @@ namespace Application.Services.Content.DiscussionQuestionSrv
         }
         public async Task<BaseResultDto<DiscussionQuestionVDto>> FindAsyncVDto(long id, bool visit = true)
         {
-            var item = await _context.DiscussionQuestions.Include(s => s.DiscussionAnswers.Where(s => s.Active)).ThenInclude(s => s.User).FirstOrDefaultAsync(s => s.Id == id && s.Active && !s.Deleted);
+            var item = await _context.DiscussionQuestions.Include(s => s.DiscussionAnswers.Where(s => s.Active)).ThenInclude(s => s.User).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
                 return new BaseResultDto<DiscussionQuestionVDto>(true, mapper.Map<DiscussionQuestionVDto>(item));
@@ -36,14 +36,16 @@ namespace Application.Services.Content.DiscussionQuestionSrv
             return new BaseResultDto<DiscussionQuestionVDto>(false, mapper.Map<DiscussionQuestionVDto>(item));
         }
 
-        public override async Task<BaseResultDto<DiscussionQuestionDto>> FindAsyncDto(long id)
+        public async Task<BaseResultDto<DiscussionQuestionVDto>>FindAdminAsyncVDto(long id)
         {
-            var item = await _context.DiscussionQuestions.Include(s => s.User).Include(s => s.Product).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+            var item = await _context.DiscussionQuestions.Include(s => s.User).Include(s => s.Product).Include(s => s.DiscussionAnswers.Where(answer => !answer.Deleted))
+                .ThenInclude(answer => answer.User).AsNoTracking().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+
             if (item != null)
             {
-                return new BaseResultDto<DiscussionQuestionDto>(true, mapper.Map<DiscussionQuestionDto>(item));
+                return new BaseResultDto<DiscussionQuestionVDto>(true, mapper.Map<DiscussionQuestionVDto>(item));
             }
-            return new BaseResultDto<DiscussionQuestionDto>(false, mapper.Map<DiscussionQuestionDto>(item));
+            return new BaseResultDto<DiscussionQuestionVDto>(false, mapper.Map<DiscussionQuestionVDto>(item));
         }
 
         public DiscussionQuestionSearchDto Search(DiscussionQuestionInputDto baseSearchDto)
@@ -59,6 +61,10 @@ namespace Application.Services.Content.DiscussionQuestionSrv
             {
                 query = query.Where(s => s.ProductId == baseSearchDto.ProductId.Value);
             }
+            if (baseSearchDto.AdminConfirm.HasValue)
+            {
+                query = query.Where(s => s.AdminConfirm == baseSearchDto.AdminConfirm.Value);
+            }
             if (baseSearchDto.FromDate.HasValue)
             {
                 query = query.Where(s => s.CreateDate.Date >= baseSearchDto.FromDate.Value.Date);
@@ -73,17 +79,13 @@ namespace Application.Services.Content.DiscussionQuestionSrv
             }
             switch (baseSearchDto.SortBy)
             {
-                case Common.Enumerable.SortEnum.New:
-                    {
-                        query = query.OrderByDescending(s => s.Id);
-                        break;
-                    }
                 case Common.Enumerable.SortEnum.Old:
-                    {
-                        query = query.OrderBy(s => s.Id);
-                        break;
-                    }
+                    query = query.OrderBy(s => s.Id);
+                    break;
+
+                case Common.Enumerable.SortEnum.New:
                 default:
+                    query = query.OrderByDescending(s => s.Id);
                     break;
             }
             return new DiscussionQuestionSearchDto(baseSearchDto, query, mapper);
@@ -118,33 +120,62 @@ namespace Application.Services.Content.DiscussionQuestionSrv
         {
             try
             {
-                var modelCheker = ModelHelper<DiscussionQuestionDto>.ModelErrors(dto);
-                if (!modelCheker.IsSuccess)
+                var item = _context.DiscussionQuestions.FirstOrDefault(s => s.Id == dto.Id &&!s.Deleted);
+
+                if (item == null)
                 {
-                    return modelCheker;
+                    return new BaseResultDto(isSuccess: false,val: Resource.Notification.NothingFound);
                 }
-                else
+
+                if (!string.IsNullOrWhiteSpace(dto.Content))
                 {
-                    var item = mapper.Map<DiscussionQuestion>(dto);
-                    _context.DiscussionQuestions.Attach(item);
-                    _context.Entry(item).State = EntityState.Modified;
-                    _context.SaveChanges();
-                    return new BaseResultDto(isSuccess: true);
+                    item.Content = dto.Content.Trim();
                 }
+
+                if (dto.ProductId > 0)
+                {
+                    item.ProductId = dto.ProductId;
+                }
+
+                if (dto.UserId > 0)
+                {
+                    item.UserId = dto.UserId;
+                }
+
+                item.AdminConfirm = dto.AdminConfirm;
+                item.Active = dto.Active;
+
+                _context.DiscussionQuestions.Update(item);
+                _context.SaveChanges();
+
+                return new BaseResultDto(isSuccess: true);
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false,val: ex.Message);
             }
         }
 
         public BaseResultDto UpdateAnswerCountDto(DiscussionQuestionDto dto)
         {
-            var topic = _context.DiscussionQuestions.Include(t => t.DiscussionAnswers).FirstOrDefault(t => t.Id == dto.Id && t.Active && !t.Deleted);
-            topic.AnswerCount = topic.DiscussionAnswers.Count() + 1;
-            _context.DiscussionQuestions.Update(topic);
-            _context.SaveChanges();
-            return new BaseResultDto(isSuccess: true);
+            try
+            {
+                var question = _context.DiscussionQuestions.FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
+
+                if (question == null)
+                {
+                    return new BaseResultDto( isSuccess: false, val: Resource.Notification.NothingFound);
+                }
+
+                question.AnswerCount = _context.DiscussionAnswers.Count(s => s.DiscussionQuestionId == dto.Id && s.Active &&!s.Deleted);
+                _context.SaveChanges();
+
+                return new BaseResultDto(isSuccess: true);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(isSuccess: false,val: ex.Message);
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ namespace Application.Services.Content.DiscussionQuestionSrv.Iface
     {
         DiscussionQuestionSearchDto Search(DiscussionQuestionInputDto baseSearchDto);
         Task<BaseResultDto<DiscussionQuestionVDto>> FindAsyncVDto(long id, bool visit);
+        Task<BaseResultDto<DiscussionQuestionVDto>>FindAdminAsyncVDto(long id);
         BaseResultDto UpdateAnswerCountDto(DiscussionQuestionDto dto);
     }
 }

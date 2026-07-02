@@ -15,10 +15,5 @@ namespace Application.Services.Content.DiscussionQuestionSrv.Dto
         public bool? AdminConfirm { get; set; }
         public bool Active { get; set; }
         public int AnswerCount { get; set; }
-
-        [JsonIgnore]
-        public ProductVDto Product { get; set; }
-        [JsonIgnore]
-        public UserMinVDto User { get; set; }
     }
 }

@@ -16,5 +16,6 @@ namespace Application.Services.Content.DiscussionAnswerSrv.Dto
         }
         public long? UserId { get; set; }
         public long? DiscussionQuestionId { get; set; }
+
     }
 }

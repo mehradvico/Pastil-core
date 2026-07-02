@@ -4,8 +4,5 @@
     {
         FeatureType_SmallText,
         FeatureType_LargeText
-
-
-
     }
 }

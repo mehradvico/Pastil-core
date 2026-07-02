@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Services.Dto;
 using Application.Services.ProductSrvs.StoreSrv.Dto;
 using Application.Services.ProductSrvs.StoreUserSrv.Dto;
 using Application.Services.StoreSrvs.StoreUserSrv.Iface;
@@ -25,20 +26,55 @@ namespace Application.Services.StoreSrv.StoreUserSrv
         {
             if (storeUser.UserId > 0)
             {
-                var user = await _context.Users.Include(s => s.Stores.Where(a => storeUser.Active.HasValue ? a.Active == storeUser.Active : true && !a.Deleted)).ThenInclude(s => s.Picture).AsTracking().FirstOrDefaultAsync(s => s.Id == storeUser.UserId);
-                if (user != null && user.Stores.Any())
+                var storesQuery = _context.Stores
+                    .Include(s => s.Picture)
+                    .Where(s =>
+                        !s.Deleted &&
+                        s.Users.Any(u => u.Id == storeUser.UserId));
+
+                if (storeUser.Active.HasValue)
                 {
-                    return new BaseResultDto<List<StoreMinVDto>>(true, data: mapper.Map<List<StoreMinVDto>>(user.Stores));
+                    storesQuery = storesQuery.Where(s => s.Active == storeUser.Active.Value);
+                }
+
+                var stores = await storesQuery
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                if (stores.Any())
+                {
+                    return new BaseResultDto<List<StoreMinVDto>>(
+                        true,
+                        data: mapper.Map<List<StoreMinVDto>>(stores)
+                    );
                 }
             }
             else if (storeUser.StoreId > 0)
             {
-                var store = await _context.Stores.Include(s => s.Users.Where(a => storeUser.Active.HasValue ? a.Locked == (!storeUser.Active) : true && !s.Deleted)).AsTracking().FirstOrDefaultAsync(s => s.Id == storeUser.StoreId);
-                if (store != null && store.Users.Any())
+                var usersQuery = _context.Users
+                    .Where(u =>
+                        u.Stores.Any(s =>
+                            s.Id == storeUser.StoreId &&
+                            !s.Deleted));
+
+                if (storeUser.Active.HasValue)
                 {
-                    return new BaseResultDto<List<StoreMinVDto>>(true, data: mapper.Map<List<StoreMinVDto>>(store.Users));
+                    usersQuery = usersQuery.Where(u => u.Locked == !storeUser.Active.Value);
+                }
+
+                var users = await usersQuery
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                if (users.Any())
+                {
+                    return new BaseResultDto<List<UserMinVDto>>(
+                        true,
+                        data: mapper.Map<List<UserMinVDto>>(users)
+                    );
                 }
             }
+
             return new BaseResultDto(false);
         }
         public async Task<BaseResultDto> InsertAsync(StoreUserDto storeUser)

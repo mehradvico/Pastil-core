@@ -42,7 +42,7 @@ namespace Application.Services.Content.DiscussionAnswerLikeSrv
             {
                 _context.DiscussionAnswerLikes.Remove(item);
                 _context.SaveChanges();
-                return new BaseResultDto(isSuccess: false, val: Resource.Notification.Success);
+                return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
             }
             return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
         }

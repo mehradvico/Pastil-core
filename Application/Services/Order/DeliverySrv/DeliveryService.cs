@@ -1,4 +1,5 @@
-﻿using Application.Common.Dto.Result;
+﻿using AngleSharp.Dom;
+using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Helpers;
 using Application.Common.Service;
@@ -12,6 +13,7 @@ using NetTopologySuite.Geometries;
 using Persistence.Interface;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Application.Services.Content.DeliverySrv
 {
@@ -65,6 +67,22 @@ namespace Application.Services.Content.DeliverySrv
 
             return new DeliverySearchDto(searchDto, query, mapper);
         }
+
+        public virtual async Task<BaseResultDto<DeliveryVDto>> FindAsyncVDto(long id)
+        {
+            var item = await _context.Deliveries
+                .Include(s => s.DeliveryType)
+                .Include(s => s.City)
+                    .ThenInclude(s => s.State)
+                .Include(s => s.State)
+                .Include(s => s.Store)
+                    .ThenInclude(s => s.Picture)
+                .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+            if (item != null)
+                return new BaseResultDto<DeliveryVDto>(true, mapper.Map<DeliveryVDto>(item));
+            return new BaseResultDto<DeliveryVDto>(false, mapper.Map<DeliveryVDto>(item));
+        }
+
         public BaseResultDto GetDeliveries(Cart cart, long? storeId)
         {
             var result = new List<DeliveryResultVDto>();
@@ -169,5 +187,7 @@ namespace Application.Services.Content.DeliverySrv
             }
             return newItem;
         }
+
+
     }
 }
