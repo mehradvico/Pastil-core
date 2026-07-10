@@ -5,6 +5,6 @@ namespace Application.Services.LocationFields.CitySrv.Dto
 {
     public class CityInputDto : BaseInputDto, ICitySearchFields
     {
-        public long StateId { get; set; }
+        public long? StateId { get; set; }
     }
 }

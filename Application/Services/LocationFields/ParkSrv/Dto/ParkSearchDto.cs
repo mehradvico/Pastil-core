@@ -16,7 +16,11 @@ namespace Application.Services.LocationFields.ParkSrv.Dto
         public ParkSearchDto(ParkInputDto dto, IQueryable<Park> list, IMapper mapper) : base(dto, list, mapper)
         {
             this.NeighborhoodId = dto.NeighborhoodId;
+            this.CityId = dto.CityId;
+            this.StateId = dto.StateId;
         }
-        public long NeighborhoodId { get; set; }
+        public long? NeighborhoodId { get; set; }
+        public long? CityId { get; set; }
+        public long? StateId { get; set; }
     }
 }

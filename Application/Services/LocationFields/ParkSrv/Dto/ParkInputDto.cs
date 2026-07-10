@@ -10,6 +10,8 @@ namespace Application.Services.LocationFields.ParkSrv.Dto
 {
     public class ParkInputDto : BaseInputDto, IParkSearchFields
     {
-        public long NeighborhoodId { get; set; }
+        public long? NeighborhoodId { get; set; }
+        public long? CityId { get; set; }
+        public long? StateId { get; set; }
     }
 }

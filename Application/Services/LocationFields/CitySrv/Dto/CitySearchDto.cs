@@ -14,6 +14,6 @@ namespace Application.Services.LocationFields.CitySrv.Dto
         }
 
 
-        public long StateId { get; set; }
+        public long? StateId { get; set; }
     }
 }

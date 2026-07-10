@@ -23,19 +23,6 @@ namespace Api.Areas.Common.Controllers
         {
             this.ParkService = ParkService;
         }
-
-        /// <summary>
-        ///  همه پارک ها با محله ها
-        /// </summary>
-        /// <returns></returns> 
-
-        [HttpGet("GetAll")]
-        [ProducesResponseType(typeof(BaseResultDto<ParkVDto>), 200)]
-        public IActionResult Get()
-        {
-            var searchDto = ParkService.GetAll();
-            return Ok(searchDto);
-        }
         /// <summary>
         ///  جستجو
         /// </summary>

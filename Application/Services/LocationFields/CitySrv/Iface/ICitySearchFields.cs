@@ -2,7 +2,7 @@
 {
     public interface ICitySearchFields
     {
-        public long StateId { get; set; }
+        public long? StateId { get; set; }
 
     }
 }

@@ -13,6 +13,5 @@ namespace Application.Services.LocationFields.ParkSrv.Iface
     public interface IParkService : ICommonSrv<Park, ParkDto>
     {
         BaseSearchDto<ParkVDto> Search(ParkInputDto baseSearchDto);
-        BaseResultDto GetAll();
     }
 }

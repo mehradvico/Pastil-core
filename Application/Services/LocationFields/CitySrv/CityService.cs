@@ -25,11 +25,20 @@ namespace Application.Services.LocationFields.CitySrv
 
         public BaseSearchDto<CityVDto> Search(CityInputDto baseSearchDto)
         {
-            var model = _context.Cities.Where(s => s.StateId == baseSearchDto.StateId).AsQueryable();
-            if (!string.IsNullOrEmpty(baseSearchDto.Q))
+            var model = _context.Cities.Include(s => s.State).ThenInclude(s => s.Country).AsQueryable();
+
+            if (baseSearchDto.StateId.HasValue && baseSearchDto.StateId.Value > 0)
             {
-                model = model.Where(s => s.Name.Contains(baseSearchDto.Q)).OrderBy(o => o.Name);
+                model = model.Where(s => s.StateId == baseSearchDto.StateId.Value);
             }
+
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.Q))
+            {
+                var q = baseSearchDto.Q.Trim();
+
+                model = model.Where(s =>s.Name.Contains(q) || s.State.Name.Contains(q) || s.State.Country.Name.Contains(q));
+            }
+
             return new BaseSearchDto<City, CityVDto>(baseSearchDto, model, mapper);
         }
         public BaseResultDto GetAll()

@@ -23,15 +23,24 @@ namespace Application.Services.LocationFields.NeighborhoodSrv
 
         public NeighborhoodSearchDto Search(NeighborhoodInputDto inputdto)
         {
-            var query = _context.Neighborhoods.Include(s => s.City).ThenInclude(s => s.State).AsQueryable();
-            if (inputdto.CityId.HasValue)
+            var query = _context.Neighborhoods.Include(s => s.City).ThenInclude(s => s.State).ThenInclude(s => s.Country).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(inputdto.Q))
+            {
+                var q = inputdto.Q.Trim();
+                query = query.Where(s => s.Name.Contains(q));
+            }
+
+            if (inputdto.CityId.HasValue && inputdto.CityId.Value > 0)
             {
                 query = query.Where(s => s.CityId == inputdto.CityId.Value);
             }
-            if (inputdto.StateId.HasValue)
+
+            if (inputdto.StateId.HasValue && inputdto.StateId.Value > 0)
             {
                 query = query.Where(s => s.City.StateId == inputdto.StateId.Value);
             }
+
             return new NeighborhoodSearchDto(inputdto, query, _mapper);
         }
     }

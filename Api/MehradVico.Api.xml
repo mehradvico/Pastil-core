@@ -4639,12 +4639,6 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Common.Controllers.ParkController.Get">
-            <summary>
-             همه پارک ها با محله ها
-            </summary>
-            <returns></returns> 
-        </member>
         <member name="M:Api.Areas.Common.Controllers.ParkController.Get(Application.Services.LocationFields.ParkSrv.Dto.ParkInputDto)">
             <summary>
              جستجو

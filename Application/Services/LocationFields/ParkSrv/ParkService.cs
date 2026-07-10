@@ -28,19 +28,31 @@ namespace Application.Services.LocationFields.ParkSrv
 
         public BaseSearchDto<ParkVDto> Search(ParkInputDto baseSearchDto)
         {
-            var model = _context.Parks.Include(s => s.Picture).Where(s => s.NeighborhoodId == baseSearchDto.NeighborhoodId).AsQueryable();
-            if (!string.IsNullOrEmpty(baseSearchDto.Q))
+            var model = _context.Parks.Include(s => s.Picture).Include(s => s.Neighborhood).ThenInclude(s => s.City).ThenInclude(s => s.State)
+                .Include(s => s.ParkPictures).ThenInclude(s => s.Picture).AsQueryable();
+
+            if (baseSearchDto.NeighborhoodId.HasValue && baseSearchDto.NeighborhoodId.Value > 0)
             {
-                model = model.Where(s => s.Name.Contains(baseSearchDto.Q)).OrderBy(o => o.Name);
+                model = model.Where(s => s.NeighborhoodId == baseSearchDto.NeighborhoodId.Value);
             }
+
+            if (baseSearchDto.CityId.HasValue && baseSearchDto.CityId.Value > 0)
+            {
+                model = model.Where(s => s.Neighborhood.CityId == baseSearchDto.CityId.Value);
+            }
+
+            if (baseSearchDto.StateId.HasValue && baseSearchDto.StateId.Value > 0)
+            {
+                model = model.Where(s => s.Neighborhood.City.StateId == baseSearchDto.StateId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.Q))
+            {
+                var q = baseSearchDto.Q.Trim();
+                model = model.Where(s => s.Name.Contains(q));
+            }
+
             return new BaseSearchDto<Park, ParkVDto>(baseSearchDto, model, mapper);
         }
-        public BaseResultDto GetAll()
-        {
-            var model = _context.Parks.Include(s => s.Picture).Include(s => s.Neighborhood).AsQueryable();
-
-            return new BaseResultDto<List<ParkNeighborhoodVDto>>(true, data: mapper.Map<List<ParkNeighborhoodVDto>>(model));
-        }
-
     }
 }

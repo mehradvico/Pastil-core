@@ -1,5 +1,6 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.PansionField;
+using NetTopologySuite.Geometries;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace Entities.Entities.LocationField
         public long NeighborhoodId { get; set; }
         public bool Suggested { get; set; }
         public long? PictureId { get; set; } 
+        public string AddressValue { get; set; }
+        public Point Location { get; set; }
 
         public Neighborhood Neighborhood { get; set; }
         public Picture Picture { get; set; }

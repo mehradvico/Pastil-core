@@ -8,6 +8,8 @@ namespace Application.Services.LocationFields.ParkSrv.Iface
 {
     public interface IParkSearchFields
     {
-        public long NeighborhoodId { get; set; }
+        public long? NeighborhoodId { get; set; }
+        public long? CityId { get; set; }
+        public long? StateId { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Field;
+using Application.Common.Dto.LocationPoint;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.LocationFields.NeighborhoodSrv.Dto;
 using Application.Services.LocationFields.ParkPictureSrv.Dto;
@@ -17,6 +18,8 @@ namespace Application.Services.LocationFields.ParkSrv.Dto
         public long NeighborhoodId { get; set; }
         public bool Suggested { get; set; }
         public long? PictureId { get; set; }
+        public string AddressValue { get; set; }
+        public PointDto Location { get; set; }
 
         public NeighborhoodVDto Neighborhood { get; set; }
         public PictureVDto Picture { get; set; }
