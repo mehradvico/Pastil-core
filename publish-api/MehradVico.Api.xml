@@ -139,13 +139,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.BannerController">
              <summary>
-             مدیریت برندها
+             مدیریت بنرها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.BannerController.#ctor(Application.Services.Content.BannerSrv.Iface.IBannerService)">
              <summary>
-             مدیریت برند ها
+             مدیریت بنرها
              </summary>
             
         </member>
@@ -2812,6 +2812,48 @@
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PermissionController.Delete(System.Int64)">
+             <summary>
+             حذف آیتم
+             </summary>
+            
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PetBreedController">
+             <summary>
+             مدیریت نژادهای پت
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedController.#ctor(Application.Services.Accounting.PetBreedBreedSrv.Iface.IPetBreedService)">
+             <summary>
+             مدیریت نژادهای پت
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedController.Get(Application.Services.Accounting.PetBreedBreedSrv.Dto.PetBreedInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedController.Post(Application.Services.Accounting.PetBreedSrv.Dto.PetBreedDto)">
+            <summary>
+            آیتم جدید
+            </summary>  
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedController.Put(Application.Services.Accounting.PetBreedSrv.Dto.PetBreedDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedController.Delete(System.Int64)">
              <summary>
              حذف آیتم
              </summary>
@@ -8695,6 +8737,24 @@
             </summary>
             <param name="PansionId">شناسه همکار</param>
             <returns>تعداد رزروها</returns>
+        </member>
+        <member name="T:Api.Controllers.PetBreedController">
+             <summary>
+             مدیریت نژادهای پت
+             </summary>
+            
+        </member>
+        <member name="M:Api.Controllers.PetBreedController.#ctor(Application.Services.Accounting.PetBreedBreedSrv.Iface.IPetBreedService)">
+             <summary>
+             مدیریت نژادهای پت
+             </summary>
+            
+        </member>
+        <member name="M:Api.Controllers.PetBreedController.Get(Application.Services.Accounting.PetBreedBreedSrv.Dto.PetBreedInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
         </member>
         <member name="T:Api.Controllers.PetController">
              <summary>
