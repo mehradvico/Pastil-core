@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت برندها
+    /// مدیریت بنرها
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,7 +18,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private IBannerService bannerService;
         /// <summary>
-        /// مدیریت برند ها
+        /// مدیریت بنرها
         /// </summary>
         ///
         public BannerController(IBannerService bannerService)
@@ -32,12 +32,10 @@ namespace Api.Areas.Admin.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<BannerDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<BannerVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            //var con = new DataBaseContext();
-            //con.Database
-            var role = await bannerService.FindAsyncDto(id);
+            var role = await bannerService.FindAsyncVDto(id);
             return Ok(role);
         }
         /// <summary>

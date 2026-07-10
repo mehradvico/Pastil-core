@@ -137,32 +137,6 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
             }
         }
 
-        private static bool IsValidIranianSheba(string iban)
-        {
-            if (string.IsNullOrWhiteSpace(iban))
-                return false;
-
-            iban = iban.Trim().Replace(" ", "").ToUpperInvariant();
-
-            if (iban.Length != 26) return false;
-            if (!iban.StartsWith("IR")) return false;
-            if (!iban.Skip(2).All(char.IsDigit)) return false;
-
-            var rearranged = iban.Substring(4) + iban.Substring(0, 4);
-            var sb = new StringBuilder(rearranged.Length * 2);
-            foreach (var ch in rearranged)
-            {
-                if (char.IsDigit(ch)) sb.Append(ch);
-                else sb.Append((ch - 'A' + 10).ToString());
-            }
-            int mod = 0;
-            foreach (var ch in sb.ToString())
-            {
-                mod = (mod * 10 + (ch - '0')) % 97;
-            }
-            return mod == 1;
-        }
-
         public override BaseResultDto UpdateDto(UserBankCardDto dto)
         {
             try
@@ -172,61 +146,59 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
                     return modelCheker;
 
                 var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+                var item = _context.UserBankCards.FirstOrDefault(x => x.Id == dto.Id && !x.Deleted);
 
-                var Item = _context.UserBankCards.FirstOrDefault(x => x.Id == dto.Id && !x.Deleted);
-                if (Item == null)
+                if (item == null)
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
 
                 if (!isAdmin)
                 {
-                    if (Item.LastUpdateDate != Item.CreateDate)
-                        return new BaseResultDto(isSuccess: false, val: Resource.Notification.EditIsNotAvailable);
-
-                    if (dto.UserId != Item.UserId)
+                    if (item.UserId != _currentUser.CurrentUser.UserId)
                         return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
 
-                    string shebaToStore = null;
-
-                    if (!string.IsNullOrWhiteSpace(dto.ShebaNumber))
-                    {
-                        var shebaRaw = dto.ShebaNumber.Trim();
-
-                        if (shebaRaw.StartsWith("IR", StringComparison.OrdinalIgnoreCase))
-                            shebaRaw = shebaRaw.Substring(2);
-
-                        shebaRaw = new string(shebaRaw.Where(char.IsDigit).ToArray());
-
-                        if (shebaRaw.Length != 24)
-                            return new BaseResultDto(isSuccess: false, val: Resource.Notification.ShebaNumberMustBe24Digit);
-
-                        shebaToStore = "IR" + shebaRaw;
-                    }
-
-                    Item.ShebaNumber = shebaToStore;
-                    Item.Approved = false;
-                    Item.LastUpdateDate = DateTime.Now;
-
-                    _context.SaveChanges();
-                    return new BaseResultDto(isSuccess: true);
+                    if (item.LastUpdateDate != item.CreateDate)
+                        return new BaseResultDto(isSuccess: false, val: Resource.Notification.EditIsNotAvailable);
                 }
-                else
+
+                string shebaToStore = null;
+
+                if (!string.IsNullOrWhiteSpace(dto.ShebaNumber))
                 {
-                    var item = mapper.Map<UserBankCard>(dto);
-                    item.CreateDate = Item.CreateDate;
-                    item.LastUpdateDate = DateTime.Now;
-                    item.Approved = false;
+                    var shebaRaw = dto.ShebaNumber.Trim();
 
-                    _context.Entry(Item).CurrentValues.SetValues(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto(isSuccess: true);
+                    if (shebaRaw.StartsWith("IR", StringComparison.OrdinalIgnoreCase))
+                        shebaRaw = shebaRaw.Substring(2);
+
+                    shebaRaw = new string(shebaRaw.Where(char.IsDigit).ToArray());
+
+                    if (shebaRaw.Length != 24)
+                        return new BaseResultDto(isSuccess: false, val: Resource.Notification.ShebaNumberMustBe24Digit);
+
+                    shebaToStore = "IR" + shebaRaw;
                 }
+
+                var createDate = item.CreateDate;
+                var userId = item.UserId;
+                var deleted = item.Deleted;
+
+                mapper.Map(dto, item);
+
+                item.UserId = userId;
+                item.CreateDate = createDate;
+                item.LastUpdateDate = DateTime.Now;
+                item.ShebaNumber = shebaToStore;
+                item.Approved = false;
+                item.Deleted = deleted;
+
+                _context.UserBankCards.Update(item);
+                _context.SaveChanges();
+                return new BaseResultDto(isSuccess: true);
             }
             catch (Exception ex)
             {
                 return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
         }
-
         public async Task<BaseResultDto> UpdateUserBankCardApproveAsyncDto(UserBankCardApproveDto dto)
         {
             try

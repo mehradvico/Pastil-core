@@ -640,10 +640,10 @@ namespace Application.Services.TripSrv.TripSrv
             var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
             if (trip.TripStatusId == (long)TripStatusEnum.TripStatus_Compeleted)
             {
-                var sharePercent = _adminSettingHelper.SharePrice.TripDriverShare;
+                //var sharePercent = _adminSettingHelper.SharePrice.TripDriverShare;
                 var total = trip.PaymentPrice;
 
-                trip.DriverShare = (total * sharePercent) / 100;
+                //trip.DriverShare = (total * sharePercent) / 100;
                 trip.SiteShare = total - trip.DriverShare;
             }
             else

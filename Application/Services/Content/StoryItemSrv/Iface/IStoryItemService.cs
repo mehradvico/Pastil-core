@@ -13,6 +13,7 @@ namespace Application.Services.Content.StoryItemSrv.Iface
     public interface IStoryItemService : ICommonSrv<StoryItem, StoryItemDto>
     {
         Task<BaseResultDto<StoryItemVDto>> FindAsyncVDto(long id, bool view = true);
+        Task<BaseResultDto<StoryItemVDto>> FindAsyncAdminVDto(long id);
         BaseSearchDto<StoryItemVDto> Search(StoryItemInputDto searchDto);
     }
 }

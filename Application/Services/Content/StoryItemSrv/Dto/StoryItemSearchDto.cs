@@ -19,11 +19,14 @@ namespace Application.Services.Content.StoryItemSrv.Dto
             this.PansionId = dto.PansionId;
             this.CompanionId = dto.CompanionId;
             this.StoryGroupId = dto.StoryGroupId;
+            this.Expired = dto.Expired;
         }
 
         public long? StoryGroupId { get; set; }
         public long? CompanionId { get; set; }
         public long? PansionId { get; set; }
         public long? StoreId { get; set; }
+        public bool? Expired { get; set; }
+
     }
 }

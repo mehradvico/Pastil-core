@@ -80,6 +80,18 @@
              حذف آیتم 
             </summary>  
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.BankCardController">
+            <summary>
+            مدیریت کارت های بانکی
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.BankCardController.Get(Application.Services.FinanceSrvs.BankCardSrv.Dto.BankCardInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.BankController">
              <summary>
              مدیریت بانک ها
@@ -4562,6 +4574,18 @@
             <summary>
              حذف آیتم 
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.UserBankCardApproveController">
+            <summary>
+            مدیریت تایید کارت های بانکی
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserBankCardApproveController.Put(Application.Services.FinanceSrvs.UserBankCardSrv.Dto.UserBankCardApproveDto)">
+            <summary>
+            تایید آیتم
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserBankCardController">
             <summary>

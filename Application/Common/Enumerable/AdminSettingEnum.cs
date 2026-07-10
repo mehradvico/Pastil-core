@@ -2,8 +2,6 @@
 {
     public enum AdminSettingEnum
     {
-        BaseAdminSetting,
-        CargoPrice,
-        SharePrice
+        BaseAdminSetting
     }
 }

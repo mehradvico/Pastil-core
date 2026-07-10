@@ -1,25 +1,30 @@
 ﻿using Application.Common.Dto.Result;
-using Application.Services.Content.StoryItemSrv.Dto;
-using Application.Services.Content.StoryItemSrv.Iface;
+using Application.Services.Accounting.PetBreedBreedSrv.Dto;
+using Application.Services.Accounting.PetBreedBreedSrv.Iface;
+using Application.Services.Accounting.PetBreedSrv.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت آیتم های استوری
+    /// مدیریت نژادهای پت
     /// </summary>
     ///
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
-    public class StoryItemController : ControllerBase
+    public class PetBreedController : ControllerBase
     {
-        private IStoryItemService StoryItemService;
-        public StoryItemController(IStoryItemService StoryItemService)
+        private IPetBreedService _petBreedService;
+        /// <summary>
+        /// مدیریت نژادهای پت
+        /// </summary>
+        ///
+        public PetBreedController(IPetBreedService petBreedService)
         {
-            this.StoryItemService = StoryItemService;
+            this._petBreedService = petBreedService;
         }
         /// <summary>
         ///  اطلاعات آیتم 
@@ -28,10 +33,10 @@ namespace Api.Areas.Admin.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<StoryItemVDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<PetBreedVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var role = await StoryItemService.FindAsyncAdminVDto(id);
+            var role = await _petBreedService.FindAsyncVDto(id);
             return Ok(role);
         }
         /// <summary>
@@ -40,21 +45,21 @@ namespace Api.Areas.Admin.Controllers
         /// <returns></returns> 
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResultDto<StoryItemDto>), 200)]
-        public IActionResult Get([FromQuery] StoryItemInputDto dto)
+        [ProducesResponseType(typeof(BaseResultDto<PetBreedDto>), 200)]
+        public IActionResult Get([FromQuery] PetBreedInputDto dto)
         {
-            var searchDto = StoryItemService.Search(dto);
+            var searchDto = _petBreedService.Search(dto);
             return Ok(searchDto);
         }
         /// <summary>
         /// آیتم جدید
         /// </summary>  
         [HttpPost]
-        [ProducesResponseType(typeof(BaseResultDto<StoryItemDto>), 200)]
-        public async Task<IActionResult> Post(StoryItemDto dto)
+        [ProducesResponseType(typeof(BaseResultDto<PetBreedDto>), 200)]
+        public async Task<IActionResult> Post(PetBreedDto dto)
         {
 
-            var model = await StoryItemService.InsertAsyncDto(dto);
+            var model = await _petBreedService.InsertAsyncDto(dto);
             return Ok(model);
         }
         /// <summary>
@@ -63,9 +68,9 @@ namespace Api.Areas.Admin.Controllers
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(StoryItemDto StoryItemDto)
+        public IActionResult Put(PetBreedDto PetBreedDto)
         {
-            var dto = StoryItemService.UpdateDto(StoryItemDto);
+            var dto = _petBreedService.UpdateDto(PetBreedDto);
             return Ok(dto);
         }
         /// <summary>
@@ -76,7 +81,7 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public IActionResult Delete(long id)
         {
-            var dto = StoryItemService.DeleteDto(id);
+            var dto = _petBreedService.DeleteDto(id);
             return Ok(dto);
         }
     }

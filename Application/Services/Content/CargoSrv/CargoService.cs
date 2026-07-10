@@ -152,34 +152,34 @@ namespace Application.Services.Content.CargoSrv
                     return modelCheker;
                 }
 
-                var fromState = await _context.States .AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.FromStateId);
+                var fromState = await _context.States.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.FromStateId);
                 var toState = await _context.States.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ToStateId);
 
-                var defaultDomesticPrice = _adminSettingHelper.CargoPrice.DefaultDomesticPrice;
-                var defaultForeignPrice = _adminSettingHelper.CargoPrice.DefaultForeignPrice;
-                var notAccompanyPrice = _adminSettingHelper.CargoPrice.NotAccompanyPrice;
-                var returnPrice = _adminSettingHelper.CargoPrice.ReturnPrice;
+                //var defaultDomesticPrice = _adminSettingHelper.CargoPrice.DefaultDomesticPrice;
+                //var defaultForeignPrice = _adminSettingHelper.CargoPrice.DefaultForeignPrice;
+                //var notAccompanyPrice = _adminSettingHelper.CargoPrice.NotAccompanyPrice;
+                //var returnPrice = _adminSettingHelper.CargoPrice.ReturnPrice;
 
-                double defaultPrice = fromState.CountryId == toState.CountryId
-                    ? defaultDomesticPrice
-                    : defaultForeignPrice;
+                //double defaultPrice = fromState.CountryId == toState.CountryId
+                //    ? defaultDomesticPrice
+                //    : defaultForeignPrice;
 
-                double totalPrice = defaultPrice;
-                item.DefaultPrice = defaultPrice;
+                //double totalPrice = defaultPrice;
+                //item.DefaultPrice = defaultPrice;
 
-                if (!dto.Accompany)
-                {
-                    totalPrice += notAccompanyPrice;
-                    item.NotAccompanyPrice = notAccompanyPrice;
-                }
+                //if (!dto.Accompany)
+                //{
+                //    totalPrice += notAccompanyPrice;
+                //    item.NotAccompanyPrice = notAccompanyPrice;
+                //}
 
-                if (dto.DateReturn.HasValue)
-                {
-                    totalPrice += returnPrice;
-                    item.ReturnPrice = returnPrice;
-                }
+                //if (dto.DateReturn.HasValue)
+                //{
+                //    totalPrice += returnPrice;
+                //    item.ReturnPrice = returnPrice;
+                //}
                 item.RebateId = null;
-                item.Price = totalPrice;
+                //item.Price = totalPrice;
                 item.IsPaid = false;
                 item.CreateDate = DateTime.Now;
                 item.StatusId = (long)CargoStatusEnum.CargoStatus_Requested;

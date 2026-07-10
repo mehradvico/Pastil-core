@@ -6,7 +6,5 @@ namespace Application.Common.Helpers.Iface
     {
 
         public BaseAdminSettingDto BaseAdminSetting { get; }
-        public CargoPriceDto CargoPrice { get; }
-        public SharePriceDto SharePrice { get; }
     }
 }

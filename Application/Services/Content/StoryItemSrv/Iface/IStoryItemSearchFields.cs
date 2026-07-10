@@ -12,5 +12,6 @@ namespace Application.Services.Content.StoryItemSrv.Iface
         public long? CompanionId { get; set; }
         public long? PansionId { get; set; }
         public long? StoreId { get; set; }
+        public bool? Expired { get; set; }
     }
 }

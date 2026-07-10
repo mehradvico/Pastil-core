@@ -1,4 +1,6 @@
 ﻿using Application.Common.Dto.Field;
+using Application.Services.Content.StoryItemSrv.Dto;
+using Application.Services.Filing.PictureSrv.Dto;
 using Entities.Entities;
 using System;
 using System.Collections.Generic;
@@ -14,7 +16,6 @@ namespace Application.Services.Content.StoryGroupSrv.Dto
         public long PictureId { get; set; }
         public bool Active { get; set; }
 
-        public Picture Picture { get; set; }
-        List<StoryItem> StoryItems { get; set; }
+        public PictureVDto Picture { get; set; }
     }
 }

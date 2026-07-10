@@ -23,7 +23,7 @@ namespace Application.Services.Accounting.UserPetSrv
 
         public async Task<BaseResultDto<UserPetVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.UserPets.Include(s => s.User).Include(s => s.Pet).Include(s => s.Picture).Include(s => s.UserPetPictures).ThenInclude(s => s.Picture).Where(s => s.Deleted == false).FirstOrDefaultAsync(s => s.Id == id && s.Active && s.Deleted == false);
+            var item = await _context.UserPets.Include(s => s.User).Include(s => s.PetBreed).Include(s => s.PetBreed2).Include(s => s.Pet).Include(s => s.Picture).Include(s => s.UserPetPictures).ThenInclude(s => s.Picture).Where(s => s.Deleted == false).FirstOrDefaultAsync(s => s.Id == id && s.Active && s.Deleted == false);
             if (item != null)
                 return new BaseResultDto<UserPetVDto>(true, mapper.Map<UserPetVDto>(item));
             return new BaseResultDto<UserPetVDto>(false, mapper.Map<UserPetVDto>(item));
@@ -31,10 +31,20 @@ namespace Application.Services.Accounting.UserPetSrv
 
         public UserPetSearchDto Search(UserPetInputDto baseSearchDto)
         {
-            var model = _context.UserPets.Include(s => s.User).Include(s => s.Pet).Include(s => s.Picture).AsQueryable().Where(s => s.Deleted == false);
+            var model = _context.UserPets.Include(s => s.User).Include(s => s.PetBreed).Include(s => s.PetBreed2).Include(s => s.Pet).Include(s => s.Picture).AsQueryable().Where(s => s.Deleted == false);
             if (baseSearchDto.UserId.HasValue)
             {
-                model = model.Where(s => s.UserId == baseSearchDto.UserId);
+                model = model.Where(s => s.UserId == baseSearchDto.UserId.Value);
+            }
+            if (baseSearchDto.IsSterile.HasValue)
+            {
+                model = model.Where(s => s.IsSterile == baseSearchDto.IsSterile.Value);
+            }
+            if (baseSearchDto.PetBreedId.HasValue)
+            {
+                var petBreedId = baseSearchDto.PetBreedId.Value;
+
+                model = model.Where(s => s.PetBreedId == petBreedId || s.PetBreed2Id == petBreedId);
             }
             if (baseSearchDto.Available.HasValue)
             {

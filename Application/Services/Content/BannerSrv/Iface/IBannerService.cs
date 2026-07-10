@@ -8,7 +8,7 @@ namespace Application.Services.Content.BannerSrv.Iface
 {
     public interface IBannerService : ICommonSrv<Banner, BannerDto>
     {
-        Task<BaseResultDto<BannerVDto>> FindVDtoAsync(int id);
+        Task<BaseResultDto<BannerVDto>> FindAsyncVDto(long id);
 
         BaseSearchDto<BannerVDto> Search(BannerInputDto searchDto);
     }

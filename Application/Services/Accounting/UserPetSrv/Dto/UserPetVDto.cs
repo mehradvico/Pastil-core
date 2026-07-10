@@ -15,7 +15,9 @@ namespace Application.Services.Accounting.UserPetSrv.Dto
         public long PetId { get; set; }
         public long UserId { get; set; }
         public long? PictureId { get; set; }
-        public string Race { get; set; }
+        public long? PetBreedId { get; set; }
+        public long? PetBreed2Id { get; set; }
+        public bool IsMixBreed { get; set; }
         public DateTime Birthday { get; set; }
         public string MicroChipCode { get; set; }
         public string Size { get; set; }

@@ -10,7 +10,9 @@ namespace Entities.Entities
         public long PetId { get; set; }
         public long UserId { get; set; }
         public long? PictureId { get; set; }
-        public string Race { get; set; }
+        public long? PetBreedId { get; set; }
+        public long? PetBreed2Id { get; set; }
+        public bool IsMixBreed { get; set; }
         public DateTime Birthday { get; set; }
         public string MicroChipCode { get; set; }
         public string Size { get; set; }
@@ -26,6 +28,8 @@ namespace Entities.Entities
         public Pet Pet { get; set; }
         public User User { get; set; }
         public Picture Picture { get; set; }
+        public PetBreed PetBreed { get; set; }
+        public PetBreed PetBreed2 { get; set; }
         public ICollection<CompanionReserve> CompanionReserves { get; set; }
         public ICollection<UserPetRecord> UserPetRecords { get; set; }
         public ICollection<UserPetPicture> UserPetPictures { get; set; }

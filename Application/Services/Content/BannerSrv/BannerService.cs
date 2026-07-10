@@ -24,7 +24,7 @@ namespace Application.Services.Content.BannerSrv
             this._baseQuery = _context.Banners.Where(s => s.Deleted == false);
         }
 
-        public async Task<BaseResultDto<BannerVDto>> FindVDtoAsync(int id)
+        public async Task<BaseResultDto<BannerVDto>> FindAsyncVDto(long id)
         {
 
             var item = await _baseQuery.Include(s => s.Picture2).Include(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id);

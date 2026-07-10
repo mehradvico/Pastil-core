@@ -51,13 +51,36 @@ namespace Application.Services.Content.StoryItemSrv
             return new BaseResultDto<StoryItemVDto>(false, mapper.Map<StoryItemVDto>(item));
         }
 
+        public async Task<BaseResultDto<StoryItemVDto>> FindAsyncAdminVDto(long id)
+        {
+
+            var item = await _baseQuery.Include(s => s.Picture).Include(s => s.Companion).Include(s => s.Pansion).Include(s => s.Store).FirstOrDefaultAsync(s => s.Id == id);
+            if (item != null)
+            {
+                return new BaseResultDto<StoryItemVDto>(true, mapper.Map<StoryItemVDto>(item));
+            }
+            return new BaseResultDto<StoryItemVDto>(false, mapper.Map<StoryItemVDto>(item));
+        }
+
         public BaseSearchDto<StoryItemVDto> Search(StoryItemInputDto searchDto)
         {
             var now = DateTime.Now;
-            var query = _context.StoryItems.Include(s => s.Companion).Include(s => s.Pansion).Include(s => s.Store).Include(s => s.StoryGroup).AsQueryable().Where(s => !s.Deleted & s.ExpireDate > now);
+            var query = _context.StoryItems.Include(s => s.Companion).Include(s => s.Pansion).Include(s => s.Store).Include(s => s.StoryGroup).AsQueryable().Where(s => !s.Deleted);
 
             if (searchDto.Available.HasValue)
                 query = query.Where(s => s.Active == searchDto.Available);
+
+            if (searchDto.Expired.HasValue)
+            {
+                if (searchDto.Expired.Value)
+                {
+                    query = query.Where(s => s.ExpireDate <= now);
+                }
+                else
+                {
+                    query = query.Where(s => s.ExpireDate > now);
+                }
+            }
 
             if (searchDto.StoryGroupId.HasValue)
                 query = query.Where(s => s.StoryGroupId == searchDto.StoryGroupId.Value);

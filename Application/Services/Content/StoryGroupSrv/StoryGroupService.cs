@@ -30,7 +30,7 @@ namespace Application.Services.Content.StoryGroupSrv
         public async Task<BaseResultDto<StoryGroupVDto>> FindAsyncVDto(long id)
         {
 
-            var item = await _baseQuery.Include(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.StoryGroups.AsNoTracking().Include(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
                 return new BaseResultDto<StoryGroupVDto>(true, mapper.Map<StoryGroupVDto>(item));
@@ -40,54 +40,47 @@ namespace Application.Services.Content.StoryGroupSrv
 
         public BaseSearchDto<StoryGroupVDto> Search(StoryGroupInputDto searchDto)
         {
-            var query = _context.StoryGroups.Include(s => s.Picture).AsQueryable().Where(s => !s.Deleted);
+            var query = _context.StoryGroups.AsNoTracking().Include(s => s.Picture).Where(s => !s.Deleted).AsQueryable();
 
             if (searchDto.Available.HasValue)
             {
-                query = query.Where(s => s.Active == searchDto.Available);
+                query = query.Where(s => s.Active == searchDto.Available.Value);
             }
-            if (!string.IsNullOrEmpty(searchDto.Q))
-            {
-                query = query.Where(s => s.Name.Contains(searchDto.Q));
-            }
-            if (searchDto.SortBy != Common.Enumerable.SortEnum.Default)
-            {
-                switch (searchDto.SortBy)
-                {
-                    case Common.Enumerable.SortEnum.Default:
-                        {
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.New:
-                        {
-                            query = query.OrderByDescending(s => s.Id);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.Old:
-                        {
-                            query = query.OrderBy(s => s.Id);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.Name:
-                        {
-                            query = query.OrderByDescending(s => s.Name);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.MorePriority:
-                        {
-                            query = query.OrderByDescending(s => s.Priority);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.LessPriority:
-                        {
-                            query = query.OrderBy(s => s.Priority);
-                            break;
-                        }
 
-                    default:
-                        break;
-                }
+            if (!string.IsNullOrWhiteSpace(searchDto.Q))
+            {
+                var q = searchDto.Q.Trim();
+                query = query.Where( s => s.Name.Contains(q));
             }
+
+            switch (searchDto.SortBy)
+            {
+                case Common.Enumerable.SortEnum.Old:
+                    query = query.OrderBy(s => s.Id);
+                    break;
+
+                case Common.Enumerable.SortEnum.Name:
+                    query = query.OrderBy(s => s.Name);
+                    break;
+
+                case Common.Enumerable.SortEnum.MorePriority:
+                    query = query
+                        .OrderByDescending(s => s.Priority)
+                        .ThenByDescending(s => s.Id);
+                    break;
+
+                case Common.Enumerable.SortEnum.LessPriority:
+                    query = query
+                        .OrderBy(s => s.Priority)
+                        .ThenByDescending(s => s.Id);
+                    break;
+
+                case Common.Enumerable.SortEnum.New:
+                default:
+                    query = query.OrderByDescending(s => s.Id);
+                    break;
+            }
+
             return new BaseSearchDto<StoryGroup, StoryGroupVDto>(searchDto, query, mapper);
         }
 

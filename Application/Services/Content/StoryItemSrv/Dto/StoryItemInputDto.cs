@@ -14,5 +14,6 @@ namespace Application.Services.Content.StoryItemSrv.Dto
         public long? CompanionId { get; set; }
         public long? PansionId { get; set; }
         public long? StoreId { get; set; }
+        public bool? Expired { get; set; }
     }
 }
