@@ -14,6 +14,5 @@ namespace Entities.Entities
         public Category Category { get; set; }
         public Picture Picture { get; set; }
         public ICollection<GalleryItem> GalleryItems { get; set; }
-        public ICollection<SeoFieldLang> SeoFieldLangs { get; set; }
     }
 }

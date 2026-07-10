@@ -11,7 +11,5 @@ namespace Entities.Entities
         public Product Product { get; set; }
         public Feature Feature { get; set; }
         public FeatureItem FeatureItem { get; set; }
-        public ICollection<NameFieldLang> NameFieldLangs { get; set; }
-
     }
 }

@@ -11,7 +11,6 @@ namespace Entities.Entities
         public int Priority { get; set; }
         public bool Active { get; set; }
         public CodeGroup CodeGroup { get; set; }
-        public ICollection<NameFieldLang> NameFieldLangs { get; set; }
         public ICollection<CompanionAssistance> CompanionAssistances { get; set; }
         public ICollection<Companion> Companions { get; set; }
     }

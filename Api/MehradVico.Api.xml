@@ -283,44 +283,6 @@
              </summary>
             
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.BrandLanguageController">
-            <summary>
-            مدیریت زبان برند ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.BrandLanguageController.#ctor(Application.Services.Language.BrandLangSrv.Iface.IBrandLangService)">
-            <summary>
-            مدیریت زبان برند ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.BrandLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.BrandLanguageController.Get(Application.Services.Language.BrandLangSrv.Dto.BrandLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.BrandLanguageController.Post(Application.Services.Language.BrandLangSrv.Dto.BrandLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.BrandLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=BrandId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
         <member name="T:Api.Areas.Admin.Controllers.CargoController">
             <summary>
             مدیریت  کارگو ها
@@ -431,51 +393,13 @@
             <param name="dto"></param>
             <returns></returns>
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.CategoryLanguageController">
-            <summary>
-            مدیریت زبان دسته بندی ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CategoryLanguageController.#ctor(Application.Services.Language.CategoryLangSrv.Iface.ICategoryLangService)">
-            <summary>
-            مدیریت زبان فروشگاه ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CategoryLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CategoryLanguageController.Get(Application.Services.Language.CategoryLangSrv.Dto.CategoryLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CategoryLanguageController.Post(Application.Services.Language.CategoryLangSrv.Dto.CategoryLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CategoryLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=CategoryId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
         <member name="T:Api.Areas.Admin.Controllers.CityController">
              <summary>
              مدیریت شهرها
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CityController.#ctor(Application.Services.CommonSrv.CitySrv.Iface.ICityService)">
+        <member name="M:Api.Areas.Admin.Controllers.CityController.#ctor(Application.Services.LocationFields.CitySrv.Iface.ICityService)">
              <summary>
              مدیریت شهر ها
              </summary>
@@ -489,18 +413,18 @@
             <returns>
             </returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CityController.Get(Application.Services.CommonSrv.CitySrv.Dto.CityInputDto)">
+        <member name="M:Api.Areas.Admin.Controllers.CityController.Get(Application.Services.LocationFields.CitySrv.Dto.CityInputDto)">
             <summary>
              جستجو
             </summary>
             <returns></returns> 
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CityController.Post(Application.Services.CommonSrv.CitySrv.Dto.CityDto)">
+        <member name="M:Api.Areas.Admin.Controllers.CityController.Post(Application.Services.LocationFields.CitySrv.Dto.CityDto)">
             <summary>
             آیتم جدید
             </summary>  
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CityController.Put(Application.Services.CommonSrv.CitySrv.Dto.CityDto)">
+        <member name="M:Api.Areas.Admin.Controllers.CityController.Put(Application.Services.LocationFields.CitySrv.Dto.CityDto)">
             <summary>
             ویرایش آیتم
             </summary>
@@ -510,44 +434,6 @@
              حذف آیتم
              </summary>
             
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.CityLanguageController">
-            <summary>
-            مدیریت زبان شهر ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CityLanguageController.#ctor(Application.Services.Language.CityLangSrv.Iface.ICityLangService)">
-            <summary>
-            مدیریت زبان شهر ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CityLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CityLanguageController.Get(Application.Services.Language.CityLangSrv.Dto.CityLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CityLanguageController.Post(Application.Services.Language.CityLangSrv.Dto.CityLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CityLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=CityId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ClubRewardController">
             <summary>
@@ -669,84 +555,6 @@
             <summary>
             حذف آیتم
             </summary>
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.CodeGroupLanguageController">
-            <summary>
-            مدیریت زبان گروه کد ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeGroupLanguageController.#ctor(Application.Services.Language.CodeGroupLangSrv.Iface.ICodeGroupLangService)">
-            <summary>
-            مدیریت زبان گروه کد ها
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeGroupLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeGroupLanguageController.Get(Application.Services.Language.CodeGroupLangSrv.Dto.CodeGroupLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeGroupLanguageController.Post(Application.Services.Language.CodeGroupLangSrv.Dto.CodeGroupLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeGroupLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=CodeGroupId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.CodeLanguageController">
-            <summary>
-            مدیریت زبان کد ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeLanguageController.#ctor(Application.Services.Language.CodeLangSrv.Iface.ICodeLangService)">
-            <summary>
-            مدیریت زبان کد ها
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeLanguageController.Get(Application.Services.Language.CodeLangSrv.Dto.CodeLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeLanguageController.Post(Application.Services.Language.CodeLangSrv.Dto.CodeLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CodeLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=CodeId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionActivationController">
             <summary>
@@ -1578,7 +1386,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CountryController.#ctor(Application.Services.CommonSrv.CountrySrv.Iface.ICountryService)">
+        <member name="M:Api.Areas.Admin.Controllers.CountryController.#ctor(Application.Services.LocationFields.CountrySrv.Iface.ICountryService)">
              <summary>
              مدیریت کشور ها
              </summary>
@@ -1598,12 +1406,12 @@
             </summary>
             <returns></returns> 
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CountryController.Post(Application.Services.CommonSrv.CountrySrv.Dto.CountryDto)">
+        <member name="M:Api.Areas.Admin.Controllers.CountryController.Post(Application.Services.LocationFields.CountrySrv.Dto.CountryDto)">
             <summary>
             آیتم جدید
             </summary>  
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CountryController.Put(Application.Services.CommonSrv.CountrySrv.Dto.CountryDto)">
+        <member name="M:Api.Areas.Admin.Controllers.CountryController.Put(Application.Services.LocationFields.CountrySrv.Dto.CountryDto)">
             <summary>
             ویرایش آیتم
             </summary>
@@ -2051,84 +1859,6 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.FeatureItemLanguageController">
-            <summary>
-            مدیریت زبان آیتم ویژگی ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureItemLanguageController.#ctor(Application.Services.Language.FeatureItemLangSrv.Iface.IFeatureItemLangService)">
-            <summary>
-            مدیریت زبان آیتم ویژگی ها
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureItemLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureItemLanguageController.Get(Application.Services.Language.FeatureItemLangSrv.Dto.FeatureItemLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureItemLanguageController.Post(Application.Services.Language.FeatureItemLangSrv.Dto.FeatureItemLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureItemLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=FeatureItemId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.FeatureLanguageController">
-            <summary>
-            مدیریت زبان ویژگی ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureLanguageController.#ctor(Application.Services.Language.FeatureLangSrv.Iface.IFeatureLangService)">
-            <summary>
-            مدیریت زبان ویژگی ها
-            </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureLanguageController.Get(Application.Services.Language.FeatureLangSrv.Dto.FeatureLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureLanguageController.Post(Application.Services.Language.FeatureLangSrv.Dto.FeatureLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=FeatureId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
         <member name="T:Api.Areas.Admin.Controllers.FileController">
              <summary>
              فایل
@@ -2301,84 +2031,6 @@
              </summary>
             
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.GalleryItemLanguageController">
-            <summary>
-            مدیریت زبان گالری آیتم ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryItemLanguageController.#ctor(Application.Services.Language.GalleryItemLangSrv.Iface.IGalleryItemLangService)">
-            <summary>
-            مدیریت زبان گالری آیتم ها
-            </summary>
-             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryItemLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryItemLanguageController.Get(Application.Services.Language.GalleryItemLangSrv.Dto.GalleryItemLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryItemLanguageController.Post(Application.Services.Language.GalleryItemLangSrv.Dto.GalleryItemLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryItemLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=GalleryItemId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.GalleryLanguageController">
-            <summary>
-            مدیریت زبان گالری ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryLanguageController.#ctor(Application.Services.Language.GalleryLangSrv.Iface.IGalleryLangService)">
-            <summary>
-            مدیریت زبان گالری ها
-            </summary>
-              
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryLanguageController.Get(Application.Services.Language.GalleryLangSrv.Dto.GalleryLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryLanguageController.Post(Application.Services.Language.GalleryLangSrv.Dto.GalleryLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=GalleryId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
         <member name="T:Api.Areas.Admin.Controllers.HashtagController">
              <summary>
              مدیریت هشتگ
@@ -2457,7 +2109,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.#ctor(Application.Services.CommonSrv.NeighborhoodSrv.Iface.INeighborhoodService)">
+        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.#ctor(Application.Services.LocationFields.NeighborhoodSrv.Iface.INeighborhoodService)">
              <summary>
              مدیریت محله ها
              </summary>
@@ -2471,18 +2123,18 @@
             <returns>
             </returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.Get(Application.Services.CommonSrv.NeighborhoodSrv.Dto.NeighborhoodInputDto)">
+        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.Get(Application.Services.LocationFields.NeighborhoodSrv.Dto.NeighborhoodInputDto)">
             <summary>
              جستجو
             </summary>
             <returns></returns> 
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.Post(Application.Services.CommonSrv.NeighborhoodSrv.Dto.NeighborhoodDto)">
+        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.Post(Application.Services.LocationFields.NeighborhoodSrv.Dto.NeighborhoodDto)">
             <summary>
             آیتم جدید
             </summary>  
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.Put(Application.Services.CommonSrv.NeighborhoodSrv.Dto.NeighborhoodDto)">
+        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.Put(Application.Services.LocationFields.NeighborhoodSrv.Dto.NeighborhoodDto)">
             <summary>
             ویرایش آیتم
             </summary>
@@ -2775,6 +2427,79 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ParkController">
+             <summary>
+             مدیریت پارک ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkController.#ctor(Application.Services.LocationFields.ParkSrv.Iface.IParkService)">
+             <summary>
+             مدیریت پارک ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه دسته بندی</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkController.Get(Application.Services.LocationFields.ParkSrv.Dto.ParkInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkController.Post(Application.Services.LocationFields.ParkSrv.Dto.ParkDto)">
+            <summary>
+            آیتم جدید
+            </summary>  
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkController.Put(Application.Services.LocationFields.ParkSrv.Dto.ParkDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkController.Delete(System.Int64)">
+             <summary>
+             حذف آیتم
+             </summary>
+            
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ParkPictureController">
+            <summary>
+            مدیریت تصویر پارک ها
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkPictureController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkPictureController.Get(Application.Services.LocationFields.ParkPictureSrv.Dto.ParkPictureInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkPictureController.Park(Application.Services.LocationFields.ParkPictureSrv.Dto.ParkPictureDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkPictureController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PermissionController">
              <summary>
              مدیریت دسترسی ها
@@ -3046,46 +2771,6 @@
             </summary>
             <returns></returns>
             
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.PostLanguageController">
-            <summary>
-            مدیریت زبان پست ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostLanguageController.#ctor(Application.Services.Language.PostLangSrv.Iface.IPostLangService)">
-            <summary>
-            مدیریت زبان پست ها
-            </summary>
-            <param name="postLangService"></param>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostLanguageController.Get(Application.Services.Language.PostLangSrv.Dto.PostLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostLanguageController.Post(Application.Services.Language.PostLangSrv.Dto.PostLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=PostId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PostPictureController">
             <summary>
@@ -3395,45 +3080,6 @@
             <summary>
             حذف آیتم
             </summary>
-            <returns></returns>
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.ProductLanguageController">
-            <summary>
-            مدیریت زبان محصولات
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductLanguageController.#ctor(Application.Services.Language.ProductLangSrv.Iface.IProductLangService)">
-            <summary>
-            مدیریت زبان محصولات
-            </summary>
-            <param name="productLangService"></param>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductLanguageController.Get(Application.Services.Language.ProductLangSrv.Dto.ProductLangInputDto)">
-            <summary>
-            جسنجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductLanguageController.Post(Application.Services.Language.ProductLangSrv.Dto.ProductLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم (ItemId=ProductId)
-            </summary>
-            <param name="dto"></param>
             <returns></returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderCancelRequestController">
@@ -4012,7 +3658,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateController.#ctor(Application.Services.CommonSrv.StateSrv.Iface.IStateService)">
+        <member name="M:Api.Areas.Admin.Controllers.StateController.#ctor(Application.Services.LocationFields.StateSrv.Iface.IStateService)">
              <summary>
              مدیریت استان ها
              </summary>
@@ -4026,18 +3672,18 @@
             <returns>
             </returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateController.Get(Application.Services.CommonSrv.StateSrv.Dto.StateInputDto)">
+        <member name="M:Api.Areas.Admin.Controllers.StateController.Get(Application.Services.LocationFields.StateSrv.Dto.StateInputDto)">
             <summary>
              جستجو
             </summary>
             <returns></returns> 
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateController.Post(Application.Services.CommonSrv.StateSrv.Dto.StateDto)">
+        <member name="M:Api.Areas.Admin.Controllers.StateController.Post(Application.Services.LocationFields.StateSrv.Dto.StateDto)">
             <summary>
             آیتم جدید
             </summary>  
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateController.Put(Application.Services.CommonSrv.StateSrv.Dto.StateDto)">
+        <member name="M:Api.Areas.Admin.Controllers.StateController.Put(Application.Services.LocationFields.StateSrv.Dto.StateDto)">
             <summary>
             ویرایش آیتم
             </summary>
@@ -4047,45 +3693,6 @@
              حذف آیتم
              </summary>
             
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.StateLanguageController">
-            <summary>
-            مدیریت زبان استان ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateLanguageController.#ctor(Application.Services.Language.StateLangSrv.Iface.IStateLangService)">
-            <summary>
-            مدیریت زبان استان ها
-            </summary>
-                   
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateLanguageController.Get(System.Int64)">
-            <summary>
-            اطلاعات آیتم
-            </summary>
-            <param name="id"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateLanguageController.Get(Application.Services.Language.StateLangSrv.Dto.StateLangInputDto)">
-            <summary>
-            جستجو
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateLanguageController.Post(Application.Services.Language.StateLangSrv.Dto.StateLangDto)">
-            <summary>
-            اضافه و ویرایش آیتم
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateLanguageController.Delete(Application.Common.Dto.OtherLanguage.OtherLangDeleteDto)">
-            <summary>
-            حذف آیتم(ItemId=StateId)
-            </summary>
-            <param name="dto"></param>
-            <returns></returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.StaticPageController">
              <summary>
@@ -4967,7 +4574,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Common.Controllers.CityController.#ctor(Application.Services.CommonSrv.CitySrv.Iface.ICityService)">
+        <member name="M:Api.Areas.Common.Controllers.CityController.#ctor(Application.Services.LocationFields.CitySrv.Iface.ICityService)">
              <summary>
              مدیریت شهر ها
              </summary>
@@ -4979,7 +4586,7 @@
             </summary>
             <returns></returns> 
         </member>
-        <member name="M:Api.Areas.Common.Controllers.CityController.Get(Application.Services.CommonSrv.CitySrv.Dto.CityInputDto)">
+        <member name="M:Api.Areas.Common.Controllers.CityController.Get(Application.Services.LocationFields.CitySrv.Dto.CityInputDto)">
             <summary>
              جستجو
             </summary>
@@ -4991,7 +4598,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Common.Controllers.CountryController.#ctor(Application.Services.CommonSrv.CountrySrv.Iface.ICountryService)">
+        <member name="M:Api.Areas.Common.Controllers.CountryController.#ctor(Application.Services.LocationFields.CountrySrv.Iface.ICountryService)">
              <summary>
              مدیریت کشورها
              </summary>
@@ -5020,6 +4627,30 @@
              دریافت 
             </summary>
         </member>
+        <member name="T:Api.Areas.Common.Controllers.ParkController">
+             <summary>
+             مدیریت پارک ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.ParkController.#ctor(Application.Services.LocationFields.ParkSrv.Iface.IParkService)">
+             <summary>
+             مدیریت پارک ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.ParkController.Get">
+            <summary>
+             همه پارک ها با محله ها
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.ParkController.Get(Application.Services.LocationFields.ParkSrv.Dto.ParkInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
         <member name="T:Api.Areas.Common.Controllers.PictureController">
              <summary>
              مدیا
@@ -5043,13 +4674,13 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Common.Controllers.StateController.#ctor(Application.Services.CommonSrv.StateSrv.Iface.IStateService)">
+        <member name="M:Api.Areas.Common.Controllers.StateController.#ctor(Application.Services.LocationFields.StateSrv.Iface.IStateService)">
              <summary>
              مدیریت استانها
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Common.Controllers.StateController.Get(Application.Services.CommonSrv.StateSrv.Dto.StateInputDto)">
+        <member name="M:Api.Areas.Common.Controllers.StateController.Get(Application.Services.LocationFields.StateSrv.Dto.StateInputDto)">
             <summary>
              جستجو
             </summary>
@@ -8676,13 +8307,13 @@
              </summary>
             
         </member>
-        <member name="M:Api.Controllers.NeighborhoodController.#ctor(Application.Services.CommonSrv.NeighborhoodSrv.Iface.INeighborhoodService)">
+        <member name="M:Api.Controllers.NeighborhoodController.#ctor(Application.Services.LocationFields.NeighborhoodSrv.Iface.INeighborhoodService)">
              <summary>
              مدیریت محله ها
              </summary>
             
         </member>
-        <member name="M:Api.Controllers.NeighborhoodController.Get(Application.Services.CommonSrv.NeighborhoodSrv.Dto.NeighborhoodInputDto)">
+        <member name="M:Api.Controllers.NeighborhoodController.Get(Application.Services.LocationFields.NeighborhoodSrv.Dto.NeighborhoodInputDto)">
             <summary>
              جستجو
             </summary>
@@ -8737,6 +8368,24 @@
             </summary>
             <param name="PansionId">شناسه همکار</param>
             <returns>تعداد رزروها</returns>
+        </member>
+        <member name="T:Api.Controllers.ParkPictureController">
+            <summary>
+            مدیریت تصویر پارک ها
+            </summary>
+            
+        </member>
+        <member name="M:Api.Controllers.ParkPictureController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Controllers.ParkPictureController.Get(Application.Services.LocationFields.ParkPictureSrv.Dto.ParkPictureInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
         </member>
         <member name="T:Api.Controllers.PetBreedController">
              <summary>

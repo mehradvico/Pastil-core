@@ -47,31 +47,5 @@ namespace Application.Services.PansionSrvs.PansionPictureSrv
             }
             return new PansionPictureSearchDto(searchDto, model, mapper);
         }
-        public void InsertOrUpdate(PansionPictureDto PansionPicture)
-        {
-            var item = _context.PansionPictures.FirstOrDefault(s => s.PansionId == PansionPicture.PansionId && s.PictureId == PansionPicture.PictureId);
-
-            item = mapper.Map<PansionPicture>(PansionPicture);
-            _context.PansionPictures.Add(item);
-            _context.SaveChanges();
-        }
-
-        public void InsertOrUpdate(Pansion Pansion, List<PansionPictureDto> PansionPicturesDto)
-        {
-            if (Pansion.PansionPictures != null)
-            {
-                _context.PansionPictures.RemoveRange(Pansion.PansionPictures);
-                _context.SaveChanges();
-            }
-            else
-            {
-                Pansion.PansionPictures = new List<PansionPicture>();
-            }
-            PansionPicturesDto.ForEach(s => s.PansionId = Pansion.Id);
-            foreach (var item in PansionPicturesDto)
-            {
-                InsertOrUpdate(item);
-            }
-        }
     }
 }

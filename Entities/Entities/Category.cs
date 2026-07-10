@@ -21,7 +21,6 @@ namespace Entities.Entities
         public Picture Picture { get; set; }
         public Picture Icon { get; set; }
         public ICollection<Post> Posts { get; set; }
-        public ICollection<SeoFieldLang> SeoFieldLangs { get; set; }
         public ICollection<Brand> Brands { get; set; }
         public ICollection<Variety> Varieties { get; set; }
         public ICollection<Banner> Banner { get; set; }

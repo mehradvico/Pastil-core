@@ -7,7 +7,5 @@ namespace Entities.Entities
     {
         public int Priority { get; set; }
         public bool Active { get; set; }
-        public ICollection<FullNameFieldLang> FullNameFieldLangs { get; set; }
-
     }
 }

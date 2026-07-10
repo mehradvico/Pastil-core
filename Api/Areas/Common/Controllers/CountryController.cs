@@ -1,7 +1,7 @@
 ﻿using Application.Common.Dto.Input;
 using Application.Common.Dto.Result;
-using Application.Services.CommonSrv.CountrySrv.Dto;
-using Application.Services.CommonSrv.CountrySrv.Iface;
+using Application.Services.LocationFields.CountrySrv.Dto;
+using Application.Services.LocationFields.CountrySrv.Iface;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Common.Controllers

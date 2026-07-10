@@ -16,8 +16,5 @@ namespace Application.Services.PansionSrvs.PansionPictureSrv.Iface
     {
         PansionPictureSearchDto Search(PansionPictureInputDto searchDto);
         Task<BaseResultDto<PansionPictureVDto>> FindAsyncVDto(long id);
-
-        void InsertOrUpdate(PansionPictureDto PansionPicture);
-        void InsertOrUpdate(Pansion Pansion, List<PansionPictureDto> PansionPicturesDto);
     }
 }

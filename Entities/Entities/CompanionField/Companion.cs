@@ -1,5 +1,6 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.CompanionField;
+using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.Security;
 using NetTopologySuite.Geometries;

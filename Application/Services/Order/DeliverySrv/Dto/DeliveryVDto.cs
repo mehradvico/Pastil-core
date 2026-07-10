@@ -1,6 +1,6 @@
 ﻿using Application.Common.Dto.Field;
-using Application.Services.CommonSrv.CitySrv.Dto;
-using Application.Services.CommonSrv.StateSrv.Dto;
+using Application.Services.LocationFields.CitySrv.Dto;
+using Application.Services.LocationFields.StateSrv.Dto;
 using Application.Services.Order.DeliveryDistanceSrv.Dto;
 using Application.Services.ProductSrvs.StoreSrv.Dto;
 using Application.Services.Setting.CodeSrv.Dto;

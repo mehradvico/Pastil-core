@@ -18,7 +18,6 @@ namespace Entities.Entities
         public ICollection<Product> Products { get; set; }
         public Picture Picture { get; set; }
         public Picture Icon { get; set; }
-        public ICollection<SeoFieldLang> SeoFieldLangs { get; set; }
         public ICollection<Category> Categories { get; set; }
 
     }

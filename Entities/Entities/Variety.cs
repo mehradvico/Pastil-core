@@ -12,6 +12,5 @@ namespace Entities.Entities
         public bool Deleted { get; set; }
         public ICollection<Product> Products { get; set; }
         public ICollection<VarietyItem> VarietyItems { get; set; }
-        public ICollection<NameFieldLang> NameFieldLangs { get; set; }
     }
 }

@@ -2,8 +2,8 @@
 using Application.Common.Dto.LocationPoint;
 using Application.Services.Accounting.DriverSrv.Dto;
 using Application.Services.Accounting.UserPetSrv.Dto;
-using Application.Services.CommonSrv.CitySrv.Dto;
 using Application.Services.Dto;
+using Application.Services.LocationFields.CitySrv.Dto;
 using Application.Services.Order.RebateSrv.Dto;
 using Application.Services.Setting.CodeSrv.Dto;
 using Application.Services.TripSrv.TripOptionSrv.Dto;

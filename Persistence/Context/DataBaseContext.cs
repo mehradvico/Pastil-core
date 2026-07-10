@@ -1,5 +1,6 @@
 ﻿using Entities.Entities;
 using Entities.Entities.CompanionField;
+using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.Security;
 using Microsoft.EntityFrameworkCore;
@@ -79,14 +80,12 @@ namespace Persistence.Context
         public DbSet<Feature> Features { get; set; }
         public DbSet<FeatureItem> FeatureItems { get; set; }
         public DbSet<File> Files { get; set; }
-        public DbSet<FullNameFieldLang> FullNameFieldLangs { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
         public DbSet<GalleryItem> GalleryItems { get; set; }
         public DbSet<Hashtag> Hashtags { get; set; }
         public DbSet<MapKey> MapKeys { get; set; }
         public DbSet<Merchant> Merchants { get; set; }
         public DbSet<MessageType> MessageTypes { get; set; }
-        public DbSet<NameFieldLang> NameFieldLangs { get; set; }
         public DbSet<Neighborhood> Neighborhoods { get; set; }
         public DbSet<Newsletter> Newsletters { get; set; }
         public DbSet<Notice> Notices { get; set; }
@@ -98,6 +97,8 @@ namespace Persistence.Context
         public DbSet<PansionPet> PansionPets { get; set; }
         public DbSet<PansionPicture> PansionPictures { get; set; }
         public DbSet<PansionReserve> PansionReserves { get; set; }
+        public DbSet<Park> Parks { get; set; }
+        public DbSet<ParkPicture> ParkPictures { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<Pet> Pets { get; set; }
@@ -133,7 +134,6 @@ namespace Persistence.Context
         public DbSet<ReminderType> ReminderTypes { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<ScoreTransaction> ScoreTransactions { get; set; }
-        public DbSet<SeoFieldLang> SeoFieldLangs { get; set; }
         public DbSet<Settlement> Settlements { get; set; }
         public DbSet<SettlementCompanion> SettlementCompanions { get; set; }
         public DbSet<SettlementStore> SettlementStores { get; set; }
@@ -313,11 +313,6 @@ namespace Persistence.Context
                 .HasForeignKey(ca => ca.CompanionTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Variety>()
-                .HasMany<NameFieldLang>(s => s.NameFieldLangs)
-                .WithMany(c => c.Varieties)
-                .UsingEntity(join => join.ToTable("VarietyNameFieldLangs"));
-
             modelBuilder.Entity<PostComment>().ToTable("PostComments");
             modelBuilder.Entity<ProductComment>().ToTable("ProductComments");
             modelBuilder.Entity<CompanionReserveComment>().ToTable("CompanionReserveComments");
@@ -488,10 +483,6 @@ namespace Persistence.Context
                 .WithMany()
                 .HasForeignKey(n => n.UserTypeId);
 
-            modelBuilder.Entity<GalleryItem>()
-             .HasMany<FullNameFieldLang>(s => s.FullNameFieldLangs)
-              .WithMany(c => c.GalleryItems)
-                 .UsingEntity(join => join.ToTable("GalleryItemFullNameFieldLangs"));
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<PushSubscription>(e =>

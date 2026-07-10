@@ -34,7 +34,6 @@ namespace Entities.Entities
         public ICollection<Category> Categories { get; set; }
         public ICollection<PostFile> PostFiles { get; set; }
         public ICollection<PostPicture> PostPictures { get; set; }
-        public ICollection<SeoFieldLang> SeoFieldLangs { get; set; }
         public ICollection<Hashtag> Hashtags { get; set; }
         public ICollection<PostComment> PostComments { get; set; }
         public ICollection<Post> Children { get; set; }

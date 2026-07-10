@@ -1,5 +1,6 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.CompanionField;
+using Entities.Entities.LocationField;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;

@@ -38,21 +38,6 @@ namespace Persistence.Migrations
                     b.ToTable("BrandCategory");
                 });
 
-            modelBuilder.Entity("BrandSeoFieldLang", b =>
-                {
-                    b.Property<long>("SeoFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("brandsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("SeoFieldLangsId", "brandsId");
-
-                    b.HasIndex("brandsId");
-
-                    b.ToTable("BrandSeoFieldLang");
-                });
-
             modelBuilder.Entity("CategoryFeature", b =>
                 {
                     b.Property<long>("CategoriesId")
@@ -98,36 +83,6 @@ namespace Persistence.Migrations
                     b.ToTable("CategoryProduct");
                 });
 
-            modelBuilder.Entity("CategorySeoFieldLang", b =>
-                {
-                    b.Property<long>("CategoriesId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("SeoFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("CategoriesId", "SeoFieldLangsId");
-
-                    b.HasIndex("SeoFieldLangsId");
-
-                    b.ToTable("CategorySeoFieldLang");
-                });
-
-            modelBuilder.Entity("CityNameFieldLang", b =>
-                {
-                    b.Property<long>("CitiesId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("NameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("CitiesId", "NameFieldLangsId");
-
-                    b.HasIndex("NameFieldLangsId");
-
-                    b.ToTable("CityNameFieldLang");
-                });
-
             modelBuilder.Entity("CodeCompanionAssistance", b =>
                 {
                     b.Property<long>("CodesId")
@@ -141,36 +96,6 @@ namespace Persistence.Migrations
                     b.HasIndex("CompanionAssistancesId");
 
                     b.ToTable("CodeCompanionAssistance");
-                });
-
-            modelBuilder.Entity("CodeGroupNameFieldLang", b =>
-                {
-                    b.Property<long>("CodeGroupsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("NameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("CodeGroupsId", "NameFieldLangsId");
-
-                    b.HasIndex("NameFieldLangsId");
-
-                    b.ToTable("CodeGroupNameFieldLang");
-                });
-
-            modelBuilder.Entity("CodeNameFieldLang", b =>
-                {
-                    b.Property<long>("CodesId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("NameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("CodesId", "NameFieldLangsId");
-
-                    b.HasIndex("NameFieldLangsId");
-
-                    b.ToTable("CodeNameFieldLang");
                 });
 
             modelBuilder.Entity("CompanionAssistancePackageCompanionReserve", b =>
@@ -891,27 +816,6 @@ namespace Persistence.Migrations
                     b.HasIndex("PictureId");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("Entities.Entities.City", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("StateId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StateId");
-
-                    b.ToTable("Cities");
                 });
 
             modelBuilder.Entity("Entities.Entities.ClubReward", b =>
@@ -2638,33 +2542,6 @@ namespace Persistence.Migrations
                     b.ToTable("Files");
                 });
 
-            modelBuilder.Entity("Entities.Entities.FullNameFieldLang", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("LanguageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Summary")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("FullNameFieldLangs");
-                });
-
             modelBuilder.Entity("Entities.Entities.Gallery", b =>
                 {
                     b.Property<long>("Id")
@@ -2793,7 +2670,7 @@ namespace Persistence.Migrations
                     b.ToTable("Hashtags");
                 });
 
-            modelBuilder.Entity("Entities.Entities.Language", b =>
+            modelBuilder.Entity("Entities.Entities.LocationField.City", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -2801,15 +2678,75 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Label")
+                    b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("StateId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StateId");
+
+                    b.ToTable("Cities");
+                });
+
+            modelBuilder.Entity("Entities.Entities.LocationField.Park", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long>("NeighborhoodId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Suggested")
+                        .HasColumnType("bit");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Language");
+                    b.HasIndex("NeighborhoodId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("Parks");
+                });
+
+            modelBuilder.Entity("Entities.Entities.LocationField.ParkPicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ParkId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParkId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("ParkPictures");
                 });
 
             modelBuilder.Entity("Entities.Entities.MapKey", b =>
@@ -2901,32 +2838,6 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MessageTypes");
-                });
-
-            modelBuilder.Entity("Entities.Entities.NameFieldLang", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("LanguageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("NeighborhoodId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LanguageId");
-
-                    b.HasIndex("NeighborhoodId");
-
-                    b.ToTable("NameFieldLangs");
                 });
 
             modelBuilder.Entity("Entities.Entities.Neighborhood", b =>
@@ -3175,6 +3086,9 @@ namespace Persistence.Migrations
 
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<long>("PansionId")
                         .HasColumnType("bigint");
@@ -4925,53 +4839,6 @@ namespace Persistence.Migrations
                     b.ToTable("UserTokens");
                 });
 
-            modelBuilder.Entity("Entities.Entities.SeoFieldLang", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("LanguageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SeoDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SeoH1")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SeoMinDescription")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SeoPictureAlt")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SeoTitle")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("StaticPageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Summary")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LanguageId");
-
-                    b.HasIndex("StaticPageId");
-
-                    b.ToTable("SeoFieldLangs");
-                });
-
             modelBuilder.Entity("Entities.Entities.Settlement", b =>
                 {
                     b.Property<long>("Id")
@@ -6253,81 +6120,6 @@ namespace Persistence.Migrations
                     b.ToTable("WeekDays");
                 });
 
-            modelBuilder.Entity("FeatureItemNameFieldLang", b =>
-                {
-                    b.Property<long>("FeatureItemsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("NameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("FeatureItemsId", "NameFieldLangsId");
-
-                    b.HasIndex("NameFieldLangsId");
-
-                    b.ToTable("FeatureItemNameFieldLang");
-                });
-
-            modelBuilder.Entity("FeatureNameFieldLang", b =>
-                {
-                    b.Property<long>("FeaturesId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("NameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("FeaturesId", "NameFieldLangsId");
-
-                    b.HasIndex("NameFieldLangsId");
-
-                    b.ToTable("FeatureNameFieldLang");
-                });
-
-            modelBuilder.Entity("FullNameFieldLangGalleryItem", b =>
-                {
-                    b.Property<long>("FullNameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("GalleryItemsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("FullNameFieldLangsId", "GalleryItemsId");
-
-                    b.HasIndex("GalleryItemsId");
-
-                    b.ToTable("GalleryItemFullNameFieldLangs", (string)null);
-                });
-
-            modelBuilder.Entity("FullNameFieldLangQuestion", b =>
-                {
-                    b.Property<long>("FullNameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("QuestionsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("FullNameFieldLangsId", "QuestionsId");
-
-                    b.HasIndex("QuestionsId");
-
-                    b.ToTable("FullNameFieldLangQuestion");
-                });
-
-            modelBuilder.Entity("GallerySeoFieldLang", b =>
-                {
-                    b.Property<long>("GalleriesId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("SeoFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("GalleriesId", "SeoFieldLangsId");
-
-                    b.HasIndex("SeoFieldLangsId");
-
-                    b.ToTable("GallerySeoFieldLang");
-                });
-
             modelBuilder.Entity("HashtagPost", b =>
                 {
                     b.Property<long>("HashtagsId")
@@ -6341,51 +6133,6 @@ namespace Persistence.Migrations
                     b.HasIndex("postsId");
 
                     b.ToTable("HashtagPost");
-                });
-
-            modelBuilder.Entity("NameFieldLangProductFeatureValue", b =>
-                {
-                    b.Property<long>("NameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ProductFeatureValuesId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("NameFieldLangsId", "ProductFeatureValuesId");
-
-                    b.HasIndex("ProductFeatureValuesId");
-
-                    b.ToTable("NameFieldLangProductFeatureValue");
-                });
-
-            modelBuilder.Entity("NameFieldLangState", b =>
-                {
-                    b.Property<long>("NameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("StatesId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("NameFieldLangsId", "StatesId");
-
-                    b.HasIndex("StatesId");
-
-                    b.ToTable("NameFieldLangState");
-                });
-
-            modelBuilder.Entity("NameFieldLangVariety", b =>
-                {
-                    b.Property<long>("NameFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("VarietiesId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("NameFieldLangsId", "VarietiesId");
-
-                    b.HasIndex("VarietiesId");
-
-                    b.ToTable("VarietyNameFieldLangs", (string)null);
                 });
 
             modelBuilder.Entity("PermissionRole", b =>
@@ -6416,36 +6163,6 @@ namespace Persistence.Migrations
                     b.HasIndex("ProductsId");
 
                     b.ToTable("PostProduct");
-                });
-
-            modelBuilder.Entity("PostSeoFieldLang", b =>
-                {
-                    b.Property<long>("PostsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("SeoFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("PostsId", "SeoFieldLangsId");
-
-                    b.HasIndex("SeoFieldLangsId");
-
-                    b.ToTable("PostSeoFieldLang");
-                });
-
-            modelBuilder.Entity("ProductSeoFieldLang", b =>
-                {
-                    b.Property<long>("ProductsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("SeoFieldLangsId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ProductsId", "SeoFieldLangsId");
-
-                    b.HasIndex("SeoFieldLangsId");
-
-                    b.ToTable("ProductSeoFieldLang");
                 });
 
             modelBuilder.Entity("StoreUser", b =>
@@ -6568,21 +6285,6 @@ namespace Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("BrandSeoFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.SeoFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("SeoFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.Brand", null)
-                        .WithMany()
-                        .HasForeignKey("brandsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("CategoryFeature", b =>
                 {
                     b.HasOne("Entities.Entities.Category", null)
@@ -6628,36 +6330,6 @@ namespace Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("CategorySeoFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.Category", null)
-                        .WithMany()
-                        .HasForeignKey("CategoriesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.SeoFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("SeoFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("CityNameFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.City", null)
-                        .WithMany()
-                        .HasForeignKey("CitiesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.NameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("NameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("CodeCompanionAssistance", b =>
                 {
                     b.HasOne("Entities.Entities.Code", null)
@@ -6670,36 +6342,6 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CompanionAssistancesId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("CodeGroupNameFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.CodeGroup", null)
-                        .WithMany()
-                        .HasForeignKey("CodeGroupsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.NameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("NameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("CodeNameFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.Code", null)
-                        .WithMany()
-                        .HasForeignKey("CodesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.NameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("NameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -6735,7 +6377,7 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.Address", b =>
                 {
-                    b.HasOne("Entities.Entities.City", "City")
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -6960,17 +6602,6 @@ namespace Persistence.Migrations
                     b.Navigation("Picture");
                 });
 
-            modelBuilder.Entity("Entities.Entities.City", b =>
-                {
-                    b.HasOne("Entities.Entities.State", "State")
-                        .WithMany("Cities")
-                        .HasForeignKey("StateId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("State");
-                });
-
             modelBuilder.Entity("Entities.Entities.ClubReward", b =>
                 {
                     b.HasOne("Entities.Entities.Rebate", "Rebate")
@@ -7033,7 +6664,7 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("BackgroundPictureId");
 
-                    b.HasOne("Entities.Entities.City", "City")
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -7328,7 +6959,7 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionZone", b =>
                 {
-                    b.HasOne("Entities.Entities.City", "City")
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -7481,7 +7112,7 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.Delivery", b =>
                 {
-                    b.HasOne("Entities.Entities.City", "City")
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId");
 
@@ -7661,7 +7292,7 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CertificatePictureId");
 
-                    b.HasOne("Entities.Entities.City", "City")
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -7792,17 +7423,6 @@ namespace Persistence.Migrations
                     b.Navigation("Feature");
                 });
 
-            modelBuilder.Entity("Entities.Entities.FullNameFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Language");
-                });
-
             modelBuilder.Entity("Entities.Entities.Gallery", b =>
                 {
                     b.HasOne("Entities.Entities.Category", "Category")
@@ -7835,6 +7455,53 @@ namespace Persistence.Migrations
                     b.Navigation("Picture");
                 });
 
+            modelBuilder.Entity("Entities.Entities.LocationField.City", b =>
+                {
+                    b.HasOne("Entities.Entities.State", "State")
+                        .WithMany("Cities")
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("State");
+                });
+
+            modelBuilder.Entity("Entities.Entities.LocationField.Park", b =>
+                {
+                    b.HasOne("Entities.Entities.Neighborhood", "Neighborhood")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId");
+
+                    b.Navigation("Neighborhood");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.LocationField.ParkPicture", b =>
+                {
+                    b.HasOne("Entities.Entities.LocationField.Park", "Park")
+                        .WithMany("ParkPictures")
+                        .HasForeignKey("ParkId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Park");
+
+                    b.Navigation("Picture");
+                });
+
             modelBuilder.Entity("Entities.Entities.MapKey", b =>
                 {
                     b.HasOne("Entities.Entities.Code", "Type")
@@ -7857,24 +7524,9 @@ namespace Persistence.Migrations
                     b.Navigation("Bank");
                 });
 
-            modelBuilder.Entity("Entities.Entities.NameFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.Neighborhood", null)
-                        .WithMany("NameFieldLangs")
-                        .HasForeignKey("NeighborhoodId");
-
-                    b.Navigation("Language");
-                });
-
             modelBuilder.Entity("Entities.Entities.Neighborhood", b =>
                 {
-                    b.HasOne("Entities.Entities.City", "City")
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -7921,7 +7573,7 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.PansionField.Pansion", b =>
                 {
-                    b.HasOne("Entities.Entities.City", "City")
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -8651,21 +8303,6 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Entities.Entities.SeoFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.Language", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.StaticPage", null)
-                        .WithMany("SeoFieldLangs")
-                        .HasForeignKey("StaticPageId");
-
-                    b.Navigation("Language");
-                });
-
             modelBuilder.Entity("Entities.Entities.Settlement", b =>
                 {
                     b.HasOne("Entities.Entities.Companion", "Companion")
@@ -8783,7 +8420,7 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.Store", b =>
                 {
-                    b.HasOne("Entities.Entities.City", "City")
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
                         .WithMany()
                         .HasForeignKey("CityId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -8966,7 +8603,7 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Entities.Entities.City", "FromCity")
+                    b.HasOne("Entities.Entities.LocationField.City", "FromCity")
                         .WithMany()
                         .HasForeignKey("FromCityId");
 
@@ -9246,81 +8883,6 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("FeatureItemNameFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.FeatureItem", null)
-                        .WithMany()
-                        .HasForeignKey("FeatureItemsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.NameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("NameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("FeatureNameFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.Feature", null)
-                        .WithMany()
-                        .HasForeignKey("FeaturesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.NameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("NameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("FullNameFieldLangGalleryItem", b =>
-                {
-                    b.HasOne("Entities.Entities.FullNameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("FullNameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.GalleryItem", null)
-                        .WithMany()
-                        .HasForeignKey("GalleryItemsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("FullNameFieldLangQuestion", b =>
-                {
-                    b.HasOne("Entities.Entities.FullNameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("FullNameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.Question", null)
-                        .WithMany()
-                        .HasForeignKey("QuestionsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("GallerySeoFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.Gallery", null)
-                        .WithMany()
-                        .HasForeignKey("GalleriesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.SeoFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("SeoFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("HashtagPost", b =>
                 {
                     b.HasOne("Entities.Entities.Hashtag", null)
@@ -9332,51 +8894,6 @@ namespace Persistence.Migrations
                     b.HasOne("Entities.Entities.Post", null)
                         .WithMany()
                         .HasForeignKey("postsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("NameFieldLangProductFeatureValue", b =>
-                {
-                    b.HasOne("Entities.Entities.NameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("NameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.ProductFeatureValue", null)
-                        .WithMany()
-                        .HasForeignKey("ProductFeatureValuesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("NameFieldLangState", b =>
-                {
-                    b.HasOne("Entities.Entities.NameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("NameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.State", null)
-                        .WithMany()
-                        .HasForeignKey("StatesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("NameFieldLangVariety", b =>
-                {
-                    b.HasOne("Entities.Entities.NameFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("NameFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.Variety", null)
-                        .WithMany()
-                        .HasForeignKey("VarietiesId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -9407,36 +8924,6 @@ namespace Persistence.Migrations
                     b.HasOne("Entities.Entities.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("PostSeoFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.Post", null)
-                        .WithMany()
-                        .HasForeignKey("PostsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.SeoFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("SeoFieldLangsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("ProductSeoFieldLang", b =>
-                {
-                    b.HasOne("Entities.Entities.Product", null)
-                        .WithMany()
-                        .HasForeignKey("ProductsId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.SeoFieldLang", null)
-                        .WithMany()
-                        .HasForeignKey("SeoFieldLangsId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -9724,9 +9211,9 @@ namespace Persistence.Migrations
                     b.Navigation("GalleryItems");
                 });
 
-            modelBuilder.Entity("Entities.Entities.Neighborhood", b =>
+            modelBuilder.Entity("Entities.Entities.LocationField.Park", b =>
                 {
-                    b.Navigation("NameFieldLangs");
+                    b.Navigation("ParkPictures");
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.Pansion", b =>
@@ -9838,11 +9325,6 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.State", b =>
                 {
                     b.Navigation("Cities");
-                });
-
-            modelBuilder.Entity("Entities.Entities.StaticPage", b =>
-                {
-                    b.Navigation("SeoFieldLangs");
                 });
 
             modelBuilder.Entity("Entities.Entities.Store", b =>

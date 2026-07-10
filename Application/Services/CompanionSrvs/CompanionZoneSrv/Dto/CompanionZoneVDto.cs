@@ -1,8 +1,8 @@
 ﻿using Application.Common.Dto.Field;
-using Application.Services.CommonSrv.CitySrv.Dto;
-using Application.Services.CommonSrv.NeighborhoodSrv.Dto;
-using Application.Services.CommonSrv.StateSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionSrv.Dto;
+using Application.Services.LocationFields.CitySrv.Dto;
+using Application.Services.LocationFields.NeighborhoodSrv.Dto;
+using Application.Services.LocationFields.StateSrv.Dto;
 using Entities.Entities;
 using System;
 using System.Collections.Generic;

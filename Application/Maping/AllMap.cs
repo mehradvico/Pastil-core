@@ -16,13 +16,9 @@ using Application.Services.Accounting.UserPetSrv.Dto;
 using Application.Services.Accounting.UserProductSrv.Dto;
 using Application.Services.Accounting.UserTokenSrv.Dto;
 using Application.Services.CategorySrv.Dto;
-using Application.Services.CommonSrv.CitySrv.Dto;
 using Application.Services.CommonSrv.CommentLikeSrv.Dto;
-using Application.Services.CommonSrv.CountrySrv.Dto;
-using Application.Services.CommonSrv.NeighborhoodSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
-using Application.Services.CommonSrv.StateSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto;
@@ -77,10 +73,12 @@ using Application.Services.FinanceSrvs.SettlementCompanionSrv.Dto;
 using Application.Services.FinanceSrvs.SettlementSrv.Dto;
 using Application.Services.FinanceSrvs.SettlementStoreSrv.Dto;
 using Application.Services.FinanceSrvs.UserBankCardSrv.Dto;
-using Application.Services.Language.FullNameFieldLangSrv.Dto;
-using Application.Services.Language.LanguageSrv.Dto;
-using Application.Services.Language.NameFieldLangSrv.Dto;
-using Application.Services.Language.SeoFieldLangSrv.Dto;
+using Application.Services.LocationFields.CitySrv.Dto;
+using Application.Services.LocationFields.CountrySrv.Dto;
+using Application.Services.LocationFields.NeighborhoodSrv.Dto;
+using Application.Services.LocationFields.ParkPictureSrv.Dto;
+using Application.Services.LocationFields.ParkSrv.Dto;
+using Application.Services.LocationFields.StateSrv.Dto;
 using Application.Services.Order.AddressSrv.Dto;
 using Application.Services.Order.BankSrv.Dto;
 using Application.Services.Order.CartItemSrv.Dto;
@@ -133,6 +131,7 @@ using Application.Services.WeekDaySrv.WeekDaySrv.Dto;
 using AutoMapper;
 using Entities.Entities;
 using Entities.Entities.CompanionField;
+using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.Security;
 using NetTopologySuite.Geometries;
@@ -447,18 +446,6 @@ namespace Application.Maping
             CreateMap<Hashtag, HashtagDto>();
             //Hashtag End ----------------------------------------------
 
-
-            //Language
-            CreateMap<Language, LanguageDto>().ReverseMap();
-            CreateMap<SeoFieldLang, SeoFieldLangDto>().ForMember(x => x.LanguageDto, y => y.MapFrom(s => s.Language));
-            CreateMap<SeoFieldLangDto, SeoFieldLang>();
-            CreateMap<NameFieldLang, NameFieldLangDto>().ForMember(x => x.LanguageDto, y => y.MapFrom(s => s.Language));
-            CreateMap<NameFieldLangDto, NameFieldLang>();
-            CreateMap<FullNameFieldLang, FullNameFieldLangDto>().ForMember(x => x.LanguageDto, y => y.MapFrom(s => s.Language));
-            CreateMap<FullNameFieldLangDto, FullNameFieldLang>();
-            //Language End ----------------------------------------------
-
-
             //Map
             CreateMap<MapKey, MapKeyDto>().ReverseMap();
             CreateMap<MapKey, MapKeyVDto>();
@@ -518,6 +505,14 @@ namespace Application.Maping
             CreateMap<PansionReserve, PansionUpdateCommissionDto>();
             CreateMap<Pansion, SearchPansionDto>().ForMember(d => d.Picture, o => o.MapFrom(s => s.Picture));
             //Pansion ----------------------------------------------
+
+
+            //Park
+            CreateMap<Park, ParkDto>().ReverseMap();
+            CreateMap<Park, ParkVDto>();
+            CreateMap<ParkPicture, ParkPictureDto>().ReverseMap();
+            CreateMap<ParkPicture, ParkPictureVDto>();
+            //Park End ----------------------------------------------
 
 
             //Pet

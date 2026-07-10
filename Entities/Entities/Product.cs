@@ -49,7 +49,6 @@ namespace Entities.Entities
         public ICollection<ProductPicture> ProductPictures { get; set; }
         public ICollection<ProductFile> ProductFiles { get; set; }
         public ICollection<ProductComment> ProductComments { get; set; }
-        public ICollection<SeoFieldLang> SeoFieldLangs { get; set; }
         public ICollection<ProductLike> ProductLikes { get; set; }
         public ICollection<Post> Posts { get; set; }
         public ICollection<ProductItem> ProductItems { get; set; }

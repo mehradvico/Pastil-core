@@ -1,6 +1,5 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Interface;
-using Application.Services.CommonSrv.NeighborhoodSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
 using Entities.Entities;
 using System;

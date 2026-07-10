@@ -1,6 +1,6 @@
 ﻿using Application.Common.Dto.Result;
-using Application.Services.CommonSrv.CitySrv.Dto;
-using Application.Services.CommonSrv.CitySrv.Iface;
+using Application.Services.LocationFields.CitySrv.Dto;
+using Application.Services.LocationFields.CitySrv.Iface;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Common.Controllers

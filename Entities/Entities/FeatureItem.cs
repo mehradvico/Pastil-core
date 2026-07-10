@@ -10,6 +10,5 @@ namespace Entities.Entities
         public bool Deleted { get; set; }
         public Feature Feature { get; set; }
         public ICollection<ProductFeatureValue> ProductFeatureValues { get; set; }
-        public ICollection<NameFieldLang> NameFieldLangs { get; set; }
     }
 }

@@ -7,6 +7,5 @@ namespace Entities.Entities
     {
         public string Label { get; set; }
         public ICollection<Code> Codes { get; set; }
-        public ICollection<NameFieldLang> NameFieldLangs { get; set; }
     }
 }

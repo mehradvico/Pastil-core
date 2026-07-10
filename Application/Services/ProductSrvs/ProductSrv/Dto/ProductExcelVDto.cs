@@ -1,7 +1,7 @@
-﻿using Application.Common.Dto.LocationPoint;
+﻿using Application.Common.Dto.Field;
+using Application.Common.Dto.LocationPoint;
 using Application.Services.CategorySrv.Dto;
 using Application.Services.Filing.PictureSrv.Dto;
-using Application.Services.Language.SeoFieldLangSrv.Dto;
 using Application.Services.ProductSrvs.BrandSrv.Dto;
 using Application.Services.ProductSrvs.DiscountGroupSrv.Dto;
 using Application.Services.ProductSrvs.ProductFeatureValueSrv.Dto;
@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services.ProductSrvs.ProductSrv.Dto
 {
-    public class ProductExcelVDto : SeoFieldLangDto
+    public class ProductExcelVDto : Seo_FieldDto
     {
         public string ProductLabel { get; set; }
         public string SecondName { get; set; }

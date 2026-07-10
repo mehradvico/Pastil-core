@@ -12,6 +12,5 @@ namespace Entities.Entities
         public bool Active { get; set; }
         public Picture Picture { get; set; }
         public Gallery Gallery { get; set; }
-        public ICollection<FullNameFieldLang> FullNameFieldLangs { get; set; }
     }
 }

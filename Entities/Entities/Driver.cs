@@ -1,4 +1,5 @@
 ﻿using Entities.Entities.CommonField;
+using Entities.Entities.LocationField;
 using Entities.Entities.Security;
 
 namespace Entities.Entities

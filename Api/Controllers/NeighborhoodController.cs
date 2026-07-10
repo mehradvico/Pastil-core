@@ -1,5 +1,5 @@
-﻿using Application.Services.CommonSrv.NeighborhoodSrv.Dto;
-using Application.Services.CommonSrv.NeighborhoodSrv.Iface;
+﻿using Application.Services.LocationFields.NeighborhoodSrv.Dto;
+using Application.Services.LocationFields.NeighborhoodSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

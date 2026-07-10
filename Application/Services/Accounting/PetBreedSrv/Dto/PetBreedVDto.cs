@@ -1,4 +1,6 @@
 ﻿using Application.Common.Dto.Field;
+using Application.Services.Accounting.PetSrv.Dto;
+using Application.Services.Filing.PictureSrv.Dto;
 using Entities.Entities;
 using System;
 using System.Collections.Generic;
@@ -15,7 +17,7 @@ namespace Application.Services.Accounting.PetBreedSrv.Dto
         public string Label { get; set; }
         public long? PictureId { get; set; }
 
-        public Pet Pet { get; set; }
-        public Picture Picture { get; set; }
+        public PetVDto Pet { get; set; }
+        public PictureVDto Picture { get; set; }
     }
 }

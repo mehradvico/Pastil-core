@@ -17,7 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Areas\Admin\Controllers\BrandLanguageController.cs" />
+    <Compile Remove="Areas\Admin\Controllers\CategoryLanguageController.cs" />
     <Compile Remove="Areas\Admin\Controllers\CategoryVarietyController.cs" />
+    <Compile Remove="Areas\Admin\Controllers\CityLanguageController.cs" />
     <Compile Remove="Areas\Admin\Controllers\ProductVarietyController.cs" />
     <Compile Remove="Areas\Admin\Controllers\VarietyLanguageController.cs" />
   </ItemGroup>

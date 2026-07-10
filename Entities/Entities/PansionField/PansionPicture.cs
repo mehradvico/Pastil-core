@@ -11,6 +11,7 @@ namespace Entities.Entities.PansionField
     {
         public long PansionId { get; set; }
         public long PictureId { get; set; }
+        public string Label { get; set; }
         public bool Deleted { get; set; }
 
         public Pansion Pansion { get; set; }

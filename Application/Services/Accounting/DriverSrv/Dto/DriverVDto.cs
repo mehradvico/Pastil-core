@@ -1,8 +1,8 @@
 ﻿using Application.Common.Dto.Field;
-using Application.Services.CommonSrv.CitySrv.Dto;
-using Application.Services.CommonSrv.NeighborhoodSrv.Dto;
 using Application.Services.Dto;
 using Application.Services.Filing.PictureSrv.Dto;
+using Application.Services.LocationFields.CitySrv.Dto;
+using Application.Services.LocationFields.NeighborhoodSrv.Dto;
 using Application.Services.Setting.CodeSrv.Dto;
 
 namespace Application.Services.Accounting.DriverSrv.Dto

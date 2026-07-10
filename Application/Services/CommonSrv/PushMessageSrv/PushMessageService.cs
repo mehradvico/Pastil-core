@@ -2,7 +2,6 @@
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Common.Service;
-using Application.Services.CommonSrv.NeighborhoodSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;

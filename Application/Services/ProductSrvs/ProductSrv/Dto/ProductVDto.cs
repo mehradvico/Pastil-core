@@ -1,7 +1,7 @@
-﻿using Application.Common.Dto.LocationPoint;
+﻿using Application.Common.Dto.Field;
+using Application.Common.Dto.LocationPoint;
 using Application.Services.CategorySrv.Dto;
 using Application.Services.Filing.PictureSrv.Dto;
-using Application.Services.Language.SeoFieldLangSrv.Dto;
 using Application.Services.ProductSrvs.BrandSrv.Dto;
 using Application.Services.ProductSrvs.DiscountGroupSrv.Dto;
 using Application.Services.ProductSrvs.StoreSrv.Dto;
@@ -10,7 +10,7 @@ using System;
 
 namespace Application.Services.ProductSrvs.ProductSrv.Dto
 {
-    public class ProductVDto : SeoFieldLangDto
+    public class ProductVDto : Seo_FieldDto
     {
         public string ProductLabel { get; set; }
 
