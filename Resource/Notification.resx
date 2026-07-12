@@ -516,4 +516,31 @@
   <data name="ReferralCodeCanNotBeYours" xml:space="preserve">
     <value>Referral code can not be yours</value>
   </data>
+  <data name="PleaseSelectPastilMatchGoal" xml:space="preserve">
+    <value>Please Select Pastil Match Goal</value>
+  </data>
+  <data name="PastilMatchProfileAlreadyExists" xml:space="preserve">
+    <value>Pastil Match Profile Already Exists</value>
+  </data>
+  <data name="PastilMatchProfileCreateCooldown" xml:space="preserve">
+    <value>Pastil Match Profile Create Cooldown</value>
+  </data>
+  <data name="PastilMatchProfileAlreadyVerified" xml:space="preserve">
+    <value>Pastil Match Profile Already Verified</value>
+  </data>
+  <data name="PastilMatchVerificationRequestAlreadySent" xml:space="preserve">
+    <value>Pastil Match Verification Request Already Sent</value>
+  </data>
+  <data name="PastilMatchAdminDescriptionRequired" xml:space="preserve">
+    <value>Pastil Match Admin Description Required</value>
+  </data>
+  <data name="PastilMatchVerificationRequestNotPending" xml:space="preserve">
+    <value>Pastil Match Verification Request Not Pending</value>
+  </data>
+  <data name="InvalidPastilMatchGoal" xml:space="preserve">
+    <value>Invalid Pastil Match Goal</value>
+  </data>
+  <data name="PastilMatchProfileGoalAlreadyExists" xml:space="preserve">
+    <value>Pastil Match Profile Goal Already Exists</value>
+  </data>
 </root>

@@ -96,6 +96,8 @@ using Application.Services.PansionSrvs.PansionPetSrv.Dto;
 using Application.Services.PansionSrvs.PansionPictureSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto;
 using Application.Services.ProductSrvs.BrandCategorySrv.Dto;
 using Application.Services.ProductSrvs.BrandSrv.Dto;
 using Application.Services.ProductSrvs.DiscountGroupSrv.Dto;
@@ -133,6 +135,7 @@ using Entities.Entities;
 using Entities.Entities.CompanionField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
+using Entities.Entities.PastilMatchField;
 using Entities.Entities.Security;
 using NetTopologySuite.Geometries;
 using Resource;
@@ -515,6 +518,16 @@ namespace Application.Maping
             //Park End ----------------------------------------------
 
 
+            //PastilMatch
+            CreateMap<PastilMatchProfile, PastilMatchProfileDto>();
+            CreateMap<PastilMatchProfileDto, PastilMatchProfile>();
+            CreateMap<PastilMatchProfile, PastilMatchProfileVDto>();
+            CreateMap<PastilMatchProfileGoal, PastilMatchProfileGoalDto>();
+            CreateMap<PastilMatchProfileGoalDto, PastilMatchProfileGoal>();
+            CreateMap<PastilMatchProfileGoal, PastilMatchProfileGoalVDto>().ForMember(x => x.PastilMatchGoalName, x => x.MapFrom(s => s.PastilMatchGoal.Name)).ForMember(x => x.PastilMatchGoalLabel, x => x.MapFrom(s => s.PastilMatchGoal.Label));
+            //PastilMatch End ----------------------------------------------
+
+
             //Pet
             CreateMap<Pet, PetDto>();
             CreateMap<PetDto, Pet>().ForMember(x => x.Companions, y => y.Ignore());
@@ -617,8 +630,8 @@ namespace Application.Maping
 
 
             //Point
-            CreateMap<Point, PointDto>();
-            CreateMap<PointDto, Point>().ForMember(s => s.SRID, o => o.MapFrom(m => 4326));
+            CreateMap<Point, PointDto>().ConvertUsing(source => source == null ? null : new PointDto(source.X, source.Y){ DistanceMeter = 0});
+            CreateMap<PointDto, Point>().ConvertUsing(source => source == null ? null : new Point(source.x, source.y){SRID = 4326});
             //Point End ----------------------------------------------
 
 

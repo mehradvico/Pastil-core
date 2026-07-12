@@ -286,6 +286,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid Pastil Match Goal.
+        /// </summary>
+        public static string InvalidPastilMatchGoal {
+            get {
+                return ResourceManager.GetString("InvalidPastilMatchGoal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid time format.
         /// </summary>
         public static string InvalidTimeFormat {
@@ -372,6 +381,69 @@ namespace Resource {
         public static string OperationFailed {
             get {
                 return ResourceManager.GetString("OperationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Admin Description Required.
+        /// </summary>
+        public static string PastilMatchAdminDescriptionRequired {
+            get {
+                return ResourceManager.GetString("PastilMatchAdminDescriptionRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Profile Already Exists.
+        /// </summary>
+        public static string PastilMatchProfileAlreadyExists {
+            get {
+                return ResourceManager.GetString("PastilMatchProfileAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Profile Already Verified.
+        /// </summary>
+        public static string PastilMatchProfileAlreadyVerified {
+            get {
+                return ResourceManager.GetString("PastilMatchProfileAlreadyVerified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Profile Create Cooldown.
+        /// </summary>
+        public static string PastilMatchProfileCreateCooldown {
+            get {
+                return ResourceManager.GetString("PastilMatchProfileCreateCooldown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Profile Goal Already Exists.
+        /// </summary>
+        public static string PastilMatchProfileGoalAlreadyExists {
+            get {
+                return ResourceManager.GetString("PastilMatchProfileGoalAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Verification Request Already Sent.
+        /// </summary>
+        public static string PastilMatchVerificationRequestAlreadySent {
+            get {
+                return ResourceManager.GetString("PastilMatchVerificationRequestAlreadySent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Verification Request Not Pending.
+        /// </summary>
+        public static string PastilMatchVerificationRequestNotPending {
+            get {
+                return ResourceManager.GetString("PastilMatchVerificationRequestNotPending", resourceCulture);
             }
         }
         
@@ -570,6 +642,15 @@ namespace Resource {
         public static string PleaseEnterTimeRange {
             get {
                 return ResourceManager.GetString("PleaseEnterTimeRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please Select Pastil Match Goal.
+        /// </summary>
+        public static string PleaseSelectPastilMatchGoal {
+            get {
+                return ResourceManager.GetString("PleaseSelectPastilMatchGoal", resourceCulture);
             }
         }
         

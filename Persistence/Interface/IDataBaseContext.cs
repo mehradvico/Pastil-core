@@ -2,6 +2,7 @@
 using Entities.Entities.CompanionField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
+using Entities.Entities.PastilMatchField;
 using Entities.Entities.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -91,6 +92,17 @@ namespace Persistence.Interface
         public DbSet<PansionReserve> PansionReserves { get; set; }
         public DbSet<Park> Parks { get; set; }
         public DbSet<ParkPicture> ParkPictures { get; set; }
+        public DbSet<PastilMatch> PastilMatches { get; set; }
+        public DbSet<PastilMatchBlock> PastilMatchBlocks { get; set; }
+        public DbSet<PastilMatchMessage> PastilMatchMessages { get; set; }
+        public DbSet<PastilMatchMessageAttachment> PastilMatchMessageAttachments { get; set; }
+        public DbSet<PastilMatchMessageReaction> PastilMatchMessageReactions { get; set; }
+        public DbSet<PastilMatchProfile> PastilMatchProfiles { get; set; }
+        public DbSet<PastilMatchProfileGoal> PastilMatchProfileGoals { get; set; }
+        public DbSet<PastilMatchProfileLike> PastilMatchProfileLikes { get; set; }
+        public DbSet<PastilMatchReport> PastilMatchReports { get; set; }
+        public DbSet<PastilMatchReportReason> PastilMatchReportReasons { get; set; }
+        public DbSet<PastilMatchRequest> PastilMatchRequests { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<Pet> Pets { get; set; }

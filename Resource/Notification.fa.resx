@@ -516,4 +516,31 @@
   <data name="ReferralCodeCanNotBeYours" xml:space="preserve">
     <value>نمی توانید کد معرفی خودتان را استفاده کنید</value>
   </data>
+  <data name="PleaseSelectPastilMatchGoal" xml:space="preserve">
+    <value>لطفا هدف خود را وارد نمایید.</value>
+  </data>
+  <data name="PastilMatchProfileAlreadyExists" xml:space="preserve">
+    <value>این پت از قبل پروفایل دارد</value>
+  </data>
+  <data name="PastilMatchProfileCreateCooldown" xml:space="preserve">
+    <value>باید از زمان پاک شدن پروفایل قبلی 24 ساعت گدشته باشد</value>
+  </data>
+  <data name="PastilMatchProfileAlreadyVerified" xml:space="preserve">
+    <value>این پروفایل قبلا توسط پاستیل تایید شده است</value>
+  </data>
+  <data name="PastilMatchVerificationRequestAlreadySent" xml:space="preserve">
+    <value>برای این پروفایل قبلا درخواست داده اید،مدیران ما در حال بررسی می باشند</value>
+  </data>
+  <data name="PastilMatchAdminDescriptionRequired" xml:space="preserve">
+    <value>توضیحات ادمین ضروری است</value>
+  </data>
+  <data name="PastilMatchVerificationRequestNotPending" xml:space="preserve">
+    <value>درخواست تأییدی برای این پروفایل در انتظار بررسی نیست</value>
+  </data>
+  <data name="InvalidPastilMatchGoal" xml:space="preserve">
+    <value>چنین هدفی وجود ندارد</value>
+  </data>
+  <data name="PastilMatchProfileGoalAlreadyExists" xml:space="preserve">
+    <value>این هدف از قبل وجود دارد</value>
+  </data>
 </root>

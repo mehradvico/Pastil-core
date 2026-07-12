@@ -208,6 +208,10 @@ using Application.Services.PansionSrvs.PansionReserveSrv;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
 using Application.Services.PansionSrvs.PansionSrv;
 using Application.Services.PansionSrvs.PansionSrv.Iface;
+using Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv;
+using Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv.Iface;
+using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv;
+using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Iface;
 using Application.Services.PermissionSrv;
 using Application.Services.ProductSrv.ProductCategorySrv;
 using Application.Services.ProductSrvs.BrandCategorySrv;
@@ -417,6 +421,10 @@ public static class ConfigureServices
         services.AddScoped<IPansionService, PansionService>();
         services.AddScoped<IParkService, ParkService>();
         services.AddScoped<IParkPictureService, ParkPictureService>();
+
+        services.AddScoped<IPastilMatchProfileService, PastilMatchProfileService>();
+        services.AddScoped<IPastilMatchProfileGoalService, PastilMatchProfileGoalService>();
+
         services.AddScoped<IPaymentGateway, MellatGateway>();
         services.AddScoped<IPaymentGateway, ParsianGateway>();
         services.AddScoped<IPaymentGateway, SamanKishGateway>();

@@ -2500,6 +2500,85 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileActiveController">
+            <summary>
+            مدیریت پروفایل های پاستیل مچ
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchProfileActiveController.Put(Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto.PastilMatchProfileActiveDto)">
+            <summary>
+            فعالسازی آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileController">
+            <summary>
+            مدیریت پروفایل های پاستیل مچ
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchProfileController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchProfileController.Get(Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto.PastilMatchProfileInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchProfileController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileGoalController">
+            <summary>
+            مدیریت اهداف پروفایل‌های پاستیل مچ
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchProfileGoalController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchProfileGoalController.Get(Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv.Dto.PastilMatchProfileGoalInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchProfileGoalController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileVerificationController">
+            <summary>
+            مدیریت پروفایل های پاستیل مچ
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchProfileVerificationController.Put(Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto.PastilMatchProfileVerificationDto)">
+            <summary>
+            تایید آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PermissionController">
              <summary>
              مدیریت دسترسی ها
@@ -6411,6 +6490,100 @@
             </summary>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchProfileController">
+            <summary>
+            مدیریت پروفایل های پاستیل مچ
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileController.Get(Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto.PastilMatchProfileInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileController.Post(Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto.PastilMatchProfileDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileController.Put(Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto.PastilMatchProfileDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchProfileGoalController">
+            <summary>
+            مدیریت اهداف پروفایل پاستیل مچ کاربر
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileGoalController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileGoalController.Get(Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv.Dto.PastilMatchProfileGoalInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileGoalController.Post(Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv.Dto.PastilMatchProfileGoalDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileGoalController.Put(Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv.Dto.PastilMatchProfileGoalDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileGoalController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchProfileVerificationRequestController">
+            <summary>
+            مدیریت پروفایل های پاستیل مچ
+            </summary>
+            <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchProfileVerificationRequestController.Post(Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto.PastilMatchProfileVerificationRequestDto)">
+            <summary>
+            درخواست تایید
+            </summary>
+            <returns></returns>
+            
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PermissionMenuController">
              <summary>

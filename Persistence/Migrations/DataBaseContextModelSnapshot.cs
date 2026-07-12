@@ -35,7 +35,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CategoriesId");
 
-                    b.ToTable("BrandCategory");
+                    b.ToTable("BrandCategory", (string)null);
                 });
 
             modelBuilder.Entity("CategoryFeature", b =>
@@ -50,7 +50,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("FeaturesId");
 
-                    b.ToTable("CategoryFeature");
+                    b.ToTable("CategoryFeature", (string)null);
                 });
 
             modelBuilder.Entity("CategoryPost", b =>
@@ -65,7 +65,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PostsId");
 
-                    b.ToTable("CategoryPost");
+                    b.ToTable("CategoryPost", (string)null);
                 });
 
             modelBuilder.Entity("CategoryProduct", b =>
@@ -80,7 +80,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProductsId");
 
-                    b.ToTable("CategoryProduct");
+                    b.ToTable("CategoryProduct", (string)null);
                 });
 
             modelBuilder.Entity("CodeCompanionAssistance", b =>
@@ -95,7 +95,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CompanionAssistancesId");
 
-                    b.ToTable("CodeCompanionAssistance");
+                    b.ToTable("CodeCompanionAssistance", (string)null);
                 });
 
             modelBuilder.Entity("CompanionAssistancePackageCompanionReserve", b =>
@@ -110,7 +110,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CompanionReservesId");
 
-                    b.ToTable("CompanionAssistancePackageCompanionReserve");
+                    b.ToTable("CompanionAssistancePackageCompanionReserve", (string)null);
                 });
 
             modelBuilder.Entity("CompanionReserveUserPet", b =>
@@ -125,7 +125,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserPetsId");
 
-                    b.ToTable("CompanionReserveUserPet");
+                    b.ToTable("CompanionReserveUserPet", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Address", b =>
@@ -178,7 +178,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.AdminSetting", b =>
@@ -200,7 +200,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AdminSettings");
+                    b.ToTable("AdminSettings", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Assistance", b =>
@@ -236,7 +236,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("Assistances");
+                    b.ToTable("Assistances", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.AssistanceQuestionnaire", b =>
@@ -266,7 +266,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("AssistanceId");
 
-                    b.ToTable("AssistanceQuestionnaires");
+                    b.ToTable("AssistanceQuestionnaires", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Bank", b =>
@@ -302,7 +302,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("Banks");
+                    b.ToTable("Banks", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.BankCard", b =>
@@ -321,7 +321,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BankCards");
+                    b.ToTable("BankCards", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Banner", b =>
@@ -373,7 +373,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("Banners");
+                    b.ToTable("Banners", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.BaseDetail", b =>
@@ -419,7 +419,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BaseDetails");
+                    b.ToTable("BaseDetails", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Brand", b =>
@@ -496,7 +496,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("Brands");
+                    b.ToTable("Brands", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Cargo", b =>
@@ -579,7 +579,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserPetId");
 
-                    b.ToTable("Cargoes");
+                    b.ToTable("Cargoes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Cart", b =>
@@ -653,7 +653,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Carts");
+                    b.ToTable("Carts", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CartItem", b =>
@@ -687,7 +687,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CartStore", b =>
@@ -736,7 +736,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("CartStores");
+                    b.ToTable("CartStores", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Category", b =>
@@ -815,7 +815,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ClubReward", b =>
@@ -851,7 +851,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("RebateId1");
 
-                    b.ToTable("ClubRewards");
+                    b.ToTable("ClubRewards", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Code", b =>
@@ -884,7 +884,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CodeGroupId");
 
-                    b.ToTable("Codes");
+                    b.ToTable("Codes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CodeGroup", b =>
@@ -903,7 +903,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CodeGroups");
+                    b.ToTable("CodeGroups", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Comment", b =>
@@ -944,7 +944,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
 
                     b.UseTptMappingStrategy();
                 });
@@ -975,7 +975,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CommentLikes");
+                    b.ToTable("CommentLikes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Companion", b =>
@@ -1109,7 +1109,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("Companions");
+                    b.ToTable("Companions", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionAssistance", b =>
@@ -1155,7 +1155,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CompanionTypeId");
 
-                    b.ToTable("CompanionAssistances");
+                    b.ToTable("CompanionAssistances", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionAssistancePackage", b =>
@@ -1199,7 +1199,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("CompanionAssistancePackages");
+                    b.ToTable("CompanionAssistancePackages", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionAssistanceTime", b =>
@@ -1234,7 +1234,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("WeekDayId");
 
-                    b.ToTable("CompanionAssistanceTimes");
+                    b.ToTable("CompanionAssistanceTimes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionAssistanceUser", b =>
@@ -1266,7 +1266,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CompanionAssistanceUsers");
+                    b.ToTable("CompanionAssistanceUsers", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionAssistancePackagePicture", b =>
@@ -1289,7 +1289,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("CompanionAssistancePackagePictures");
+                    b.ToTable("CompanionAssistancePackagePictures", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionAssistanceReport", b =>
@@ -1318,7 +1318,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CompanionAssistanceReports");
+                    b.ToTable("CompanionAssistanceReports", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionInsurancePackage", b =>
@@ -1368,7 +1368,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PetId");
 
-                    b.ToTable("CompanionInsurancePackages");
+                    b.ToTable("CompanionInsurancePackages", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionInsurancePackageSale", b =>
@@ -1434,7 +1434,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserPetId");
 
-                    b.ToTable("CompanionInsurancePackageSales");
+                    b.ToTable("CompanionInsurancePackageSales", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionPet", b =>
@@ -1460,7 +1460,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PetId");
 
-                    b.ToTable("CompanionPets");
+                    b.ToTable("CompanionPets", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionReport", b =>
@@ -1489,7 +1489,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CompanionReports");
+                    b.ToTable("CompanionReports", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionType", b =>
@@ -1515,7 +1515,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("CompanionTypes");
+                    b.ToTable("CompanionTypes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionUser", b =>
@@ -1550,7 +1550,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CompanionUsers");
+                    b.ToTable("CompanionUsers", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionZone", b =>
@@ -1586,7 +1586,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StateId");
 
-                    b.ToTable("CompanionZones");
+                    b.ToTable("CompanionZones", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionReserve", b =>
@@ -1722,7 +1722,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StateId");
 
-                    b.ToTable("CompanionReserves");
+                    b.ToTable("CompanionReserves", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionReserveCommentRate", b =>
@@ -1748,7 +1748,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CompanionReserveCommentId");
 
-                    b.ToTable("CompanionReserveCommentRates");
+                    b.ToTable("CompanionReserveCommentRates", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ContactUs", b =>
@@ -1800,7 +1800,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ContactUses");
+                    b.ToTable("ContactUses", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ContactUsGroup", b =>
@@ -1828,7 +1828,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ContactUsGroups");
+                    b.ToTable("ContactUsGroups", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ContactUsItem", b =>
@@ -1852,7 +1852,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ContactUsId");
 
-                    b.ToTable("ContactUsItems");
+                    b.ToTable("ContactUsItems", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Country", b =>
@@ -1871,7 +1871,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Countries");
+                    b.ToTable("Countries", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Delivery", b =>
@@ -1925,7 +1925,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("Deliveries");
+                    b.ToTable("Deliveries", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.DeliveryDistance", b =>
@@ -1952,7 +1952,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("DeliveryId");
 
-                    b.ToTable("DeliveryDistances");
+                    b.ToTable("DeliveryDistances", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Detail", b =>
@@ -1987,7 +1987,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("Details");
+                    b.ToTable("Details", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Discount", b =>
@@ -2050,7 +2050,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("Discounts");
+                    b.ToTable("Discounts", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.DiscountGroup", b =>
@@ -2077,7 +2077,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("DiscountGroups");
+                    b.ToTable("DiscountGroups", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.DiscussionAnswer", b =>
@@ -2118,7 +2118,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DiscussionAnswers");
+                    b.ToTable("DiscussionAnswers", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.DiscussionAnswerLike", b =>
@@ -2147,7 +2147,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DiscussionAnswerLikes");
+                    b.ToTable("DiscussionAnswerLikes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.DiscussionQuestion", b =>
@@ -2188,7 +2188,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DiscussionQuestions");
+                    b.ToTable("DiscussionQuestions", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Driver", b =>
@@ -2267,7 +2267,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("VehicleCardPictureId");
 
-                    b.ToTable("Drivers");
+                    b.ToTable("Drivers", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.DriverUser", b =>
@@ -2290,7 +2290,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DriverUsers");
+                    b.ToTable("DriverUsers", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Email", b =>
@@ -2343,7 +2343,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("EmailTypeId");
 
-                    b.ToTable("Emails");
+                    b.ToTable("Emails", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.EmailAddress", b =>
@@ -2370,7 +2370,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("EmailHostId");
 
-                    b.ToTable("EmailAddresses");
+                    b.ToTable("EmailAddresses", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.EmailHost", b =>
@@ -2407,7 +2407,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EmailHosts");
+                    b.ToTable("EmailHosts", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.EmailSetting", b =>
@@ -2430,7 +2430,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("EmailTypeId");
 
-                    b.ToTable("EmailSettings");
+                    b.ToTable("EmailSettings", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Feature", b =>
@@ -2472,7 +2472,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("Features");
+                    b.ToTable("Features", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.FeatureItem", b =>
@@ -2499,7 +2499,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("FeatureId");
 
-                    b.ToTable("FeatureItems");
+                    b.ToTable("FeatureItems", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.File", b =>
@@ -2539,7 +2539,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Files");
+                    b.ToTable("Files", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Gallery", b =>
@@ -2610,7 +2610,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("Galleries");
+                    b.ToTable("Galleries", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.GalleryItem", b =>
@@ -2651,7 +2651,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("GalleryItems");
+                    b.ToTable("GalleryItems", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Hashtag", b =>
@@ -2667,7 +2667,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Hashtags");
+                    b.ToTable("Hashtags", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.LocationField.City", b =>
@@ -2688,7 +2688,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StateId");
 
-                    b.ToTable("Cities");
+                    b.ToTable("Cities", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.LocationField.Park", b =>
@@ -2723,7 +2723,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("Parks");
+                    b.ToTable("Parks", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.LocationField.ParkPicture", b =>
@@ -2752,7 +2752,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("ParkPictures");
+                    b.ToTable("ParkPictures", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.MapKey", b =>
@@ -2779,7 +2779,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("MapKeys");
+                    b.ToTable("MapKeys", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Merchant", b =>
@@ -2815,7 +2815,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("BankId");
 
-                    b.ToTable("Merchants");
+                    b.ToTable("Merchants", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.MessageType", b =>
@@ -2843,7 +2843,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MessageTypes");
+                    b.ToTable("MessageTypes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Neighborhood", b =>
@@ -2867,7 +2867,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CityId");
 
-                    b.ToTable("Neighborhoods");
+                    b.ToTable("Neighborhoods", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Newsletter", b =>
@@ -2886,7 +2886,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Newsletters");
+                    b.ToTable("Newsletters", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Notice", b =>
@@ -2923,7 +2923,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserTypeId");
 
-                    b.ToTable("Notices");
+                    b.ToTable("Notices", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.NoticeType", b =>
@@ -2942,7 +2942,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NoticeTypes");
+                    b.ToTable("NoticeTypes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.NotifyMessage", b =>
@@ -2969,7 +2969,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("NotifyMessages");
+                    b.ToTable("NotifyMessages", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.Pansion", b =>
@@ -3053,7 +3053,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StateId");
 
-                    b.ToTable("Pansions");
+                    b.ToTable("Pansions", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.PansionPet", b =>
@@ -3079,7 +3079,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PetId");
 
-                    b.ToTable("PansionPets");
+                    b.ToTable("PansionPets", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.PansionPicture", b =>
@@ -3108,7 +3108,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("PansionPictures");
+                    b.ToTable("PansionPictures", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.PansionReserve", b =>
@@ -3209,7 +3209,485 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserPetId");
 
-                    b.ToTable("PansionReserves");
+                    b.ToTable("PansionReserves", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatch", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CloseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CompatibilityPercent")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("FirstProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PastilMatchGoalId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PastilMatchRequestId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SecondProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("StatusId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FirstProfileId");
+
+                    b.HasIndex("PastilMatchGoalId");
+
+                    b.HasIndex("PastilMatchRequestId");
+
+                    b.HasIndex("SecondProfileId");
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("PastilMatches", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchBlock", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BlockedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BlockerUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("PastilMatchId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlockedUserId");
+
+                    b.HasIndex("BlockerUserId");
+
+                    b.HasIndex("PastilMatchId");
+
+                    b.ToTable("PastilMatchBlocks", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DeliveredDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EditDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsEdited")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("PastilMatchId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PastilMatchMessageTypeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("PinDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ReplyToMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SenderProfileId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PastilMatchId");
+
+                    b.HasIndex("PastilMatchMessageTypeId");
+
+                    b.HasIndex("ReplyToMessageId");
+
+                    b.HasIndex("SenderProfileId");
+
+                    b.ToTable("PastilMatchMessages", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchMessageAttachment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<long>("PastilMatchMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PastilMatchMessageId");
+
+                    b.ToTable("PastilMatchMessageAttachments", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchMessageReaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("PastilMatchMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Reaction")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ReactorProfileId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PastilMatchMessageId");
+
+                    b.HasIndex("ReactorProfileId");
+
+                    b.ToTable("PastilMatchMessageReactions", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchProfile", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AdminDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("EnergyLevelId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastActiveDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LikeCount")
+                        .HasColumnType("int");
+
+                    b.Property<Point>("LiveLocation")
+                        .HasColumnType("geography");
+
+                    b.Property<long?>("NeighborhoodId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SocialLevelId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserPetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("VerificationDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("EnergyLevelId");
+
+                    b.HasIndex("NeighborhoodId");
+
+                    b.HasIndex("SocialLevelId");
+
+                    b.HasIndex("UserPetId");
+
+                    b.ToTable("PastilMatchProfiles", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchProfileGoal", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("PastilMatchGoalId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PastilMatchProfileId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PastilMatchGoalId");
+
+                    b.HasIndex("PastilMatchProfileId");
+
+                    b.ToTable("PastilMatchProfileGoals", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchProfileLike", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("LikedProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LikerProfileId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LikedProfileId");
+
+                    b.HasIndex("LikerProfileId");
+
+                    b.ToTable("PastilMatchProfileLikes", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchReport", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AdminDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("PastilMatchId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PastilMatchMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PastilMatchReportReasonId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ReportedProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ReportedUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ReporterUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ReviewDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PastilMatchId");
+
+                    b.HasIndex("PastilMatchMessageId");
+
+                    b.HasIndex("PastilMatchReportReasonId");
+
+                    b.HasIndex("ReportedProfileId");
+
+                    b.HasIndex("ReportedUserId");
+
+                    b.HasIndex("ReporterUserId");
+
+                    b.ToTable("PastilMatchReports", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchReportReason", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDescriptionRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PastilMatchReportReasons", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchRequest", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CancelDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CompatibilityPercent")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PastilMatchGoalId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ReceiverProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ResponseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("SenderProfileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("StatusId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PastilMatchGoalId");
+
+                    b.HasIndex("ReceiverProfileId");
+
+                    b.HasIndex("SenderProfileId");
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("PastilMatchRequests", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Payment", b =>
@@ -3289,7 +3767,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Pet", b =>
@@ -3314,7 +3792,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Pets");
+                    b.ToTable("Pets", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PetBreed", b =>
@@ -3349,7 +3827,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("PetBreeds");
+                    b.ToTable("PetBreeds", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Picture", b =>
@@ -3389,7 +3867,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Pictures");
+                    b.ToTable("Pictures", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Post", b =>
@@ -3502,7 +3980,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Posts");
+                    b.ToTable("Posts", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PostFile", b =>
@@ -3531,7 +4009,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("PostFiles");
+                    b.ToTable("PostFiles", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PostPicture", b =>
@@ -3560,7 +4038,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("PostPictures");
+                    b.ToTable("PostPictures", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PriceCalculation", b =>
@@ -3588,7 +4066,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PriceCalculations");
+                    b.ToTable("PriceCalculations", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Product", b =>
@@ -3741,7 +4219,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("VarietyId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductFeatureValue", b =>
@@ -3772,7 +4250,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductFeatureValues");
+                    b.ToTable("ProductFeatureValues", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductFile", b =>
@@ -3815,7 +4293,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductFiles");
+                    b.ToTable("ProductFiles", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductItem", b =>
@@ -3881,7 +4359,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("VarietyItemId");
 
-                    b.ToTable("ProductItems");
+                    b.ToTable("ProductItems", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductLike", b =>
@@ -3904,7 +4382,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProductLikes");
+                    b.ToTable("ProductLikes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductOrder", b =>
@@ -4015,7 +4493,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProductOrders");
+                    b.ToTable("ProductOrders", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductOrderItem", b =>
@@ -4062,7 +4540,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProductOrderStoreId");
 
-                    b.ToTable("ProductOrderItems");
+                    b.ToTable("ProductOrderItems", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductOrderStore", b =>
@@ -4114,7 +4592,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("ProductOrderStores");
+                    b.ToTable("ProductOrderStores", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductPicture", b =>
@@ -4140,7 +4618,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductPictures");
+                    b.ToTable("ProductPictures", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductRelate", b =>
@@ -4166,7 +4644,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("RelatedProductId");
 
-                    b.ToTable("ProductRelates");
+                    b.ToTable("ProductRelates", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ProductReport", b =>
@@ -4195,7 +4673,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProductReports");
+                    b.ToTable("ProductReports", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PushMessage", b =>
@@ -4233,7 +4711,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PushMessageTypeId");
 
-                    b.ToTable("PushMessages");
+                    b.ToTable("PushMessages", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PushNotification", b =>
@@ -4302,7 +4780,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PushPatternId");
 
-                    b.ToTable("PushNotifications");
+                    b.ToTable("PushNotifications", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PushPattern", b =>
@@ -4338,7 +4816,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PushTypeId");
 
-                    b.ToTable("PushPatterns");
+                    b.ToTable("PushPatterns", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PushSetting", b =>
@@ -4359,7 +4837,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PushPatternId");
 
-                    b.ToTable("PushSettings");
+                    b.ToTable("PushSettings", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PushSubscription", b =>
@@ -4426,7 +4904,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PushTypes");
+                    b.ToTable("PushTypes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Question", b =>
@@ -4454,7 +4932,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Rebate", b =>
@@ -4521,7 +4999,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Rebate");
+                    b.ToTable("Rebate", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Reminder", b =>
@@ -4558,7 +5036,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserPetId");
 
-                    b.ToTable("Reminders");
+                    b.ToTable("Reminders", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ReminderCycle", b =>
@@ -4580,7 +5058,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReminderCycles");
+                    b.ToTable("ReminderCycles", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ReminderType", b =>
@@ -4599,7 +5077,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReminderTypes");
+                    b.ToTable("ReminderTypes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.ScoreTransaction", b =>
@@ -4634,7 +5112,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ScoreTransactions");
+                    b.ToTable("ScoreTransactions", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Security.OtpVerify", b =>
@@ -4668,7 +5146,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OtpVerifies");
+                    b.ToTable("OtpVerifies", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Security.Permission", b =>
@@ -4710,7 +5188,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ParentId");
 
-                    b.ToTable("Permissions");
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Security.Role", b =>
@@ -4729,7 +5207,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Security.User", b =>
@@ -4800,7 +5278,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Security.UserToken", b =>
@@ -4842,7 +5320,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserTokens");
+                    b.ToTable("UserTokens", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Settlement", b =>
@@ -4882,7 +5360,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserBankCardId");
 
-                    b.ToTable("Settlements");
+                    b.ToTable("Settlements", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.SettlementCompanion", b =>
@@ -4910,7 +5388,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("SettlementId");
 
-                    b.ToTable("SettlementCompanions");
+                    b.ToTable("SettlementCompanions", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.SettlementStore", b =>
@@ -4933,7 +5411,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("SettlementId");
 
-                    b.ToTable("SettlementStores");
+                    b.ToTable("SettlementStores", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Sms", b =>
@@ -4996,7 +5474,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("SmsTypeId");
 
-                    b.ToTable("Smses");
+                    b.ToTable("Smses", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.SmsNumber", b =>
@@ -5026,7 +5504,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("SmsProviderId");
 
-                    b.ToTable("SmsNumbers");
+                    b.ToTable("SmsNumbers", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.SmsProvider", b =>
@@ -5051,7 +5529,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SmsProviders");
+                    b.ToTable("SmsProviders", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.SmsSetting", b =>
@@ -5074,7 +5552,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("SmsTypeId");
 
-                    b.ToTable("SmsSettings");
+                    b.ToTable("SmsSettings", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.State", b =>
@@ -5098,7 +5576,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CountryId");
 
-                    b.ToTable("States");
+                    b.ToTable("States", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.StaticPage", b =>
@@ -5150,7 +5628,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StaticPages");
+                    b.ToTable("StaticPages", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Store", b =>
@@ -5258,7 +5736,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("Stores");
+                    b.ToTable("Stores", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.StoryGroup", b =>
@@ -5288,7 +5766,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.ToTable("StoryGroups");
+                    b.ToTable("StoryGroups", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.StoryItem", b =>
@@ -5358,7 +5836,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StoryGroupId");
 
-                    b.ToTable("StoryItems");
+                    b.ToTable("StoryItems", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.StoryUserLike", b =>
@@ -5381,7 +5859,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("StoryUserLikes");
+                    b.ToTable("StoryUserLikes", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Ticket", b =>
@@ -5439,7 +5917,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Tickets", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.TicketItem", b =>
@@ -5476,7 +5954,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TicketItems");
+                    b.ToTable("TicketItems", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Trip", b =>
@@ -5604,7 +6082,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserPetId");
 
-                    b.ToTable("Trips");
+                    b.ToTable("Trips", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.TripAddress", b =>
@@ -5631,7 +6109,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TripAddresses");
+                    b.ToTable("TripAddresses", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.TripOption", b =>
@@ -5656,7 +6134,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TripOptions");
+                    b.ToTable("TripOptions", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.TripStop", b =>
@@ -5681,7 +6159,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TripStops");
+                    b.ToTable("TripStops", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.UserBankCard", b =>
@@ -5728,7 +6206,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserBankCards");
+                    b.ToTable("UserBankCards", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.UserCategory", b =>
@@ -5757,7 +6235,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserCategories");
+                    b.ToTable("UserCategories", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.UserPet", b =>
@@ -5834,7 +6312,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserPets");
+                    b.ToTable("UserPets", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.UserPetPicture", b =>
@@ -5860,7 +6338,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserPetId");
 
-                    b.ToTable("UserPetPictures");
+                    b.ToTable("UserPetPictures", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.UserPetRecord", b =>
@@ -5889,7 +6367,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserPetId");
 
-                    b.ToTable("UserPetRecords");
+                    b.ToTable("UserPetRecords", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.UserProduct", b =>
@@ -5927,7 +6405,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserProducts");
+                    b.ToTable("UserProducts", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.UserRebate", b =>
@@ -5953,7 +6431,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRebates");
+                    b.ToTable("UserRebates", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Variety", b =>
@@ -5989,7 +6467,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Varieties");
+                    b.ToTable("Varieties", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.VarietyItem", b =>
@@ -6016,7 +6494,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("VarietyId");
 
-                    b.ToTable("VarietyItems");
+                    b.ToTable("VarietyItems", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.Wallet", b =>
@@ -6101,7 +6579,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Wallets");
+                    b.ToTable("Wallets", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.WeekDay", b =>
@@ -6123,7 +6601,7 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WeekDays");
+                    b.ToTable("WeekDays", (string)null);
                 });
 
             modelBuilder.Entity("HashtagPost", b =>
@@ -6138,7 +6616,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("postsId");
 
-                    b.ToTable("HashtagPost");
+                    b.ToTable("HashtagPost", (string)null);
                 });
 
             modelBuilder.Entity("PermissionRole", b =>
@@ -6153,7 +6631,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("RolesId");
 
-                    b.ToTable("PermissionRole");
+                    b.ToTable("PermissionRole", (string)null);
                 });
 
             modelBuilder.Entity("PostProduct", b =>
@@ -6168,7 +6646,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ProductsId");
 
-                    b.ToTable("PostProduct");
+                    b.ToTable("PostProduct", (string)null);
                 });
 
             modelBuilder.Entity("StoreUser", b =>
@@ -6183,7 +6661,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("StoreUser");
+                    b.ToTable("StoreUser", (string)null);
                 });
 
             modelBuilder.Entity("TripTripOption", b =>
@@ -6198,7 +6676,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TripsId");
 
-                    b.ToTable("TripTripOption");
+                    b.ToTable("TripTripOption", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionComment", b =>
@@ -6210,7 +6688,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CompanionId");
 
-                    b.ToTable("CompanionComments");
+                    b.ToTable("CompanionComments", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionReserveComment", b =>
@@ -6237,7 +6715,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PansionId");
 
-                    b.ToTable("PansionComments");
+                    b.ToTable("PansionComments", (string)null);
                 });
 
             modelBuilder.Entity("Entities.Entities.PostComment", b =>
@@ -6273,7 +6751,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StoreId");
 
-                    b.ToTable("StoreComments");
+                    b.ToTable("StoreComments", (string)null);
                 });
 
             modelBuilder.Entity("BrandCategory", b =>
@@ -7687,6 +8165,292 @@ namespace Persistence.Migrations
                     b.Navigation("Status");
 
                     b.Navigation("UserPet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatch", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "FirstProfile")
+                        .WithMany()
+                        .HasForeignKey("FirstProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Code", "PastilMatchGoal")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchGoalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchRequest", "PastilMatchRequest")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchRequestId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "SecondProfile")
+                        .WithMany()
+                        .HasForeignKey("SecondProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Code", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FirstProfile");
+
+                    b.Navigation("PastilMatchGoal");
+
+                    b.Navigation("PastilMatchRequest");
+
+                    b.Navigation("SecondProfile");
+
+                    b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchBlock", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "BlockedUser")
+                        .WithMany()
+                        .HasForeignKey("BlockedUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "BlockerUser")
+                        .WithMany()
+                        .HasForeignKey("BlockerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatch", "PastilMatch")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchId");
+
+                    b.Navigation("BlockedUser");
+
+                    b.Navigation("BlockerUser");
+
+                    b.Navigation("PastilMatch");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchMessage", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatch", "PastilMatch")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Code", "PastilMatchMessageType")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchMessageTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchMessage", "ReplyToMessage")
+                        .WithMany()
+                        .HasForeignKey("ReplyToMessageId");
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "SenderProfile")
+                        .WithMany()
+                        .HasForeignKey("SenderProfileId");
+
+                    b.Navigation("PastilMatch");
+
+                    b.Navigation("PastilMatchMessageType");
+
+                    b.Navigation("ReplyToMessage");
+
+                    b.Navigation("SenderProfile");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchMessageAttachment", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchMessage", "PastilMatchMessage")
+                        .WithMany("Attachments")
+                        .HasForeignKey("PastilMatchMessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PastilMatchMessage");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchMessageReaction", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchMessage", "PastilMatchMessage")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchMessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "ReactorProfile")
+                        .WithMany()
+                        .HasForeignKey("ReactorProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PastilMatchMessage");
+
+                    b.Navigation("ReactorProfile");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchProfile", b =>
+                {
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId");
+
+                    b.HasOne("Entities.Entities.Code", "EnergyLevel")
+                        .WithMany()
+                        .HasForeignKey("EnergyLevelId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Neighborhood", "Neighborhood")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId");
+
+                    b.HasOne("Entities.Entities.Code", "SocialLevel")
+                        .WithMany()
+                        .HasForeignKey("SocialLevelId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.UserPet", "UserPet")
+                        .WithMany()
+                        .HasForeignKey("UserPetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("EnergyLevel");
+
+                    b.Navigation("Neighborhood");
+
+                    b.Navigation("SocialLevel");
+
+                    b.Navigation("UserPet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchProfileGoal", b =>
+                {
+                    b.HasOne("Entities.Entities.Code", "PastilMatchGoal")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchGoalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "PastilMatchProfile")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PastilMatchGoal");
+
+                    b.Navigation("PastilMatchProfile");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchProfileLike", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "LikedProfile")
+                        .WithMany()
+                        .HasForeignKey("LikedProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "LikerProfile")
+                        .WithMany()
+                        .HasForeignKey("LikerProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("LikedProfile");
+
+                    b.Navigation("LikerProfile");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchReport", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatch", "PastilMatch")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchId");
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchMessage", "PastilMatchMessage")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchMessageId");
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchReportReason", "PastilMatchReportReason")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchReportReasonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "ReportedProfile")
+                        .WithMany()
+                        .HasForeignKey("ReportedProfileId");
+
+                    b.HasOne("Entities.Entities.Security.User", "ReportedUser")
+                        .WithMany()
+                        .HasForeignKey("ReportedUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "ReporterUser")
+                        .WithMany()
+                        .HasForeignKey("ReporterUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PastilMatch");
+
+                    b.Navigation("PastilMatchMessage");
+
+                    b.Navigation("PastilMatchReportReason");
+
+                    b.Navigation("ReportedProfile");
+
+                    b.Navigation("ReportedUser");
+
+                    b.Navigation("ReporterUser");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchRequest", b =>
+                {
+                    b.HasOne("Entities.Entities.Code", "PastilMatchGoal")
+                        .WithMany()
+                        .HasForeignKey("PastilMatchGoalId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "ReceiverProfile")
+                        .WithMany()
+                        .HasForeignKey("ReceiverProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilMatchField.PastilMatchProfile", "SenderProfile")
+                        .WithMany()
+                        .HasForeignKey("SenderProfileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Code", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PastilMatchGoal");
+
+                    b.Navigation("ReceiverProfile");
+
+                    b.Navigation("SenderProfile");
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Entities.Entities.Payment", b =>
@@ -9234,6 +9998,11 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.PansionField.PansionReserve", b =>
                 {
                     b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchMessage", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("Entities.Entities.Payment", b =>
