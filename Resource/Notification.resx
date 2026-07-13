@@ -543,4 +543,46 @@
   <data name="PastilMatchProfileGoalAlreadyExists" xml:space="preserve">
     <value>Pastil Match Profile Goal Already Exists</value>
   </data>
+  <data name="PastilMatchProfileCannotLikeItself" xml:space="preserve">
+    <value>Pastil Match Profile Cannot Like It self</value>
+  </data>
+  <data name="PastilMatchRequestCannotSendToItself" xml:space="preserve">
+    <value>Pastil Match Request Cannot Send To It self</value>
+  </data>
+  <data name="PastilMatchGoalNotSelected" xml:space="preserve">
+    <value>PastilMatchGoalNotSelected</value>
+  </data>
+  <data name="PastilMatchPendingRequestAlreadyExists" xml:space="preserve">
+    <value>PastilMatchPendingRequestAlreadyExists</value>
+  </data>
+  <data name="PastilMatchAlreadyExists" xml:space="preserve">
+    <value>PastilMatchAlreadyExists</value>
+  </data>
+  <data name="InvalidPastilMatchRequestStatus" xml:space="preserve">
+    <value>InvalidPastilMatchRequestStatus</value>
+  </data>
+  <data name="PastilMatchRequestNotPending" xml:space="preserve">
+    <value>PastilMatchRequestNotPending</value>
+  </data>
+  <data name="PastilMatchNotActive" xml:space="preserve">
+    <value>Pastil Match Not Active</value>
+  </data>
+  <data name="PastilMatchCannotBlockYourself" xml:space="preserve">
+    <value>PastilMatchCannotBlockYourself</value>
+  </data>
+  <data name="PastilMatchCannotReportYourself" xml:space="preserve">
+    <value>PastilMatchCannotReportYourself</value>
+  </data>
+  <data name="InvalidPastilMatchReportReason" xml:space="preserve">
+    <value>InvalidPastilMatchReportReason</value>
+  </data>
+  <data name="PastilMatchReportDescriptionRequired" xml:space="preserve">
+    <value>PastilMatchReportDescriptionRequired</value>
+  </data>
+  <data name="PastilMatchReportTargetMismatch" xml:space="preserve">
+    <value>PastilMatchReportTargetMismatch</value>
+  </data>
+  <data name="PastilMatchReportAdminDescriptionRequired" xml:space="preserve">
+    <value>PastilMatchReportAdminDescriptionRequired</value>
+  </data>
 </root>

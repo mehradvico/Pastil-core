@@ -210,8 +210,14 @@ using Application.Services.PansionSrvs.PansionSrv;
 using Application.Services.PansionSrvs.PansionSrv.Iface;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv.Iface;
+using Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv;
+using Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv.Iface;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Iface;
+using Application.Services.PastilMatchSrvs.PastilMatchRequestSrv;
+using Application.Services.PastilMatchSrvs.PastilMatchRequestSrv.Iface;
+using Application.Services.PastilMatchSrvs.PastilMatchSrv;
+using Application.Services.PastilMatchSrvs.PastilMatchSrv.Iface;
 using Application.Services.PermissionSrv;
 using Application.Services.ProductSrv.ProductCategorySrv;
 using Application.Services.ProductSrvs.BrandCategorySrv;
@@ -424,6 +430,9 @@ public static class ConfigureServices
 
         services.AddScoped<IPastilMatchProfileService, PastilMatchProfileService>();
         services.AddScoped<IPastilMatchProfileGoalService, PastilMatchProfileGoalService>();
+        services.AddScoped<IPastilMatchProfileLikeService, PastilMatchProfileLikeService>();
+        services.AddScoped<IPastilMatchRequestService, PastilMatchRequestService>();
+        services.AddScoped<IPastilMatchService, PastilMatchService>();
 
         services.AddScoped<IPaymentGateway, MellatGateway>();
         services.AddScoped<IPaymentGateway, ParsianGateway>();

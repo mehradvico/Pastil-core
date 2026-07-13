@@ -61,24 +61,12 @@
     <Folder Include="Services\Accounting\UserSrv\UserSrv\" />
     <Folder Include="Services\CommonSrv\CommentSrv\Iface\" />
     <Folder Include="Services\CommonSrv\PushNotificationSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchBlockSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchBlockSrv\Iface\" />
     <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageAttachmentSrv\Dto\" />
     <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageAttachmentSrv\Iface\" />
     <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageReactionSrv\Dto\" />
     <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageReactionSrv\Iface\" />
     <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageSrv\Dto\" />
     <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageSrv\Iface\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchProfileLikeSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchProfileLikeSrv\Iface\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchReportReasonSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchReportReasonSrv\Iface\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchReportSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchReportSrv\Iface\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchRequestSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchRequestSrv\Iface\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchSrv\Iface\" />
     <Folder Include="Services\Setting\EmailSrv\Dto\" />
   </ItemGroup>
   <ItemGroup>

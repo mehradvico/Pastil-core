@@ -295,6 +295,24 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to InvalidPastilMatchReportReason.
+        /// </summary>
+        public static string InvalidPastilMatchReportReason {
+            get {
+                return ResourceManager.GetString("InvalidPastilMatchReportReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to InvalidPastilMatchRequestStatus.
+        /// </summary>
+        public static string InvalidPastilMatchRequestStatus {
+            get {
+                return ResourceManager.GetString("InvalidPastilMatchRequestStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid time format.
         /// </summary>
         public static string InvalidTimeFormat {
@@ -394,6 +412,60 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PastilMatchAlreadyExists.
+        /// </summary>
+        public static string PastilMatchAlreadyExists {
+            get {
+                return ResourceManager.GetString("PastilMatchAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PastilMatchCannotBlockYourself.
+        /// </summary>
+        public static string PastilMatchCannotBlockYourself {
+            get {
+                return ResourceManager.GetString("PastilMatchCannotBlockYourself", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PastilMatchCannotReportYourself.
+        /// </summary>
+        public static string PastilMatchCannotReportYourself {
+            get {
+                return ResourceManager.GetString("PastilMatchCannotReportYourself", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PastilMatchGoalNotSelected.
+        /// </summary>
+        public static string PastilMatchGoalNotSelected {
+            get {
+                return ResourceManager.GetString("PastilMatchGoalNotSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Not Active.
+        /// </summary>
+        public static string PastilMatchNotActive {
+            get {
+                return ResourceManager.GetString("PastilMatchNotActive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PastilMatchPendingRequestAlreadyExists.
+        /// </summary>
+        public static string PastilMatchPendingRequestAlreadyExists {
+            get {
+                return ResourceManager.GetString("PastilMatchPendingRequestAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pastil Match Profile Already Exists.
         /// </summary>
         public static string PastilMatchProfileAlreadyExists {
@@ -412,6 +484,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Profile Cannot Like It self.
+        /// </summary>
+        public static string PastilMatchProfileCannotLikeItself {
+            get {
+                return ResourceManager.GetString("PastilMatchProfileCannotLikeItself", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pastil Match Profile Create Cooldown.
         /// </summary>
         public static string PastilMatchProfileCreateCooldown {
@@ -426,6 +507,51 @@ namespace Resource {
         public static string PastilMatchProfileGoalAlreadyExists {
             get {
                 return ResourceManager.GetString("PastilMatchProfileGoalAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PastilMatchReportAdminDescriptionRequired.
+        /// </summary>
+        public static string PastilMatchReportAdminDescriptionRequired {
+            get {
+                return ResourceManager.GetString("PastilMatchReportAdminDescriptionRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PastilMatchReportDescriptionRequired.
+        /// </summary>
+        public static string PastilMatchReportDescriptionRequired {
+            get {
+                return ResourceManager.GetString("PastilMatchReportDescriptionRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PastilMatchReportTargetMismatch.
+        /// </summary>
+        public static string PastilMatchReportTargetMismatch {
+            get {
+                return ResourceManager.GetString("PastilMatchReportTargetMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Request Cannot Send To It self.
+        /// </summary>
+        public static string PastilMatchRequestCannotSendToItself {
+            get {
+                return ResourceManager.GetString("PastilMatchRequestCannotSendToItself", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PastilMatchRequestNotPending.
+        /// </summary>
+        public static string PastilMatchRequestNotPending {
+            get {
+                return ResourceManager.GetString("PastilMatchRequestNotPending", resourceCulture);
             }
         }
         

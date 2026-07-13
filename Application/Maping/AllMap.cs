@@ -96,8 +96,14 @@ using Application.Services.PansionSrvs.PansionPetSrv.Dto;
 using Application.Services.PansionSrvs.PansionPictureSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchBlockSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchReportReasonSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchReportSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchRequestSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchSrv.Dto;
 using Application.Services.ProductSrvs.BrandCategorySrv.Dto;
 using Application.Services.ProductSrvs.BrandSrv.Dto;
 using Application.Services.ProductSrvs.DiscountGroupSrv.Dto;
@@ -524,7 +530,33 @@ namespace Application.Maping
             CreateMap<PastilMatchProfile, PastilMatchProfileVDto>();
             CreateMap<PastilMatchProfileGoal, PastilMatchProfileGoalDto>();
             CreateMap<PastilMatchProfileGoalDto, PastilMatchProfileGoal>();
-            CreateMap<PastilMatchProfileGoal, PastilMatchProfileGoalVDto>().ForMember(x => x.PastilMatchGoalName, x => x.MapFrom(s => s.PastilMatchGoal.Name)).ForMember(x => x.PastilMatchGoalLabel, x => x.MapFrom(s => s.PastilMatchGoal.Label));
+            CreateMap<PastilMatchProfileGoal, PastilMatchProfileGoalVDto>().ForMember(x => x.PastilMatchGoalName, x => x.MapFrom(s => s.PastilMatchGoal.Name))
+                .ForMember(x => x.PastilMatchGoalLabel, x => x.MapFrom(s => s.PastilMatchGoal.Label));
+            CreateMap<PastilMatchProfileLike, PastilMatchProfileLikeDto>();
+            CreateMap<PastilMatchProfileLikeDto, PastilMatchProfileLike>().ForMember(x => x.Deleted, x => x.Ignore()).ForMember(x => x.CreateDate, x => x.Ignore())
+                .ForMember(x => x.LikerProfile, x => x.Ignore()).ForMember(x => x.LikedProfile, x => x.Ignore());
+            CreateMap<PastilMatchRequest, PastilMatchRequestDto>();
+            CreateMap<PastilMatchRequestDto, PastilMatchRequest>()
+                .ForMember(x => x.SenderProfile, x => x.Ignore()).ForMember(x => x.ReceiverProfile, x => x.Ignore()).ForMember(x => x.PastilMatchGoal, x => x.Ignore()).ForMember(x => x.Status, x => x.Ignore());
+            CreateMap<PastilMatchRequest, PastilMatchRequestVDto>();
+            CreateMap<PastilMatch, PastilMatchDto>();
+            CreateMap<PastilMatchDto, PastilMatch>().ForMember(x => x.PastilMatchRequest, x => x.Ignore()).ForMember(x => x.FirstProfile, x => x.Ignore())
+                .ForMember(x => x.SecondProfile, x => x.Ignore()).ForMember(x => x.PastilMatchGoal, x => x.Ignore()).ForMember(x => x.Status, x => x.Ignore());
+            CreateMap<PastilMatch, PastilMatchVDto>();
+            CreateMap<PastilMatchBlock, PastilMatchBlockDto>();
+            CreateMap<PastilMatchBlockDto, PastilMatchBlock>().ForMember(x => x.BlockerUserId, x => x.Ignore()).ForMember(x => x.Deleted, x => x.Ignore())
+                .ForMember(x => x.CreateDate, x => x.Ignore()).ForMember(x => x.BlockerUser, x => x.Ignore()).ForMember(x => x.BlockedUser, x => x.Ignore())
+                .ForMember(x => x.PastilMatch, x => x.Ignore());
+            CreateMap<PastilMatchBlock, PastilMatchBlockVDto>();
+            CreateMap<PastilMatchReport, PastilMatchReportDto>();
+            CreateMap<PastilMatchReportDto, PastilMatchReport>().ForMember(x => x.ReporterUserId, x => x.Ignore())
+                .ForMember(x => x.AdminDescription, x => x.Ignore()).ForMember(x => x.ReviewDate, x => x.Ignore()).ForMember(x => x.CreateDate, x => x.Ignore())
+                .ForMember(x => x.ReporterUser, x => x.Ignore()).ForMember(x => x.ReportedUser, x => x.Ignore()).ForMember(x => x.ReportedProfile, x => x.Ignore())
+                .ForMember(x => x.PastilMatch, x => x.Ignore()).ForMember(x => x.PastilMatchMessage, x => x.Ignore()).ForMember(x => x.PastilMatchReportReason, x => x.Ignore());
+            CreateMap<PastilMatchReport, PastilMatchReportVDto>().ForMember(x => x.PastilMatchReportReasonTitle, x => x.MapFrom(s => s.PastilMatchReportReason.Title)).ForMember(x => x.PastilMatchReportReasonDescription, x => x.MapFrom(s => s.PastilMatchReportReason.Description));
+            CreateMap<PastilMatchReportReason, PastilMatchReportReasonDto>();
+            CreateMap<PastilMatchReportReasonDto, PastilMatchReportReason>().ForMember(x => x.Deleted, x => x.Ignore());
+            CreateMap<PastilMatchReportReason, PastilMatchReportReasonVDto>();
             //PastilMatch End ----------------------------------------------
 
 

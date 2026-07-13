@@ -543,4 +543,46 @@
   <data name="PastilMatchProfileGoalAlreadyExists" xml:space="preserve">
     <value>این هدف از قبل وجود دارد</value>
   </data>
+  <data name="PastilMatchProfileCannotLikeItself" xml:space="preserve">
+    <value>نمیتوانید پروفایل خودتان را لایک کنید</value>
+  </data>
+  <data name="PastilMatchRequestCannotSendToItself" xml:space="preserve">
+    <value>نمیتونی به پروفایل خودت درخواست بدی</value>
+  </data>
+  <data name="PastilMatchGoalNotSelected" xml:space="preserve">
+    <value>هدف از مچ انتخاب نشده است</value>
+  </data>
+  <data name="PastilMatchPendingRequestAlreadyExists" xml:space="preserve">
+    <value>درخواست شما از قبل ثبت شده باید منتظر بمانید</value>
+  </data>
+  <data name="PastilMatchAlreadyExists" xml:space="preserve">
+    <value>شما به این کاربر متصل هستید</value>
+  </data>
+  <data name="InvalidPastilMatchRequestStatus" xml:space="preserve">
+    <value>این وضعیت صحیح نمی باشد</value>
+  </data>
+  <data name="PastilMatchRequestNotPending" xml:space="preserve">
+    <value>درخواست در حال اجرا نمی باشد</value>
+  </data>
+  <data name="PastilMatchNotActive" xml:space="preserve">
+    <value>این مچ بسته شده است</value>
+  </data>
+  <data name="PastilMatchCannotBlockYourself" xml:space="preserve">
+    <value>نمیتونی خودتو بلاک کنی</value>
+  </data>
+  <data name="PastilMatchCannotReportYourself" xml:space="preserve">
+    <value>نمیتونی خودتو گزارش کنی ک</value>
+  </data>
+  <data name="InvalidPastilMatchReportReason" xml:space="preserve">
+    <value>دلیل گزارش مشخص نشده است</value>
+  </data>
+  <data name="PastilMatchReportDescriptionRequired" xml:space="preserve">
+    <value>توضیحات را وارد نمایید</value>
+  </data>
+  <data name="PastilMatchReportTargetMismatch" xml:space="preserve">
+    <value>خطای سیستمی</value>
+  </data>
+  <data name="PastilMatchReportAdminDescriptionRequired" xml:space="preserve">
+    <value>لطفا توضیحات را وارد نمایید</value>
+  </data>
 </root>
