@@ -585,4 +585,55 @@
   <data name="PastilMatchReportAdminDescriptionRequired" xml:space="preserve">
     <value>PastilMatchReportAdminDescriptionRequired</value>
   </data>
+  <data name="PastilMatchMessageSenderRequired" xml:space="preserve">
+    <value>PastilMatchMessageSenderRequired</value>
+  </data>
+  <data name="InvalidPastilMatchMessageType" xml:space="preserve">
+    <value>InvalidPastilMatchMessageType</value>
+  </data>
+  <data name="PastilMatchMessageContentRequired" xml:space="preserve">
+    <value>PastilMatchMessageContentRequired</value>
+  </data>
+  <data name="InvalidPastilMatchReplyMessage" xml:space="preserve">
+    <value>InvalidPastilMatchReplyMessage</value>
+  </data>
+  <data name="PastilMatchMessageEditNotAvailable" xml:space="preserve">
+    <value>PastilMatchMessageEditNotAvailable</value>
+  </data>
+  <data name="PastilMatchMessageAttachmentNotAvailable" xml:space="preserve">
+    <value>PastilMatchMessageAttachmentNotAvailable</value>
+  </data>
+  <data name="InvalidPastilMatchImageContentType" xml:space="preserve">
+    <value>InvalidPastilMatchImageContentType</value>
+  </data>
+  <data name="InvalidPastilMatchVoiceContentType" xml:space="preserve">
+    <value>InvalidPastilMatchVoiceContentType</value>
+  </data>
+  <data name="PastilMatchVoiceDurationRequired" xml:space="preserve">
+    <value>PastilMatchVoiceDurationRequired</value>
+  </data>
+  <data name="PastilMatchAttachmentUrlRequired" xml:space="preserve">
+    <value>PastilMatchAttachmentUrlRequired</value>
+  </data>
+  <data name="PastilMatchAttachmentContentTypeRequired" xml:space="preserve">
+    <value>PastilMatchAttachmentContentTypeRequired</value>
+  </data>
+  <data name="PastilMatchAttachmentFileSizeInvalid" xml:space="preserve">
+    <value>PastilMatchAttachmentFileSizeInvalid</value>
+  </data>
+  <data name="PastilMatchAttachmentOrderInvalid" xml:space="preserve">
+    <value>PastilMatchAttachmentOrderInvalid</value>
+  </data>
+  <data name="PastilMatchAttachmentAlreadyExists" xml:space="preserve">
+    <value>PastilMatchAttachmentAlreadyExists</value>
+  </data>
+  <data name="PastilMatchVoiceAttachmentAlreadyExists" xml:space="preserve">
+    <value>PastilMatchVoiceAttachmentAlreadyExists</value>
+  </data>
+  <data name="PastilMatchMessageReactionRequired" xml:space="preserve">
+    <value>PastilMatchMessageReactionRequired</value>
+  </data>
+  <data name="PastilMatchMessageReactionTooLong" xml:space="preserve">
+    <value>PastilMatchMessageReactionTooLong</value>
+  </data>
 </root>

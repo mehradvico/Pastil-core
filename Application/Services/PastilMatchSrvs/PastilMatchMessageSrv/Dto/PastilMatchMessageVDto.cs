@@ -1,13 +1,14 @@
-﻿using Entities.Entities.CommonField;
+﻿using Application.Common.Dto.Field;
+using Application.Services.Setting.CodeSrv.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Entities.Entities.PastilMatchField
+namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto
 {
-    public class PastilMatchMessage : Id_Field
+    public class PastilMatchMessageVDto : Id_FieldDto
     {
         public long PastilMatchId { get; set; }
         public long? SenderProfileId { get; set; }
@@ -25,15 +26,12 @@ namespace Entities.Entities.PastilMatchField
         public DateTime? DeliveredDate { get; set; }
         public DateTime? ReadDate { get; set; }
 
-        public bool Deleted { get; set; }
         public DateTime CreateDate { get; set; }
 
-        public PastilMatch PastilMatch { get; set; }
-        public PastilMatchProfile SenderProfile { get; set; }
-        public Code PastilMatchMessageType { get; set; }
-        public PastilMatchMessage ReplyToMessage { get; set; }
+        public CodeVDto PastilMatchMessageType { get; set; }
+        public PastilMatchMessageReplyVDto ReplyToMessage { get; set; }
 
-        public ICollection<PastilMatchMessageAttachment> Attachments { get; set; }
-        public ICollection<PastilMatchMessageReaction> Reactions { get; set; }
+        public List<PastilMatchMessageAttachmentItemVDto> Attachments { get; set; }
+        public List<PastilMatchMessageReactionItemVDto> Reactions { get; set; }
     }
 }

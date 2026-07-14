@@ -97,6 +97,9 @@ using Application.Services.PansionSrvs.PansionPictureSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchBlockSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto;
+using Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto;
@@ -557,6 +560,29 @@ namespace Application.Maping
             CreateMap<PastilMatchReportReason, PastilMatchReportReasonDto>();
             CreateMap<PastilMatchReportReasonDto, PastilMatchReportReason>().ForMember(x => x.Deleted, x => x.Ignore());
             CreateMap<PastilMatchReportReason, PastilMatchReportReasonVDto>();
+            CreateMap<PastilMatchMessage, PastilMatchMessageDto>();
+            CreateMap<PastilMatchMessageDto, PastilMatchMessage>()
+                .ForMember(x => x.IsEdited, x => x.Ignore()).ForMember(x => x.EditDate, x => x.Ignore()).ForMember(x => x.IsPinned, x => x.Ignore())
+                .ForMember(x => x.PinDate, x => x.Ignore()).ForMember(x => x.DeliveredDate, x => x.Ignore()).ForMember(x => x.ReadDate, x => x.Ignore())
+                .ForMember(x => x.Deleted, x => x.Ignore()).ForMember(x => x.CreateDate, x => x.Ignore()).ForMember(x => x.PastilMatch, x => x.Ignore())
+                .ForMember(x => x.SenderProfile, x => x.Ignore()).ForMember(x => x.PastilMatchMessageType, x => x.Ignore()).ForMember(x => x.ReplyToMessage, x => x.Ignore())
+                .ForMember(x => x.Attachments, x => x.Ignore()).ForMember(x => x.Reactions, x => x.Ignore());
+            CreateMap<PastilMatchMessage, PastilMatchMessageVDto>()
+                .ForMember(x => x.Attachments, x => x.MapFrom(s => s.Attachments.Where(a => !a.Deleted).OrderBy(a => a.Order)))
+                .ForMember(x => x.Reactions, x => x.MapFrom(s => s.Reactions.Where(r => !r.Deleted)));
+            CreateMap<PastilMatchMessage, PastilMatchMessageReplyVDto>().ForMember(x => x.Content, x => x.MapFrom(s => s.Deleted ? null : s.Content));
+            CreateMap<PastilMatchMessageAttachment, PastilMatchMessageAttachmentItemVDto>();
+            CreateMap<PastilMatchMessageReaction, PastilMatchMessageReactionItemVDto>();
+            CreateMap<PastilMatchMessageAttachment, PastilMatchMessageAttachmentDto>();
+            CreateMap<PastilMatchMessageAttachmentDto, PastilMatchMessageAttachment>().ForMember(x => x.Deleted, x => x.Ignore()).ForMember(x => x.PastilMatchMessage, x => x.Ignore());
+            CreateMap<PastilMatchMessageAttachment, PastilMatchMessageAttachmentVDto>();
+            CreateMap<PastilMatchMessageAttachment, PastilMatchMessageAttachmentItemVDto>();
+            CreateMap<PastilMatchMessageReaction, PastilMatchMessageReactionDto>();
+            CreateMap<PastilMatchMessageReactionDto, PastilMatchMessageReaction>()
+                .ForMember(x => x.ReactorProfileId, x => x.Ignore()).ForMember(x => x.Deleted, x => x.Ignore())
+                .ForMember(x => x.PastilMatchMessage, x => x.Ignore()).ForMember(x => x.ReactorProfile, x => x.Ignore());
+            CreateMap<PastilMatchMessageReaction, PastilMatchMessageReactionVDto>();
+            CreateMap<PastilMatchMessageReaction, PastilMatchMessageReactionItemVDto>();
             //PastilMatch End ----------------------------------------------
 
 

@@ -61,12 +61,6 @@
     <Folder Include="Services\Accounting\UserSrv\UserSrv\" />
     <Folder Include="Services\CommonSrv\CommentSrv\Iface\" />
     <Folder Include="Services\CommonSrv\PushNotificationSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageAttachmentSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageAttachmentSrv\Iface\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageReactionSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageReactionSrv\Iface\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageSrv\Dto\" />
-    <Folder Include="Services\PastilMatchSrvs\PastilMatchMessageSrv\Iface\" />
     <Folder Include="Services\Setting\EmailSrv\Dto\" />
   </ItemGroup>
   <ItemGroup>
