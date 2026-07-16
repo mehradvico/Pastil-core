@@ -405,17 +405,6 @@ namespace Persistence.Context
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            modelBuilder.Entity<Ticket>(e =>
-            {
-                e.HasOne(p => p.User)
-                .WithMany()
-                .HasForeignKey(p => p.UserId);
-                ;
-
-                e.HasOne(p => p.Admin)
-                .WithMany()
-                .HasForeignKey(p => p.AdminId);
-            });
             modelBuilder.Entity<User>(e =>
             {
                 e.HasOne(p => p.Driver)
@@ -438,16 +427,6 @@ namespace Persistence.Context
                 .HasForeignKey(p => p.Variety2Id).OnDelete(DeleteBehavior.Restrict);
 
 
-            });
-            modelBuilder.Entity<Ticket>(e =>
-            {
-                e.HasOne(p => p.Status)
-                .WithMany()
-                .HasForeignKey(p => p.StatusId).OnDelete(DeleteBehavior.NoAction);
-
-                e.HasOne(p => p.Importance)
-                .WithMany()
-                .HasForeignKey(p => p.ImportanceId).OnDelete(DeleteBehavior.NoAction);
             });
             modelBuilder.Entity<ProductItem>(e =>
             {
@@ -525,6 +504,107 @@ namespace Persistence.Context
                 .HasForeignKey(x => x.PetBreed2Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Ticket>(entity =>
+            {
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(x => x.TicketCategoryId)
+                    .HasDefaultValue(10139L);
+
+                entity.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Admin)
+                    .WithMany()
+                    .HasForeignKey(x => x.AdminId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.Status)
+                    .WithMany()
+                    .HasForeignKey(x => x.StatusId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(x => x.Importance)
+                    .WithMany()
+                    .HasForeignKey(x => x.ImportanceId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(x => x.TicketCategory)
+                    .WithMany()
+                    .HasForeignKey(x => x.TicketCategoryId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne(x => x.Product)
+                    .WithMany()
+                    .HasForeignKey(x => x.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(x => new
+                {
+                    x.UserId,
+                    x.UpdateDate
+                });
+
+                entity.HasIndex(x => new
+                {
+                    x.AdminId,
+                    x.StatusId,
+                    x.UpdateDate
+                });
+
+                entity.HasIndex(x => new
+                {
+                    x.StatusId,
+                    x.TicketCategoryId,
+                    x.UpdateDate
+                });
+            });
+
+            modelBuilder.Entity<TicketItem>(entity =>
+            {
+                entity.Property(x => x.Body)
+                    .IsRequired(false);
+
+                entity.Property(x => x.IsSeen)
+                    .HasDefaultValue(false);
+
+                entity.HasOne(x => x.Ticket)
+                    .WithMany(x => x.TicketItems)
+                    .HasForeignKey(x => x.TicketId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.User)
+                    .WithMany()
+                    .HasForeignKey(x => x.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.File)
+                    .WithMany()
+                    .HasForeignKey(x => x.FileId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.ReplyToTicketItem)
+                    .WithMany(x => x.Replies)
+                    .HasForeignKey(x => x.ReplyToTicketItemId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasIndex(x => new
+                {
+                    x.TicketId,
+                    x.Id
+                });
+
+                entity.HasIndex(x => new
+                {
+                    x.TicketId,
+                    x.IsSeen,
+                    x.UserId
+                });
+            });
         }
 
 

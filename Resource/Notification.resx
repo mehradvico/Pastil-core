@@ -636,4 +636,37 @@
   <data name="PastilMatchMessageReactionTooLong" xml:space="preserve">
     <value>PastilMatchMessageReactionTooLong</value>
   </data>
+  <data name="ThisTicketBlongsToAnotherAdmin" xml:space="preserve">
+    <value>ThisTicketBlongsToAnotherAdmin</value>
+  </data>
+  <data name="TicketStatusIsNotComplete" xml:space="preserve">
+    <value>TicketStatusIsNotComplete</value>
+  </data>
+  <data name="ThisTickerIsClosedAndYouCanNotSendMessageAnymore" xml:space="preserve">
+    <value>ThisTickerIsClosedAndYouCanNotSendMessageAnymore</value>
+  </data>
+  <data name="ContentOrFileIsRequired" xml:space="preserve">
+    <value>ContentOrFileIsRequired</value>
+  </data>
+  <data name="ContentCanNotBeOver2000Charecters" xml:space="preserve">
+    <value>ContentCanNotBeOver2000Charecters</value>
+  </data>
+  <data name="FileCanNotBeFound" xml:space="preserve">
+    <value>FileCanNotBeFound</value>
+  </data>
+  <data name="SomethingWentWrong" xml:space="preserve">
+    <value>SomethingWentWrong</value>
+  </data>
+  <data name="PleaseEnterTheTitle" xml:space="preserve">
+    <value>PleaseEnterTheTitle</value>
+  </data>
+  <data name="TitleCanNotBeMoreThan200Characters" xml:space="preserve">
+    <value>TitleCanNotBeMoreThan200Characters</value>
+  </data>
+  <data name="CategoryNotFound" xml:space="preserve">
+    <value>CategoryNotFound</value>
+  </data>
+  <data name="ProductIsNotFound" xml:space="preserve">
+    <value>ProductIsNotFound</value>
+  </data>
 </root>

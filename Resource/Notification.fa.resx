@@ -636,4 +636,37 @@
   <data name="PastilMatchMessageReactionTooLong" xml:space="preserve">
     <value>ری اکشن غیرمجاز است</value>
   </data>
+  <data name="ThisTicketBlongsToAnotherAdmin" xml:space="preserve">
+    <value>این تیکت به ادمین دیگری احتصاص داده شده</value>
+  </data>
+  <data name="TicketStatusIsNotComplete" xml:space="preserve">
+    <value>تنظیمات وضعیت تیکت کامل نیست</value>
+  </data>
+  <data name="ThisTickerIsClosedAndYouCanNotSendMessageAnymore" xml:space="preserve">
+    <value>این تیکت بسته شده و امکان ارسال پیام وجود ندارد</value>
+  </data>
+  <data name="ContentOrFileIsRequired" xml:space="preserve">
+    <value>متن یا فایل الزامی هستند</value>
+  </data>
+  <data name="ContentCanNotBeOver2000Charecters" xml:space="preserve">
+    <value>متن نمیتواند بالای 2000 کارکتر داشته باشد</value>
+  </data>
+  <data name="FileCanNotBeFound" xml:space="preserve">
+    <value>فایل انتخاب شده یافت نشد</value>
+  </data>
+  <data name="SomethingWentWrong" xml:space="preserve">
+    <value>اشکالی در فرایند به وجود آمده است</value>
+  </data>
+  <data name="PleaseEnterTheTitle" xml:space="preserve">
+    <value>لطفا عنوان را وارد نمایید</value>
+  </data>
+  <data name="TitleCanNotBeMoreThan200Characters" xml:space="preserve">
+    <value>عنوان نمیتواند بیشتر از 200 کارکتر باشد</value>
+  </data>
+  <data name="CategoryNotFound" xml:space="preserve">
+    <value>دسته بندی معتبر نیست</value>
+  </data>
+  <data name="ProductIsNotFound" xml:space="preserve">
+    <value>محصول یافت نشد</value>
+  </data>
 </root>

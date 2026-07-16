@@ -13,27 +13,27 @@ namespace Api.Areas.Admin.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
-    public class TicketChangeImportantController : ControllerBase
+    public class TicketChangeAdminController : ControllerBase
     {
         private ITicketService TicketService;
 
         /// <summary>
         /// مدیریت تیکت‌ ها
         /// </summary>
-        public TicketChangeImportantController(ITicketService TicketService)
+        public TicketChangeAdminController(ITicketService TicketService)
         {
             this.TicketService = TicketService;
         }
 
         /// <summary>
-        /// تغییر اهمیت تیکت
+        /// ویرایش آیتم
         /// </summary>
-        ///
+        /// 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public async Task<IActionResult> Put(ChangeTicketImportanceDto dto)
+        public async Task<IActionResult> Put(AssignTicketAdminDto dto)
         {
-            var result = await TicketService.ChangeImportanceAsync(dto);
+            var result = await TicketService.AssignAdminAsync(dto);
             return Ok(result);
         }
     }

@@ -770,10 +770,9 @@ namespace Application.Maping
 
 
             //Ticket
-            CreateMap<Ticket, TicketDto>().ReverseMap();
-            CreateMap<Ticket, TicketVDto>().ReverseMap();
-            CreateMap<TicketItem, TicketItemDto>().ReverseMap();
-            CreateMap<TicketItem, TicketItemVDto>().ReverseMap();
+            CreateMap<Ticket, TicketVDto>().ForMember(destination => destination.CanReply, option => option.Ignore()).ForMember( destination => destination.UnreadCount, option => option.Ignore()).ForMember( destination => destination.LastMessage, option => option.Ignore());
+            CreateMap<TicketItem, TicketItemVDto>().ForMember(destination => destination.IsMine, option => option.Ignore()).ForMember( destination => destination.IsFromSupport, option => option.Ignore());
+            CreateMap<TicketItem, TicketItemMinVDto>().ForMember(destination => destination.IsMine, option => option.Ignore()).ForMember(destination => destination.IsFromSupport, option => option.Ignore());
             //Ticket End ----------------------------------------------
 
 

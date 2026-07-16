@@ -2520,6 +2520,26 @@
             حذف بلاک
             </summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController">
+            <summary>
+            مدیریت پیام‌های پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchController">
             <summary>
             مدیریت مچ‌های پاستیل
@@ -2538,6 +2558,46 @@
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchController.Delete(System.Int64)">
             <summary>
             بستن مچ
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController">
+            <summary>
+            مدیریت فایل‌های پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv.Dto.PastilMatchMessageAttachmentInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController">
+            <summary>
+            مدیریت ری‌اکشن‌های پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto.PastilMatchMessageReactionInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileActiveController">
@@ -6654,6 +6714,101 @@
         <member name="M:Api.Areas.EndUser.Controllers.PastilMatchController.Delete(System.Int64)">
             <summary>
             بستن مچ
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController">
+            <summary>
+            مدیریت فایل‌های پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv.Dto.PastilMatchMessageAttachmentInputDto)">
+            <summary>
+            جستجوی فایل‌های پیام
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController.Post(Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv.Dto.PastilMatchMessageAttachmentDto)">
+            <summary>
+            اضافه کردن فایل به پیام
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController.Delete(System.Int64)">
+            <summary>
+            حذف فایل پیام
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageController">
+            <summary>
+            مدیریت پیام‌های پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageInputDto)">
+            <summary>
+            جستجوی پیام‌های Match
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageController.Post(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageDto)">
+            <summary>
+            ارسال پیام جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageController.Delete(System.Int64)">
+            <summary>
+            حذف پیام
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageDeliveredController">
+            <summary>
+            ثبت تحویل پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageDeliveredController.Put(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageDeliveredDto)">
+            <summary>
+            ثبت تحویل پیام
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController">
+            <summary>
+            مدیریت ری‌اکشن‌های پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto.PastilMatchMessageReactionInputDto)">
+            <summary>
+            جستجوی ری‌اکشن‌های پیام
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController.Post(Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto.PastilMatchMessageReactionDto)">
+            <summary>
+            ثبت یا تغییر ری‌اکشن پیام
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController.Delete(System.Int64)">
+            <summary>
+            حذف ری‌اکشن پیام
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageReadController">
+            <summary>
+            ثبت خوانده شدن پیام‌های پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReadController.Put(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageReadDto)">
+            <summary>
+            خوانده‌شده کردن پیام‌ها تا شناسه مشخص‌شده
             </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PastilMatchProfileController">

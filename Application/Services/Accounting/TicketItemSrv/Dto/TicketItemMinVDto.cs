@@ -1,24 +1,18 @@
 ﻿using Application.Common.Dto.Field;
-using Application.Services.Dto;
 using Application.Services.Filing.FileSrv.Dto;
 using System;
 
 namespace Application.Services.Accounting.TicketItemSrv.Dto
 {
-    public class TicketItemVDto : Id_FieldDto
+    public class TicketItemMinVDto : Id_FieldDto
     {
         public string Body { get; set; }
         public long UserId { get; set; }
-        public long TicketId { get; set; }
         public long? FileId { get; set; }
-        public long? ReplyToTicketItemId { get; set; }
         public DateTime CreateDate { get; set; }
         public bool IsSeen { get; set; }
-        public DateTime? SeenDate { get; set; }
         public bool IsMine { get; set; }
         public bool IsFromSupport { get; set; }
-        public UserVDto User { get; set; }
         public FileVDto File { get; set; }
-        public TicketItemMinVDto ReplyToTicketItem { get; set; }
     }
 }

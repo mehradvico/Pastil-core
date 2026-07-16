@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.3.32804.467
+# Visual Studio Version 18
+VisualStudioVersion = 18.3.11512.155 d18.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{261E705E-B435-4210-8D85-E60DAC21B9CC}"
 EndProject
@@ -26,8 +26,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utility", "Utility\Utility.csproj", "{D2C20934-69D6-45E0-90D4-A85CDCCBF61A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Payment", "Payment\Payment.csproj", "{E82C3F94-A2E6-4B9A-8110-2E22F14A77FA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealTime", "RealTime\RealTime.csproj", "{679515E1-87A3-4BED-87C9-0E03F1CCD477}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,10 +65,6 @@ Global
 		{E82C3F94-A2E6-4B9A-8110-2E22F14A77FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E82C3F94-A2E6-4B9A-8110-2E22F14A77FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E82C3F94-A2E6-4B9A-8110-2E22F14A77FA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{679515E1-87A3-4BED-87C9-0E03F1CCD477}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{679515E1-87A3-4BED-87C9-0E03F1CCD477}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{679515E1-87A3-4BED-87C9-0E03F1CCD477}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{679515E1-87A3-4BED-87C9-0E03F1CCD477}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -84,7 +78,6 @@ Global
 		{FAC85732-0931-4D3D-9613-EA718D0312C9} = {04B45BF7-3F46-43A3-A828-CD33F2D59C17}
 		{D2C20934-69D6-45E0-90D4-A85CDCCBF61A} = {261E705E-B435-4210-8D85-E60DAC21B9CC}
 		{E82C3F94-A2E6-4B9A-8110-2E22F14A77FA} = {04B45BF7-3F46-43A3-A828-CD33F2D59C17}
-		{679515E1-87A3-4BED-87C9-0E03F1CCD477} = {04B45BF7-3F46-43A3-A828-CD33F2D59C17}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5DCA6E7-3526-47B5-93E7-181643A59346}

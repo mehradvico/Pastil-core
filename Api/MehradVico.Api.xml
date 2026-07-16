@@ -2520,6 +2520,26 @@
             حذف بلاک
             </summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController">
+            <summary>
+            مدیریت پیام‌های پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchController">
             <summary>
             مدیریت مچ‌های پاستیل
@@ -2538,6 +2558,46 @@
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchController.Delete(System.Int64)">
             <summary>
             بستن مچ
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController">
+            <summary>
+            مدیریت فایل‌های پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv.Dto.PastilMatchMessageAttachmentInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController">
+            <summary>
+            مدیریت ری‌اکشن‌های پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto.PastilMatchMessageReactionInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileActiveController">
@@ -4114,105 +4174,102 @@
             
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TicketAdminController">
-             <summary>
-             مدیریت تیکت ها
-             </summary>
-            
+            <summary>
+            مدیریت تیکت‌ ها
+            </summary>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketAdminController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService,Application.Common.Interface.ICurrentUserHelper)">
-             <summary>
-             مدیریت تیکت ها
-             </summary>
-            
+        <member name="M:Api.Areas.Admin.Controllers.TicketAdminController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
+            <summary>
+            مدیریت تیکت‌ ها
+            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TicketAdminController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه</param>
-            <returns>
-            </returns>
+             <summary>
+             اطلاهات آیتم
+             </summary>
+            
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TicketAdminController.Get(Application.Services.Accounting.TicketSrv.Dto.TicketInputDto)">
-            <summary>
+             <summary>
              جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="T:Api.Areas.Admin.Controllers.TicketChangeImportantController">
-             <summary>
-             تغییر وضعیت تیکت ها
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketChangeImportantController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
-             <summary>
-             تغییر اهمیت تیکت ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketChangeImportantController.Put(Application.Services.Accounting.TicketSrv.Dto.TicketDto)">
+        <member name="T:Api.Areas.Admin.Controllers.TicketChangeAdminController">
             <summary>
-            تغییر اهمیت تیکت ها
+            مدیریت تیکت‌ ها
             </summary>
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.TicketChangeStatusController">
-             <summary>
-             تغییر وضعیت تیکت ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketChangeStatusController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
-             <summary>
-             تغییر وضعیت تیکت ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketChangeStatusController.Put(Application.Services.Accounting.TicketSrv.Dto.TicketDto)">
+        <member name="M:Api.Areas.Admin.Controllers.TicketChangeAdminController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
             <summary>
-            تغییر وضعیت تیکت ها
+            مدیریت تیکت‌ ها
             </summary>
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.TicketController">
-             <summary>
-             مدیریت تیکت ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
-             <summary>
-             مدیریت تیکت ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketController.Get(Application.Services.Accounting.TicketSrv.Dto.TicketInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketController.Post(Application.Services.Accounting.TicketSrv.Dto.TicketDto)">
-            <summary>
-            آیتم جدید
-            </summary>  
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketController.Put(Application.Services.Accounting.TicketSrv.Dto.TicketDto)">
+        <member name="M:Api.Areas.Admin.Controllers.TicketChangeAdminController.Put(Application.Services.Accounting.TicketSrv.Dto.AssignTicketAdminDto)">
             <summary>
             ویرایش آیتم
             </summary>
+            
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketController.ChangeAdmin(Application.Services.Accounting.TicketSrv.Dto.TicketDto)">
+        <member name="T:Api.Areas.Admin.Controllers.TicketChangeImportantController">
             <summary>
-            تغییر کاربر
+            مدیریت تیکت‌ ها
             </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketChangeImportantController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
+            <summary>
+            مدیریت تیکت‌ ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketChangeImportantController.Put(Application.Services.Accounting.TicketSrv.Dto.ChangeTicketImportanceDto)">
+             <summary>
+             تغییر اهمیت تیکت
+             </summary>
+            
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.TicketChangeStatusController">
+            <summary>
+            مدیریت تیکت‌ ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketChangeStatusController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
+            <summary>
+            مدیریت تیکت‌ ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketChangeStatusController.Put(Application.Services.Accounting.TicketSrv.Dto.ChangeTicketStatusDto)">
+             <summary>
+             تغییر وضعیت تیکت
+             </summary>
+            
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.TicketController">
+            <summary>
+            مدیریت تیکت‌ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
+            <summary>
+            مدیریت تیکت‌ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketController.Get(System.Int64)">
+             <summary>
+             اطلاعات آیتم
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketController.Get(Application.Services.Accounting.TicketSrv.Dto.TicketInputDto)">
+             <summary>
+             جستجو
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketController.Post(Application.Services.Accounting.TicketSrv.Dto.CreateAdminTicketDto)">
+             <summary>
+             ایتم جدید
+             </summary>
+            
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TicketController.Delete(System.Int64)">
              <summary>
@@ -4220,40 +4277,31 @@
              </summary>
             
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.TicketItemController">
+        <member name="T:Api.Areas.Admin.Controllers.TicketMessageController">
+            <summary>
+            مدیریت پیام‌های تیکت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketMessageController.#ctor(Application.Services.Accounting.TicketMessageSrv.Iface.ITicketMessageService)">
+            <summary>
+            مدیریت پیام‌های تیکت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketMessageController.Get(System.Int64,Application.Services.Accounting.TicketMessageSrv.Dto.TicketMessageInputDto)">
              <summary>
-             مدیریت آیتم تیکت ها
+             اطلاعات آیتم
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketItemController.#ctor(Application.Services.Accounting.TicketItemSrv.Iface.ITicketItemService)">
+        <member name="M:Api.Areas.Admin.Controllers.TicketMessageController.Post(System.Int64,Application.Services.Accounting.TicketMessageSrv.Dto.SendTicketMessageDto)">
              <summary>
-             مدیریت آیتم تیکت ها
+             ارسال پیام جدید توسط ادمین
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketItemController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketItemController.Get(Application.Services.Accounting.TicketItemSrv.Dto.TicketItemInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketItemController.Post(Application.Services.Accounting.TicketItemSrv.Dto.TicketItemDto)">
-            <summary>
-            آیتم جدید
-            </summary>  
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketItemController.Delete(System.Int64)">
+        <member name="M:Api.Areas.Admin.Controllers.TicketMessageController.Put(System.Int64)">
              <summary>
-             حذف آیتم
+             ثبت پیام‌های تیکت به‌عنوان خوانده‌شده
              </summary>
             
         </member>
@@ -6656,6 +6704,101 @@
             بستن مچ
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController">
+            <summary>
+            مدیریت فایل‌های پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv.Dto.PastilMatchMessageAttachmentInputDto)">
+            <summary>
+            جستجوی فایل‌های پیام
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController.Post(Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv.Dto.PastilMatchMessageAttachmentDto)">
+            <summary>
+            اضافه کردن فایل به پیام
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageAttachmentController.Delete(System.Int64)">
+            <summary>
+            حذف فایل پیام
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageController">
+            <summary>
+            مدیریت پیام‌های پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageInputDto)">
+            <summary>
+            جستجوی پیام‌های Match
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageController.Post(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageDto)">
+            <summary>
+            ارسال پیام جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageController.Delete(System.Int64)">
+            <summary>
+            حذف پیام
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageDeliveredController">
+            <summary>
+            ثبت تحویل پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageDeliveredController.Put(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageDeliveredDto)">
+            <summary>
+            ثبت تحویل پیام
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController">
+            <summary>
+            مدیریت ری‌اکشن‌های پیام پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController.Get(Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto.PastilMatchMessageReactionInputDto)">
+            <summary>
+            جستجوی ری‌اکشن‌های پیام
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController.Post(Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto.PastilMatchMessageReactionDto)">
+            <summary>
+            ثبت یا تغییر ری‌اکشن پیام
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReactionController.Delete(System.Int64)">
+            <summary>
+            حذف ری‌اکشن پیام
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchMessageReadController">
+            <summary>
+            ثبت خوانده شدن پیام‌های پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReadController.Put(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageReadDto)">
+            <summary>
+            خوانده‌شده کردن پیام‌ها تا شناسه مشخص‌شده
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.PastilMatchProfileController">
             <summary>
             مدیریت پروفایل های پاستیل مچ
@@ -7100,58 +7243,60 @@
             </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.TicketController">
-             <summary>
-             مدیریت تیکت ها
-             </summary>
-            
+            <summary>
+            مدیریت تیکت‌ ها
+            </summary>
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.TicketController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService,Application.Common.Interface.ICurrentUserHelper)">
-             <summary>
-             مدیریت تیکت ها
-             </summary>
-            
+        <member name="M:Api.Areas.EndUser.Controllers.TicketController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
+            <summary>
+            مدیریت تیکت‌ ها
+            </summary>
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.TicketController.Get(System.Int64)">
-            <summary>
-             اطلاعات آیتم 
-            </summary>
-            <param name="id">شناسه</param>
-            <returns>
-            </returns>
+             <summary>
+              اطلاعات آیتم
+             </summary>
+            
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.TicketController.Get(Application.Services.Accounting.TicketSrv.Dto.TicketInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
-        <member name="M:Api.Areas.EndUser.Controllers.TicketController.Post(Application.Services.Accounting.TicketSrv.Dto.TicketDto)">
-            <summary>
-            آیتم جدید
-            </summary>  
-        </member>
-        <member name="T:Api.Areas.EndUser.Controllers.TicketItemController">
              <summary>
-             مدیریت آیتم تیکت ها
+             جستجو
              </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.TicketItemController.#ctor(Application.Services.Accounting.TicketItemSrv.Iface.ITicketItemService)">
+        <member name="M:Api.Areas.EndUser.Controllers.TicketController.Post(Application.Services.Accounting.TicketSrv.Dto.CreateTicketDto)">
              <summary>
-             مدیریت آیتم تیکت ها
+             آیتم جدید
              </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.TicketItemController.Get(Application.Services.Accounting.TicketItemSrv.Dto.TicketItemInputDto)">
+        <member name="T:Api.Areas.EndUser.Controllers.TicketMessageController">
             <summary>
-             جستجو
+            مدیریت پیام‌های تیکت
             </summary>
-            <returns></returns> 
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.TicketItemController.Post(Application.Services.Accounting.TicketItemSrv.Dto.TicketItemDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.TicketMessageController.#ctor(Application.Services.Accounting.TicketMessageSrv.Iface.ITicketMessageService)">
             <summary>
-            آیتم جدید
-            </summary>  
+            مدیریت پیام‌های تیکت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TicketMessageController.Get(System.Int64,Application.Services.Accounting.TicketMessageSrv.Dto.TicketMessageInputDto)">
+             <summary>
+             دریافت پیام‌های تیکت کاربر
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TicketMessageController.Post(System.Int64,Application.Services.Accounting.TicketMessageSrv.Dto.SendTicketMessageDto)">
+             <summary>
+             آیتم جدید
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TicketMessageController.Put(System.Int64)">
+            <summary>
+            ثبت پیام‌های تیکت به‌عنوان خوانده‌شده
+            </summary>
+            
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripAddressController">
             <summary>

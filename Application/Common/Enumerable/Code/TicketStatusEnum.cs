@@ -2,8 +2,8 @@
 {
     public enum TicketStatusEnum
     {
-        TicketStatus_Waiting,
-        TicketStatus_Answered,
-        TicketStatus_Close
+        TicketStatus_Waiting = 29,
+        TicketStatus_Answered = 30,
+        TicketStatus_Close = 31
     }
 }

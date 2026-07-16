@@ -1,62 +1,52 @@
-﻿using Application.Common.Dto.Input;
-using Application.Common.Dto.Result;
-using Application.Common.Interface;
+﻿using Application.Common.Dto.Result;
 using Application.Services.Accounting.TicketSrv.Dto;
 using Application.Services.Accounting.TicketSrv.Iface;
-using Application.Services.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت تیکت ها
+    /// مدیریت تیکت‌ ها
     /// </summary>
-    ///
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
     public class TicketAdminController : ControllerBase
     {
-        private readonly ITicketService TicketService;
-        private readonly CurrentUserDto _currentUser;
+        private ITicketService TicketService;
+
         /// <summary>
-        /// مدیریت تیکت ها
+        /// مدیریت تیکت‌ ها
         /// </summary>
-        ///
-        public TicketAdminController(ITicketService TicketService, ICurrentUserHelper currentUserHelper)
+        public TicketAdminController(ITicketService TicketService)
         {
             this.TicketService = TicketService;
-            this._currentUser = currentUserHelper.CurrentUser;
         }
+
         /// <summary>
-        ///  اطلاعات آیتم 
+        /// اطلاهات آیتم
         /// </summary>
-        /// <param name="id">شناسه</param>
-        /// <returns>
-        /// </returns>
+        ///
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BaseResultDto<TicketVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var ticket = await TicketService.FindAsyncVDto(id, _currentUser.UserId);
+            var ticket = await TicketService.FindCurrentAdminAsync(id);
             return Ok(ticket);
         }
-        /// <summary>
-        ///  جستجو
-        /// </summary>
-        /// <returns></returns> 
 
+        /// <summary>
+        /// جستجو
+        /// </summary>
+        ///
         [HttpGet]
-        [ProducesResponseType(typeof(BaseInputDto), 200)]
-        public IActionResult Get([FromQuery] TicketInputDto dto)
+        [ProducesResponseType(typeof(TicketSearchDto), 200)]
+        public async Task<IActionResult> Get([FromQuery] TicketInputDto dto)
         {
-            dto.AllAdminId = false;
-            dto.AdminId = _currentUser.UserId;
-            var searchDto = TicketService.Search(dto);
+            var searchDto = await TicketService.SearchCurrentAdminAsync(dto);
             return Ok(searchDto);
         }
-
     }
 }

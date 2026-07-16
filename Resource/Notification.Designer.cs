@@ -151,11 +151,38 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to CategoryNotFound.
+        /// </summary>
+        public static string CategoryNotFound {
+            get {
+                return ResourceManager.GetString("CategoryNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Code Value.
         /// </summary>
         public static string CodeValue {
             get {
                 return ResourceManager.GetString("CodeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ContentCanNotBeOver2000Charecters.
+        /// </summary>
+        public static string ContentCanNotBeOver2000Charecters {
+            get {
+                return ResourceManager.GetString("ContentCanNotBeOver2000Charecters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ContentOrFileIsRequired.
+        /// </summary>
+        public static string ContentOrFileIsRequired {
+            get {
+                return ResourceManager.GetString("ContentOrFileIsRequired", resourceCulture);
             }
         }
         
@@ -192,6 +219,15 @@ namespace Resource {
         public static string ErrorOnStartPayment {
             get {
                 return ResourceManager.GetString("ErrorOnStartPayment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FileCanNotBeFound.
+        /// </summary>
+        public static string FileCanNotBeFound {
+            get {
+                return ResourceManager.GetString("FileCanNotBeFound", resourceCulture);
             }
         }
         
@@ -898,6 +934,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PleaseEnterTheTitle.
+        /// </summary>
+        public static string PleaseEnterTheTitle {
+            get {
+                return ResourceManager.GetString("PleaseEnterTheTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please enter the token.
         /// </summary>
         public static string PleaseEnterTheToken {
@@ -1006,6 +1051,15 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ProductIsNotFound.
+        /// </summary>
+        public static string ProductIsNotFound {
+            get {
+                return ResourceManager.GetString("ProductIsNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Referral code.
         /// </summary>
         public static string ReferralCode {
@@ -1074,6 +1128,15 @@ namespace Resource {
         public static string ShebaNumberMustBe24Digit {
             get {
                 return ResourceManager.GetString("ShebaNumberMustBe24Digit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SomethingWentWrong.
+        /// </summary>
+        public static string SomethingWentWrong {
+            get {
+                return ResourceManager.GetString("SomethingWentWrong", resourceCulture);
             }
         }
         
@@ -1438,6 +1501,24 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ThisTickerIsClosedAndYouCanNotSendMessageAnymore.
+        /// </summary>
+        public static string ThisTickerIsClosedAndYouCanNotSendMessageAnymore {
+            get {
+                return ResourceManager.GetString("ThisTickerIsClosedAndYouCanNotSendMessageAnymore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ThisTicketBlongsToAnotherAdmin.
+        /// </summary>
+        public static string ThisTicketBlongsToAnotherAdmin {
+            get {
+                return ResourceManager.GetString("ThisTicketBlongsToAnotherAdmin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This Trip Has Been Reserved For Another Driver.
         /// </summary>
         public static string ThisTripHasBeenReservedForAnotherDriver {
@@ -1447,11 +1528,29 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TicketStatusIsNotComplete.
+        /// </summary>
+        public static string TicketStatusIsNotComplete {
+            get {
+                return ResourceManager.GetString("TicketStatusIsNotComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Times have overlap.
         /// </summary>
         public static string TimesHaveOverlap {
             get {
                 return ResourceManager.GetString("TimesHaveOverlap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TitleCanNotBeMoreThan200Characters.
+        /// </summary>
+        public static string TitleCanNotBeMoreThan200Characters {
+            get {
+                return ResourceManager.GetString("TitleCanNotBeMoreThan200Characters", resourceCulture);
             }
         }
         
