@@ -10,6 +10,8 @@ using Application.Services.CompanionSrv.CompanionAssistanceTypeSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionAssistanceSrv.Dto;
 using Application.Services.Dto;
 using Application.Services.Setting.CodeSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
@@ -149,7 +151,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 }
                 dto.CompanionAssistanceTypeIds = dto.CompanionAssistanceTypeIds.Distinct().ToList();
                 await _companionAssistanceTypeService.InsertOrUpdateAsync(item, dto.CompanionAssistanceTypeIds);
-                await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_AddCompanionAssistance, NoticeUserTypeEnum.NoticeUserType_Admin);
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceSubmitted, ReferenceType = "CompanionAssistance", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceSubmitted}:{item.Id}" });
                 return new BaseResultDto<CompanionAssistanceDto>(true, mapper.Map<CompanionAssistanceDto>(item));
             }
             catch (Exception ex)
@@ -184,7 +186,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 await _context.SaveChangesAsync();
                 dto.CompanionAssistanceTypeIds = dto.CompanionAssistanceTypeIds.Distinct().ToList();
                 await _companionAssistanceTypeService.InsertOrUpdateAsync(item, dto.CompanionAssistanceTypeIds);
-                await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_EditCompanionAssistance, NoticeUserTypeEnum.NoticeUserType_Admin);
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceUpdated, ReferenceType = "CompanionAssistance", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceUpdated}:{item.Id}:{DateTime.UtcNow.Ticks}" });
                 return new BaseResultDto<CompanionAssistanceDto>(true, mapper.Map<CompanionAssistanceDto>(item));
             }
             catch (Exception ex)

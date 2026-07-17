@@ -70,9 +70,9 @@ namespace Api.Areas.Admin.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(CompanionAssistancePackageDto dto)
+        public async Task<IActionResult> Put(CompanionAssistancePackageDto dto)
         {
-            var agency = _companionAssistancePackageService.UpdateDto(dto);
+            var agency = await _companionAssistancePackageService.UpdateAsyncDto(dto);
             return Ok(agency);
         }
 

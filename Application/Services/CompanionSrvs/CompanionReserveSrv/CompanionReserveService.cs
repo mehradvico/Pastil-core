@@ -19,6 +19,8 @@ using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using Application.Services.TripSrv.TripSrv.Dto;
 using AutoMapper;
@@ -286,8 +288,15 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     {
                         await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForCompanionUser, mobileReceptor: companionAssistanceUser.User.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: companion.Name);
                     }
-                    await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_AddCompanionReserve, NoticeUserTypeEnum.NoticeUserType_Admin);
-                    await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_UserReserveSuccess, NoticeUserTypeEnum.NoticeUserType_User);
+                    await _notificationService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.CompanionReserveRegistered,
+                        ActorUserId = booker.Id,
+                        ReferenceType = "CompanionReserve",
+                        ReferenceId = item.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.CompanionReserveRegistered}:{item.Id}",
+                        Metadata = new Dictionary<string, string> { { "userName", $"{booker.FirstName} {booker.LastName}".Trim() }, { "companionName", companion.Name }, { "serviceName", companionAssistances.Assistance.Name }, { "mobile", booker.Mobile } }
+                    });
                     return new BaseResultDto<CompanionReserveDto>(true, mapper.Map<CompanionReserveDto>(item));
                 }
 
@@ -342,7 +351,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                 await _context.SaveChangesAsync();
 
-                await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_EditCompanionReserve, NoticeUserTypeEnum.NoticeUserType_Admin);
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionReserveUpdated, ReferenceType = "CompanionReserve", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionReserveUpdated}:{item.Id}:{DateTime.UtcNow.Ticks}" });
 
                 return new BaseResultDto(isSuccess: true);
             }
@@ -452,7 +461,6 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
             await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushCancelReserveUser, userId: booker.Id, token1: booker.FirstName, token2: companionAssistances.Assistance.Name);
             await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushCancelReserveCompanion, userId: companion.Owner.Id, token1: companionAssistances.Assistance.Name, token2: nameText);
-            await _notificationService.InsertNoticeAsync(model.Id, NoticeTypeEnum.NotifType_UserReserveCancell, NoticeUserTypeEnum.NoticeUserType_User);
             return new BaseResultDto<CompanionReserveCancelDto>(true, mapper.Map<CompanionReserveCancelDto>(model));
         }
 

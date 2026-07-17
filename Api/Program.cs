@@ -1,8 +1,12 @@
 ﻿using Api.HangFire;
+using Api.Authorization;
+using Api.Hubs;
 using Api.Swagger;
+using Application.Common.Enumerable;
 using Application.Configures;
 using Application.Services.Accounting.UserTokenSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,6 +27,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOutputCache();
 builder.Services.AddSignalR();
+builder.Services.AddAuthorization(options => options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireClaim("RoleId", ((long)RoleEnum.Admin).ToString())));
 
 builder.Services.AddCors(options =>
 {
@@ -38,12 +43,14 @@ builder.Services.AddCors(options =>
                 "https://www.pastil.pet"
             )
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
 builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
 builder.Services.AddApplicationServices();
+builder.Services.AddScoped<INoticeRealtimePublisher, NoticeRealtimePublisher>();
 builder.Services.AddScoped<IRestSharpApi, RestSharpApi>();
 builder.Services.AddScoped<IBackgroundTask, HangFireSchedule>();
 builder.Services.AddScoped<IControllerActionDiscoveryService, ControllerActionDiscoveryService>();
@@ -121,6 +128,9 @@ builder.Services.AddAuthentication(Options =>
                  },
                  OnMessageReceived = context =>
                  {
+                     var accessToken = context.Request.Query["access_token"];
+                     if (!string.IsNullOrWhiteSpace(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs/notices"))
+                         context.Token = accessToken;
                      return Task.CompletedTask;
 
                  },
@@ -155,6 +165,7 @@ builder.Services.AddHangfire(configuration => configuration
 builder.Services.AddHangfireServer();
 
 var app = builder.Build();
+RecurringJob.AddOrUpdate<INoticeService>("ArchiveNotices", x => x.ArchiveExpiredAsync(), Cron.Hourly);
 
 app.UseRequestLocalization();
 app.UseHangfireDashboard();
@@ -168,6 +179,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NoticeHub>("/hubs/notices");
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {

@@ -9,6 +9,8 @@ using Application.Services.CompanionSrvs.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistanceSrv.Dto;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.NoticeSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -108,7 +110,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
                 var item = mapper.Map<CompanionAssistancePackage>(dto);
                 await _context.CompanionAssistancePackages.AddAsync(item);
                 await _context.SaveChangesAsync();
-                await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_AddCompanionAssistancePackage, NoticeUserTypeEnum.NoticeUserType_Admin);
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistancePackageSubmitted, ReferenceType = "CompanionAssistancePackage", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistancePackageSubmitted}:{item.Id}" });
 
 
                 return new BaseResultDto<CompanionAssistancePackageDto>(true, mapper.Map<CompanionAssistancePackageDto>(item));
@@ -134,7 +136,6 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
                     _context.CompanionAssistancePackages.Attach(item);
                     _context.Entry(item).State = EntityState.Modified;
                     _context.SaveChanges();
-                    _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_EditCompanionAssistancePackage, NoticeUserTypeEnum.NoticeUserType_Admin);
                     return new BaseResultDto(isSuccess: true);
                 }
             }
@@ -142,6 +143,14 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
             {
                 return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
+        }
+
+        public async Task<BaseResultDto> UpdateAsyncDto(CompanionAssistancePackageDto dto)
+        {
+            var result = UpdateDto(dto);
+            if (result.IsSuccess)
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistancePackageUpdated, ReferenceType = "CompanionAssistancePackage", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistancePackageUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}" });
+            return result;
         }
 
         public BaseResultDto ActivationDto(CompanionAssistancePackageActivationDto dto)

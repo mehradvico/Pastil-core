@@ -1,4 +1,5 @@
 ﻿using AngleSharp.Dom;
+using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
@@ -118,6 +119,27 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 foreach (var n in group)
                     await SendSingleAsync(pattern, n);
             }
+        }
+
+        public async Task SendNoticeToAdminsAsync(long noticeId, string title, string body, string url)
+        {
+            var subscriptions = await _context.PushSubscriptions.Include(x => x.User).Where(x => x.IsActive && x.UserId.HasValue && x.User.RoleId == (long)RoleEnum.Admin).AsTracking().ToListAsync();
+            if (subscriptions.Count == 0)
+                return;
+            var payload = JsonSerializer.Serialize(new PushPayloadDto { Title = title, Body = body, Url = url, Tag = $"notice-{noticeId}" }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            var client = new WebPushClient();
+            var vapid = new VapidDetails("mailto:admin@pastil.pet", _vapid.PublicKey, _vapid.PrivateKey);
+            var invalidSubscriptions = new List<Entities.Entities.PushSubscription>();
+            foreach (var subscription in subscriptions)
+            {
+                if (await TrySendAsync(client, vapid, payload, subscription))
+                    subscription.LastSeen = DateTime.UtcNow;
+                else
+                    invalidSubscriptions.Add(subscription);
+            }
+            if (invalidSubscriptions.Count > 0)
+                _context.PushSubscriptions.RemoveRange(invalidSubscriptions);
+            await _context.SaveChangesAsync();
         }
 
         private async Task<PushPattern> GetActivePatternAsync(PushTypeEnum pushType)

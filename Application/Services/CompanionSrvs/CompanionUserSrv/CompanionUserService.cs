@@ -8,6 +8,8 @@ using Application.Services.CompanionSrvs.CompanionUserSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionUserSrv.Iface;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.NoticeSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using AutoMapper;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using Entities.Entities;
@@ -166,7 +168,7 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv
                 await _context.CompanionUsers.AddAsync(item);
                 await _context.SaveChangesAsync();
 
-                await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_AddCompanionUser, NoticeUserTypeEnum.NoticeUserType_Admin);
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionUserSubmitted, ActorUserId = item.UserId, ReferenceType = "CompanionUser", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionUserSubmitted}:{item.Id}" });
 
                 return new BaseResultDto<CompanionUserDto>(true,mapper.Map<CompanionUserDto>(item));
             }

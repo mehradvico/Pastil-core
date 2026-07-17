@@ -1,58 +1,64 @@
-﻿using Application.Common.Dto.Result;
-using Application.Common.Interface;
+using Api.Authorization;
+using Application.Common.Dto.Result;
 using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
-using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
-    /// <summary>
-    /// مدیریت اعلان ها
-    /// </summary>
-    ///
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     public class NoticeController : ControllerBase
     {
-        private INoticeService _notificationService;
-        private ICurrentUserHelper _currentUser;
-        /// <summary>
-        /// مدیریت اعلان ها
-        /// </summary>
-        ///
-        public NoticeController(INoticeService notificationService, ICurrentUserHelper currentUser)
+        private readonly INoticeService _noticeService;
+
+        public NoticeController(INoticeService noticeService)
         {
-            _notificationService = notificationService;
-            _currentUser = currentUser;
+            _noticeService = noticeService;
         }
-        /// <summary>
-        ///  اطلاعات اعلان 
-        /// </summary>
-        /// <param name="id">شناسه</param>
-        /// <returns>
-        /// </returns>
-        [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<NoticeDto>), 200)]
-        public async Task<IActionResult> Get(long id, long? userId)
-        {
-            var role = await _notificationService.FindAsyncUserDto(id, userId);
-            return Ok(role);
-        }
-        /// <summary>
-        ///  جستجو
-        /// </summary>
-        /// <returns></returns> 
 
         [HttpGet]
-        [ProducesResponseType(typeof(NoticeInputDto), 200)]
+        [ProducesResponseType(typeof(NoticeSearchDto), 200)]
         public IActionResult Get([FromQuery] NoticeInputDto dto)
         {
-            var searchDto = _notificationService.Search(dto);
-            return Ok(searchDto);
+            return Ok(_noticeService.Search(dto));
+        }
+
+        [HttpGet("types")]
+        [ProducesResponseType(typeof(List<NoticeTypeVDto>), 200)]
+        public async Task<IActionResult> GetTypes(bool activeOnly = true)
+        {
+            return Ok(await _noticeService.GetTypesAsync(activeOnly));
+        }
+
+        [HttpGet("unread-count")]
+        public async Task<IActionResult> GetUnreadCount()
+        {
+            return Ok(await _noticeService.GetUnreadCountAsync());
+        }
+
+        [HttpGet("{id:long}")]
+        [ProducesResponseType(typeof(BaseResultDto<NoticeDto>), 200)]
+        public async Task<IActionResult> Get(long id)
+        {
+            return Ok(await _noticeService.FindAsyncDto(id));
+        }
+
+        [HttpPost("{id:long}/read")]
+        [ProducesResponseType(typeof(BaseResultDto<NoticeDto>), 200)]
+        public async Task<IActionResult> Read(long id)
+        {
+            return Ok(await _noticeService.ReadAsync(id));
+        }
+
+        [HttpPost("read/bulk")]
+        [ProducesResponseType(typeof(BaseResultDto<NoticeBulkReadVDto>), 200)]
+        public async Task<IActionResult> ReadBulk([FromBody] NoticeBulkReadDto dto)
+        {
+            return Ok(await _noticeService.ReadBulkAsync(dto));
         }
     }
 }

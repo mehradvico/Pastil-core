@@ -11,6 +11,8 @@ namespace Entities.Entities
     {
         public long UserId { get; set; }
 
+        public long? NoticeId { get; set; }
+
         public long PushPatternId { get; set; }
 
         public bool IsSend { get; set; }
@@ -35,6 +37,7 @@ namespace Entities.Entities
         public DateTime? SentDate { get; set; }
 
         public PushPattern PushPattern { get; set; }
+        public Notice Notice { get; set; }
     }
 
 

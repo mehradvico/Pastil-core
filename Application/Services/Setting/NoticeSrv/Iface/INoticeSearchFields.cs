@@ -1,17 +1,19 @@
-﻿using Entities.Entities;
-using Entities.Entities.Security;
+using Entities.Entities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services.Setting.NoticeSrv.Iface
 {
     public interface INoticeSearchFields
     {
-        public long? UserId { get; set; }
-        public bool? IsRead { get; set; }
-        public long? TypeId { get; set; }
+        long? ActorUserId { get; set; }
+        long? ReadByAdminId { get; set; }
+        long? NoticeTypeId { get; set; }
+        NoticeImportance? Importance { get; set; }
+        string ReferenceType { get; set; }
+        long? ReferenceId { get; set; }
+        bool? IsRead { get; set; }
+        bool? IsArchived { get; set; }
+        DateTime? FromDateUtc { get; set; }
+        DateTime? ToDateUtc { get; set; }
     }
 }

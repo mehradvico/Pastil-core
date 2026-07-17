@@ -1,29 +1,27 @@
-﻿using Application.Common.Dto.Field;
+using Application.Common.Dto.Field;
 using Application.Services.Dto;
-using Application.Services.Setting.CodeSrv.Dto;
-using AutoMapper.Configuration.Annotations;
 using Entities.Entities;
-using Entities.Entities.CommonField;
-using Entities.Entities.Security;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace Application.Services.Setting.NoticeSrv.Dto
 {
     public class NoticeDto : Id_FieldDto
     {
-        public long? UserId { get; set; }
-        public DateTime? ReadDate { get; set; }
-        public long TypeId { get; set; }
-        public long UserTypeId { get; set; }
-        public long? ItemId { get; set; }
-        public CodeVDto Type { get; set; }
-        public UserMinVDto User { get; set; }
-        public CodeVDto UserType { get; set; }
-
+        public long NoticeTypeId { get; set; }
+        public long? ActorUserId { get; set; }
+        public string ReferenceType { get; set; }
+        public long? ReferenceId { get; set; }
+        public string Title { get; set; }
+        public string Message { get; set; }
+        public string NavigationUrl { get; set; }
+        public Dictionary<string, string> Metadata { get; set; }
+        public DateTime CreateDateUtc { get; set; }
+        public DateTime ArchiveDueAtUtc { get; set; }
+        public DateTime? ArchivedAtUtc { get; set; }
+        public bool IsRead { get; set; }
+        public NoticeTypeVDto NoticeType { get; set; }
+        public UserMinVDto ActorUser { get; set; }
+        public NoticeReadDto Read { get; set; }
     }
 }

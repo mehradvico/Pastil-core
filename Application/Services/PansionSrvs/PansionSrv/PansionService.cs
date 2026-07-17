@@ -8,6 +8,9 @@ using Application.Services.CompanionSrvs.CompanionSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Iface;
 using Application.Services.ProductSrvs.StoreSrv.Dto;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Entities.Entities;
@@ -26,10 +29,12 @@ namespace Application.Services.PansionSrvs.PansionSrv
     {
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
-        public PansionService(IDataBaseContext _context, IMapper mapper) : base(_context, mapper)
+        private readonly INoticeService _noticeService;
+        public PansionService(IDataBaseContext _context, IMapper mapper, INoticeService noticeService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
+            this._noticeService = noticeService;
         }
 
         public async Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id)
@@ -154,9 +159,14 @@ namespace Application.Services.PansionSrvs.PansionSrv
                     }
                     await _context.Pansions.AddAsync(item);
                     await _context.SaveChangesAsync();
-                    var pansionId = item.Id;
-                    await _context.SaveChangesAsync();
-                    //await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_AddCompanion, NoticeUserTypeEnum.NoticeUserType_Admin);
+                    await _noticeService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.PansionSubmitted,
+                        ReferenceType = "Pansion",
+                        ReferenceId = item.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.PansionSubmitted}:{item.Id}",
+                        Metadata = new Dictionary<string, string> { { "pansionName", item.Name } }
+                    });
                     return new BaseResultDto<PansionDto>(true, mapper.Map<PansionDto>(item));
 
                 }

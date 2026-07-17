@@ -63,9 +63,9 @@ namespace Api.Areas.Admin.Controllers
         /// <returns></returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<UserBankCardDto>), 200)]
-        public IActionResult Put(UserBankCardDto userBankCardDto)
+        public async Task<IActionResult> Put(UserBankCardDto userBankCardDto)
         {
-            var result = UserBankCardService.UpdateDto(userBankCardDto);
+            var result = await UserBankCardService.UpdateAsyncDto(userBankCardDto);
             return Ok(result);
         }
 

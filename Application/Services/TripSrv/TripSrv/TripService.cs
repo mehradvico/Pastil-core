@@ -10,6 +10,8 @@ using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using Application.Services.TripSrv.PriceCalculationSrv.Iface;
 using Application.Services.TripSrv.TripOptionSrv.Iface;
@@ -214,7 +216,7 @@ namespace Application.Services.TripSrv.TripSrv
                     var driver = await _context.Drivers.FindAsync(item.DriverId);
                     var userPet = await _context.UserPets.Include(s => s.Pet).FirstOrDefaultAsync(s => s.Id == item.UserPetId);
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.DriverRequest, mobileReceptor: driver.Phone, emailReceptor: null, token1: userPet.Pet.Name);
-                    await _noticeService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_DriverRequest, NoticeUserTypeEnum.NoticeUserType_Admin);
+                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverRequested, ActorUserId = item.UserId, ReferenceType = "Trip", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{item.Id}" });
                     return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(item));
                 }
 
@@ -459,7 +461,7 @@ namespace Application.Services.TripSrv.TripSrv
             }
             else if (trip.DriverStatusId == (long)DriverStatusEnum.DriverStatus_Rejected)
             {
-                await _noticeService.InsertNoticeAsync(trip.Id, NoticeTypeEnum.NotifType_ChooseDriver, NoticeUserTypeEnum.NoticeUserType_Admin);
+                await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverSelectionRequired, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripDriverSelectionRequired}:{trip.Id}" });
             }
             else
             {
@@ -476,7 +478,6 @@ namespace Application.Services.TripSrv.TripSrv
                 token2: userPet.Name,
                 sendDate: DateTime.Now
                 );
-            await _noticeService.InsertNoticeAsync(trip.Id, NoticeTypeEnum.NotifType_UserDriverAccept, NoticeUserTypeEnum.NoticeUserType_User);
             return new BaseResultDto<TripDriverChangeStatusDto>(true, Resource.Notification.Success, dto);
         }
 
@@ -492,7 +493,7 @@ namespace Application.Services.TripSrv.TripSrv
             }
             else if (dto.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled)
             {
-                await _noticeService.InsertNoticeAsync(trip.Id, NoticeTypeEnum.NotifType_UserCancelledTrip, NoticeUserTypeEnum.NoticeUserType_Admin);
+                await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripCancelledByUser, ActorUserId = trip.UserId, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripCancelledByUser}:{trip.Id}" });
             }
             else
             {
@@ -522,7 +523,7 @@ namespace Application.Services.TripSrv.TripSrv
 
                     );
 
-                    await _noticeService.InsertNoticeAsync(trip.Id, NoticeTypeEnum.NotifType_DriverRequest, NoticeUserTypeEnum.NoticeUserType_Admin);
+                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverRequested, ActorUserId = trip.UserId, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}" });
                 }
             }
 

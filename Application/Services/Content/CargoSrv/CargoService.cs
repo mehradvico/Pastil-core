@@ -258,10 +258,6 @@ namespace Application.Services.Content.CargoSrv
             }
             _context.Cargoes.Update(trip);
             await _context.SaveChangesAsync();
-            if (dto.StatusId == (long)CargoStatusEnum.CargoStatus_Accepted)
-            {
-                await _notificationService.InsertNoticeAsync(trip.Id, NoticeTypeEnum.NotifType_UserAcceptedCargo, NoticeUserTypeEnum.NoticeUserType_User);
-            }
             return new BaseResultDto<CargoUpdateStatusDto>(true, Resource.Notification.Success, dto);
         }
 

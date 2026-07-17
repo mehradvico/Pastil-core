@@ -71,9 +71,9 @@ namespace Api.Areas.Admin.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(DriverDto dto)
+        public async Task<IActionResult> Put(DriverDto dto)
         {
-            var Driver = _DriverService.UpdateDto(dto);
+            var Driver = await _DriverService.UpdateAsyncDto(dto);
             return Ok(Driver);
         }
 

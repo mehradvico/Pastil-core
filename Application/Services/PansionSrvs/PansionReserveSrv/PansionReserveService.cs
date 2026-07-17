@@ -16,6 +16,8 @@ using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
@@ -222,6 +224,15 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveForAdmin, mobileReceptor: adminMobile, emailReceptor: null, token1: booker.Id.ToString(), token2: Pansion.Name);
                     await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterPansionUser, userId: booker.Id, token1: booker.FirstName, token2: Pansion.Name);
                     await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterPansionCompanion, userId: Pansion.Companion.Owner.Id, token1: nameText);
+                    await _notificationService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.PansionReserveRegistered,
+                        ActorUserId = booker.Id,
+                        ReferenceType = "PansionReserve",
+                        ReferenceId = item.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.PansionReserveRegistered}:{item.Id}",
+                        Metadata = new Dictionary<string, string> { { "userName", $"{booker.FirstName} {booker.LastName}".Trim() }, { "pansionName", Pansion.Name }, { "reserveDate", dateOnly ?? string.Empty }, { "mobile", booker.Mobile } }
+                    });
 
                     return new BaseResultDto<PansionReserveDto>(true, mapper.Map<PansionReserveDto>(item));
                 }
@@ -360,7 +371,6 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
             var Pansion = _context.Pansions.Include(s => s.Companion).ThenInclude(s => s.Owner).FirstOrDefault(a => a.Id == model.PansionId);
             await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveCancelForAdmin, mobileReceptor: adminMobile, emailReceptor: null, token1: booker.Id.ToString(), token2: Pansion.Name);
-            await _notificationService.InsertNoticeAsync(model.Id, NoticeTypeEnum.NotifType_UserReserveCancell, NoticeUserTypeEnum.NoticeUserType_User);
             return new BaseResultDto<PansionReserveCancelDto>(true, mapper.Map<PansionReserveCancelDto>(model));
         }
 

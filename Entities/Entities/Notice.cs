@@ -1,18 +1,42 @@
 using Entities.Entities.CommonField;
 using Entities.Entities.Security;
 using System;
+using System.Collections.Generic;
+
 namespace Entities.Entities
 {
     public class Notice : Id_Field
     {
-        public long? UserId { get; set; }
-        public DateTime CreateDate { get; set; }
-        public DateTime? ReadDate { get; set; }
-        public long TypeId { get; set; }
-        public long UserTypeId { get; set; }
-        public long? ItemId { get; set; }
-        public User User { get; set; }
-        public Code Type { get; set; }
-        public Code UserType { get; set; }
+        public long NoticeTypeId { get; set; }
+
+        public long? ActorUserId { get; set; }
+
+        public string ReferenceType { get; set; }
+
+        public long? ReferenceId { get; set; }
+
+        public string Title { get; set; }
+
+        public string Message { get; set; }
+
+        public string NavigationUrl { get; set; }
+
+        public string MetadataJson { get; set; }
+
+        public string DeduplicationKey { get; set; }
+
+        public DateTime CreateDateUtc { get; set; }
+
+        public DateTime ArchiveDueAtUtc { get; set; }
+
+        public DateTime? ArchivedAtUtc { get; set; }
+
+        public NoticeType NoticeType { get; set; }
+
+        public User ActorUser { get; set; }
+
+        public NoticeRead Read { get; set; }
+
+        public ICollection<PushNotification> PushNotifications { get; set; } = new List<PushNotification>();
     }
 }

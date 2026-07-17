@@ -2897,33 +2897,103 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreateDate")
+                    b.Property<long?>("ActorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("ArchiveDueAtUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<long?>("ItemId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("ReadDate")
+                    b.Property<DateTime?>("ArchivedAtUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("TypeId")
+                    b.Property<DateTime>("CreateDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeduplicationKey")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NavigationUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("NoticeTypeId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("UserId")
+                    b.Property<long?>("ReferenceId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("UserTypeId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TypeId");
+                    b.HasIndex("ActorUserId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("DeduplicationKey")
+                        .IsUnique();
 
-                    b.HasIndex("UserTypeId");
+                    b.HasIndex("NoticeTypeId", "CreateDateUtc");
 
-                    b.ToTable("Notices");
+                    b.HasIndex("ReferenceType", "ReferenceId");
+
+                    b.HasIndex("ArchivedAtUtc", "ArchiveDueAtUtc", "CreateDateUtc");
+
+                    b.ToTable("Notices", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Notices_MetadataJson_IsJson", "[MetadataJson] IS NULL OR ISJSON([MetadataJson]) = 1");
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.NoticeRead", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AdminId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("AdminNameSnapshot")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long>("NoticeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("ReadAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte>("ReadMode")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NoticeId")
+                        .IsUnique();
+
+                    b.HasIndex("AdminId", "ReadAtUtc");
+
+                    b.ToTable("NoticeReads");
                 });
 
             modelBuilder.Entity("Entities.Entities.NoticeType", b =>
@@ -2934,13 +3004,36 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<byte>("Importance")
+                        .HasColumnType("tinyint");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Label")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("NavigationTemplate")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Label")
+                        .IsUnique();
 
                     b.ToTable("NoticeTypes");
                 });
@@ -4734,6 +4827,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("IsSend")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("NoticeId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("PushPatternId")
                         .HasColumnType("bigint");
 
@@ -4777,6 +4873,8 @@ namespace Persistence.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NoticeId");
 
                     b.HasIndex("PushPatternId");
 
@@ -8040,27 +8138,39 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.Notice", b =>
                 {
-                    b.HasOne("Entities.Entities.Code", "Type")
+                    b.HasOne("Entities.Entities.Security.User", "ActorUser")
                         .WithMany()
-                        .HasForeignKey("TypeId")
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.NoticeType", "NoticeType")
+                        .WithMany("Notices")
+                        .HasForeignKey("NoticeTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Entities.Entities.Security.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
+                    b.Navigation("ActorUser");
 
-                    b.HasOne("Entities.Entities.Code", "UserType")
+                    b.Navigation("NoticeType");
+                });
+
+            modelBuilder.Entity("Entities.Entities.NoticeRead", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "Admin")
                         .WithMany()
-                        .HasForeignKey("UserTypeId")
+                        .HasForeignKey("AdminId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Type");
+                    b.HasOne("Entities.Entities.Notice", "Notice")
+                        .WithOne("Read")
+                        .HasForeignKey("Entities.Entities.NoticeRead", "NoticeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Admin");
 
-                    b.Navigation("UserType");
+                    b.Navigation("Notice");
                 });
 
             modelBuilder.Entity("Entities.Entities.NotifyMessage", b =>
@@ -8945,11 +9055,18 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.PushNotification", b =>
                 {
+                    b.HasOne("Entities.Entities.Notice", "Notice")
+                        .WithMany("PushNotifications")
+                        .HasForeignKey("NoticeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Entities.Entities.PushPattern", "PushPattern")
                         .WithMany()
                         .HasForeignKey("PushPatternId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Notice");
 
                     b.Navigation("PushPattern");
                 });
@@ -10015,6 +10132,18 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.LocationField.Park", b =>
                 {
                     b.Navigation("ParkPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.Notice", b =>
+                {
+                    b.Navigation("PushNotifications");
+
+                    b.Navigation("Read");
+                });
+
+            modelBuilder.Entity("Entities.Entities.NoticeType", b =>
+                {
+                    b.Navigation("Notices");
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.Pansion", b =>

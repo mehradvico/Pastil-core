@@ -19,6 +19,8 @@ using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
@@ -258,7 +260,16 @@ namespace Application.Services.Order.ProductOrderSrv
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token3: orderUrl);
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
             await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: productOrder.UserId, token1: nameText, token2: productOrder.Id.ToString());
-            await _notificationService.InsertNoticeAsync(long.Parse(productOrder.Id), NoticeTypeEnum.NotifType_UserRegisterOrder, NoticeUserTypeEnum.NoticeUserType_User);
+            var orderId = long.Parse(productOrder.Id);
+            await _notificationService.CreateAsync(new NoticeCreateDto
+            {
+                Label = NoticeTypeLabels.ProductOrderRegistered,
+                ActorUserId = productOrder.UserId,
+                ReferenceType = "ProductOrder",
+                ReferenceId = orderId,
+                DeduplicationKey = $"{NoticeTypeLabels.ProductOrderRegistered}:{productOrder.Id}",
+                Metadata = new Dictionary<string, string> { { "userName", $"{productOrder.User.FirstName} {productOrder.User.LastName}".Trim() }, { "orderId", productOrder.Id }, { "mobile", productOrder.User.Mobile } }
+            });
 
             foreach (var productOrderStore in productOrder.ProductOrderStores)
             {

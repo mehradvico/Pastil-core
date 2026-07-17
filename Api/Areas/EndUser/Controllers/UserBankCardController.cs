@@ -68,10 +68,10 @@ namespace Api.Areas.EndUser.Controllers
         /// <returns></returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<UserBankCardDto>), 200)]
-        public IActionResult Put(UserBankCardDto userBankCardDto)
+        public async Task<IActionResult> Put(UserBankCardDto userBankCardDto)
         {
             userBankCardDto.UserId = _currentUser.CurrentUser.UserId;
-            var result = UserBankCardService.UpdateDto(userBankCardDto);
+            var result = await UserBankCardService.UpdateAsyncDto(userBankCardDto);
             return Ok(result);
         }
 

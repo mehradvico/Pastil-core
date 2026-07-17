@@ -482,9 +482,19 @@ namespace Application.Maping
 
 
             //Notification
-            CreateMap<Notice, NoticeDto>();
-            CreateMap<NoticeDto, Notice>().ForMember(x => x.CreateDate, y => y.Ignore()).ForMember(x => x.User, y => y.Ignore()).ForMember(x => x.Type, y => y.Ignore());
-            CreateMap<Notice, NoticeVDto>().ForMember(x => x.IsRead, opt => opt.MapFrom(s => s.ReadDate.HasValue));
+            CreateMap<NoticeType, NoticeTypeVDto>();
+            CreateMap<NoticeRead, NoticeReadDto>();
+            CreateMap<Notice, NoticeDto>()
+                .ForMember(x => x.Metadata, opt => opt.MapFrom(s => NoticeMetadataSerializer.Deserialize(s.MetadataJson)))
+                .ForMember(x => x.IsRead, opt => opt.MapFrom(s => s.Read != null));
+            CreateMap<Notice, NoticeVDto>()
+                .ForMember(x => x.Metadata, opt => opt.MapFrom(s => NoticeMetadataSerializer.Deserialize(s.MetadataJson)))
+                .ForMember(x => x.IsRead, opt => opt.MapFrom(s => s.Read != null));
+            CreateMap<NoticeDto, Notice>()
+                .ForMember(x => x.NoticeType, y => y.Ignore())
+                .ForMember(x => x.ActorUser, y => y.Ignore())
+                .ForMember(x => x.Read, y => y.Ignore())
+                .ForMember(x => x.PushNotifications, y => y.Ignore());
             //Notification
 
 

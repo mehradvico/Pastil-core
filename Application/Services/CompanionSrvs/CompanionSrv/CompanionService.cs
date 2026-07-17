@@ -9,6 +9,8 @@ using Application.Services.CompanionSrvs.CompanionSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionSrv.Iface;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.Setting.CodeSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Dapper;
@@ -220,7 +222,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                     await _context.SaveChangesAsync();
                     var companionId = item.Id;
                     await _context.SaveChangesAsync();
-                    await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_AddCompanion, NoticeUserTypeEnum.NoticeUserType_Admin);
+                    await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionSubmitted, ActorUserId = item.OwnerId, ReferenceType = "Companion", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionName", item.Name } } });
                     return new BaseResultDto<CompanionDto>(true, mapper.Map<CompanionDto>(item));
 
                 }
@@ -316,7 +318,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                     var res = UpdateDto(dto);
                     if (res.IsSuccess)
                     {
-                        await _notificationService.InsertNoticeAsync(dto.Id, NoticeTypeEnum.NotifType_EditCompanion, NoticeUserTypeEnum.NoticeUserType_Admin);
+                        await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionUpdated, ActorUserId = dto.OwnerId, ReferenceType = "Companion", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "companionName", dto.Name } } });
 
                     }
                     return res;

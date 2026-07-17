@@ -105,7 +105,6 @@ namespace Application.Services.ProductSrvs.WalletSrv
                     item.CreateDate = DateTime.Now;
                     await _context.Wallets.AddAsync(item);
                     await _context.SaveChangesAsync();
-                    await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_UserIncreaseWallet, NoticeUserTypeEnum.NoticeUserType_User);
                     return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
                 }
             }

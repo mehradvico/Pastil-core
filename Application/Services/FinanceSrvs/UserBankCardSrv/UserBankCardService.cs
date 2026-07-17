@@ -6,6 +6,9 @@ using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.FinanceSrvs.UserBankCardSrv.Dto;
 using Application.Services.FinanceSrvs.UserBankCardSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -24,11 +27,13 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly ICurrentUserHelper _currentUser;
-        public UserBankCardService(IDataBaseContext _context, ICurrentUserHelper currentUser, IMapper mapper) : base(_context, mapper)
+        private readonly INoticeService _noticeService;
+        public UserBankCardService(IDataBaseContext _context, ICurrentUserHelper currentUser, IMapper mapper, INoticeService noticeService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             this._currentUser = currentUser;
+            this._noticeService = noticeService;
         }
 
         public async Task<BaseResultDto<UserBankCardVDto>> FindAsyncVDto(long id)
@@ -128,6 +133,7 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
 
                 await _context.UserBankCards.AddAsync(item);
                 await _context.SaveChangesAsync();
+                await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.UserBankCardSubmitted, ActorUserId = item.UserId, ReferenceType = "UserBankCard", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.UserBankCardSubmitted}:{item.Id}" });
 
                 return new BaseResultDto<UserBankCardDto>(true, mapper.Map<UserBankCardDto>(item));
             }
@@ -199,6 +205,16 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
                 return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
         }
+
+        public async Task<BaseResultDto> UpdateAsyncDto(UserBankCardDto dto)
+        {
+            var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+            var result = UpdateDto(dto);
+            if (result.IsSuccess && !isAdmin)
+                await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.UserBankCardUpdated, ActorUserId = _currentUser.CurrentUser.UserId, ReferenceType = "UserBankCard", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.UserBankCardUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}" });
+            return result;
+        }
+
         public async Task<BaseResultDto> UpdateUserBankCardApproveAsyncDto(UserBankCardApproveDto dto)
         {
             try

@@ -14,6 +14,7 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv.Iface
     {
         UserBankCardSearchDto Search(UserBankCardInputDto baseSearchDto);
         Task<BaseResultDto<UserBankCardVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto> UpdateAsyncDto(UserBankCardDto dto);
         Task<BaseResultDto> UpdateUserBankCardApproveAsyncDto(UserBankCardApproveDto dto);
     }
 }

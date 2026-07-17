@@ -427,7 +427,9 @@ public static class ConfigureServices
         services.AddScoped<IMessageSenderService, MessageSenderService>();
         services.AddScoped<INeighborhoodService, NeighborhoodService>();
         services.AddScoped<INewsletterService, NewsletterService>();
+        services.AddScoped<INoticeEventService, NoticeEventService>();
         services.AddScoped<INoticeService, NoticeService>();
+        services.AddScoped<INoticeRealtimePublisher, NullNoticeRealtimePublisher>();
         services.AddScoped<INotifyMessageService, NotifyMessageService>();
         services.AddScoped<IOnTokenChallenge, OnTokenChallenge>();
         services.AddScoped<IOnTokenNotValidService, OnTokenNotValidService>();

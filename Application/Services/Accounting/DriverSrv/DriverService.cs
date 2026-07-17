@@ -1,10 +1,14 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
+using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.Accounting.DriverSrv.Dto;
 using Application.Services.Accounting.DriverSrv.Iface;
 using Application.Services.Accounting.UserSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using Entities.Entities;
@@ -23,11 +27,15 @@ namespace Application.Services.Accounting.DriverSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly IUserService _userService;
-        public DriverService(IDataBaseContext _context, IMapper mapper, IUserService userService) : base(_context, mapper)
+        private readonly ICurrentUserHelper _currentUser;
+        private readonly INoticeService _noticeService;
+        public DriverService(IDataBaseContext _context, IMapper mapper, IUserService userService, ICurrentUserHelper currentUser, INoticeService noticeService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             this._userService = userService;
+            this._currentUser = currentUser;
+            this._noticeService = noticeService;
         }
 
         public async Task<BaseResultDto<DriverVDto>> FindAsyncVDto(long id)
@@ -121,6 +129,7 @@ namespace Application.Services.Accounting.DriverSrv
                     }
                     await _context.Drivers.AddAsync(item);
                     await _context.SaveChangesAsync();
+                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.DriverSubmitted, ActorUserId = item.OwnerId, ReferenceType = "Driver", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.DriverSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "driverName", item.Name } } });
                     return new BaseResultDto<DriverDto>(true, mapper.Map<DriverDto>(item));
 
                 }
@@ -180,6 +189,15 @@ namespace Application.Services.Accounting.DriverSrv
             {
                 return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
+        }
+
+        public async Task<BaseResultDto> UpdateAsyncDto(DriverDto dto)
+        {
+            var isAdmin = _currentUser.CurrentUser?.RoleEnum == Common.Enumerable.RoleEnum.Admin.ToString();
+            var result = UpdateDto(dto);
+            if (result.IsSuccess && !isAdmin)
+                await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.DriverUpdated, ActorUserId = dto.OwnerId, ReferenceType = "Driver", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.DriverUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "driverName", dto.Name } } });
+            return result;
         }
 
         public BaseResultDto DriverUpdateStatusDto(DriverUpdateStatusDto dto)

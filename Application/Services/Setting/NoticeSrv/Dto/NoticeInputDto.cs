@@ -1,17 +1,21 @@
-﻿using Application.Common.Dto.Input;
+using Application.Common.Dto.Input;
 using Application.Services.Setting.NoticeSrv.Iface;
+using Entities.Entities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services.Setting.NoticeSrv.Dto
 {
     public class NoticeInputDto : BaseInputDto, INoticeSearchFields
     {
-        public long? UserId { get; set; }
+        public long? ActorUserId { get; set; }
+        public long? ReadByAdminId { get; set; }
+        public long? NoticeTypeId { get; set; }
+        public NoticeImportance? Importance { get; set; }
+        public string ReferenceType { get; set; }
+        public long? ReferenceId { get; set; }
         public bool? IsRead { get; set; }
-        public long? TypeId { get; set; }
+        public bool? IsArchived { get; set; } = false;
+        public DateTime? FromDateUtc { get; set; }
+        public DateTime? ToDateUtc { get; set; }
     }
 }

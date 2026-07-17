@@ -90,6 +90,7 @@ namespace Persistence.Context
         public DbSet<Neighborhood> Neighborhoods { get; set; }
         public DbSet<Newsletter> Newsletters { get; set; }
         public DbSet<Notice> Notices { get; set; }
+        public DbSet<NoticeRead> NoticeReads { get; set; }
         public DbSet<NoticeType> NoticeTypes { get; set; }
         public DbSet<NotifyMessage> NotifyMessages { get; set; }
         public DbSet<OtpVerify> OtpVerifies { get; set; }
@@ -464,15 +465,123 @@ namespace Persistence.Context
                 .HasForeignKey(p => p.ProductId);
             });
 
-            modelBuilder.Entity<Notice>()
-                .HasOne(n => n.Type)
-                .WithMany()
-                .HasForeignKey(n => n.TypeId);
+            modelBuilder.Entity<NoticeType>(entity =>
+            {
+                entity.Property(x => x.Label)
+                    .IsRequired()
+                    .HasMaxLength(150);
 
-            modelBuilder.Entity<Notice>()
-                .HasOne(n => n.UserType)
-                .WithMany()
-                .HasForeignKey(n => n.UserTypeId);
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(1000);
+
+                entity.Property(x => x.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(x => x.NavigationTemplate)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.HasIndex(x => x.Label)
+                    .IsUnique();
+            });
+
+            modelBuilder.Entity<Notice>(entity =>
+            {
+                entity.Property(x => x.Title)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(x => x.Message)
+                    .IsRequired()
+                    .HasMaxLength(1000);
+
+                entity.Property(x => x.ReferenceType)
+                    .HasMaxLength(100);
+
+                entity.Property(x => x.NavigationUrl)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(x => x.MetadataJson)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(x => x.DeduplicationKey)
+                    .IsRequired()
+                    .HasMaxLength(450);
+
+                entity.HasIndex(x => x.DeduplicationKey)
+                    .IsUnique();
+
+                entity.HasIndex(x => new
+                {
+                    x.ArchivedAtUtc,
+                    x.ArchiveDueAtUtc,
+                    x.CreateDateUtc
+                });
+
+                entity.HasIndex(x => new
+                {
+                    x.NoticeTypeId,
+                    x.CreateDateUtc
+                });
+
+                entity.HasIndex(x => new
+                {
+                    x.ReferenceType,
+                    x.ReferenceId
+                });
+
+                entity.HasOne(x => x.NoticeType)
+                    .WithMany(x => x.Notices)
+                    .HasForeignKey(x => x.NoticeTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(x => x.ActorUser)
+                    .WithMany()
+                    .HasForeignKey(x => x.ActorUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.ToTable("Notices", table =>
+                {
+                    table.HasCheckConstraint(
+                        "CK_Notices_MetadataJson_IsJson",
+                        "[MetadataJson] IS NULL OR ISJSON([MetadataJson]) = 1");
+                });
+            });
+
+            modelBuilder.Entity<NoticeRead>(entity =>
+            {
+                entity.Property(x => x.AdminNameSnapshot)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.HasIndex(x => x.NoticeId)
+                    .IsUnique();
+
+                entity.HasIndex(x => new
+                {
+                    x.AdminId,
+                    x.ReadAtUtc
+                });
+
+                entity.HasOne(x => x.Notice)
+                    .WithOne(x => x.Read)
+                    .HasForeignKey<NoticeRead>(x => x.NoticeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(x => x.Admin)
+                    .WithMany()
+                    .HasForeignKey(x => x.AdminId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PushNotification>()
+                .HasOne(x => x.Notice)
+                .WithMany(x => x.PushNotifications)
+                .HasForeignKey(x => x.NoticeId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             base.OnModelCreating(modelBuilder);
 

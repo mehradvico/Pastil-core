@@ -56,10 +56,10 @@ namespace Api.Areas.Driver.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(DriverDto dto)
+        public async Task<IActionResult> Put(DriverDto dto)
         {
             dto.Approved = false;
-            var Driver = _DriverService.UpdateDto(dto);
+            var Driver = await _DriverService.UpdateAsyncDto(dto);
             return Ok(Driver);
         }
     }

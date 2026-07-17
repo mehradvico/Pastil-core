@@ -1,15 +1,15 @@
-﻿using Application.Common.Dto.Field;
+using Application.Common.Dto.Field;
+using Entities.Entities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services.Setting.NoticeSrv.Dto
 {
     public class NoticeReadDto : Id_FieldDto
     {
-        public long? UserId { get; set; }
-        public DateTime? ReadDate { get; set; }
+        public long NoticeId { get; set; }
+        public long AdminId { get; set; }
+        public string AdminNameSnapshot { get; set; }
+        public DateTime ReadAtUtc { get; set; }
+        public NoticeReadMode ReadMode { get; set; }
     }
 }

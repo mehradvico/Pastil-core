@@ -10,6 +10,7 @@ namespace Application.Services.Accounting.DriverSrv.Iface
     {
         DriverSearchDto Search(DriverInputDto baseSearchDto);
         Task<BaseResultDto<DriverVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto> UpdateAsyncDto(DriverDto dto);
         BaseResultDto DriverUpdateStatusDto(DriverUpdateStatusDto dto);
     }
 }

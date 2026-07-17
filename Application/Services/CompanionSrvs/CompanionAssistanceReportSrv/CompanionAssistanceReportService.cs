@@ -6,6 +6,8 @@ using Application.Services.CompanionSrvs.CompanionAssistanceReportSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistanceReportSrv.Iface;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.NoticeSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using AutoMapper;
 using Entities.Entities.CompanionField;
 using Microsoft.EntityFrameworkCore;
@@ -102,7 +104,7 @@ namespace Application.Services.CompanionAssistanceSrvs.CompanionAssistanceAssist
                     item.CreateDate = DateTime.Now;
                     await _context.CompanionAssistanceReports.AddAsync(item);
                     await _context.SaveChangesAsync();
-                    await _notificationService.InsertNoticeAsync(item.Id, NoticeTypeEnum.NotifType_AddCompanionAssistanceReport, NoticeUserTypeEnum.NoticeUserType_Admin);
+                    await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceReportSubmitted, ReferenceType = "CompanionAssistanceReport", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceReportSubmitted}:{item.Id}" });
                     return new BaseResultDto<CompanionAssistanceReportDto>(true, mapper.Map<CompanionAssistanceReportDto>(item));
                 }
 

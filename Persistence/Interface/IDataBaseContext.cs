@@ -82,6 +82,7 @@ namespace Persistence.Interface
         public DbSet<Neighborhood> Neighborhoods { get; set; }
         public DbSet<Newsletter> Newsletters { get; set; }
         public DbSet<Notice> Notices { get; set; }
+        public DbSet<NoticeRead> NoticeReads { get; set; }
         public DbSet<NoticeType> NoticeTypes { get; set; }
         public DbSet<NotifyMessage> NotifyMessages { get; set; }
         public DbSet<OtpVerify> OtpVerifies { get; set; }
