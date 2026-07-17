@@ -151,7 +151,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 }
                 dto.CompanionAssistanceTypeIds = dto.CompanionAssistanceTypeIds.Distinct().ToList();
                 await _companionAssistanceTypeService.InsertOrUpdateAsync(item, dto.CompanionAssistanceTypeIds);
-                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceSubmitted, ReferenceType = "CompanionAssistance", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceSubmitted}:{item.Id}" });
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceSubmitted, ReferenceType = "CompanionAssistance", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionId", item.CompanionId.ToString() } } });
                 return new BaseResultDto<CompanionAssistanceDto>(true, mapper.Map<CompanionAssistanceDto>(item));
             }
             catch (Exception ex)
@@ -186,7 +186,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 await _context.SaveChangesAsync();
                 dto.CompanionAssistanceTypeIds = dto.CompanionAssistanceTypeIds.Distinct().ToList();
                 await _companionAssistanceTypeService.InsertOrUpdateAsync(item, dto.CompanionAssistanceTypeIds);
-                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceUpdated, ReferenceType = "CompanionAssistance", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceUpdated}:{item.Id}:{DateTime.UtcNow.Ticks}" });
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceUpdated, ReferenceType = "CompanionAssistance", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceUpdated}:{item.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "companionId", item.CompanionId.ToString() } } });
                 return new BaseResultDto<CompanionAssistanceDto>(true, mapper.Map<CompanionAssistanceDto>(item));
             }
             catch (Exception ex)

@@ -193,9 +193,8 @@ namespace Application.Services.Accounting.DriverSrv
 
         public async Task<BaseResultDto> UpdateAsyncDto(DriverDto dto)
         {
-            var isAdmin = _currentUser.CurrentUser?.RoleEnum == Common.Enumerable.RoleEnum.Admin.ToString();
             var result = UpdateDto(dto);
-            if (result.IsSuccess && !isAdmin)
+            if (result.IsSuccess)
                 await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.DriverUpdated, ActorUserId = dto.OwnerId, ReferenceType = "Driver", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.DriverUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "driverName", dto.Name } } });
             return result;
         }

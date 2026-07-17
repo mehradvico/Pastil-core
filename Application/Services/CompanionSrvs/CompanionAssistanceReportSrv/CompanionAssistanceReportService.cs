@@ -104,7 +104,7 @@ namespace Application.Services.CompanionAssistanceSrvs.CompanionAssistanceAssist
                     item.CreateDate = DateTime.Now;
                     await _context.CompanionAssistanceReports.AddAsync(item);
                     await _context.SaveChangesAsync();
-                    await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceReportSubmitted, ReferenceType = "CompanionAssistanceReport", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceReportSubmitted}:{item.Id}" });
+                    await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceReportSubmitted, ReferenceType = "CompanionAssistanceReport", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceReportSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionAssistanceId", item.CompanionAssistanceId.ToString() } } });
                     return new BaseResultDto<CompanionAssistanceReportDto>(true, mapper.Map<CompanionAssistanceReportDto>(item));
                 }
 

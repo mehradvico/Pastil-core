@@ -208,9 +208,8 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
 
         public async Task<BaseResultDto> UpdateAsyncDto(UserBankCardDto dto)
         {
-            var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
             var result = UpdateDto(dto);
-            if (result.IsSuccess && !isAdmin)
+            if (result.IsSuccess)
                 await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.UserBankCardUpdated, ActorUserId = _currentUser.CurrentUser.UserId, ReferenceType = "UserBankCard", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.UserBankCardUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}" });
             return result;
         }

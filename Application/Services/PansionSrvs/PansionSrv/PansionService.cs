@@ -165,7 +165,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
                         ReferenceType = "Pansion",
                         ReferenceId = item.Id,
                         DeduplicationKey = $"{NoticeTypeLabels.PansionSubmitted}:{item.Id}",
-                        Metadata = new Dictionary<string, string> { { "pansionName", item.Name } }
+                        Metadata = new Dictionary<string, string> { { "pansionName", item.Name }, { "companionId", item.CompanionId.ToString() } }
                     });
                     return new BaseResultDto<PansionDto>(true, mapper.Map<PansionDto>(item));
 

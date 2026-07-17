@@ -168,7 +168,7 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv
                 await _context.CompanionUsers.AddAsync(item);
                 await _context.SaveChangesAsync();
 
-                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionUserSubmitted, ActorUserId = item.UserId, ReferenceType = "CompanionUser", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionUserSubmitted}:{item.Id}" });
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionUserSubmitted, ActorUserId = item.UserId, ReferenceType = "CompanionUser", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionUserSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionId", item.CompanionId.ToString() } } });
 
                 return new BaseResultDto<CompanionUserDto>(true,mapper.Map<CompanionUserDto>(item));
             }

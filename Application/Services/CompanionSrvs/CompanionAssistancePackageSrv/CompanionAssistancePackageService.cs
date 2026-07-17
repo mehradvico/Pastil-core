@@ -16,6 +16,7 @@ using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -110,7 +111,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
                 var item = mapper.Map<CompanionAssistancePackage>(dto);
                 await _context.CompanionAssistancePackages.AddAsync(item);
                 await _context.SaveChangesAsync();
-                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistancePackageSubmitted, ReferenceType = "CompanionAssistancePackage", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistancePackageSubmitted}:{item.Id}" });
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistancePackageSubmitted, ReferenceType = "CompanionAssistancePackage", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistancePackageSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionAssistanceId", item.CompanionAssistanceId.ToString() } } });
 
 
                 return new BaseResultDto<CompanionAssistancePackageDto>(true, mapper.Map<CompanionAssistancePackageDto>(item));
@@ -149,7 +150,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
         {
             var result = UpdateDto(dto);
             if (result.IsSuccess)
-                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistancePackageUpdated, ReferenceType = "CompanionAssistancePackage", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistancePackageUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}" });
+                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistancePackageUpdated, ReferenceType = "CompanionAssistancePackage", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistancePackageUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "companionAssistanceId", dto.CompanionAssistanceId.ToString() } } });
             return result;
         }
 

@@ -105,7 +105,7 @@ namespace Application.Services.CompanionSrvs.CompanionReportSrv
                     item.CreateDate = DateTime.Now;
                     await _context.CompanionReports.AddAsync(item);
                     await _context.SaveChangesAsync();
-                    await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionReportSubmitted, ReferenceType = "CompanionReport", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionReportSubmitted}:{item.Id}" });
+                    await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionReportSubmitted, ReferenceType = "CompanionReport", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionReportSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionId", item.CompanionId.ToString() } } });
                     return new BaseResultDto<CompanionReportDto>(true, mapper.Map<CompanionReportDto>(item));
                 }
 

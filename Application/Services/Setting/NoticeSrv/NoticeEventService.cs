@@ -4,6 +4,7 @@ using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -25,18 +26,22 @@ namespace Application.Services.Setting.NoticeSrv
         private readonly INoticeRealtimePublisher _realtimePublisher;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ILogger<NoticeEventService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public NoticeEventService(IDataBaseContext context, IMapper mapper, INoticeRealtimePublisher realtimePublisher, IPushNotificationService pushNotificationService, ILogger<NoticeEventService> logger)
+        public NoticeEventService(IDataBaseContext context, IMapper mapper, INoticeRealtimePublisher realtimePublisher, IPushNotificationService pushNotificationService, ILogger<NoticeEventService> logger, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _mapper = mapper;
             _realtimePublisher = realtimePublisher;
             _pushNotificationService = pushNotificationService;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<BaseResultDto<NoticeDto>> CreateAsync(NoticeCreateDto dto)
         {
+            if (IsAdminEndpoint())
+                return new BaseResultDto<NoticeDto>(true, (NoticeDto)null);
             if (dto == null || string.IsNullOrWhiteSpace(dto.Label))
                 return new BaseResultDto<NoticeDto>(false, "Notice label is required.", null);
             var noticeType = await _context.NoticeTypes.FirstOrDefaultAsync(x => x.Label == dto.Label && x.IsActive);
@@ -142,6 +147,15 @@ namespace Application.Services.Setting.NoticeSrv
         private static bool IsUniqueConstraintViolation(DbUpdateException exception)
         {
             return exception.InnerException is SqlException sqlException && (sqlException.Number == 2601 || sqlException.Number == 2627);
+        }
+
+        private bool IsAdminEndpoint()
+        {
+            var context = _httpContextAccessor.HttpContext;
+            if (context == null)
+                return false;
+            var area = context.Request.RouteValues["area"]?.ToString();
+            return string.Equals(area, "Admin", StringComparison.OrdinalIgnoreCase) || context.Request.Path.StartsWithSegments("/api/Admin", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
