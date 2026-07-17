@@ -2,7 +2,6 @@
 using Application.Common.Interface;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Iface;
-using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

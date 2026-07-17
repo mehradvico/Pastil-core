@@ -228,7 +228,7 @@ namespace Application.Services.Content.CargoSrv
                 _rebateService.IncreaseUseCount(cargo);
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new BaseResultDto(false);
 

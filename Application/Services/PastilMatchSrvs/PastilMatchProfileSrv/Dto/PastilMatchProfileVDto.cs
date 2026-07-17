@@ -18,7 +18,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto
         public long EnergyLevelId { get; set; }
         public long SocialLevelId { get; set; }
         public int LikeCount { get; set; }
-        public PointDto? LiveLocation { get; set; }
+        public PointDto LiveLocation { get; set; }
         public long? CityId { get; set; }
         public long? NeighborhoodId { get; set; }
         public string Description { get; set; }

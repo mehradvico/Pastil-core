@@ -17,8 +17,8 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto
         public long? CityId { get; set; }
         public long? NeighborhoodId { get; set; }
         public bool? IsVerified { get; set; }
-        public List<long>? PastilMatchGoalIds { get; set; }
-        public PointDto? LiveLocation { get; set; }
+        public List<long> PastilMatchGoalIds { get; set; }
+        public PointDto LiveLocation { get; set; }
         public double? MaxDistanceInKilometers { get; set; }
     }
 }

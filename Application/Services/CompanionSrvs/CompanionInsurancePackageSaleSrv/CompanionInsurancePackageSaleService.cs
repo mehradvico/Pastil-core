@@ -200,7 +200,7 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
                 _rebateService.IncreaseUseCount(insurance);
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new BaseResultDto(false);
 

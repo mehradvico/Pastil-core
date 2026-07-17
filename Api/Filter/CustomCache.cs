@@ -50,11 +50,11 @@ public class CustomOutputCacheAttribute : Attribute, IAsyncActionFilter
         // تولید یک کلید یکتا برای کش بر اساس مسیر و کوئری استرینگ
         string cacheKey = $"{_key}-{context.HttpContext.Request.Path}-{context.HttpContext.Request.QueryString}-{context.HttpContext.Request.Headers["Accept-Language"]}";
 
-        if (cache.TryGetValue(cacheKey, out var cachedResponse))
+        if (cache.TryGetValue(cacheKey, out string? cachedResponse) && cachedResponse != null)
         {
             // اگر داده در کش موجود باشد، مستقیماً آن را باز می‌گردانیم
             context.HttpContext.Response.ContentType = "application/json"; // مثال: JSON
-            await context.HttpContext.Response.WriteAsync(cachedResponse.ToString());
+            await context.HttpContext.Response.WriteAsync(cachedResponse);
             return;
         }
 

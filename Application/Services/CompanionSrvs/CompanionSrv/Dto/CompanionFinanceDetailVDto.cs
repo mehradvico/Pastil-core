@@ -10,7 +10,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
 {
     public class CompanionFinanceDetailVDto : CompanionFinanceVDto
     {
-        public new List<PansionFinanceVDto> Pansions { get; set; }
-        public new List<CompanionAssistanceFinanceVDto> CompanionAssistances { get; set; }
+        public List<PansionFinanceVDto> Pansions { get; set; }
+        public List<CompanionAssistanceFinanceVDto> CompanionAssistances { get; set; }
     }
 }

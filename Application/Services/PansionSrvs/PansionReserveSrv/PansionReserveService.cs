@@ -238,7 +238,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 }
 
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 return new BaseResultDto<PansionReserveDto>(isSuccess: false, val: ex.Message, data: dto);
             }
@@ -296,7 +296,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new BaseResultDto(false);
             }

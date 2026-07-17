@@ -417,7 +417,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new BaseResultDto(false);
             }

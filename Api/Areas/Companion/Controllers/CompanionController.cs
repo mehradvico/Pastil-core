@@ -34,6 +34,8 @@ namespace Api.Areas.Agent.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
+            if (!_currentUserService.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             var companion = await _companionService.FindAsyncVDto(_currentUserService.CurrentUser.CompanionId.Value);
             return Ok(companion);
         }
@@ -47,6 +49,8 @@ namespace Api.Areas.Agent.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(CompanionDto dto)
         {
+            if (!_currentUserService.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             dto.Active = false;
             dto.Approved = false;
             dto.Id = _currentUserService.CurrentUser.CompanionId.Value;

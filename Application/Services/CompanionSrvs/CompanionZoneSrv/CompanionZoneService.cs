@@ -63,7 +63,7 @@ namespace Application.Services.CompanionSrvs.CompanionZoneSrv
 
         }
 
-        public virtual async Task<BaseResultDto<CompanionZoneDto>> InsertAsyncDto(CompanionZoneDto dto)
+        public override async Task<BaseResultDto<CompanionZoneDto>> InsertAsyncDto(CompanionZoneDto dto)
         {
             try
             {

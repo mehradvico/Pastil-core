@@ -1,12 +1,12 @@
 using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
-using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
@@ -20,14 +20,14 @@ namespace Application.Services.Setting.NoticeSrv
     {
         private readonly IDataBaseContext _context;
         private readonly IMapper _mapper;
-        private readonly ICurrentUserHelper _currentUser;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly INoticeEventService _noticeEventService;
 
-        public NoticeService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUser, INoticeEventService noticeEventService) : base(context, mapper)
+        public NoticeService(IDataBaseContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, INoticeEventService noticeEventService) : base(context, mapper)
         {
             _context = context;
             _mapper = mapper;
-            _currentUser = currentUser;
+            _httpContextAccessor = httpContextAccessor;
             _noticeEventService = noticeEventService;
         }
 
@@ -91,7 +91,7 @@ namespace Application.Services.Setting.NoticeSrv
         public Task<BaseResultDto<NoticeDto>> CreateAsync(NoticeCreateDto dto)
         {
             if (dto != null && !dto.ActorUserId.HasValue)
-                dto.ActorUserId = _currentUser.CurrentUser?.UserId;
+                dto.ActorUserId = GetCurrentUserId();
             return _noticeEventService.CreateAsync(dto);
         }
 
@@ -153,7 +153,7 @@ namespace Application.Services.Setting.NoticeSrv
         {
             if (noticeIds.Count == 0)
                 return 0;
-            var admin = _currentUser.CurrentUser;
+            var adminId = GetCurrentUserId() ?? throw new UnauthorizedAccessException("Authenticated admin was not found.");
             var adminName = GetAdminName();
             for (var attempt = 0; attempt < 2; attempt++)
             {
@@ -161,7 +161,7 @@ namespace Application.Services.Setting.NoticeSrv
                 var unreadIds = noticeIds.Except(readIds).ToList();
                 if (unreadIds.Count == 0)
                     return 0;
-                var reads = unreadIds.Select(x => new NoticeRead { NoticeId = x, AdminId = admin.UserId, AdminNameSnapshot = adminName, ReadAtUtc = DateTime.UtcNow, ReadMode = readMode }).ToList();
+                var reads = unreadIds.Select(x => new NoticeRead { NoticeId = x, AdminId = adminId, AdminNameSnapshot = adminName, ReadAtUtc = DateTime.UtcNow, ReadMode = readMode }).ToList();
                 await _context.NoticeReads.AddRangeAsync(reads);
                 try
                 {
@@ -184,14 +184,22 @@ namespace Application.Services.Setting.NoticeSrv
 
         private string GetAdminName()
         {
-            var admin = _currentUser.CurrentUser;
-            return string.IsNullOrWhiteSpace(admin.FullName) ? $"{admin.FirstName} {admin.LastName}".Trim() : admin.FullName;
+            var user = _httpContextAccessor.HttpContext?.User;
+            var name = $"{user?.FindFirst("FirstName")?.Value} {user?.FindFirst("LastName")?.Value}".Trim();
+            return string.IsNullOrWhiteSpace(name) ? $"Admin {GetCurrentUserId()}" : name;
         }
 
         private void EnsureAdmin()
         {
-            if (_currentUser.CurrentUser?.RoleEnum != RoleEnum.Admin.ToString())
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user?.Identity?.IsAuthenticated != true || user.FindFirst("RoleId")?.Value != ((long)RoleEnum.Admin).ToString())
                 throw new UnauthorizedAccessException("Notice access is restricted to admins.");
+        }
+
+        private long? GetCurrentUserId()
+        {
+            var value = _httpContextAccessor.HttpContext?.User.FindFirst("UserId")?.Value;
+            return long.TryParse(value, out var userId) ? userId : null;
         }
 
         private static bool IsUniqueConstraintViolation(DbUpdateException exception)

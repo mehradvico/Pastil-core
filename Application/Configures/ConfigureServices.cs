@@ -533,7 +533,7 @@ public static class ConfigureServices
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile(new AllMap());
-        });
+        }, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
 
         IMapper mapper = mapperConfig.CreateMapper();
 

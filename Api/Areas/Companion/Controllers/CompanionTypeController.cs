@@ -60,6 +60,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionTypeDto>), 200)]
         public async Task<IActionResult> Post(CompanionTypeDto CompanionTypeDto)
         {
+            if (!_current.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             CompanionTypeDto.CompanionId = _current.CurrentUser.CompanionId.Value;
             var result = await CompanionTypeService.InsertAsyncDto(CompanionTypeDto);
             return Ok(result);
@@ -73,6 +75,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionTypeDto>), 200)]
         public IActionResult Put(CompanionTypeDto CompanionTypeDto)
         {
+            if (!_current.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             CompanionTypeDto.CompanionId = _current.CurrentUser.CompanionId.Value;
             var result = CompanionTypeService.UpdateDto(CompanionTypeDto);
             return Ok(result);

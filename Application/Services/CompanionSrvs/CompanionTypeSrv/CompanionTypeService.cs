@@ -3,7 +3,6 @@ using Application.Common.Helpers;
 using Application.Common.Service;
 using Application.Services.CompanionSrvs.CompanionTypeSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionTypeSrv.Iface;
-using Application.Services.CompanionSrvs.CompanionTypeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
 using Entities.Entities.CompanionField;

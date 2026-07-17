@@ -101,7 +101,7 @@ builder.Services.AddAuthentication(Options =>
              {
                  ValidIssuer = builder.Configuration["JWtConfig:issuer"],
                  ValidAudience = builder.Configuration["JWtConfig:audience"],
-                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWtConfig:key"])),
+                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWtConfig:key"] ?? throw new InvalidOperationException("JWT signing key is not configured."))),
                  ValidateIssuerSigningKey = true,
                  ValidateLifetime = true,
 
@@ -165,7 +165,8 @@ builder.Services.AddHangfire(configuration => configuration
 builder.Services.AddHangfireServer();
 
 var app = builder.Build();
-RecurringJob.AddOrUpdate<INoticeService>("ArchiveNotices", x => x.ArchiveExpiredAsync(), Cron.Hourly);
+var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+recurringJobManager.AddOrUpdate<INoticeService>("ArchiveNotices", x => x.ArchiveExpiredAsync(), Cron.Hourly);
 
 app.UseRequestLocalization();
 app.UseHangfireDashboard();
@@ -173,11 +174,13 @@ if (app.Environment.IsDevelopment())
 {
 
 }
-app.UseStaticFiles();
-app.UseCors("AllowPanel"); 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCors("AllowPanel");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseOutputCache();
 app.MapControllers();
 app.MapHub<NoticeHub>("/hubs/notices");
 app.UseSwagger();
@@ -186,5 +189,4 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
     options.DefaultModelsExpandDepth(-1);
 });
-app.UseOutputCache();
 app.Run();

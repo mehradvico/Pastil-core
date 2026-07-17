@@ -66,6 +66,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionAssistanceDto>), 200)]
         public async Task<IActionResult> Post(CompanionAssistanceDto dto)
         {
+            if (!_currentUserDto.CompanionId.HasValue)
+                return Forbid();
             dto.Active = false;
             dto.CompanionId = _currentUserDto.CompanionId.Value;
             var result = await _companionAssistanceService.InsertAsyncDto(dto);

@@ -2186,32 +2186,6 @@
             حذف آیتم
             </summary>
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.NoticeController">
-             <summary>
-             مدیریت اعلان ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.NoticeController.#ctor(Application.Services.Setting.NoticeSrv.Iface.INoticeService,Application.Common.Interface.ICurrentUserHelper)">
-             <summary>
-             مدیریت اعلان ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.NoticeController.Get(System.Int64,System.Nullable{System.Int64})">
-            <summary>
-             اطلاعات اعلان 
-            </summary>
-            <param name="id">شناسه</param>
-            <returns>
-            </returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.NoticeController.Get(Application.Services.Setting.NoticeSrv.Dto.NoticeInputDto)">
-            <summary>
-             جستجو
-            </summary>
-            <returns></returns> 
-        </member>
         <member name="T:Api.Areas.Admin.Controllers.NotifyMessageController">
             <summary>
             مدیریت پیام های نوتیفیکیشن

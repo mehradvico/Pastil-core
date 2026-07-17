@@ -2,7 +2,6 @@
 using Application.Common.Interface;
 using Application.Services.CompanionSrvs.CompanionZoneSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionZoneSrv.Iface;
-using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -57,7 +56,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionZoneDto>), 200)]
         public async Task<IActionResult> Post(CompanionZoneDto CompanionZoneDto)
         {
-            CompanionZoneDto.CompanionId = (long)_currentUser.CurrentUser.CompanionId;
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            CompanionZoneDto.CompanionId = _currentUser.CurrentUser.CompanionId.Value;
             var result = await CompanionZoneService.InsertAsyncDto(CompanionZoneDto);
             return Ok(result);
         }
@@ -70,7 +71,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionZoneDto>), 200)]
         public IActionResult Put(CompanionZoneDto CompanionZoneDto)
         {
-            CompanionZoneDto.CompanionId = (long)_currentUser.CurrentUser.CompanionId;
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            CompanionZoneDto.CompanionId = _currentUser.CurrentUser.CompanionId.Value;
             var result = CompanionZoneService.UpdateDto(CompanionZoneDto);
             return Ok(result);
         }

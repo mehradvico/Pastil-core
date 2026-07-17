@@ -70,8 +70,8 @@ namespace Api.Swagger
                 model.Enum.Clear();
                 foreach (string enumName in Enum.GetNames(context.Type))
                 {
-                    System.Reflection.MemberInfo memberInfo = context.Type.GetMember(enumName).FirstOrDefault(m => m.DeclaringType == context.Type);
-                    EnumMemberAttribute enumMemberAttribute = memberInfo == null
+                    System.Reflection.MemberInfo? memberInfo = context.Type.GetMember(enumName).FirstOrDefault(m => m.DeclaringType == context.Type);
+                    EnumMemberAttribute? enumMemberAttribute = memberInfo == null
                      ? null
                      : memberInfo.GetCustomAttributes(typeof(EnumMemberAttribute), false).OfType<EnumMemberAttribute>().FirstOrDefault();
                     string label = enumMemberAttribute == null || string.IsNullOrWhiteSpace(enumMemberAttribute.Value)

@@ -412,7 +412,7 @@ namespace Application.Services.TripSrv.TripSrv
                 _rebateService.IncreaseUseCount(trip);
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new BaseResultDto(false);
 

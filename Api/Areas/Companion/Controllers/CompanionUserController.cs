@@ -61,6 +61,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionUserDto>), 200)]
         public async Task<IActionResult> Post(CompanionUserDto CompanionUserDto)
         {
+            if (!CurrentUserDto.CompanionId.HasValue)
+                return Forbid();
             CompanionUserDto.Active = false;
             CompanionUserDto.UserAccept = null;
             CompanionUserDto.CompanionId = CurrentUserDto.CompanionId.Value;
@@ -76,6 +78,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionUserDto>), 200)]
         public IActionResult Put(CompanionUserDto CompanionUserDto)
         {
+            if (!CurrentUserDto.CompanionId.HasValue)
+                return Forbid();
             CompanionUserDto.CompanionId = CurrentUserDto.CompanionId.Value;
             var result = CompanionUserService.Active(CompanionUserDto);
             return Ok(result);

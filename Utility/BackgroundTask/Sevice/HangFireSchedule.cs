@@ -83,7 +83,7 @@ namespace Api.HangFire
                 }
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 SyncReminderSyncing = false;
             }
@@ -164,7 +164,7 @@ namespace Api.HangFire
                 }
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 SyncDriverAcceptSyncing = false;
             }

@@ -33,6 +33,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<FinanceCompanionVDto>), 200)]
         public IActionResult Get([FromQuery] FinanceCompanionInputDto dto)
         {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             dto.CompanionId = _currentUser.CurrentUser.CompanionId.Value;
             var searchDto = _financeCompanionService.Search(dto);
             return Ok(searchDto);

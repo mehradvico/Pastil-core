@@ -13,7 +13,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Iface
         public bool? Approve { get; set; }
         public long? StateId { get; set; }
         public long? CityId { get; set; }
-        public List<long>? NeighborhoodIds { get; set; }
+        public List<long> NeighborhoodIds { get; set; }
         public bool? Suggested { get; set; }
         public long? PetId { get; set; }
     }

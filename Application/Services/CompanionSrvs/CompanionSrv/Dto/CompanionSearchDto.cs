@@ -30,7 +30,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public long? StateId { get; set; }
         public long? TypeId { get; set; }
         public long? PetId { get; set; }
-        public List<long>? NeighborhoodIds { get; set; }
+        public List<long> NeighborhoodIds { get; set; }
         public bool? Approved { get; set; }
         public bool? GoldAccount { get; set; }
         public bool? SilverAccount { get; set; }

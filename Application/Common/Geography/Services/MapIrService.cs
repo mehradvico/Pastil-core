@@ -17,7 +17,7 @@ namespace Application.Common.Geography.Services
         {
             var options = new RestClientOptions("https://map.ir")
             {
-                MaxTimeout = -1,
+                Timeout = System.Threading.Timeout.InfiniteTimeSpan,
             };
             var client = new RestClient(options);
             var request1 = $"/routes/route/v1/driving/{(start.x).ToString().Replace("٫", ".")},{start.y.ToString().Replace("٫", ".")};{end.x.ToString().Replace("٫", ".")},{end.y.ToString().Replace("٫", ".")}?alternatives=false&steps=false";
@@ -43,7 +43,7 @@ namespace Application.Common.Geography.Services
             }
             var options = new RestClientOptions("https://map.ir")
             {
-                MaxTimeout = -1,
+                Timeout = System.Threading.Timeout.InfiniteTimeSpan,
             };
             var client = new RestClient(options);
             var request1 = $"/search/v2/?text={Uri.EscapeDataString(q)}";

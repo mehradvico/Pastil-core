@@ -2,7 +2,6 @@
 using Application.Common.Interface;
 using Application.Services.CompanionSrvs.CompanionPetSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionPetSrv.Iface;
-using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -61,6 +60,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionPetDto>), 200)]
         public async Task<IActionResult> Post(CompanionPetDto CompanionPetDto)
         {
+            if (!_current.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             CompanionPetDto.CompanionId = _current.CurrentUser.CompanionId.Value;
             var result = await CompanionPetService.InsertAsyncDto(CompanionPetDto);
             return Ok(result);
@@ -74,6 +75,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionPetDto>), 200)]
         public IActionResult Put(CompanionPetDto CompanionPetDto)
         {
+            if (!_current.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             CompanionPetDto.CompanionId = _current.CurrentUser.CompanionId.Value;
             var result = CompanionPetService.UpdateDto(CompanionPetDto);
             return Ok(result);
