@@ -7,7 +7,8 @@ namespace Entities.Entities
     {
         public int RegionNumber { get; set; }
         public long CityId { get; set; }
-        public MultiPolygon Boundary { get; set; }
+        public Geometry? Boundary { get; set; }
+
         public City City { get; set; }
     }
 }

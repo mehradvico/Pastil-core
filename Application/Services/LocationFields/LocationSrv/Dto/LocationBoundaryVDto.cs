@@ -11,6 +11,6 @@ namespace Application.Services.LocationFields.LocationSrv.Dto
     {
         public long Id { get; set; }
         public string Name { get; set; }
-        public MultiPolygon Boundary { get; set; }
+        public Geometry Boundary { get; set; }
     }
 }

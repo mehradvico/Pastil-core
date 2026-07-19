@@ -463,7 +463,7 @@ namespace Application.Maping
             //Location
             CreateMap<State, LocationBoundaryVDto>();
             CreateMap<City, LocationBoundaryVDto>();
-            CreateMap<Neighborhood, LocationBoundaryVDto>();            
+            CreateMap<Neighborhood, LocationBoundaryVDto>();
             //Location End ----------------------------------------------
 
 

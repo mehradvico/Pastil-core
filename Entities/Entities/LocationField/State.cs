@@ -9,7 +9,7 @@ namespace Entities.Entities
     {
         public string EnName { get; set; }
         public long CountryId { get; set; }
-            public MultiPolygon Boundary { get; set; }
+        public Geometry? Boundary { get; set; }
         public Country Country { get; set; }
         public ICollection<City> Cities { get; set; }
     }
