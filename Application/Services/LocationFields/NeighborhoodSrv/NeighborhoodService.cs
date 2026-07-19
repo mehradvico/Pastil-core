@@ -1,4 +1,5 @@
 ﻿using Application.Common.Service;
+using Application.Services.LocationFields.LocationSrv.Dto;
 using Application.Services.LocationFields.NeighborhoodSrv.Dto;
 using Application.Services.LocationFields.NeighborhoodSrv.Iface;
 using AutoMapper;
@@ -6,6 +7,7 @@ using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Application.Services.LocationFields.NeighborhoodSrv
 {
@@ -42,6 +44,11 @@ namespace Application.Services.LocationFields.NeighborhoodSrv
             }
 
             return new NeighborhoodSearchDto(inputdto, query, _mapper);
+        }
+
+        public async Task<LocationBoundaryVDto> FindBoundaryAsync(long id)
+        {
+            return await _context.Neighborhoods.AsNoTracking().Where(x => x.Id == id).Select(x => new LocationBoundaryVDto { Id = x.Id, Name = x.Name, Boundary = x.Boundary }).FirstOrDefaultAsync();
         }
     }
 }

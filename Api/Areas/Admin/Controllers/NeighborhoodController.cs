@@ -1,4 +1,6 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Services.LocationFields.CitySrv;
+using Application.Services.LocationFields.LocationSrv.Dto;
 using Application.Services.LocationFields.NeighborhoodSrv.Dto;
 using Application.Services.LocationFields.NeighborhoodSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -50,6 +52,19 @@ namespace Api.Areas.Admin.Controllers
             var searchDto = neighborhoodService.Search(dto);
             return Ok(searchDto);
         }
+
+        /// <summary>
+        /// محدوده در مپ
+        /// </summary>
+        /// <returns></returns> 
+        [HttpGet("Boundary/{id:long}")]
+        [ProducesResponseType(typeof(LocationBoundaryVDto), 200)]
+        public async Task<IActionResult> GetBoundary(long id)
+        {
+            var dto = await neighborhoodService.FindBoundaryAsync(id);
+            return Ok(dto);
+        }
+
         /// <summary>
         /// آیتم جدید
         /// </summary>  

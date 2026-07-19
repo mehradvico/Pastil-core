@@ -2,12 +2,14 @@
 using Application.Common.Service;
 using Application.Services.LocationFields.CitySrv.Dto;
 using Application.Services.LocationFields.CitySrv.Iface;
+using Application.Services.LocationFields.LocationSrv.Dto;
 using AutoMapper;
 using Entities.Entities.LocationField;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Application.Services.LocationFields.CitySrv
 {
@@ -47,6 +49,9 @@ namespace Application.Services.LocationFields.CitySrv
 
             return new BaseResultDto<List<CityStateVDto>>(true, data: mapper.Map<List<CityStateVDto>>(model));
         }
-
+        public async Task<LocationBoundaryVDto> FindBoundaryAsync(long id)
+        {
+            return await _context.Cities.AsNoTracking().Where(x => x.Id == id).Select(x => new LocationBoundaryVDto{Id = x.Id, Name = x.Name, Boundary = x.Boundary}).FirstOrDefaultAsync();
+        }
     }
 }

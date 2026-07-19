@@ -130,3 +130,9 @@ SELECT noticeType.[Id], noticeType.[Label], noticeType.[NavigationTemplate]
 FROM [dbo].[NoticeTypes] noticeType
 INNER JOIN @Routes route ON route.[Label] = noticeType.[Label]
 ORDER BY noticeType.[Label];
+
+SELECT TOP (100) notice.[Id], noticeType.[Label], notice.[ReferenceId], notice.[NavigationUrl], notice.[MetadataJson]
+FROM [dbo].[Notices] notice
+INNER JOIN [dbo].[NoticeTypes] noticeType ON noticeType.[Id] = notice.[NoticeTypeId]
+INNER JOIN @Routes route ON route.[Label] = noticeType.[Label]
+ORDER BY notice.[Id] DESC;

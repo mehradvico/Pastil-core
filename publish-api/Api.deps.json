@@ -9,6 +9,7 @@
       "Api/1.0.0": {
         "dependencies": {
           "Application": "1.0.0",
+          "NetTopologySuite.IO.GeoJSON4STJ": "4.0.0",
           "Persistence": "1.0.0",
           "SixLabors.ImageSharp": "3.1.12",
           "Swashbuckle.AspNetCore": "7.1.0",
@@ -518,6 +519,29 @@
           "lib/netstandard2.0/NetTopologySuite.dll": {
             "assemblyVersion": "2.0.0.0",
             "fileVersion": "2.0.0.0"
+          }
+        }
+      },
+      "NetTopologySuite.Features/2.1.0": {
+        "dependencies": {
+          "NetTopologySuite": "2.5.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.Features.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0"
+          }
+        }
+      },
+      "NetTopologySuite.IO.GeoJSON4STJ/4.0.0": {
+        "dependencies": {
+          "NetTopologySuite": "2.5.0",
+          "NetTopologySuite.Features": "2.1.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/NetTopologySuite.IO.GeoJSON4STJ.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.0.0"
           }
         }
       },
@@ -1378,6 +1402,20 @@
       "sha512": "sha512-5/+2O2ADomEdUn09mlSigACdqvAf0m/pVPGtIPEPQWnyrVykYY0NlfXLIdkMgi41kvH9kNrPqYaFBTZtHYH7Xw==",
       "path": "nettopologysuite/2.5.0",
       "hashPath": "nettopologysuite.2.5.0.nupkg.sha512"
+    },
+    "NetTopologySuite.Features/2.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Iq+Ie9WZJj8Pyu3asHZ/UwZLim786QzWC0DmLEzFK2u3BeLHDK7iWfsYBLDb/RCBUql8VBmW6LMlsJ+LKUHduA==",
+      "path": "nettopologysuite.features/2.1.0",
+      "hashPath": "nettopologysuite.features.2.1.0.nupkg.sha512"
+    },
+    "NetTopologySuite.IO.GeoJSON4STJ/4.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Jdm9qBVDcHkrVn3fm3knw6pGu3Ggn31tGVRyIP1/5HSL+8EDPfUnEZF0+oVFBkOKR9tqu9aV2jmEX42Kq8F2Yw==",
+      "path": "nettopologysuite.io.geojson4stj/4.0.0",
+      "hashPath": "nettopologysuite.io.geojson4stj.4.0.0.nupkg.sha512"
     },
     "NetTopologySuite.IO.SqlServerBytes/2.1.0": {
       "type": "package",

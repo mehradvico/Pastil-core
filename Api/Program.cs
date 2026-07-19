@@ -22,13 +22,21 @@ using Utility.ExternalRequest.Iface;
 using Utility.ExternalRequest.Service;
 using Utility.Reflection;
 using Utility.Reflection.Iface;
+using NetTopologySuite.IO.Converters;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOutputCache();
 builder.Services.AddSignalR();
 builder.Services.AddAuthorization(options => options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireClaim("RoleId", ((long)RoleEnum.Admin).ToString())));
-
+builder.Services
+    .AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new GeoJsonConverterFactory()
+        );
+    });
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowPanel", policy =>

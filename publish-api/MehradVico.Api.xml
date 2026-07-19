@@ -419,6 +419,12 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.CityController.GetBoundary(System.Int64)">
+            <summary>
+            محدوده در مپ
+            </summary>
+            <returns></returns> 
+        </member>
         <member name="M:Api.Areas.Admin.Controllers.CityController.Post(Application.Services.LocationFields.CitySrv.Dto.CityDto)">
             <summary>
             آیتم جدید
@@ -2126,6 +2132,12 @@
         <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.Get(Application.Services.LocationFields.NeighborhoodSrv.Dto.NeighborhoodInputDto)">
             <summary>
              جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.GetBoundary(System.Int64)">
+            <summary>
+            محدوده در مپ
             </summary>
             <returns></returns> 
         </member>
@@ -3911,6 +3923,12 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.StateController.GetBoundary(System.Int64)">
+            <summary>
+            محدوده در مپ
+            </summary>
+            <returns></returns> 
+        </member>
         <member name="M:Api.Areas.Admin.Controllers.StateController.Post(Application.Services.LocationFields.StateSrv.Dto.StateDto)">
             <summary>
             آیتم جدید
@@ -4813,6 +4831,12 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="M:Api.Areas.Common.Controllers.CityController.GetBoundary(System.Int64)">
+            <summary>
+            محدوده در مپ
+            </summary>
+            <returns></returns> 
+        </member>
         <member name="T:Api.Areas.Common.Controllers.CountryController">
              <summary>
              مدیریت کشورها
@@ -4898,6 +4922,12 @@
         <member name="M:Api.Areas.Common.Controllers.StateController.Get(Application.Services.LocationFields.StateSrv.Dto.StateInputDto)">
             <summary>
              جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Common.Controllers.StateController.GetBoundary(System.Int64)">
+            <summary>
+            محدوده در مپ
             </summary>
             <returns></returns> 
         </member>
@@ -8852,6 +8882,12 @@
         <member name="M:Api.Controllers.NeighborhoodController.Get(Application.Services.LocationFields.NeighborhoodSrv.Dto.NeighborhoodInputDto)">
             <summary>
              جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Controllers.NeighborhoodController.GetBoundary(System.Int64)">
+            <summary>
+            محدوده در مپ
             </summary>
             <returns></returns> 
         </member>

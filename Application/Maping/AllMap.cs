@@ -75,6 +75,7 @@ using Application.Services.FinanceSrvs.SettlementStoreSrv.Dto;
 using Application.Services.FinanceSrvs.UserBankCardSrv.Dto;
 using Application.Services.LocationFields.CitySrv.Dto;
 using Application.Services.LocationFields.CountrySrv.Dto;
+using Application.Services.LocationFields.LocationSrv.Dto;
 using Application.Services.LocationFields.NeighborhoodSrv.Dto;
 using Application.Services.LocationFields.ParkPictureSrv.Dto;
 using Application.Services.LocationFields.ParkSrv.Dto;
@@ -457,6 +458,14 @@ namespace Application.Maping
             //Hashtag
             CreateMap<Hashtag, HashtagDto>();
             //Hashtag End ----------------------------------------------
+
+
+            //Location
+            CreateMap<State, LocationBoundaryVDto>();
+            CreateMap<City, LocationBoundaryVDto>();
+            CreateMap<Neighborhood, LocationBoundaryVDto>();            
+            //Location End ----------------------------------------------
+
 
             //Map
             CreateMap<MapKey, MapKeyDto>().ReverseMap();

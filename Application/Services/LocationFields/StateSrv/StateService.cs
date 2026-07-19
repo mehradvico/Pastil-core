@@ -2,6 +2,7 @@
 using Application.Common.Dto.Input;
 using Application.Common.Dto.Result;
 using Application.Common.Service;
+using Application.Services.LocationFields.LocationSrv.Dto;
 using Application.Services.LocationFields.StateSrv.Dto;
 using Application.Services.LocationFields.StateSrv.Iface;
 using AutoMapper;
@@ -44,6 +45,11 @@ namespace Application.Services.LocationFields.StateSrv
                 model = model.Where(s => s.CountryId == baseSearchDto.CountryId.Value);
             }
             return new BaseSearchDto<State, StateVDto>(baseSearchDto, model, mapper);
+        }
+
+        public async Task<LocationBoundaryVDto> FindBoundaryAsync(long id)
+        {
+            return await _context.States.AsNoTracking().Where(x => x.Id == id).Select(x => new LocationBoundaryVDto { Id = x.Id, Name = x.Name, Boundary = x.Boundary }).FirstOrDefaultAsync();
         }
     }
 }
