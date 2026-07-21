@@ -168,6 +168,7 @@ namespace Persistence.Context
         public DbSet<TripOption> TripOptions { get; set; }
         public DbSet<TripStop> TripStops { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<UserCurrentLocation> UserCurrentLocations { get; set; }
         public DbSet<UserBankCard> UserBankCards { get; set; }
         public DbSet<UserCategory> UserCategories { get; set; }
         public DbSet<UserPet> UserPets { get; set; }

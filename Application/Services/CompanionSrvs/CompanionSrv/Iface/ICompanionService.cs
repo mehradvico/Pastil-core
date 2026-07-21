@@ -12,6 +12,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Iface
     {
         CompanionSearchDto Search(CompanionInputDto baseSearchDto);
         Task<BaseResultDto<CompanionVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto<NearbyCompanionSearchDto>> GetNearbyAsync(long userId, NearbyCompanionInputDto inputDto);
         Task<BaseResultDto> UpdateGoldAccountDto(CompanionGoldAccountDto dto);
         BaseResultDto UpdateSilverAccountDto(CompanionSilverAccountDto dto);
         BaseResultDto ActivationDto(CompanionActivationDto dto);

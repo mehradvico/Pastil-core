@@ -38,6 +38,17 @@ namespace Api.Areas.EndUser.Controllers
             return Ok(search);
         }
 
+        /// <summary>
+        /// دریافت همراهان نزدیک به موقعیت فعلی کاربر
+        /// </summary>
+        [HttpGet("Nearby")]
+        [ProducesResponseType(typeof(BaseResultDto<NearbyCompanionSearchDto>), 200)]
+        public async Task<IActionResult> GetNearby([FromQuery] NearbyCompanionInputDto dto)
+        {
+            var result = await _companionService.GetNearbyAsync(_currentUser.CurrentUser.UserId, dto);
+            return Ok(result);
+        }
+
 
         /// <summary>
         /// اطلاعات آیتم 

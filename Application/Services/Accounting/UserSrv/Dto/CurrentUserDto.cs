@@ -1,5 +1,7 @@
 ﻿using Application.Services.Filing.PictureSrv.Dto;
 
+using Application.Services.LocationFields.UserCurrentLocationSrv.Dto;
+
 namespace Application.Services.Dto
 {
     public class CurrentUserDto
@@ -24,6 +26,7 @@ namespace Application.Services.Dto
 
         public double WalletAmount { get; set; }
         public PictureVDto Picture { get; set; }
+        public UserCurrentLocationVDto UserCurrentLocation { get; set; }
 
     }
 }

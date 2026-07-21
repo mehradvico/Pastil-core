@@ -58,7 +58,7 @@ namespace Application.Common.Geography.Services
             var results = json.value.Select(item => new MapIrResultDto
             {
                 Address = item.address,
-                Location = new PointDto(item.geom.coordinates[1], item.geom.coordinates[0])
+                Location = new PointDto(item.geom.coordinates[0], item.geom.coordinates[1])
 
             }).ToList();
 

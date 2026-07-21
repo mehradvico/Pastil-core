@@ -6189,6 +6189,11 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CompanionController.GetNearby(Application.Services.CompanionSrvs.CompanionSrv.Dto.NearbyCompanionInputDto)">
+            <summary>
+            دریافت همراهان نزدیک به موقعیت فعلی کاربر
+            </summary>
+        </member>
         <member name="M:Api.Areas.EndUser.Controllers.CompanionController.Get(System.Int64)">
             <summary>
             اطلاعات آیتم 
@@ -7535,6 +7540,16 @@
             <summary>
             ویرایش آیتم 
             </summary>  
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.UserCurrentLocationController">
+            <summary>
+            موقعیت فعلی کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.UserCurrentLocationController.Post(Application.Services.LocationFields.UserCurrentLocationSrv.Dto.SetUserCurrentLocationDto)">
+            <summary>
+            ثبت یا به‌روزرسانی موقعیت فعلی کاربر
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.UserPetController">
              <summary>

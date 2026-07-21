@@ -177,6 +177,8 @@ using Application.Services.LocationFields.ParkSrv;
 using Application.Services.LocationFields.ParkSrv.Iface;
 using Application.Services.LocationFields.StateSrv;
 using Application.Services.LocationFields.StateSrv.Iface;
+using Application.Services.LocationFields.UserCurrentLocationSrv;
+using Application.Services.LocationFields.UserCurrentLocationSrv.Iface;
 using Application.Services.MerchantSrv;
 using Application.Services.Order.AddressSrv.iface;
 using Application.Services.Order.BankSrv.Iface;
@@ -401,6 +403,7 @@ public static class ConfigureServices
         services.AddScoped<IContactUsService, ContactUsService>();
         services.AddScoped<ICountryService, CountryService>();
         services.AddScoped<ICurrentUserHelper, CurrentUserHelper>();
+        services.AddScoped<IUserCurrentLocationService, UserCurrentLocationService>();
         services.AddScoped<IDayToDateService, DayToDateService>();
         services.AddScoped<IDeliveryDistanceService, DeliveryDistanceService>();
         services.AddScoped<IDeliveryService, DeliveryService>();

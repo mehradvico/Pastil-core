@@ -39,5 +39,6 @@ namespace Entities.Entities.Security
         public ICollection<Companion> Companions { get; set; }
         public Driver Driver { get; set; }
         public Picture Picture { get; set; }
+        public UserCurrentLocation UserCurrentLocation { get; set; }
     }
 }

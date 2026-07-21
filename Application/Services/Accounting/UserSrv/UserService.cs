@@ -208,7 +208,11 @@ namespace Application.Services.UserSrv
 
         public UserVDto GetVDto(long userId)
         {
-            return mapper.Map<UserVDto>(_context.Users.Find(userId));
+            var user = _context.Users
+                .Include(s => s.UserCurrentLocation).ThenInclude(s => s.City)
+                .Include(s => s.UserCurrentLocation).ThenInclude(s => s.Neighborhood)
+                .FirstOrDefault(s => s.Id == userId);
+            return mapper.Map<UserVDto>(user);
         }
         bool MobileIsUnique(string mobile)
         {
@@ -251,7 +255,12 @@ namespace Application.Services.UserSrv
         }
         public UserSearchDto Search(UserInputDto searchDto)
         {
-            var query = _context.Users.Include(s => s.Role).Include(s => s.Picture).AsQueryable();
+            var query = _context.Users
+                .Include(s => s.Role)
+                .Include(s => s.Picture)
+                .Include(s => s.UserCurrentLocation).ThenInclude(s => s.City)
+                .Include(s => s.UserCurrentLocation).ThenInclude(s => s.Neighborhood)
+                .AsQueryable();
             if (searchDto.RoleId.HasValue)
             {
                 query = query.Where(s => s.RoleId == searchDto.RoleId);
@@ -552,6 +561,8 @@ namespace Application.Services.UserSrv
                 var userToken = await _context.UserTokens.AsNoTracking().Include(s => s.User).ThenInclude(s => s.CompanionUsers)
                     .Include(s => s.User).ThenInclude(s => s.Picture).Include(s => s.User).ThenInclude(s => s.Role)
                     .Include(s => s.User).ThenInclude(s => s.Companions).Include(s => s.User).ThenInclude(s => s.Driver)
+                    .Include(s => s.User).ThenInclude(s => s.UserCurrentLocation).ThenInclude(s => s.City)
+                    .Include(s => s.User).ThenInclude(s => s.UserCurrentLocation).ThenInclude(s => s.Neighborhood)
                     .Include(s => s.User).ThenInclude(s => s.Stores).FirstOrDefaultAsync(x => x.TokenHash == hashed);
                 if (userToken != null)
                     return mapper.Map<CurrentUserDto>(userToken.User);
@@ -562,7 +573,10 @@ namespace Application.Services.UserSrv
 
         public List<UserVDto> GetWithRole(RoleEnum roleEnum)
         {
-            var model = _context.Users.Where(s => !s.Deleted && !s.Locked && s.Role.Label == roleEnum.ToString());
+            var model = _context.Users
+                .Include(s => s.UserCurrentLocation).ThenInclude(s => s.City)
+                .Include(s => s.UserCurrentLocation).ThenInclude(s => s.Neighborhood)
+                .Where(s => !s.Deleted && !s.Locked && s.Role.Label == roleEnum.ToString());
             return mapper.Map<List<UserVDto>>(model);
         }
         public async Task<BaseResultDto> UserDetail(UserDetailDto user)

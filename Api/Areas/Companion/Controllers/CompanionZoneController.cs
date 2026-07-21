@@ -32,7 +32,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionZoneDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var CompanionZone = await CompanionZoneService.FindAsyncDto(id);
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var CompanionZone = await CompanionZoneService.FindForCompanionAsync(id, _currentUser.CurrentUser.CompanionId.Value);
             return Ok(CompanionZone);
         }
         /// <summary>
@@ -43,6 +45,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(CompanionZoneSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionZoneInputDto dto)
         {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             dto.CompanionId = _currentUser.CurrentUser.CompanionId;
             var search = CompanionZoneService.Search(dto);
             return Ok(search);
@@ -69,12 +73,11 @@ namespace Api.Areas.Companion.Controllers
         /// 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<CompanionZoneDto>), 200)]
-        public IActionResult Put(CompanionZoneDto CompanionZoneDto)
+        public async Task<IActionResult> Put(CompanionZoneDto CompanionZoneDto)
         {
             if (!_currentUser.CurrentUser.CompanionId.HasValue)
                 return Forbid();
-            CompanionZoneDto.CompanionId = _currentUser.CurrentUser.CompanionId.Value;
-            var result = CompanionZoneService.UpdateDto(CompanionZoneDto);
+            var result = await CompanionZoneService.UpdateAsyncDto(CompanionZoneDto, _currentUser.CurrentUser.CompanionId.Value);
             return Ok(result);
         }
 
@@ -85,9 +88,11 @@ namespace Api.Areas.Companion.Controllers
         /// 
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto<CompanionZoneDto>), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
-            var result = CompanionZoneService.DeleteDto(id);
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var result = await CompanionZoneService.DeleteAsync(id, _currentUser.CurrentUser.CompanionId.Value);
             return Ok(result);
         }
     }

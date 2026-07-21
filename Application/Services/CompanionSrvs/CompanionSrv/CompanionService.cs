@@ -57,6 +57,98 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             return new BaseResultDto<CompanionVDto>(false, mapper.Map<CompanionVDto>(item));
         }
 
+        public async Task<BaseResultDto<NearbyCompanionSearchDto>> GetNearbyAsync(long userId, NearbyCompanionInputDto inputDto)
+        {
+            if (inputDto.RadiusMeter <= 0 || inputDto.RadiusMeter > 50000 ||
+                inputDto.PageIndex <= 0 || inputDto.PageSize <= 0 || inputDto.PageSize > 100)
+                return new BaseResultDto<NearbyCompanionSearchDto>(false, Resource.Notification.InvalidData, null);
+
+            var userLocation = await _context.UserCurrentLocations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UserId == userId);
+
+            if (userLocation == null)
+                return new BaseResultDto<NearbyCompanionSearchDto>(false, Resource.Notification.NothingFound, null);
+
+            var companions = _context.Companions
+                .AsNoTracking()
+                .Where(x => !x.Deleted && x.Active && x.Approved && x.Location != null)
+                .Where(x => x.Location.Distance(userLocation.Location) <= inputDto.RadiusMeter);
+
+            if (!string.IsNullOrWhiteSpace(inputDto.Q))
+            {
+                var q = inputDto.Q.Trim();
+                companions = companions.Where(x => x.Name.Contains(q) || x.SearchKey.Contains(q));
+            }
+
+            if (inputDto.TypeId.HasValue)
+                companions = companions.Where(x => x.CompanionTypes.Any(t => !t.Deleted && t.TypeId == inputDto.TypeId.Value));
+
+            if (inputDto.PetId.HasValue)
+                companions = companions.Where(x => x.CompanionPets.Any(p => !p.Deleted && p.PetId == inputDto.PetId.Value));
+
+            if (inputDto.AssistanceId.HasValue)
+                companions = companions.Where(x => x.CompanionAssistances.Any(a =>
+                    !a.Deleted && a.Active && a.Approved && a.AssistanceId == inputDto.AssistanceId.Value));
+
+            var rankedQuery = companions.Select(x => new NearbyCompanionRank
+            {
+                CompanionId = x.Id,
+                DistanceMeter = x.Location.Distance(userLocation.Location),
+                HasServiceZone = x.CompanionZones.Any(z => !z.Deleted),
+                IsInServiceArea = x.CompanionZones.Any(z =>
+                    !z.Deleted &&
+                    z.CityId == userLocation.CityId &&
+                    (!z.NeighborhoodId.HasValue ||
+                        (userLocation.NeighborhoodId.HasValue && z.NeighborhoodId == userLocation.NeighborhoodId)))
+            });
+
+            if (inputDto.OnlyInServiceArea)
+                rankedQuery = rankedQuery.Where(x => x.IsInServiceArea);
+
+            var totalCount = await rankedQuery.CountAsync();
+            var skip = (inputDto.PageIndex - 1) * inputDto.PageSize;
+            var ranks = await rankedQuery
+                .OrderByDescending(x => x.IsInServiceArea)
+                .ThenBy(x => x.HasServiceZone)
+                .ThenBy(x => x.DistanceMeter)
+                .Skip(skip)
+                .Take(inputDto.PageSize)
+                .ToListAsync();
+
+            var companionIds = ranks.Select(x => x.CompanionId).ToList();
+            var companionItems = await _context.Companions
+                .AsNoTracking()
+                .Include(x => x.Picture)
+                .Include(x => x.City)
+                .Include(x => x.Neighborhood)
+                .Include(x => x.Pansions)
+                .Where(x => companionIds.Contains(x.Id))
+                .ToListAsync();
+            var companionById = companionItems.ToDictionary(x => x.Id);
+
+            var result = new NearbyCompanionSearchDto(inputDto)
+            {
+                TotalCount = totalCount,
+                CenterLocation = mapper.Map<Application.Common.Dto.LocationPoint.PointDto>(userLocation.Location),
+                CityId = userLocation.CityId,
+                NeighborhoodId = userLocation.NeighborhoodId,
+                List = ranks
+                    .Where(x => companionById.ContainsKey(x.CompanionId))
+                    .Select(x =>
+                    {
+                        var dto = mapper.Map<NearbyCompanionVDto>(companionById[x.CompanionId]);
+                        dto.DistanceMeter = Math.Round(x.DistanceMeter);
+                        dto.HasServiceZone = x.HasServiceZone;
+                        dto.IsInServiceArea = x.HasServiceZone ? x.IsInServiceArea : null;
+                        return dto;
+                    })
+                    .ToList()
+            };
+
+            return new BaseResultDto<NearbyCompanionSearchDto>(true, result);
+        }
+
         public override async Task<BaseResultDto<CompanionDto>> FindAsyncDto(long id)
         {
             var item = await _context.Companions.Include(s => s.Picture).Include(s => s.CompanionPets).Include(s => s.BackgroundPicture).Include(s => s.City).ThenInclude(s => s.State)
@@ -67,6 +159,14 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                 return new BaseResultDto<CompanionDto>(true, mapper.Map<CompanionDto>(item));
             }
             return new BaseResultDto<CompanionDto>(false, mapper.Map<CompanionDto>(item));
+        }
+
+        private class NearbyCompanionRank
+        {
+            public long CompanionId { get; set; }
+            public double DistanceMeter { get; set; }
+            public bool HasServiceZone { get; set; }
+            public bool IsInServiceArea { get; set; }
         }
         public CompanionSearchDto Search(CompanionInputDto baseSearchDto)
         {

@@ -80,6 +80,7 @@ using Application.Services.LocationFields.NeighborhoodSrv.Dto;
 using Application.Services.LocationFields.ParkPictureSrv.Dto;
 using Application.Services.LocationFields.ParkSrv.Dto;
 using Application.Services.LocationFields.StateSrv.Dto;
+using Application.Services.LocationFields.UserCurrentLocationSrv.Dto;
 using Application.Services.Order.AddressSrv.Dto;
 using Application.Services.Order.BankSrv.Dto;
 using Application.Services.Order.CartItemSrv.Dto;
@@ -279,6 +280,15 @@ namespace Application.Maping
                 .ForMember(dest => dest.IsGold, opt => opt.MapFrom(src => src.GoldAccountDate.HasValue && src.GoldAccountDate > DateTime.Now))
                 .ForMember(dest => dest.IsSilver, opt => opt.MapFrom(src => src.SilverAccountDate.HasValue && src.SilverAccountDate > DateTime.Now))
                 .ForMember(dest => dest.HasPansion, opt => opt.MapFrom(src => src.Pansions != null && src.Pansions.Any()));
+            CreateMap<Companion, NearbyCompanionVDto>()
+                .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => src.City.Name))
+                .ForMember(dest => dest.NeighborhoodName, opt => opt.MapFrom(src => src.Neighborhood != null ? src.Neighborhood.Name : null))
+                .ForMember(dest => dest.IsGold, opt => opt.MapFrom(src => src.GoldAccountDate.HasValue && src.GoldAccountDate > DateTime.Now))
+                .ForMember(dest => dest.IsSilver, opt => opt.MapFrom(src => src.SilverAccountDate.HasValue && src.SilverAccountDate > DateTime.Now))
+                .ForMember(dest => dest.HasPansion, opt => opt.MapFrom(src => src.Pansions != null && src.Pansions.Any()))
+                .ForMember(dest => dest.DistanceMeter, opt => opt.Ignore())
+                .ForMember(dest => dest.HasServiceZone, opt => opt.Ignore())
+                .ForMember(dest => dest.IsInServiceArea, opt => opt.Ignore());
             CreateMap<Companion, CompanionFinanceVDto>();
             CreateMap<Companion, CompanionFinanceDetailVDto>();
             CreateMap<Companion, CompanionMinVDto>()
@@ -710,6 +720,15 @@ namespace Application.Maping
             CreateMap<Point, PointDto>().ConvertUsing(source => source == null ? null : new PointDto(source.X, source.Y){ DistanceMeter = 0});
             CreateMap<PointDto, Point>().ConvertUsing(source => source == null ? null : new Point(source.x, source.y){SRID = 4326});
             //Point End ----------------------------------------------
+
+            //UserCurrentLocation
+            CreateMap<UserCurrentLocationDto, UserCurrentLocation>()
+                .ForMember(x => x.User, y => y.Ignore())
+                .ForMember(x => x.City, y => y.Ignore())
+                .ForMember(x => x.Neighborhood, y => y.Ignore());
+            CreateMap<UserCurrentLocation, UserCurrentLocationDto>();
+            CreateMap<UserCurrentLocation, UserCurrentLocationVDto>();
+            //UserCurrentLocation End ----------------------------------------------
 
 
             //Push

@@ -20,6 +20,5 @@ namespace Entities.Entities
         public bool Deleted { get; set; }
         public User User { get; set; }
         public City City { get; set; }
-        //public ICollection<Cart> Carts { get; set; }
     }
 }

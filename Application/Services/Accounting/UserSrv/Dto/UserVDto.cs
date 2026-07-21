@@ -1,5 +1,6 @@
 ﻿using Application.Common.Dto.Field;
 using Application.Services.Filing.PictureSrv.Dto;
+using Application.Services.LocationFields.UserCurrentLocationSrv.Dto;
 using System;
 
 namespace Application.Services.Dto
@@ -25,5 +26,6 @@ namespace Application.Services.Dto
         public bool IsFemale { get; set; }
 
         public PictureVDto Picture { get; set; }
+        public UserCurrentLocationVDto UserCurrentLocation { get; set; }
     }
 }

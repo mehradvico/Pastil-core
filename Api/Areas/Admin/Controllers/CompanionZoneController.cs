@@ -62,9 +62,9 @@ namespace Api.Areas.Admin.Controllers
         /// 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<CompanionZoneDto>), 200)]
-        public IActionResult Put(CompanionZoneDto CompanionZoneDto)
+        public async Task<IActionResult> Put(CompanionZoneDto CompanionZoneDto)
         {
-            var result = CompanionZoneService.UpdateDto(CompanionZoneDto);
+            var result = await CompanionZoneService.UpdateAsyncDto(CompanionZoneDto);
             return Ok(result);
         }
 
@@ -75,9 +75,9 @@ namespace Api.Areas.Admin.Controllers
         /// 
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto<CompanionZoneDto>), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
-            var result = CompanionZoneService.DeleteDto(id);
+            var result = await CompanionZoneService.DeleteAsync(id);
             return Ok(result);
         }
     }
