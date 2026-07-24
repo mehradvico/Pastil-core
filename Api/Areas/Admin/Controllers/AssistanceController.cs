@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت خدمات
+    /// خدمات
     /// </summary>
     /// 
     [Area("Admin")]
@@ -24,7 +24,7 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
-        ///  جستجو
+        ///  جستجو خدمت
         /// </summary>
         /// <returns></returns> 
         [HttpGet()]
@@ -37,7 +37,7 @@ namespace Api.Areas.Admin.Controllers
 
 
         /// <summary>
-        ///  اطلاعات آیتم 
+        ///  اطلاعات خدمت
         /// </summary>
         /// <param name="id">شناسه خدمات</param>
         /// <returns>
@@ -52,7 +52,7 @@ namespace Api.Areas.Admin.Controllers
 
 
         /// <summary>
-        /// آیتم جدید
+        /// خدمت جدید
         /// </summary>
         /// <returns></returns>
         [HttpPost]

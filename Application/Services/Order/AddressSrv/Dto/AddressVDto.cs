@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Field;
+using Application.Common.Dto.LocationPoint;
 using Application.Services.LocationFields.CitySrv.Dto;
 
 namespace Application.Services.Order.AddressSrv.Dto
@@ -11,7 +12,7 @@ namespace Application.Services.Order.AddressSrv.Dto
         public string Phone { get; set; }
         public string Mobile { get; set; }
         public string AddressValue { get; set; }
-        public string LatLong { get; set; }
+        public PointDto Location { get; set; }
         public string PostalCode { get; set; }
         public string NationalCode { get; set; }
         public CityVDto City { get; set; }

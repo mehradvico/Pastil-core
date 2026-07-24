@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Field;
+using Application.Common.Dto.LocationPoint;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 
@@ -27,10 +28,11 @@ ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
         [Required(ErrorMessageResourceType = typeof(Resource.Pattern),
 ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
         public string AddressValue { get; set; }
-        public string LatLong { get; set; }
+        public PointDto Location { get; set; }
         public string PostalCode { get; set; }
         public string NationalCode { get; set; }
         [IgnoreDataMember]
         public long UserId { get; set; }
+
     }
 }

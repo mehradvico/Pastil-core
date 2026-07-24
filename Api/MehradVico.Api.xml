@@ -4,6 +4,48 @@
         <name>Api</name>
     </assembly>
     <members>
+        <member name="T:Api.Areas.Admin.Controllers.AddressController">
+             <summary>
+             مدیریت آدرس ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AddressController.#ctor(Application.Services.Order.AddressSrv.iface.IAddressService)">
+             <summary>
+             مدیریت آدرس ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AddressController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم 
+            </summary>
+            <param name="id">شناسه</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AddressController.Get(Application.Services.Order.AddressSrv.Dto.AddressInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AddressController.Post(Application.Services.Order.AddressSrv.Dto.AddressDto)">
+            <summary>
+            آیتم جدید
+            </summary>  
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AddressController.Put(Application.Services.Order.AddressSrv.Dto.AddressDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AddressController.Delete(System.Int64)">
+             <summary>
+             حذف آیتم
+             </summary>
+            
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.AssistanceController">
             <summary>
             مدیریت خدمات
@@ -2751,7 +2793,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.PermissionController.#ctor(Application.Services.Accounting.PermissionSrv.Iface.IPermissionService)">
+        <member name="M:Api.Areas.Admin.Controllers.PermissionController.#ctor(Application.Services.Accounting.PermissionSrv.Iface.IPermissionService,Utility.Reflection.Iface.IControllerActionDiscoveryService)">
              <summary>
              مدیریت دسترسی ها
              </summary>
@@ -2775,6 +2817,11 @@
             <summary>
             آیتم جدید
             </summary>  
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PermissionController.Synchronize(System.Threading.CancellationToken)">
+            <summary>
+            همگام سازی دسترسی های پنل مدیریت با کنترلرها
+            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PermissionController.Put(Application.Services.Accounting.PermissionSrv.Dto.PermissionDto)">
             <summary>

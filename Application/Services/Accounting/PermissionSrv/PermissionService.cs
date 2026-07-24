@@ -59,14 +59,31 @@ namespace Application.Services.PermissionSrv
 
         public BaseResultDto Menu()
         {
-            var query = _context.Permissions.Where(s => s.ParentId == null).AsQueryable();
+            var query = _context.Permissions
+                .Where(s => s.ParentId == null)
+                .OrderBy(s => s.Priority)
+                .AsQueryable();
             if (_currentUser.RoleEnum == RoleEnum.Admin.ToString())
             {
-                query = query.Include(s => s.Children.Where(x => x.IsMenu)).ThenInclude(s => s.Children.Where(x => x.IsMenu)).AsQueryable();
+                query = query
+                    .Include(s => s.Children
+                        .Where(x => x.IsMenu)
+                        .OrderBy(x => x.Priority))
+                    .ThenInclude(s => s.Children
+                        .Where(x => x.IsMenu)
+                        .OrderBy(x => x.Priority))
+                    .AsQueryable();
             }
             else
             {
-                query = query.Include(s => s.Children.Where(x => x.IsMenu && x.Roles.Any(a => a.Id == _currentUser.RoleId))).ThenInclude(s => s.Children.Where(x => x.IsMenu && x.Roles.Any(a => a.Id == _currentUser.RoleId))).AsQueryable();
+                query = query
+                    .Include(s => s.Children
+                        .Where(x => x.IsMenu && x.Roles.Any(a => a.Id == _currentUser.RoleId))
+                        .OrderBy(x => x.Priority))
+                    .ThenInclude(s => s.Children
+                        .Where(x => x.IsMenu && x.Roles.Any(a => a.Id == _currentUser.RoleId))
+                        .OrderBy(x => x.Priority))
+                    .AsQueryable();
                 query = query.Where(s => s.Roles.Any(a => a.Id == _currentUser.RoleId));
             }
 

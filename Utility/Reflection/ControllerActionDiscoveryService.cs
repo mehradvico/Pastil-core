@@ -1,5 +1,8 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Xml.Linq;
+using Entities.Entities.Security;
+using Microsoft.EntityFrameworkCore;
+using Persistence.Interface;
 using Utility.Reflection.Dto;
 using Utility.Reflection.Iface;
 
@@ -7,46 +10,553 @@ namespace Utility.Reflection
 {
     public class ControllerActionDiscoveryService : IControllerActionDiscoveryService
     {
-        public ControllerActionDiscoveryService()
-        {
+        private readonly IDataBaseContext _context;
 
+        public ControllerActionDiscoveryService(IDataBaseContext context)
+        {
+            _context = context;
         }
 
-        public List<ControllerActionInfoDto> GetControllerActions(XDocument _xmlComments)
+        public List<ControllerActionInfoDto> GetControllerActions(
+            Assembly assembly,
+            XDocument xmlComments)
         {
+            var summaries = ReadXmlSummaries(xmlComments);
 
+            return assembly
+                .GetTypes()
+                .Where(IsAdminApiController)
+                .Select(type => CreateControllerInfo(type, summaries))
+                .OrderBy(controller => controller.ParentId)
+                .ThenBy(controller => controller.Priority)
+                .ThenBy(controller => controller.Name)
+                .ToList();
+        }
 
-            XDocument doc = _xmlComments;
-
-            var members = doc.Descendants("member")
-                             .Select(m => new
-                             {
-                                 Name = m.Attribute("name")?.Value,
-                                 Summary = m.Element("summary")?.Value.Trim(),
-                                 Parent = m.Element("parent")?.Value.Trim()
-                             })
-                             .ToList();
-
-            var controllers = members
-                .Where(m => m.Name.StartsWith("T:Api.Areas.Admin.Controllers"))
-                .GroupBy(m => m.Name.Split('.')[4].Replace("Controller", ""));
-
-            var a = controllers.Select(g => new ControllerActionInfoDto
+        public async Task<PermissionSyncResultDto> SynchronizePermissionsAsync(
+            Assembly assembly,
+            XDocument xmlComments,
+            CancellationToken cancellationToken = default)
+        {
+            var controllers = GetControllerActions(assembly, xmlComments);
+            var result = new PermissionSyncResultDto
             {
-                Name = g.Key,
-                Summary = g.FirstOrDefault()?.Summary,
-                Parent = g.FirstOrDefault()?.Parent,
-                Actions = members.Where(m => m.Name.StartsWith($"M:Api.Areas.Admin.Controllers.{g.Key}Controller"))
-                                .Select(m => new ActionInfoDto
-                                {
-                                    Name = m.Name.Split('(').First().Split('.').Last(),
-                                    Summary = m.Summary,
-                                    Parent = m.Parent
-                                })
-                                .ToList()
-            })
-                 .ToList();
-            return a;
+                ParentCount = AdminPermissionCatalog.Parents.Count,
+                ControllerCount = controllers.Count,
+                ActionCount = controllers.Sum(x => x.Actions.Count),
+                UnmappedControllers = controllers
+                    .Where(x => x.ParentId == 0)
+                    .Select(x => x.Name)
+                    .OrderBy(x => x)
+                    .ToList()
+            };
+
+            if (result.UnmappedControllers.Count > 0)
+                return result;
+
+            await using var transaction = await _context.BeginTransactionAsync(cancellationToken);
+            try
+            {
+                await NormalizeParentPermissionsAsync(cancellationToken);
+
+                var permissions = await _context.Permissions
+                    .IgnoreQueryFilters()
+                    .AsTracking()
+                    .Include(x => x.Roles)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var controller in controllers)
+                {
+                    SynchronizeController(controller, permissions, result);
+                }
+
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return result;
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
         }
+
+        private static ControllerActionInfoDto CreateControllerInfo(
+            Type controllerType,
+            IReadOnlyDictionary<string, string> summaries)
+        {
+            var controllerName = controllerType.Name.EndsWith(
+                "Controller",
+                StringComparison.OrdinalIgnoreCase)
+                ? controllerType.Name[..^"Controller".Length]
+                : controllerType.Name;
+
+            AdminPermissionCatalog.TryGetController(controllerName, out var definition);
+
+            var actions = controllerType
+                .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
+                .Where(IsApiAction)
+                .GroupBy(method => method.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(group =>
+                {
+                    var method = group.First();
+                    var httpMethod = GetHttpMethod(method);
+                    return new ActionInfoDto
+                    {
+                        Name = method.Name,
+                        Summary = FindMethodSummary(summaries, controllerType, method.Name),
+                        HttpMethod = httpMethod,
+                        Priority = GetActionPriority(method.Name, httpMethod)
+                    };
+                })
+                .OrderBy(action => action.Priority)
+                .ThenBy(action => action.Name)
+                .Select((action, index) =>
+                {
+                    action.Priority = index;
+                    return action;
+                })
+                .ToList();
+
+            return new ControllerActionInfoDto
+            {
+                Name = controllerName,
+                Summary = summaries.GetValueOrDefault($"T:{controllerType.FullName}") ?? controllerName,
+                Parent = definition?.Parent.Label,
+                ParentId = definition?.Parent.Id ?? 0,
+                IsMenu = definition?.IsMenu ?? false,
+                Priority = definition?.Priority ?? int.MaxValue,
+                Actions = actions
+            };
+        }
+
+        private void SynchronizeController(
+            ControllerActionInfoDto controller,
+            List<Permission> permissions,
+            PermissionSyncResultDto result)
+        {
+            if (controller.Actions.Count == 0)
+                return;
+
+            var anchorAction = controller.Actions
+                .OrderBy(x => IsGetAction(x) ? 0 : 1)
+                .ThenBy(x => x.Priority)
+                .First();
+
+            var controllerPermissions = permissions
+                .Where(x =>
+                    string.Equals(x.Controller, controller.Name, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(x.Area, "Admin", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            var anchor = FindPermission(controllerPermissions, anchorAction.Name)
+                ?? controllerPermissions
+                    .Where(x => x.ParentId is >= 1 and <= 10)
+                    .OrderBy(x => x.Deleted)
+                    .ThenBy(x => x.Id)
+                    .FirstOrDefault();
+
+            if (anchor == null)
+            {
+                anchor = new Permission
+                {
+                    Area = "Admin",
+                    Controller = controller.Name,
+                    Action = anchorAction.Name,
+                    Label = controller.Name,
+                    Roles = []
+                };
+                _context.Permissions.Add(anchor);
+                permissions.Add(anchor);
+                controllerPermissions.Add(anchor);
+                result.InsertedCount++;
+            }
+
+            var anchorWasChanged = ApplyPermission(
+                    anchor,
+                    controller.Summary,
+                    controller.Name,
+                    anchorAction.Name,
+                    controller.IsMenu,
+                    controller.Priority,
+                    controller.ParentId);
+
+            if (anchorWasChanged && anchor.Id != 0)
+                result.UpdatedCount++;
+
+            foreach (var action in controller.Actions.Where(x => x != anchorAction))
+            {
+                var permission = FindPermission(controllerPermissions, action.Name);
+                if (permission == null)
+                {
+                    permission = new Permission
+                    {
+                        Area = "Admin",
+                        Controller = controller.Name,
+                        Action = action.Name,
+                        Label = $"{action.Name}{controller.Name}",
+                        Parent = anchor,
+                        Roles = []
+                    };
+                    _context.Permissions.Add(permission);
+                    permissions.Add(permission);
+                    controllerPermissions.Add(permission);
+                    result.InsertedCount++;
+                }
+
+                var changed = ApplyPermission(
+                    permission,
+                    action.Summary,
+                    controller.Name,
+                    action.Name,
+                    false,
+                    action.Priority,
+                    anchor.Id == 0 ? null : anchor.Id);
+
+                if (anchor.Id == 0)
+                    permission.Parent = anchor;
+
+                if (changed && permission.Id != 0)
+                    result.UpdatedCount++;
+            }
+        }
+
+        private static Permission FindPermission(
+            IEnumerable<Permission> permissions,
+            string action)
+        {
+            return permissions
+                .Where(x => string.Equals(x.Action, action, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.Deleted)
+                .ThenBy(x => x.Id)
+                .FirstOrDefault();
+        }
+
+        private static bool ApplyPermission(
+            Permission permission,
+            string name,
+            string controller,
+            string action,
+            bool isMenu,
+            int priority,
+            long? parentId)
+        {
+            var changed = false;
+
+            changed |= SetIfDifferent(permission.Name, name ?? $"{action} {controller}", x => permission.Name = x);
+            changed |= SetIfDifferent(permission.Area, "Admin", x => permission.Area = x);
+            changed |= SetIfDifferent(permission.Controller, controller, x => permission.Controller = x);
+            changed |= SetIfDifferent(permission.Action, action, x => permission.Action = x);
+
+            if (string.IsNullOrWhiteSpace(permission.Label))
+            {
+                permission.Label = action.Equals("Get", StringComparison.OrdinalIgnoreCase)
+                    ? controller
+                    : $"{action}{controller}";
+                changed = true;
+            }
+
+            if (permission.IsMenu != isMenu)
+            {
+                permission.IsMenu = isMenu;
+                changed = true;
+            }
+
+            if (permission.Priority != priority)
+            {
+                permission.Priority = priority;
+                changed = true;
+            }
+
+            if (parentId.HasValue && permission.ParentId != parentId)
+            {
+                permission.ParentId = parentId;
+                changed = true;
+            }
+
+            if (permission.Deleted)
+            {
+                permission.Deleted = false;
+                changed = true;
+            }
+
+            return changed;
+        }
+
+        private static bool SetIfDifferent(
+            string current,
+            string value,
+            Action<string> setter)
+        {
+            if (string.Equals(current, value, StringComparison.Ordinal))
+                return false;
+
+            setter(value);
+            return true;
+        }
+
+        private async Task NormalizeParentPermissionsAsync(CancellationToken cancellationToken)
+        {
+            if (_context is not DbContext dbContext)
+                throw new InvalidOperationException("Permission synchronization requires an EF Core DbContext.");
+
+            await dbContext.Database.ExecuteSqlRawAsync(ParentNormalizationSql, cancellationToken);
+        }
+
+        private static bool IsAdminApiController(Type type)
+        {
+            return type.IsClass &&
+                   !type.IsAbstract &&
+                   type.Namespace == "Api.Areas.Admin.Controllers" &&
+                   type.CustomAttributes.Any(attribute =>
+                       attribute.AttributeType.Name == "ApiControllerAttribute");
+        }
+
+        private static bool IsApiAction(MethodInfo method)
+        {
+            if (method.IsSpecialName ||
+                method.CustomAttributes.Any(attribute =>
+                    attribute.AttributeType.Name == "NonActionAttribute"))
+            {
+                return false;
+            }
+
+            return method.CustomAttributes.Any(attribute =>
+                attribute.AttributeType.Name.StartsWith("Http", StringComparison.Ordinal) &&
+                attribute.AttributeType.Name.EndsWith("Attribute", StringComparison.Ordinal));
+        }
+
+        private static string GetHttpMethod(MethodInfo method)
+        {
+            var attribute = method.CustomAttributes.First(x =>
+                x.AttributeType.Name.StartsWith("Http", StringComparison.Ordinal) &&
+                x.AttributeType.Name.EndsWith("Attribute", StringComparison.Ordinal));
+
+            return attribute.AttributeType.Name
+                .Replace("Http", string.Empty, StringComparison.Ordinal)
+                .Replace("Attribute", string.Empty, StringComparison.Ordinal)
+                .ToUpperInvariant();
+        }
+
+        private static int GetActionPriority(string actionName, string httpMethod)
+        {
+            if (actionName.Equals("Get", StringComparison.OrdinalIgnoreCase))
+                return 0;
+            if (actionName.Equals("Post", StringComparison.OrdinalIgnoreCase))
+                return 1;
+            if (actionName.Equals("Put", StringComparison.OrdinalIgnoreCase))
+                return 2;
+            if (actionName.Equals("Delete", StringComparison.OrdinalIgnoreCase))
+                return 3;
+            if (actionName.Equals("Patch", StringComparison.OrdinalIgnoreCase))
+                return 4;
+
+            return httpMethod switch
+            {
+                "GET" => 5,
+                "POST" => 6,
+                "PUT" => 7,
+                "DELETE" => 8,
+                "PATCH" => 9,
+                _ => 10
+            };
+        }
+
+        private static bool IsGetAction(ActionInfoDto action)
+        {
+            return action.Name.Equals("Get", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static IReadOnlyDictionary<string, string> ReadXmlSummaries(XDocument xmlComments)
+        {
+            return xmlComments
+                .Descendants("member")
+                .Where(member => member.Attribute("name") != null)
+                .GroupBy(member => member.Attribute("name")!.Value)
+                .ToDictionary(
+                    group => group.Key,
+                    group => NormalizeText(group.First().Element("summary")?.Value));
+        }
+
+        private static string FindMethodSummary(
+            IReadOnlyDictionary<string, string> summaries,
+            Type controllerType,
+            string methodName)
+        {
+            var prefix = $"M:{controllerType.FullName}.{methodName}";
+            return summaries
+                       .Where(x => x.Key.Equals(prefix, StringComparison.Ordinal) ||
+                                   x.Key.StartsWith($"{prefix}(", StringComparison.Ordinal))
+                       .Select(x => x.Value)
+                       .FirstOrDefault(x => !string.IsNullOrWhiteSpace(x))
+                   ?? methodName;
+        }
+
+        private static string NormalizeText(string value)
+        {
+            return string.IsNullOrWhiteSpace(value)
+                ? string.Empty
+                : string.Join(
+                    " ",
+                    value.Split(
+                        [' ', '\r', '\n', '\t'],
+                        StringSplitOptions.RemoveEmptyEntries));
+        }
+
+        private const string ParentNormalizationSql = """
+            SET XACT_ABORT ON;
+
+            DECLARE @Desired TABLE
+            (
+                Id bigint NOT NULL PRIMARY KEY,
+                [Name] nvarchar(max) NOT NULL,
+                Label nvarchar(100) NOT NULL,
+                AlternateLabel nvarchar(100) NULL,
+                Priority int NOT NULL
+            );
+
+            INSERT INTO @Desired (Id, [Name], Label, AlternateLabel, Priority)
+            VALUES
+                (1, N'تنظیمات سیستم', N'Settings', NULL, 1),
+                (2, N'مدیریت کاربران', N'UserManager', NULL, 2),
+                (3, N'مدیریت پت ها', N'PetManagement', NULL, 3),
+                (4, N'مدیریت نمایندگان', N'CompanionManagement', NULL, 4),
+                (5, N'مدیریت فروشگاه', N'ShopManagement', NULL, 5),
+                (6, N'مدیریت محتوا', N'ContentManagement', N'ContentManagment', 6),
+                (7, N'مدیریت یادآورها', N'ReminderManagement', NULL, 7),
+                (8, N'مدیریت مالی', N'FinancialManagement', NULL, 8),
+                (9, N'مدیریت موقعیت ها', N'LocationManagement', N'locationManagement', 9),
+                (10, N'مدیریت پاستیل فرند', N'PastilMatchManagement', NULL, 10);
+
+            IF (
+                SELECT COUNT(*)
+                FROM dbo.Permissions AS p
+                INNER JOIN @Desired AS d ON d.Id = p.Id AND p.Label = d.Label
+                WHERE p.ParentId IS NULL
+            ) = 10
+            BEGIN
+                UPDATE p
+                SET
+                    p.[Name] = d.[Name],
+                    p.Label = d.Label,
+                    p.Area = N'',
+                    p.Controller = N'',
+                    p.[Action] = N'',
+                    p.IsMenu = 1,
+                    p.Priority = d.Priority,
+                    p.ParentId = NULL,
+                    p.Deleted = 0
+                FROM dbo.Permissions AS p
+                INNER JOIN @Desired AS d ON d.Id = p.Id;
+                RETURN;
+            END;
+
+            IF EXISTS
+            (
+                SELECT 1
+                FROM dbo.Permissions AS p
+                WHERE p.Id BETWEEN 1 AND 10
+                  AND NOT EXISTS
+                  (
+                      SELECT 1
+                      FROM @Desired AS d
+                      WHERE p.Label = d.Label
+                         OR p.Label = d.AlternateLabel
+                  )
+            )
+                THROW 51000, 'Permission IDs 1 through 10 contain a non-parent permission.', 1;
+
+            IF EXISTS
+            (
+                SELECT d.Id
+                FROM @Desired AS d
+                INNER JOIN dbo.Permissions AS p
+                    ON p.Label = d.Label OR p.Label = d.AlternateLabel
+                WHERE p.ParentId IS NULL
+                GROUP BY d.Id
+                HAVING COUNT(*) > 1
+            )
+                THROW 51001, 'Duplicate parent permissions were found.', 1;
+
+            CREATE TABLE #ParentMap
+            (
+                DesiredId bigint NOT NULL PRIMARY KEY,
+                OldId bigint NOT NULL UNIQUE
+            );
+
+            INSERT INTO #ParentMap (DesiredId, OldId)
+            SELECT d.Id, p.Id
+            FROM @Desired AS d
+            INNER JOIN dbo.Permissions AS p
+                ON p.Label = d.Label OR p.Label = d.AlternateLabel
+            WHERE p.ParentId IS NULL;
+
+            SET IDENTITY_INSERT dbo.Permissions ON;
+
+            INSERT INTO dbo.Permissions
+                (Id, [Name], Label, Area, Controller, [Action], IsMenu, Priority, ParentId, Deleted)
+            SELECT
+                -d.Id,
+                d.[Name],
+                d.Label,
+                N'',
+                N'',
+                N'',
+                1,
+                d.Priority,
+                NULL,
+                0
+            FROM @Desired AS d
+            INNER JOIN #ParentMap AS m ON m.DesiredId = d.Id;
+
+            SET IDENTITY_INSERT dbo.Permissions OFF;
+
+            UPDATE child
+            SET child.ParentId = -m.DesiredId
+            FROM dbo.Permissions AS child
+            INNER JOIN #ParentMap AS m ON child.ParentId = m.OldId;
+
+            UPDATE permissionRole
+            SET permissionRole.PermissionsId = -m.DesiredId
+            FROM dbo.PermissionRole AS permissionRole
+            INNER JOIN #ParentMap AS m ON permissionRole.PermissionsId = m.OldId;
+
+            DELETE parent
+            FROM dbo.Permissions AS parent
+            INNER JOIN #ParentMap AS m ON parent.Id = m.OldId;
+
+            SET IDENTITY_INSERT dbo.Permissions ON;
+
+            INSERT INTO dbo.Permissions
+                (Id, [Name], Label, Area, Controller, [Action], IsMenu, Priority, ParentId, Deleted)
+            SELECT
+                d.Id,
+                d.[Name],
+                d.Label,
+                N'',
+                N'',
+                N'',
+                1,
+                d.Priority,
+                NULL,
+                0
+            FROM @Desired AS d;
+
+            SET IDENTITY_INSERT dbo.Permissions OFF;
+
+            UPDATE child
+            SET child.ParentId = m.DesiredId
+            FROM dbo.Permissions AS child
+            INNER JOIN #ParentMap AS m ON child.ParentId = -m.DesiredId;
+
+            UPDATE permissionRole
+            SET permissionRole.PermissionsId = m.DesiredId
+            FROM dbo.PermissionRole AS permissionRole
+            INNER JOIN #ParentMap AS m ON permissionRole.PermissionsId = -m.DesiredId;
+
+            DELETE temporaryParent
+            FROM dbo.Permissions AS temporaryParent
+            INNER JOIN #ParentMap AS m ON temporaryParent.Id = -m.DesiredId;
+            """;
     }
 }

@@ -1,8 +1,11 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Services.Accounting.PermissionSrv.Dto;
+using Api.Authorization;
 using Application.Services.Accounting.PermissionSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Xml.Linq;
+using Utility.Reflection.Iface;
 
 namespace Api.Areas.Admin.Controllers
 {
@@ -17,13 +20,17 @@ namespace Api.Areas.Admin.Controllers
     public class PermissionController : ControllerBase
     {
         private IPermissionService permissionService;
+        private readonly IControllerActionDiscoveryService controllerActionDiscoveryService;
         /// <summary>
         /// مدیریت دسترسی ها
         /// </summary>
         ///
-        public PermissionController(IPermissionService permissionService)
+        public PermissionController(
+            IPermissionService permissionService,
+            IControllerActionDiscoveryService controllerActionDiscoveryService)
         {
             this.permissionService = permissionService;
+            this.controllerActionDiscoveryService = controllerActionDiscoveryService;
         }
         /// <summary>
         ///  اطلاعات آیتم 
@@ -59,6 +66,23 @@ namespace Api.Areas.Admin.Controllers
         {
             var dto = await permissionService.InsertAsyncDto(permissionDto);
             return Ok(dto);
+        }
+
+        /// <summary>
+        /// همگام سازی دسترسی های پنل مدیریت با کنترلرها
+        /// </summary>
+        [HttpPost("sync")]
+        [Authorize(Policy = PolicyNames.AdminOnly)]
+        public async Task<IActionResult> Synchronize(CancellationToken cancellationToken)
+        {
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, "MehradVico.Api.xml");
+            var xmlComments = XDocument.Load(xmlPath);
+            var result = await controllerActionDiscoveryService.SynchronizePermissionsAsync(
+                typeof(PermissionController).Assembly,
+                xmlComments,
+                cancellationToken);
+
+            return Ok(result);
         }
         /// <summary>
         /// ویرایش آیتم
