@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// کاربران قابل انتخاب نمایندگی برای خدمت همکار
+    /// کاربران نماینده
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]

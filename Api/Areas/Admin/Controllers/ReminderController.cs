@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت یادآوری ها
+    /// یادآوری ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -20,10 +20,6 @@ namespace Api.Areas.Admin.Controllers
     public class ReminderController : ControllerBase
     {
         private IReminderService _reminderService;
-        /// <summary>
-        /// مدیریت یادآوری ها
-        /// </summary>
-        ///
         public ReminderController(IReminderService reminderService)
         {
             _reminderService = reminderService;

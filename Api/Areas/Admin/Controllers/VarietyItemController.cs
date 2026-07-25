@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت تنوع آیتم ها
+    /// آیتم های تنوع
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class varietyItemController : ControllerBase
     {
         private IVarietyItemService varietyItemService;
-        /// <summary>
-        /// مدیریت تنوع آیتم ها
-        /// </summary>
-        ///
         public varietyItemController(IVarietyItemService varietyItemService)
         {
             this.varietyItemService = varietyItemService;

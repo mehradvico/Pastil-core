@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت نظرات
+    ///  نظرات پست ها 
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class PostCommentController : ControllerBase
     {
         private IPostCommentService PostCommentService;
-        /// <summary>
-        /// مدیریت نظرات
-        /// </summary>
-        ///
         public PostCommentController(IPostCommentService PostCommentService)
         {
             this.PostCommentService = PostCommentService;

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers
 {
     /// <summary>
-    /// مدیریت پت های همکاران
+    /// مدیریت پت های نمایندگان
     /// </summary>
     /// 
     [Route("api/[controller]")]
@@ -17,7 +17,7 @@ namespace Api.Controllers
     {
         private readonly ICompanionPetService CompanionPetService;
         /// <summary>
-        /// مدیریت پت های همکاران
+        /// مدیریت پت های نمایندگان
         /// </summary>
 
         public CompanionPetController(ICompanionPetService CompanionPetService)

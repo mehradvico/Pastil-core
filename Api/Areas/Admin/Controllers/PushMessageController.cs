@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت پیام های پوش
+    /// پیام های پوش
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class PushMessageController : ControllerBase
     {
         private readonly IPushMessageService PushMessageService;
-        /// <summary>
-        /// مدیریت پیام های پوش
-        /// </summary>
-
         public PushMessageController(IPushMessageService PushMessageService)
         {
             this.PushMessageService = PushMessageService;

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت برندها
+    ///  برندها
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,7 +18,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private IBrandService brandService;
         /// <summary>
-        /// مدیریت برند ها
+        ///  برند ها
         /// </summary>
         ///
         public BrandController(IBrandService brandService)

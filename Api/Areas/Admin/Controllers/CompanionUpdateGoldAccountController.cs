@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// آپدیت همکار طلایی
+    /// نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]
@@ -23,7 +23,7 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
-        ///  ویرایش آیتم 
+        ///  ارتقا آیتم به طلایی
         /// </summary>
         /// <returns>
         /// </returns>

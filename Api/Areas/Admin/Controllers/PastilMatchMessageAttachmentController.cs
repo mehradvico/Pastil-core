@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت فایل‌های پیام پاستیل مچ
+    /// فایل‌های پیام پاستیل مچ
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]

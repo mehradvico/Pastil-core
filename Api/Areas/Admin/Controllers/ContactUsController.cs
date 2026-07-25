@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت ارتباط با ما
+    /// ارتباط با ما
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class ContactUsController : ControllerBase
     {
         private IContactUsService ContactUsService;
-        /// <summary>
-        /// مدیریت ارتباط با ما
-        /// </summary>
-        ///
         public ContactUsController(IContactUsService ContactUsService)
         {
             this.ContactUsService = ContactUsService;

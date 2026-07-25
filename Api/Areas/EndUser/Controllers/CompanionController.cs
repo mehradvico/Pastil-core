@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.EndUser.Controllers
 {
     /// <summary>
-    /// مدیریت همکاران
+    /// مدیریت نمایندگان
     /// </summary>
     /// 
     [Area("EndUser")]
@@ -53,7 +53,7 @@ namespace Api.Areas.EndUser.Controllers
         /// <summary>
         /// اطلاعات آیتم 
         /// </summary>
-        /// <param name="id">شناسه همکار</param>
+        /// <param name="id">شناسه نماینده</param>
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]

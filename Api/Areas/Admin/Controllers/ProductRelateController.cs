@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مرتبط با محصولات 
+    /// محصولات مرتبط
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
@@ -16,9 +16,6 @@ namespace Api.Areas.Admin.Controllers
     public class ProductRelateController : ControllerBase
     {
         private IProductRelateService ProductRelateService;
-        /// <summary>
-        /// مرتبط با محصولات 
-        /// </summary>
         public ProductRelateController(IProductRelateService ProductRelateService)
         {
             this.ProductRelateService = ProductRelateService;

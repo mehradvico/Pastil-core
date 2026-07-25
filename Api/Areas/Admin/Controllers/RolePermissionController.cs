@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت دسترسی های نقش
+    /// دسترسی های نقش
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[Controller]")]
@@ -16,9 +16,6 @@ namespace Api.Areas.Admin.Controllers
     public class RolePermission : ControllerBase
     {
         private IRolePermissionService rolePermissionService;
-        /// <summary>
-        /// مدیریت دسترسی های نقش
-        /// </summary>
         public RolePermission(IRolePermissionService rolePermissionService)
         {
             this.rolePermissionService = rolePermissionService;

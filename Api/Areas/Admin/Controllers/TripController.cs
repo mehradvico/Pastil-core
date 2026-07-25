@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت  سفر ها
+    /// سفر ها
     /// </summary>
     /// 
     [Area("Admin")]

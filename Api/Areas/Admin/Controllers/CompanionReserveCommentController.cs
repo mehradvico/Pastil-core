@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کامنت های رزرو همکاران
+    /// کامنت های رزرو نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class CompanionReserveCommentController : ControllerBase
     {
         private readonly ICompanionReserveCommentService CompanionReserveCommentService;
-        /// <summary>
-        /// مدیریت کامنت های رزرو همکاران
-        /// </summary>
-
         public CompanionReserveCommentController(ICompanionReserveCommentService CompanionReserveCommentService)
         {
             this.CompanionReserveCommentService = CompanionReserveCommentService;

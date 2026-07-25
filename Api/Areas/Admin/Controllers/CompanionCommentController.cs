@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت نظرات همکاران
+    /// نظرات نمایندگان
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class CompanionCommentController : ControllerBase
     {
         private ICompanionCommentService _CompanionCommentService;
-        /// <summary>
-        /// مدیریت نظرات همکاران
-        /// </summary>
-        ///
         public CompanionCommentController(ICompanionCommentService CompanionCommentService)
         {
             this._CompanionCommentService = CompanionCommentService;
@@ -52,7 +48,7 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
-        /// ویرایش نظرات
+        /// ویرایش آیتم
         /// </summary>
 
         [HttpPut]

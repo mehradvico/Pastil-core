@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت پارک ها
+    /// پارک ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class ParkController : ControllerBase
     {
         private IParkService ParkService;
-        /// <summary>
-        /// مدیریت پارک ها
-        /// </summary>
-        ///
         public ParkController(IParkService ParkService)
         {
             this.ParkService = ParkService;

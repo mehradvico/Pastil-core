@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// احراز هویت پانسیون
+    /// پانسیون ها
     /// </summary>
     /// 
     [Area("Admin")]

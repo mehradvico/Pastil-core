@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کلاب
+    /// کلاب ها
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
@@ -18,7 +18,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private readonly IClubRewardService ClubRewardService;
         /// <summary>
-        /// مدیریت کلاب
+        /// کلاب ها
         /// </summary>
         public ClubRewardController(IClubRewardService ClubRewardService)
         {

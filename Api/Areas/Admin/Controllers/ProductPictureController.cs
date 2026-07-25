@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت تصویر محصول ها
+    /// تصاویر محصول
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class ProductPictureController : ControllerBase
     {
         private readonly IProductPictureService productPictureService;
-        /// <summary>
-        /// مدیریت تصویر محصول ها
-        /// </summary>
-
         public ProductPictureController(IProductPictureService productPictureService)
         {
             this.productPictureService = productPictureService;

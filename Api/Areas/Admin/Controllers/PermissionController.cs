@@ -10,7 +10,7 @@ using Utility.Reflection.Iface;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت دسترسی ها
+    /// دسترسی ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -21,10 +21,6 @@ namespace Api.Areas.Admin.Controllers
     {
         private IPermissionService permissionService;
         private readonly IControllerActionDiscoveryService controllerActionDiscoveryService;
-        /// <summary>
-        /// مدیریت دسترسی ها
-        /// </summary>
-        ///
         public PermissionController(
             IPermissionService permissionService,
             IControllerActionDiscoveryService controllerActionDiscoveryService)

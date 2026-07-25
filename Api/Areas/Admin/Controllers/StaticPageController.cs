@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت صفحات ثابت
+    /// صفحات ثابت
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,7 +18,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private IStaticPageService StaticPageService;
         /// <summary>
-        /// مدیریت صفحات ثابت 
+        /// صفحات ثابت 
         /// </summary>
         ///
         public StaticPageController(IStaticPageService StaticPageService)

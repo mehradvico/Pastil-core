@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت چرخه یادآوری ها
+    /// چرخه های یادآوری
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class ReminderCycleController : ControllerBase
     {
         private IReminderCycleService _reminderCycleService;
-        /// <summary>
-        /// مدیریت چرخه یادآوری ها
-        /// </summary>
-        ///
         public ReminderCycleController(IReminderCycleService reminderCycleService)
         {
             _reminderCycleService = reminderCycleService;

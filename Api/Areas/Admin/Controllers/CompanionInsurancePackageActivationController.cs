@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// فعال سازی بیمه همکاران
+    /// بیمه های نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]

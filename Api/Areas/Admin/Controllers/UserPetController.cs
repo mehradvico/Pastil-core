@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کاربری پت ها
+    /// پت های کاربر
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class UserPetController : ControllerBase
     {
         private IUserPetService UserPetService;
-        /// <summary>
-        /// مدیریت کاربری پت ها
-        /// </summary>
-        ///
         public UserPetController(IUserPetService UserPetService)
         {
             this.UserPetService = UserPetService;

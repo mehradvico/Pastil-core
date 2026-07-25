@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت موضوع های تالار گفت و گو
+    /// موضوع های تالار گفت و گو
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class DiscussionQuestionController : ControllerBase
     {
         private IDiscussionQuestionService _DiscussionQuestionService;
-        /// <summary>
-        /// مدیریت موضوع گفت و گو
-        /// </summary>
-        ///
         public DiscussionQuestionController(IDiscussionQuestionService DiscussionQuestionService)
         {
             _DiscussionQuestionService = DiscussionQuestionService;

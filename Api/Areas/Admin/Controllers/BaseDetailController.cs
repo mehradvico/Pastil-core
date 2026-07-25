@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت مشخصات پایه
+    ///  مشخصات پایه
     /// </summary>
     ///
     [Area("Admin")]
@@ -19,7 +19,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private IBaseDetailService BaseDetailService;
         /// <summary>
-        /// مدیریت مشخصات پایه
+        ///  مشخصات پایه
         /// </summary>
         ///
         public BaseDetailController(IBaseDetailService BaseDetailService)

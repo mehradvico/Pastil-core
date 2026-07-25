@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت پت ها
+    /// پت ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,7 +18,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private IPetService _petService;
         /// <summary>
-        /// مدیریت پت ها
+        /// پت ها
         /// </summary>
         ///
         public PetController(IPetService petService)

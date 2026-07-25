@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Agent.Controllers
 {
     /// <summary>
-    /// مدیریت همکاران 
+    /// مدیریت نمایندگان 
     /// </summary>
     /// 
     [Area("Companion")]

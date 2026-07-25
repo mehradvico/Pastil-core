@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت تصویر پکیج ها
+    /// تصویر پکیج های خدمات نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class CompanionAssistancePackagePictureController : ControllerBase
     {
         private readonly ICompanionAssistancePackagePictureService companionassistancepackagePictureService;
-        /// <summary>
-        /// مدیریت تصویر محصول ها
-        /// </summary>
-
         public CompanionAssistancePackagePictureController(ICompanionAssistancePackagePictureService companionassistancepackagePictureService)
         {
             this.companionassistancepackagePictureService = companionassistancepackagePictureService;

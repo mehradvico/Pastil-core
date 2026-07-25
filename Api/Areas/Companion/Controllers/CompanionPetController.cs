@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Companion.Controllers
 {
     /// <summary>
-    /// مدیریت پت های همکاران
+    /// مدیریت پت های نمایندگان
     /// </summary>
     /// 
     [Area("Companion")]
@@ -20,7 +20,7 @@ namespace Api.Areas.Companion.Controllers
         private readonly ICompanionPetService CompanionPetService;
         private readonly ICurrentUserHelper _current;
         /// <summary>
-        /// مدیریت پت های همکاران
+        /// مدیریت پت های نمایندگان
         /// </summary>
 
         public CompanionPetController(ICompanionPetService CompanionPetService, ICurrentUserHelper _current)

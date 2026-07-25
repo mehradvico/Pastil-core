@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت فروشنده ها
+    /// فروشگاه ها
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
@@ -16,9 +16,6 @@ namespace Api.Areas.Admin.Controllers
     public class StoreController : ControllerBase
     {
         private IStoreService StoreService;
-        /// <summary>
-        /// مدیریت فروشنده ها
-        /// </summary>
         public StoreController(IStoreService StoreService)
         {
             this.StoreService = StoreService;

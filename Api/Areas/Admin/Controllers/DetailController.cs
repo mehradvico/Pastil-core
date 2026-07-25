@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت مشخصات
+    /// مشخصات
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class DetailController : ControllerBase
     {
         private IDetailService DetailService;
-        /// <summary>
-        /// مدیریت مشخصات
-        /// </summary>
-        ///
         public DetailController(IDetailService DetailService)
         {
             this.DetailService = DetailService;

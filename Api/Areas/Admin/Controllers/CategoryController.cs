@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت دسته بندی ها
+    /// دسته بندی ها
     /// </summary>
     /// 
     [Area("Admin")]
@@ -19,7 +19,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private ICategoryService categoryService;
         /// <summary>
-        /// مدیریت دسته بندی
+        /// دسته بندی
         /// </summary>
         /// 
         public CategoryController(ICategoryService categoryService)

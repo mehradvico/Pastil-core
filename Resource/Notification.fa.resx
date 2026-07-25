@@ -121,7 +121,7 @@
     <value>شما به این بخش دسترسی ندارید</value>
   </data>
   <data name="AlreadyIsCompanion" xml:space="preserve">
-    <value>شما قبلا به عنوان همکار ثبت نام شده اید.</value>
+    <value>شما قبلا به عنوان نماینده ثبت نام شده اید.</value>
   </data>
   <data name="AlreadyIsDriver" xml:space="preserve">
     <value>شما قبلا به عنوان راننده ثبت نام شده اید.</value>
@@ -379,16 +379,16 @@
     <value>شما دسترسی ندارید</value>
   </data>
   <data name="YouHaveNotPermissionToAddInformationForThisCompanion" xml:space="preserve">
-    <value>شما دسترسی اضافه کردن اطلاعات برای این همکار را ندارید.</value>
+    <value>شما دسترسی اضافه کردن اطلاعات برای این نماینده را ندارید.</value>
   </data>
   <data name="YourReportHasBeenSubmitedForThisProductBefore" xml:space="preserve">
     <value>گزارش تخلف شما قبلا برای این محصول ثبت شده است</value>
   </data>
   <data name="YourReportHasBeenSubmitedForThisCompanionBefore" xml:space="preserve">
-    <value>گزارش تخلف شما قبلا برای این همکار ثبت شده است</value>
+    <value>گزارش تخلف شما قبلا برای این نماینده ثبت شده است</value>
   </data>
   <data name="YourReportHasBeenSubmitedForThisCompanionAssistanceBefore" xml:space="preserve">
-    <value>گزارش تخلف شما قبلا برای این خدمت همکار ثبت شده است.</value>
+    <value>گزارش تخلف شما قبلا برای این خدمت نماینده ثبت شده است.</value>
   </data>
   <data name="PleaseEnterTheActivationValueReason" xml:space="preserve">
     <value>لطفا دلیل عدم تایید را وارد نمایید</value>

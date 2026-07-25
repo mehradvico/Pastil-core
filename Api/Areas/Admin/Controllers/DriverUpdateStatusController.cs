@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت درخواست های رانندگان
+    /// رانندگان
     /// </summary>
     /// 
     [Area("Admin")]
@@ -24,7 +24,7 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
-        ///  ویرایش آیتم 
+        ///  تغییر وضعیت آیتم 
         /// </summary>
         /// <returns>
         /// </returns>

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت برندها
+    /// تخفیف ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class DiscountController : ControllerBase
     {
         private IDiscountService discountService;
-        /// <summary>
-        /// مدیریت برند ها
-        /// </summary>
-        ///
         public DiscountController(IDiscountService discountService)
         {
             this.discountService = discountService;

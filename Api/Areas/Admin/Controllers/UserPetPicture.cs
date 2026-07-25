@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت تصویر پت ها
+    /// تصاویر پت های کاربر
     /// </summary>
     /// 
     [Area("Admin")]

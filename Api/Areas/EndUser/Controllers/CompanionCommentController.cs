@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.EndUser.Controllers
 {
     /// <summary>
-    /// مرتبط با همکاران
+    /// مرتبط با نمایندگان
     /// </summary>
     [Area("EndUser")]
     [Route("api/[area]/[controller]")]
@@ -19,7 +19,7 @@ namespace Api.Areas.EndUser.Controllers
         private ICompanionCommentService _CompanionCommentService;
         private ICurrentUserHelper _currentUserHelper;
         /// <summary>
-        /// مرتبط با همکاران
+        /// مرتبط با نمایندگان
         /// </summary>
         public CompanionCommentController(ICompanionCommentService CompanionCommentService, ICurrentUserHelper currentUserHelper)
         {

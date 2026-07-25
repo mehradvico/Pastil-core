@@ -11,7 +11,7 @@ namespace Api.Areas.Admin.Controllers
     namespace Api.Areas.Admin.Controllers
     {
         /// <summary>
-        /// مدیریت کاربران بلاک‌شده در پاستیل مچ
+        /// کاربران بلاک‌شده در پاستیل مچ
         /// </summary>
         [Area("Admin")]
         [Route("api/[area]/[controller]")]

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کارت های بانکی
+    ///  کارت های بانکی
     /// </summary>
     /// 
     [Area("Admin")]

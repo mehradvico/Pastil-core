@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// تغییر تنوع محصول
+    /// تنوع محصول
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,17 +17,13 @@ namespace Api.Areas.Admin.Controllers
     public class ProductChangeVarietyController : ControllerBase
     {
         private readonly IProductService _productService;
-        /// <summary>
-        /// تغییر تنوع محصول
-        /// </summary>
-        ///
         public ProductChangeVarietyController(IProductService productService)
         {
             this._productService = productService;
         }
 
         /// <summary>
-        /// تغییر تنوع محصول
+        /// ویرایش آیتم
         /// </summary>
 
         [HttpPut]

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت ادرس های ذخیره شده سفر
+    /// ادرس های ذخیره شده سفر
     /// </summary>
     /// 
     [Area("Admin")]

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت فایل محصول ها
+    /// آیتم های محصول
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class ProductItemController : ControllerBase
     {
         private readonly IProductItemService ProductItemService;
-        /// <summary>
-        /// مدیریت آیتم محصول ها
-        /// </summary>
-
         public ProductItemController(IProductItemService ProductItemService)
         {
             this.ProductItemService = ProductItemService;

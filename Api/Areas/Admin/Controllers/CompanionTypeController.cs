@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت انواع همکاران
+    /// انواع نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class CompanionTypeController : ControllerBase
     {
         private readonly ICompanionTypeService CompanionTypeService;
-        /// <summary>
-        /// مدیریت انواع همکاران
-        /// </summary>
-
         public CompanionTypeController(ICompanionTypeService CompanionTypeService)
         {
             this.CompanionTypeService = CompanionTypeService;

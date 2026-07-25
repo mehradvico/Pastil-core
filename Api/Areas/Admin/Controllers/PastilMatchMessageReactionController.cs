@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت ری‌اکشن‌های پیام پاستیل مچ
+    /// ری‌اکشن‌های پیام پاستیل مچ
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]

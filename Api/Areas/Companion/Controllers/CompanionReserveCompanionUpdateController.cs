@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Companion.Controllers
 {
     /// <summary>
-    /// مدیریت انجام رزرو همکار
+    /// مدیریت انجام رزرو نماینده
     /// </summary>
     /// 
     [Area("Companion")]

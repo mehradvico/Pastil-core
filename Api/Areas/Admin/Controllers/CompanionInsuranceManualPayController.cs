@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    ///  پرداخت دستی بیمه ها
+    ///  بیمه ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -22,7 +22,7 @@ namespace Api.Areas.Admin.Controllers
             _insuranceService = insuranceService;
         }
         /// <summary>
-        ///  پرداخت دستی بیمه ها
+        ///  پرداخت دستی آیتم
         /// </summary>
         /// 
         [HttpPut]

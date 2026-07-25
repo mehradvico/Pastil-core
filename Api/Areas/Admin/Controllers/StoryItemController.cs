@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت آیتم های استوری
+    /// آیتم های استوری
     /// </summary>
     ///
     [Area("Admin")]

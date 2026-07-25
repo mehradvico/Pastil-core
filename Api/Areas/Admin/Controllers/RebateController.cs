@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کد تخفیف
+    /// کد های تخفیف
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class RebateController : ControllerBase
     {
         private IRebateService RebateService;
-        /// <summary>
-        /// مدیریت کد تخفیف
-        /// </summary>
-        ///
         public RebateController(IRebateService RebateService)
         {
             this.RebateService = RebateService;

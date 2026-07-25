@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کنسلی رزرو همکار
+    /// رزروهای نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]

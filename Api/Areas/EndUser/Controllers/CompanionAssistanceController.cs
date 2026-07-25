@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.EndUser.Controllers
 {
     /// <summary>
-    /// مدیریت خدمات همکاران
+    /// مدیریت خدمات نمایندگان
     /// </summary>
     /// 
     [Area("EndUser")]

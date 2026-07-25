@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت خبرنامه
+    /// خبرنامه
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class NewsletterController : ControllerBase
     {
         private readonly INewsletterService NewsletterService;
-        /// <summary>
-        /// مدیریت خبرنامه
-        /// </summary>
-        ///  
         public NewsletterController(INewsletterService NewsletterService)
         {
             this.NewsletterService = NewsletterService;

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Companion.Controllers
 {
     /// <summary>
-    /// مدیریت کامنت های رزرو همکاران
+    /// مدیریت کامنت های رزرو نمایندگان
     /// </summary>
     /// 
     [Area("Companion")]
@@ -18,7 +18,7 @@ namespace Api.Areas.Companion.Controllers
     {
         private readonly ICompanionReserveCommentService CompanionReserveCommentService;
         /// <summary>
-        /// مدیریت کامنت های رزرو همکاران
+        /// مدیریت کامنت های رزرو نمایندگان
         /// </summary>
 
         public CompanionReserveCommentController(ICompanionReserveCommentService CompanionReserveCommentService)

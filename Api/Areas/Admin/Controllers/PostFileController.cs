@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت فایل پست ها
+    /// فایل های پست 
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class PostFileController : ControllerBase
     {
         private readonly IPostFileService postFileService;
-        /// <summary>
-        /// مدیریت فایل پست ها
-        /// </summary>
-
         public PostFileController(IPostFileService postFileService)
         {
             this.postFileService = postFileService;

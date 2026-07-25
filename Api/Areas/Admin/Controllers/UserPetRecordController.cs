@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت تاریخچه پت ها
+    /// سابقه پت کاربر
     /// </summary>
     ///
     [Area("Admin")]
@@ -19,10 +19,6 @@ namespace Api.Areas.Admin.Controllers
     {
         private IUserPetRecordService _petService;
 
-        /// <summary>
-        /// مدیریت تاریخچه پت ها
-        /// </summary>
-        ///
         public UserPetRecordController(IUserPetRecordService petService)
         {
             _petService = petService;

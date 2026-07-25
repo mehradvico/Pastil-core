@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers
 {
     /// <summary>
-    /// مدیریت انواع همکاران
+    /// مدیریت انواع نمایندگان
     /// </summary>
     /// 
     [Route("api/[controller]")]
@@ -15,7 +15,7 @@ namespace Api.Controllers
     {
         private readonly ICompanionTypeService CompanionTypeService;
         /// <summary>
-        /// مدیریت انواع همکاران
+        /// مدیریت انواع نمایندگان
         /// </summary>
 
         public CompanionTypeController(ICompanionTypeService CompanionTypeService)

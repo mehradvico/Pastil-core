@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت تیکت‌ ها
+    /// تیکت‌ ها
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
@@ -16,17 +16,13 @@ namespace Api.Areas.Admin.Controllers
     public class TicketChangeStatusController : ControllerBase
     {
         private ITicketService TicketService;
-
-        /// <summary>
-        /// مدیریت تیکت‌ ها
-        /// </summary>
         public TicketChangeStatusController(ITicketService TicketService)
         {
             this.TicketService = TicketService;
         }
 
         /// <summary>
-        /// تغییر وضعیت تیکت
+        /// تغییر وضعیت آیتم
         /// </summary>
         ///
         [HttpPut]

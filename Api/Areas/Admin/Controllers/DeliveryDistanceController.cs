@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت حمل و نقل
+    /// مسافت حمل نقل
     /// </summary>
     ///
     [Area("Admin")]
@@ -19,10 +19,6 @@ namespace Api.Areas.Admin.Controllers
     public class DeliveryDistanceController : ControllerBase
     {
         private IDeliveryDistanceService DeliveryDistanceService;
-        /// <summary>
-        /// مدیریت حمل و نقل
-        /// </summary>
-        ///
         public DeliveryDistanceController(IDeliveryDistanceService DeliveryDistanceService)
         {
             this.DeliveryDistanceService = DeliveryDistanceService;

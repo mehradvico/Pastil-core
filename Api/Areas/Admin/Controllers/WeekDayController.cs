@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت روزهای هفته
+    /// روزهای هفته
     /// </summary>
     /// 
     [Area("Admin")]

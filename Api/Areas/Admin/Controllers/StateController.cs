@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت استان ها
+    /// استان ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -20,10 +20,6 @@ namespace Api.Areas.Admin.Controllers
     public class StateController : ControllerBase
     {
         private IStateService stateService;
-        /// <summary>
-        /// مدیریت استان ها
-        /// </summary>
-        ///
         public StateController(IStateService stateService)
         {
             this.stateService = stateService;
@@ -55,7 +51,7 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
-        /// محدوده در مپ
+        /// محدوده آیتم در مپ
         /// </summary>
         /// <returns></returns> 
         [HttpGet("Boundary/{id:long}")]

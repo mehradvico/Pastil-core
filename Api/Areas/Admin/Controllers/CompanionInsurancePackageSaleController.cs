@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت فروش پکیج های بیمه همکاران
+    /// فروش پکیج های بیمه نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]
@@ -38,7 +38,7 @@ namespace Api.Areas.Admin.Controllers
         /// <summary>
         ///  اطلاعات آیتم 
         /// </summary>
-        /// <param name="id">شناسه کاربر خدمات همکاران</param>
+        /// <param name="id">شناسه کاربر خدمات نمایندگان</param>
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]

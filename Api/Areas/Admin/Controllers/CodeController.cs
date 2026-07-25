@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کد
+    ///  کدها
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
@@ -19,7 +19,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private readonly ICodeService codeService;
         /// <summary>
-        /// مدیریت کد
+        ///  کدها
         /// </summary>
         public CodeController(ICodeService codeService)
         {

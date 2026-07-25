@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت پروفایل های پاستیل مچ
+    /// پروفایل های پاستیل مچ
     /// </summary>
     /// 
     [Area("Admin")]

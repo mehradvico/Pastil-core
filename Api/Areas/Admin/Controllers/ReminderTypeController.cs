@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت نوع یادآوری ها
+    /// انواع یادآوری
     /// </summary>
     ///
     [Area("Admin")]
@@ -21,10 +21,6 @@ namespace Api.Areas.Admin.Controllers
     public class ReminderTypeController : ControllerBase
     {
         private IReminderTypeService _reminderTypeService;
-        /// <summary>
-        /// مدیریت نوع یادآوری ها
-        /// </summary>
-        ///
         public ReminderTypeController(IReminderTypeService reminderTypeService)
         {
             _reminderTypeService = reminderTypeService;

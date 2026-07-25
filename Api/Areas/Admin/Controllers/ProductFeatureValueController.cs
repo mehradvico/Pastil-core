@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت ویژگی های محصول
+    /// ویژگی های محصول
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
@@ -16,11 +16,6 @@ namespace Api.Areas.Admin.Controllers
     public class ProductFeatureValueController : ControllerBase
     {
         private readonly IProductFeatureValueService ProductFeatureValueService;
-        /// <summary>
-        /// مدیریت  ویژگی های محصول
-        /// </summary>
-        /// 
-
         public ProductFeatureValueController(IProductFeatureValueService ProductFeatureValueService)
         {
             this.ProductFeatureValueService = ProductFeatureValueService;

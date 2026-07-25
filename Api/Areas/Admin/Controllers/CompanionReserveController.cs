@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت  رزرو همکاران
+    /// رزروهای نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]
@@ -42,7 +42,7 @@ namespace Api.Areas.Admin.Controllers
         /// <summary>
         ///  اطلاعات آیتم 
         /// </summary>
-        /// <param name="id">شناسه همکار</param>
+        /// <param name="id">شناسه نماینده</param>
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]

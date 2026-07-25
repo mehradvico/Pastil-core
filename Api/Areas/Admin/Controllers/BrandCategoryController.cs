@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت دسته بندی های برند
+    ///  دسته بندی های برند
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[Controller]")]
@@ -17,7 +17,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private IBrandCategoryService brandCategoryService;
         /// <summary>
-        /// مدیریت دسته بندی های برند
+        ///  دسته بندی های برند
         /// </summary>
         public BrandCategory(IBrandCategoryService brandCategoryService)
         {

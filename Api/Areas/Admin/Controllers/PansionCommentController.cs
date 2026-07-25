@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت نظرات پانسیون ها
+    /// نظرات پانسیون ها
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class PansionCommentController : ControllerBase
     {
         private readonly IPansionCommentService PansionCommentService;
-        /// <summary>
-        /// مدیریت نظرات پانسیون ها
-        /// </summary>
-
         public PansionCommentController(IPansionCommentService PansionCommentService)
         {
             this.PansionCommentService = PansionCommentService;

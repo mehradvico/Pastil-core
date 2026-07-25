@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کاربران
+    /// کاربران
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     {
 
         private IUserService userService;
-        /// <summary>
-        /// مدیریت کاربران
-        /// </summary>
-        ///
         public UserController(IUserService user)
         {
             this.userService = user;

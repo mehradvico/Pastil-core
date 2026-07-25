@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت پست ها
+    /// پست ها
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class PostController : ControllerBase
     {
         private IPostService postService;
-        /// <summary>
-        /// مدیریت پست ها
-        /// </summary>
-        ///
         public PostController(IPostService postService)
         {
             this.postService = postService;

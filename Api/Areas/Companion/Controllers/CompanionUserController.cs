@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Companion.Controllers
 {
     /// <summary>
-    /// مدیریت کاربران همکار
+    /// مدیریت کاربران نماینده
     /// </summary>
     /// 
     [Area("Companion")]
@@ -21,7 +21,7 @@ namespace Api.Areas.Companion.Controllers
         private readonly ICompanionUserService CompanionUserService;
         private readonly CurrentUserDto CurrentUserDto;
         /// <summary>
-        /// مدیریت کاربران همکار
+        /// مدیریت کاربران نماینده
         /// </summary>
 
         public CompanionUserController(ICompanionUserService CompanionUserService, ICurrentUserHelper currentUserHelper)

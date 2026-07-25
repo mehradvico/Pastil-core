@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت بنرها
+    ///  بنرها
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,7 +18,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private IBannerService bannerService;
         /// <summary>
-        /// مدیریت بنرها
+        ///  بنرها
         /// </summary>
         ///
         public BannerController(IBannerService bannerService)

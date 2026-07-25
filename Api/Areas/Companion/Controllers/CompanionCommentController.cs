@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Companion.Controllers
 {
     /// <summary>
-    /// مدیریت نظرات همکاران
+    /// مدیریت نظرات نمایندگان
     /// </summary>
     ///
     [Area("Companion")]
@@ -21,7 +21,7 @@ namespace Api.Areas.Companion.Controllers
         private ICompanionCommentService _CompanionCommentService;
         private ICurrentUserHelper _currentUser;
         /// <summary>
-        /// مدیریت نظرات همکاران
+        /// مدیریت نظرات نمایندگان
         /// </summary>
         ///
         public CompanionCommentController(ICompanionCommentService CompanionCommentService, ICurrentUserHelper currentUser)

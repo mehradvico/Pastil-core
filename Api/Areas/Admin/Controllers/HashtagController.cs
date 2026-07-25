@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت هشتگ
+    ///  هشتگ ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class HashtagController : ControllerBase
     {
         private IHashtagService _hashtagService;
-        /// <summary>
-        /// مدیریت هشتگ
-        /// </summary>
-        ///
         public HashtagController(IHashtagService hashtagService)
         {
             this._hashtagService = hashtagService;

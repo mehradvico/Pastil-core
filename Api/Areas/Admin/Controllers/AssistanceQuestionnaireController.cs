@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت پرسشنامه های خدمات
+    ///  پرسشنامه های خدمات
     /// </summary>
     /// 
     [Area("Admin")]

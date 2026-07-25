@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Companion.Controllers
 {
     /// <summary>
-    /// مدیریت زمان های خدمات همکاران
+    /// مدیریت زمان های خدمات نمایندگان
     /// </summary>
     /// 
     [Area("Companion")]
@@ -41,7 +41,7 @@ namespace Api.Areas.Companion.Controllers
         /// <summary>
         ///  اطلاعات آیتم 
         /// </summary>
-        /// <param name="id">شناسه زمان خدمات همکاران</param>
+        /// <param name="id">شناسه زمان خدمات نمایندگان</param>
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]

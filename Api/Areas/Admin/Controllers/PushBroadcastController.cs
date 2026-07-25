@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت ارسال پیام پوش
+    /// پیام پوش
     /// </summary>
     /// 
     [Area("Admin")]

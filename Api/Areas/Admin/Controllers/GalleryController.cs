@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت گالری ها
+    /// گالری ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class GalleryController : ControllerBase
     {
         private IGalleryService galleryService;
-        /// <summary>
-        /// مدیریت گالری ها
-        /// </summary>
-        ///
         public GalleryController(IGalleryService galleryService)
         {
             this.galleryService = galleryService;

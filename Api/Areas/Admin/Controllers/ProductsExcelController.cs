@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// اکسل محصولات
+    /// </summary>
+    /// 
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -18,7 +22,10 @@ namespace Api.Areas.Admin.Controllers
             _excelService = excelService;
         }
 
-
+        /// <summary>
+        /// دریافت آیتم
+        /// </summary>
+        /// 
         [HttpGet]
         public IActionResult GetTemplate()
         {
@@ -29,6 +36,10 @@ namespace Api.Areas.Admin.Controllers
             return File(content, contentType, fileName);
         }
 
+        /// <summary>
+        /// بازگذاری آیتم
+        /// </summary>
+        /// 
         [HttpPost]
         public async Task<IActionResult> ImportProducts(IFormFile file)
         {

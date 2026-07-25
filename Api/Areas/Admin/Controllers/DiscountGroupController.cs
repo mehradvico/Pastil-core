@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت گروه تخفیف
+    /// گروه تخفیف
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class DiscountGroupController : ControllerBase
     {
         private IDiscountGroupService discountGroupService;
-        /// <summary>
-        /// مدیریت گروه تخفیف
-        /// </summary>
-        ///
         public DiscountGroupController(IDiscountGroupService discountGroupService)
         {
             this.discountGroupService = discountGroupService;

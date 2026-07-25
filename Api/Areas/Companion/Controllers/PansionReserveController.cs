@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Pansion.Controllers
 {
     /// <summary>
-    /// مدیریت رزرو همکاران
+    /// مدیریت رزرو نمایندگان
     /// </summary>
     /// 
     [Area("Comapnion")]
@@ -42,7 +42,7 @@ namespace Api.Areas.Pansion.Controllers
         /// <summary>
         ///  اطلاعات آیتم 
         /// </summary>
-        /// <param name="id">شناسه همکار</param>
+        /// <param name="id">شناسه نماینده</param>
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]

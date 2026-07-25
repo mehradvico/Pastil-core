@@ -11,7 +11,7 @@ namespace Api.Areas.Admin.Controllers
     namespace Api.Areas.Admin.Controllers
     {
         /// <summary>
-        /// مدیریت پیام‌های پاستیل مچ
+        /// پیام‌های پاستیل مچ
         /// </summary>
         [Area("Admin")]
         [Route("api/[area]/[controller]")]

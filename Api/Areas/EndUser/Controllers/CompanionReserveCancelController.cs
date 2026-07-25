@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.EndUser.Controllers
 {
     /// <summary>
-    /// مدیریت کنسلی رزرو همکار
+    /// مدیریت کنسلی رزرو نماینده
     /// </summary>
     /// 
     [Area("EndUser")]

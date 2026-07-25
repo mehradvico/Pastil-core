@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کشور ها
+    /// کشور ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class CountryController : ControllerBase
     {
         private ICountryService countryService;
-        /// <summary>
-        /// مدیریت کشور ها
-        /// </summary>
-        ///
         public CountryController(ICountryService countryService)
         {
             this.countryService = countryService;

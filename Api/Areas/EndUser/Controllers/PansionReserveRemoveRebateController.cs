@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.EndUser.Controllers
 {
     /// <summary>
-    /// مدیریت حذف تخفیف رزرو همکار
+    /// مدیریت حذف تخفیف رزرو نماینده
     /// </summary>
     /// 
     [Area("EndUser")]

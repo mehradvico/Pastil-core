@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت فایل محصول ها
+    /// فایل های محصول
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class ProductFileController : ControllerBase
     {
         private readonly IProductFileService productFileService;
-        /// <summary>
-        /// مدیریت فایل محصول ها
-        /// </summary>
-
         public ProductFileController(IProductFileService productFileService)
         {
             this.productFileService = productFileService;

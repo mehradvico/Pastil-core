@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.EndUser.Controllers
 {
     /// <summary>
-    /// مدیریت گزارشات تخلف خدمات همکاران
+    /// مدیریت گزارشات تخلف خدمات نمایندگان
     /// </summary>
     /// 
     [Area("EndUser")]

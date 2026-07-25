@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// اعلان ها
+    /// </summary>
+    ///
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -20,13 +24,21 @@ namespace Api.Areas.Admin.Controllers
             _noticeService = noticeService;
         }
 
+        ///<summary>
+        ///جستجو 
+        /// </summary>
+        ///<returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(NoticeSearchDto), 200)]
         public IActionResult Get([FromQuery] NoticeInputDto dto)
         {
             return Ok(_noticeService.Search(dto));
         }
-
+        
+        ///<summary>
+        ///نوع آیتم
+        /// </summary>
+        ///<returns></returns>
         [HttpGet("types")]
         [ProducesResponseType(typeof(List<NoticeTypeVDto>), 200)]
         public async Task<IActionResult> GetTypes(bool activeOnly = true)
@@ -34,12 +46,20 @@ namespace Api.Areas.Admin.Controllers
             return Ok(await _noticeService.GetTypesAsync(activeOnly));
         }
 
+        ///<summary>
+        ///تعداد آیتم های خوانده نشده
+        /// </summary>
+        ///<returns></returns>
         [HttpGet("unread-count")]
         public async Task<IActionResult> GetUnreadCount()
         {
             return Ok(await _noticeService.GetUnreadCountAsync());
         }
 
+        ///<summary>
+        ///اطلاعات آیتم
+        /// </summary>
+        ///<returns></returns>
         [HttpGet("{id:long}")]
         [ProducesResponseType(typeof(BaseResultDto<NoticeDto>), 200)]
         public async Task<IActionResult> Get(long id)
@@ -47,6 +67,10 @@ namespace Api.Areas.Admin.Controllers
             return Ok(await _noticeService.FindAsyncDto(id));
         }
 
+        ///<summary>
+        ///خواندن آیتم
+        /// </summary>
+        ///<returns></returns>
         [HttpPost("{id:long}/read")]
         [ProducesResponseType(typeof(BaseResultDto<NoticeDto>), 200)]
         public async Task<IActionResult> Read(long id)
@@ -54,6 +78,10 @@ namespace Api.Areas.Admin.Controllers
             return Ok(await _noticeService.ReadAsync(id));
         }
 
+        ///<summary>
+        ///خواندن همه آیتم ها
+        /// </summary>
+        ///<returns></returns>
         [HttpPost("read/bulk")]
         [ProducesResponseType(typeof(BaseResultDto<NoticeBulkReadVDto>), 200)]
         public async Task<IActionResult> ReadBulk([FromBody] NoticeBulkReadDto dto)

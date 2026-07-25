@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت محله ها
+    /// محله ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -19,10 +19,6 @@ namespace Api.Areas.Admin.Controllers
     public class NeighborhoodController : ControllerBase
     {
         private INeighborhoodService neighborhoodService;
-        /// <summary>
-        /// مدیریت محله ها
-        /// </summary>
-        ///
         public NeighborhoodController(INeighborhoodService neighborhoodService)
         {
             this.neighborhoodService = neighborhoodService;
@@ -54,7 +50,7 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
-        /// محدوده در مپ
+        /// محدوده آیتم در مپ
         /// </summary>
         /// <returns></returns> 
         [HttpGet("Boundary/{id:long}")]

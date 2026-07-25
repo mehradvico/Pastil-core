@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers
 {
     /// <summary>
-    /// مدیریت  رزرو همکاران
+    /// مدیریت  رزرو نمایندگان
     /// </summary>
     /// 
     [Route("api/[controller]")]
@@ -27,7 +27,7 @@ namespace Api.Controllers
         /// <summary>
         /// تعداد رزروهای آیتم
         /// </summary>
-        /// <param name="companionId">شناسه همکار</param>
+        /// <param name="companionId">شناسه نماینده</param>
         /// <returns>تعداد رزروها</returns>
         [HttpGet("{companionId}")]
         [ProducesResponseType(typeof(int), 200)]

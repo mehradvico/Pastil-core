@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت  آیتم سفارش ها
+    ///  فروشنده آیتم سفارش
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class ProductOrderStoreController : ControllerBase
     {
         private IProductOrderStoreService _productOrderStoreService;
-        /// <summary>
-        /// مدیریت  آیتم سفارش ها
-        /// </summary>
-        ///
         public ProductOrderStoreController(IProductOrderStoreService productOrderStoreService)
         {
             this._productOrderStoreService = productOrderStoreService;

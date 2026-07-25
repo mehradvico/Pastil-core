@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت پیام های نوتیفیکیشن
+    /// پیام های نوتیفیکیشن
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
@@ -22,7 +22,10 @@ namespace Api.Areas.Admin.Controllers
             _service = service;
         }
 
-        // ✔ ارسال نوتیف به همه
+        ///<summary>
+        ///ارسال آیتم
+        /// </summary>
+        ///<returns></returns>
         [HttpPost("send/all/{id}")]
         public async Task<IActionResult> SendAll(long id)
         {
@@ -30,7 +33,10 @@ namespace Api.Areas.Admin.Controllers
             return Ok("Sent!");
         }
 
-        // ✔ ارسال نوتیف به کاربر خاص
+        ///<summary>
+        ///ارسال آیتم به کاربر
+        /// </summary>
+        ///<returns></returns>
         [HttpPost("send/user/{notifyMessageId}/{userId}")]
         public async Task<IActionResult> SendToUser(long notifyMessageId, long userId)
         {

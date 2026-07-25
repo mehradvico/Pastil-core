@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت حمل و نقل
+    /// حمل و نقل
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class DeliveryController : ControllerBase
     {
         private IDeliveryService DeliveryService;
-        /// <summary>
-        /// مدیریت حمل و نقل
-        /// </summary>
-        ///
         public DeliveryController(IDeliveryService DeliveryService)
         {
             this.DeliveryService = DeliveryService;

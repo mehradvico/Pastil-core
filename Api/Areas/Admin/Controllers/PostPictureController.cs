@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت تصویر پست ها
+    /// تصاویر پست
     /// </summary>
     /// 
     [Area("Admin")]
@@ -17,10 +17,6 @@ namespace Api.Areas.Admin.Controllers
     public class PostPictureController : ControllerBase
     {
         private readonly IPostPictureService postPictureService;
-        /// <summary>
-        /// مدیریت تصویر پست ها
-        /// </summary>
-
         public PostPictureController(IPostPictureService postPictureService)
         {
             this.postPictureService = postPictureService;

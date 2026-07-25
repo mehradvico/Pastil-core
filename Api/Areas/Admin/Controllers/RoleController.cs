@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت نقش ها
+    /// نقش ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class RoleController : ControllerBase
     {
         private IRoleService roleService;
-        /// <summary>
-        /// مدیریت نقش ها
-        /// </summary>
-        ///
         public RoleController(IRoleService role)
         {
             roleService = role;

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت گروه ارتباط با ما
+    /// گروه ارتباط با ما
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class ContactUsGroupController : ControllerBase
     {
         private readonly IContactUsGroupService ContactUsGroupService;
-        /// <summary>
-        /// مدیریت گروه ارتباط با ما
-        /// </summary>
-        ///  
         public ContactUsGroupController(IContactUsGroupService ContactUsGroupService)
         {
             this.ContactUsGroupService = ContactUsGroupService;

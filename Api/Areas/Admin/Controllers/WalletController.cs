@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کیف پول
+    /// کیف پول ها
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]

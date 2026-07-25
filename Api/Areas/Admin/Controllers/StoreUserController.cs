@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کاربران فروشگاه
+    /// کاربران فروشگاه
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
@@ -16,17 +16,12 @@ namespace Api.Areas.Admin.Controllers
     public class StoreUserController : ControllerBase
     {
         private readonly IStoreUserService _storeUserService;
-
-        /// <summary>
-        /// مدیریت کاربران فروشگاه
-        /// </summary>
-        ///
         public StoreUserController(IStoreUserService storeUserService)
         {
             this._storeUserService = storeUserService;
         }
         /// <summary>
-        ///  کاربران فروشگاه 
+        /// جستجو 
         /// </summary>
         /// <returns>
         /// </returns>
@@ -38,7 +33,7 @@ namespace Api.Areas.Admin.Controllers
             return Ok(role);
         }
         /// <summary>
-        ///  کاربران فروشگاه 
+        ///  آیتم جدید
         /// </summary>
         /// <returns>
         /// </returns>
@@ -50,7 +45,7 @@ namespace Api.Areas.Admin.Controllers
             return Ok(role);
         }
         /// <summary>
-        ///  کاربران فروشگاه 
+        ///  حذف آیتم
         /// </summary>
         /// <returns>
         /// </returns>

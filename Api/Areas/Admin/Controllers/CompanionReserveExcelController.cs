@@ -8,6 +8,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
+
+    /// <summary>
+    /// رزروهای نمایندگان
+    /// </summary>
+    /// 
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -20,7 +25,10 @@ namespace Api.Areas.Admin.Controllers
             _reseveExcelService = reseveExcelService;
         }
 
-
+        /// <summary>
+        ///  دریافت اکسل
+        /// </summary>
+        /// <returns></returns> 
         [HttpGet]
         public IActionResult Get([FromQuery] SearchCompanionReserveExcelDto search)
         {

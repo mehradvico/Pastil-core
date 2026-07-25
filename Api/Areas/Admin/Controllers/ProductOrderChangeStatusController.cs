@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// تغییر وضعیت سفارش ها
+    /// سفارش ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,17 +17,13 @@ namespace Api.Areas.Admin.Controllers
     public class ProductOrderChangeStatusController : ControllerBase
     {
         private readonly IProductOrderService _productOrderService;
-        /// <summary>
-        /// تغییر وضعیت سفارش ها
-        /// </summary>
-        ///
         public ProductOrderChangeStatusController(IProductOrderService productOrderService)
         {
             this._productOrderService = productOrderService;
         }
 
         /// <summary>
-        /// تغییر وضعیت سفارش ها
+        /// تغییر وضعیت آیتم
         /// </summary>
 
         [HttpPut("")]

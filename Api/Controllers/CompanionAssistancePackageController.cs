@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers
 {
     /// <summary>
-    /// مدیریت پکیج های خدمات همکاران
+    /// مدیریت پکیج های خدمات نمایندگان
     /// </summary>
     /// 
     [Route("api/[controller]")]
@@ -36,7 +36,7 @@ namespace Api.Controllers
         /// <summary>
         ///  اطلاعات آیتم 
         /// </summary>
-        /// <param name="id">شناسه پکیج خدمات همکاران</param>
+        /// <param name="id">شناسه پکیج خدمات نمایندگان</param>
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]

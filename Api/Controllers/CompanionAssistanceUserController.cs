@@ -21,7 +21,7 @@ namespace Api.Controllers
 
 
         /// <summary>
-        /// جستجو کاربران خدمات همکاران
+        /// جستجو کاربران خدمات نمایندگان
         /// </summary>
         /// <returns></returns> 
         [HttpGet()]
@@ -36,7 +36,7 @@ namespace Api.Controllers
         /// <summary>
         ///  اطلاعات آیتم 
         /// </summary>
-        /// <param name="id">شناسه کاربر خدمات همکاران</param>
+        /// <param name="id">شناسه کاربر خدمات نمایندگان</param>
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]

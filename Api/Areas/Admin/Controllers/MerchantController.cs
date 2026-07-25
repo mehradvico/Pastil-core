@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت گالری آیتم ها
+    /// درگاه بانکی
     /// </summary>
     ///
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class MerchantController : ControllerBase
     {
         private IMerchantService MerchantService;
-        /// <summary>
-        /// مدیریت درگاه بانکی
-        /// </summary>
-        ///
         public MerchantController(IMerchantService MerchantService)
         {
             this.MerchantService = MerchantService;

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت بانک ها
+    ///  بانک ها
     /// </summary>
     /// <parent>
     /// content
@@ -22,7 +22,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private IBankService BankService;
         /// <summary>
-        /// مدیریت بانک ها
+        ///  بانک ها
         /// </summary>
         ///
         public BankController(IBankService BankService)

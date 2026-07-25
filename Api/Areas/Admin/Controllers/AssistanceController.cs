@@ -24,7 +24,7 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
-        ///  جستجو خدمت
+        /// جستجو
         /// </summary>
         /// <returns></returns> 
         [HttpGet()]
@@ -37,7 +37,7 @@ namespace Api.Areas.Admin.Controllers
 
 
         /// <summary>
-        ///  اطلاعات خدمت
+        ///  اطلاعات آیتم
         /// </summary>
         /// <param name="id">شناسه خدمات</param>
         /// <returns>
@@ -52,7 +52,7 @@ namespace Api.Areas.Admin.Controllers
 
 
         /// <summary>
-        /// خدمت جدید
+        /// آیتم جدید
         /// </summary>
         /// <returns></returns>
         [HttpPost]

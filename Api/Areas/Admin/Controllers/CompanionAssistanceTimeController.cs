@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت زمان های خدمات همکاران
+    /// زمان های خدمات نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]
@@ -38,7 +38,7 @@ namespace Api.Areas.Admin.Controllers
         /// <summary>
         ///  اطلاعات آیتم 
         /// </summary>
-        /// <param name="id">شناسه زمان خدمات همکاران</param>
+        /// <param name="id">شناسه زمان خدمات نمایندگان</param>
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]

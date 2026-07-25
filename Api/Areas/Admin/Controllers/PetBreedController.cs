@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت نژادهای پت
+    /// نژادهای پت
     /// </summary>
     ///
     [Area("Admin")]
@@ -19,7 +19,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private IPetBreedService _petBreedService;
         /// <summary>
-        /// مدیریت نژادهای پت
+        /// نژادهای پت
         /// </summary>
         ///
         public PetBreedController(IPetBreedService petBreedService)

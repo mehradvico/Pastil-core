@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت کاربران همکار
+    /// کاربران نماینده
     /// </summary>
     /// 
     [Area("Admin")]
@@ -18,10 +18,6 @@ namespace Api.Areas.Admin.Controllers
     public class CompanionUserController : ControllerBase
     {
         private readonly ICompanionUserService CompanionUserService;
-        /// <summary>
-        /// مدیریت کاربران همکار
-        /// </summary>
-
         public CompanionUserController(ICompanionUserService CompanionUserService)
         {
             this.CompanionUserService = CompanionUserService;

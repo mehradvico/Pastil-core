@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// تغییر کد پیگیری سفارش ها
+    /// سفارش ها
     /// </summary>
     ///
     [Area("Admin")]
@@ -17,17 +17,13 @@ namespace Api.Areas.Admin.Controllers
     public class ProductOrderTrackingCodeController : ControllerBase
     {
         private readonly IProductOrderService _productOrderService;
-        /// <summary>
-        /// تغییر کد پیگیری سفارش ها
-        /// </summary>
-        ///
         public ProductOrderTrackingCodeController(IProductOrderService productOrderService)
         {
             this._productOrderService = productOrderService;
         }
 
         /// <summary>
-        /// تغییر کد پیگیری سفارش ها
+        /// تغییر کد پیگیری آیتم
         /// </summary>
 
         [HttpPut("")]

@@ -23,7 +23,7 @@ namespace Api.Controllers
         /// <summary>
         /// تعداد رزروهای آیتم
         /// </summary>
-        /// <param name="PansionId">شناسه همکار</param>
+        /// <param name="PansionId">شناسه نماینده</param>
         /// <returns>تعداد رزروها</returns>
         [HttpGet("{PansionId}")]
         [ProducesResponseType(typeof(int), 200)]

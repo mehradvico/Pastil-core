@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// مدیریت ویژگی ها
+    /// ویژگی ها
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
@@ -18,7 +18,7 @@ namespace Api.Areas.Admin.Controllers
     {
         private readonly ICategoryFeatureService _categoryFeatureService;
         /// <summary>
-        /// مدیریت  ویژگی ها
+        ///  ویژگی ها
         /// </summary>
         /// 
 

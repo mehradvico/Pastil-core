@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    ///  تغییر وضعیت کارگو
+    ///  کارگو
     /// </summary>
     ///
     [Area("Admin")]
@@ -22,7 +22,7 @@ namespace Api.Areas.Admin.Controllers
             _cargoService = cargoService;
         }
         /// <summary>
-        ///  تغییر وضعیت کارگو
+        /// تغییر وضعیت آیتم
         /// </summary>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<CargoUpdateStatusDto>), 200)]
