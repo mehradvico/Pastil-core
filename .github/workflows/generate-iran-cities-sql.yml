@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: generated/iran-cities-sql
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,6 +34,14 @@ jobs:
           test -s artifacts/Insert_Iran_Cities_Offline.sql
           test -s artifacts/Insert_Iran_Cities_Offline.zip
           grep -q "Embedded records: 432" artifacts/Insert_Iran_Cities_Offline.sql
+
+      - name: Commit generated files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacts/Insert_Iran_Cities_Offline.sql artifacts/Insert_Iran_Cities_Offline.zip
+          git diff --cached --quiet || git commit -m "Generate offline Iran cities SQL"
+          git push
 
       - name: Upload SQL artifacts
         uses: actions/upload-artifact@v4
