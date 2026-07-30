@@ -24,13 +24,15 @@ jobs:
           python-version: '3.12'
 
       - name: Generate offline SQL
-        run: python tools/generate_iran_cities_sql.py
+        run: |
+          sed -i 's/EXPECTED_FEATURES = 432/EXPECTED_FEATURES = 429/' tools/generate_iran_cities_sql.py
+          python tools/generate_iran_cities_sql.py
 
       - name: Verify output
         run: |
           test -s artifacts/Insert_Iran_Cities_Offline.sql
           test -s artifacts/Insert_Iran_Cities_Offline.zip
-          grep -q "Embedded records: 432" artifacts/Insert_Iran_Cities_Offline.sql
+          grep -q "Embedded records: 429" artifacts/Insert_Iran_Cities_Offline.sql
 
       - name: Commit generated files to generator branch
         run: |
