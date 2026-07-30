@@ -34,14 +34,6 @@ jobs:
           test -s artifacts/Insert_Iran_Cities_Offline.zip
           grep -q "Embedded records: 429" artifacts/Insert_Iran_Cities_Offline.sql
 
-      - name: Commit generated files to generator branch
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add artifacts/Insert_Iran_Cities_Offline.sql artifacts/Insert_Iran_Cities_Offline.zip
-          git diff --cached --quiet || git commit -m "Generate offline Iran cities SQL"
-          git push origin HEAD:generated/iran-cities-sql
-
       - name: Upload SQL artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -51,3 +43,11 @@ jobs:
             artifacts/Insert_Iran_Cities_Offline.zip
           if-no-files-found: error
           retention-days: 7
+
+      - name: Commit generated files to generator branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f artifacts/Insert_Iran_Cities_Offline.sql artifacts/Insert_Iran_Cities_Offline.zip
+          git diff --cached --quiet || git commit -m "Generate offline Iran cities SQL"
+          git push origin HEAD:generated/iran-cities-sql
