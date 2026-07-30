@@ -31,3 +31,5 @@ jobs:
           git add artifacts/Insert_Iran_Cities_Offline.sql artifacts/Insert_Iran_Cities_Offline.zip
           git diff --cached --quiet || git commit -m "Generate offline Iran cities SQL"
           git push
+
+# trigger-2
