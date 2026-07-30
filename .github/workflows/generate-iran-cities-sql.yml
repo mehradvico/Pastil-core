@@ -1,0 +1,44 @@
+name: Generate Iran Cities SQL
+
+on:
+  push:
+    branches:
+      - generated/iran-cities-sql
+    paths:
+      - tools/generate_iran_cities_sql.py
+      - .github/workflows/generate-iran-cities-sql.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate offline SQL
+        run: python tools/generate_iran_cities_sql.py
+
+      - name: Verify output
+        run: |
+          test -s artifacts/Insert_Iran_Cities_Offline.sql
+          test -s artifacts/Insert_Iran_Cities_Offline.zip
+          grep -q "Embedded records: 432" artifacts/Insert_Iran_Cities_Offline.sql
+
+      - name: Upload SQL artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: iran-cities-offline-sql
+          path: |
+            artifacts/Insert_Iran_Cities_Offline.sql
+            artifacts/Insert_Iran_Cities_Offline.zip
+          if-no-files-found: error
+          retention-days: 7
