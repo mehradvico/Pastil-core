@@ -8,8 +8,8 @@ namespace Application.Common.Enumerable.Code
 {
     public enum PastilMatchStatusEnum
     {
-        PastilMatchStatus_Active = 10132,
-        PastilMatchStatus_Closed = 10133,
-        PastilMatchStatus_Blocked = 10134
+        PastilMatchStatus_Active = 114,
+        PastilMatchStatus_Closed = 115,
+        PastilMatchStatus_Blocked = 116
     }
 }

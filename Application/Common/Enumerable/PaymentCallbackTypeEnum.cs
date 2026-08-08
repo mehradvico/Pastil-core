@@ -7,6 +7,8 @@
         Trip,
         Cargo,
         Insurance,
-        PansionReserve
+        PansionReserve,
+        PastilAI,
+        Wallet
     }
 }

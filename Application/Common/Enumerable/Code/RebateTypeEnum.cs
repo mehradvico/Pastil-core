@@ -8,10 +8,12 @@ namespace Application.Common.Enumerable.Code
 {
     public enum RebateTypeEnum
     {
-        RebateType_Cart = 10069,
-        RebateType_CompanionReserve = 10070,
-        RebateType_Cargo = 10071,
-        RebateType_Trip = 10073,
-        RebateType_InsurancePackageSale = 10074
+        RebateType_Cart = 62,
+        RebateType_CompanionReserve = 63,
+        RebateType_Cargo = 64,
+        RebateType_Trip = 65,
+        RebateType_InsurancePackageSale = 66,
+        RebateType_PansionReserve = 67,
+        RebateType_PastilAI = 68
     }
 }

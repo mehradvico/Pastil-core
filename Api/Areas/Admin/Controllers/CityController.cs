@@ -33,7 +33,7 @@ namespace Api.Areas.Admin.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<CityDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<CityDto>), 200)] 
         public async Task<IActionResult> Get(long id)
         {
             var role = await cityService.FindAsyncDto(id);

@@ -1,13 +1,19 @@
 ﻿using Entities.Entities;
 using Entities.Entities.CompanionField;
+using Entities.Entities.CommonField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.PastilMatchField;
+using Entities.Entities.PastilAIField;
 using Entities.Entities.Security;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Persistence.Interface;
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,8 +28,79 @@ namespace Persistence.Context
             ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
         }
 
+        public Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default)
+        {
+            return Database.BeginTransactionAsync(isolationLevel, cancellationToken);
+        }
+
+        public override int SaveChanges()
+        {
+            return SaveChanges(true);
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            NormalizeSlugs();
+
+            try
+            {
+                return base.SaveChanges(acceptAllChangesOnSuccess);
+            }
+            catch (DbUpdateException exception) when (IsDuplicateSlug(exception))
+            {
+                throw new ValidationException(
+                    "Slug ساخته‌شده تکراری است. مقدار Label را تغییر دهید.",
+                    exception);
+            }
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return SaveChangesAsync(true, cancellationToken);
+        }
+
+        public override async Task<int> SaveChangesAsync(
+            bool acceptAllChangesOnSuccess,
+            CancellationToken cancellationToken = default)
+        {
+            NormalizeSlugs();
+
+            try
+            {
+                return await base.SaveChangesAsync(
+                    acceptAllChangesOnSuccess,
+                    cancellationToken);
+            }
+            catch (DbUpdateException exception) when (IsDuplicateSlug(exception))
+            {
+                throw new ValidationException(
+                    "Slug ساخته‌شده تکراری است. مقدار Label را تغییر دهید.",
+                    exception);
+            }
+        }
+
+        private void NormalizeSlugs()
+        {
+            foreach (var entry in ChangeTracker.Entries<ISlugEntity>()
+                         .Where(x => x.State is not EntityState.Deleted and not EntityState.Detached))
+            {
+                var normalizedSlug = SlugNormalizer.Normalize(entry.Entity.GetSlugSource());
+
+                if (!string.Equals(entry.Entity.Slug, normalizedSlug, StringComparison.Ordinal))
+                    entry.Entity.Slug = normalizedSlug;
+            }
+        }
+
+        private static bool IsDuplicateSlug(DbUpdateException exception)
+        {
+            return exception.InnerException is SqlException sqlException &&
+                   sqlException.Number is 2601 or 2627 &&
+                   sqlException.Message.Contains("Slug", StringComparison.OrdinalIgnoreCase);
+        }
+
         public DbSet<Address> Addresses { get; set; }
         public DbSet<AdminSetting> AdminSettings { get; set; }
+        public DbSet<AssistanceGroup> AssistanceGroups { get; set; }
         public DbSet<Assistance> Assistances { get; set; }
         public DbSet<AssistanceQuestionnaire> AssistanceQuestionnaires { get; set; }
         public DbSet<Bank> Banks { get; set; }
@@ -72,6 +149,13 @@ namespace Persistence.Context
         public DbSet<DiscussionAnswer> DiscussionAnswers { get; set; }
         public DbSet<DiscussionAnswerLike> DiscussionAnswerLikes { get; set; }
         public DbSet<DiscussionQuestion> DiscussionQuestions { get; set; }
+        public DbSet<PastilAiPlan> PastilAiPlans { get; set; }
+        public DbSet<PastilAiSubscription> PastilAiSubscriptions { get; set; }
+        public DbSet<PastilAiConversation> PastilAiConversations { get; set; }
+        public DbSet<PastilAiMessage> PastilAiMessages { get; set; }
+        public DbSet<PastilAiAttachment> PastilAiAttachments { get; set; }
+        public DbSet<PastilAiProviderAttempt> PastilAiProviderAttempts { get; set; }
+        public DbSet<PastilAiDailyUsage> PastilAiDailyUsages { get; set; }
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<DriverUser> DriverUsers { get; set; }
         public DbSet<Email> Emails { get; set; }
@@ -284,6 +368,99 @@ namespace Persistence.Context
             modelBuilder.Entity<FeatureItem>()
          .HasQueryFilter(category => EF.Property<bool>(category, "Deleted") == false);
 
+            modelBuilder.Entity<PastilAiPlan>(entity =>
+            {
+                entity.Property(x => x.Price).HasColumnType("decimal(18,2)");
+                entity.HasIndex(x => x.Code).IsUnique();
+                entity.HasQueryFilter(x => !x.Deleted);
+                entity.HasData(
+                    new PastilAiPlan
+                    {
+                        Id = 1, Code = "Free", Name = "PastilAI", Description = "پلن رایگان PastilAI",
+                        Price = 0, DurationDays = 30, DailyChatLimit = 3, DailyImageLimit = 1,
+                        DailyAudioLimit = 0, DailyVideoLimit = 0, PurchaseEnabled = false, Active = true,
+                        Deleted = false, SortOrder = 0,
+                        CreateDateUtc = new System.DateTime(2026, 7, 26, 0, 0, 0, System.DateTimeKind.Utc),
+                        UpdateDateUtc = new System.DateTime(2026, 7, 26, 0, 0, 0, System.DateTimeKind.Utc)
+                    },
+                    new PastilAiPlan
+                    {
+                        Id = 2, Code = "Plus", Name = "PastilAI+", Description = "پلن پیشرفته PastilAI",
+                        Price = 0, DurationDays = 30, DailyChatLimit = 30, DailyImageLimit = 10,
+                        DailyAudioLimit = 5, DailyVideoLimit = 1, PurchaseEnabled = false, Active = true,
+                        Deleted = false, SortOrder = 10,
+                        CreateDateUtc = new System.DateTime(2026, 7, 26, 0, 0, 0, System.DateTimeKind.Utc),
+                        UpdateDateUtc = new System.DateTime(2026, 7, 26, 0, 0, 0, System.DateTimeKind.Utc)
+                    },
+                    new PastilAiPlan
+                    {
+                        Id = 3, Code = "Pro", Name = "PastilAI Pro", Description = "پلن نامحدود PastilAI",
+                        Price = 0, DurationDays = 30, DailyChatLimit = null, DailyImageLimit = null,
+                        DailyAudioLimit = null, DailyVideoLimit = null, PurchaseEnabled = false, Active = true,
+                        Deleted = false, SortOrder = 20,
+                        CreateDateUtc = new System.DateTime(2026, 7, 26, 0, 0, 0, System.DateTimeKind.Utc),
+                        UpdateDateUtc = new System.DateTime(2026, 7, 26, 0, 0, 0, System.DateTimeKind.Utc)
+                    });
+            });
+
+            modelBuilder.Entity<PastilAiSubscription>(entity =>
+            {
+                entity.Property(x => x.PriceSnapshot).HasColumnType("decimal(18,2)");
+                entity.Property(x => x.RebatePrice).HasColumnType("decimal(18,2)");
+                entity.Property(x => x.WalletPrice).HasColumnType("decimal(18,2)");
+                entity.HasIndex(x => new { x.UserId, x.Status, x.EndDateUtc });
+                entity.HasIndex(x => x.PaymentId).IsUnique().HasFilter("[PaymentId] IS NOT NULL");
+                entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Plan).WithMany(x => x.Subscriptions).HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Payment).WithOne(x => x.PastilAiSubscription)
+                    .HasForeignKey<PastilAiSubscription>(x => x.PaymentId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Rebate).WithMany().HasForeignKey(x => x.RebateId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Wallet).WithOne(x => x.PastilAiSubscription)
+                    .HasForeignKey<Wallet>(x => x.PastilAiSubscriptionId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PastilAiConversation>(entity =>
+            {
+                entity.HasIndex(x => new { x.UserId, x.UpdateDateUtc });
+                entity.HasQueryFilter(x => !x.Deleted);
+                entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PastilAiMessage>(entity =>
+            {
+                entity.Property(x => x.Content).HasColumnType("nvarchar(max)");
+                entity.Property(x => x.MetadataJson).HasColumnType("nvarchar(max)");
+                entity.HasIndex(x => new { x.ConversationId, x.Id });
+                entity.HasOne(x => x.Conversation).WithMany(x => x.Messages)
+                    .HasForeignKey(x => x.ConversationId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PastilAiAttachment>(entity =>
+            {
+                entity.HasIndex(x => x.MessageId).IsUnique();
+                entity.HasOne(x => x.Message).WithMany(x => x.Attachments)
+                    .HasForeignKey(x => x.MessageId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Picture).WithMany().HasForeignKey(x => x.PictureId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.File).WithMany().HasForeignKey(x => x.FileId).OnDelete(DeleteBehavior.Restrict);
+                entity.ToTable("PastilAiAttachments", table =>
+                    table.HasCheckConstraint("CK_PastilAiAttachments_OneMedia",
+                        "([PictureId] IS NOT NULL AND [FileId] IS NULL) OR ([PictureId] IS NULL AND [FileId] IS NOT NULL)"));
+            });
+
+            modelBuilder.Entity<PastilAiProviderAttempt>(entity =>
+            {
+                entity.HasIndex(x => new { x.MessageId, x.AttemptOrder }).IsUnique();
+                entity.HasOne(x => x.Message).WithMany(x => x.ProviderAttempts)
+                    .HasForeignKey(x => x.MessageId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PastilAiDailyUsage>(entity =>
+            {
+                entity.Property(x => x.UsageDate).HasColumnType("date");
+                entity.HasIndex(x => new { x.UserId, x.UsageDate }).IsUnique();
+                entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
 
 
             modelBuilder.Entity<Post>(e =>
@@ -325,6 +502,12 @@ namespace Persistence.Context
                 .HasOne(ca => ca.CompanionType)
                 .WithMany()
                 .HasForeignKey(ca => ca.CompanionTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Assistance>()
+                .HasOne(x => x.AssistanceGroup)
+                .WithMany(x => x.Assistances)
+                .HasForeignKey(x => x.AssistanceGroupId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PostComment>().ToTable("PostComments");
@@ -585,6 +768,19 @@ namespace Persistence.Context
                 .OnDelete(DeleteBehavior.SetNull);
 
             base.OnModelCreating(modelBuilder);
+
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes()
+                         .Where(x => typeof(ISlugEntity).IsAssignableFrom(x.ClrType)))
+            {
+                modelBuilder.Entity(entityType.ClrType)
+                    .Property<string>(nameof(ISlugEntity.Slug))
+                    .HasMaxLength(200);
+
+                modelBuilder.Entity(entityType.ClrType)
+                    .HasIndex(nameof(ISlugEntity.Slug))
+                    .IsUnique()
+                    .HasFilter("[Slug] IS NOT NULL");
+            }
 
             modelBuilder.Entity<PushSubscription>(e =>
             {

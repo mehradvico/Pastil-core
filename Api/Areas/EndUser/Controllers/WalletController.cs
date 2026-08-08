@@ -2,7 +2,7 @@
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.Order.PaymentSrv.Iface;
-using Application.Services.Order.ProductOrderSrv.Dto;
+using Application.Services.Order.PaymentSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Microsoft.AspNetCore.Authorization;

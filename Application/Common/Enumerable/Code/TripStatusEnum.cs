@@ -2,10 +2,10 @@
 {
     public enum TripStatusEnum
     {
-        TripStatus_Requested = 10008,
-        TripStatus_Accepted = 10010,
-        TripStatus_Canceled = 10011,
-        TripStatus_Compeleted = 10012
+        TripStatus_Requested = 75,
+        TripStatus_Accepted = 76,
+        TripStatus_Canceled = 77,
+        TripStatus_Compeleted = 78
     }
 
 }

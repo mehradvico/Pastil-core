@@ -6,9 +6,7 @@ using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.NoticeSrv.Iface;
 using Application.Services.Setting.SmsSrv.Iface;
 using AutoMapper;
-using Dapper;
 using Entities.Entities;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Persistence.Interface;
@@ -23,7 +21,6 @@ namespace Application.Services.ProductSrvs.WalletSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly ISmsService _smsService;
-        private readonly string connectionString;
         private readonly INoticeService _notificationService;
 
         public WalletService(IDataBaseContext _context, INoticeService notificationService, IConfiguration config, IMapper mapper, ISmsService smsService)
@@ -31,7 +28,6 @@ namespace Application.Services.ProductSrvs.WalletSrv
             this._context = _context;
             this.mapper = mapper;
             this._smsService = smsService;
-            this.connectionString = config.GetValue<string>("connection");
             this._notificationService = notificationService;
 
 
@@ -62,9 +58,10 @@ namespace Application.Services.ProductSrvs.WalletSrv
 
         public async Task<double> GetAmountValueAsync(long userId)
         {
-            string sqlQuery = $@"SELECT ISNULL(SUM(CASE WHEN IsIncrease = 1 THEN Amount ELSE 0 END), 0) - ISNULL(SUM(CASE WHEN IsIncrease = 0 THEN Amount ELSE 0 END), 0) FROM Wallets WHERE userid = {userId} AND Deleted = 0";
-            var connection = new SqlConnection(connectionString);
-            double sum = await connection.ExecuteScalarAsync<double>(sqlQuery);
+            var sum = await _context.Wallets
+                .AsNoTracking()
+                .Where(s => s.UserId == userId && !s.Deleted && !s.Painding)
+                .SumAsync(s => s.IsIncrease ? s.Amount : -s.Amount);
             sum = sum < 1 ? 0 : sum;
             return sum;
         }
@@ -117,225 +114,91 @@ namespace Application.Services.ProductSrvs.WalletSrv
 
         public async Task<BaseResultDto<WalletDto>> InsertUpdateProductOrderAsync(WalletDto dto, bool complete)
         {
-            var item = await _context.Wallets.FirstOrDefaultAsync(s => s.ProductOrderId == dto.ProductOrderId);
-            if (item != null)
-            {
-
-                if (complete)
-                {
-                    item.Painding = false;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-                }
-                else
-                {
-                    item.Deleted = true;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-
-                }
-            }
-            else
-            {
-                dto.IsIncrease = false;
-                if (complete)
-                {
-                    dto.Painding = false;
-                }
-                else
-                {
-                    dto.Painding = true;
-                }
-
-                return await InsertAsyncDto(dto);
-            }
+            return await InsertUpdateReferenceAsync(dto, complete);
         }
         public async Task<BaseResultDto<WalletDto>> InsertUpdateCargoAsync(WalletDto dto, bool complete)
         {
-            var item = await _context.Wallets.FirstOrDefaultAsync(s => s.CargoId == dto.CargoId);
-            if (item != null)
-            {
-
-                if (complete)
-                {
-                    item.Painding = false;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-                }
-                else
-                {
-                    item.Deleted = true;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-
-                }
-            }
-            else
-            {
-                dto.IsIncrease = false;
-                if (complete)
-                {
-                    dto.Painding = false;
-                }
-                else
-                {
-                    dto.Painding = true;
-                }
-
-                return await InsertAsyncDto(dto);
-            }
+            return await InsertUpdateReferenceAsync(dto, complete);
         }
         public async Task<BaseResultDto<WalletDto>> InsertUpdateTripAsync(WalletDto dto, bool complete)
         {
-            var item = await _context.Wallets.FirstOrDefaultAsync(s => s.TripId == dto.TripId);
-            if (item != null)
-            {
-
-                if (complete)
-                {
-                    item.Painding = false;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-                }
-                else
-                {
-                    item.Deleted = true;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-
-                }
-            }
-            else
-            {
-                dto.IsIncrease = false;
-                if (complete)
-                {
-                    dto.Painding = false;
-                }
-                else
-                {
-                    dto.Painding = true;
-                }
-
-                return await InsertAsyncDto(dto);
-            }
+            return await InsertUpdateReferenceAsync(dto, complete);
         }
         public async Task<BaseResultDto<WalletDto>> InsertUpdateReserveAsync(WalletDto dto, bool complete)
         {
-            var item = await _context.Wallets.FirstOrDefaultAsync(s => s.CompanionReserveId == dto.CompanionReserveId);
-            if (item != null)
-            {
-
-                if (complete)
-                {
-                    item.Painding = false;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-                }
-                else
-                {
-                    item.Deleted = true;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-
-                }
-            }
-            else
-            {
-                dto.IsIncrease = false;
-                if (complete)
-                {
-                    dto.Painding = false;
-                }
-                else
-                {
-                    dto.Painding = true;
-                }
-
-                return await InsertAsyncDto(dto);
-            }
+            return await InsertUpdateReferenceAsync(dto, complete);
         }
         public async Task<BaseResultDto<WalletDto>> InsertUpdatePansionReserveAsync(WalletDto dto, bool complete)
         {
-            var item = await _context.Wallets.FirstOrDefaultAsync(s => s.PansionReserveId == dto.PansionReserveId);
-            if (item != null)
-            {
-
-                if (complete)
-                {
-                    item.Painding = false;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-                }
-                else
-                {
-                    item.Deleted = true;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
-                    return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
-
-                }
-            }
-            else
-            {
-                dto.IsIncrease = false;
-                if (complete)
-                {
-                    dto.Painding = false;
-                }
-                else
-                {
-                    dto.Painding = true;
-                }
-
-                return await InsertAsyncDto(dto);
-            }
+            return await InsertUpdateReferenceAsync(dto, complete);
         }
         public async Task<BaseResultDto<WalletDto>> InsertUpdateInsuranceAsync(WalletDto dto, bool complete)
         {
-            var item = await _context.Wallets.FirstOrDefaultAsync(s => s.CompanionInsurancePackageSaleId == dto.CompanionInsurancePackageSaleId);
+            return await InsertUpdateReferenceAsync(dto, complete);
+        }
+        public async Task<BaseResultDto<WalletDto>> InsertUpdatePastilAiSubscriptionAsync(WalletDto dto, bool complete)
+        {
+            return await InsertUpdateReferenceAsync(dto, complete);
+        }
+
+        private async Task<BaseResultDto<WalletDto>> InsertUpdateReferenceAsync(WalletDto dto, bool complete)
+        {
+            IQueryable<Wallet> query = _context.Wallets.AsTracking();
+
+            if (!string.IsNullOrWhiteSpace(dto.ProductOrderId))
+                query = query.Where(s => s.ProductOrderId == dto.ProductOrderId);
+            else if (dto.CompanionReserveId.HasValue)
+                query = query.Where(s => s.CompanionReserveId == dto.CompanionReserveId);
+            else if (dto.PansionReserveId.HasValue)
+                query = query.Where(s => s.PansionReserveId == dto.PansionReserveId);
+            else if (dto.TripId.HasValue)
+                query = query.Where(s => s.TripId == dto.TripId);
+            else if (dto.CargoId.HasValue)
+                query = query.Where(s => s.CargoId == dto.CargoId);
+            else if (dto.CompanionInsurancePackageSaleId.HasValue)
+                query = query.Where(s => s.CompanionInsurancePackageSaleId == dto.CompanionInsurancePackageSaleId);
+            else if (dto.PastilAiSubscriptionId.HasValue)
+                query = query.Where(s => s.PastilAiSubscriptionId == dto.PastilAiSubscriptionId);
+            else
+                return new BaseResultDto<WalletDto>(false, Resource.Notification.InvalidData, dto);
+
+            var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
-
-                if (complete)
+                if (!complete)
                 {
-                    item.Painding = false;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
+                    // A failed gateway callback must only release an old pending hold.
+                    // It must never create or delete a completed wallet debit.
+                    if (item.Painding && !item.Deleted)
+                    {
+                        item.Deleted = true;
+                        await _context.SaveChangesAsync();
+                    }
                     return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
                 }
-                else
-                {
-                    item.Deleted = true;
-                    _context.Wallets.Update(item);
-                    _context.SaveChanges();
+
+                if (!item.Deleted && !item.Painding)
                     return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
 
-                }
-            }
-            else
-            {
-                dto.IsIncrease = false;
-                if (complete)
-                {
-                    dto.Painding = false;
-                }
-                else
-                {
-                    dto.Painding = true;
-                }
+                var amount = dto.Amount > 0 ? dto.Amount : item.Amount;
+                if (amount <= 0 || amount > await GetAmountValueAsync(dto.UserId))
+                    return new BaseResultDto<WalletDto>(false, Resource.Notification.InsufficientFunds, dto);
 
-                return await InsertAsyncDto(dto);
+                item.Amount = amount;
+                item.UserId = dto.UserId;
+                item.IsIncrease = false;
+                item.Painding = false;
+                item.Deleted = false;
+                await _context.SaveChangesAsync();
+                return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
             }
+
+            if (!complete)
+                return new BaseResultDto<WalletDto>(true, dto);
+
+            dto.IsIncrease = false;
+            dto.Painding = false;
+            return await InsertAsyncDto(dto);
         }
         public WalletSearchDto Search(WalletInputDto baseSearchDto)
         {
@@ -388,6 +251,12 @@ namespace Application.Services.ProductSrvs.WalletSrv
 
         public async Task<BaseResultDto> WalletPaymentCallback(Payment payment)
         {
+            var existingWallet = await _context.Wallets
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.PaymentId == payment.Id && !s.Deleted);
+            if (existingWallet != null)
+                return new BaseResultDto(true);
+
             var walletDto = new WalletDto()
             {
                 ProductOrderId = null,
@@ -399,9 +268,16 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 Name = Resource.Lang.OnlinePayment,
             };
             var result = await InsertAsyncDto(walletDto);
+            if (!result.IsSuccess &&
+                await _context.Wallets.AsNoTracking().AnyAsync(s => s.PaymentId == payment.Id && !s.Deleted))
+            {
+                return new BaseResultDto(true);
+            }
             if (result.IsSuccess == true)
             {
-                await _smsService.SendSmsAsync(smsType: Common.Enumerable.Message.MessageTypeEnum.IncreaseWallet, payment.User.Mobile, token1: payment.User.FirstName, token2: payment.Amount.ToString()/*, sendDate: DateTime.Now*/);
+                var user = payment.User ?? await _context.Users.AsNoTracking().FirstOrDefaultAsync(s => s.Id == payment.UserId);
+                if (user != null)
+                    await _smsService.SendSmsAsync(smsType: Common.Enumerable.Message.MessageTypeEnum.IncreaseWallet, user.Mobile, token1: user.FirstName, token2: payment.Amount.ToString());
             }
             return result;
         }

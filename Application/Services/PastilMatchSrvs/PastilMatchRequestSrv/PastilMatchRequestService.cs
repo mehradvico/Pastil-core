@@ -6,6 +6,7 @@ using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.PastilMatchSrvs.PastilMatchRequestSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchRequestSrv.Iface;
+using Application.Services.PastilMatchSrvs.PastilMatchSuggestionSrv;
 using AutoMapper;
 using Entities.Entities.PastilMatchField;
 using Microsoft.EntityFrameworkCore;
@@ -130,7 +131,15 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
                     return new BaseResultDto<PastilMatchRequestDto>(false, Resource.Notification.InvalidPastilMatchGoal, dto);
                 }
 
-                var senderProfile = await _context.PastilMatchProfiles.Include(s => s.UserPet).FirstOrDefaultAsync(s => s.Id == dto.SenderProfileId && !s.Deleted);
+                var senderProfile = await _context.PastilMatchProfiles
+                    .Include(s => s.UserPet)
+                    .Include(s => s.PastilMatchProfileGoals.Where(goal => !goal.Deleted))
+                    .FirstOrDefaultAsync(s =>
+                        s.Id == dto.SenderProfileId &&
+                        s.IsActive &&
+                        !s.Deleted &&
+                        s.UserPet.Active &&
+                        !s.UserPet.Deleted);
 
                 if (senderProfile == null)
                 {
@@ -142,16 +151,50 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
                     return new BaseResultDto<PastilMatchRequestDto>(false, Resource.Notification.AccessDenied, dto);
                 }
 
-                var receiverProfile = await _context.PastilMatchProfiles.FirstOrDefaultAsync(s => s.Id == dto.ReceiverProfileId && s.IsActive && !s.Deleted);
+                var receiverProfile = await _context.PastilMatchProfiles
+                    .Include(s => s.UserPet)
+                    .Include(s => s.PastilMatchProfileGoals.Where(goal => !goal.Deleted))
+                    .FirstOrDefaultAsync(s =>
+                        s.Id == dto.ReceiverProfileId &&
+                        s.IsActive &&
+                        !s.Deleted &&
+                        s.UserPet.Active &&
+                        !s.UserPet.Deleted);
 
                 if (receiverProfile == null)
                 {
                     return new BaseResultDto<PastilMatchRequestDto>(false, Resource.Notification.NothingFound, dto);
                 }
 
+                if (receiverProfile.UserPet.UserId == userId)
+                {
+                    return new BaseResultDto<PastilMatchRequestDto>(false, Resource.Notification.PastilMatchRequestCannotSendToItself, dto);
+                }
+
+                var usersAreBlocked = await _context.PastilMatchBlocks.AnyAsync(block =>
+                    !block.Deleted &&
+                    ((block.BlockerUserId == userId &&
+                      block.BlockedUserId == receiverProfile.UserPet.UserId) ||
+                     (block.BlockerUserId == receiverProfile.UserPet.UserId &&
+                      block.BlockedUserId == userId)));
+
+                if (usersAreBlocked)
+                {
+                    return new BaseResultDto<PastilMatchRequestDto>(false, Resource.Notification.AccessDenied, dto);
+                }
+
                 var senderHasGoal = await _context.PastilMatchProfileGoals.AnyAsync(s => s.PastilMatchProfileId == senderProfile.Id && s.PastilMatchGoalId == dto.PastilMatchGoalId && !s.Deleted);
 
                 if (!senderHasGoal)
+                {
+                    return new BaseResultDto<PastilMatchRequestDto>(false, Resource.Notification.PastilMatchGoalNotSelected, dto);
+                }
+
+                var receiverHasGoal = receiverProfile.PastilMatchProfileGoals.Any(goal =>
+                    !goal.Deleted &&
+                    goal.PastilMatchGoalId == dto.PastilMatchGoalId);
+
+                if (!receiverHasGoal)
                 {
                     return new BaseResultDto<PastilMatchRequestDto>(false, Resource.Notification.PastilMatchGoalNotSelected, dto);
                 }
@@ -309,13 +352,43 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
 
         private int CalculateCompatibilityPercent(PastilMatchProfile senderProfile, PastilMatchProfile receiverProfile)
         {
-            var energyDifference = Math.Abs(senderProfile.EnergyLevelId - receiverProfile.EnergyLevelId);
-            var socialDifference = Math.Abs(senderProfile.SocialLevelId - receiverProfile.SocialLevelId);
+            var score = PastilMatchCompatibilityCalculator.Calculate(
+                senderProfile.UserPet.Birthday,
+                receiverProfile.UserPet.Birthday,
+                senderProfile.UserPet.PetId,
+                receiverProfile.UserPet.PetId,
+                GetBreedIds(senderProfile),
+                GetBreedIds(receiverProfile),
+                senderProfile.PastilMatchProfileGoals
+                    .Where(goal => !goal.Deleted)
+                    .Select(goal => goal.PastilMatchGoalId),
+                receiverProfile.PastilMatchProfileGoals
+                    .Where(goal => !goal.Deleted)
+                    .Select(goal => goal.PastilMatchGoalId),
+                senderProfile.EnergyLevelId,
+                receiverProfile.EnergyLevelId,
+                senderProfile.SocialLevelId,
+                receiverProfile.SocialLevelId,
+                senderProfile.LiveLocation?.X,
+                senderProfile.LiveLocation?.Y,
+                receiverProfile.LiveLocation?.X,
+                receiverProfile.LiveLocation?.Y
+            );
 
-            var energyPercent = Math.Max(0, 100 - (energyDifference * 25));
-            var socialPercent = Math.Max(0, 100 - (socialDifference * 25));
+            return score.TotalPercent;
+        }
 
-            return (int)Math.Round((energyPercent + socialPercent) / 2D);
+        private static IEnumerable<long> GetBreedIds(PastilMatchProfile profile)
+        {
+            if (profile.UserPet.PetBreedId.HasValue)
+            {
+                yield return profile.UserPet.PetBreedId.Value;
+            }
+
+            if (profile.UserPet.PetBreed2Id.HasValue)
+            {
+                yield return profile.UserPet.PetBreed2Id.Value;
+            }
         }
 
         private IQueryable<PastilMatchRequest> GetRequestQuery()

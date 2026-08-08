@@ -7,6 +7,7 @@ namespace Application.Services.CategorySrv.Dto
     {
         public string Name { get; set; }
         public string Label { get; set; }
+        public string Slug { get; set; }
         public DateTime UpdateDate { get; set; }
 
     }

@@ -6,6 +6,9 @@ using Application.Services.CompanionSrvs.CompanionCommentSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionCommentSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionSrv.Iface;
 using Application.Services.Setting.CodeSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -24,12 +27,14 @@ namespace Application.Services.CompanionSrvs.CompanionCommentSrv
         private readonly IMapper mapper;
         private readonly ICodeService codeService;
         private readonly ICompanionService _CompanionService;
-        public CompanionCommentService(IDataBaseContext _context, IMapper mapper, ICodeService codeService, ICompanionService CompanionService) : base(_context, mapper)
+        private readonly INoticeService _noticeService;
+        public CompanionCommentService(IDataBaseContext _context, IMapper mapper, ICodeService codeService, ICompanionService CompanionService, INoticeService noticeService) : base(_context, mapper)
         {
             this.codeService = codeService;
             this._context = _context;
             this.mapper = mapper;
             this._CompanionService = CompanionService;
+            this._noticeService = noticeService;
         }
 
         public override async Task<BaseResultDto<CompanionCommentDto>> InsertAsyncDto(CompanionCommentDto dto)
@@ -61,7 +66,20 @@ namespace Application.Services.CompanionSrvs.CompanionCommentSrv
                         item.CreateDate = DateTime.Now;
                         item.Answer = null;
                         await _context.CompanionComments.AddAsync(item);
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
+                        await _noticeService.CreateAsync(new NoticeCreateDto
+                        {
+                            Label = NoticeTypeLabels.CompanionCommentSubmitted,
+                            ActorUserId = item.UserId,
+                            ReferenceType = "CompanionComment",
+                            ReferenceId = item.Id,
+                            DeduplicationKey = $"{NoticeTypeLabels.CompanionCommentSubmitted}:{item.Id}",
+                            Metadata = new Dictionary<string, string>
+                            {
+                                { "companionId", item.CompanionId.ToString() },
+                                { "commentName", dto.Name }
+                            }
+                        });
                         return new BaseResultDto<CompanionCommentDto>(true, mapper.Map<CompanionCommentDto>(item));
                     }
                     return new BaseResultDto<CompanionCommentDto>(false, val: Resource.Notification.Unsuccess, data: dto);

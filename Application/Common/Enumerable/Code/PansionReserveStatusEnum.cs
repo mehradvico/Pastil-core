@@ -8,8 +8,8 @@ namespace Application.Common.Enumerable.Code
 {
     public enum PansionReserveStatusEnum
     {
-        PansionReserveState_Registered = 10092,
-        PansionReserveState_Paid = 10093,
-        PansionReserveState_Complete = 10094
+        PansionReserveState_Registered = 46,
+        PansionReserveState_Paid = 47,
+        PansionReserveState_Complete = 48
     }
 }

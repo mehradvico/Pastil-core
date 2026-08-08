@@ -208,19 +208,17 @@ namespace Application.Services.Content.CargoSrv
             try
             {
                 var cargo = await _context.Cargoes.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s => s.Id == cargoId);
+                if (cargo == null)
+                    return new BaseResultDto(false, Resource.Notification.NothingFound);
+                if (cargo.IsPaid)
+                    return new BaseResultDto(true);
 
-                if (fromWallet)
+                if (fromWallet && cargo.FromWallet && cargo.WalletPrice > 0)
                 {
-                    var amount = await _walletService.GetAmountValueAsync(cargo.UserPet.UserId);
-                    if (amount >= cargo.WalletPrice)
-                    {
-                        var walletItem = new WalletDto() { Painding = false, Amount = cargo.WalletPrice, UserId = cargo.UserPet.UserId, CargoId = cargo.Id };
-                        await _walletService.InsertUpdateCargoAsync(walletItem, true);
-                    }
-                    else
-                    {
+                    var walletItem = new WalletDto() { Painding = false, Amount = cargo.WalletPrice, UserId = cargo.UserPet.UserId, CargoId = cargo.Id };
+                    var walletResult = await _walletService.InsertUpdateCargoAsync(walletItem, true);
+                    if (!walletResult.IsSuccess)
                         return new BaseResultDto(false);
-                    }
                 }
                 cargo.IsPaid = true;
                 _context.Cargoes.Update(cargo);
@@ -263,7 +261,10 @@ namespace Application.Services.Content.CargoSrv
 
         public async Task<BaseResultDto> SetRebateCodeAsyncDto(CargoSetRebateCodeDto dto)
         {
-            var item = await _context.Cargoes.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && s.StatusId == (long)CargoStatusEnum.CargoStatus_Accepted);
+            var item = await _context.Cargoes.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == dto.Id &&
+                s.UserPet.UserId == _currentUser.CurrentUser.UserId &&
+                s.StatusId == (long)CargoStatusEnum.CargoStatus_Accepted);
 
             if (item == null)
             {
@@ -296,7 +297,10 @@ namespace Application.Services.Content.CargoSrv
 
         public async Task<BaseResultDto> ClearRebateCodeAsync(long id)
         {
-            var item = await _context.Cargoes.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.Cargoes.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == id && s.UserPet.UserId == _currentUser.CurrentUser.UserId && !s.IsPaid);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -308,7 +312,11 @@ namespace Application.Services.Content.CargoSrv
 
         public async Task<BaseResultDto> SetWalletAsyncDto(CargoSetWalletDto dto)
         {
-            var item = await _context.Cargoes.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && s.StatusId == (long)CargoStatusEnum.CargoStatus_Accepted);
+            var item = await _context.Cargoes.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == dto.Id &&
+                s.UserPet.UserId == _currentUser.CurrentUser.UserId &&
+                !s.IsPaid &&
+                s.StatusId == (long)CargoStatusEnum.CargoStatus_Accepted);
             if (item == null)
             {
                 return new BaseResultDto<CargoSetWalletDto>(false, Resource.Notification.NothingFound, dto);

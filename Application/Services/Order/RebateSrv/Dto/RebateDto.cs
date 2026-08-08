@@ -26,6 +26,7 @@ namespace Application.Services.Order.RebateSrv.Dto
         ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
 
         public int UseCount { get; set; }
+        public int MaxUsePerUser { get; set; }
         [IgnoreDataMember]
         public int UsedCount { get; set; }
         public long? ProductId { get; set; }

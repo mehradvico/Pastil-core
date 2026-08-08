@@ -9,6 +9,7 @@
         public string Code { get; set; }
         public string CartCode { get; set; }
         public bool IsAdmin { get; set; }
+        public bool RememberMe { get; set; }
 
     }
 }

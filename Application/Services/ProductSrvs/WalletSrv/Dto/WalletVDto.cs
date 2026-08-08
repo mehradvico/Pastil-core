@@ -4,6 +4,7 @@ using Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv.Dto;
 using Application.Services.Content.CargoSrv.Dto;
 using Application.Services.Dto;
 using Application.Services.Order.ProductOrderSrv.Dto;
+using Application.Services.Order.PaymentSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.TripSrv.TripSrv.Dto;
 using Entities.Entities;
@@ -25,6 +26,7 @@ namespace Application.Services.ProductSrvs.WalletSrv.Dto
         public long? TripId { get; set; }
         public long? CargoId { get; set; }
         public long? CompanionInsurancePackageSaleId { get; set; }
+        public long? PastilAiSubscriptionId { get; set; }
         public bool Painding { get; set; }
 
         public UserVDto User { get; set; }

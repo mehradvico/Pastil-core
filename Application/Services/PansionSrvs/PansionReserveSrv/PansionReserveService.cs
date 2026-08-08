@@ -248,25 +248,23 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             try
             {
                 var reserve = await _context.PansionReserves.Include(s => s.Booker).Include(s => s.Pansion).Include(s => s.Rebate).AsTracking().FirstOrDefaultAsync(s => s.Id == reserveId);
+                if (reserve == null)
+                    return new BaseResultDto(false, Resource.Notification.NothingFound);
+                if (reserve.IsReserved)
+                    return new BaseResultDto(true);
 
-                if (reserve.FromWallet)
+                if (fromWallet && reserve.FromWallet && reserve.WalletPrice > 0)
                 {
-                    var amount = await _walletService.GetAmountValueAsync(reserve.Booker.Id);
-                    if (amount >= reserve.WalletPrice)
+                    var walletItem = new WalletDto()
                     {
-                        var walletItem = new WalletDto()
-                        {
-                            Painding = false,
-                            Amount = reserve.WalletPrice,
-                            UserId = reserve.Booker.Id,
-                            PansionReserveId = reserve.Id
-                        };
-                        await _walletService.InsertUpdatePansionReserveAsync(walletItem, true);
-                    }
-                    else
-                    {
+                        Painding = false,
+                        Amount = reserve.WalletPrice,
+                        UserId = reserve.Booker.Id,
+                        PansionReserveId = reserve.Id
+                    };
+                    var walletResult = await _walletService.InsertUpdatePansionReserveAsync(walletItem, true);
+                    if (!walletResult.IsSuccess)
                         return new BaseResultDto(false);
-                    }
                 }
                 if (reserve.Rebate != null)
                 {
@@ -393,7 +391,10 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
         public async Task<BaseResultDto> SetRebateCodeAsyncDto(PansionReserveRebateCodeDto dto)
         {
-            var item = await _context.PansionReserves.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && s.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Registered);
+            var item = await _context.PansionReserves.AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == dto.Id &&
+                s.BookerId == _currentUser.CurrentUser.UserId &&
+                s.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Registered);
 
             if (item == null)
             {
@@ -403,13 +404,18 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
-            var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
+            var originalPrice = item.PaymentPrice + item.RebatePrice;
+            var rebate = _rebateService.GetRebateByCodeAsync(
+                originalPrice,
+                item.BookerId,
+                RebateTypeLabels.PansionReserve,
+                dto.RebateCode);
             if (rebate.IsSuccess)
             {
                 item.Rebate = null;
                 item.RebateId = rebate.Data.Id;
                 item.RebatePrice = rebate.Data.FinalPrice;
-                item.PaymentPrice = item.PaymentPrice - item.RebatePrice;
+                item.PaymentPrice = originalPrice - item.RebatePrice;
                 if (item.PaymentPrice < 0)
                 {
                     item.PaymentPrice = 0;
@@ -430,7 +436,10 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
         public async Task<BaseResultDto> ClearRebateCodeAsync(long id)
         {
-            var item = await _context.PansionReserves.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.PansionReserves.AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == id && s.BookerId == _currentUser.CurrentUser.UserId && !s.IsReserved);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (!item.RebateId.HasValue)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -449,7 +458,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
         public async Task<BaseResultDto> SetWalletAsyncDto(PansionReserveWalletDto dto)
         {
-            var item = await _context.PansionReserves.Include(s => s.Booker).FirstOrDefaultAsync(s => s.Id == dto.Id);
+            var item = await _context.PansionReserves.Include(s => s.Booker).FirstOrDefaultAsync(s =>
+                s.Id == dto.Id && s.BookerId == _currentUser.CurrentUser.UserId);
             if (item == null)
             {
                 return new BaseResultDto<PansionReserveWalletDto>(false, Resource.Notification.NothingFound, dto);

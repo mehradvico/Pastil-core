@@ -31,6 +31,6 @@ namespace Entities.Entities
 
         public Product Product { get; set; }
 
-        public ICollection<TicketItem> TicketItems { get; set; }
+        public ICollection<TicketItem> TicketItems { get; set; } = new List<TicketItem>();
     }
 }

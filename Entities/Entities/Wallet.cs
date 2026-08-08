@@ -2,6 +2,7 @@
 using Entities.Entities.CompanionField;
 using Entities.Entities.PansionField;
 using Entities.Entities.Security;
+using Entities.Entities.PastilAIField;
 using System;
 
 namespace Entities.Entities
@@ -19,6 +20,7 @@ namespace Entities.Entities
         public long? TripId { get; set; }
         public long? CargoId { get; set; }
         public long? CompanionInsurancePackageSaleId { get; set; }
+        public long? PastilAiSubscriptionId { get; set; }
         public bool Painding { get; set; }
         public bool Deleted { get; set; }
         public User User { get; set; }
@@ -29,5 +31,6 @@ namespace Entities.Entities
         public Trip Trip { get; set; }
         public Cargo Cargo { get; set; }
         public CompanionInsurancePackageSale CompanionInsurancePackageSale { get; set; }
+        public PastilAiSubscription PastilAiSubscription { get; set; }
     }
 }

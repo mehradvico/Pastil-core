@@ -6,6 +6,7 @@ namespace Application.Services.CategorySrv.Dto
     public class SearchCategoryDto : Name_FieldDto
     {
         public string Label { get; set; }
+        public string Slug { get; set; }
         public PictureVDto Icon { get; set; }
 
     }

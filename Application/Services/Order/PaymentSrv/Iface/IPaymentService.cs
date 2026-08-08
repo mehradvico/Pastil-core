@@ -1,7 +1,6 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.Order.PaymentSrv.Dto;
-using Application.Services.Order.ProductOrderSrv.Dto;
 using Entities.Entities;
 using System.Threading.Tasks;
 
@@ -18,7 +17,8 @@ namespace Application.Services.Order.PaymentSrv.Iface
         Task<BaseResultDto> InsertCargoPaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto> InsertCompanionInsurancePackageSalePaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto> InsertPansionReservePaymentAsyncDto(PaymentStartDto dto);
-        Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId, bool test);
+        Task<BaseResultDto<ManualPaymentVDto>> InsertManualPaymentAsync(ManualPaymentDto dto);
+        Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId);
     }
 }
 

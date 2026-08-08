@@ -1,7 +1,7 @@
 ﻿using Application.Services.Filing.FileSrv.Dto;
 using Application.Services.Order.MerchantSrv.Dto;
 
-namespace Application.Services.Order.ProductOrderSrv.Dto
+namespace Application.Services.Order.PaymentSrv.Dto
 {
     public class PaymentVDto
     {

@@ -24,7 +24,7 @@
             <returns>
             </returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.AddressController.Get(Application.Services.Order.AddressSrv.Dto.AddressInputDto)">
+        <member name="M:Api.Areas.Admin.Controllers.AddressController.Get(Application.Services.Order.AddressSrv.Dto.AdminAddressInputDto)">
             <summary>
              جستجو
             </summary>
@@ -54,13 +54,13 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.AssistanceController.Get(Application.Services.CompanionSrvs.AssistanceSrv.Dto.AssistanceInputDto)">
             <summary>
-             جستجو خدمت
+            جستجو
             </summary>
             <returns></returns> 
         </member>
         <member name="M:Api.Areas.Admin.Controllers.AssistanceController.Get(System.Int64)">
             <summary>
-             اطلاعات خدمت
+             اطلاعات آیتم
             </summary>
             <param name="id">شناسه خدمات</param>
             <returns>
@@ -68,7 +68,7 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.AssistanceController.Post(Application.Services.CompanionSrvs.AssistanceSrv.Dto.AssistanceDto)">
             <summary>
-            خدمت جدید
+            آیتم جدید
             </summary>
             <returns></returns>
         </member>
@@ -84,9 +84,39 @@
              حذف آیتم 
             </summary>  
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.AssistanceGroupController">
+            <summary>
+            گروه‌های خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Get(System.Int64)">
+            <summary>
+            اطلاعات گروه خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Get(Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto.AssistanceGroupInputDto)">
+            <summary>
+            جستجوی گروه‌های خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Post(Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto.AssistanceGroupDto)">
+            <summary>
+            ثبت گروه خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Put(Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto.AssistanceGroupDto)">
+            <summary>
+            ویرایش گروه خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Delete(System.Int64)">
+            <summary>
+            حذف گروه خدمات
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.AssistanceQuestionnaireController">
             <summary>
-            مدیریت پرسشنامه های خدمات
+             پرسشنامه های خدمات
             </summary>
             
         </member>
@@ -124,7 +154,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.BankCardController">
             <summary>
-            مدیریت کارت های بانکی
+             کارت های بانکی
             </summary>
             
         </member>
@@ -136,7 +166,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.BankController">
              <summary>
-             مدیریت بانک ها
+              بانک ها
              </summary>
              <parent>
              content
@@ -145,7 +175,7 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.BankController.#ctor(Application.Services.Order.BankSrv.Iface.IBankService)">
              <summary>
-             مدیریت بانک ها
+              بانک ها
              </summary>
             
         </member>
@@ -181,13 +211,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.BannerController">
              <summary>
-             مدیریت بنرها
+              بنرها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.BannerController.#ctor(Application.Services.Content.BannerSrv.Iface.IBannerService)">
              <summary>
-             مدیریت بنرها
+              بنرها
              </summary>
             
         </member>
@@ -223,13 +253,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.BaseDetailController">
              <summary>
-             مدیریت مشخصات پایه
+              مشخصات پایه
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.BaseDetailController.#ctor(Application.Services.Setting.BaseDetailSrv.Iface.IBaseDetailService)">
              <summary>
-             مدیریت مشخصات پایه
+              مشخصات پایه
              </summary>
             
         </member>
@@ -265,12 +295,12 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.BrandCategory">
             <summary>
-            مدیریت دسته بندی های برند
+             دسته بندی های برند
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.BrandCategory.#ctor(Application.Services.ProductSrvs.BrandCategorySrv.Iface.IBrandCategoryService)">
             <summary>
-            مدیریت دسته بندی های برند
+             دسته بندی های برند
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.BrandCategory.Get(System.Int64)">
@@ -285,13 +315,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.BrandController">
              <summary>
-             مدیریت برندها
+              برندها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.BrandController.#ctor(Application.Services.ProductSrvs.BrandSrv.Iface.IBrandService)">
              <summary>
-             مدیریت برند ها
+              برند ها
              </summary>
             
         </member>
@@ -327,7 +357,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CargoController">
             <summary>
-            مدیریت  کارگو ها
+            کارگو ها
             </summary>
             
         </member>
@@ -347,24 +377,24 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UpdateCargoStatusController">
              <summary>
-              تغییر وضعیت کارگو
+              کارگو
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.UpdateCargoStatusController.Put(Application.Services.Content.CargoSrv.Dto.CargoUpdateStatusDto)">
             <summary>
-             تغییر وضعیت کارگو
+            تغییر وضعیت آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CategoryController">
             <summary>
-            مدیریت دسته بندی ها
+            دسته بندی ها
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CategoryController.#ctor(Application.Services.CategorySrv.Iface.ICategoryService)">
             <summary>
-            مدیریت دسته بندی
+            دسته بندی
             </summary>
             
         </member>
@@ -412,12 +442,12 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CategoryFeatureController">
             <summary>
-            مدیریت ویژگی ها
+            ویژگی ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CategoryFeatureController.#ctor(Application.Services.ProductSrvs.ProductFeatureValueSrv.Iface.ICategoryFeatureService)">
             <summary>
-            مدیریت  ویژگی ها
+             ویژگی ها
             </summary>
             
         </member>
@@ -437,13 +467,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CityController">
              <summary>
-             مدیریت شهرها
+              شهرها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CityController.#ctor(Application.Services.LocationFields.CitySrv.Iface.ICityService)">
              <summary>
-             مدیریت شهر ها
+              شهرها
              </summary>
             
         </member>
@@ -485,12 +515,12 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ClubRewardController">
             <summary>
-            مدیریت کلاب
+            کلاب ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ClubRewardController.#ctor(Application.Services.Accounting.ClubRewardSrv.Iface.IClubRewardService)">
             <summary>
-            مدیریت کلاب
+            کلاب ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ClubRewardController.Get(System.Int64)">
@@ -525,12 +555,12 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CodeController">
             <summary>
-            مدیریت کد
+             کدها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CodeController.#ctor(Application.Services.Setting.CodeSrv.Iface.ICodeService)">
             <summary>
-            مدیریت کد
+             کدها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CodeController.Get(System.Int64)">
@@ -565,13 +595,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CodeGroupController">
              <summary>
-             مدیریت گروه کد
+              گروه های کد
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CodeGroupController.#ctor(Application.Services.Setting.CodeGroupSrv.Iface.ICodeGroupService)">
             <summary>
-            مدیریت گروه کد
+             گروه های کد
             </summary>
              
         </member>
@@ -606,7 +636,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionActivationController">
             <summary>
-            فعال سازی همکاران
+            نمایندگان
             </summary>
             
         </member>
@@ -619,7 +649,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistanceActivationController">
             <summary>
-            فعال سازی خدمات همکاران
+            خدمات نمایندگان
             </summary>
             
         </member>
@@ -632,7 +662,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistanceController">
             <summary>
-            مدیریت خدمات همکاران
+            خدمات نمایندگان
             </summary>
             
         </member>
@@ -646,7 +676,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه خدمات همکاران</param>
+            <param name="id">شناسه خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -670,7 +700,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistancePackageActivationController">
             <summary>
-            فعال سازی پکیج های خدمات همکاران
+            پکیج های خدمات نمایندگان
             </summary>
             
         </member>
@@ -683,13 +713,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistancePackageController">
             <summary>
-            مدیریت پکیج های خدمات همکاران
+            پکیج های خدمات نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageController.Get(Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto.CompanionAssistancePackageInputDto)">
             <summary>
-            جستجو پکیج های خدمات کاربران
+            جستجو
             </summary>
             <returns></returns> 
         </member>
@@ -697,7 +727,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه پکیج خدمات همکاران</param>
+            <param name="id">شناسه پکیج خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -721,14 +751,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistancePackagePictureController">
             <summary>
-            مدیریت تصویر پکیج ها
+            تصویر پکیج های خدمات نمایندگان
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackagePictureController.#ctor(Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Iface.ICompanionAssistancePackagePictureService)">
-            <summary>
-            مدیریت تصویر محصول ها
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackagePictureController.Get(System.Int64)">
             <summary>
@@ -764,7 +789,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistanceReportController">
             <summary>
-            مدیریت گزارشات تخلف خدمات همکاران
+            گزارشات تخلف خدمات نمایندگان
             </summary>
             
         </member>
@@ -778,7 +803,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه خدمت همکار</param>
+            <param name="id">شناسه خدمت نماینده</param>
             <returns>
             </returns>
         </member>
@@ -790,7 +815,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistanceTimeController">
             <summary>
-            مدیریت زمان های خدمات همکاران
+            زمان های خدمات نمایندگان
             </summary>
             
         </member>
@@ -804,7 +829,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه زمان خدمات همکاران</param>
+            <param name="id">شناسه زمان خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -823,7 +848,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistanceUserActivationController">
             <summary>
-            فعال سازی کاربران خدمات همکاران
+            کاربران خدمات نمایندگان
             </summary>
             
         </member>
@@ -836,13 +861,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistanceUserController">
             <summary>
-            مدیریت پکیج های خدمات کاربران
+            کاربران خدمات نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionAssistanceUserController.Get(Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto.CompanionAssistanceUserInputDto)">
             <summary>
-            جستجو کاربران خدمات همکاران
+            جستجو
             </summary>
             <returns></returns> 
         </member>
@@ -850,7 +875,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <param name="id">شناسه کاربر خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -874,13 +899,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionCommentController">
              <summary>
-             مدیریت نظرات همکاران
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionCommentController.#ctor(Application.Services.CompanionSrvs.CompanionCommentSrv.Iface.ICompanionCommentService)">
-             <summary>
-             مدیریت نظرات همکاران
+             نظرات نمایندگان
              </summary>
             
         </member>
@@ -900,12 +919,12 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionCommentController.Put(Application.Services.CompanionSrvs.CompanionCommentSrv.Dto.CompanionCommentDto)">
             <summary>
-            ویرایش نظرات
+            ویرایش آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionController">
             <summary>
-            مدیریت همکاران
+            نمایندگان
             </summary>
             
         </member>
@@ -919,7 +938,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -943,19 +962,19 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionInsuranceManualPayController">
              <summary>
-              پرداخت دستی بیمه ها
+              بیمه ها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionInsuranceManualPayController.Put(Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv.Dto.CompanionInsurancePackageSaleManualPayDto)">
             <summary>
-             پرداخت دستی بیمه ها
+             پرداخت دستی آیتم
             </summary>
             
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionInsurancePackageActivationController">
             <summary>
-            فعال سازی بیمه همکاران
+            بیمه های نمایندگان
             </summary>
             
         </member>
@@ -968,7 +987,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionInsurancePackageController">
             <summary>
-            مدیریت پکیج های بیمه همکاران
+            پکیج های بیمه نمایندگان
             </summary>
             
         </member>
@@ -982,7 +1001,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <param name="id">شناسه کاربر خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -1006,7 +1025,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionInsurancePackageSaleController">
             <summary>
-            مدیریت فروش پکیج های بیمه همکاران
+            فروش پکیج های بیمه نمایندگان
             </summary>
             
         </member>
@@ -1020,20 +1039,15 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <param name="id">شناسه کاربر خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionPetController">
             <summary>
-            مدیریت پت های همکاران
+            پت های نمایندگان
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionPetController.#ctor(Application.Services.CompanionSrvs.CompanionPetSrv.Iface.ICompanionPetService)">
-            <summary>
-            مدیریت پت های همکاران
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionPetController.Get(System.Int64)">
             <summary>
@@ -1069,7 +1083,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionReportController">
             <summary>
-            مدیریت گزارشات تخلف همکاران
+            گزارشات تخلف نمایندگان
             </summary>
             
         </member>
@@ -1083,7 +1097,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -1095,7 +1109,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionReserveCancelController">
             <summary>
-            مدیریت کنسلی رزرو همکار
+            رزروهای نمایندگان
             </summary>
             
         </member>
@@ -1108,27 +1122,22 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionReserveChangeStateController">
             <summary>
-            مدیریت تغییر وضعیت رزرو همکار
+            رزروهای نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionReserveChangeStateController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveChangeStateDto)">
             <summary>
-             ویرایش آیتم 
+             تغییر وضعیت آیتم 
             </summary>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionReserveCommentController">
             <summary>
-            مدیریت کامنت های رزرو همکاران
+            کامنت های رزرو نمایندگان
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionReserveCommentController.#ctor(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Iface.ICompanionReserveCommentService)">
-            <summary>
-            مدیریت کامنت های رزرو همکاران
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionReserveCommentController.Get(System.Int64)">
             <summary>
@@ -1158,7 +1167,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionReserveController">
             <summary>
-            مدیریت  رزرو همکاران
+            رزروهای نمایندگان
             </summary>
             
         </member>
@@ -1172,7 +1181,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -1189,16 +1198,23 @@
             <returns>
             </returns>
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.CompanionTypeController">
+        <member name="T:Api.Areas.Admin.Controllers.CompanionReserveExcelController">
             <summary>
-            مدیریت انواع همکاران
+            رزروهای نمایندگان
             </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionTypeController.#ctor(Application.Services.CompanionSrvs.CompanionTypeSrv.Iface.ICompanionTypeService)">
+        <member name="M:Api.Areas.Admin.Controllers.CompanionReserveExcelController.Get(Application.Services.CompanionSrvs.CompanionReserveExcelSrv.Dto.SearchCompanionReserveExcelDto)">
             <summary>
-            مدیریت انواع همکاران
+             دریافت اکسل
             </summary>
+            <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionTypeController">
+            <summary>
+            انواع نمایندگان
+            </summary>
+            
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionTypeController.Get(System.Int64)">
             <summary>
@@ -1234,33 +1250,33 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionUpdateGoldAccountController">
             <summary>
-            آپدیت همکار طلایی
+            نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionUpdateGoldAccountController.Put(Application.Services.CompanionSrvs.CompanionSrv.Dto.CompanionGoldAccountDto)">
             <summary>
-             ویرایش آیتم 
+             ارتقا آیتم به طلایی
             </summary>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionUpdateSilverAccountController">
             <summary>
-            آپدیت همکار نقره ای
+            نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionUpdateSilverAccountController.Put(Application.Services.CompanionSrvs.CompanionSrv.Dto.CompanionSilverAccountDto)">
             <summary>
-             ویرایش آیتم 
+             ارتقا آیتم به نقره ای
             </summary>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionUserAvailableController">
             <summary>
-            کاربران قابل انتخاب نمایندگی برای خدمت همکار
+            کاربران نماینده
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionUserAvailableController.Get(System.Int64)">
@@ -1271,14 +1287,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionUserController">
             <summary>
-            مدیریت کاربران همکار
+            کاربران نماینده
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionUserController.#ctor(Application.Services.CompanionSrvs.CompanionUserSrv.Iface.ICompanionUserService)">
-            <summary>
-            مدیریت کاربران همکار
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.CompanionUserController.Get(System.Int64)">
             <summary>
@@ -1314,7 +1325,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionZoneController">
             <summary>
-            مدیریت محل فعالیت همکاران
+            محل فعالیت نمایندگان
             </summary>
             
         </member>
@@ -1352,13 +1363,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ContactUsController">
              <summary>
-             مدیریت ارتباط با ما
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ContactUsController.#ctor(Application.Services.Content.ContactUsSrv.Iface.IContactUsService)">
-             <summary>
-             مدیریت ارتباط با ما
+             ارتباط با ما
              </summary>
             
         </member>
@@ -1383,15 +1388,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ContactUsGroupController">
              <summary>
-             مدیریت گروه ارتباط با ما
+             گروه ارتباط با ما
              </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ContactUsGroupController.#ctor(Application.Services.Content.ContactUsGroupSrv.Iface.IContactUsGroupService)">
-            <summary>
-            مدیریت گروه ارتباط با ما
-            </summary>
-             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ContactUsGroupController.Get(System.Int64)">
             <summary>
@@ -1430,13 +1429,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CountryController">
              <summary>
-             مدیریت کشور ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.CountryController.#ctor(Application.Services.LocationFields.CountrySrv.Iface.ICountryService)">
-             <summary>
-             مدیریت کشور ها
+             کشور ها
              </summary>
             
         </member>
@@ -1472,13 +1465,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DeliveryController">
              <summary>
-             مدیریت حمل و نقل
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DeliveryController.#ctor(Application.Services.Order.DeliverySrv.iface.IDeliveryService)">
-             <summary>
-             مدیریت حمل و نقل
+             حمل و نقل
              </summary>
             
         </member>
@@ -1514,13 +1501,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DeliveryDistanceController">
              <summary>
-             مدیریت حمل و نقل
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DeliveryDistanceController.#ctor(Application.Services.Order.DeliveryDistanceSrv.iface.IDeliveryDistanceService)">
-             <summary>
-             مدیریت حمل و نقل
+             مسافت حمل نقل
              </summary>
             
         </member>
@@ -1556,13 +1537,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DetailController">
              <summary>
-             مدیریت مشخصات
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DetailController.#ctor(Application.Services.Content.DetailSrv.Iface.IDetailService)">
-             <summary>
-             مدیریت مشخصات
+             مشخصات
              </summary>
             
         </member>
@@ -1598,13 +1573,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DiscountController">
              <summary>
-             مدیریت برندها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DiscountController.#ctor(Application.Services.ProductSrvs.DiscountSrv.IFace.IDiscountService)">
-             <summary>
-             مدیریت برند ها
+             تخفیف ها
              </summary>
             
         </member>
@@ -1640,13 +1609,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DiscountGroupController">
              <summary>
-             مدیریت گروه تخفیف
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DiscountGroupController.#ctor(Application.Services.ProductSrvs.DiscountGroupSrv.Iface.IDiscountGroupService)">
-             <summary>
-             مدیریت گروه تخفیف
+             گروه تخفیف
              </summary>
             
         </member>
@@ -1682,13 +1645,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DiscussionAnswerActiveController">
              <summary>
-             مدیریت پاسخ های تالار گفت و گو
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DiscussionAnswerActiveController.#ctor(Application.Services.Content.DiscussionAnswerSrv.Iface.IDiscussionAnswerService)">
-             <summary>
-             مدیریت پاسخ گفت و گو
+             پاسخ های تالار گفت و گو
              </summary>
             
         </member>
@@ -1699,13 +1656,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DiscussionAnswerController">
              <summary>
-             مدیریت پاسخ های تالار گفت و گو
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DiscussionAnswerController.#ctor(Application.Services.Content.DiscussionAnswerSrv.Iface.IDiscussionAnswerService)">
-             <summary>
-             مدیریت پاسخ گفت و گو
+             پاسخ های تالار گفت و گو
              </summary>
             
         </member>
@@ -1730,13 +1681,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DiscussionQuestionController">
              <summary>
-             مدیریت موضوع های تالار گفت و گو
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DiscussionQuestionController.#ctor(Application.Services.Content.DiscussionQuestionSrv.Iface.IDiscussionQuestionService)">
-             <summary>
-             مدیریت موضوع گفت و گو
+             تالارهای گفت و گو
              </summary>
             
         </member>
@@ -1772,7 +1717,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DriverController">
             <summary>
-            مدیریت رانندگان
+            رانندگان
             </summary>
             
         </member>
@@ -1786,7 +1731,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -1810,27 +1755,21 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DriverUpdateStatusController">
             <summary>
-            مدیریت درخواست های رانندگان
+            رانندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.DriverUpdateStatusController.Put(Application.Services.Accounting.DriverSrv.Dto.DriverUpdateStatusDto)">
             <summary>
-             ویرایش آیتم 
+             تغییر وضعیت آیتم 
             </summary>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.FeatureController">
             <summary>
-            مدیریت ویژگی ها
+            ویژگی ها
             </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureController.#ctor(Application.Services.ProductSrvs.FeatureSrv.Iface.IFeatureService)">
-            <summary>
-            مدیریت  ویژگی ها
-            </summary>
-            
         </member>
         <member name="M:Api.Areas.Admin.Controllers.FeatureController.Get(System.Int64)">
             <summary>
@@ -1866,14 +1805,8 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.FeatureItemController">
             <summary>
-            مدیریت آیتم ویژگی ها
+            آیتم ویژگی ها
             </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.FeatureItemController.#ctor(Application.Services.ProductSrvs.FeatureSrv.Iface.IFeatureItemService)">
-            <summary>
-            مدیریت آیتم ویژگی ها
-            </summary>
-            
         </member>
         <member name="M:Api.Areas.Admin.Controllers.FeatureItemController.Get(System.Int64)">
             <summary>
@@ -1926,7 +1859,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.FinanceCompanionAssistanceController">
              <summary>
-             مدیریت حسابداری خدمات
+             حسابداری خدمات
              </summary>
             
         </member>
@@ -1938,7 +1871,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.FinanceCompanionController">
              <summary>
-             مدیریت حسابداری کلینیک ها
+             حسابداری نمایندگان
              </summary>
             
         </member>
@@ -1950,7 +1883,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.FinanceController">
              <summary>
-             مدیریت حسابداری ها
+             حسابداری ها
              </summary>
             
         </member>
@@ -1967,7 +1900,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.FinancePansionController">
              <summary>
-             مدیریت حسابداری پانسیون ها
+             حسابداری پانسیون ها
              </summary>
             
         </member>
@@ -1979,7 +1912,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.FinanceStoreController">
              <summary>
-             مدیریت حسابداری فروشگاه ها
+             حسابداری فروشگاه ها
              </summary>
             
         </member>
@@ -1997,13 +1930,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.GalleryController">
              <summary>
-             مدیریت گالری ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryController.#ctor(Application.Services.Content.GallerySrv.Iface.IGalleryService)">
-             <summary>
-             مدیریت گالری ها
+             گالری ها
              </summary>
             
         </member>
@@ -2039,13 +1966,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.GalleryItemController">
              <summary>
-             مدیریت گالری آیتم ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.GalleryItemController.#ctor(Application.Services.Content.GalleryItemSrv.Iface.IGalleryItemService)">
-             <summary>
-             مدیریت گالری آیتم ها
+             آیتم های گالری
              </summary>
             
         </member>
@@ -2081,13 +2002,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.HashtagController">
              <summary>
-             مدیریت هشتگ
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.HashtagController.#ctor(Application.Services.Content.HashtagSrv.Iface.IHashtagService)">
-             <summary>
-             مدیریت هشتگ
+              هشتگ ها
              </summary>
             
         </member>
@@ -2097,27 +2012,36 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ManualPaymentController">
+            <summary>
+            مدیریت پرداخت‌های دستی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ManualPaymentController.#ctor(Application.Services.Order.PaymentSrv.Iface.IPaymentService)">
+            <summary>
+            مدیریت پرداخت‌های دستی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ManualPaymentController.Post(Application.Services.Order.PaymentSrv.Dto.ManualPaymentDto)">
+            <summary>
+            ثبت پرداخت دستی و اعمال نتیجه آن روی آیتم مربوطه
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ManualTripPaymentController">
              <summary>
-              پرداخت دستی سفر ها
+             سفر ها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ManualTripPaymentController.Put(Application.Services.TripSrv.TripSrv.Dto.ManualPayTripDto)">
             <summary>
-             پرداخت دستی سفر ها
+            پرداخت دستی آیتم
             </summary>
             
         </member>
         <member name="T:Api.Areas.Admin.Controllers.MerchantController">
              <summary>
-             مدیریت گالری آیتم ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.MerchantController.#ctor(Application.Services.Order.MerchantSrv.Iface.IMerchantService)">
-             <summary>
-             مدیریت درگاه بانکی
+             درگاه بانکی
              </summary>
             
         </member>
@@ -2153,13 +2077,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.NeighborhoodController">
              <summary>
-             مدیریت محله ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.#ctor(Application.Services.LocationFields.NeighborhoodSrv.Iface.INeighborhoodService)">
-             <summary>
-             مدیریت محله ها
+             محله ها
              </summary>
             
         </member>
@@ -2179,7 +2097,7 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.NeighborhoodController.GetBoundary(System.Int64)">
             <summary>
-            محدوده در مپ
+            محدوده آیتم در مپ
             </summary>
             <returns></returns> 
         </member>
@@ -2201,15 +2119,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.NewsletterController">
              <summary>
-             مدیریت خبرنامه
+             خبرنامه
              </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.NewsletterController.#ctor(Application.Services.Content.NewsletterSrv.Iface.INewsletterService)">
-            <summary>
-            مدیریت خبرنامه
-            </summary>
-             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.NewsletterController.Get(System.Int64)">
             <summary>
@@ -2240,14 +2152,68 @@
             حذف آیتم
             </summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.NoticeController">
+             <summary>
+             اعلان ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NoticeController.Get(Application.Services.Setting.NoticeSrv.Dto.NoticeInputDto)">
+            <summary>
+            جستجو 
+             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NoticeController.GetTypes(System.Boolean)">
+            <summary>
+            نوع آیتم
+             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NoticeController.GetUnreadCount">
+            <summary>
+            تعداد آیتم های خوانده نشده
+             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NoticeController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NoticeController.Read(System.Int64)">
+            <summary>
+            خواندن آیتم
+             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NoticeController.ReadBulk(Application.Services.Setting.NoticeSrv.Dto.NoticeBulkReadDto)">
+            <summary>
+            خواندن همه آیتم ها
+             </summary>
+            <returns></returns>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.NotifyMessageController">
             <summary>
-            مدیریت پیام های نوتیفیکیشن
+            پیام های نوتیفیکیشن
             </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NotifyMessageController.SendAll(System.Int64)">
+            <summary>
+            ارسال آیتم
+             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NotifyMessageController.SendToUser(System.Int64,System.Int64)">
+            <summary>
+            ارسال آیتم به کاربر
+             </summary>
+            <returns></returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionActiveController">
             <summary>
-            فعال سازی پانسیون
+            پانسیون ها
             </summary>
             
         </member>
@@ -2260,7 +2226,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionApproveController">
             <summary>
-            احراز هویت پانسیون
+            پانسیون ها
             </summary>
             
         </member>
@@ -2273,14 +2239,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionCommentController">
             <summary>
-            مدیریت نظرات پانسیون ها
+            نظرات پانسیون ها
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PansionCommentController.#ctor(Application.Services.PansionSrvs.PansionCommentSrv.Iface.IPansionCommentService)">
-            <summary>
-            مدیریت نظرات پانسیون ها
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PansionCommentController.Get(System.Int64)">
             <summary>
@@ -2303,7 +2264,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionController">
             <summary>
-            مدیریت پانسیون
+            پانسیون ها
             </summary>
             
         </member>
@@ -2336,7 +2297,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionPetController">
             <summary>
-            مدیریت پت های پانسیون
+            پت های پانسیون
             </summary>
             
         </member>
@@ -2367,7 +2328,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionPictureController">
             <summary>
-            مدیریت تصویر پانسیون ها
+            تصاویر پانسیون
             </summary>
             
         </member>
@@ -2398,33 +2359,33 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionReserveCancelController">
             <summary>
-            مدیریت کنسلی رزرو پانسیون
+            رزرو پانسیون
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PansionReserveCancelController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveCancelDto)">
             <summary>
-             ویرایش آیتم 
+             کنسل کردن آیتم 
             </summary>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionReserveChangeStatusController">
             <summary>
-            مدیریت تغییر وضعیت رزرو پانسیون
+            رزرو پانسیون
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PansionReserveChangeStatusController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveStatusDto)">
             <summary>
-             ویرایش آیتم 
+             تغییر وصعیت آیتم 
             </summary>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionReserveController">
             <summary>
-            مدیریت  رزرو پانسیون
+            رزروهای پانسیون
             </summary>
             
         </member>
@@ -2438,7 +2399,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -2457,13 +2418,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ParkController">
              <summary>
-             مدیریت پارک ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ParkController.#ctor(Application.Services.LocationFields.ParkSrv.Iface.IParkService)">
-             <summary>
-             مدیریت پارک ها
+             پارک ها
              </summary>
             
         </member>
@@ -2499,7 +2454,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ParkPictureController">
             <summary>
-            مدیریت تصویر پارک ها
+            تصاویر پارک
             </summary>
             
         </member>
@@ -2528,9 +2483,45 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilAIController">
+            <summary>
+            مدیریت PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.#ctor(Application.Services.PastilAISrv.Iface.IPastilAiChatService,Application.Services.PastilAISrv.Iface.IPastilAiPlanService)">
+            <summary>
+            مدیریت PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.GetPlans(System.Threading.CancellationToken)">
+            <summary>
+            لیست پلن های PastilAI
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.PutPlan(Application.Services.PastilAISrv.Dto.PastilAiPlanUpdateDto,System.Threading.CancellationToken)">
+            <summary>
+            ویرایش پلن PastilAI
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.Get(Application.Services.PastilAISrv.Dto.PastilAiConversationInputDto,System.Threading.CancellationToken)">
+            <summary>
+            جستجوی گفت و گوهای PastilAI
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            اطلاعات گفت و گوی PastilAI
+            </summary>
+            <param name="id">شناسه گفت و گو</param>
+            <param name="cancellationToken">توکن لغو درخواست</param>
+            <returns></returns>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchBlockController">
             <summary>
-            مدیریت کاربران بلاک‌شده در پاستیل مچ
+            کاربران بلاک‌شده در پاستیل مچ
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchBlockController.Get(System.Int64)">
@@ -2550,7 +2541,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController">
             <summary>
-            مدیریت پیام‌های پاستیل مچ
+            پیام‌های پاستیل مچ
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchMessageController.Get(System.Int64)">
@@ -2570,7 +2561,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchController">
             <summary>
-            مدیریت مچ‌های پاستیل
+            مچ‌های پاستیل
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchController.Get(System.Int64)">
@@ -2590,7 +2581,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController">
             <summary>
-            مدیریت فایل‌های پیام پاستیل مچ
+            فایل‌های پیام پاستیل مچ
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageAttachmentController.Get(System.Int64)">
@@ -2610,7 +2601,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController">
             <summary>
-            مدیریت ری‌اکشن‌های پیام پاستیل مچ
+            ری‌اکشن‌های پیام پاستیل مچ
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchMessageReactionController.Get(System.Int64)">
@@ -2630,7 +2621,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileActiveController">
             <summary>
-            مدیریت پروفایل های پاستیل مچ
+            پروفایل های پاستیل مچ
             </summary>
             <returns></returns>
             
@@ -2644,7 +2635,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileController">
             <summary>
-            مدیریت پروفایل های پاستیل مچ
+            پروفایل های پاستیل مچ
             </summary>
             
         </member>
@@ -2669,7 +2660,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileGoalController">
             <summary>
-            مدیریت اهداف پروفایل‌های پاستیل مچ
+            اهداف پروفایل‌های پاستیل مچ
             </summary>
             
         </member>
@@ -2695,7 +2686,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchProfileVerificationController">
             <summary>
-            مدیریت پروفایل های پاستیل مچ
+            پروفایل های پاستیل مچ
             </summary>
             <returns></returns>
             
@@ -2709,7 +2700,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchReportController">
             <summary>
-            مدیریت گزارش‌های پاستیل مچ
+            گزارش‌های پاستیل مچ
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchReportController.Get(System.Int64)">
@@ -2724,7 +2715,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchReportReasonActiveController">
             <summary>
-            مدیریت فعال بودن دلایل گزارش پاستیل مچ
+            دلایل گزارش پاستیل مچ
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchReportReasonActiveController.Put(Application.Services.PastilMatchSrvs.PastilMatchReportReasonSrv.Dto.PastilMatchReportReasonActiveDto)">
@@ -2734,7 +2725,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchReportReasonController">
             <summary>
-            مدیریت دلایل گزارش پاستیل مچ
+            دلایل گزارش پاستیل مچ
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchReportReasonController.Get(System.Int64)">
@@ -2764,7 +2755,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchReportReviewController">
             <summary>
-            بررسی گزارش‌های پاستیل مچ
+            گزارش‌های پاستیل مچ
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchReportReviewController.Put(Application.Services.PastilMatchSrvs.PastilMatchReportSrv.Dto.PastilMatchReportReviewDto)">
@@ -2774,7 +2765,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilMatchRequestController">
             <summary>
-            مدیریت درخواست‌های پاستیل مچ
+            درخواست‌های پاستیل مچ
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilMatchRequestController.Get(System.Int64)">
@@ -2789,13 +2780,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PermissionController">
              <summary>
-             مدیریت دسترسی ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PermissionController.#ctor(Application.Services.Accounting.PermissionSrv.Iface.IPermissionService,Utility.Reflection.Iface.IControllerActionDiscoveryService)">
-             <summary>
-             مدیریت دسترسی ها
+             دسترسی ها
              </summary>
             
         </member>
@@ -2834,15 +2819,26 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PermissionSyncController">
+             <summary>
+             همگام سازی دسترسی ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PermissionSyncController.Post(System.Threading.CancellationToken)">
+            <summary>
+            همگام سازی دسترسی های پنل مدیریت با کنترلرها
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PetBreedController">
              <summary>
-             مدیریت نژادهای پت
+             نژادهای پت
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PetBreedController.#ctor(Application.Services.Accounting.PetBreedBreedSrv.Iface.IPetBreedService)">
              <summary>
-             مدیریت نژادهای پت
+             نژادهای پت
              </summary>
             
         </member>
@@ -2878,13 +2874,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PetController">
              <summary>
-             مدیریت پت ها
+             پت ها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PetController.#ctor(Application.Services.Accounting.PetSrv.Iface.IPetService)">
              <summary>
-             مدیریت پت ها
+             پت ها
              </summary>
             
         </member>
@@ -2937,13 +2933,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PostCommentController">
              <summary>
-             مدیریت نظرات
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostCommentController.#ctor(Application.Services.Content.PostCommentSrv.Iface.IPostCommentService)">
-             <summary>
-             مدیریت نظرات
+              نظرات پست ها 
              </summary>
             
         </member>
@@ -2968,14 +2958,8 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PostController">
             <summary>
-            مدیریت پست ها
+            پست ها
             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostController.#ctor(Application.Services.Content.PostSrv.Iface.IPostService)">
-             <summary>
-             مدیریت پست ها
-             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PostController.Get(System.Int64)">
@@ -3023,14 +3007,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PostFileController">
             <summary>
-            مدیریت فایل پست ها
+            فایل های پست 
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostFileController.#ctor(Application.Services.Content.PostFileSrv.Iface.IPostFileService)">
-            <summary>
-            مدیریت فایل پست ها
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PostFileController.Get(System.Int64)">
             <summary>
@@ -3066,14 +3045,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PostPictureController">
             <summary>
-            مدیریت تصویر پست ها
+            تصاویر پست
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostPictureController.#ctor(Application.Services.Content.PostPictureSrv.Iface.IPostPictureService)">
-            <summary>
-            مدیریت تصویر پست ها
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PostPictureController.Get(System.Int64)">
             <summary>
@@ -3109,15 +3083,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PostProductController">
              <summary>
-             مدیریت محصولات مرتبط با مقاله
+             محصولات مرتبط با مقاله
              </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PostProductController.#ctor(Application.Services.Content.PostProductSrv.Iface.IPostProductService)">
-            <summary>
-            مدیریت محصولات مرتبط با مقاله
-            </summary>
-             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PostProductController.Get(System.Int64)">
             <summary>
@@ -3134,7 +3102,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PriceCalculationController">
             <summary>
-            مدیریت محاسبه قیمت در ساعت ها
+            محاسبه قیمت در ساعت ها
             </summary>
             
         </member>
@@ -3172,31 +3140,20 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductChangeVarietyController">
              <summary>
-             تغییر تنوع محصول
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductChangeVarietyController.#ctor(Application.Services.ProductSrvs.ProductSrv.Iface.IProductService)">
-             <summary>
-             تغییر تنوع محصول
+             تنوع محصول
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductChangeVarietyController.Put(Application.Services.ProductSrvs.ProductSrv.Dto.ProductDto)">
             <summary>
-            تغییر تنوع محصول
+            ویرایش آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductCommentController">
             <summary>
-            مدیریت فایل پست ها
+            نظرات محصول
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductCommentController.#ctor(Application.Services.ProductSrvs.ProductCommentSrv.Iface.IProductCommentService)">
-            <summary>
-            مدیریت فایل پست ها
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductCommentController.Get(System.Int64)">
             <summary>
@@ -3226,12 +3183,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductController">
             <summary>
-            مدیریت محصول ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductController.#ctor(Application.Services.ProductSrvs.ProductSrv.Iface.IProductService)">
-            <summary>
-            مدیریت محصول ها
+            محصولات
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductController.Get(System.Int64)">
@@ -3276,14 +3228,8 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductFeatureValueController">
             <summary>
-            مدیریت ویژگی های محصول
+            ویژگی های محصول
             </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductFeatureValueController.#ctor(Application.Services.ProductSrvs.ProductFeatureValueSrv.Iface.IProductFeatureValueService)">
-            <summary>
-            مدیریت  ویژگی های محصول
-            </summary>
-            
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductFeatureValueController.Get(System.Int64)">
             <summary>
@@ -3299,14 +3245,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductFileController">
             <summary>
-            مدیریت فایل محصول ها
+            فایل های محصول
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductFileController.#ctor(Application.Services.ProductSrvs.ProductFileSrv.Iface.IProductFileService)">
-            <summary>
-            مدیریت فایل محصول ها
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductFileController.Get(System.Int64)">
             <summary>
@@ -3342,14 +3283,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductItemController">
             <summary>
-            مدیریت فایل محصول ها
+            آیتم های محصول
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductItemController.#ctor(Application.Services.ProductSrvs.ProductItemSrv.Iface.IProductItemService)">
-            <summary>
-            مدیریت آیتم محصول ها
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductItemController.Get(System.Int64)">
             <summary>
@@ -3376,81 +3312,51 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderCancelRequestController">
              <summary>
-             تغییر وضعیت سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderCancelRequestController.#ctor(Application.Services.Order.ProductOrderSrv.Iface.IProductOrderService)">
-             <summary>
-             تغییر وضعیت سفارش ها
+             سفارش ها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductOrderCancelRequestController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderDto)">
             <summary>
-            تغییر وضعیت سفارش ها
+            درخواست کنسلی آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderChangeDescriptionsController">
              <summary>
-             تغییر وضعیت سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderChangeDescriptionsController.#ctor(Application.Services.Order.ProductOrderSrv.Iface.IProductOrderService)">
-             <summary>
-             تغییر وضعیت سفارش ها
+             سفارش ها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductOrderChangeDescriptionsController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderDto)">
             <summary>
-            تغییر وضعیت سفارش ها
+            تغییر توضیحات آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderChangeStateController">
              <summary>
-             تغییر وضعیت سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderChangeStateController.#ctor(Application.Services.Order.ProductOrderSrv.Iface.IProductOrderService)">
-             <summary>
-             تغییر وضعیت سفارش ها
+             سفارش ها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductOrderChangeStateController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderDto)">
             <summary>
-            تغییر وضعیت سفارش ها
+            تغییر حالت آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderChangeStatusController">
              <summary>
-             تغییر وضعیت سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderChangeStatusController.#ctor(Application.Services.Order.ProductOrderSrv.Iface.IProductOrderService)">
-             <summary>
-             تغییر وضعیت سفارش ها
+             سفارش ها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductOrderChangeStatusController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderDto)">
             <summary>
-            تغییر وضعیت سفارش ها
+            تغییر وضعیت آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderController">
              <summary>
-             مدیریت سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderController.#ctor(Application.Services.Order.ProductOrderSrv.Iface.IProductOrderService)">
-             <summary>
-             مدیریت سفارش ها
+             سفارش ها
              </summary>
             
         </member>
@@ -3470,13 +3376,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderItemController">
              <summary>
-             مدیریت  آیتم سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderItemController.#ctor(Application.Services.Order.ProductOrderItemSrv.Iface.IProductOrderItemService)">
-             <summary>
-             مدیریت  آیتم سفارش ها
+             آیتم های سفارش
              </summary>
             
         </member>
@@ -3503,13 +3403,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderStoreController">
              <summary>
-             مدیریت  آیتم سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderStoreController.#ctor(Application.Services.Order.ProductOrderStoreSrv.Iface.IProductOrderStoreService)">
-             <summary>
-             مدیریت  آیتم سفارش ها
+              فروشنده آیتم سفارش
              </summary>
             
         </member>
@@ -3536,31 +3430,20 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderTrackingCodeController">
              <summary>
-             تغییر کد پیگیری سفارش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductOrderTrackingCodeController.#ctor(Application.Services.Order.ProductOrderSrv.Iface.IProductOrderService)">
-             <summary>
-             تغییر کد پیگیری سفارش ها
+             سفارش ها
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductOrderTrackingCodeController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderDto)">
             <summary>
-            تغییر کد پیگیری سفارش ها
+            تغییر کد پیگیری آیتم
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductPictureController">
             <summary>
-            مدیریت تصویر محصول ها
+            تصاویر محصول
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductPictureController.#ctor(Application.Services.ProductSrvs.ProductPictureSrv.Iface.IProductPictureService)">
-            <summary>
-            مدیریت تصویر محصول ها
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductPictureController.Get(System.Int64)">
             <summary>
@@ -3596,12 +3479,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductRelateController">
             <summary>
-            مرتبط با محصولات 
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ProductRelateController.#ctor(Application.Services.ProductSrvs.ProductRelateSrv.Iface.IProductRelateService)">
-            <summary>
-            مرتبط با محصولات 
+            محصولات مرتبط
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProductRelateController.Get(Application.Services.ProductSrvs.ProductRelateSrv.Dto.ProductRelateDto)">
@@ -3620,7 +3498,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductReportController">
             <summary>
-            مدیریت گزارشات تخلف محصولات
+            گزارشات تخلف محصول
             </summary>
             
         </member>
@@ -3634,7 +3512,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -3644,9 +3522,27 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProductsExcelController">
+            <summary>
+            اکسل محصولات
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProductsExcelController.GetTemplate">
+            <summary>
+            دریافت آیتم
+            </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProductsExcelController.ImportProducts(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            بازگذاری آیتم
+            </summary>
+            
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PushBroadcastController">
             <summary>
-            مدیریت ارسال پیام پوش
+            پیام پوش
             </summary>
             
         </member>
@@ -3658,14 +3554,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PushMessageController">
             <summary>
-            مدیریت پیام های پوش
+            پیام های پوش
             </summary>
             
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.PushMessageController.#ctor(Application.Services.CommonSrv.PushBroadcastSrv.Iface.IPushMessageService)">
-            <summary>
-            مدیریت پیام های پوش
-            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PushMessageController.Get(System.Int64)">
             <summary>
@@ -3701,13 +3592,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.RebateController">
              <summary>
-             مدیریت کد تخفیف
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.RebateController.#ctor(Application.Services.Order.RebateSrv.Iface.IRebateService)">
-             <summary>
-             مدیریت کد تخفیف
+             کد های تخفیف
              </summary>
             
         </member>
@@ -3738,13 +3623,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ReminderController">
              <summary>
-             مدیریت یادآوری ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ReminderController.#ctor(Application.Services.ReminderSrvs.ReminderSrv.Iface.IReminderService)">
-             <summary>
-             مدیریت یادآوری ها
+             یادآوری ها
              </summary>
             
         </member>
@@ -3775,13 +3654,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ReminderCycleController">
              <summary>
-             مدیریت چرخه یادآوری ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ReminderCycleController.#ctor(Application.Services.ReminderSrvs.ReminderCycleSrv.Iface.IReminderCycleService)">
-             <summary>
-             مدیریت چرخه یادآوری ها
+             چرخه های یادآوری
              </summary>
             
         </member>
@@ -3817,13 +3690,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ReminderTypeController">
              <summary>
-             مدیریت نوع یادآوری ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.ReminderTypeController.#ctor(Application.Services.ReminderSrvs.ReminderTypeSrv.Iface.IReminderTypeService)">
-             <summary>
-             مدیریت نوع یادآوری ها
+             انواع یادآوری
              </summary>
             
         </member>
@@ -3859,13 +3726,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.RoleController">
              <summary>
-             مدیریت نقش ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.RoleController.#ctor(Application.Services.Accounting.RoleSrv.Iface.IRoleService)">
-             <summary>
-             مدیریت نقش ها
+             نقش ها
              </summary>
             
         </member>
@@ -3901,12 +3762,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.RolePermission">
             <summary>
-            مدیریت دسترسی های نقش
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.RolePermission.#ctor(Application.Services.Accounting.RolePermission.Iface.IRolePermissionService)">
-            <summary>
-            مدیریت دسترسی های نقش
+            دسترسی های نقش
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.RolePermission.Get(System.Int64)">
@@ -3921,7 +3777,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.SettlementController">
              <summary>
-             مدیریت تسویه حساب ها
+             تسویه حساب ها
              </summary>
             
         </member>
@@ -3946,13 +3802,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.StateController">
              <summary>
-             مدیریت استان ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.StateController.#ctor(Application.Services.LocationFields.StateSrv.Iface.IStateService)">
-             <summary>
-             مدیریت استان ها
+             استان ها
              </summary>
             
         </member>
@@ -3972,7 +3822,7 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.StateController.GetBoundary(System.Int64)">
             <summary>
-            محدوده در مپ
+            محدوده آیتم در مپ
             </summary>
             <returns></returns> 
         </member>
@@ -3994,13 +3844,13 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.StaticPageController">
              <summary>
-             مدیریت صفحات ثابت
+             صفحات ثابت
              </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.StaticPageController.#ctor(Application.Services.Content.StaticPageSrv.Iface.IStaticPageService)">
              <summary>
-             مدیریت صفحات ثابت 
+             صفحات ثابت 
              </summary>
             
         </member>
@@ -4036,13 +3886,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.StoreCommentController">
              <summary>
-             مدیریت نظرات فروشگاه ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.StoreCommentController.#ctor(Application.Services.ProductSrvs.StoreCommentSrv.Iface.IStoreCommentService)">
-             <summary>
-             مدیریت نظرات فروشگاه ها
+             نظرات فروشگاه
              </summary>
             
         </member>
@@ -4067,12 +3911,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.StoreController">
             <summary>
-            مدیریت فروشنده ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.StoreController.#ctor(Application.Services.StoreSrv.Iface.IStoreService)">
-            <summary>
-            مدیریت فروشنده ها
+            فروشگاه ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.StoreController.Get(System.Int64)">
@@ -4110,39 +3949,33 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.StoreUserController">
             <summary>
-            مدیریت کاربران فروشگاه
+            کاربران فروشگاه
             </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.StoreUserController.#ctor(Application.Services.StoreSrvs.StoreUserSrv.Iface.IStoreUserService)">
-             <summary>
-             مدیریت کاربران فروشگاه
-             </summary>
-            
         </member>
         <member name="M:Api.Areas.Admin.Controllers.StoreUserController.Get(Application.Services.ProductSrvs.StoreUserSrv.Dto.StoreUserDto)">
             <summary>
-             کاربران فروشگاه 
+            جستجو 
             </summary>
             <returns>
             </returns>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.StoreUserController.Post(Application.Services.ProductSrvs.StoreUserSrv.Dto.StoreUserDto)">
             <summary>
-             کاربران فروشگاه 
+             آیتم جدید
             </summary>
             <returns>
             </returns>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.StoreUserController.Delete(Application.Services.ProductSrvs.StoreUserSrv.Dto.StoreUserDto)">
             <summary>
-             کاربران فروشگاه 
+             حذف آیتم
             </summary>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.StoryGroupController">
              <summary>
-             مدیریت استوری ها
+             استوری ها
              </summary>
             
         </member>
@@ -4178,7 +4011,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.StoryItemController">
              <summary>
-             مدیریت آیتم های استوری
+             آیتم های استوری
              </summary>
             
         </member>
@@ -4214,12 +4047,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TicketAdminController">
             <summary>
-            مدیریت تیکت‌ ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketAdminController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
-            <summary>
-            مدیریت تیکت‌ ها
+            تیکت‌ ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TicketAdminController.Get(System.Int64)">
@@ -4234,62 +4062,47 @@
              </summary>
             
         </member>
-        <member name="T:Api.Areas.Admin.Controllers.TicketChangeAdminController">
+        <member name="M:Api.Areas.Admin.Controllers.TicketAdminController.Take(System.Int64)">
             <summary>
-            مدیریت تیکت‌ ها
+            اختصاص تیکت آزاد به ادمین جاری
             </summary>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketChangeAdminController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
+        <member name="T:Api.Areas.Admin.Controllers.TicketChangeAdminController">
             <summary>
-            مدیریت تیکت‌ ها
+            تیکت‌ ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TicketChangeAdminController.Put(Application.Services.Accounting.TicketSrv.Dto.AssignTicketAdminDto)">
             <summary>
-            ویرایش آیتم
+            ویرایش ادمین آیتم
             </summary>
             
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TicketChangeImportantController">
             <summary>
-            مدیریت تیکت‌ ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketChangeImportantController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
-            <summary>
-            مدیریت تیکت‌ ها
+            تیکت‌ ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TicketChangeImportantController.Put(Application.Services.Accounting.TicketSrv.Dto.ChangeTicketImportanceDto)">
              <summary>
-             تغییر اهمیت تیکت
+             تغییر اهمیت آیتم
              </summary>
             
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TicketChangeStatusController">
             <summary>
-            مدیریت تیکت‌ ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketChangeStatusController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
-            <summary>
-            مدیریت تیکت‌ ها
+            تیکت‌ ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TicketChangeStatusController.Put(Application.Services.Accounting.TicketSrv.Dto.ChangeTicketStatusDto)">
              <summary>
-             تغییر وضعیت تیکت
+             تغییر وضعیت آیتم
              </summary>
             
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TicketController">
             <summary>
-            مدیریت تیکت‌ها
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketController.#ctor(Application.Services.Accounting.TicketSrv.Iface.ITicketService)">
-            <summary>
-            مدیریت تیکت‌ها
+            تیکت ‌ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TicketController.Get(System.Int64)">
@@ -4318,12 +4131,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TicketMessageController">
             <summary>
-            مدیریت پیام‌های تیکت
-            </summary>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.TicketMessageController.#ctor(Application.Services.Accounting.TicketMessageSrv.Iface.ITicketMessageService)">
-            <summary>
-            مدیریت پیام‌های تیکت
+            پیام‌های تیکت
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TicketMessageController.Get(System.Int64,Application.Services.Accounting.TicketMessageSrv.Dto.TicketMessageInputDto)">
@@ -4346,7 +4154,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TripAddressController">
             <summary>
-            مدیریت ادرس های ذخیره شده سفر
+            ادرس های ذخیره شده سفر
             </summary>
             
         </member>
@@ -4377,33 +4185,33 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TripChangeStatusController">
             <summary>
-            مدیریت تغییر وضعیت سفر
+            سفر ها
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TripChangeStatusController.Put(Application.Services.TripSrv.TripSrv.Dto.TripChangeStatusDto)">
             <summary>
-             ویرایش آیتم 
+             تغییر وضعیت آیتم 
             </summary>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TripChooseDriverController">
             <summary>
-            مدیریت گزینه های سفر
+            سفر ها
             </summary>
             
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TripChooseDriverController.Put(Application.Services.TripSrv.TripSrv.Dto.TripAdminChooseDriverDto)">
             <summary>
-             ویرایش آیتم 
+             انتخاب راننده برای آیتم 
             </summary>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TripController">
             <summary>
-            مدیریت  سفر ها
+            سفر ها
             </summary>
             
         </member>
@@ -4423,7 +4231,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TripOptionController">
             <summary>
-            مدیریت گزینه های سفر
+            گزینه های سفر
             </summary>
             
         </member>
@@ -4461,7 +4269,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TripShareController">
             <summary>
-            مدیریت سهم های سفر
+            سهم های سفر
             </summary>
             
         </member>
@@ -4474,7 +4282,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TripStopController">
             <summary>
-            مدیریت توقف های سفر
+            توقف های سفر
             </summary>
             
         </member>
@@ -4512,7 +4320,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserBankCardApproveController">
             <summary>
-            مدیریت تایید کارت های بانکی
+            کارت های بانکی
             </summary>
             
         </member>
@@ -4524,7 +4332,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserBankCardController">
             <summary>
-            مدیریت کارت های بانکی کاربر ها
+            کارت های بانکی کاربران
             </summary>
             
         </member>
@@ -4561,13 +4369,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserController">
              <summary>
-             مدیریت کاربران
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.UserController.#ctor(Application.Services.Accounting.UserSrv.Iface.IUserService)">
-             <summary>
-             مدیریت کاربران
+             کاربران
              </summary>
             
         </member>
@@ -4602,13 +4404,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserPetController">
              <summary>
-             مدیریت کاربری پت ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.UserPetController.#ctor(Application.Services.Accounting.UserPetSrv.Iface.IUserPetService)">
-             <summary>
-             مدیریت کاربری پت ها
+             پت های کاربر
              </summary>
             
         </member>
@@ -4628,7 +4424,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserPetPictureController">
             <summary>
-            مدیریت تصویر پت ها
+            تصاویر پت های کاربر
             </summary>
             
         </member>
@@ -4659,13 +4455,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserPetRecordController">
              <summary>
-             مدیریت تاریخچه پت ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.UserPetRecordController.#ctor(Application.Services.Accounting.UserPerRecordSrv.Iface.IUserPetRecordService)">
-             <summary>
-             مدیریت تاریخچه پت ها
+             سابقه پت کاربر
              </summary>
             
         </member>
@@ -4690,13 +4480,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.varietyController">
              <summary>
-             مدیریت تنوع ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.varietyController.#ctor(Application.Services.ProductSrvs.VarietySrv.Iface.IVarietyService)">
-             <summary>
-             مدیریت تنوع ها
+             تنوع ها
              </summary>
             
         </member>
@@ -4732,13 +4516,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.varietyItemController">
              <summary>
-             مدیریت تنوع آیتم ها
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.varietyItemController.#ctor(Application.Services.ProductSrvs.VarietyItemSrv.Iface.IVarietyItemService)">
-             <summary>
-             مدیریت تنوع آیتم ها
+             آیتم های تنوع
              </summary>
             
         </member>
@@ -4774,7 +4552,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.WalletController">
             <summary>
-            مدیریت کیف پول
+            کیف پول ها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.WalletController.Get(System.Int64)">
@@ -4806,7 +4584,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.WeekDayController">
             <summary>
-            مدیریت روزهای هفته
+            روزهای هفته
             </summary>
             
         </member>
@@ -4980,7 +4758,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceController">
             <summary>
-            مدیریت خدمات همکاران 
+            مدیریت خدمات نمایندگان 
             </summary>
             
         </member>
@@ -4994,7 +4772,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه خدمات همکار</param>
+            <param name="id">شناسه خدمات نماینده</param>
             <returns>
             </returns>
         </member>
@@ -5018,7 +4796,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionAssistancePackageController">
             <summary>
-            مدیریت پکیج های خدماتی همکاران
+            مدیریت پکیج های خدماتی نمایندگان
             </summary>
             
         </member>
@@ -5032,7 +4810,7 @@
             <summary>
             اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه پکیج خدمات همکاران</param>
+            <param name="id">شناسه پکیج خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -5099,7 +4877,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceTimeController">
             <summary>
-            مدیریت زمان های خدمات همکاران
+            مدیریت زمان های خدمات نمایندگان
             </summary>
             
         </member>
@@ -5113,7 +4891,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه زمان خدمات همکاران</param>
+            <param name="id">شناسه زمان خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -5132,7 +4910,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceUserController">
             <summary>
-            مدیریت کاربران خدمات همکاران
+            مدیریت کاربران خدمات نمایندگان
             </summary>
             
         </member>
@@ -5146,7 +4924,7 @@
             <summary>
             اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <param name="id">شناسه کاربر خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -5170,13 +4948,13 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionCommentController">
              <summary>
-             مدیریت نظرات همکاران
+             مدیریت نظرات نمایندگان
              </summary>
             
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionCommentController.#ctor(Application.Services.CompanionSrvs.CompanionCommentSrv.Iface.ICompanionCommentService,Application.Common.Interface.ICurrentUserHelper)">
              <summary>
-             مدیریت نظرات همکاران
+             مدیریت نظرات نمایندگان
              </summary>
             
         </member>
@@ -5213,7 +4991,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionInsurancePackageController">
             <summary>
-            مدیریت پکیج های بیمه همکاران
+            مدیریت پکیج های بیمه نمایندگان
             </summary>
             
         </member>
@@ -5227,7 +5005,7 @@
             <summary>
             اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <param name="id">شناسه کاربر خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -5251,7 +5029,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionInsurancePackageSaleController">
             <summary>
-            مدیریت فروش پکیج های بیمه همکاران
+            مدیریت فروش پکیج های بیمه نمایندگان
             </summary>
             
         </member>
@@ -5265,19 +5043,19 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <param name="id">شناسه کاربر خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionPetController">
             <summary>
-            مدیریت پت های همکاران
+            مدیریت پت های نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.#ctor(Application.Services.CompanionSrvs.CompanionPetSrv.Iface.ICompanionPetService,Application.Common.Interface.ICurrentUserHelper)">
             <summary>
-            مدیریت پت های همکاران
+            مدیریت پت های نمایندگان
             </summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionPetController.Get(System.Int64)">
@@ -5314,7 +5092,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionReserveCancelController">
             <summary>
-            مدیریت کنسلی رزرو همکار
+            مدیریت کنسلی رزرو نماینده
             </summary>
             
         </member>
@@ -5327,7 +5105,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionReserveChangeStateController">
             <summary>
-            مدیریت تغییر وضعیت رزرو همکار
+            مدیریت تغییر وضعیت رزرو نماینده
             </summary>
             
         </member>
@@ -5340,13 +5118,13 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionReserveCommentController">
             <summary>
-            مدیریت کامنت های رزرو همکاران
+            مدیریت کامنت های رزرو نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.#ctor(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Iface.ICompanionReserveCommentService)">
             <summary>
-            مدیریت کامنت های رزرو همکاران
+            مدیریت کامنت های رزرو نمایندگان
             </summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.Get(System.Int64)">
@@ -5363,7 +5141,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionReserveOperatorUpdateController">
             <summary>
-            مدیریت انجام رزرو همکار
+            مدیریت انجام رزرو نماینده
             </summary>
             
         </member>
@@ -5376,7 +5154,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionReserveController">
             <summary>
-            مدیریت رزرو همکاران
+            مدیریت رزرو نمایندگان
             </summary>
             
         </member>
@@ -5390,7 +5168,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -5409,13 +5187,13 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionTypeController">
             <summary>
-            مدیریت انواع همکاران
+            مدیریت انواع نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.#ctor(Application.Services.CompanionSrvs.CompanionTypeSrv.Iface.ICompanionTypeService,Application.Common.Interface.ICurrentUserHelper)">
             <summary>
-            مدیریت انواع همکاران
+            مدیریت انواع نمایندگان
             </summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionTypeController.Get(System.Int64)">
@@ -5452,13 +5230,13 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionUserController">
             <summary>
-            مدیریت کاربران همکار
+            مدیریت کاربران نماینده
             </summary>
             
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.#ctor(Application.Services.CompanionSrvs.CompanionUserSrv.Iface.ICompanionUserService,Application.Common.Interface.ICurrentUserHelper)">
             <summary>
-            مدیریت کاربران همکار
+            مدیریت کاربران نماینده
             </summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionUserController.Get(System.Int64)">
@@ -5512,7 +5290,7 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionZoneController">
             <summary>
-            مدیریت محل فعالیت همکاران
+            مدیریت محل فعالیت نمایندگان
             </summary>
             
         </member>
@@ -5724,7 +5502,7 @@
         </member>
         <member name="T:Api.Areas.Agent.Controllers.CompanionController">
             <summary>
-            مدیریت همکاران 
+            مدیریت نمایندگان 
             </summary>
             
         </member>
@@ -5745,7 +5523,7 @@
         </member>
         <member name="T:Api.Areas.Pansion.Controllers.PansionReserveCancelController">
             <summary>
-            مدیریت کنسلی رزرو همکار
+            مدیریت کنسلی رزرو نماینده
             </summary>
             
         </member>
@@ -5771,7 +5549,7 @@
         </member>
         <member name="T:Api.Areas.Pansion.Controllers.PansionReserveController">
             <summary>
-            مدیریت رزرو همکاران
+            مدیریت رزرو نمایندگان
             </summary>
             
         </member>
@@ -5785,7 +5563,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -5805,7 +5583,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -6023,7 +5801,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.CargoPaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.CargoPaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
@@ -6169,7 +5947,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionAssistanceController">
             <summary>
-            مدیریت خدمات همکاران
+            مدیریت خدمات نمایندگان
             </summary>
             
         </member>
@@ -6181,7 +5959,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionAssistancePackageController">
             <summary>
-            مدیریت پکیج های خدماتی همکاران
+            مدیریت پکیج های خدماتی نمایندگان
             </summary>
             
         </member>
@@ -6193,7 +5971,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionAssistanceReportController">
             <summary>
-            مدیریت گزارشات تخلف خدمات همکاران
+            مدیریت گزارشات تخلف خدمات نمایندگان
             </summary>
             
         </member>
@@ -6205,12 +5983,12 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionCommentController">
             <summary>
-            مرتبط با همکاران
+            مرتبط با نمایندگان
             </summary>
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.CompanionCommentController.#ctor(Application.Services.CompanionSrvs.CompanionCommentSrv.Iface.ICompanionCommentService,Application.Common.Interface.ICurrentUserHelper)">
             <summary>
-            مرتبط با همکاران
+            مرتبط با نمایندگان
             </summary>
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.CompanionCommentController.Get(Application.Services.CompanionSrvs.CompanionCommentSrv.Dto.CompanionCommentInputDto)">
@@ -6226,7 +6004,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionController">
             <summary>
-            مدیریت همکاران
+            مدیریت نمایندگان
             </summary>
             
         </member>
@@ -6245,7 +6023,7 @@
             <summary>
             اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -6257,7 +6035,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionInsurancePackageSaleController">
             <summary>
-            مدیریت فروش پکیج های بیمه همکاران
+            مدیریت فروش پکیج های بیمه نمایندگان
             </summary>
             
         </member>
@@ -6271,7 +6049,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <param name="id">شناسه کاربر خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -6287,7 +6065,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.CompanionInsurancePackageSalePaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.CompanionInsurancePackageSalePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
@@ -6333,7 +6111,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionReportController">
             <summary>
-            مدیریت گزارشات تخلف همکاران
+            مدیریت گزارشات تخلف نمایندگان
             </summary>
             
         </member>
@@ -6345,7 +6123,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionReserveCancelController">
             <summary>
-            مدیریت کنسلی رزرو همکار
+            مدیریت کنسلی رزرو نماینده
             </summary>
             
         </member>
@@ -6358,13 +6136,13 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionReserveCommentController">
             <summary>
-            مدیریت کامنت های رزرو همکاران
+            مدیریت کامنت های رزرو نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.CompanionReserveCommentController.#ctor(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Iface.ICompanionReserveCommentService)">
             <summary>
-            مدیریت کامنت های رزرو همکاران
+            مدیریت کامنت های رزرو نمایندگان
             </summary>
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.CompanionReserveCommentController.Get(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Dto.CompanionReserveCommentInputDto)">
@@ -6380,7 +6158,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionReserveController">
             <summary>
-            مدیریت رزرو همکاران
+            مدیریت رزرو نمایندگان
             </summary>
             
         </member>
@@ -6394,7 +6172,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه رزرو همکار</param>
+            <param name="id">شناسه رزرو نماینده</param>
             <returns>
             </returns>
         </member>
@@ -6417,14 +6195,14 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.CompanionReservePaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.CompanionReservePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionReserveRemoveRebateController">
             <summary>
-            مدیریت حذف تخفیف رزرو همکار
+            مدیریت حذف تخفیف رزرو نماینده
             </summary>
             
         </member>
@@ -6437,7 +6215,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionReserveSetRebateController">
             <summary>
-            مدیریت افزودن تخفیف رزرو همکار
+            مدیریت افزودن تخفیف رزرو نماینده
             </summary>
             
         </member>
@@ -6476,7 +6254,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionUserController">
             <summary>
-            مدیریت خدمات همکاران
+            مدیریت خدمات نمایندگان
             </summary>
             
         </member>
@@ -6596,7 +6374,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -6641,7 +6419,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PansionReserveController">
             <summary>
-            مدیریت رزرو همکاران
+            مدیریت رزرو نمایندگان
             </summary>
             
         </member>
@@ -6655,7 +6433,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه رزرو همکار</param>
+            <param name="id">شناسه رزرو نماینده</param>
             <returns>
             </returns>
         </member>
@@ -6671,14 +6449,14 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.PansionReservePaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.PansionReservePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PansionReserveRemoveRebateController">
             <summary>
-            مدیریت حذف تخفیف رزرو همکار
+            مدیریت حذف تخفیف رزرو نماینده
             </summary>
             
         </member>
@@ -6691,7 +6469,7 @@
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PansionReserveSetRebateController">
             <summary>
-            مدیریت افزودن تخفیف رزرو همکار
+            مدیریت افزودن تخفیف رزرو نماینده
             </summary>
             
         </member>
@@ -6714,6 +6492,51 @@
             </summary>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilAIController">
+            <summary>
+            مدیریت گفت و گوهای PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.#ctor(Application.Services.PastilAISrv.Iface.IPastilAiChatService,Application.Services.PastilAISrv.Iface.IPastilAiPlanService,Application.Common.Interface.ICurrentUserHelper,Microsoft.Extensions.Options.IOptions{Application.Services.PastilAISrv.Provider.PastilAiProviderOptions})">
+            <summary>
+            مدیریت گفت و گوهای PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Providers">
+            <summary>
+            لیست Providerهای فعال PastilAI بدون نمایش کلید API
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Plans(System.Threading.CancellationToken)">
+            <summary>
+            لیست پلن های قابل استفاده PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Quota(System.Threading.CancellationToken)">
+            <summary>
+            سهمیه روزانه کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Purchase(Application.Services.PastilAISrv.Dto.PastilAiPurchaseDto,System.Threading.CancellationToken)">
+            <summary>
+            خرید اشتراک PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Ask(Application.Services.PastilAISrv.Dto.PastilAiAskDto,System.Threading.CancellationToken)">
+            <summary>
+            ارسال پرسش به PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Conversations(Application.Common.Dto.Input.BaseInputDto,System.Threading.CancellationToken)">
+            <summary>
+            جستجوی گفت و گوهای کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Conversation(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            اطلاعات گفت و گوی کاربر
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.Api.Areas.EndUser.Controllers.PastilMatchBlockController">
             <summary>
@@ -7032,6 +6855,16 @@
         <member name="M:Api.Areas.EndUser.Controllers.PastilMatchRequestResponseController.Put(Application.Services.PastilMatchSrvs.PastilMatchRequestSrv.Dto.PastilMatchRequestResponseDto)">
             <summary>
             قبول یا رد درخواست
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchSuggestionController">
+            <summary>
+            پیشنهاد یک‌به‌یک بهترین پت‌فرند
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchSuggestionController.Post(Application.Services.PastilMatchSrvs.PastilMatchSuggestionSrv.Dto.PastilMatchSuggestionInputDto)">
+            <summary>
+            دریافت بهترین پیشنهاد بعدی بر اساس فیلترها و درصد تطابق
             </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PermissionMenuController">
@@ -7451,7 +7284,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.TripPaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.TripPaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
@@ -7769,14 +7602,14 @@
             تاریخچه کیف پول 
             </summary>
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.WalletController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.WalletController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید
             </summary>  
         </member>
         <member name="T:Api.Areas.Operator.Controllers.CompanionReserveController">
             <summary>
-            مدیریت  رزرو همکاران
+            مدیریت  رزرو نمایندگان
             </summary>
             
         </member>
@@ -7790,7 +7623,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه همکار</param>
+            <param name="id">شناسه نماینده</param>
             <returns>
             </returns>
         </member>
@@ -8340,6 +8173,16 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Controllers.AssistanceGroupController">
+            <summary>
+            گروه‌های خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.AssistanceGroupController.Get(Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto.AssistanceGroupInputDto)">
+            <summary>
+            جستجوی گروه‌های فعال خدمات
+            </summary>
+        </member>
         <member name="T:Api.Controllers.BackgroundTaskController">
             <summary>
             پس زمینه
@@ -8543,7 +8386,7 @@
         </member>
         <member name="T:Api.Controllers.CompanionAssistanceController">
             <summary>
-            مدیریت خدمات همکاران
+            مدیریت خدمات نمایندگان
             </summary>
             
         </member>
@@ -8557,13 +8400,13 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه خدمات همکاران</param>
+            <param name="id">شناسه خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Controllers.CompanionAssistancePackageController">
             <summary>
-            مدیریت پکیج های خدمات همکاران
+            مدیریت پکیج های خدمات نمایندگان
             </summary>
             
         </member>
@@ -8577,7 +8420,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه پکیج خدمات همکاران</param>
+            <param name="id">شناسه پکیج خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -8606,7 +8449,7 @@
         </member>
         <member name="T:Api.Controllers.CompanionAssistanceTimeController">
             <summary>
-            مدیریت زمان های خدمات همکاران
+            مدیریت زمان های خدمات نمایندگان
             </summary>
             
         </member>
@@ -8620,13 +8463,13 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه زمان خدمات همکاران</param>
+            <param name="id">شناسه زمان خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Controllers.CompanionAssistanceTimeTomarowController">
             <summary>
-            مدیریت زمان های خدمات همکاران
+            مدیریت زمان های خدمات نمایندگان
             </summary>
             
         </member>
@@ -8644,7 +8487,7 @@
         </member>
         <member name="M:Api.Controllers.CompanionAssistanceUserController.Get(Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto.CompanionAssistanceUserInputDto)">
             <summary>
-            جستجو کاربران خدمات همکاران
+            جستجو کاربران خدمات نمایندگان
             </summary>
             <returns></returns> 
         </member>
@@ -8652,7 +8495,7 @@
             <summary>
              اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <param name="id">شناسه کاربر خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
@@ -8678,7 +8521,7 @@
         </member>
         <member name="T:Api.Controllers.CompanionInsurancePackageController">
             <summary>
-            مدیریت پکیج های بیمه همکاران
+            مدیریت پکیج های بیمه نمایندگان
             </summary>
             
         </member>
@@ -8692,19 +8535,19 @@
             <summary>
             اطلاعات آیتم 
             </summary>
-            <param name="id">شناسه کاربر خدمات همکاران</param>
+            <param name="id">شناسه کاربر خدمات نمایندگان</param>
             <returns>
             </returns>
         </member>
         <member name="T:Api.Controllers.CompanionPetController">
             <summary>
-            مدیریت پت های همکاران
+            مدیریت پت های نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Controllers.CompanionPetController.#ctor(Application.Services.CompanionSrvs.CompanionPetSrv.Iface.ICompanionPetService)">
             <summary>
-            مدیریت پت های همکاران
+            مدیریت پت های نمایندگان
             </summary>
         </member>
         <member name="M:Api.Controllers.CompanionPetController.Get(System.Int64)">
@@ -8721,7 +8564,7 @@
         </member>
         <member name="T:Api.Controllers.CompanionReserveController">
             <summary>
-            مدیریت  رزرو همکاران
+            مدیریت  رزرو نمایندگان
             </summary>
             
         </member>
@@ -8729,18 +8572,18 @@
             <summary>
             تعداد رزروهای آیتم
             </summary>
-            <param name="companionId">شناسه همکار</param>
+            <param name="companionId">شناسه نماینده</param>
             <returns>تعداد رزروها</returns>
         </member>
         <member name="T:Api.Controllers.CompanionTypeController">
             <summary>
-            مدیریت انواع همکاران
+            مدیریت انواع نمایندگان
             </summary>
             
         </member>
         <member name="M:Api.Controllers.CompanionTypeController.#ctor(Application.Services.CompanionSrvs.CompanionTypeSrv.Iface.ICompanionTypeService)">
             <summary>
-            مدیریت انواع همکاران
+            مدیریت انواع نمایندگان
             </summary>
         </member>
         <member name="M:Api.Controllers.CompanionTypeController.Get(System.Int64)">
@@ -9000,7 +8843,7 @@
             <summary>
             تعداد رزروهای آیتم
             </summary>
-            <param name="PansionId">شناسه همکار</param>
+            <param name="PansionId">شناسه نماینده</param>
             <returns>تعداد رزروها</returns>
         </member>
         <member name="T:Api.Controllers.ParkPictureController">

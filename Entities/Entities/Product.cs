@@ -5,9 +5,10 @@ using System.Collections.Generic;
 
 namespace Entities.Entities
 {
-    public class Product : Seo_Full_Field
+    public class Product : Seo_Full_Field, ISlugEntity
     {
         public string ProductLabel { get; set; }
+        public string Slug { get; set; }
         public string SecondName { get; set; }
         public int? SellLimitCount { get; set; }
         public long? CategoryId { get; set; }
@@ -53,5 +54,6 @@ namespace Entities.Entities
         public ICollection<Post> Posts { get; set; }
         public ICollection<ProductItem> ProductItems { get; set; }
 
+        public string GetSlugSource() => ProductLabel;
     }
 }

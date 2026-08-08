@@ -6,6 +6,7 @@ namespace Application.Services.ProductSrvs.ProductSrv.Dto
 {
     public class ProductMinVDto : Name_FieldDto
     {
+        public string Slug { get; set; }
         public string SecondName { get; set; }
         public string ProductLabel { get; set; }
         public long PictureId { get; set; }

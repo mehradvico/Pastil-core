@@ -7,8 +7,8 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
     public class AssistanceDto : FullName_FieldDto
     {
         public bool IsPersonal { get; set; }
+        public long? AssistanceGroupId { get; set; }
         public long? PictureId { get; set; }
         public bool Active { get; set; }
-
     }
 }

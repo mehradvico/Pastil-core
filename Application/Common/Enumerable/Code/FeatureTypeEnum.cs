@@ -2,7 +2,7 @@
 {
     public enum FeatureTypeEnum
     {
-        FeatureType_SmallText,
-        FeatureType_LargeText
+        FeatureType_SmallText = 100,
+        FeatureType_LargeText = 101
     }
 }

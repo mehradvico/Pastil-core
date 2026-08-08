@@ -48,7 +48,7 @@ namespace Api.Areas.EndUser.Controllers
         /// <returns></returns> 
 
         [HttpGet]
-        [ProducesResponseType(typeof(AddressInputDto), 200)]
+        [ProducesResponseType(typeof(AddressSearchDto), 200)]
         public IActionResult Get([FromQuery] AddressInputDto dto)
         {
             dto.UserId = _currentUserHelper.CurrentUser.UserId;

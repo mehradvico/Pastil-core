@@ -4,6 +4,7 @@ using Application.Common.Enumerable.Code;
 using Application.Common.Enumerable.Message;
 using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
+using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
@@ -41,7 +42,8 @@ namespace Application.Services.TripSrv.TripSrv
         private readonly IAdminSettingHelper _adminSettingHelper;
         private readonly IRebateService _rebateService;
         private readonly IWalletService _walletService;
-        public TripService(IDataBaseContext _context, IMapper mapper, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, IPriceCalculationService priceCalculationService, ITripOptionService tripOptionService, ICodeService codeService, IMessageSenderService messageSender, INoticeService noticeService) : base(_context, mapper)
+        private readonly ICurrentUserHelper _currentUser;
+        public TripService(IDataBaseContext _context, IMapper mapper, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, IPriceCalculationService priceCalculationService, ITripOptionService tripOptionService, ICodeService codeService, IMessageSenderService messageSender, INoticeService noticeService, ICurrentUserHelper currentUser) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -53,6 +55,7 @@ namespace Application.Services.TripSrv.TripSrv
             _adminSettingHelper = adminSettingHelper;
             this._rebateService = rebateService;
             this._walletService = walletService;
+            _currentUser = currentUser;
         }
         //public async Task<BaseResultDto<TripVDto>> UpdateVDtoAsync(TripVDto vDto)
         //{
@@ -392,19 +395,17 @@ namespace Application.Services.TripSrv.TripSrv
             try
             {
                 var trip = await _context.Trips.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s => s.Id == tripId);
+                if (trip == null)
+                    return new BaseResultDto(false, Resource.Notification.NothingFound);
+                if (trip.IsPaid)
+                    return new BaseResultDto(true);
 
-                if (fromWallet)
+                if (fromWallet && trip.FromWallet && trip.WalletPrice > 0)
                 {
-                    var amount = await _walletService.GetAmountValueAsync(trip.UserPet.UserId);
-                    if (amount >= trip.WalletPrice)
-                    {
-                        var walletItem = new WalletDto() { Painding = false, Amount = trip.WalletPrice, UserId = trip.UserPet.UserId, TripId = trip.Id };
-                        await _walletService.InsertUpdateTripAsync(walletItem, true);
-                    }
-                    else
-                    {
+                    var walletItem = new WalletDto() { Painding = false, Amount = trip.WalletPrice, UserId = trip.UserPet.UserId, TripId = trip.Id };
+                    var walletResult = await _walletService.InsertUpdateTripAsync(walletItem, true);
+                    if (!walletResult.IsSuccess)
                         return new BaseResultDto(false);
-                    }
                 }
                 trip.IsPaid = true;
                 _context.Trips.Update(trip);
@@ -572,7 +573,11 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task<BaseResultDto> SetRebateCodeAsyncDto(TripSetRebateCodeDto dto)
         {
-            var item = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && s.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted);
+            var item = await _context.Trips.AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == dto.Id &&
+                s.UserId == _currentUser.CurrentUser.UserId &&
+                !s.IsPaid &&
+                s.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted);
 
             if (item == null)
             {
@@ -605,7 +610,10 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task<BaseResultDto> ClearRebateCodeAsync(long id)
         {
-            var item = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.Trips.AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == id && s.UserId == _currentUser.CurrentUser.UserId && !s.IsPaid);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -616,7 +624,10 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task<BaseResultDto> SetWalletAsyncDto(TripSetWalletDto dto)
         {
-            var item = await _context.Trips.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && s.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted);
+            var item = await _context.Trips.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == dto.Id &&
+                s.UserId == _currentUser.CurrentUser.UserId &&
+                s.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted);
             if (item == null)
             {
                 return new BaseResultDto<TripSetWalletDto>(false, Resource.Notification.NothingFound, dto);

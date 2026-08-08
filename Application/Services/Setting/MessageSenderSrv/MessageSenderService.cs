@@ -33,7 +33,10 @@ namespace Application.Services.Setting.MessageSenderSrv
             if (!string.IsNullOrEmpty(mobileReceptor))
             {
                 await _smsService.SendSmsAsync(smsType: messageType, receptor: mobileReceptor, body: body, token1: token1, token2: token2, token3: token3, token4: token4, token5: token5, sendDate: sendDate);
-                await CreateSmsNoticeAsync(messageType, mobileReceptor, body, token1, token2, token3, token4, token5, sendDate);
+                if (messageType != MessageTypeEnum.Otp)
+                {
+                    await CreateSmsNoticeAsync(messageType, mobileReceptor, body, token1, token2, token3, token4, token5, sendDate);
+                }
             }
 
             if (!string.IsNullOrEmpty(emailReceptor))

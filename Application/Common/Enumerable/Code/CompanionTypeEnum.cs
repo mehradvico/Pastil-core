@@ -2,11 +2,11 @@
 {
     public enum CompanionTypeEnum
     {
-        CompanionType_Clinic = 10021,
-        CompanionType_DogWalker = 10022,
-        CompanionType_Laboratory = 10030,
-        CompanionType_Barber = 10029,
-        CompanionType_Nurse = 10075,
-        CompanionType_Grooming = 10076
+        CompanionType_Clinic = 40,
+        CompanionType_DogWalker = 41,
+        CompanionType_Laboratory = 42,
+        CompanionType_Barber = 43,
+        CompanionType_Nurse = 44,
+        CompanionType_Grooming = 45
     }
 }

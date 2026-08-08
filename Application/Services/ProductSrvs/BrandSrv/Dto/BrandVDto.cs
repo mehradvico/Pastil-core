@@ -5,6 +5,7 @@ namespace Application.Services.ProductSrvs.BrandSrv.Dto
 {
     public class BrandVDto : Seo_Full_FieldDto
     {
+        public string Slug { get; set; }
         public long? PictureId { get; set; }
         public long? IconId { get; set; }
         public int Priority { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Dto.Field;
 using Application.Common.Service;
 using Application.Services.Content.BannerSrv.Dto;
 using Application.Services.Content.BannerSrv.Iface;
@@ -6,7 +7,9 @@ using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
+using System.Net;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Application.Services.Content.BannerSrv
@@ -30,7 +33,9 @@ namespace Application.Services.Content.BannerSrv
             var item = await _baseQuery.Include(s => s.Picture2).Include(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
-                return new BaseResultDto<BannerVDto>(true, mapper.Map<BannerVDto>(item));
+                var result = mapper.Map<BannerVDto>(item);
+                SanitizeTextFields(result);
+                return new BaseResultDto<BannerVDto>(true, result);
             }
             return new BaseResultDto<BannerVDto>(false, mapper.Map<BannerVDto>(item));
         }
@@ -103,9 +108,60 @@ namespace Application.Services.Content.BannerSrv
                         break;
                 }
             }
-            return new BaseSearchDto<Banner, BannerVDto>(searchDto, query, mapper);
+            var result = new BaseSearchDto<Banner, BannerVDto>(searchDto, query, mapper);
+            result.List.ForEach(SanitizeTextFields);
+            return result;
         }
 
+        public override async Task<BaseResultDto<BannerDto>> InsertAsyncDto(BannerDto dto)
+        {
+            SanitizeTextFields(dto);
+            return await base.InsertAsyncDto(dto);
+        }
+
+        public override BaseResultDto UpdateDto(BannerDto dto)
+        {
+            SanitizeTextFields(dto);
+            return base.UpdateDto(dto);
+        }
+
+        private static void SanitizeTextFields(FullName_FieldDto dto)
+        {
+            if (dto == null)
+            {
+                return;
+            }
+
+            dto.Summary = ToPlainText(dto.Summary);
+            dto.Description = ToPlainText(dto.Description);
+        }
+
+        private static string ToPlainText(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var decoded = WebUtility.HtmlDecode(value);
+            decoded = Regex.Replace(
+                decoded,
+                @"<(script|style)\b[^>]*>[\s\S]*?</\1>",
+                " ",
+                RegexOptions.IgnoreCase);
+            decoded = Regex.Replace(decoded, @"<br\s*/?>", "\n", RegexOptions.IgnoreCase);
+            decoded = Regex.Replace(
+                decoded,
+                @"</(p|div|li|h[1-6])>",
+                "\n",
+                RegexOptions.IgnoreCase);
+            decoded = Regex.Replace(decoded, @"<[^>]+>", " ");
+            decoded = Regex.Replace(decoded, @"[^\S\r\n]+", " ");
+            decoded = Regex.Replace(decoded, @" *(\r?\n) *", "$1");
+            decoded = Regex.Replace(decoded, @"(\r?\n){3,}", "\n\n");
+
+            return decoded.Trim();
+        }
 
     }
 }

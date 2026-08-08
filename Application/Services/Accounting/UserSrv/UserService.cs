@@ -16,6 +16,7 @@ using Application.Services.Dto;
 using Application.Services.Setting.BaseDetailSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
 using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
@@ -41,8 +42,9 @@ namespace Application.Services.UserSrv
         private readonly IBaseDetailService _baseDetailService;
         private readonly IMessageSenderService _messageSenderService;
         private readonly IPushNotificationService _pushNotificationService;
+        private readonly INoticeService _noticeService;
 
-        public UserService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserTokenService userTokenSevice, IOtpVerifyService otpVerifyService, IMapper mapper, IConfiguration configuration, IRegixHelper RegixHelper, IBaseDetailService baseDetailService, IMessageSenderService messageSenderService) : base(_context, mapper)
+        public UserService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserTokenService userTokenSevice, IOtpVerifyService otpVerifyService, IMapper mapper, IConfiguration configuration, IRegixHelper RegixHelper, IBaseDetailService baseDetailService, IMessageSenderService messageSenderService, INoticeService noticeService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -53,6 +55,7 @@ namespace Application.Services.UserSrv
             this._baseDetailService = baseDetailService;
             this._messageSenderService = messageSenderService;
             this._pushNotificationService = pushNotificationService;
+            this._noticeService = noticeService;
         }
         public override async Task<BaseResultDto<UserDto>> InsertAsyncDto(UserDto dto)
         {
@@ -104,8 +107,9 @@ namespace Application.Services.UserSrv
                         return new BaseResultDto<UserDto>(isSuccess: false, messages: errors, dto);
                     }
 
-                    dto.Password = dto.Password?.Tosha256Hash();
+                    var passwordHash = dto.Password?.Tosha256Hash();
                     var item = mapper.Map<User>(dto);
+                    item.Password = passwordHash;
                     item.CreateDate = DateTime.Now;
 
                     var random = new Random();
@@ -117,6 +121,20 @@ namespace Application.Services.UserSrv
                     await _context.Users.AddAsync(item);
                     await _context.SaveChangesAsync();
                     dto.Id = item.Id;
+                    dto.Password = null;
+                    await _noticeService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.UserRegistered,
+                        ActorUserId = item.Id,
+                        ReferenceType = "User",
+                        ReferenceId = item.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.UserRegistered}:{item.Id}",
+                        Metadata = new Dictionary<string, string>
+                        {
+                            { "userName", string.IsNullOrWhiteSpace($"{item.FirstName} {item.LastName}".Trim()) ? item.Mobile : $"{item.FirstName} {item.LastName}".Trim() },
+                            { "mobile", item.Mobile }
+                        }
+                    });
                     return new BaseResultDto<UserDto>(isSuccess: true, dto);
                 }
 
@@ -148,7 +166,7 @@ namespace Application.Services.UserSrv
                         errors.Add(new Tuple<string, string>(Resource.Notification.TheMobileNumberIsWrong, nameof(dto.Mobile)));
                     }
 
-                    if (!RegixHelper.IsEmailAsync(dto.Email).Result)
+                    if (!string.IsNullOrEmpty(dto.Email) && !RegixHelper.IsEmailAsync(dto.Email).Result)
                     {
                         errors.Add(new Tuple<string, string>(Resource.Notification.TheEmailAddressIsWrong, nameof(dto.Email)));
                     }
@@ -163,7 +181,9 @@ namespace Application.Services.UserSrv
                         errors.Add(new Tuple<string, string>(Resource.Notification.TheMobileNumberIsDuplicate, nameof(dto.Mobile)));
                     }
 
-                    if (dto.Email != item.Email && (!EmailIsUnique(dto.Email)))
+                    if (!string.IsNullOrEmpty(dto.Email) &&
+                        dto.Email != item.Email &&
+                        !EmailIsUnique(dto.Email))
                     {
                         errors.Add(new Tuple<string, string>(Resource.Notification.TheEmailAddressIsDuplicate, nameof(dto.Email)));
                     }
@@ -173,6 +193,7 @@ namespace Application.Services.UserSrv
                         return new BaseResultDto(isSuccess: false, messages: errors);
                     }
 
+                    var passwordHash = item.Password;
                     if (!string.IsNullOrEmpty(dto.Password))
                     {
                         dto.Password = dto.Password.ToEnglishDigitsAsync().Result;
@@ -184,14 +205,11 @@ namespace Application.Services.UserSrv
                         {
                             return new BaseResultDto<UserDto>(isSuccess: false, messages: errors, dto);
                         }
-                        dto.Password = dto.Password.Tosha256Hash();
-                    }
-                    else
-                    {
-                        dto.Password = item.Password;
+                        passwordHash = dto.Password.Tosha256Hash();
                     }
 
                     mapper.Map(dto, item);
+                    item.Password = passwordHash;
                     item.ReferralCode = item.ReferralCode;
 
                     _context.Users.Update(item);
@@ -404,15 +422,18 @@ namespace Application.Services.UserSrv
 
             }
 
-            var token = userTokenSevice.CreateToken(item, user.IsAdmin);
+            var tokenResult = await userTokenSevice.ResetTokenAsync(
+                item,
+                user.IsAdmin,
+                user.IsAdmin ? user.RememberMe : true);
             await ChangUserCartAsync(item.Id, user.CartCode);
             await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSignInUser, userId: item.Id, token1: item.FirstName);
-            return new BaseResultDto<UserTokenDto>(isSuccess: true, data: token);
+            return tokenResult;
         }
         private UserTokenDto CreateToken(long userId)
         {
             var user = _context.Users.Include(s => s.Role).FirstOrDefault(s => s.Id == userId);
-            return userTokenSevice.CreateToken(user);
+            return userTokenSevice.CreateToken(user, rememberMe: true);
         }
 
         public async Task<BaseResultDto> SignUp(SignUpDto user)

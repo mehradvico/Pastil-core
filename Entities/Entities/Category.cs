@@ -4,10 +4,11 @@ using System.Collections.Generic;
 
 namespace Entities.Entities
 {
-    public class Category : Seo_Full_Field
+    public class Category : Seo_Full_Field, ISlugEntity
     {
         public long? ParentId { get; set; }
         public string Label { get; set; }
+        public string Slug { get; set; }
         public int Priority { get; set; }
         public long? PictureId { get; set; }
         public long? IconId { get; set; }
@@ -24,5 +25,7 @@ namespace Entities.Entities
         public ICollection<Brand> Brands { get; set; }
         public ICollection<Variety> Varieties { get; set; }
         public ICollection<Banner> Banner { get; set; }
+
+        public string GetSlugSource() => Label;
     }
 }

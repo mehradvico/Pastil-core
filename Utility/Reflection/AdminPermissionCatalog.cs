@@ -20,11 +20,12 @@ namespace Utility.Reflection
             new(3, "مدیریت پت ها", "PetManagement", 3),
             new(4, "مدیریت نمایندگان", "CompanionManagement", 4),
             new(5, "مدیریت فروشگاه", "ShopManagement", 5),
-            new(6, "مدیریت محتوا", "ContentManagement", 6),
-            new(7, "مدیریت یادآورها", "ReminderManagement", 7),
-            new(8, "مدیریت مالی", "FinancialManagement", 8),
-            new(9, "مدیریت موقعیت ها", "LocationManagement", 9),
-            new(10, "مدیریت پاستیل فرند", "PastilMatchManagement", 10)
+            new(11, "مدیریت PastilAI", "PastilAIManagement", 6),
+            new(6, "مدیریت محتوا", "ContentManagement", 7),
+            new(7, "مدیریت یادآورها", "ReminderManagement", 8),
+            new(8, "مدیریت مالی", "FinancialManagement", 9),
+            new(9, "مدیریت موقعیت ها", "LocationManagement", 10),
+            new(10, "مدیریت پاستیل فرند", "PastilMatchManagement", 11)
         ];
 
         private static readonly HashSet<string> MenuControllers = new(StringComparer.OrdinalIgnoreCase)
@@ -34,7 +35,6 @@ namespace Utility.Reflection
             "AssistanceQuestionnaire",
             "Banner",
             "Brand",
-            "ClubReward",
             "Category",
             "City",
             "Companion",
@@ -45,11 +45,10 @@ namespace Utility.Reflection
             "Detail",
             "Discount",
             "DiscussionQuestion",
-            "Driver",
+            "PastilAI",
             "Feature",
             "Finance",
             "Neighborhood",
-            "Newsletter",
             "Pansion",
             "PansionReserve",
             "Park",
@@ -62,7 +61,6 @@ namespace Utility.Reflection
             "Pet",
             "PetBreed",
             "Product",
-            "ProductComment",
             "ProductOrder",
             "PushMessage",
             "Rebate",
@@ -70,14 +68,11 @@ namespace Utility.Reflection
             "ReminderCycle",
             "ReminderType",
             "Role",
-            "Settlement",
             "State",
-            "StaticPage",
             "Store",
             "StoryGroup",
             "Ticket",
             "User",
-            "UserBankCard",
             "Variety",
             "Wallet"
         };
@@ -99,31 +94,32 @@ namespace Utility.Reflection
 
             AddGroup(result, "Settings",
             [
+                "Role",
+                "Permission",
+                "PermissionSync",
+                "Category",
+                "Ticket",
                 "PushMessage",
                 "PushBroadcast",
-                "Permission",
                 "RolePermission",
-                "Role",
-                "Category",
                 "CodeGroup",
                 "Code",
                 "TicketChangeImportant",
                 "TicketAdmin",
                 "TicketChangeStatus",
                 "Bank",
-                "Ticket",
                 "TicketChangeAdmin",
                 "TicketMessage",
                 "BaseDetail",
+                "ClubReward",
                 "NotifyMessage"
             ]);
 
             AddGroup(result, "UserManager",
             [
-                "UserPet",
-                "Driver",
                 "User",
-                "ClubReward",
+                "UserPet",
+                "Driver",           
                 "DriverUpdateStatus"
             ]);
 
@@ -145,6 +141,7 @@ namespace Utility.Reflection
                 "CompanionUserAvailable",
                 "CompanionReport",
                 "Assistance",
+                "AssistanceGroup",
                 "PansionActive",
                 "CompanionActivation",
                 "CompanionAssistance",
@@ -177,24 +174,27 @@ namespace Utility.Reflection
             AddGroup(result, "ShopManagement",
             [
                 "Store",
-                "StoreComment",
                 "Product",
-                "ProductReport",
                 "Brand",
+                "BrandLanguage",
+                "Variety",
+                "VarietyLanguage",
+                "Feature",
                 "Delivery",
+                "Rebate",
+                "Discount",
                 "DiscussionQuestion",
+                "StoreComment",
+                "ProductReport",
                 "DiscussionAnswer",
                 "Trip",
                 "TripOption",
-                "Variety",
                 "TripStop",
                 "ProductComment",
-                "Feature",
                 "Cargo",
-                "Rebate",
                 "ProductFile",
-                "Discount",
                 "DiscountGroup",
+                "CategoryLanguage",
                 "ProductPicture",
                 "BrandCategory",
                 "CategoryFeature",
@@ -213,6 +213,11 @@ namespace Utility.Reflection
                 "TripShare",
                 "UpdateCargoStatus",
                 "VarietyItem"
+            ]);
+
+            AddGroup(result, "PastilAIManagement",
+            [
+                "PastilAI"
             ]);
 
             AddGroup(result, "ContentManagement",
@@ -270,6 +275,7 @@ namespace Utility.Reflection
                 "CompanionReserveExcel",
                 "FinanceCompanion",
                 "ManualTripPayment",
+                "ManualPayment",
                 "ProductOrderStore",
                 "Settlement",
                 "UserBankCardApprove",
@@ -281,6 +287,7 @@ namespace Utility.Reflection
                 "Country",
                 "State",
                 "City",
+                "CityLanguage",
                 "ParkPicture",
                 "Park",
                 "Neighborhood",

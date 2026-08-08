@@ -2,10 +2,12 @@
 
 namespace Entities.Entities
 {
-    public class Banner : FullName_Field
+    public class Banner : FullName_Field, ISlugEntity
     {
 
         public string Url { get; set; }
+        public string Label { get; set; }
+        public string Slug { get; set; }
         public int Priority { get; set; }
         public long? CategoryId { get; set; }
         public long? PictureId { get; set; }
@@ -16,5 +18,7 @@ namespace Entities.Entities
         public Category Category { get; set; }
         public Picture Picture { get; set; }
         public Picture Picture2 { get; set; }
+
+        public string GetSlugSource() => Label;
     }
 }

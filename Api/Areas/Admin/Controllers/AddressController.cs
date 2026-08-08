@@ -46,10 +46,10 @@ namespace Api.Areas.Admin.Controllers
         /// <returns></returns> 
 
         [HttpGet]
-        [ProducesResponseType(typeof(AddressInputDto), 200)]
-        public IActionResult Get([FromQuery] AddressInputDto dto)
+        [ProducesResponseType(typeof(AdminAddressSearchDto), 200)]
+        public IActionResult Get([FromQuery] AdminAddressInputDto dto)
         {
-            var searchDto = AddressService.Search(dto);
+            var searchDto = AddressService.SearchAdmin(dto);
             return Ok(searchDto);
         }
         /// <summary>

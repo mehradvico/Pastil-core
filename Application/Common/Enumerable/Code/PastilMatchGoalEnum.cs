@@ -8,9 +8,9 @@ namespace Application.Common.Enumerable.Code
 {
     public enum PastilMatchGoalEnum
     {
-        PastilMatchGoal_Walking = 10124,
-        PastilMatchGoal_Playing = 10125,
-        PastilMatchGoal_Friendship = 10126, 
-        PastilMatchGoal_ParkMeetup = 10127
+        PastilMatchGoal_Walking = 106,
+        PastilMatchGoal_Playing = 107,
+        PastilMatchGoal_Friendship = 108,
+        PastilMatchGoal_ParkMeetup = 109
     }
 }

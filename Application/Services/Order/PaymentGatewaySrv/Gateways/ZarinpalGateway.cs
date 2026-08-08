@@ -1,6 +1,6 @@
 ﻿using Application.Services.Order.PaymentGatewaySrv.Dto;
 using Application.Services.Order.PaymentGatewaySrv.Iface;
-using Application.Services.Order.ProductOrderSrv.Dto;
+using Application.Services.Order.PaymentSrv.Dto;
 using Application.Common.Enumerable;
 using Application.Common.Helpers.Iface;
 using Entities.Entities;
@@ -65,13 +65,10 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
             }
         }
 
-        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request, bool testMode)
+        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request)
         {
             try
             {
-                if (testMode)
-                    return new GatewayCallbackResultDto { IsSuccess = true, Description = "TEST_MODE" };
-
                 var status = request.Query["Status"].ToString();
                 var authority = request.Query["Authority"].ToString();
 

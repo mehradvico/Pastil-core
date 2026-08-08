@@ -8,9 +8,9 @@ namespace Application.Common.Enumerable.Code
 {
     public enum PastilMatchMessageTypeEnum
     {
-        PastilMatchMessageType_Text = 10135,
-        PastilMatchMessageType_Image = 10136,
-        PastilMatchMessageType_Voice = 10137,
-        PastilMatchMessageType_System = 10138
+        PastilMatchMessageType_Text = 117,
+        PastilMatchMessageType_Image = 118,
+        PastilMatchMessageType_Voice = 119,
+        PastilMatchMessageType_System = 120
     }
 }

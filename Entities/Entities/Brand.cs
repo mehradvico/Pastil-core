@@ -4,9 +4,10 @@ using System.Collections.Generic;
 
 namespace Entities.Entities
 {
-    public class Brand : Seo_Full_Field
+    public class Brand : Seo_Full_Field, ISlugEntity
     {
         public string SecondName { get; set; }
+        public string Slug { get; set; }
 
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
@@ -20,5 +21,6 @@ namespace Entities.Entities
         public Picture Icon { get; set; }
         public ICollection<Category> Categories { get; set; }
 
+        public string GetSlugSource() => SecondName;
     }
 }

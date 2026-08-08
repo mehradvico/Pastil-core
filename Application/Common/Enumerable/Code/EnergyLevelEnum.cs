@@ -8,10 +8,10 @@ namespace Application.Common.Enumerable.Code
 {
     public enum EnergyLevelEnum
     {
-        EnergyLevel_VeryLow = 10114,
-        EnergyLevel_Low = 10115,
-        EnergyLevel_Medium = 10116,
-        EnergyLevel_High = 10117, 
-        EnergyLevel_VeryHigh = 10118
+        EnergyLevel_VeryLow = 121,
+        EnergyLevel_Low = 122,
+        EnergyLevel_Medium = 123,
+        EnergyLevel_High = 124,
+        EnergyLevel_VeryHigh = 125
     }
 }

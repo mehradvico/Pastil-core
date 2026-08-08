@@ -9,6 +9,7 @@ namespace Application.Services.ProductSrvs.ProductSrv.Dto
 {
     public class ProductDto : Seo_Full_FieldDto
     {
+        public string Slug { get; set; }
         public string ProductLabel { get; set; }
 
         public string SecondName { get; set; }

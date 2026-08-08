@@ -7,6 +7,7 @@ namespace Application.Services.CategorySrv.Dto
     {
         public long? ParentId { get; set; }
         public string Label { get; set; }
+        public string Slug { get; set; }
         public int Priority { get; set; }
         public long? PictureId { get; set; }
         public long? IconId { get; set; }

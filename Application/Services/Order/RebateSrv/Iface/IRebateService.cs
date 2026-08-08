@@ -17,12 +17,14 @@ namespace Application.Services.Order.RebateSrv.Iface
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(CompanionInsurancePackageSale insurance, string Code);
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(Trip trip, string Code);
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(PansionReserve pansion, string Code);
+        BaseResultDto<RebateVDto> GetRebateByCodeAsync(double basePrice, long userId, string typeLabel, string code);
         void IncreaseUseCount(ProductOrder order);
         void IncreaseUseCount(CompanionReserve reserve);
         void IncreaseUseCount(Cargo cargo);
         void IncreaseUseCount(Trip trip);
         void IncreaseUseCount(CompanionInsurancePackageSale insurance);
         void IncreaseUseCount(PansionReserve pansion);
+        void IncreaseUseCount(Rebate rebate, long userId);
 
     }
 }

@@ -2,9 +2,9 @@
 {
     public enum CompanionReserveStateEnum
     {
-        CompanianReserveState_Registered = 10031,
-        CompanianReserveState_PrePaid = 10017,
-        CompanianReserveState_Paid = 10018,
-        CompanianReserveState_Complete = 10020
+        CompanianReserveState_Registered = 30,
+        CompanianReserveState_PrePaid = 31,
+        CompanianReserveState_Paid = 32,
+        CompanianReserveState_Complete = 33
     }
 }

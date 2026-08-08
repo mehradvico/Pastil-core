@@ -3,11 +3,11 @@
     public enum ProductStatusEnum
     {
 
-        ProductStatus_Draft = 10,
-        ProductStatus_NotSell = 11,
-        ProductStatus_Soo = 12,
-        ProductStatus_NotAvailable = 13,
-        ProductStatus_Available = 14,
+        ProductStatus_Draft = 4,
+        ProductStatus_NotSell = 5,
+        ProductStatus_Soo = 6,
+        ProductStatus_NotAvailable = 7,
+        ProductStatus_Available = 8,
 
 
     }

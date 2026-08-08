@@ -1,7 +1,7 @@
 ﻿using Application.Services.Dto;
 using Application.Services.Order.MerchantSrv.Dto;
 
-namespace Application.Services.Order.ProductOrderSrv.Dto
+namespace Application.Services.Order.PaymentSrv.Dto
 {
     public class PaymentStartDto
     {
@@ -18,12 +18,14 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public MerchantVDto Merchant { get; set; }
         public string PaymentUrl { get; set; }
         public bool PaymentIsLink { get; set; }
+        public bool IsTestMode { get; set; }
+        public string TestSuccessUrl { get; set; }
+        public string TestFailureUrl { get; set; }
         public long? UserId { get; set; }
         public long TypeId { get; set; }
         public string CallBackTypeLabel { get; set; }
         public string CallBackId { get; set; }
         public string CallbackUrl { get; set; }
         public UserMinVDto User { get; set; }
-
     }
 }

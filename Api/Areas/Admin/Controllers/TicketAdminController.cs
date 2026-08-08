@@ -44,5 +44,16 @@ namespace Api.Areas.Admin.Controllers
             var searchDto = await TicketService.SearchCurrentAdminAsync(dto);
             return Ok(searchDto);
         }
+
+        /// <summary>
+        /// اختصاص تیکت آزاد به ادمین جاری
+        /// </summary>
+        [HttpPut("{id}/Take")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Take(long id)
+        {
+            var result = await TicketService.TakeCurrentAdminAsync(id);
+            return Ok(result);
+        }
     }
 }

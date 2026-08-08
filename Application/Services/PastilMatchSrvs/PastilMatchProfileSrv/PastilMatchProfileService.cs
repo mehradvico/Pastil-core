@@ -6,12 +6,16 @@ using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities.PastilMatchField;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,16 +26,19 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly ICurrentUserHelper _currentUser;
+        private readonly INoticeService _noticeService;
 
         public PastilMatchProfileService(
             IDataBaseContext _context,
             IMapper mapper,
-            ICurrentUserHelper currentUser
+            ICurrentUserHelper currentUser,
+            INoticeService noticeService
         ) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             this._currentUser = currentUser;
+            this._noticeService = noticeService;
         }
 
         public async Task<BaseResultDto<PastilMatchProfileVDto>> FindAsyncVDto(long id)
@@ -340,6 +347,18 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
 
                 await _context.PastilMatchProfiles.AddAsync(item);
                 await _context.SaveChangesAsync();
+                await _noticeService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.PastilMatchProfileSubmitted,
+                    ActorUserId = userId,
+                    ReferenceType = "PastilMatchProfile",
+                    ReferenceId = item.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.PastilMatchProfileSubmitted}:{item.Id}",
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "userPetId", item.UserPetId.ToString() }
+                    }
+                });
 
                 return new BaseResultDto<PastilMatchProfileDto>(
                     true,
@@ -489,7 +508,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             }
         }
 
-        public BaseResultDto RequestVerificationDto(
+        public async Task<BaseResultDto> RequestVerificationDto(
             PastilMatchProfileVerificationRequestDto dto
         )
         {
@@ -497,9 +516,9 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             {
                 var userId = _currentUser.CurrentUser.UserId;
 
-                var item = _context.PastilMatchProfiles
+                var item = await _context.PastilMatchProfiles
                     .Include(s => s.UserPet)
-                    .FirstOrDefault(s =>
+                    .FirstOrDefaultAsync(s =>
                         s.Id == dto.Id &&
                         !s.Deleted
                     );
@@ -541,7 +560,19 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                 item.VerificationDate = null;
 
                 _context.PastilMatchProfiles.Update(item);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+                await _noticeService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.PastilMatchVerificationRequested,
+                    ActorUserId = userId,
+                    ReferenceType = "PastilMatchProfile",
+                    ReferenceId = item.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.PastilMatchVerificationRequested}:{item.Id}:{DateTime.UtcNow.Ticks}",
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "userPetId", item.UserPetId.ToString() }
+                    }
+                });
 
                 return new BaseResultDto(true);
             }

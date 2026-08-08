@@ -1,5 +1,6 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.Security;
+using Entities.Entities.PastilAIField;
 using System;
 
 namespace Entities.Entities
@@ -25,6 +26,7 @@ namespace Entities.Entities
         public string CallBackId { get; set; }
         public string Token { get; set; }
         public string GatewayStatus { get; set; }
+        public PastilAiSubscription PastilAiSubscription { get; set; }
         public Merchant Merchant { get; set; }
         public File File { get; set; }
         public ProductOrder ProductOrder { get; set; }

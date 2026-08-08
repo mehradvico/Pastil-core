@@ -10,9 +10,11 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
     {
         public AssistanceSearchDto(AssistanceInputDto dto, IQueryable<Assistance> list, IMapper mapper) : base(dto, list, mapper)
         {
-            this.IsPersonal = dto.IsPersonal;
+            IsPersonal = dto.IsPersonal;
+            AssistanceGroupId = dto.AssistanceGroupId;
         }
-        public bool? IsPersonal { get; set; }
 
+        public bool? IsPersonal { get; set; }
+        public long? AssistanceGroupId { get; set; }
     }
 }

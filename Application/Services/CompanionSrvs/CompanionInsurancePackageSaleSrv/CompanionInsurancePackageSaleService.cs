@@ -180,19 +180,17 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
             try
             {
                 var insurance = await _context.CompanionInsurancePackageSales.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s => s.Id == insuranceId);
+                if (insurance == null)
+                    return new BaseResultDto(false, Resource.Notification.NothingFound);
+                if (insurance.IsPaid)
+                    return new BaseResultDto(true);
 
-                if (fromWallet)
+                if (fromWallet && insurance.FromWallet && insurance.WalletPrice > 0)
                 {
-                    var amount = await _walletService.GetAmountValueAsync(insurance.UserPet.UserId);
-                    if (amount >= insurance.WalletPrice)
-                    {
-                        var walletItem = new WalletDto() { Painding = false, Amount = insurance.WalletPrice, UserId = insurance.UserPet.UserId, CompanionInsurancePackageSaleId = insurance.Id };
-                        await _walletService.InsertUpdateInsuranceAsync(walletItem, true);
-                    }
-                    else
-                    {
+                    var walletItem = new WalletDto() { Painding = false, Amount = insurance.WalletPrice, UserId = insurance.UserPet.UserId, CompanionInsurancePackageSaleId = insurance.Id };
+                    var walletResult = await _walletService.InsertUpdateInsuranceAsync(walletItem, true);
+                    if (!walletResult.IsSuccess)
                         return new BaseResultDto(false);
-                    }
                 }
                 insurance.IsPaid = true;
                 _context.CompanionInsurancePackageSales.Update(insurance);
@@ -209,7 +207,8 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
 
         public async Task<BaseResultDto> SetRebateCodeAsyncDto(CompanionInsurancePackageSaleSetRebateCodeDto dto)
         {
-            var item = await _context.CompanionInsurancePackageSales.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
+            var item = await _context.CompanionInsurancePackageSales.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == dto.Id && s.UserPet.UserId == _currentUser.CurrentUser.UserId && !s.IsPaid);
             if (item == null)
             {
                 return new BaseResultDto<CompanionInsurancePackageSaleSetRebateCodeDto>(false, Resource.Notification.NothingFound, dto);
@@ -242,7 +241,10 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
 
         public async Task<BaseResultDto> ClearRebateCodeAsync(long id)
         {
-            var item = await _context.CompanionInsurancePackageSales.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.CompanionInsurancePackageSales.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == id && s.UserPet.UserId == _currentUser.CurrentUser.UserId && !s.IsPaid);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -254,7 +256,10 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
 
         public async Task<BaseResultDto> SetWalletAsyncDto(CompanionInsurancePackageSaleSetWalletDto dto)
         {
-            var item = await _context.CompanionInsurancePackageSales.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && !s.IsPaid);
+            var item = await _context.CompanionInsurancePackageSales.Include(s => s.UserPet).AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == dto.Id &&
+                s.UserPet.UserId == _currentUser.CurrentUser.UserId &&
+                !s.IsPaid);
             if (item == null)
             {
                 return new BaseResultDto<CompanionInsurancePackageSaleSetWalletDto>(false, Resource.Notification.NothingFound, dto);

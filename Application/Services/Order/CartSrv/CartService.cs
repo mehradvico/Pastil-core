@@ -9,6 +9,7 @@ using Application.Services.Order.CartSrv.Dto;
 using Application.Services.Order.CartSrv.Iface;
 using Application.Services.Order.DeliverySrv.iface;
 using Application.Services.Order.PaymentSrv.Iface;
+using Application.Services.Order.PaymentSrv.Dto;
 using Application.Services.Order.ProductOrderItemSrv.Iface;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
@@ -572,7 +573,7 @@ namespace Application.Services.Order.CartSrv
                             return new BaseResultDto(isSuccess: false, val: Resource.Notification.PleaseSelectTheMerchant);
 
                         }
-                        productOrderDto.WalletPrice = productOrderDto.PaymentPrice;
+                        productOrderDto.WalletPrice = Application.Services.Order.PaymentSrv.PaymentAmountHelper.GetWalletContribution(walletAmount, productOrderDto.PaymentPrice);
                         productOrderDto.PaymentTypeId = orderPaymentTypeWallet.Id;
                     }
                     else if (productOrderDto.PaymentPrice > 0 && cart.MerchantId == null)
@@ -608,16 +609,18 @@ namespace Application.Services.Order.CartSrv
 
                     if (walletAmount >= productOrderDto.PaymentPrice)
                     {
-                        await _productOrderService.ProductPaymentCallback(insertedProductOrder.Data.Id, true);
+                        var callback = await _productOrderService.ProductPaymentCallback(insertedProductOrder.Data.Id, true);
+                        if (!callback.IsSuccess)
+                            return callback;
                         return new BaseResultDto<PaymentStartDto>(true, paymentDto);
                     }
                     else
                     {
-                        paymentDto.Amount = productOrderDto.PaymentPrice - walletAmount;
+                        paymentDto.Amount = productOrderDto.PaymentPrice - productOrderDto.WalletPrice;
                         paymentDto.ProductOrderId = null;
                         paymentDto.CallBackTypeLabel = PaymentCallbackTypeEnum.ProductOrder.ToString();
-                        paymentDto.CallBackId = productOrderDto.Id;
-                        return await _paymentService.InsertWalletPaymentAsyncDto(paymentDto);
+                        paymentDto.CallBackId = insertedProductOrder.Data.Id;
+                        return await _paymentService.StartPayment(paymentDto);
 
                     }
 
@@ -638,4 +641,3 @@ namespace Application.Services.Order.CartSrv
         }
     }
 }
-

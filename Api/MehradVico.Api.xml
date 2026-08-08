@@ -24,7 +24,7 @@
             <returns>
             </returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.AddressController.Get(Application.Services.Order.AddressSrv.Dto.AddressInputDto)">
+        <member name="M:Api.Areas.Admin.Controllers.AddressController.Get(Application.Services.Order.AddressSrv.Dto.AdminAddressInputDto)">
             <summary>
              جستجو
             </summary>
@@ -83,6 +83,36 @@
             <summary>
              حذف آیتم 
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.AssistanceGroupController">
+            <summary>
+            گروه‌های خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Get(System.Int64)">
+            <summary>
+            اطلاعات گروه خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Get(Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto.AssistanceGroupInputDto)">
+            <summary>
+            جستجوی گروه‌های خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Post(Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto.AssistanceGroupDto)">
+            <summary>
+            ثبت گروه خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Put(Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto.AssistanceGroupDto)">
+            <summary>
+            ویرایش گروه خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceGroupController.Delete(System.Int64)">
+            <summary>
+            حذف گروه خدمات
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.AssistanceQuestionnaireController">
             <summary>
@@ -1651,7 +1681,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DiscussionQuestionController">
              <summary>
-             موضوع های تالار گفت و گو
+             تالارهای گفت و گو
              </summary>
             
         </member>
@@ -1981,6 +2011,21 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ManualPaymentController">
+            <summary>
+            مدیریت پرداخت‌های دستی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ManualPaymentController.#ctor(Application.Services.Order.PaymentSrv.Iface.IPaymentService)">
+            <summary>
+            مدیریت پرداخت‌های دستی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ManualPaymentController.Post(Application.Services.Order.PaymentSrv.Dto.ManualPaymentDto)">
+            <summary>
+            ثبت پرداخت دستی و اعمال نتیجه آن روی آیتم مربوطه
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ManualTripPaymentController">
              <summary>
@@ -2438,6 +2483,42 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilAIController">
+            <summary>
+            مدیریت PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.#ctor(Application.Services.PastilAISrv.Iface.IPastilAiChatService,Application.Services.PastilAISrv.Iface.IPastilAiPlanService)">
+            <summary>
+            مدیریت PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.GetPlans(System.Threading.CancellationToken)">
+            <summary>
+            لیست پلن های PastilAI
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.PutPlan(Application.Services.PastilAISrv.Dto.PastilAiPlanUpdateDto,System.Threading.CancellationToken)">
+            <summary>
+            ویرایش پلن PastilAI
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.Get(Application.Services.PastilAISrv.Dto.PastilAiConversationInputDto,System.Threading.CancellationToken)">
+            <summary>
+            جستجوی گفت و گوهای PastilAI
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilAIController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            اطلاعات گفت و گوی PastilAI
+            </summary>
+            <param name="id">شناسه گفت و گو</param>
+            <param name="cancellationToken">توکن لغو درخواست</param>
+            <returns></returns>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchBlockController">
             <summary>
             کاربران بلاک‌شده در پاستیل مچ
@@ -2737,6 +2818,17 @@
              حذف آیتم
              </summary>
             
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PermissionSyncController">
+             <summary>
+             همگام سازی دسترسی ها
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PermissionSyncController.Post(System.Threading.CancellationToken)">
+            <summary>
+            همگام سازی دسترسی های پنل مدیریت با کنترلرها
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PetBreedController">
              <summary>
@@ -3969,6 +4061,11 @@
              جستجو
              </summary>
             
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TicketAdminController.Take(System.Int64)">
+            <summary>
+            اختصاص تیکت آزاد به ادمین جاری
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.TicketChangeAdminController">
             <summary>
@@ -5704,7 +5801,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.CargoPaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.CargoPaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
@@ -5968,7 +6065,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.CompanionInsurancePackageSalePaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.CompanionInsurancePackageSalePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
@@ -6098,7 +6195,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.CompanionReservePaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.CompanionReservePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
@@ -6352,7 +6449,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.PansionReservePaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.PansionReservePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
@@ -6395,6 +6492,51 @@
             </summary>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilAIController">
+            <summary>
+            مدیریت گفت و گوهای PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.#ctor(Application.Services.PastilAISrv.Iface.IPastilAiChatService,Application.Services.PastilAISrv.Iface.IPastilAiPlanService,Application.Common.Interface.ICurrentUserHelper,Microsoft.Extensions.Options.IOptions{Application.Services.PastilAISrv.Provider.PastilAiProviderOptions})">
+            <summary>
+            مدیریت گفت و گوهای PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Providers">
+            <summary>
+            لیست Providerهای فعال PastilAI بدون نمایش کلید API
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Plans(System.Threading.CancellationToken)">
+            <summary>
+            لیست پلن های قابل استفاده PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Quota(System.Threading.CancellationToken)">
+            <summary>
+            سهمیه روزانه کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Purchase(Application.Services.PastilAISrv.Dto.PastilAiPurchaseDto,System.Threading.CancellationToken)">
+            <summary>
+            خرید اشتراک PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Ask(Application.Services.PastilAISrv.Dto.PastilAiAskDto,System.Threading.CancellationToken)">
+            <summary>
+            ارسال پرسش به PastilAI
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Conversations(Application.Common.Dto.Input.BaseInputDto,System.Threading.CancellationToken)">
+            <summary>
+            جستجوی گفت و گوهای کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilAIController.Conversation(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            اطلاعات گفت و گوی کاربر
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.Api.Areas.EndUser.Controllers.PastilMatchBlockController">
             <summary>
@@ -6713,6 +6855,16 @@
         <member name="M:Api.Areas.EndUser.Controllers.PastilMatchRequestResponseController.Put(Application.Services.PastilMatchSrvs.PastilMatchRequestSrv.Dto.PastilMatchRequestResponseDto)">
             <summary>
             قبول یا رد درخواست
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchSuggestionController">
+            <summary>
+            پیشنهاد یک‌به‌یک بهترین پت‌فرند
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchSuggestionController.Post(Application.Services.PastilMatchSrvs.PastilMatchSuggestionSrv.Dto.PastilMatchSuggestionInputDto)">
+            <summary>
+            دریافت بهترین پیشنهاد بعدی بر اساس فیلترها و درصد تطابق
             </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PermissionMenuController">
@@ -7132,7 +7284,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.TripPaymentController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.TripPaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید پرداختی
             </summary>  
@@ -7450,7 +7602,7 @@
             تاریخچه کیف پول 
             </summary>
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.WalletController.Post(Application.Services.Order.ProductOrderSrv.Dto.PaymentStartDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.WalletController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
             <summary>
             آیتم جدید
             </summary>  
@@ -8020,6 +8172,16 @@
             <param name="id">شناسه خدمت</param>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Controllers.AssistanceGroupController">
+            <summary>
+            گروه‌های خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.AssistanceGroupController.Get(Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto.AssistanceGroupInputDto)">
+            <summary>
+            جستجوی گروه‌های فعال خدمات
+            </summary>
         </member>
         <member name="T:Api.Controllers.BackgroundTaskController">
             <summary>

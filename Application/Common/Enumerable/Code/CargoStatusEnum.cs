@@ -8,8 +8,8 @@ namespace Application.Common.Enumerable.Code
 {
     public enum CargoStatusEnum
     {
-        CargoStatus_Requested = 10055,
-        CargoStatus_Accepted = 10056,
-        CargoStatus_Canceled = 10057
+        CargoStatus_Requested = 85,
+        CargoStatus_Accepted = 86,
+        CargoStatus_Canceled = 87
     }
 }

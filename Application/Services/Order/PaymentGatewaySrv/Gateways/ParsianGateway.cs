@@ -2,17 +2,14 @@
 using Application.Common.Helpers;
 using Application.Services.Order.PaymentGatewaySrv.Dto;
 using Application.Services.Order.PaymentGatewaySrv.Iface;
-using Application.Services.Order.ProductOrderSrv.Dto;
+using Application.Services.Order.PaymentSrv.Dto;
 using Entities.Entities;
 using IPGServices;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.ServiceModel;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -63,7 +60,7 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
             }
         }
 
-        private GatewayStartResultDto Fail(string message)
+        private static GatewayStartResultDto Fail(string message)
         {
             return new GatewayStartResultDto
             {
@@ -72,7 +69,7 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
             };
         }
 
-        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request, bool testMode)
+        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request)
         {
             try
             {

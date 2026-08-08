@@ -669,4 +669,7 @@
   <data name="ProductIsNotFound" xml:space="preserve">
     <value>محصول یافت نشد</value>
   </data>
+  <data name="PastilMatchSuggestionNotFound" xml:space="preserve">
+    <value>برای پت شما یا متناسب با فیلترهای انتخاب‌شده دوستی پیدا نشد.</value>
+  </data>
 </root>

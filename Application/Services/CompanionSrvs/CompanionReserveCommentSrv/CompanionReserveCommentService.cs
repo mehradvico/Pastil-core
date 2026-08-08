@@ -9,6 +9,9 @@ using Application.Services.CompanionSrvs.CompanionReserveCommentRateSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Iface;
 using Application.Services.Setting.CodeSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Dapper;
 using Entities.Entities;
@@ -18,6 +21,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,15 +35,17 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
         private readonly ICurrentUserHelper _currentUserHelper;
         private readonly ICompanionReserveCommentRateService _commentRate;
         private readonly string connectionString;
+        private readonly INoticeService _noticeService;
 
 
-        public CompanionReserveCommentService(IDataBaseContext _context, IConfiguration config, IMapper mapper, ICodeService codeService, ICurrentUserHelper currentUserHelper, ICompanionReserveCommentRateService commentRate) : base(_context, mapper)
+        public CompanionReserveCommentService(IDataBaseContext _context, IConfiguration config, IMapper mapper, ICodeService codeService, ICurrentUserHelper currentUserHelper, ICompanionReserveCommentRateService commentRate, INoticeService noticeService) : base(_context, mapper)
         {
             this.codeService = codeService;
             this._context = _context;
             this.mapper = mapper;
             _currentUserHelper = currentUserHelper;
             _commentRate = commentRate;
+            _noticeService = noticeService;
             this.connectionString = config.GetValue<string>("connection");
         }
 
@@ -98,6 +104,18 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
                         };
                         await _commentRate.InsertAsyncDto(rate);
                     }
+                    await _noticeService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.CompanionReserveCommentSubmitted,
+                        ActorUserId = item.UserId,
+                        ReferenceType = "CompanionReserveComment",
+                        ReferenceId = item.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.CompanionReserveCommentSubmitted}:{item.Id}",
+                        Metadata = new Dictionary<string, string>
+                        {
+                            { "companionReserveId", item.CompanionReserveId.ToString() }
+                        }
+                    });
                     return new BaseResultDto<CompanionReserveCommentDto>(true, mapper.Map<CompanionReserveCommentDto>(item));
                 }
 

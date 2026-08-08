@@ -30,9 +30,9 @@ namespace Api.Areas.EndUser.Controllers
         /// 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Post(PastilMatchProfileVerificationRequestDto dto)
+        public async Task<IActionResult> Post(PastilMatchProfileVerificationRequestDto dto)
         {
-            var result = _pastilMatchProfileService.RequestVerificationDto(dto);
+            var result = await _pastilMatchProfileService.RequestVerificationDto(dto);
             return Ok(result);
         }
     }

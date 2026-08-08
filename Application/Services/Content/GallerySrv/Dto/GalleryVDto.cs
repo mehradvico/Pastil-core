@@ -8,6 +8,8 @@ namespace Application.Services.Content.GallerySrv.Dto
     {
 
         public string Label { get; set; }
+        public string Slug { get; set; }
+
         public long? PictureId { get; set; }
         public long? CategoryId { get; set; }
         public Picture Picture { get; set; }

@@ -7,5 +7,6 @@ namespace Application.Services.Order.AddressSrv.iface
     public interface IAddressService : ICommonSrv<Address, AddressDto>
     {
         AddressSearchDto Search(AddressInputDto baseSearchDto);
+        AdminAddressSearchDto SearchAdmin(AdminAddressInputDto searchDto);
     }
 }

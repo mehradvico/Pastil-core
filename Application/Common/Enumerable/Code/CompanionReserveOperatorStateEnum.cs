@@ -8,8 +8,8 @@ namespace Application.Common.Enumerable.Code
 {
     public enum CompanionReserveOperatorStateEnum
     {
-        OperatorState_InComplete = 10066,
-        OperatorState_Complete = 10067,
-        OperatorState_Cancelled = 10068
+        OperatorState_InComplete = 34,
+        OperatorState_Complete = 35,
+        OperatorState_Cancelled = 36
     }
 }

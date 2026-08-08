@@ -47,7 +47,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
 
         public async Task<BaseResultDto<CompanionVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Companions.Include(s => s.Picture).Include(s => s.CompanionPets).Include(s => s.BackgroundPicture).Include(s => s.City).ThenInclude(s => s.State)
+            var item = await _context.Companions.Include(s => s.Picture).Include(s => s.Icon).Include(s => s.CompanionPets).Include(s => s.BackgroundPicture).Include(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.CompanionTypes).Include(s => s.CompanionZones).ThenInclude(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.CompanionZones).ThenInclude(s => s.Neighborhood).Include(s => s.Pansions).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
@@ -151,7 +151,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
 
         public override async Task<BaseResultDto<CompanionDto>> FindAsyncDto(long id)
         {
-            var item = await _context.Companions.Include(s => s.Picture).Include(s => s.CompanionPets).Include(s => s.BackgroundPicture).Include(s => s.City).ThenInclude(s => s.State)
+            var item = await _context.Companions.Include(s => s.Picture).Include(s => s.Icon).Include(s => s.CompanionPets).Include(s => s.BackgroundPicture).Include(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.CompanionTypes).Include(s => s.CompanionZones).ThenInclude(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.CompanionZones).ThenInclude(s => s.Neighborhood).Include(s => s.Pansions).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)

@@ -2,7 +2,7 @@
 using Application.Common.Interface;
 using Application.Services.CompanionSrv.CompanionReserveSrv.Iface;
 using Application.Services.Order.PaymentSrv.Iface;
-using Application.Services.Order.ProductOrderSrv.Dto;
+using Application.Services.Order.PaymentSrv.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

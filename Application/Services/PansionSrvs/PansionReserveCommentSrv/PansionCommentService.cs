@@ -6,6 +6,9 @@ using Application.Services.PansionSrvs.PansionCommentSrv.Dto;
 using Application.Services.PansionSrvs.PansionCommentSrv.Iface;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
 using Application.Services.Setting.CodeSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Dapper;
 using Entities.Entities;
@@ -28,15 +31,17 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
         private readonly IMapper mapper;
         private readonly ICodeService codeService;
         private readonly string connectionString;
+        private readonly INoticeService _noticeService;
 
 
-        public PansionCommentService(IDataBaseContext _context, IConfiguration config, IMapper mapper, ICodeService codeService) : base(_context, mapper)
+        public PansionCommentService(IDataBaseContext _context, IConfiguration config, IMapper mapper, ICodeService codeService, INoticeService noticeService) : base(_context, mapper)
         {
             this.codeService = codeService;
             this._context = _context;
             this.mapper = mapper;
             this.connectionString = config.GetValue<string>(
             "connection");
+            this._noticeService = noticeService;
         }
 
         public override async Task<BaseResultDto<PansionCommentDto>> InsertAsyncDto(PansionCommentDto dto)
@@ -71,7 +76,19 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
                         item.CreateDate = DateTime.Now;
                         item.Answer = null;
                         await _context.PansionComments.AddAsync(item);
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
+                        await _noticeService.CreateAsync(new NoticeCreateDto
+                        {
+                            Label = NoticeTypeLabels.PansionCommentSubmitted,
+                            ActorUserId = item.UserId,
+                            ReferenceType = "PansionComment",
+                            ReferenceId = item.Id,
+                            DeduplicationKey = $"{NoticeTypeLabels.PansionCommentSubmitted}:{item.Id}",
+                            Metadata = new Dictionary<string, string>
+                            {
+                                { "pansionId", item.PansionId.ToString() }
+                            }
+                        });
                         return new BaseResultDto<PansionCommentDto>(true, mapper.Map<PansionCommentDto>(item));
                     }
                     return new BaseResultDto<PansionCommentDto>(false, val: Resource.Notification.Unsuccess, data: dto);

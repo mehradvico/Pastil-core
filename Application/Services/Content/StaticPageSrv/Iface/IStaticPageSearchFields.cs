@@ -4,6 +4,5 @@
     {
         public string Label { get; set; }
 
-
     }
 }

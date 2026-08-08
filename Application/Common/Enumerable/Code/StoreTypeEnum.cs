@@ -2,8 +2,8 @@
 {
     public enum StoreTypeEnum
     {
-        StoreType_ClothingShop = 10004,
-        StoreType_PetShop = 10005,
-        StoreType_PackageShop = 10006
+        StoreType_ClothingShop = 92,
+        StoreType_PetShop = 93,
+        StoreType_PackageShop = 94
     }
 }

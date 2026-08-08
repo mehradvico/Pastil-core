@@ -25,6 +25,7 @@ using Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto;
 using Application.Services.CompanionSrv.CompanionReserveSrv.Dto;
 using Application.Services.CompanionSrvs.AssistanceQuestionnaireSrv.Dto;
+using Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto;
 using Application.Services.CompanionSrvs.AssistanceSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackageSrv.Dto;
@@ -91,6 +92,7 @@ using Application.Services.Order.DeliverySrv.Dto;
 using Application.Services.Order.MerchantSrv.Dto;
 using Application.Services.Order.ProductOrderItemSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Dto;
+using Application.Services.Order.PaymentSrv.Dto;
 using Application.Services.Order.ProductOrderStoreSrv.Dto;
 using Application.Services.Order.RebateSrv.Dto;
 using Application.Services.PansionSrvs.PansionCommentSrv.Dto;
@@ -166,10 +168,13 @@ namespace Application.Maping
             //Address
             CreateMap<Address, AddressDto>().ReverseMap();
             CreateMap<Address, AddressVDto>().ReverseMap();
+            CreateMap<Address, AdminAddressVDto>();
             //Address End ----------------------------------------------
 
 
             //Assistance
+            CreateMap<AssistanceGroup, AssistanceGroupDto>().ReverseMap();
+            CreateMap<AssistanceGroup, AssistanceGroupVDto>();
             CreateMap<Assistance, AssistanceDto>().ReverseMap();
             CreateMap<Assistance, AssistanceVDto>();
             CreateMap<AssistanceQuestionnaire, AssistanceQuestionnaireDto>().ReverseMap();

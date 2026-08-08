@@ -3,10 +3,12 @@ using Entities.Entities.CompanionField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.PastilMatchField;
+using Entities.Entities.PastilAIField;
 using Entities.Entities.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,8 +16,10 @@ namespace Persistence.Interface
 {
     public interface IDataBaseContext : IDbContextTransactionManager
     {
+        Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default);
         public DbSet<Address> Addresses { get; set; }
         public DbSet<AdminSetting> AdminSettings { get; set; }
+        public DbSet<AssistanceGroup> AssistanceGroups { get; set; }
         public DbSet<Assistance> Assistances { get; set; }
         public DbSet<AssistanceQuestionnaire> AssistanceQuestionnaires { get; set; }
         public DbSet<Bank> Banks { get; set; }
@@ -64,6 +68,13 @@ namespace Persistence.Interface
         public DbSet<DiscussionAnswer> DiscussionAnswers { get; set; }
         public DbSet<DiscussionAnswerLike> DiscussionAnswerLikes { get; set; }
         public DbSet<DiscussionQuestion> DiscussionQuestions { get; set; }
+        public DbSet<PastilAiPlan> PastilAiPlans { get; set; }
+        public DbSet<PastilAiSubscription> PastilAiSubscriptions { get; set; }
+        public DbSet<PastilAiConversation> PastilAiConversations { get; set; }
+        public DbSet<PastilAiMessage> PastilAiMessages { get; set; }
+        public DbSet<PastilAiAttachment> PastilAiAttachments { get; set; }
+        public DbSet<PastilAiProviderAttempt> PastilAiProviderAttempts { get; set; }
+        public DbSet<PastilAiDailyUsage> PastilAiDailyUsages { get; set; }
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<DriverUser> DriverUsers { get; set; }
         public DbSet<Email> Emails { get; set; }

@@ -8,10 +8,10 @@ namespace Application.Common.Enumerable.Code
 {
     public enum SocialLevelEnum
     {
-        SocialLevel_VeryLow = 10119,
-        SocialLevel_Low = 10120,
-        SocialLevel_Medium = 10121,
-        SocialLevel_High = 10122,
-        SocialLevel_VeryHigh = 10123
+        SocialLevel_VeryLow = 126,
+        SocialLevel_Low = 127,
+        SocialLevel_Medium = 128,
+        SocialLevel_High = 129,
+        SocialLevel_VeryHigh = 130
     }
 }

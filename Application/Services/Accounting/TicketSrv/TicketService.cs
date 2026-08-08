@@ -312,6 +312,40 @@ namespace Application.Services.TicketSrv
             return new BaseResultDto(true);
         }
 
+        public async Task<BaseResultDto> TakeCurrentAdminAsync(long ticketId, CancellationToken cancellationToken = default)
+        {
+            if (ticketId < 1)
+            {
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            }
+
+            var updateDate = DateTime.Now;
+            var affectedRows = await _context.Tickets
+                .Where(s => s.Id == ticketId && !s.AdminId.HasValue)
+                .ExecuteUpdateAsync(
+                    setters => setters
+                        .SetProperty(s => s.AdminId, _currentUser.UserId)
+                        .SetProperty(s => s.UpdateDate, updateDate),
+                    cancellationToken);
+
+            if (affectedRows > 0)
+            {
+                return new BaseResultDto(true);
+            }
+
+            var assignedAdminId = await _context.Tickets
+                .Where(s => s.Id == ticketId)
+                .Select(s => s.AdminId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (assignedAdminId == _currentUser.UserId)
+            {
+                return new BaseResultDto(true);
+            }
+
+            return new BaseResultDto(false, "این تیکت توسط ادمین دیگری برداشته شده است.");
+        }
+
         public async Task<BaseResultDto> DeleteAsync(long id, CancellationToken cancellationToken = default)
         {
             var ticket = await _context.Tickets.AsTracking().FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
@@ -525,7 +559,11 @@ namespace Application.Services.TicketSrv
                 return new BaseResultDto(false, Resource.Notification.TitleCanNotBeMoreThan200Characters);
             }
 
-            var categoryExists = await _context.Codes.AnyAsync(s => s.Id == ticketCategoryId && s.CodeGroupId == 36 && s.Active, cancellationToken);
+            var categoryExists = await _context.Codes.AnyAsync(
+                s => s.Id == ticketCategoryId
+                     && s.CodeGroup.Label == "Ticket_Category"
+                     && s.Active,
+                cancellationToken);
 
             if (!categoryExists)
             {

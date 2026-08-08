@@ -4,6 +4,8 @@ namespace Application.Services.Content.BannerSrv.Dto
 {
     public class BannerDto : FullName_FieldDto
     {
+        public string Label { get; set; }
+        public string Slug { get; set; }
 
         public string Url { get; set; }
         public int Priority { get; set; }
@@ -14,4 +16,3 @@ namespace Application.Services.Content.BannerSrv.Dto
         public long? CategoryId { get; set; }
     }
 }
-

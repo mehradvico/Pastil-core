@@ -6,6 +6,7 @@ namespace Application.Services.ProductSrvs.FeatureSrv.Dto
     public class FeatureVDto : Name_FieldDto
     {
         public string Label { get; set; }
+        public string Slug { get; set; }
         public int Priority { get; set; }
         public bool Hide { get; set; }
         public bool InSearch { get; set; }

@@ -1,3 +1,4 @@
+using Application.Common.Configuration;
 using Application.Common.Helpers;
 using Application.Configures;
 using Microsoft.AspNetCore.Localization;
@@ -7,7 +8,10 @@ using Persistence.Context;
 using Persistence.Interface;
 using System.Globalization;
 
+DotEnvLoader.Load();
+
 var builder = WebApplication.CreateBuilder(args);
+SecretConfiguration.Apply(builder.Configuration, "PASTIL_PAYMENT_CONNECTION");
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));

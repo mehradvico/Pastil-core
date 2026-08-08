@@ -2,6 +2,6 @@
 {
     public enum GeoGraphyMapEnum
     {
-        MapType_MapIr
+        MapType_MapIr = 105
     }
 }

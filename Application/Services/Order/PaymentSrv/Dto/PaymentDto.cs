@@ -2,7 +2,7 @@
 using Application.Services.Order.MerchantSrv.Dto;
 using Application.Services.Setting.CodeSrv.Dto;
 
-namespace Application.Services.Order.ProductOrderSrv.Dto
+namespace Application.Services.Order.PaymentSrv.Dto
 {
     public class PaymentDto : Id_FieldDto
     {

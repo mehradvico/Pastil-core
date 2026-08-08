@@ -2,6 +2,7 @@
 using Api.Authorization;
 using Api.Hubs;
 using Api.Swagger;
+using Application.Common.Configuration;
 using Application.Common.Enumerable;
 using Application.Configures;
 using Application.Services.Accounting.UserTokenSrv.Iface;
@@ -23,8 +24,15 @@ using Utility.ExternalRequest.Service;
 using Utility.Reflection;
 using Utility.Reflection.Iface;
 using NetTopologySuite.IO.Converters;
+using Application.Services.PastilAISrv.Provider;
+
+DotEnvLoader.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+SecretConfiguration.Apply(
+    builder.Configuration,
+    "PASTIL_API_CONNECTION",
+    includeVapidKeys: true);
 
 builder.Services.AddOutputCache();
 builder.Services.AddSignalR();
@@ -58,6 +66,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
 builder.Services.AddApplicationServices();
+builder.Services.Configure<PastilAiProviderOptions>(
+    builder.Configuration.GetSection(PastilAiProviderOptions.SectionName));
 builder.Services.AddScoped<INoticeRealtimePublisher, NoticeRealtimePublisher>();
 builder.Services.AddScoped<IRestSharpApi, RestSharpApi>();
 builder.Services.AddScoped<IBackgroundTask, HangFireSchedule>();
@@ -194,7 +204,13 @@ app.MapHub<NoticeHub>("/hubs/notices");
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
-    options.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
+    options.SwaggerEndpoint("/swagger/v2/swagger.json", "Pastil API v2");
+    options.DocExpansion(
+        Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None
+    );
     options.DefaultModelsExpandDepth(-1);
+    options.DefaultModelExpandDepth(-1);
+    options.EnableFilter();
+    options.EnableDeepLinking();
 });
 app.Run();

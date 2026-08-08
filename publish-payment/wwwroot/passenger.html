@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>راننده</title>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@5.0.12/dist/browser/signalr.min.js"></script>
+</head>
+<body>
+    <h2>سلام راننده عزیز، خوش آمدید!</h2>
+    <button id="joinButton">ورود به سیستم</button>
+    <div id="tripStatus"></div>
+    <div id="loadingDiv" style="display: none;">
+        <p>در حال انتظار برای پذیرش سفر...</p>
+        <button id="cancelButton">لغو درخواست</button>
+    </div>
+
+    <script>// ایجاد ارتباط با SignalR Hub
+			var connection = new signalR.HubConnectionBuilder().withUrl("https://localhost:7215/driverHub").build();
+
+connection.start()
+    .then(function () {
+        console.log("Connection established!");
+    })
+    .catch(function (err) {
+        console.error("Error while establishing connection: ", err.toString());
+    });
+
+document.getElementById("joinButton").addEventListener("click", function () {
+    debugger
+    var tripDto = {
+        origin: {
+            x: 35.748468043869686,
+            y: 51.37943442595698
+        },
+        destination: {
+            x: 35.74872744027782,
+            y: 51.37864974152506
+        },
+        stopTime: 10,
+        roundTrip: true
+    };
+
+    connection.invoke("JoinPassenger", tripDto)
+        .then(function () {
+            console.log("Passenger joined successfully");
+        })
+        .catch(function (err) {
+            debugger
+            console.error("Error during join passenger: ", err.toString());
+        });
+});
+
+// Listen to the message from the server when the passenger joins
+connection.on("PassengerJoined", function (tripDto) {
+    console.log("Passenger joined: ", tripDto);
+});
+</script>
+</body>
+</html>

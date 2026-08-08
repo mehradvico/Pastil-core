@@ -5,6 +5,9 @@ using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.PastilMatchSrvs.PastilMatchReportSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchReportSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities.PastilMatchField;
 using Microsoft.EntityFrameworkCore;
@@ -22,12 +25,14 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchReportSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly ICurrentUserHelper _currentUser;
+        private readonly INoticeService _noticeService;
 
-        public PastilMatchReportService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUser) : base(context, mapper)
+        public PastilMatchReportService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUser, INoticeService noticeService) : base(context, mapper)
         {
             _context = context;
             this.mapper = mapper;
             _currentUser = currentUser;
+            _noticeService = noticeService;
         }
 
         public async Task<BaseResultDto<PastilMatchReportVDto>> FindAsyncVDto(long id)
@@ -202,6 +207,36 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchReportSrv
 
                 await _context.PastilMatchReports.AddAsync(item);
                 await _context.SaveChangesAsync();
+                var metadata = new Dictionary<string, string>
+                {
+                    { "reportedUserId", item.ReportedUserId.ToString() },
+                    { "reasonId", item.PastilMatchReportReasonId.ToString() }
+                };
+
+                if (item.ReportedProfileId.HasValue)
+                {
+                    metadata["reportedProfileId"] = item.ReportedProfileId.Value.ToString();
+                }
+
+                if (item.PastilMatchId.HasValue)
+                {
+                    metadata["pastilMatchId"] = item.PastilMatchId.Value.ToString();
+                }
+
+                if (item.PastilMatchMessageId.HasValue)
+                {
+                    metadata["pastilMatchMessageId"] = item.PastilMatchMessageId.Value.ToString();
+                }
+
+                await _noticeService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.PastilMatchReportSubmitted,
+                    ActorUserId = reporterUserId,
+                    ReferenceType = "PastilMatchReport",
+                    ReferenceId = item.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.PastilMatchReportSubmitted}:{item.Id}",
+                    Metadata = metadata
+                });
 
                 return new BaseResultDto<PastilMatchReportDto>(true, mapper.Map<PastilMatchReportDto>(item));
             }

@@ -9,6 +9,7 @@ namespace Application.Services.Dto
         [Required(ErrorMessageResourceType = typeof(Resource.Pattern),
         ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
         public string Label { get; set; }
+        public string Slug { get; set; }
 
     }
 }

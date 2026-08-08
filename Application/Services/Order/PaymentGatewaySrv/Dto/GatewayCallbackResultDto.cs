@@ -1,9 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Application.Services.Order.PaymentGatewaySrv.Dto
 {
     public class GatewayCallbackResultDto
@@ -16,5 +10,3 @@ namespace Application.Services.Order.PaymentGatewaySrv.Dto
         public string Token { get; set; }
     }
 }
-
-

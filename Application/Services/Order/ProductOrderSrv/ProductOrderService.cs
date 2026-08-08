@@ -203,19 +203,17 @@ namespace Application.Services.Order.ProductOrderSrv
         public async Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false)
         {
             var productOrder = await _context.ProductOrders.AsTracking().Include(s => s.User).Include(s => s.Rebate).Include(s => s.ProductOrderStores).ThenInclude(s => s.Store).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).ThenInclude(s => s.ProductItem).ThenInclude(s => s.Product).FirstOrDefaultAsync(s => s.Id == productOrderId);
-            if (productOrder.Wallet != null)
-            {
-                var amount = await _walletService.GetAmountValueAsync(productOrder.UserId);
-                if (amount >= productOrder.WalletPrice)
-                {
-                    var walletItem = new WalletDto() { Painding = false, Amount = productOrder.WalletPrice, UserId = productOrder.UserId, ProductOrderId = productOrder.Id };
-                    await _walletService.InsertUpdateProductOrderAsync(walletItem, true);
-                }
-                else
-                {
-                    return new BaseResultDto(false);
+            if (productOrder == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (productOrder.IsPaid)
+                return new BaseResultDto(true);
 
-                }
+            if (fromWallet && productOrder.WalletPrice > 0)
+            {
+                var walletItem = new WalletDto() { Painding = false, Amount = productOrder.WalletPrice, UserId = productOrder.UserId, ProductOrderId = productOrder.Id };
+                var walletResult = await _walletService.InsertUpdateProductOrderAsync(walletItem, true);
+                if (!walletResult.IsSuccess)
+                    return new BaseResultDto(false);
             }
             if (productOrder.Rebate != null)
             {
@@ -237,16 +235,18 @@ namespace Application.Services.Order.ProductOrderSrv
             }
             await _context.SaveChangesAsync();
             var cart = await _context.Carts.AsTracking().Include(s => s.CartStores.Where(a => a.Active)).ThenInclude(s => s.CartItems).FirstOrDefaultAsync(s => s.UserId == productOrder.UserId);
-            cart.DeliveryId = null;
-            foreach (var item in cart.CartStores.ToList())
+            if (cart != null)
             {
-                _context.CartItems.RemoveRange(item.CartItems);
-                _context.CartStores.Remove(item);
+                cart.DeliveryId = null;
+                foreach (var item in cart.CartStores.ToList())
+                {
+                    _context.CartItems.RemoveRange(item.CartItems);
+                    _context.CartStores.Remove(item);
+                }
+                await _context.SaveChangesAsync();
             }
-            await _context.SaveChangesAsync();
             await _userProductService.InsertOrderItemAsyncDto(productOrder);
             await _productService.IncreaseSellCountAsync(productOrder);
-            _rebateService.IncreaseUseCount(productOrder);
             string nameText = string.Format("{0}_{1}", productOrder.User.FirstName, productOrder.User.LastName).Replace(" ", "_");
 
             string bonusCode = productOrder.ReferralCode;
@@ -390,28 +390,31 @@ namespace Application.Services.Order.ProductOrderSrv
                 return new BaseResultDto(false, Resource.Notification.UserWithTheProvidedBonusCodeNotFound);
             }
 
-            var existingWallet = await _context.Wallets.FirstOrDefaultAsync(w => w.ProductOrderId == productOrder.Id && w.UserId == productOrder.UserId && !w.Deleted);
+            var bonusReference = $"ReferralBonus:{productOrder.Id}";
+            var existingWallet = await _context.Wallets.AsNoTracking()
+                .FirstOrDefaultAsync(w => w.Name == bonusReference && w.UserId == user.Id && !w.Deleted);
             if (existingWallet != null)
             {
-                return new BaseResultDto(false, Resource.Notification.BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder);
+                return new BaseResultDto(true, Resource.Notification.BonusHasAlreadyBeenAddedToTheWalletForThisProductOrder);
             }
 
             var bonusAmount = productOrder.Price * _adminSettingHelperService.BaseAdminSetting.BonusPercent;
             int bonus = (int)bonusAmount;
+            if (bonus <= 0)
+                return new BaseResultDto(true);
 
-            var userWallet = await _context.Wallets.FirstOrDefaultAsync(s => s.UserId == user.Id);
             var wallet = new WalletDto
             {
-                Amount = userWallet.Amount + bonus,
+                Name = bonusReference,
+                Amount = bonus,
                 IsIncrease = true,
                 UserId = user.Id,
-                Painding = false,
-                ProductOrderId = productOrder.Id
+                Painding = false
             };
 
-            await _walletService.InsertAsyncDto(wallet);
-
-            return new BaseResultDto(true, Resource.Notification.BonusAmountAddedToWalletSuccessfully);
+            var result = await _walletService.InsertAsyncDto(wallet);
+            return new BaseResultDto(result.IsSuccess,
+                result.IsSuccess ? Resource.Notification.BonusAmountAddedToWalletSuccessfully : Resource.Notification.Unsuccess);
         }
         public BaseResultDto<List<ProductOrderVDto>> GetReserved(long userId, long addressId)
         {

@@ -2,10 +2,10 @@
 {
     public enum DeliveryTypeEnum
     {
-        DeliveryType_Courier,
-        DeliveryType_Post,
-        DeliveryType_Tipax,
-        DeliveryType_InStore,
+        DeliveryType_Courier = 88,
+        DeliveryType_Post = 89,
+        DeliveryType_Tipax = 90,
+        DeliveryType_InStore = 91,
 
     }
 }

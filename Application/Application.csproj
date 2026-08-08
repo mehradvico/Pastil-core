@@ -8,18 +8,21 @@
     <Compile Remove="Services\CompanionReserveSrvs\CompanionReserveVariety\**" />
     <Compile Remove="Services\CompanionReserveSrv\**" />
     <Compile Remove="Services\Language\**" />
+    <Compile Remove="Services\PastilAISrvs\**" />
     <Compile Remove="Services\StoreSrvs\**" />
     <Compile Remove="Services\StoreSrv\**" />
     <EmbeddedResource Remove="Services\Accounting\ClubRewardUserSrv\**" />
     <EmbeddedResource Remove="Services\CompanionReserveSrvs\CompanionReserveVariety\**" />
     <EmbeddedResource Remove="Services\CompanionReserveSrv\**" />
     <EmbeddedResource Remove="Services\Language\**" />
+    <EmbeddedResource Remove="Services\PastilAISrvs\**" />
     <EmbeddedResource Remove="Services\StoreSrvs\**" />
     <EmbeddedResource Remove="Services\StoreSrv\**" />
     <None Remove="Services\Accounting\ClubRewardUserSrv\**" />
     <None Remove="Services\CompanionReserveSrvs\CompanionReserveVariety\**" />
     <None Remove="Services\CompanionReserveSrv\**" />
     <None Remove="Services\Language\**" />
+    <None Remove="Services\PastilAISrvs\**" />
     <None Remove="Services\StoreSrvs\**" />
     <None Remove="Services\StoreSrv\**" />
   </ItemGroup>

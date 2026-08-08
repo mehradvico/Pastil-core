@@ -214,6 +214,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("AssistanceGroupId")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
@@ -234,9 +237,36 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AssistanceGroupId");
+
                     b.HasIndex("PictureId");
 
                     b.ToTable("Assistances");
+                });
+
+            modelBuilder.Entity("Entities.Entities.AssistanceGroup", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AssistanceGroups");
                 });
 
             modelBuilder.Entity("Entities.Entities.AssistanceQuestionnaire", b =>
@@ -347,6 +377,9 @@ namespace Persistence.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -358,6 +391,10 @@ namespace Persistence.Migrations
 
                     b.Property<int>("Priority")
                         .HasColumnType("int");
+
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
@@ -372,6 +409,10 @@ namespace Persistence.Migrations
                     b.HasIndex("Picture2Id");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Banners");
                 });
@@ -484,6 +525,10 @@ namespace Persistence.Migrations
                     b.Property<string>("SeoUrlText")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
@@ -495,6 +540,10 @@ namespace Persistence.Migrations
                     b.HasIndex("IconId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Brands");
                 });
@@ -801,6 +850,10 @@ namespace Persistence.Migrations
                     b.Property<string>("SeoUrlText")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
@@ -814,6 +867,10 @@ namespace Persistence.Migrations
                     b.HasIndex("ParentId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Categories");
                 });
@@ -2465,10 +2522,18 @@ namespace Persistence.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<long>("TypeId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.HasIndex("TypeId");
 
@@ -2601,6 +2666,10 @@ namespace Persistence.Migrations
                     b.Property<string>("SeoUrlText")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
@@ -2609,6 +2678,10 @@ namespace Persistence.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Galleries");
                 });
@@ -3311,6 +3384,400 @@ namespace Persistence.Migrations
                     b.ToTable("PansionReserves");
                 });
 
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiAttachment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("FileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("MessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("MessageId")
+                        .IsUnique();
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("PastilAiAttachments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PastilAiAttachments_OneMedia", "([PictureId] IS NOT NULL AND [FileId] IS NULL) OR ([PictureId] IS NULL AND [FileId] IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiConversation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdateDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "UpdateDateUtc");
+
+                    b.ToTable("PastilAiConversations");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiDailyUsage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AudioCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChatCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ImageCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UsageDate")
+                        .HasColumnType("date");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("VideoCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "UsageDate")
+                        .IsUnique();
+
+                    b.ToTable("PastilAiDailyUsages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("CompletionTokens")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ConversationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("DurationMilliseconds")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("InputType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MetadataJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("PromptTokens")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Scope")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId", "Id");
+
+                    b.ToTable("PastilAiMessages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiPlan", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreateDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DailyAudioLimit")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DailyChatLimit")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DailyImageLimit")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DailyVideoLimit")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("PurchaseEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdateDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("PastilAiPlans");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            Active = true,
+                            Code = "Free",
+                            CreateDateUtc = new DateTime(2026, 7, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DailyAudioLimit = 0,
+                            DailyChatLimit = 3,
+                            DailyImageLimit = 1,
+                            DailyVideoLimit = 0,
+                            Deleted = false,
+                            Description = "پلن رایگان PastilAI",
+                            DurationDays = 30,
+                            Name = "PastilAI",
+                            Price = 0m,
+                            PurchaseEnabled = false,
+                            SortOrder = 0,
+                            UpdateDateUtc = new DateTime(2026, 7, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            Active = true,
+                            Code = "Plus",
+                            CreateDateUtc = new DateTime(2026, 7, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DailyAudioLimit = 5,
+                            DailyChatLimit = 30,
+                            DailyImageLimit = 10,
+                            DailyVideoLimit = 1,
+                            Deleted = false,
+                            Description = "پلن پیشرفته PastilAI",
+                            DurationDays = 30,
+                            Name = "PastilAI+",
+                            Price = 0m,
+                            PurchaseEnabled = false,
+                            SortOrder = 10,
+                            UpdateDateUtc = new DateTime(2026, 7, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 3L,
+                            Active = true,
+                            Code = "Pro",
+                            CreateDateUtc = new DateTime(2026, 7, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Deleted = false,
+                            Description = "پلن نامحدود PastilAI",
+                            DurationDays = 30,
+                            Name = "PastilAI Pro",
+                            Price = 0m,
+                            PurchaseEnabled = false,
+                            SortOrder = 20,
+                            UpdateDateUtc = new DateTime(2026, 7, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiProviderAttempt", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AttemptOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CompletionTokens")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("DurationMilliseconds")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("EndDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ErrorCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("HttpStatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<long>("MessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int?>("PromptTokens")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("StartDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId", "AttemptOrder")
+                        .IsUnique();
+
+                    b.ToTable("PastilAiProviderAttempts");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiSubscription", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("FromWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("PaymentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PlanId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("PriceSnapshot")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long?>("RebateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("RebatePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("StartDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("WalletPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentId")
+                        .IsUnique()
+                        .HasFilter("[PaymentId] IS NOT NULL");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("RebateId");
+
+                    b.HasIndex("UserId", "Status", "EndDateUtc");
+
+                    b.ToTable("PastilAiSubscriptions");
+                });
+
             modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatch", b =>
                 {
                     b.Property<long>("Id")
@@ -3883,13 +4350,24 @@ namespace Persistence.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Pets");
                 });
@@ -3920,11 +4398,19 @@ namespace Persistence.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PetId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("PetBreeds");
                 });
@@ -4269,6 +4755,10 @@ namespace Persistence.Migrations
                     b.Property<string>("SeoUrlText")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<long>("StatusId")
                         .HasColumnType("bigint");
 
@@ -4305,6 +4795,10 @@ namespace Persistence.Migrations
                     b.HasIndex("DiscountGroupId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.HasIndex("StatusId");
 
@@ -5309,7 +5803,15 @@ namespace Persistence.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Roles");
                 });
@@ -6697,6 +7199,9 @@ namespace Persistence.Migrations
                     b.Property<long?>("PansionReserveId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("PastilAiSubscriptionId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("PaymentId")
                         .HasColumnType("bigint");
 
@@ -6726,6 +7231,10 @@ namespace Persistence.Migrations
                     b.HasIndex("PansionReserveId")
                         .IsUnique()
                         .HasFilter("[PansionReserveId] IS NOT NULL");
+
+                    b.HasIndex("PastilAiSubscriptionId")
+                        .IsUnique()
+                        .HasFilter("[PastilAiSubscriptionId] IS NOT NULL");
 
                     b.HasIndex("PaymentId")
                         .IsUnique()
@@ -7042,9 +7551,16 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.Assistance", b =>
                 {
+                    b.HasOne("Entities.Entities.AssistanceGroup", "AssistanceGroup")
+                        .WithMany("Assistances")
+                        .HasForeignKey("AssistanceGroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Picture", "Picture")
                         .WithMany()
                         .HasForeignKey("PictureId");
+
+                    b.Navigation("AssistanceGroup");
 
                     b.Navigation("Picture");
                 });
@@ -8339,6 +8855,108 @@ namespace Persistence.Migrations
                     b.Navigation("Status");
 
                     b.Navigation("UserPet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiAttachment", b =>
+                {
+                    b.HasOne("Entities.Entities.File", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.PastilAIField.PastilAiMessage", "Message")
+                        .WithMany("Attachments")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("File");
+
+                    b.Navigation("Message");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiConversation", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiDailyUsage", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiMessage", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilAIField.PastilAiConversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiProviderAttempt", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilAIField.PastilAiMessage", "Message")
+                        .WithMany("ProviderAttempts")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiSubscription", b =>
+                {
+                    b.HasOne("Entities.Entities.Payment", "Payment")
+                        .WithOne("PastilAiSubscription")
+                        .HasForeignKey("Entities.Entities.PastilAIField.PastilAiSubscription", "PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.PastilAIField.PastilAiPlan", "Plan")
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Rebate", "Rebate")
+                        .WithMany()
+                        .HasForeignKey("RebateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("Rebate");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatch", b =>
@@ -9836,6 +10454,11 @@ namespace Persistence.Migrations
                         .WithOne("Wallet")
                         .HasForeignKey("Entities.Entities.Wallet", "PansionReserveId");
 
+                    b.HasOne("Entities.Entities.PastilAIField.PastilAiSubscription", "PastilAiSubscription")
+                        .WithOne("Wallet")
+                        .HasForeignKey("Entities.Entities.Wallet", "PastilAiSubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Payment", "Payment")
                         .WithOne("Wallet")
                         .HasForeignKey("Entities.Entities.Wallet", "PaymentId");
@@ -9861,6 +10484,8 @@ namespace Persistence.Migrations
                     b.Navigation("CompanionReserve");
 
                     b.Navigation("PansionReserve");
+
+                    b.Navigation("PastilAiSubscription");
 
                     b.Navigation("Payment");
 
@@ -10040,6 +10665,11 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("Entities.Entities.AssistanceGroup", b =>
+                {
+                    b.Navigation("Assistances");
                 });
 
             modelBuilder.Entity("Entities.Entities.AssistanceQuestionnaire", b =>
@@ -10230,6 +10860,28 @@ namespace Persistence.Migrations
                     b.Navigation("Wallet");
                 });
 
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiConversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiMessage", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("ProviderAttempts");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiPlan", b =>
+                {
+                    b.Navigation("Subscriptions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiSubscription", b =>
+                {
+                    b.Navigation("Wallet");
+                });
+
             modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchMessage", b =>
                 {
                     b.Navigation("Attachments");
@@ -10244,6 +10896,8 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.Payment", b =>
                 {
+                    b.Navigation("PastilAiSubscription");
+
                     b.Navigation("Wallet");
                 });
 

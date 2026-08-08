@@ -1,4 +1,5 @@
 using Api.HangFire;
+using Application.Common.Configuration;
 using Application.Configures;
 using Hangfire;
 using Hangfire.SqlServer;
@@ -17,7 +18,10 @@ using Utility.ExternalRequest.Service;
 using Utility.Reflection;
 using Utility.Reflection.Iface;
 
+DotEnvLoader.Load();
+
 var builder = WebApplication.CreateBuilder(args);
+SecretConfiguration.Apply(builder.Configuration, "PASTIL_REALTIME_CONNECTION");
 
 builder.Services.AddOutputCache();
 builder.Services.AddControllersWithViews();

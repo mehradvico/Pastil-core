@@ -94,5 +94,61 @@ namespace Application.Services.Content.AddressSrv
 
             return new AddressSearchDto(searchDto, query, mapper);
         }
+
+        public AdminAddressSearchDto SearchAdmin(AdminAddressInputDto searchDto)
+        {
+            var query = _context.Addresses
+                .AsNoTracking()
+                .Where(address => !address.Deleted)
+                .Include(address => address.User)
+                .Include(address => address.City)
+                    .ThenInclude(city => city.State)
+                .AsQueryable();
+
+            if (searchDto.UserId.HasValue)
+                query = query.Where(address => address.UserId == searchDto.UserId.Value);
+
+            if (searchDto.CityId.HasValue)
+                query = query.Where(address => address.CityId == searchDto.CityId.Value);
+
+            if (searchDto.StateId.HasValue)
+                query = query.Where(address => address.City.StateId == searchDto.StateId.Value);
+
+            if (!string.IsNullOrWhiteSpace(searchDto.PostalCode))
+            {
+                var postalCode = searchDto.PostalCode.Trim();
+                query = query.Where(address =>
+                    address.PostalCode != null &&
+                    address.PostalCode.Contains(postalCode));
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchDto.Q))
+            {
+                var q = searchDto.Q.Trim();
+                query = query.Where(address =>
+                    (address.Name != null && address.Name.Contains(q)) ||
+                    (address.FirstName != null && address.FirstName.Contains(q)) ||
+                    (address.LastName != null && address.LastName.Contains(q)) ||
+                    (address.Phone != null && address.Phone.Contains(q)) ||
+                    (address.Mobile != null && address.Mobile.Contains(q)) ||
+                    (address.AddressValue != null && address.AddressValue.Contains(q)) ||
+                    (address.PostalCode != null && address.PostalCode.Contains(q)) ||
+                    (address.NationalCode != null && address.NationalCode.Contains(q)) ||
+                    (address.User.FirstName != null && address.User.FirstName.Contains(q)) ||
+                    (address.User.LastName != null && address.User.LastName.Contains(q)) ||
+                    (address.User.Mobile != null && address.User.Mobile.Contains(q)) ||
+                    (address.User.Email != null && address.User.Email.Contains(q)) ||
+                    (address.City.Name != null && address.City.Name.Contains(q)) ||
+                    (address.City.State.Name != null && address.City.State.Name.Contains(q)));
+            }
+
+            query = searchDto.SortBy switch
+            {
+                Common.Enumerable.SortEnum.Old => query.OrderBy(address => address.Id),
+                _ => query.OrderByDescending(address => address.Id)
+            };
+
+            return new AdminAddressSearchDto(searchDto, query, mapper);
+        }
     }
 }

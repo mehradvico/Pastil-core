@@ -10,6 +10,7 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 using Entities.Entities;
 using Entities.Entities.CompanionField;
 using Entities.Entities.PansionField;
+using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
 using System.Linq;
@@ -56,6 +57,14 @@ namespace Application.Services.Order.RebateSrv
                     {
                         return new BaseResultDto<RebateDto>(isSuccess: false, val1: Resource.Notification.TheEnteredNumberNotCorrect, val2: nameof(dto.PriceValue), data: dto);
 
+                    }
+                    if (dto.UseCount < 1 || dto.MaxUsePerUser < 1 || dto.MaxUsePerUser > dto.UseCount)
+                    {
+                        return new BaseResultDto<RebateDto>(
+                            false,
+                            Resource.Notification.TheEnteredNumberNotCorrect,
+                            nameof(dto.MaxUsePerUser),
+                            dto);
                     }
                     dto.CodeValue = dto.CodeValue?.Replace(" ", "").Trim().ToLower();
                     if (!CodeIsUnique(dto.CodeValue))
@@ -110,7 +119,7 @@ namespace Application.Services.Order.RebateSrv
 
             var commonCheck = ValidateRebateCommon(
                 rebate: rebate,
-                typeId: (long)RebateTypeEnum.RebateType_Cart,
+                typeLabel: RebateTypeLabels.Cart,
                 justNow: justNow,
                 userId: cart.UserId,
                 rebateUserId: rebate?.UserId,
@@ -150,7 +159,7 @@ namespace Application.Services.Order.RebateSrv
 
             var commonCheck = ValidateRebateCommon(
                 rebate: rebate,
-                typeId: (long)RebateTypeEnum.RebateType_CompanionReserve,
+                typeLabel: RebateTypeLabels.CompanionReserve,
                 justNow: justNow,
                 userId: companionReserve.BookerId,
                 rebateUserId: rebate?.UserId,
@@ -176,16 +185,18 @@ namespace Application.Services.Order.RebateSrv
         }
         Rebate GetRebateByCodeValue(string CodeValue)
         {
-            return _context.Rebate.FirstOrDefault(x => x.Deleted == false && x.CodeValue == CodeValue);
+            var normalizedCode = CodeValue?.Replace(" ", "").Trim().ToLower();
+            return _context.Rebate.Include(x => x.Type)
+                .FirstOrDefault(x => !x.Deleted && x.CodeValue == normalizedCode);
         }
 
-        private BaseResultDto<RebateVDto> ValidateRebateCommon(Rebate rebate, long typeId, DateTime justNow, long? userId, long? rebateUserId, double basePrice)
+        private BaseResultDto<RebateVDto> ValidateRebateCommon(Rebate rebate, string typeLabel, DateTime justNow, long? userId, long? rebateUserId, double basePrice)
         {
             if (rebate == null || !rebate.Active || rebate.Deleted)
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.NothingFound, null);
             }
-            if (rebate.TypeId != typeId)
+            if (!string.Equals(rebate.Type?.Label, typeLabel, StringComparison.Ordinal))
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.NothingFound, null);
             }
@@ -234,7 +245,7 @@ namespace Application.Services.Order.RebateSrv
 
             var commonCheck = ValidateRebateCommon(
                 rebate: rebate,
-                typeId: (long)RebateTypeEnum.RebateType_Cargo,
+                typeLabel: RebateTypeLabels.Cargo,
                 justNow: justNow,
                 userId: cargo.UserPet.UserId,
                 rebateUserId: rebate?.UserId,
@@ -260,7 +271,7 @@ namespace Application.Services.Order.RebateSrv
 
             var commonCheck = ValidateRebateCommon(
                 rebate: rebate,
-                typeId: (long)RebateTypeEnum.RebateType_InsurancePackageSale,
+                typeLabel: RebateTypeLabels.InsurancePackageSale,
                 justNow: justNow,
                 userId: insurance.UserPet.UserId,
                 rebateUserId: rebate?.UserId,
@@ -286,7 +297,7 @@ namespace Application.Services.Order.RebateSrv
 
             var commonCheck = ValidateRebateCommon(
                 rebate: rebate,
-                typeId: (long)RebateTypeEnum.RebateType_Trip,
+                typeLabel: RebateTypeLabels.Trip,
                 justNow: justNow,
                 userId: trip.UserPet.UserId,
                 rebateUserId: rebate?.UserId,
@@ -312,7 +323,7 @@ namespace Application.Services.Order.RebateSrv
 
             var commonCheck = ValidateRebateCommon(
                 rebate: rebate,
-                typeId: (long)RebateTypeEnum.RebateType_Trip,
+                typeLabel: RebateTypeLabels.PansionReserve,
                 justNow: justNow,
                 userId: pansion.BookerId,
                 rebateUserId: rebate?.UserId,
@@ -327,6 +338,26 @@ namespace Application.Services.Order.RebateSrv
                 ? rebateDto.PriceValue
                 : Math.Round(basePrice * (rebateDto.PriceValue / 100));
 
+            return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
+        }
+
+        public BaseResultDto<RebateVDto> GetRebateByCodeAsync(double basePrice, long userId, string typeLabel, string code)
+        {
+            var rebate = GetRebateByCodeValue(code);
+            var commonCheck = ValidateRebateCommon(
+                rebate,
+                typeLabel,
+                DateTime.Now.Date,
+                userId,
+                rebate?.UserId,
+                basePrice);
+            if (!commonCheck.IsSuccess)
+                return commonCheck;
+
+            var rebateDto = mapper.Map<RebateVDto>(rebate);
+            rebateDto.FinalPrice = rebateDto.IsPriceRebate
+                ? rebateDto.PriceValue
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100));
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
         private void UpdateUsageStatistics(Rebate rebate, long userId)
@@ -388,6 +419,11 @@ namespace Application.Services.Order.RebateSrv
         {
             if (pansion.Rebate != null)
                 UpdateUsageStatistics(pansion.Rebate, pansion.BookerId);
+        }
+
+        public void IncreaseUseCount(Rebate rebate, long userId)
+        {
+            UpdateUsageStatistics(rebate, userId);
         }
     }
 }

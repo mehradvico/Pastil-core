@@ -4,7 +4,7 @@ using Application.Common.Helpers.Iface;
 using Application.Services.Order.MerchantSrv.Dto.SamanKishDto;
 using Application.Services.Order.PaymentGatewaySrv.Dto;
 using Application.Services.Order.PaymentGatewaySrv.Iface;
-using Application.Services.Order.ProductOrderSrv.Dto;
+using Application.Services.Order.PaymentSrv.Dto;
 using Entities.Entities;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -72,13 +72,10 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
             }
         }
 
-        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request, bool testMode)
+        public async Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request)
         {
             try
             {
-                if (testMode)
-                    return new GatewayCallbackResultDto { IsSuccess = true, Description = "TEST_MODE" };
-
                 var state = HttpRequestParamReaderHelper.Get(request, "State");
                 var status = HttpRequestParamReaderHelper.Get(request, "Status");
                 var refNum = HttpRequestParamReaderHelper.Get(request, "RefNum");

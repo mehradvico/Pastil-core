@@ -3,9 +3,10 @@ using System.Collections.Generic;
 
 namespace Entities.Entities
 {
-    public class Feature : Name_Field
+    public class Feature : Name_Field, ISlugEntity
     {
         public string Label { get; set; }
+        public string Slug { get; set; }
         public int Priority { get; set; }
         public bool Hide { get; set; }
         public bool InSearch { get; set; }
@@ -17,5 +18,7 @@ namespace Entities.Entities
         public ICollection<FeatureItem> FeatureItems { get; set; }
         public ICollection<ProductFeatureValue> ProductFeatureValues { get; set; }
         public Code Type { get; set; }
+
+        public string GetSlugSource() => Label;
     }
 }

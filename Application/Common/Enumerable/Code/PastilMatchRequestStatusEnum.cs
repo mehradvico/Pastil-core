@@ -8,9 +8,9 @@ namespace Application.Common.Enumerable.Code
 {
     public enum PastilMatchRequestStatusEnum
     {
-        PastilMatchRequestStatus_Pending = 10128,
-        PastilMatchRequestStatus_Accepted = 10129,
-        PastilMatchRequestStatus_Rejected = 10130,
-        PastilMatchRequestStatus_Cancelled = 10131
+        PastilMatchRequestStatus_Pending = 110,
+        PastilMatchRequestStatus_Accepted = 111,
+        PastilMatchRequestStatus_Rejected = 112,
+        PastilMatchRequestStatus_Cancelled = 113
     }
 }

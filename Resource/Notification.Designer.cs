@@ -743,6 +743,15 @@ namespace Resource {
                 return ResourceManager.GetString("PastilMatchVerificationRequestNotPending", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No suitable friend was found for your pet or selected filters.
+        /// </summary>
+        public static string PastilMatchSuggestionNotFound {
+            get {
+                return ResourceManager.GetString("PastilMatchSuggestionNotFound", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to PastilMatchVoiceAttachmentAlreadyExists.

@@ -2,8 +2,8 @@
 {
     public enum CompanionAssistanceTypeEnum
     {
-        CompanionAssistanceType_Online = 10025,
-        CompanionAssistanceType_InPerson = 10026,// in place of Companion
-        CompanionAssistanceType_InPlace = 10027 // in place of customer
+        CompanionAssistanceType_Online = 37,
+        CompanionAssistanceType_InPerson = 38,// in place of Companion
+        CompanionAssistanceType_InPlace = 39 // in place of customer
     }
 }

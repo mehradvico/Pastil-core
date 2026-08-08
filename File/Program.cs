@@ -1,3 +1,4 @@
+using Application.Common.Configuration;
 using Application.Configures;
 using Application.Services.Accounting.UserTokenSrv.Iface;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,7 +11,10 @@ using Persistence.Context;
 using Persistence.Interface;
 using System.Text;
 
+DotEnvLoader.Load();
+
 var builder = WebApplication.CreateBuilder(args);
+SecretConfiguration.Apply(builder.Configuration, "PASTIL_FILE_CONNECTION");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

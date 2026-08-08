@@ -8,11 +8,11 @@ namespace Application.Common.Enumerable.Code
 {
     public enum ScoreTransactionType
     {
-        ScoreTransactionType_ProductOrder = 10106,
-        ScoreTransactionType_CompanionReserve = 10108,
-        ScoreTransactionType_PansionReserve = 10109,
-        ScoreTransactionType_Spent = 10110,
-        ScoreTransactionType_AdminCharge = 10111,
-        ScoreTransactionType_ReferralCode = 10113
+        ScoreTransactionType_ProductOrder = 69,
+        ScoreTransactionType_CompanionReserve = 70,
+        ScoreTransactionType_PansionReserve = 71,
+        ScoreTransactionType_Spent = 72,
+        ScoreTransactionType_AdminCharge = 73,
+        ScoreTransactionType_ReferralCode = 74
     }
 }

@@ -20,6 +20,7 @@ namespace Application.Services.Accounting.TicketSrv.Iface
         Task<BaseResultDto> ChangeStatusAsync(ChangeTicketStatusDto dto, CancellationToken cancellationToken = default);
         Task<BaseResultDto> ChangeImportanceAsync(ChangeTicketImportanceDto dto, CancellationToken cancellationToken = default);
         Task<BaseResultDto> AssignAdminAsync(AssignTicketAdminDto dto, CancellationToken cancellationToken = default);
+        Task<BaseResultDto> TakeCurrentAdminAsync(long ticketId, CancellationToken cancellationToken = default);
         Task<BaseResultDto> DeleteAsync(long id, CancellationToken cancellationToken = default);
         Task CloseTicketAsync(int hours = 24, CancellationToken cancellationToken = default);
     }

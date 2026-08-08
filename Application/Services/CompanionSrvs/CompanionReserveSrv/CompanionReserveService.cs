@@ -369,25 +369,21 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                 if (reserve == null)
                     return new BaseResultDto(false);
+                if (reserve.IsReserved)
+                    return new BaseResultDto(true);
 
-                if (reserve.FromWallet)
+                if (fromWallet && reserve.FromWallet && reserve.WalletPrice > 0)
                 {
-                    var amount = await _walletService.GetAmountValueAsync(reserve.Booker.Id);
-                    if (amount >= reserve.WalletPrice)
+                    var walletItem = new WalletDto()
                     {
-                        var walletItem = new WalletDto()
-                        {
-                            Painding = false,
-                            Amount = reserve.WalletPrice,
-                            UserId = reserve.Booker.Id,
-                            CompanionReserveId = reserve.Id
-                        };
-                        await _walletService.InsertUpdateReserveAsync(walletItem, true);
-                    }
-                    else
-                    {
+                        Painding = false,
+                        Amount = reserve.WalletPrice,
+                        UserId = reserve.Booker.Id,
+                        CompanionReserveId = reserve.Id
+                    };
+                    var walletResult = await _walletService.InsertUpdateReserveAsync(walletItem, true);
+                    if (!walletResult.IsSuccess)
                         return new BaseResultDto(false);
-                    }
                 }
                 if (reserve.Rebate != null)
                 {
@@ -625,7 +621,10 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
         public async Task<BaseResultDto> SetRebateCodeAsyncDto(CompanionReserveSetRebateCodeDto dto)
         {
-            var item = await _context.CompanionReserves.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && s.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Registered);
+            var item = await _context.CompanionReserves.AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == dto.Id &&
+                s.BookerId == _currentUser.CurrentUser.UserId &&
+                s.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Registered);
 
             if (item == null)
             {
@@ -635,13 +634,18 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
-            var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
+            var originalPrice = item.PrePaymentPrice + item.RebatePrice;
+            var rebate = _rebateService.GetRebateByCodeAsync(
+                originalPrice,
+                item.BookerId,
+                RebateTypeLabels.CompanionReserve,
+                dto.RebateCode);
             if (rebate.IsSuccess)
             {
                 item.Rebate = null;
                 item.RebateId = rebate.Data.Id;
                 item.RebatePrice = rebate.Data.FinalPrice;
-                item.PrePaymentPrice = item.PrePaymentPrice - item.RebatePrice;
+                item.PrePaymentPrice = originalPrice - item.RebatePrice;
                 if (item.PrePaymentPrice < 0)
                 {
                     item.PrePaymentPrice = 0;
@@ -662,7 +666,10 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
         public async Task<BaseResultDto> ClearRebateCodeAsync(long id)
         {
-            var item = await _context.CompanionReserves.AsTracking().FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.CompanionReserves.AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == id && s.BookerId == _currentUser.CurrentUser.UserId && !s.IsReserved);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (!item.RebateId.HasValue)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -681,7 +688,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
         public async Task<BaseResultDto> SetWalletAsyncDto(CompanionReserveSetWalletDto dto)
         {
-            var item = await _context.CompanionReserves.Include(s => s.UserPets).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
+            var item = await _context.CompanionReserves.Include(s => s.UserPets).AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == dto.Id && s.BookerId == _currentUser.CurrentUser.UserId);
             if (item == null)
             {
                 return new BaseResultDto<CompanionReserveSetWalletDto>(false, Resource.Notification.NothingFound, dto);

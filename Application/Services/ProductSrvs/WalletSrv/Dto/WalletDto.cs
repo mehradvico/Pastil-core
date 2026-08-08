@@ -17,6 +17,7 @@ namespace Application.Services.ProductSrvs.WalletSrv.Dto
         public long? TripId { get; set; }
         public long? CargoId { get; set; }
         public long? CompanionInsurancePackageSaleId { get; set; }
+        public long? PastilAiSubscriptionId { get; set; }
         public bool Painding { get; set; }
     }
 }

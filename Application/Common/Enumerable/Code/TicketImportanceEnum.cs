@@ -2,8 +2,8 @@
 {
     public enum TicketImportanceEnum
     {
-        TicketImportance_Normal = 32,
-        TicketImportance_Important = 33,
-        TicketImportance_VeryImportant = 34
+        TicketImportance_Normal = 52,
+        TicketImportance_Important = 53,
+        TicketImportance_VeryImportant = 54
     }
 }

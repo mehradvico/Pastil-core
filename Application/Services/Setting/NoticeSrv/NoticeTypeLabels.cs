@@ -3,11 +3,15 @@ namespace Application.Services.Setting.NoticeSrv
     public static class NoticeTypeLabels
     {
         public const string SmsSent = "Sms.Sent";
+        public const string UserRegistered = "User.Registered";
         public const string ProductOrderRegistered = "ProductOrder.Registered";
+        public const string CompanionCommentSubmitted = "Companion.CommentSubmitted";
+        public const string CompanionReserveCommentSubmitted = "CompanionReserve.CommentSubmitted";
         public const string CompanionReserveRegistered = "CompanionReserve.Registered";
         public const string CompanionReserveUpdated = "CompanionReserve.Updated";
         public const string PansionReserveRegistered = "PansionReserve.Registered";
         public const string PansionSubmitted = "Pansion.Submitted";
+        public const string PansionCommentSubmitted = "Pansion.CommentSubmitted";
         public const string CompanionSubmitted = "Companion.Submitted";
         public const string CompanionUpdated = "Companion.Updated";
         public const string CompanionAssistanceSubmitted = "CompanionAssistance.Submitted";
@@ -24,5 +28,8 @@ namespace Application.Services.Setting.NoticeSrv
         public const string TripDriverRequested = "Trip.DriverRequested";
         public const string TripDriverSelectionRequired = "Trip.DriverSelectionRequired";
         public const string TripCancelledByUser = "Trip.CancelledByUser";
+        public const string PastilMatchProfileSubmitted = "PastilMatch.ProfileSubmitted";
+        public const string PastilMatchVerificationRequested = "PastilMatch.VerificationRequested";
+        public const string PastilMatchReportSubmitted = "PastilMatch.ReportSubmitted";
     }
 }

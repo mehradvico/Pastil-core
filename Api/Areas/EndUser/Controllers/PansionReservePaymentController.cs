@@ -1,7 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.Order.PaymentSrv.Iface;
-using Application.Services.Order.ProductOrderSrv.Dto;
+using Application.Services.Order.PaymentSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

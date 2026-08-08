@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="wwwroot\StaticFile\**" />
+    <Content Remove="wwwroot\StaticFile\**" />
+    <EmbeddedResource Remove="wwwroot\StaticFile\**" />
+    <None Remove="wwwroot\StaticFile\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="SkiaSharp" Version="3.116.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.1.0" />
@@ -25,8 +32,7 @@
     <Folder Include="Areas\Admin\Models\" />
     <Folder Include="Areas\Admin\Views\" />
     <Folder Include="Document\" />
-    <Folder Include="wwwroot\Media\" />
-    <Folder Include="wwwroot\StaticFile\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

@@ -151,11 +151,12 @@ namespace Utility.Reflection
 
             var anchor = FindPermission(controllerPermissions, anchorAction.Name)
                 ?? controllerPermissions
-                    .Where(x => x.ParentId is >= 1 and <= 10)
+                    .Where(x => x.ParentId is >= 1 and <= 11)
                     .OrderBy(x => x.Deleted)
                     .ThenBy(x => x.Id)
                     .FirstOrDefault();
 
+            var anchorIsNew = anchor == null;
             if (anchor == null)
             {
                 anchor = new Permission
@@ -177,7 +178,11 @@ namespace Utility.Reflection
                     controller.Summary,
                     controller.Name,
                     anchorAction.Name,
-                    controller.IsMenu,
+                    controller.Name.Equals("PermissionSync", StringComparison.OrdinalIgnoreCase)
+                        ? false
+                        : anchorIsNew
+                            ? controller.IsMenu
+                            : null,
                     controller.Priority,
                     controller.ParentId);
 
@@ -187,6 +192,7 @@ namespace Utility.Reflection
             foreach (var action in controller.Actions.Where(x => x != anchorAction))
             {
                 var permission = FindPermission(controllerPermissions, action.Name);
+                var permissionIsNew = permission == null;
                 if (permission == null)
                 {
                     permission = new Permission
@@ -209,7 +215,7 @@ namespace Utility.Reflection
                     action.Summary,
                     controller.Name,
                     action.Name,
-                    false,
+                    permissionIsNew ? false : null,
                     action.Priority,
                     anchor.Id == 0 ? null : anchor.Id);
 
@@ -237,7 +243,7 @@ namespace Utility.Reflection
             string name,
             string controller,
             string action,
-            bool isMenu,
+            bool? isMenu,
             int priority,
             long? parentId)
         {
@@ -256,9 +262,9 @@ namespace Utility.Reflection
                 changed = true;
             }
 
-            if (permission.IsMenu != isMenu)
+            if (isMenu.HasValue && permission.IsMenu != isMenu.Value)
             {
-                permission.IsMenu = isMenu;
+                permission.IsMenu = isMenu.Value;
                 changed = true;
             }
 
@@ -422,18 +428,19 @@ namespace Utility.Reflection
                 (3, N'مدیریت پت ها', N'PetManagement', NULL, 3),
                 (4, N'مدیریت نمایندگان', N'CompanionManagement', NULL, 4),
                 (5, N'مدیریت فروشگاه', N'ShopManagement', NULL, 5),
-                (6, N'مدیریت محتوا', N'ContentManagement', N'ContentManagment', 6),
-                (7, N'مدیریت یادآورها', N'ReminderManagement', NULL, 7),
-                (8, N'مدیریت مالی', N'FinancialManagement', NULL, 8),
-                (9, N'مدیریت موقعیت ها', N'LocationManagement', N'locationManagement', 9),
-                (10, N'مدیریت پاستیل فرند', N'PastilMatchManagement', NULL, 10);
+                (11, N'مدیریت PastilAI', N'PastilAIManagement', NULL, 6),
+                (6, N'مدیریت محتوا', N'ContentManagement', N'ContentManagment', 7),
+                (7, N'مدیریت یادآورها', N'ReminderManagement', NULL, 8),
+                (8, N'مدیریت مالی', N'FinancialManagement', NULL, 9),
+                (9, N'مدیریت موقعیت ها', N'LocationManagement', N'locationManagement', 10),
+                (10, N'مدیریت پاستیل فرند', N'PastilMatchManagement', NULL, 11);
 
             IF (
                 SELECT COUNT(*)
                 FROM dbo.Permissions AS p
                 INNER JOIN @Desired AS d ON d.Id = p.Id AND p.Label = d.Label
                 WHERE p.ParentId IS NULL
-            ) = 10
+            ) = 11
             BEGIN
                 UPDATE p
                 SET
@@ -442,7 +449,6 @@ namespace Utility.Reflection
                     p.Area = N'',
                     p.Controller = N'',
                     p.[Action] = N'',
-                    p.IsMenu = 1,
                     p.Priority = d.Priority,
                     p.ParentId = NULL,
                     p.Deleted = 0
@@ -454,8 +460,49 @@ namespace Utility.Reflection
             IF EXISTS
             (
                 SELECT 1
+                FROM dbo.Permissions
+                WHERE Id = 11
+                  AND NOT (ParentId IS NULL AND Label = N'PastilAIManagement')
+            )
+            BEGIN
+                DECLARE @RelocatedPermission TABLE (Id bigint NOT NULL);
+
+                INSERT INTO dbo.Permissions
+                    ([Name], Label, Area, Controller, [Action], IsMenu, Priority, ParentId, Deleted)
+                OUTPUT inserted.Id INTO @RelocatedPermission (Id)
+                SELECT
+                    [Name],
+                    Label,
+                    Area,
+                    Controller,
+                    [Action],
+                    IsMenu,
+                    Priority,
+                    ParentId,
+                    Deleted
+                FROM dbo.Permissions
+                WHERE Id = 11;
+
+                DECLARE @RelocatedPermissionId bigint =
+                    (SELECT TOP (1) Id FROM @RelocatedPermission);
+
+                UPDATE dbo.Permissions
+                SET ParentId = @RelocatedPermissionId
+                WHERE ParentId = 11;
+
+                UPDATE dbo.PermissionRole
+                SET PermissionsId = @RelocatedPermissionId
+                WHERE PermissionsId = 11;
+
+                DELETE FROM dbo.Permissions
+                WHERE Id = 11;
+            END;
+
+            IF EXISTS
+            (
+                SELECT 1
                 FROM dbo.Permissions AS p
-                WHERE p.Id BETWEEN 1 AND 10
+                WHERE p.Id BETWEEN 1 AND 11
                   AND NOT EXISTS
                   (
                       SELECT 1
@@ -464,7 +511,7 @@ namespace Utility.Reflection
                          OR p.Label = d.AlternateLabel
                   )
             )
-                THROW 51000, 'Permission IDs 1 through 10 contain a non-parent permission.', 1;
+                THROW 51000, 'Permission IDs 1 through 11 contain a non-parent permission.', 1;
 
             IF EXISTS
             (
@@ -481,11 +528,12 @@ namespace Utility.Reflection
             CREATE TABLE #ParentMap
             (
                 DesiredId bigint NOT NULL PRIMARY KEY,
-                OldId bigint NOT NULL UNIQUE
+                OldId bigint NOT NULL UNIQUE,
+                IsMenu bit NOT NULL
             );
 
-            INSERT INTO #ParentMap (DesiredId, OldId)
-            SELECT d.Id, p.Id
+            INSERT INTO #ParentMap (DesiredId, OldId, IsMenu)
+            SELECT d.Id, p.Id, p.IsMenu
             FROM @Desired AS d
             INNER JOIN dbo.Permissions AS p
                 ON p.Label = d.Label OR p.Label = d.AlternateLabel
@@ -502,7 +550,7 @@ namespace Utility.Reflection
                 N'',
                 N'',
                 N'',
-                1,
+                m.IsMenu,
                 d.Priority,
                 NULL,
                 0
@@ -536,11 +584,12 @@ namespace Utility.Reflection
                 N'',
                 N'',
                 N'',
-                1,
+                COALESCE(m.IsMenu, CONVERT(bit, 1)),
                 d.Priority,
                 NULL,
                 0
-            FROM @Desired AS d;
+            FROM @Desired AS d
+            LEFT JOIN #ParentMap AS m ON m.DesiredId = d.Id;
 
             SET IDENTITY_INSERT dbo.Permissions OFF;
 
