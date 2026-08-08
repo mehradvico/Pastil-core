@@ -9312,26 +9312,5 @@
             </summary>
             <returns></returns> 
         </member>
-        <member name="T:Api.Resources.Resource">
-            <summary>
-              A strongly-typed resource class, for looking up localized strings, etc.
-            </summary>
-        </member>
-        <member name="P:Api.Resources.Resource.ResourceManager">
-            <summary>
-              Returns the cached ResourceManager instance used by this class.
-            </summary>
-        </member>
-        <member name="P:Api.Resources.Resource.Culture">
-            <summary>
-              Overrides the current thread's CurrentUICulture property for all
-              resource lookups using this strongly typed resource class.
-            </summary>
-        </member>
-        <member name="P:Api.Resources.Resource.Hello">
-            <summary>
-              Looks up a localized string similar to Hello.
-            </summary>
-        </member>
     </members>
 </doc>
