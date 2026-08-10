@@ -14,9 +14,11 @@ namespace Application.Services.Order.PaymentSrv.Dto
         public double? Amount { get; set; }
         public long? FileId { get; set; }
 
+        [Required]
         [MaxLength(200)]
         public string RefNumber { get; set; }
 
+        [Required]
         [MaxLength(1000)]
         public string Description { get; set; }
     }

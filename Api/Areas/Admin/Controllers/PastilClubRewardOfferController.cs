@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// پیشنهادهای جایزه
+    /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -22,16 +25,25 @@ namespace Api.Areas.Admin.Controllers
             _currentUser = currentUser;
         }
 
+        /// <summary>
+        /// جزئیات پیشنهاد جایزه
+        /// </summary>
         [HttpGet("{id:long}")]
         [ProducesResponseType(typeof(BaseResultDto<ClubRewardOfferVDto>), 200)]
         public async Task<IActionResult> Get(long id, CancellationToken cancellationToken) =>
             Ok(await _service.FindAdminAsync(id, cancellationToken));
 
+        /// <summary>
+        /// فهرست پیشنهادهای جایزه
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(ClubRewardOfferSearchDto), 200)]
         public async Task<IActionResult> Get([FromQuery] ClubRewardOfferInputDto dto, CancellationToken cancellationToken) =>
             Ok(await _service.SearchAdminAsync(dto, cancellationToken));
 
+        /// <summary>
+        /// ثبت دستی پیشنهاد جایزه
+        /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(BaseResultDto<ClubRewardOfferVDto>), 200)]
         public async Task<IActionResult> Post(ClubRewardOfferCreateDto dto, CancellationToken cancellationToken) =>

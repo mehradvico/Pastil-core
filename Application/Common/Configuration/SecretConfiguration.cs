@@ -16,6 +16,7 @@ namespace Application.Common.Configuration
             Override(configuration, "Search:Hybrid:Endpoint", "PASTIL_SEARCH_HYBRID_ENDPOINT");
             Override(configuration, "Search:Hybrid:ApiKey", "PASTIL_SEARCH_HYBRID_API_KEY");
             Override(configuration, "Search:Hybrid:SemanticWeight", "PASTIL_SEARCH_HYBRID_WEIGHT");
+            Override(configuration, "Security:MerchantEncryptionKey", "PASTIL_MERCHANT_ENCRYPTION_KEY");
 
             if (includeVapidKeys)
             {

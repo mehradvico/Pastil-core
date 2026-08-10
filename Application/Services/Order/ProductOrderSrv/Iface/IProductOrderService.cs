@@ -13,7 +13,7 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
     {
         ProductOrderSearchDto Search(ProductOrderInputDto baseSearchDto);
         Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false);
-        Task<BaseResultDto> FindAsyncVDto(string id);
+        Task<BaseResultDto> FindAsyncVDto(string id, long? userId = null);
         Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto);
         Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto);
         Task<BaseResultDto> ChangeTrackingCode(ProductOrderDto order);
@@ -27,4 +27,3 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
 
     }
 }
-

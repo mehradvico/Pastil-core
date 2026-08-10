@@ -13,7 +13,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Iface
     {
         CompanionReserveSearchDto Search(CompanionReserveInputDto baseSearchDto);
         Task<BaseResultDto> CompanionReservePaymentCallback(long? reserveId, bool fromWallet = false);
-        Task<BaseResultDto<CompanionReserveVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto<CompanionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null);
         Task<BaseResultDto<CompanionReserveAdminVDto>> FindAsyncAdminVDto(long id);
         Task<BaseResultDto> UpdateCancelDto(CompanionReserveCancelDto dto);
         Task<BaseResultDto> UpdateAsyncDto(CompanionReserveUpdateDto dto);

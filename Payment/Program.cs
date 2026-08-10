@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Persistence.Context;
 using Persistence.Interface;
 using System.Globalization;
+using System.Threading.RateLimiting;
 
 DotEnvLoader.Load();
 
@@ -14,6 +15,18 @@ var builder = WebApplication.CreateBuilder(args);
 SecretConfiguration.Apply(builder.Configuration, "PASTIL_PAYMENT_CONNECTION");
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("PaymentCallback", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
 builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
 builder.Services.AddApplicationServices();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
@@ -44,6 +57,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseAuthorization();
 

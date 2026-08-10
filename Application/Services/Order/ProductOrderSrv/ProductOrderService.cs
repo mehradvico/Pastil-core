@@ -74,11 +74,14 @@ namespace Application.Services.Order.ProductOrderSrv
             this._scoreService = scoreService;
             this._clubPointIntegrationService = clubPointIntegrationService;
         }
-        public async Task<BaseResultDto> FindAsyncVDto(string id)
+        public async Task<BaseResultDto> FindAsyncVDto(string id, long? userId = null)
         {
-            var item = await _context.ProductOrders.Include(s => s.User).Include(s => s.Address).Include(s => s.ProductOrderState)
+            var query = _context.ProductOrders.Include(s => s.User).Include(s => s.Address).Include(s => s.ProductOrderState)
                 .Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems)
-                .Include(s => s.ProductOrderStores).ThenInclude(s => s.Delivery).FirstOrDefaultAsync(s => s.Id == id);
+                .Include(s => s.ProductOrderStores).ThenInclude(s => s.Delivery).Where(s => s.Id == id && !s.Deleted);
+            if (userId.HasValue)
+                query = query.Where(s => s.UserId == userId.Value);
+            var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
                 return new BaseResultDto<ProductOrderVDto>(true, data: mapper.Map<ProductOrderVDto>(item));
@@ -109,9 +112,9 @@ namespace Application.Services.Order.ProductOrderSrv
                 }
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto<ProductOrderDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<ProductOrderDto>(isSuccess: false, val: Resource.Notification.Unsuccess, data: dto);
             }
         }
 

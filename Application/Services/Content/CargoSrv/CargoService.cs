@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Enumerable.Message;
 using Application.Common.Helpers;
@@ -270,6 +271,8 @@ namespace Application.Services.Content.CargoSrv
             {
                 return new BaseResultDto<CargoSetRebateCodeDto>(false, Resource.Notification.NothingFound, dto);
             }
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
             if (item.Price == 0)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.FinalPriceIsNotAvailable);
@@ -301,6 +304,8 @@ namespace Application.Services.Content.CargoSrv
                 s.Id == id && s.UserPet.UserId == _currentUser.CurrentUser.UserId && !s.IsPaid);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -321,6 +326,8 @@ namespace Application.Services.Content.CargoSrv
             {
                 return new BaseResultDto<CargoSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
             if (dto.FromWallet)
             {
                 item.FromWallet = true;
@@ -334,6 +341,15 @@ namespace Application.Services.Content.CargoSrv
             _context.Cargoes.Update(item);
             await _context.SaveChangesAsync();
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
+        }
+
+        private Task<bool> HasActivePaymentAsync(long id)
+        {
+            var callbackId = id.ToString();
+            return _context.Payments.AsNoTracking().AnyAsync(s =>
+                s.CallBackTypeLabel == PaymentCallbackTypeEnum.Cargo.ToString() &&
+                s.CallBackId == callbackId &&
+                (s.IsSuccess == null || s.IsSuccess == true));
         }
     }
 }

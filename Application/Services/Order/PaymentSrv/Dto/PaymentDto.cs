@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Field;
 using Application.Services.Order.MerchantSrv.Dto;
 using Application.Services.Setting.CodeSrv.Dto;
+using System;
 
 namespace Application.Services.Order.PaymentSrv.Dto
 {
@@ -17,6 +18,9 @@ namespace Application.Services.Order.PaymentSrv.Dto
         public string RefNumber { get; set; }
         public string BonusCode { get; set; }
         public double Amount { get; set; }
+        public double GrossAmount { get; set; }
+        public double RebateAmount { get; set; }
+        public double WalletAmount { get; set; }
         public string Description { get; set; }
         public bool? IsSuccess { get; set; }
         public bool IsOnline { get; set; }
@@ -25,6 +29,7 @@ namespace Application.Services.Order.PaymentSrv.Dto
         public long? FileId { get; set; }
         public string CallBackTypeLabel { get; set; }
         public string CallBackId { get; set; }
+        public DateTime? AppliedDate { get; set; }
         public CodeVDto Type { get; set; }
         public MerchantVDto Merchant { get; set; }
     }

@@ -599,6 +599,10 @@ namespace Application.Services.Order.CartSrv
                 var paymentDto = new PaymentStartDto()
                 {
                     Amount = productOrderDto.PaymentPrice,
+                    GrossAmount = productOrderDto.PaymentPrice + productOrderDto.RebatePrice,
+                    RebateAmount = productOrderDto.RebatePrice,
+                    WalletAmount = productOrderDto.WalletPrice,
+                    RebateId = productOrderDto.RebateId,
                     IsOnline = productOrderDto.PaymentTypeId == orderPaymentTypeOnline.Id,
                     MerchantId = cart.MerchantId,
                     ProductOrderId = insertedProductOrder.Data.Id,
@@ -618,10 +622,8 @@ namespace Application.Services.Order.CartSrv
 
                     if (walletAmount >= productOrderDto.PaymentPrice)
                     {
-                        var callback = await _productOrderService.ProductPaymentCallback(insertedProductOrder.Data.Id, true);
-                        if (!callback.IsSuccess)
-                            return callback;
-                        return new BaseResultDto<PaymentStartDto>(true, paymentDto);
+                        paymentDto.Amount = 0;
+                        return await _paymentService.StartPayment(paymentDto);
                     }
                     else
                     {

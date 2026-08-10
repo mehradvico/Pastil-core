@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// تأیید گروهی جوایز
+    /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -21,6 +24,9 @@ namespace Api.Areas.Admin.Controllers
             _currentUser = currentUser;
         }
 
+        /// <summary>
+        /// تأیید گروهی پیشنهادهای جایزه
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Post(ClubRewardOfferBulkDecisionDto dto, CancellationToken cancellationToken) =>
             Ok(await _service.BulkApproveAsync(dto, _currentUser.CurrentUser.UserId, cancellationToken));

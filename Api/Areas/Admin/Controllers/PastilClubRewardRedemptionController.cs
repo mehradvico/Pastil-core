@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// جوایز دریافت‌شده
+    /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -19,11 +22,17 @@ namespace Api.Areas.Admin.Controllers
             _service = service;
         }
 
+        /// <summary>
+        /// جزئیات دریافت جایزه
+        /// </summary>
         [HttpGet("{id:long}")]
         [ProducesResponseType(typeof(BaseResultDto<ClubRewardRedemptionVDto>), 200)]
         public async Task<IActionResult> Get(long id, CancellationToken cancellationToken) =>
             Ok(await _service.FindAdminAsync(id, cancellationToken));
 
+        /// <summary>
+        /// فهرست جوایز دریافت‌شده
+        /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(ClubRewardRedemptionSearchDto), 200)]
         public async Task<IActionResult> Get([FromQuery] ClubRewardRedemptionInputDto dto, CancellationToken cancellationToken) =>

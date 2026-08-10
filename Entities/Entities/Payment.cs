@@ -8,6 +8,7 @@ namespace Entities.Entities
     public class Payment : Id_Field
     {
         public long? MerchantId { get; set; }
+        public long? RebateId { get; set; }
         public string ProductOrderId { get; set; }
         public long? CompanionReserveId { get; set; }
         public long? TripId { get; set; }
@@ -21,13 +22,21 @@ namespace Entities.Entities
         public bool IsOnline { get; set; }
         public long? FileId { get; set; }
         public long UserId { get; set; }
+        public long? ApprovedByUserId { get; set; }
+        public string ApprovedIp { get; set; }
         public long TypeId { get; set; }
         public string CallBackTypeLabel { get; set; }
         public string CallBackId { get; set; }
         public string Token { get; set; }
+        public string CallbackToken { get; set; }
         public string GatewayStatus { get; set; }
+        public double GrossAmount { get; set; }
+        public double RebateAmount { get; set; }
+        public double WalletAmount { get; set; }
+        public DateTime? AppliedDate { get; set; }
         public PastilAiSubscription PastilAiSubscription { get; set; }
         public Merchant Merchant { get; set; }
+        public Rebate Rebate { get; set; }
         public File File { get; set; }
         public ProductOrder ProductOrder { get; set; }
         public Wallet Wallet { get; set; }

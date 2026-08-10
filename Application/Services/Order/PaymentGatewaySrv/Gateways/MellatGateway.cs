@@ -24,24 +24,10 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
 
         public Task<GatewayCallbackResultDto> CallbackAsync(Payment payment, Merchant merchant, HttpRequest request)
         {
-            //ملت معمولاً POST برمی‌گرداند: SaleOrderId, SaleReferenceId, RefId, ResCode...
-
-            var resCode = HttpRequestParamReaderHelper.Get(request, "ResCode");
-            var saleOrderId = HttpRequestParamReaderHelper.Get(request, "SaleOrderId");
-            var saleReferenceId = HttpRequestParamReaderHelper.Get(request, "SaleReferenceId");
-
-            if (string.IsNullOrEmpty(resCode))
-                return Task.FromResult(new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.InvalidData });
-
-            // TODO: اگر ResCode == "0" بود باید verify (bpVerifyRequest) و بعد settle انجام شود
-
-            var ok = resCode == "0";
-
             return Task.FromResult(new GatewayCallbackResultDto
             {
-                IsSuccess = ok,
-                RefNumber = saleReferenceId,
-                Description = $"ResCode={resCode}; SaleOrderId={saleOrderId}"
+                IsSuccess = false,
+                ErrorMessage = "Mellat gateway is not configured for production mode."
             });
         }
     }

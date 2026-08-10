@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// تنظیمات امتیاز پاستیل کلاب
+    /// تنظیمات امتیاز
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]

@@ -2,6 +2,8 @@
 using NetTopologySuite.Geometries;
 using System.Collections.Generic;
 
+#pragma warning disable CS8632
+
 namespace Entities.Entities.LocationField
 {
     public class City : Name_Field

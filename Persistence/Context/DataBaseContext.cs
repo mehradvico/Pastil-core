@@ -321,6 +321,17 @@ namespace Persistence.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<CompanionAssistance>()
+                .Property(item => item.CommissionPercent)
+                .HasPrecision(5, 2);
+            modelBuilder.Entity<Pansion>(entity =>
+            {
+                entity.Property(item => item.DailyCommissionPercent).HasPrecision(5, 2);
+                entity.Property(item => item.HourlyCommissionPercent).HasPrecision(5, 2);
+            });
+            modelBuilder.Entity<Store>()
+                .Property(item => item.CommissionPercent)
+                .HasPrecision(5, 2);
             modelBuilder.Entity<ClubPointAccount>(entity =>
             {
                 entity.ToTable(table =>
@@ -563,6 +574,84 @@ namespace Persistence.Context
                 .WithOne(item => item.Rebate)
                 .HasForeignKey<ClubCoupon>(item => item.RebateId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Rebate>(entity =>
+            {
+                entity.Property(item => item.CodeValue).IsRequired().HasMaxLength(100);
+                entity.HasIndex(item => item.CodeValue)
+                    .IsUnique()
+                    .HasFilter("[Deleted] = 0");
+            });
+
+            modelBuilder.Entity<ClubReward>(entity =>
+            {
+                entity.HasOne(item => item.Rebate)
+                    .WithMany()
+                    .HasForeignKey(item => item.RebateId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<UserRebate>(entity =>
+            {
+                entity.HasIndex(item => new { item.UserId, item.RebateId }).IsUnique();
+                entity.ToTable(table => table.HasCheckConstraint(
+                    "CK_UserRebate_UsageCount",
+                    "[UsageCount] >= 0"));
+            });
+
+            modelBuilder.Entity<Payment>(entity =>
+            {
+                entity.Property(item => item.CallbackToken).HasMaxLength(64);
+                entity.Property(item => item.ApprovedIp).HasMaxLength(64);
+                entity.HasIndex(item => item.CallbackToken)
+                    .IsUnique()
+                    .HasFilter("[CallbackToken] IS NOT NULL");
+                entity.HasIndex(item => new { item.UserId, item.CallBackTypeLabel, item.CallBackId });
+                entity.HasIndex(item => new { item.RebateId, item.UserId, item.CreateDate });
+                entity.HasIndex(item => item.RefNumber)
+                    .IsUnique()
+                    .HasFilter("[RefNumber] IS NOT NULL AND [IsOnline] = 0 AND [IsSuccess] = 1");
+                entity.ToTable(table =>
+                {
+                    table.HasCheckConstraint("CK_Payment_Amount", "[Amount] >= 0");
+                    table.HasCheckConstraint("CK_Payment_GrossAmount", "[GrossAmount] >= 0");
+                    table.HasCheckConstraint("CK_Payment_RebateAmount", "[RebateAmount] >= 0");
+                    table.HasCheckConstraint("CK_Payment_WalletAmount", "[WalletAmount] >= 0");
+                });
+                entity.HasOne(item => item.Rebate).WithMany()
+                    .HasForeignKey(item => item.RebateId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Wallet>(entity =>
+            {
+                entity.HasIndex(item => item.PaymentId)
+                    .IsUnique()
+                    .HasFilter("[PaymentId] IS NOT NULL");
+                entity.HasIndex(item => item.ProductOrderId)
+                    .IsUnique()
+                    .HasFilter("[ProductOrderId] IS NOT NULL");
+                entity.HasIndex(item => item.CompanionReserveId)
+                    .IsUnique()
+                    .HasFilter("[CompanionReserveId] IS NOT NULL");
+                entity.HasIndex(item => item.PansionReserveId)
+                    .IsUnique()
+                    .HasFilter("[PansionReserveId] IS NOT NULL");
+                entity.HasIndex(item => item.TripId)
+                    .IsUnique()
+                    .HasFilter("[TripId] IS NOT NULL");
+                entity.HasIndex(item => item.CargoId)
+                    .IsUnique()
+                    .HasFilter("[CargoId] IS NOT NULL");
+                entity.HasIndex(item => item.CompanionInsurancePackageSaleId)
+                    .IsUnique()
+                    .HasFilter("[CompanionInsurancePackageSaleId] IS NOT NULL");
+                entity.HasIndex(item => item.PastilAiSubscriptionId)
+                    .IsUnique()
+                    .HasFilter("[PastilAiSubscriptionId] IS NOT NULL");
+                entity.ToTable(table => table.HasCheckConstraint(
+                    "CK_Wallet_Amount",
+                    "[Amount] >= 0"));
+            });
 
             modelBuilder.Entity<PastilAiSubscription>()
                 .HasOne(item => item.ClubRewardRedemption)

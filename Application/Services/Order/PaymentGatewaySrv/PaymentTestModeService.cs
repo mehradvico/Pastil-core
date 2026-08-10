@@ -32,11 +32,14 @@ namespace Application.Services.Order.PaymentGatewaySrv
 
             dto.IsTestMode = true;
             dto.PaymentIsLink = true;
-            dto.TestSuccessUrl = AddResult(dto.CallbackUrl, SuccessResult);
-            dto.TestFailureUrl = AddResult(dto.CallbackUrl, FailureResult);
-            dto.PaymentUrl = IsFailure(_options.DefaultResult)
-                ? dto.TestFailureUrl
-                : dto.TestSuccessUrl;
+            var defaultResult = IsFailure(_options.DefaultResult) ? FailureResult : SuccessResult;
+            dto.PaymentUrl = AddResult(dto.CallbackUrl, defaultResult);
+            dto.TestSuccessUrl = _options.AllowResultOverride
+                ? AddResult(dto.CallbackUrl, SuccessResult)
+                : null;
+            dto.TestFailureUrl = _options.AllowResultOverride
+                ? AddResult(dto.CallbackUrl, FailureResult)
+                : null;
         }
 
         public GatewayCallbackResultDto CreateCallbackResult(Payment payment, HttpRequest request)

@@ -105,9 +105,9 @@ namespace Application.Services.Order.RebateSrv
                 }
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto<RebateDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<RebateDto>(isSuccess: false, val: Resource.Notification.Unsuccess, data: dto);
             }
 
         }
@@ -135,12 +135,14 @@ namespace Application.Services.Order.RebateSrv
 
             if (rebate.ProductId.HasValue)
             {
-                var cartItem = _context.CartItems.FirstOrDefault(s =>
-                    s.CartStore.CartId == cart.Id && s.ProductItem.ProductId == rebate.ProductId);
+                var productTotal = _context.CartItems
+                    .Where(s => s.CartStore.CartId == cart.Id && s.ProductItem.ProductId == rebate.ProductId)
+                    .Select(s => (double?)(s.ProductItem.Price * s.Count))
+                    .Sum();
 
-                if (cartItem != null)
+                if (productTotal.HasValue && productTotal.Value > 0)
                 {
-                    basePrice = cartItem.ProductItem.Price;
+                    basePrice = productTotal.Value;
                 }
                 else
                 {

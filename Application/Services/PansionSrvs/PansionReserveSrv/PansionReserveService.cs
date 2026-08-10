@@ -27,6 +27,7 @@ using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -66,9 +67,12 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             this._scoreService = scoreService;
             this._clubPointIntegrationService = clubPointIntegrationService;
         }
-        public async Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id)
+        public async Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null)
         {
-            var item = await _context.PansionReserves.Include(s => s.Status).Include(s => s.Booker).Include(s => s.UserPet).Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == id);
+            var query = _context.PansionReserves.Include(s => s.Status).Include(s => s.Booker).Include(s => s.UserPet).Include(s => s.Rebate).Where(s => s.Id == id);
+            if (bookerId.HasValue)
+                query = query.Where(s => s.BookerId == bookerId.Value);
+            var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
                 return new BaseResultDto<PansionReserveVDto>(true, mapper.Map<PansionReserveVDto>(item));
@@ -149,7 +153,13 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     {
                         item.IsReserved = false;
                     }
-                    var pansion = await _context.Pansions.FirstOrDefaultAsync(s => s.Id == dto.PansionId);
+                    var pansion = await _context.Pansions.FirstOrDefaultAsync(s =>
+                        s.Id == dto.PansionId && s.Active && s.Approve);
+                    if (pansion == null || !await _context.UserPets.AnyAsync(s =>
+                            s.Id == dto.UserPetId && s.UserId == dto.BookerId))
+                    {
+                        return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.InvalidData, dto);
+                    }
                     var hasSchoolInputs = !string.IsNullOrWhiteSpace(dto.StartTime) && !string.IsNullOrWhiteSpace(dto.EndTime) && dto.SchoolCreateDate.HasValue;
                     var hasPansionInputs = dto.FromDate.HasValue && dto.ToDate.HasValue;
 
@@ -173,6 +183,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         {
                             return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.ToTimeMustBeBiggerThanFromTime, dto);
                         }
+                        if (dto.SchoolCreateDate.Value.Date < DateTime.Today)
+                            return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.InvalidData, dto);
 
                         var totalHours = (endTime - startTime).TotalHours;
 
@@ -196,6 +208,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         {
                             return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.PleaseEnterTimeRange, dto);
                         }
+                        if (from < DateTime.Today)
+                            return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.InvalidData, dto);
 
                         item.DayCount = (to - from).Days + 1;
                         item.HourCount = 0;
@@ -206,8 +220,29 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
                     var status = await _codeService.GetIdByLabelAsync(PansionReserveStatusEnum.PansionReserveState_Registered.ToString());
                     item.StatusId = status;
+                    await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
+                    var hasOverlap = hasSchoolInputs
+                        ? await _context.PansionReserves.AnyAsync(s =>
+                            s.PansionId == item.PansionId &&
+                            s.UserPetId == item.UserPetId &&
+                            !s.IsCancel &&
+                            s.SchoolCreateDate == item.SchoolCreateDate &&
+                            string.Compare(s.StartTime, item.EndTime) < 0 &&
+                            string.Compare(s.EndTime, item.StartTime) > 0)
+                        : await _context.PansionReserves.AnyAsync(s =>
+                            s.PansionId == item.PansionId &&
+                            s.UserPetId == item.UserPetId &&
+                            !s.IsCancel &&
+                            s.FromDate <= item.ToDate &&
+                            s.ToDate >= item.FromDate);
+                    if (hasOverlap)
+                    {
+                        await transaction.RollbackAsync();
+                        return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.HaveBeenReserved, dto);
+                    }
                     await _context.PansionReserves.AddAsync(item);
                     await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
 
                     var booker = _context.Users.FirstOrDefault(u => u.Id == item.BookerId);
                     var Pansion = _context.Pansions.Include(s => s.Companion).ThenInclude(s => s.Owner).FirstOrDefault(a => a.Id == item.PansionId);
@@ -242,9 +277,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 }
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto<PansionReserveDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<PansionReserveDto>(isSuccess: false, val: Resource.Notification.Unsuccess, data: dto);
             }
         }
         public async Task<BaseResultDto> PansionReservePaymentCallback(long? reserveId, bool fromWallet = false)
@@ -422,12 +457,11 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
             var originalPrice = item.PaymentPrice + item.RebatePrice;
-            var rebate = _rebateService.GetRebateByCodeAsync(
-                originalPrice,
-                item.BookerId,
-                RebateTypeLabels.PansionReserve,
-                dto.RebateCode);
+            item.Price = originalPrice;
+            var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
             if (rebate.IsSuccess)
             {
                 item.Rebate = null;
@@ -458,6 +492,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 s.Id == id && s.BookerId == _currentUser.CurrentUser.UserId && !s.IsReserved);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
             if (!item.RebateId.HasValue)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -482,6 +518,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             {
                 return new BaseResultDto<PansionReserveWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
             if (item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete)
             {
                 return new BaseResultDto<PansionReserveWalletDto>(false, Resource.Notification.ThisReserveIsCompleted, dto);
@@ -503,6 +541,15 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             _context.PansionReserves.Update(item);
             await _context.SaveChangesAsync();
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
+        }
+
+        private Task<bool> HasActivePaymentAsync(long reserveId)
+        {
+            var callbackId = reserveId.ToString();
+            return _context.Payments.AsNoTracking().AnyAsync(s =>
+                s.CallBackTypeLabel == PaymentCallbackTypeEnum.PansionReserve.ToString() &&
+                s.CallBackId == callbackId &&
+                (s.IsSuccess == null || s.IsSuccess == true));
         }
 
         public async Task<BaseResultDto<int>> ReserveCountAsync(long id)

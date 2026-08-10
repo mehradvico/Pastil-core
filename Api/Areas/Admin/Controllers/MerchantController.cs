@@ -33,6 +33,14 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var role = await MerchantService.FindAsyncDto(id);
+            if (role.Data != null)
+            {
+                role.Data.Username = null;
+                role.Data.Password = null;
+                role.Data.PrivateKey = null;
+                role.Data.TerminalKey = null;
+                role.Data.MerchantNo = null;
+            }
             return Ok(role);
         }
         /// <summary>
@@ -51,7 +59,6 @@ namespace Api.Areas.Admin.Controllers
         /// آیتم جدید
         /// </summary>  
         [HttpPost]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(BaseResultDto<MerchantDto>), 200)]
         public async Task<IActionResult> Post(MerchantDto MerchantDto)
         {
@@ -65,9 +72,9 @@ namespace Api.Areas.Admin.Controllers
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(MerchantDto MerchantDto)
+        public async Task<IActionResult> Put(MerchantDto MerchantDto)
         {
-            var dto = MerchantService.UpdateDto(MerchantDto);
+            var dto = await MerchantService.UpdateSecureAsyncDto(MerchantDto);
             return Ok(dto);
         }
         /// <summary>

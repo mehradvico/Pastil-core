@@ -50,7 +50,7 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionReserveVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var companion = await _companionReserveService.FindAsyncVDto(id);
+            var companion = await _companionReserveService.FindAsyncVDto(id, _currentUserHelper.UserId);
             return Ok(companion);
         }
 
@@ -75,10 +75,16 @@ namespace Api.Areas.EndUser.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(CompanionReserveDto dto)
+        public async Task<IActionResult> Put(CompanionReserveDto dto)
         {
-            dto.BookerId = _currentUserHelper.UserId;
-            var companion = _companionReserveService.UpdateDto(dto);
+            var companion = await _companionReserveService.UpdateAsyncDto(
+                new Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveUpdateDto
+                {
+                    Id = dto.Id,
+                    CompanionAssistanceTimeId = dto.CompanionAssistanceTimeId,
+                    IsFemale = dto.IsFemale,
+                    UserPetIds = dto.UserPetIds
+                });
             return Ok(companion);
         }
     }

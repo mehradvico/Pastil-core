@@ -2521,7 +2521,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilClubPointDecreaseController">
             <summary>
-            کاهش دستی امتیاز پاستیل کلاب
+            کاهش دستی امتیاز
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilClubPointDecreaseController.Post(Application.Services.PastilClubSrvs.PointSrv.Dto.ClubManualPointDto,System.Threading.CancellationToken)">
@@ -2531,7 +2531,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilClubPointIncreaseController">
             <summary>
-            افزایش دستی امتیاز پاستیل کلاب
+            افزایش دستی امتیاز
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilClubPointIncreaseController.Post(Application.Services.PastilClubSrvs.PointSrv.Dto.ClubManualPointDto,System.Threading.CancellationToken)">
@@ -2541,7 +2541,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilClubPointRuleController">
             <summary>
-            تنظیمات امتیاز پاستیل کلاب
+            تنظیمات امتیاز
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilClubPointRuleController.Get(System.Int64,System.Threading.CancellationToken)">
@@ -2566,12 +2566,112 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PastilClubPointTransactionController">
             <summary>
-            گردش امتیازهای پاستیل کلاب
+            گردش امتیازها
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PastilClubPointTransactionController.Get(Application.Services.PastilClubSrvs.PointSrv.Dto.ClubPointTransactionInputDto,System.Threading.CancellationToken)">
             <summary>
             جستجوی گردش امتیاز کاربران
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilClubRewardApproveController">
+            <summary>
+            تایید جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardApproveController.Post(Application.Services.PastilClubSrvs.RewardOfferSrv.Dto.ClubRewardOfferDecisionDto,System.Threading.CancellationToken)">
+            <summary>
+            تأیید پیشنهاد جایزه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilClubRewardBulkApproveController">
+            <summary>
+            تأیید گروهی جوایز
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardBulkApproveController.Post(Application.Services.PastilClubSrvs.RewardOfferSrv.Dto.ClubRewardOfferBulkDecisionDto,System.Threading.CancellationToken)">
+            <summary>
+            تأیید گروهی پیشنهادهای جایزه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilClubRewardBulkRejectController">
+            <summary>
+            رد گروهی جوایز
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardBulkRejectController.Post(Application.Services.PastilClubSrvs.RewardOfferSrv.Dto.ClubRewardOfferBulkDecisionDto,System.Threading.CancellationToken)">
+            <summary>
+            رد گروهی پیشنهادهای جایزه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilClubRewardOfferController">
+            <summary>
+            پیشنهادهای جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardOfferController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            جزئیات پیشنهاد جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardOfferController.Get(Application.Services.PastilClubSrvs.RewardOfferSrv.Dto.ClubRewardOfferInputDto,System.Threading.CancellationToken)">
+            <summary>
+            فهرست پیشنهادهای جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardOfferController.Post(Application.Services.PastilClubSrvs.RewardOfferSrv.Dto.ClubRewardOfferCreateDto,System.Threading.CancellationToken)">
+            <summary>
+            ثبت دستی پیشنهاد جایزه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilClubRewardRedemptionController">
+            <summary>
+            جوایز دریافت‌شده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardRedemptionController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            جزئیات دریافت جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardRedemptionController.Get(Application.Services.PastilClubSrvs.RewardRedemptionSrv.Dto.ClubRewardRedemptionInputDto,System.Threading.CancellationToken)">
+            <summary>
+            فهرست جوایز دریافت‌شده
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilClubRewardRejectController">
+            <summary>
+            رد جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardRejectController.Post(Application.Services.PastilClubSrvs.RewardOfferSrv.Dto.ClubRewardOfferDecisionDto,System.Threading.CancellationToken)">
+            <summary>
+            رد پیشنهاد جایزه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PastilClubRewardTemplateController">
+            <summary>
+            قالب‌های جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardTemplateController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            جزئیات قالب جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardTemplateController.Get(Application.Services.PastilClubSrvs.RewardTemplateSrv.Dto.ClubRewardTemplateInputDto,System.Threading.CancellationToken)">
+            <summary>
+            فهرست قالب‌های جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardTemplateController.Post(Application.Services.PastilClubSrvs.RewardTemplateSrv.Dto.ClubRewardTemplateDto,System.Threading.CancellationToken)">
+            <summary>
+            افزودن قالب جایزه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PastilClubRewardTemplateController.Put(Application.Services.PastilClubSrvs.RewardTemplateSrv.Dto.ClubRewardTemplateDto,System.Threading.CancellationToken)">
+            <summary>
+            ویرایش قالب جایزه
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.Api.Areas.Admin.Controllers.PastilMatchBlockController">

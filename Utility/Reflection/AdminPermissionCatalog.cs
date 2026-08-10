@@ -199,7 +199,6 @@ namespace Utility.Reflection
                 "VarietyLanguage",
                 "Feature",
                 "Delivery",
-                "Rebate",
                 "Discount",
                 "DiscussionQuestion",
                 "StoreComment",
@@ -354,7 +353,8 @@ namespace Utility.Reflection
                 "PastilClubRewardApprove",
                 "PastilClubRewardReject",
                 "PastilClubRewardBulkApprove",
-                "PastilClubRewardBulkReject"
+                "PastilClubRewardBulkReject",
+                "Rebate"
             ]);
 
             return result;

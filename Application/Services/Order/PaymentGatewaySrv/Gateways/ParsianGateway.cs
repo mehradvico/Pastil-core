@@ -149,14 +149,14 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                     Description = payment.Description
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                payment.Description = ex.Message;
+                payment.Description = "PARSIAN_CALLBACK_FAILED";
 
                 return new GatewayCallbackResultDto
                 {
                     IsSuccess = false,
-                    ErrorMessage = ex.Message
+                    ErrorMessage = Resource.Notification.Unsuccess
                 };
             }
         }

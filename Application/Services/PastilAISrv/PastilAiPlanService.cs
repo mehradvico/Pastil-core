@@ -170,49 +170,14 @@ namespace Application.Services.PastilAISrv
             await _context.PastilAiSubscriptions.AddAsync(subscription, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            if (gatewayAmount <= 0)
-            {
-                var walletPayment = new Entities.Entities.Payment
-                {
-                    MerchantId = null,
-                    Amount = (double)payableAmount,
-                    UserId = userId,
-                    TypeId = typeId.Value,
-                    IsOnline = true,
-                    IsSuccess = true,
-                    CreateDate = DateTime.Now,
-                    GatewayStatus = "WalletApproved",
-                    CallBackTypeLabel = PaymentCallbackTypeEnum.PastilAI.ToString(),
-                    CallBackId = subscription.Id.ToString()
-                };
-                await _context.Payments.AddAsync(walletPayment, cancellationToken);
-                await _context.SaveChangesAsync(cancellationToken);
-                subscription.PaymentId = walletPayment.Id;
-                await _context.SaveChangesAsync(cancellationToken);
-
-                var activation = await _subscriptionActivator.ActivateAfterPaymentAsync(
-                    subscription.Id,
-                    walletPayment.Id,
-                    cancellationToken);
-                if (!activation.IsSuccess)
-                    return activation;
-
-                return new BaseResultDto<PaymentStartDto>(true, new PaymentStartDto
-                {
-                    PaymentId = walletPayment.Id,
-                    Amount = (double)payableAmount,
-                    UserId = userId,
-                    TypeId = typeId.Value,
-                    CallBackTypeLabel = PaymentCallbackTypeEnum.PastilAI.ToString(),
-                    CallBackId = subscription.Id.ToString(),
-                    PaymentIsLink = false
-                });
-            }
-
             var paymentDto = new PaymentStartDto
             {
                 MerchantId = dto.MerchantId,
                 Amount = (double)gatewayAmount,
+                GrossAmount = (double)(payableAmount + rebatePrice),
+                RebateAmount = (double)rebatePrice,
+                WalletAmount = (double)walletPrice,
+                RebateId = rebateId,
                 UserId = userId,
                 User = new Application.Services.Dto.UserMinVDto
                 {

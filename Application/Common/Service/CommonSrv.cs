@@ -72,9 +72,9 @@ namespace Application.Common.Service
                 }
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto<TDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<TDto>(isSuccess: false, val: Resource.Notification.Unsuccess, data: dto);
             }
         }
         public virtual BaseResultDto UpdateDto(TDto dto)
@@ -100,9 +100,9 @@ namespace Application.Common.Service
                     return new BaseResultDto(isSuccess: true);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
         }
         public virtual BaseResultDto UpdateRangeDto(List<TDto> dtos)
@@ -114,9 +114,9 @@ namespace Application.Common.Service
                 _context.SaveChanges();
                 return new BaseResultDto(isSuccess: true);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
         }
         public virtual BaseResultDto DeleteDto(long id)
@@ -158,9 +158,9 @@ namespace Application.Common.Service
                 _context.SaveChanges();
                 return new BaseResultDto(true);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
         }
         public virtual BaseResultDto DeleteDto(TDto dto)
@@ -181,9 +181,9 @@ namespace Application.Common.Service
                 _context.SaveChanges();
                 return new BaseResultDto(true);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
         }
 

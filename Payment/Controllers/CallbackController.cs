@@ -3,6 +3,7 @@ using Application.Common.Helpers;
 using Application.Services.Order.PaymentSrv.Iface;
 using Application.Services.Order.PaymentSrv.Dto;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Payment.Controllers
 {
@@ -20,12 +21,13 @@ namespace Payment.Controllers
         }
 
         [HttpGet]
+        [EnableRateLimiting("PaymentCallback")]
         [Route("callback/{id:long}")]
-        public async Task<IActionResult> Index(long id)
+        public async Task<IActionResult> Index(long id, [FromQuery] string callbackToken)
         {
             try
             {
-                var payment = await _paymentService.CallbackPayment(id);
+                var payment = await _paymentService.CallbackPayment(id, callbackToken);
 
                 if (!payment.IsSuccess)
                 {

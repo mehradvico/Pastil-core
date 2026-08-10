@@ -14,7 +14,11 @@ namespace Application.Services.Order.PaymentSrv.Dto
         public long? CompanionInsurancePackageSaleId { get; set; }
         public long PaymentId { get; set; }
         public long? MerchantId { get; set; }
+        public long? RebateId { get; set; }
         public double Amount { get; set; }
+        public double GrossAmount { get; set; }
+        public double RebateAmount { get; set; }
+        public double WalletAmount { get; set; }
         public MerchantVDto Merchant { get; set; }
         public string PaymentUrl { get; set; }
         public bool PaymentIsLink { get; set; }

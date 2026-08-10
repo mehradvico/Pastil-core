@@ -59,9 +59,9 @@ namespace Application.Services.Content.AddressSrv
                     return new BaseResultDto(isSuccess: true);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
         }
         public AddressSearchDto Search(AddressInputDto searchDto)

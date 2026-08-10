@@ -1,6 +1,8 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.LocationField;
 using NetTopologySuite.Geometries;
+#pragma warning disable CS8632
+
 namespace Entities.Entities
 {
     public class Neighborhood : Name_Field

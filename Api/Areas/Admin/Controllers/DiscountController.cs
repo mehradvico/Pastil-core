@@ -51,7 +51,6 @@ namespace Api.Areas.Admin.Controllers
         /// آیتم جدید
         /// </summary>  
         [HttpPost]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(BaseResultDto<DiscountDto>), 200)]
         public async Task<IActionResult> Post(DiscountDto discountDto)
         {

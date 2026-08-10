@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Persistence.Interface;
 using System;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -124,9 +125,9 @@ namespace Application.Services.ProductSrvs.WalletSrv
                     return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto<WalletDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<WalletDto>(isSuccess: false, val: Resource.Notification.Unsuccess, data: dto);
             }
         }
 
@@ -161,6 +162,20 @@ namespace Application.Services.ProductSrvs.WalletSrv
         }
 
         private async Task<BaseResultDto<WalletDto>> InsertUpdateReferenceAsync(WalletDto dto, bool complete)
+        {
+            if (_context.CurrentTransaction != null)
+                return await InsertUpdateReferenceCoreAsync(dto, complete);
+
+            await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
+            var result = await InsertUpdateReferenceCoreAsync(dto, complete);
+            if (result.IsSuccess)
+                await transaction.CommitAsync();
+            else
+                await transaction.RollbackAsync();
+            return result;
+        }
+
+        private async Task<BaseResultDto<WalletDto>> InsertUpdateReferenceCoreAsync(WalletDto dto, bool complete)
         {
             IQueryable<Wallet> query = _context.Wallets.AsTracking();
 

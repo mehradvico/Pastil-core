@@ -66,9 +66,9 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                     GatewayOrderId = dto.PaymentId.ToString()
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new GatewayStartResultDto { IsSuccess = false, ErrorMessage = ex.Message };
+                return new GatewayStartResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.Unsuccess };
             }
         }
 
@@ -124,9 +124,9 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                     ErrorMessage = Resource.Notification.Unsuccess
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = ex.Message };
+                return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.Unsuccess };
             }
         }
     }

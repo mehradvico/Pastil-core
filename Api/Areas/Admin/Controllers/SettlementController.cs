@@ -50,7 +50,6 @@ namespace Api.Areas.Admin.Controllers
         /// آیتم جدید
         /// </summary>  
         [HttpPost]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(BaseResultDto<SettlementDto>), 200)]
         public async Task<IActionResult> Post(SettlementDto SettlementDto)
         {

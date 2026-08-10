@@ -59,9 +59,9 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                     Token = jsonResponse.data.authority
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new GatewayStartResultDto { IsSuccess = false, ErrorMessage = ex.Message };
+                return new GatewayStartResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.Unsuccess };
             }
         }
 
@@ -114,9 +114,9 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                     ErrorMessage = Resource.Notification.Unsuccess
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = ex.Message };
+                return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.Unsuccess };
             }
         }
     }

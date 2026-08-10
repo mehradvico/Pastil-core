@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Admin.Controllers
 {
+    /// <summary>
+    /// رد جایزه
+    /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -21,6 +24,9 @@ namespace Api.Areas.Admin.Controllers
             _currentUser = currentUser;
         }
 
+        /// <summary>
+        /// رد پیشنهاد جایزه
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Post(ClubRewardOfferDecisionDto dto, CancellationToken cancellationToken) =>
             Ok(await _service.RejectAsync(dto.RewardOfferId, dto.Reason, _currentUser.CurrentUser.UserId, cancellationToken));

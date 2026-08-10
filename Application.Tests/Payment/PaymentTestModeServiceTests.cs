@@ -14,7 +14,7 @@ public class PaymentTestModeServiceTests
         var service = CreateService();
         var dto = new PaymentStartDto
         {
-            CallbackUrl = "https://payment.pastil.pet/callback/125"
+            CallbackUrl = "https://payment.pastil.pet/callback/125?callbackToken=secure-token"
         };
 
         service.ConfigureStartResult(dto);
@@ -22,10 +22,10 @@ public class PaymentTestModeServiceTests
         Assert.True(dto.IsTestMode);
         Assert.True(dto.PaymentIsLink);
         Assert.Equal(
-            "https://payment.pastil.pet/callback/125?testResult=success",
+            "https://payment.pastil.pet/callback/125?callbackToken=secure-token&testResult=success",
             dto.TestSuccessUrl);
         Assert.Equal(
-            "https://payment.pastil.pet/callback/125?testResult=failed",
+            "https://payment.pastil.pet/callback/125?callbackToken=secure-token&testResult=failed",
             dto.TestFailureUrl);
         Assert.Equal(dto.TestSuccessUrl, dto.PaymentUrl);
     }
@@ -58,12 +58,36 @@ public class PaymentTestModeServiceTests
         Assert.Equal("TEST_MODE_SUCCESS", result.Description);
     }
 
-    private static PaymentTestModeService CreateService()
+    [Fact]
+    public void LockedTestMode_IgnoresClientFailureOverride_AndDoesNotExposeQaLinks()
+    {
+        var service = CreateService(allowResultOverride: false);
+        var dto = new PaymentStartDto
+        {
+            CallbackUrl = "https://payment.pastil.pet/callback/125?callbackToken=secure-token"
+        };
+        var context = new DefaultHttpContext();
+        context.Request.QueryString = new QueryString("?testResult=failed");
+
+        service.ConfigureStartResult(dto);
+        var result = service.CreateCallbackResult(
+            new Entities.Entities.Payment { Id = 125 },
+            context.Request);
+
+        Assert.Null(dto.TestSuccessUrl);
+        Assert.Null(dto.TestFailureUrl);
+        Assert.Equal(
+            "https://payment.pastil.pet/callback/125?callbackToken=secure-token&testResult=success",
+            dto.PaymentUrl);
+        Assert.True(result.IsSuccess);
+    }
+
+    private static PaymentTestModeService CreateService(bool allowResultOverride = true)
     {
         var options = Options.Create(new PaymentTestModeOptions
         {
             Enabled = true,
-            AllowResultOverride = true,
+            AllowResultOverride = allowResultOverride,
             DefaultResult = "Success"
         });
 

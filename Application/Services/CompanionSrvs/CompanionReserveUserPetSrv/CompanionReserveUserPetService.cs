@@ -21,7 +21,8 @@ namespace Application.Services.CompanionSrvs.CompanionReserveUserPetSrv
 
         public async Task InsertOrUpdateAsync(CompanionReserve companionReserve, long userPetId)
         {
-            var item = await _context.UserPets.AsTracking().FirstOrDefaultAsync(s => s.Id == userPetId);
+            var item = await _context.UserPets.AsTracking().FirstOrDefaultAsync(s =>
+                s.Id == userPetId && s.UserId == companionReserve.BookerId);
             if (item != null)
             {
                 companionReserve.UserPets.Add(item);

@@ -68,7 +68,6 @@ namespace Api.Areas.Admin.Controllers
         /// آیتم جدید
         /// </summary>  
         [HttpPost]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(BaseResultDto<CityDto>), 200)]
         public async Task<IActionResult> Post(CityDto cityDto)
         {

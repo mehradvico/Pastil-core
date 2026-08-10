@@ -40,7 +40,9 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<ProductOrderVDto>), 200)]
         public async Task<IActionResult> Get(string id)
         {
-            var productOrder = await productOrderService.FindAsyncVDto(id);
+            var productOrder = await productOrderService.FindAsyncVDto(
+                id,
+                _currentUserHelper.CurrentUser.UserId);
             return Ok(productOrder);
         }
         /// <summary>

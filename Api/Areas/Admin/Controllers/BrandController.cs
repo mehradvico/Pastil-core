@@ -54,7 +54,6 @@ namespace Api.Areas.Admin.Controllers
         /// آیتم جدید
         /// </summary>  
         [HttpPost]
-        [AllowAnonymous]
         [ProducesResponseType(typeof(BaseResultDto<BrandDto>), 200)]
         public async Task<IActionResult> Post(BrandDto brandDto)
         {

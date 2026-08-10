@@ -583,6 +583,8 @@ namespace Application.Services.TripSrv.TripSrv
             {
                 return new BaseResultDto<TripSetRebateCodeDto>(false, Resource.Notification.NothingFound, dto);
             }
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
             if (item.Price == 0)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.FinalPriceIsNotAvailable);
@@ -614,6 +616,8 @@ namespace Application.Services.TripSrv.TripSrv
                 s.Id == id && s.UserId == _currentUser.CurrentUser.UserId && !s.IsPaid);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -632,6 +636,8 @@ namespace Application.Services.TripSrv.TripSrv
             {
                 return new BaseResultDto<TripSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
             if (dto.FromWallet)
             {
                 item.FromWallet = true;
@@ -645,6 +651,15 @@ namespace Application.Services.TripSrv.TripSrv
             _context.Trips.Update(item);
             await _context.SaveChangesAsync();
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
+        }
+
+        private Task<bool> HasActivePaymentAsync(long id)
+        {
+            var callbackId = id.ToString();
+            return _context.Payments.AsNoTracking().AnyAsync(s =>
+                s.CallBackTypeLabel == PaymentCallbackTypeEnum.Trip.ToString() &&
+                s.CallBackId == callbackId &&
+                (s.IsSuccess == null || s.IsSuccess == true));
         }
 
         public async Task<BaseResultDto<TripShareDto>> UpdateTripShareAsync(TripShareDto dto)

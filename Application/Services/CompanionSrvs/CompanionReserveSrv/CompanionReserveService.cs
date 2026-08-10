@@ -30,6 +30,7 @@ using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -88,13 +89,16 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             return new BaseResultDto<CompanionReserveAdminVDto>(false, mapper.Map<CompanionReserveAdminVDto>(item));
         }
 
-        public async Task<BaseResultDto<CompanionReserveVDto>> FindAsyncVDto(long id)
+        public async Task<BaseResultDto<CompanionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null)
         {
-            var item = await _context.CompanionReserves.Include(s => s.State).Include(s => s.CompanionAssistanceUser).ThenInclude(s => s.CompanionAssistance).ThenInclude(s => s.Companion)
+            var query = _context.CompanionReserves.Include(s => s.State).Include(s => s.CompanionAssistanceUser).ThenInclude(s => s.CompanionAssistance).ThenInclude(s => s.Companion)
                 .Include(s => s.CompanionAssistanceUser).ThenInclude(s => s.User).Include(s => s.Booker).Include(s => s.UserPets)
                 .Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion)
                 .Include(s => s.CompanionAssistancePackages).ThenInclude(s => s.Picture).Include(s => s.CompanionAssistanceTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionAssistanceType)
-                .Include(s => s.OperatorState).Include(s => s.Rebate).Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).ThenInclude(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id);
+                .Include(s => s.OperatorState).Include(s => s.Rebate).Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).ThenInclude(s => s.Picture).Where(s => s.Id == id);
+            if (bookerId.HasValue)
+                query = query.Where(s => s.BookerId == bookerId.Value);
+            var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
                 return new BaseResultDto<CompanionReserveVDto>(true, mapper.Map<CompanionReserveVDto>(item));
@@ -184,6 +188,15 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 }
                 else
                 {
+                    dto.UserPetIds = dto.UserPetIds?.Distinct().ToList() ?? new List<long>();
+                    if (!dto.UserPetIds.Any())
+                        return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.SelectAtLeastOneType, dto);
+
+                    var ownedPetCount = await _context.UserPets.CountAsync(s =>
+                        dto.UserPetIds.Contains(s.Id) && s.UserId == dto.BookerId);
+                    if (ownedPetCount != dto.UserPetIds.Count)
+                        return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidData, dto);
+
                     var item = mapper.Map<CompanionReserve>(dto);
                     item.IsCancel = false;
                     bool existed = await _context.CompanionReserves.AnyAsync(s => s.CompanionAssistanceId == dto.CompanionAssistanceId && s.BookerId == dto.BookerId && s.CompanionAssistanceTimeId == dto.CompanionAssistanceTimeId && s.IsReserved && !s.IsCancel);
@@ -208,12 +221,18 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     {
                         return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.PleaseEnterTheAddress, dto);
                     }
-                    var companionAssistance = await _context.CompanionAssistances.Include(s => s.Companion).ThenInclude(s => s.CompanionZones).FirstOrDefaultAsync(s => s.Id == dto.CompanionAssistanceId);
+                    var companionAssistance = await _context.CompanionAssistances.Include(s => s.Companion).ThenInclude(s => s.CompanionZones).FirstOrDefaultAsync(s =>
+                        s.Id == dto.CompanionAssistanceId && s.Active && !s.Deleted && s.Companion.Active);
+                    if (companionAssistance == null)
+                        return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.NothingFound, dto);
 
                     if (dto.AddressId.HasValue)
                     {
-                        var address = await _context.Addresses.FirstOrDefaultAsync(s => s.Id == dto.AddressId);
-                        if (companionAssistance.Companion.CompanionZones.Any(s => s.CityId == address.CityId))
+                        var address = await _context.Addresses.FirstOrDefaultAsync(s =>
+                            s.Id == dto.AddressId && s.UserId == dto.BookerId);
+                        if (address == null)
+                            return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidData, dto);
+                        if (!companionAssistance.Companion.CompanionZones.Any(s => s.CityId == address.CityId))
                         {
                             return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.ThisCompanionHasNoActivityInYourZone, dto);
                         }
@@ -242,18 +261,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     var unPaidStatus = await _codeService.GetIdByLabelAsync(CompanionReserveStateEnum.CompanianReserveState_Registered.ToString());
                     item.StateId = unPaidStatus;
 
+                    await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
                     await _context.CompanionReserves.AddAsync(item);
                     await _context.SaveChangesAsync();
-
-                    if (dto.UserPetIds == null)
-                    {
-                        dto.UserPetIds = new List<long>();
-                    }
-                    if (!dto.UserPetIds.Any())
-                    {
-                        return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.SelectAtLeastOneType, dto);
-                    }
-                    dto.UserPetIds = dto.UserPetIds.Distinct().ToList();
                     await _companionReserveUserPetService.InsertOrUpdateAsync(item, dto.UserPetIds);
 
                     if (dto.CompanionAssistancePackagesIds == null)
@@ -274,6 +284,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     item.PaymentPrice = item.PrePaymentPrice;
                     _context.CompanionReserves.Update(item);
                     await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
 
                     var booker = _context.Users.FirstOrDefault(u => u.Id == item.BookerId);
                     var companionAssistances = _context.CompanionAssistances.Include(s => s.Assistance).Include(s => s.Companion).FirstOrDefault(a => a.Id == item.CompanionAssistanceId);
@@ -305,9 +316,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 }
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto<CompanionReserveDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionReserveDto>(isSuccess: false, val: Resource.Notification.Unsuccess, data: dto);
             }
         }
         public async Task<BaseResultDto> UpdateAsyncDto(CompanionReserveUpdateDto dto)
@@ -318,7 +329,11 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 if (!modelCheker.IsSuccess)
                     return modelCheker;
 
-                var item = await _context.CompanionReserves.AsTracking().Include(r => r.CompanionAssistance).Include(r => r.CompanionAssistancePackages).FirstOrDefaultAsync(r => r.Id == dto.Id);
+                var item = await _context.CompanionReserves.AsTracking().Include(r => r.CompanionAssistance).Include(r => r.CompanionAssistancePackages).FirstOrDefaultAsync(r =>
+                    r.Id == dto.Id &&
+                    r.BookerId == _currentUser.CurrentUser.UserId &&
+                    !r.IsReserved &&
+                    !r.IsCancel);
 
                 if (item == null)
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
@@ -338,6 +353,11 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 { 
                     return new BaseResultDto<CompanionReserveUpdateDto>(false, Resource.Notification.SelectAtLeastOneType, dto);
                 }
+                dto.UserPetIds = dto.UserPetIds.Distinct().ToList();
+                var ownedPetCount = await _context.UserPets.CountAsync(s =>
+                    dto.UserPetIds.Contains(s.Id) && s.UserId == item.BookerId);
+                if (ownedPetCount != dto.UserPetIds.Count)
+                    return new BaseResultDto(false, Resource.Notification.InvalidData);
                 await (_context as DbContext).Database.ExecuteSqlRawAsync("DELETE FROM CompanionReserveUserPet WHERE CompanionReservesId = {0}", item.Id);
 
                 await _companionReserveUserPetService.InsertOrUpdateAsync(item, dto.UserPetIds);
@@ -359,9 +379,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                 return new BaseResultDto(isSuccess: true);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
         }
 
@@ -644,7 +664,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
         public async Task<BaseResultDto> SetRebateCodeAsyncDto(CompanionReserveSetRebateCodeDto dto)
         {
-            var item = await _context.CompanionReserves.AsTracking().FirstOrDefaultAsync(s =>
+            var item = await _context.CompanionReserves.AsTracking()
+                .Include(s => s.CompanionAssistancePackages)
+                .FirstOrDefaultAsync(s =>
                 s.Id == dto.Id &&
                 s.BookerId == _currentUser.CurrentUser.UserId &&
                 s.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Registered);
@@ -657,12 +679,11 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
             var originalPrice = item.PrePaymentPrice + item.RebatePrice;
-            var rebate = _rebateService.GetRebateByCodeAsync(
-                originalPrice,
-                item.BookerId,
-                RebateTypeLabels.CompanionReserve,
-                dto.RebateCode);
+            item.PrePaymentPrice = originalPrice;
+            var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
             if (rebate.IsSuccess)
             {
                 item.Rebate = null;
@@ -693,6 +714,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 s.Id == id && s.BookerId == _currentUser.CurrentUser.UserId && !s.IsReserved);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
             if (!item.RebateId.HasValue)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -717,6 +740,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto<CompanionReserveSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
+            if (await HasActivePaymentAsync(item.Id))
+                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
             if (item.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Complete)
             {
                 return new BaseResultDto<CompanionReserveSetWalletDto>(false, Resource.Notification.ThisReserveIsCompleted, dto);
@@ -738,6 +763,15 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             _context.CompanionReserves.Update(item);
             await _context.SaveChangesAsync();
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
+        }
+
+        private Task<bool> HasActivePaymentAsync(long reserveId)
+        {
+            var callbackId = reserveId.ToString();
+            return _context.Payments.AsNoTracking().AnyAsync(s =>
+                s.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserve.ToString() &&
+                s.CallBackId == callbackId &&
+                (s.IsSuccess == null || s.IsSuccess == true));
         }
 
         private void UpdateCompanionReserveCommission(CompanionReserve item)
