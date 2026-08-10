@@ -17,6 +17,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
         public long? StateId { get; set; }
         public long? CityId { get; set; }
         public bool? Suggested { get; set; }
+        public bool? ShowToSite { get; set; }
         public long? PetId { get; set; }
     }
 }

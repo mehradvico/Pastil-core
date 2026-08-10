@@ -12,6 +12,10 @@ namespace Application.Common.Configuration
         {
             Override(configuration, "connection", connectionEnvironmentVariable);
             Override(configuration, "JWtConfig:key", "PASTIL_JWT_KEY");
+            Override(configuration, "Search:Hybrid:Enabled", "PASTIL_SEARCH_HYBRID_ENABLED");
+            Override(configuration, "Search:Hybrid:Endpoint", "PASTIL_SEARCH_HYBRID_ENDPOINT");
+            Override(configuration, "Search:Hybrid:ApiKey", "PASTIL_SEARCH_HYBRID_API_KEY");
+            Override(configuration, "Search:Hybrid:SemanticWeight", "PASTIL_SEARCH_HYBRID_WEIGHT");
 
             if (includeVapidKeys)
             {

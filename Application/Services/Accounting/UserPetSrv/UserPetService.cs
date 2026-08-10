@@ -2,11 +2,14 @@
 using Application.Common.Service;
 using Application.Services.Accounting.UserPetSrv.Dto;
 using Application.Services.Accounting.UserPetSrv.Iface;
+using Application.Services.PastilClubSrvs.PetProfileSrv.Iface;
+using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application.Services.Accounting.UserPetSrv
@@ -15,10 +18,52 @@ namespace Application.Services.Accounting.UserPetSrv
     {
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
-        public UserPetService(IDataBaseContext _context, IMapper mapper) : base(_context, mapper)
+        private readonly IClubPetProfileCompletionService _profileCompletionService;
+        private readonly IClubPointIntegrationService _clubPointIntegrationService;
+
+        public UserPetService(
+            IDataBaseContext _context,
+            IMapper mapper,
+            IClubPetProfileCompletionService profileCompletionService,
+            IClubPointIntegrationService clubPointIntegrationService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
+            _profileCompletionService = profileCompletionService;
+            _clubPointIntegrationService = clubPointIntegrationService;
+        }
+
+        public override async Task<BaseResultDto<UserPetDto>> InsertAsyncDto(UserPetDto dto)
+        {
+            var result = await base.InsertAsyncDto(dto);
+            if (!result.IsSuccess || result.Data == null)
+                return result;
+
+            var userPet = await _context.UserPets.AsNoTracking()
+                .FirstOrDefaultAsync(item => item.Id == result.Data.Id);
+            if (_profileCompletionService.IsComplete(userPet))
+                await _clubPointIntegrationService.PetProfileCompletedAsync(userPet.UserId, userPet.Id);
+
+            return result;
+        }
+
+        public async Task<BaseResultDto<UserPetDto>> UpdateAsyncDto(UserPetDto dto)
+        {
+            var userPet = await _context.UserPets.AsTracking()
+                .FirstOrDefaultAsync(item =>
+                    item.Id == dto.Id &&
+                    item.UserId == dto.UserId &&
+                    !item.Deleted);
+            if (userPet == null)
+                return new BaseResultDto<UserPetDto>(false, Resource.Notification.NothingFound, dto);
+
+            mapper.Map(dto, userPet);
+            await _context.SaveChangesAsync();
+
+            if (_profileCompletionService.IsComplete(userPet))
+                await _clubPointIntegrationService.PetProfileCompletedAsync(userPet.UserId, userPet.Id);
+
+            return new BaseResultDto<UserPetDto>(true, mapper.Map<UserPetDto>(userPet));
         }
 
         public async Task<BaseResultDto<UserPetVDto>> FindAsyncVDto(long id)

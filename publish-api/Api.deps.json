@@ -20,11 +20,6 @@
         },
         "runtime": {
           "Api.dll": {}
-        },
-        "resources": {
-          "fa/Api.resources.dll": {
-            "locale": "fa"
-          }
         }
       },
       "AngleSharp/0.17.1": {

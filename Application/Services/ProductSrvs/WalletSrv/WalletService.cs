@@ -7,6 +7,7 @@ using Application.Services.Setting.NoticeSrv.Iface;
 using Application.Services.Setting.SmsSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
+using Entities.Entities.PastilClubField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Persistence.Interface;
@@ -69,6 +70,24 @@ namespace Application.Services.ProductSrvs.WalletSrv
         {
             var amount = await GetAmountValueAsync(userId);
             return new BaseResultDto<double>(true, amount);
+        }
+
+        public async Task<double> GetSpendableAmountValueAsync(
+            long userId,
+            ClubRewardTargetTypeEnum scopeType,
+            long? scopeId)
+        {
+            var cash = await GetAmountValueAsync(userId);
+            var now = DateTimeOffset.UtcNow;
+            var promotional = await _context.ClubPromotionalWalletCredits.AsNoTracking()
+                .Where(item => item.UserId == userId &&
+                    item.Status == ClubPromotionalCreditStatusEnum.Active &&
+                    item.ExpiresAt > now &&
+                    item.RemainingAmount > 0 &&
+                    (item.ServiceScopeType == ClubRewardTargetTypeEnum.Global ||
+                     item.ServiceScopeType == scopeType && item.ServiceScopeId == scopeId))
+                .SumAsync(item => item.RemainingAmount);
+            return cash + decimal.ToDouble(promotional);
         }
 
         public async Task<BaseResultDto<WalletDto>> InsertAsyncDto(WalletDto dto)
@@ -162,6 +181,23 @@ namespace Application.Services.ProductSrvs.WalletSrv
             else
                 return new BaseResultDto<WalletDto>(false, Resource.Notification.InvalidData, dto);
 
+            if (complete)
+            {
+                var reference = await ResolveReferenceAsync(dto);
+                if (reference != null)
+                {
+                    var alreadyConsumed = await _context.ClubPromotionalCreditUsages.AsNoTracking()
+                        .Where(item => item.ReferenceKey == reference.ReferenceKey)
+                        .SumAsync(item => item.Amount);
+                    var promotionalAmount = alreadyConsumed > 0
+                        ? alreadyConsumed
+                        : await ConsumePromotionalCreditAsync(dto.UserId, Convert.ToDecimal(dto.Amount), reference);
+                    dto.Amount = Math.Max(0, dto.Amount - decimal.ToDouble(promotionalAmount));
+                    if (dto.Amount <= 0)
+                        return new BaseResultDto<WalletDto>(true, dto);
+                }
+            }
+
             var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
@@ -200,6 +236,108 @@ namespace Application.Services.ProductSrvs.WalletSrv
             dto.Painding = false;
             return await InsertAsyncDto(dto);
         }
+
+        private async Task<PromotionalReference> ResolveReferenceAsync(WalletDto dto)
+        {
+            if (!string.IsNullOrWhiteSpace(dto.ProductOrderId))
+            {
+                var storeId = await _context.ProductOrderStores.AsNoTracking()
+                    .Where(item => item.ProductOrderId == dto.ProductOrderId)
+                    .Select(item => (long?)item.StoreId)
+                    .FirstOrDefaultAsync();
+                return new PromotionalReference(
+                    ClubRewardApplicationMethodEnum.ProductOrder,
+                    ClubRewardTargetTypeEnum.Store,
+                    storeId,
+                    $"product-order:{dto.ProductOrderId}");
+            }
+            if (dto.CompanionReserveId.HasValue)
+            {
+                var assistanceId = await _context.CompanionReserves.AsNoTracking()
+                    .Where(item => item.Id == dto.CompanionReserveId.Value)
+                    .Select(item => (long?)item.CompanionAssistance.AssistanceId)
+                    .FirstOrDefaultAsync();
+                return new PromotionalReference(
+                    ClubRewardApplicationMethodEnum.CompanionReservation,
+                    ClubRewardTargetTypeEnum.Assistance,
+                    assistanceId,
+                    $"companion-reserve:{dto.CompanionReserveId.Value}");
+            }
+            if (dto.PansionReserveId.HasValue)
+            {
+                var pansionId = await _context.PansionReserves.AsNoTracking()
+                    .Where(item => item.Id == dto.PansionReserveId.Value)
+                    .Select(item => (long?)item.PansionId)
+                    .FirstOrDefaultAsync();
+                return new PromotionalReference(
+                    ClubRewardApplicationMethodEnum.PansionReservation,
+                    ClubRewardTargetTypeEnum.Pansion,
+                    pansionId,
+                    $"pansion-reserve:{dto.PansionReserveId.Value}");
+            }
+            if (dto.PastilAiSubscriptionId.HasValue)
+            {
+                var planId = await _context.PastilAiSubscriptions.AsNoTracking()
+                    .Where(item => item.Id == dto.PastilAiSubscriptionId.Value)
+                    .Select(item => (long?)item.PlanId)
+                    .FirstOrDefaultAsync();
+                return new PromotionalReference(
+                    ClubRewardApplicationMethodEnum.PastilAI,
+                    ClubRewardTargetTypeEnum.PastilAIPlan,
+                    planId,
+                    $"pastil-ai:{dto.PastilAiSubscriptionId.Value}");
+            }
+            return null;
+        }
+
+        private async Task<decimal> ConsumePromotionalCreditAsync(
+            long userId,
+            decimal requestedAmount,
+            PromotionalReference reference)
+        {
+            if (requestedAmount <= 0)
+                return 0;
+            var now = DateTimeOffset.UtcNow;
+            var credits = await _context.ClubPromotionalWalletCredits.AsTracking()
+                .Where(item => item.UserId == userId &&
+                    item.Status == ClubPromotionalCreditStatusEnum.Active &&
+                    item.ExpiresAt > now &&
+                    item.RemainingAmount > 0 &&
+                    (item.ServiceScopeType == ClubRewardTargetTypeEnum.Global ||
+                     item.ServiceScopeType == reference.ScopeType && item.ServiceScopeId == reference.ScopeId))
+                .OrderBy(item => item.ExpiresAt)
+                .ThenBy(item => item.Id)
+                .ToListAsync();
+
+            decimal consumed = 0;
+            foreach (var credit in credits)
+            {
+                var amount = Math.Min(credit.RemainingAmount, requestedAmount - consumed);
+                if (amount <= 0)
+                    break;
+                credit.RemainingAmount -= amount;
+                if (credit.RemainingAmount == 0)
+                    credit.Status = ClubPromotionalCreditStatusEnum.Consumed;
+                await _context.ClubPromotionalCreditUsages.AddAsync(new ClubPromotionalCreditUsage
+                {
+                    PromotionalCreditId = credit.Id,
+                    UserId = userId,
+                    Amount = amount,
+                    ApplicationMethod = reference.ApplicationMethod,
+                    ReferenceKey = reference.ReferenceKey,
+                    CreateDate = DateTime.UtcNow
+                });
+                consumed += amount;
+            }
+            await _context.SaveChangesAsync();
+            return consumed;
+        }
+
+        private record PromotionalReference(
+            ClubRewardApplicationMethodEnum ApplicationMethod,
+            ClubRewardTargetTypeEnum ScopeType,
+            long? ScopeId,
+            string ReferenceKey);
         public WalletSearchDto Search(WalletInputDto baseSearchDto)
         {
             var query = _context.Wallets.Include(s => s.User).Where(s => !s.Deleted).AsQueryable();

@@ -178,6 +178,10 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             {
                 model = model.Where(s => s.Active == baseSearchDto.Available.Value);
             }
+            if (baseSearchDto.ShowToSite.HasValue)
+            {
+                model = model.Where(s => s.ShowToSite == baseSearchDto.ShowToSite.Value);
+            }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
             {
                 model = model.Where(s => s.Name.Contains(baseSearchDto.Q) || s.Phone.Equals(baseSearchDto.Q));
@@ -470,24 +474,32 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
         {
             var q = request.Q;
 
-            var list = await _context.Companions
+            var textPredicate = SearchQueryHelper.ContainsAny<Companion>(request.SearchTerms,
+                item => item.Name,
+                item => item.SearchKey,
+                item => item.AddressValue,
+                item => item.City.Name,
+                item => item.Neighborhood.Name);
+            System.Linq.Expressions.Expression<Func<Companion, bool>> assistancePredicate = item =>
+                item.CompanionAssistances.Any(assistance =>
+                    assistance.Active &&
+                    assistance.Approved &&
+                    !assistance.Deleted &&
+                    !assistance.Assistance.Deleted &&
+                    assistance.Assistance.Active &&
+                    assistance.Assistance.Name.Contains(q));
+
+            var query = _context.Companions
                 .AsNoTracking()
                 .Where(s =>
                     !s.Deleted &&
                     s.Active &&
-                    (
-                        s.Name.Contains(q) ||
-                        (!string.IsNullOrEmpty(s.SearchKey) && s.SearchKey.Contains(q)) ||
-                        s.CompanionAssistances.Any(a =>
-                            a.Active &&
-                            a.Approved &&
-                            !a.Assistance.Deleted &&
-                            a.Assistance.Active &&
-                            a.Assistance.Name.Contains(q)
-                        )
-                    )
-                )
-                .Take(request.CompanionCount)
+                    s.Approved);
+
+            var list = await query
+                .Where(SearchQueryHelper.Or(textPredicate, assistancePredicate))
+                .OrderByDescending(item => item.RateAvg)
+                .Take(SearchQueryHelper.CandidateCount(request.CompanionCount))
                 .Select(s => new SearchCompanionDto
                 {
                     Id = s.Id,

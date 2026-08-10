@@ -13,6 +13,7 @@ using Application.Services.Order.ProductOrderOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
+using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using Application.Services.ProductSrvs.ProductSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
@@ -50,11 +51,13 @@ namespace Application.Services.Order.ProductOrderSrv
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ICodeService _codeService;
         private readonly IScoreTransactionService _scoreService;
+        private readonly IClubPointIntegrationService _clubPointIntegrationService;
 
         public ProductOrderService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserProductService userProductService,
             INoticeService notificationService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IWalletService walletService,
             IUserService userService, IProductService productService, IRebateService rebateService, IScoreTransactionService scoreService,
-            IMessageSenderService messageSenderService) : base(_context, mapper)
+            IMessageSenderService messageSenderService,
+            IClubPointIntegrationService clubPointIntegrationService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -69,6 +72,7 @@ namespace Application.Services.Order.ProductOrderSrv
             this._pushNotificationService = pushNotificationService;
             this._codeService = codeService;
             this._scoreService = scoreService;
+            this._clubPointIntegrationService = clubPointIntegrationService;
         }
         public async Task<BaseResultDto> FindAsyncVDto(string id)
         {
@@ -208,6 +212,35 @@ namespace Application.Services.Order.ProductOrderSrv
             if (productOrder.IsPaid)
                 return new BaseResultDto(true);
 
+            if (productOrder.ClubFreeDeliveryBenefitId.HasValue && productOrder.ClubDeliveryDiscount > 0)
+            {
+                var now = DateTimeOffset.UtcNow;
+                var benefit = await _context.ClubFreeDeliveryBenefits.AsTracking()
+                    .Include(item => item.RewardRedemption)
+                        .ThenInclude(item => item.RewardTemplate)
+                    .FirstOrDefaultAsync(item =>
+                        item.Id == productOrder.ClubFreeDeliveryBenefitId.Value &&
+                        item.UserId == productOrder.UserId &&
+                        item.RemainingUsageCount > 0 &&
+                        item.ExpiresAt > now);
+                if (benefit == null)
+                    return new BaseResultDto(false, "CLUB_FREE_DELIVERY_NOT_AVAILABLE");
+
+                benefit.RemainingUsageCount--;
+                _context.ClubRewardCostTransactions.Add(new Entities.Entities.PastilClubField.ClubRewardCostTransaction
+                {
+                    RewardRedemptionId = benefit.RewardRedemptionId,
+                    UserId = productOrder.UserId,
+                    BusinessType = Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Store,
+                    BusinessId = benefit.StoreId,
+                    RewardType = Entities.Entities.PastilClubField.ClubRewardTypeEnum.FreeDelivery,
+                    GrossValue = Convert.ToDecimal(productOrder.ClubDeliveryDiscount),
+                    PastilFundedValue = Convert.ToDecimal(productOrder.ClubDeliveryDiscount),
+                    OrderId = productOrder.Id,
+                    CreateDate = DateTime.UtcNow
+                });
+            }
+
             if (fromWallet && productOrder.WalletPrice > 0)
             {
                 var walletItem = new WalletDto() { Painding = false, Amount = productOrder.WalletPrice, UserId = productOrder.UserId, ProductOrderId = productOrder.Id };
@@ -318,10 +351,15 @@ namespace Application.Services.Order.ProductOrderSrv
         public async Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto)
         {
             var item = await _context.ProductOrders.AsTracking().Include(s => s.User).FirstOrDefaultAsync(s => s.Id == dto.Id);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
             item.ProductOrderStatus = null;
             item.ProductOrderStatusId = dto.ProductOrderStatusId;
             var statusProccess = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Proccess.ToString());
             var statusSend = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Send.ToString());
+            var statusDelivered = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Delivered.ToString());
+            var canceledState = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
             if (dto.ProductOrderStatusId == statusProccess)
             {
                 await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushProccessOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
@@ -331,18 +369,32 @@ namespace Application.Services.Order.ProductOrderSrv
                 await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSentOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
             }
             _context.ProductOrders.Update(item);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            if (dto.ProductOrderStatusId == statusDelivered &&
+                item.ProductOrderStateId != canceledState &&
+                item.IsPaid)
+                await _clubPointIntegrationService.ProductOrderCompletedAsync(item.UserId, item.Id);
+
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderChangeStatus, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: item.User.FirstName, token2: item.Id);
             return new BaseResultDto(true);
         }
         public async Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto)
         {
             var item = await _context.ProductOrders.FirstOrDefaultAsync(s => s.Id == dto.Id);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
             item.ProductOrderState = null;
             item.ProductOrderStateId = dto.ProductOrderStateId;
 
             _context.ProductOrders.Update(item);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            var canceledState = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
+            if (dto.ProductOrderStateId == canceledState)
+                await _clubPointIntegrationService.ProductOrderReversedAsync(item.UserId, item.Id);
+
             return new BaseResultDto(true);
         }
         public async Task<BaseResultDto> ChangeTrackingCode(ProductOrderDto order)
@@ -450,7 +502,12 @@ namespace Application.Services.Order.ProductOrderSrv
                 item.ProductOrderStateId = productOrder.ProductOrderStateId;
                 item.AdminDescription = productOrder.AdminDescription;
                 _context.ProductOrders.Update(item);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                var canceledState = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
+                if (productOrder.ProductOrderStateId == canceledState)
+                    await _clubPointIntegrationService.ProductOrderReversedAsync(item.UserId, item.Id);
+
                 await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderCancelAnswer, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: productOrder.Id);
                 return new BaseResultDto(true);
             }

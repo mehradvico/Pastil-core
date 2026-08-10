@@ -12,10 +12,14 @@ namespace Application.Services.Content.BannerSrv.Dto
         {
             this.CategoryId = dto.CategoryId;
             this.CategoryLabel = dto.CategoryLabel;
+            this.ShowToApp = dto.ShowToApp;
+            this.ShowToSite = dto.ShowToSite;
         }
 
         public long? CategoryId { get; set; }
         public string CategoryLabel { get; set; }
+        public bool? ShowToApp { get; set; }
+        public bool? ShowToSite { get; set; }
 
     }
 }

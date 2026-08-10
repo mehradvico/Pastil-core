@@ -1,5 +1,6 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.CompanionField;
+using Entities.Entities.PastilClubField;
 using System;
 using System.Collections.Generic;
 
@@ -40,5 +41,6 @@ namespace Entities.Entities.Security
         public Driver Driver { get; set; }
         public Picture Picture { get; set; }
         public UserCurrentLocation UserCurrentLocation { get; set; }
+        public ClubPointAccount ClubPointAccount { get; set; }
     }
 }

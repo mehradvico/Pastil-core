@@ -28,6 +28,8 @@ namespace Application.Services.Order.CartSrv.Dto
         public double RebatePrice { get; set; }
         public long? DeliveryId { get; set; }
         public double DeliveryPrice { get; set; }
+        public long? ClubFreeDeliveryBenefitId { get; set; }
+        public double ClubDeliveryDiscount { get; set; }
         public bool Reserve { get; set; }
         public string ParentOrderId { get; set; }
 

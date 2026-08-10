@@ -16,6 +16,8 @@ namespace Application.Services.Content.BannerSrv.Dto
         public int ClickCount { get; set; }
         public long? CategoryId { get; set; }
         public bool Active { get; set; }
+        public bool ShowToApp { get; set; }
+        public bool ShowToSite { get; set; }
         public CategoryVDto Category { get; set; }
         public PictureVDto Picture { get; set; }
         public PictureVDto Picture2 { get; set; }

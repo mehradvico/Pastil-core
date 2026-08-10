@@ -23,6 +23,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
             this.CityId = dto.CityId;
             this.PetId = dto.PetId;
             this.Suggested = dto.Suggested;
+            this.ShowToSite = dto.ShowToSite;
         }
         public bool? IsSchool { get; set; }
         public long? CompanionId { get; set; }
@@ -31,6 +32,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
         public long? StateId { get; set; }
         public long? CityId { get; set; }
         public bool? Suggested { get; set; }
+        public bool? ShowToSite { get; set; }
         public long? PetId { get; set; }
     }
 }

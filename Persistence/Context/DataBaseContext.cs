@@ -5,6 +5,7 @@ using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.PastilMatchField;
 using Entities.Entities.PastilAIField;
+using Entities.Entities.PastilClubField;
 using Entities.Entities.Security;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -115,6 +116,20 @@ namespace Persistence.Context
         public DbSet<Category> Categories { get; set; }
         public DbSet<City> Cities { get; set; }
         public DbSet<ClubReward> ClubRewards { get; set; }
+        public DbSet<ClubPointAccount> ClubPointAccounts { get; set; }
+        public DbSet<ClubPointRule> ClubPointRules { get; set; }
+        public DbSet<ClubPointTransaction> ClubPointTransactions { get; set; }
+        public DbSet<ClubRewardTemplate> ClubRewardTemplates { get; set; }
+        public DbSet<ClubRewardTarget> ClubRewardTargets { get; set; }
+        public DbSet<ClubRewardPetType> ClubRewardPetTypes { get; set; }
+        public DbSet<ClubRewardOffer> ClubRewardOffers { get; set; }
+        public DbSet<ClubRewardRedemption> ClubRewardRedemptions { get; set; }
+        public DbSet<ClubCoupon> ClubCoupons { get; set; }
+        public DbSet<ClubFreeDeliveryBenefit> ClubFreeDeliveryBenefits { get; set; }
+        public DbSet<ClubPromotionalWalletCredit> ClubPromotionalWalletCredits { get; set; }
+        public DbSet<ClubPromotionalCreditUsage> ClubPromotionalCreditUsages { get; set; }
+        public DbSet<ClubRewardPastilAITarget> ClubRewardPastilAITargets { get; set; }
+        public DbSet<ClubRewardCostTransaction> ClubRewardCostTransactions { get; set; }
         public DbSet<Code> Codes { get; set; }
         public DbSet<CodeGroup> CodeGroups { get; set; }
         public DbSet<Comment> Comments { get; set; }
@@ -227,6 +242,7 @@ namespace Persistence.Context
         public DbSet<Question> Questions { get; set; }
         public DbSet<Rebate> Rebate { get; set; }
         public DbSet<Reminder> Reminders { get; set; }
+        public DbSet<Memory> Memories { get; set; }
         public DbSet<ReminderCycle> ReminderCycles { get; set; }
         public DbSet<ReminderType> ReminderTypes { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -241,6 +257,7 @@ namespace Persistence.Context
         public DbSet<State> States { get; set; }
         public DbSet<StaticPage> StaticPages { get; set; }
         public DbSet<Store> Stores { get; set; }
+        public DbSet<SearchQueryLog> SearchQueryLogs { get; set; }
         public DbSet<StoreComment> StoreComments { get; set; }
         public DbSet<StoryGroup> StoryGroups { get; set; }
         public DbSet<StoryItem> StoryItems { get; set; }
@@ -256,6 +273,7 @@ namespace Persistence.Context
         public DbSet<UserBankCard> UserBankCards { get; set; }
         public DbSet<UserCategory> UserCategories { get; set; }
         public DbSet<UserPet> UserPets { get; set; }
+        public DbSet<UserMemory> UserMemories { get; set; }
         public DbSet<UserPetPicture> UserPetPictures { get; set; }
         public DbSet<UserPetRecord> UserPetRecords { get; set; }
         public DbSet<UserProduct> UserProducts { get; set; }
@@ -303,6 +321,291 @@ namespace Persistence.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ClubPointAccount>(entity =>
+            {
+                entity.ToTable(table =>
+                {
+                    table.HasCheckConstraint("CK_ClubPointAccount_AvailablePoint", "[AvailablePoint] >= 0");
+                    table.HasCheckConstraint("CK_ClubPointAccount_DebtPoint", "[DebtPoint] >= 0");
+                });
+                entity.Property(item => item.RowVersion).IsRowVersion();
+                entity.HasIndex(item => item.UserId).IsUnique();
+                entity.HasOne(item => item.User)
+                    .WithOne(item => item.ClubPointAccount)
+                    .HasForeignKey<ClubPointAccount>(item => item.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ClubPointRule>(entity =>
+            {
+                entity.Property(item => item.Name).IsRequired().HasMaxLength(200);
+                entity.Property(item => item.Description).HasMaxLength(1000);
+                entity.HasIndex(item => item.EventType).IsUnique();
+                entity.ToTable(table =>
+                    table.HasCheckConstraint("CK_ClubPointRule_PointAmount", "[PointAmount] > 0"));
+            });
+
+            modelBuilder.Entity<ClubPointTransaction>(entity =>
+            {
+                entity.Property(item => item.Description).HasMaxLength(1000);
+                entity.Property(item => item.IdempotencyKey).IsRequired().HasMaxLength(250);
+                entity.HasIndex(item => item.IdempotencyKey).IsUnique();
+                entity.HasIndex(item => new { item.UserId, item.CreateDate });
+                entity.HasIndex(item => new { item.UserId, item.PointRuleId, item.CreateDate });
+                entity.HasIndex(item => new { item.SourceType, item.SourceId });
+                entity.HasOne(item => item.User)
+                    .WithMany()
+                    .HasForeignKey(item => item.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.PointAccount)
+                    .WithMany(item => item.Transactions)
+                    .HasForeignKey(item => item.PointAccountId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.PointRule)
+                    .WithMany(item => item.Transactions)
+                    .HasForeignKey(item => item.PointRuleId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.ParentTransaction)
+                    .WithMany()
+                    .HasForeignKey(item => item.ParentTransactionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ClubRewardTemplate>(entity =>
+            {
+                entity.Property(item => item.Name).IsRequired().HasMaxLength(200);
+                entity.Property(item => item.Title).IsRequired().HasMaxLength(250);
+                entity.Property(item => item.ShortDescription).HasMaxLength(500);
+                entity.Property(item => item.Description).HasMaxLength(4000);
+                entity.Property(item => item.Terms).HasMaxLength(4000);
+                entity.Property(item => item.BenefitValue).HasPrecision(18, 2);
+                entity.Property(item => item.MaximumBenefitValue).HasPrecision(18, 2);
+                entity.HasIndex(item => new { item.Active, item.StartDate, item.EndDate });
+                entity.ToTable(table =>
+                    table.HasCheckConstraint("CK_ClubRewardTemplate_PointCost", "[PointCost] > 0"));
+                entity.HasOne(item => item.Picture)
+                    .WithMany()
+                    .HasForeignKey(item => item.PictureId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<ClubRewardTarget>(entity =>
+            {
+                entity.HasIndex(item => new { item.RewardTemplateId, item.TargetType, item.TargetId })
+                    .IsUnique()
+                    .HasFilter(null);
+                entity.HasOne(item => item.RewardTemplate)
+                    .WithMany(item => item.Targets)
+                    .HasForeignKey(item => item.RewardTemplateId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ClubRewardPetType>(entity =>
+            {
+                entity.HasIndex(item => new { item.RewardTemplateId, item.PetTypeId }).IsUnique();
+                entity.HasOne(item => item.RewardTemplate)
+                    .WithMany(item => item.PetTypes)
+                    .HasForeignKey(item => item.RewardTemplateId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(item => item.PetType)
+                    .WithMany()
+                    .HasForeignKey(item => item.PetTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ClubRewardOffer>(entity =>
+            {
+                entity.Property(item => item.RowVersion).IsRowVersion();
+                entity.Property(item => item.RejectReason).HasMaxLength(1000);
+                entity.HasIndex(item => new { item.UserId, item.RewardTemplateId }).IsUnique();
+                entity.HasIndex(item => new { item.UserId, item.Status, item.ExpiresAt });
+                entity.HasIndex(item => new { item.RewardTemplateId, item.Status });
+                entity.HasOne(item => item.User)
+                    .WithMany()
+                    .HasForeignKey(item => item.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.RewardTemplate)
+                    .WithMany(item => item.Offers)
+                    .HasForeignKey(item => item.RewardTemplateId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ClubRewardRedemption>(entity =>
+            {
+                entity.Property(item => item.IdempotencyKey).IsRequired().HasMaxLength(250);
+                entity.HasIndex(item => item.IdempotencyKey).IsUnique();
+                entity.HasIndex(item => item.RewardOfferId).IsUnique();
+                entity.HasIndex(item => new { item.UserId, item.RedeemedDate });
+                entity.HasOne(item => item.User)
+                    .WithMany()
+                    .HasForeignKey(item => item.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.RewardOffer)
+                    .WithOne(item => item.Redemption)
+                    .HasForeignKey<ClubRewardRedemption>(item => item.RewardOfferId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.RewardTemplate)
+                    .WithMany()
+                    .HasForeignKey(item => item.RewardTemplateId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.PointTransaction)
+                    .WithMany()
+                    .HasForeignKey(item => item.PointTransactionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ClubCoupon>(entity =>
+            {
+                entity.Property(item => item.Code).IsRequired().HasMaxLength(80);
+                entity.Property(item => item.OrderId).HasMaxLength(100);
+                entity.HasIndex(item => item.Code).IsUnique();
+                entity.HasIndex(item => item.RewardRedemptionId).IsUnique();
+                entity.HasIndex(item => item.RebateId).IsUnique();
+                entity.HasIndex(item => new { item.UserId, item.Used, item.ExpiresAt });
+                entity.HasOne(item => item.RewardRedemption).WithMany()
+                    .HasForeignKey(item => item.RewardRedemptionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.User).WithMany()
+                    .HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Rebate).WithOne(item => item.ClubCoupon)
+                    .HasForeignKey<ClubCoupon>(item => item.RebateId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Payment).WithMany()
+                    .HasForeignKey(item => item.PaymentId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ClubFreeDeliveryBenefit>(entity =>
+            {
+                entity.Property(item => item.MaximumDeliveryAmount).HasPrecision(18, 2);
+                entity.Property(item => item.RowVersion).IsRowVersion();
+                entity.HasIndex(item => item.RewardRedemptionId).IsUnique();
+                entity.HasIndex(item => new { item.UserId, item.ExpiresAt, item.RemainingUsageCount });
+                entity.HasOne(item => item.RewardRedemption).WithMany()
+                    .HasForeignKey(item => item.RewardRedemptionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.User).WithMany()
+                    .HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Store).WithMany()
+                    .HasForeignKey(item => item.StoreId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.City).WithMany()
+                    .HasForeignKey(item => item.CityId).OnDelete(DeleteBehavior.Restrict);
+                entity.ToTable(table => table.HasCheckConstraint(
+                    "CK_ClubFreeDeliveryBenefit_RemainingUsageCount",
+                    "[RemainingUsageCount] >= 0"));
+            });
+
+            modelBuilder.Entity<Cart>()
+                .HasOne(item => item.ClubFreeDeliveryBenefit)
+                .WithMany()
+                .HasForeignKey(item => item.ClubFreeDeliveryBenefitId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProductOrder>()
+                .HasOne(item => item.ClubFreeDeliveryBenefit)
+                .WithMany()
+                .HasForeignKey(item => item.ClubFreeDeliveryBenefitId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ClubPromotionalWalletCredit>(entity =>
+            {
+                entity.Property(item => item.OriginalAmount).HasPrecision(18, 2);
+                entity.Property(item => item.RemainingAmount).HasPrecision(18, 2);
+                entity.Property(item => item.RowVersion).IsRowVersion();
+                entity.HasIndex(item => item.RewardRedemptionId).IsUnique();
+                entity.HasIndex(item => new { item.UserId, item.Status, item.ExpiresAt });
+                entity.HasOne(item => item.RewardRedemption).WithMany()
+                    .HasForeignKey(item => item.RewardRedemptionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.User).WithMany()
+                    .HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.ToTable(table =>
+                {
+                    table.HasCheckConstraint("CK_ClubPromotionalWalletCredit_OriginalAmount", "[OriginalAmount] > 0");
+                    table.HasCheckConstraint("CK_ClubPromotionalWalletCredit_RemainingAmount", "[RemainingAmount] >= 0");
+                });
+            });
+
+            modelBuilder.Entity<ClubPromotionalCreditUsage>(entity =>
+            {
+                entity.Property(item => item.Amount).HasPrecision(18, 2);
+                entity.Property(item => item.ReferenceKey).IsRequired().HasMaxLength(200);
+                entity.HasIndex(item => new { item.PromotionalCreditId, item.ReferenceKey }).IsUnique();
+                entity.HasIndex(item => new { item.UserId, item.CreateDate });
+                entity.HasOne(item => item.PromotionalCredit).WithMany()
+                    .HasForeignKey(item => item.PromotionalCreditId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ClubRewardPastilAITarget>(entity =>
+            {
+                entity.HasIndex(item => item.RewardTemplateId).IsUnique();
+                entity.HasOne(item => item.RewardTemplate).WithOne(item => item.PastilAITarget)
+                    .HasForeignKey<ClubRewardPastilAITarget>(item => item.RewardTemplateId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(item => item.Plan).WithMany()
+                    .HasForeignKey(item => item.PlanId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.TargetPlan).WithMany()
+                    .HasForeignKey(item => item.TargetPlanId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ClubRewardCostTransaction>(entity =>
+            {
+                entity.Property(item => item.GrossValue).HasPrecision(18, 2);
+                entity.Property(item => item.PastilFundedValue).HasPrecision(18, 2);
+                entity.Property(item => item.OrderId).HasMaxLength(100);
+                entity.HasIndex(item => new { item.RewardRedemptionId, item.CreateDate });
+                entity.HasIndex(item => new { item.UserId, item.CreateDate });
+                entity.HasOne(item => item.RewardRedemption).WithMany()
+                    .HasForeignKey(item => item.RewardRedemptionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.User).WithMany()
+                    .HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Payment).WithMany()
+                    .HasForeignKey(item => item.PaymentId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Rebate>()
+                .HasOne(item => item.ClubCoupon)
+                .WithOne(item => item.Rebate)
+                .HasForeignKey<ClubCoupon>(item => item.RebateId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PastilAiSubscription>()
+                .HasOne(item => item.ClubRewardRedemption)
+                .WithMany()
+                .HasForeignKey(item => item.ClubRewardRedemptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Memory>(entity =>
+            {
+                entity.HasIndex(item => item.MemoryDate);
+                entity.HasIndex(item => new { item.Deleted, item.MemoryDate });
+                entity.HasOne(item => item.Picture)
+                    .WithMany()
+                    .HasForeignKey(item => item.PictureId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<UserMemory>(entity =>
+            {
+                entity.HasIndex(item => item.MemoryId).IsUnique();
+                entity.HasIndex(item => new { item.UserId, item.Deleted });
+                entity.HasIndex(item => new { item.UserPetId, item.Deleted });
+                entity.HasOne(item => item.Memory)
+                    .WithOne(item => item.UserMemory)
+                    .HasForeignKey<UserMemory>(item => item.MemoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.User)
+                    .WithMany()
+                    .HasForeignKey(item => item.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.UserPet)
+                    .WithMany()
+                    .HasForeignKey(item => item.UserPetId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<SearchQueryLog>(entity =>
+            {
+                entity.HasIndex(item => item.NormalizedQuery);
+                entity.HasIndex(item => item.CreateDateUtc);
+                entity.HasIndex(item => new { item.Channel, item.CreateDateUtc });
+            });
+
             var cascadeFKs = modelBuilder.Model.GetEntityTypes()
 .SelectMany(t => t.GetForeignKeys())
 .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);

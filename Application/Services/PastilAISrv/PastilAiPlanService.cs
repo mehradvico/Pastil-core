@@ -127,7 +127,8 @@ namespace Application.Services.PastilAISrv
                     (double)plan.Price,
                     userId,
                     RebateTypeLabels.PastilAI,
-                    dto.RebateCode);
+                    dto.RebateCode,
+                    plan.Id);
                 if (!rebateResult.IsSuccess)
                     return new BaseResultDto(false, messages: rebateResult.Messages);
 
@@ -137,7 +138,10 @@ namespace Application.Services.PastilAISrv
 
             var payableAmount = Math.Max(0, plan.Price - rebatePrice);
             var walletBalance = dto.FromWallet
-                ? await _walletService.GetAmountValueAsync(userId)
+                ? await _walletService.GetSpendableAmountValueAsync(
+                    userId,
+                    Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.PastilAIPlan,
+                    plan.Id)
                 : 0;
             var walletPrice = (decimal)PaymentAmountHelper.GetWalletContribution(walletBalance, (double)payableAmount);
             var gatewayAmount = payableAmount - walletPrice;

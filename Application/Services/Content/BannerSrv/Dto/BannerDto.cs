@@ -13,6 +13,8 @@ namespace Application.Services.Content.BannerSrv.Dto
         public long? Picture2Id { get; set; }
         public int ClickCount { get; set; }
         public bool Active { get; set; }
+        public bool ShowToApp { get; set; }
+        public bool ShowToSite { get; set; }
         public long? CategoryId { get; set; }
     }
 }

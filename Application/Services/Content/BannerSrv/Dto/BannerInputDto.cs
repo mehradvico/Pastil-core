@@ -7,5 +7,7 @@ namespace Application.Services.Content.BannerSrv.Dto
     {
         public long? CategoryId { get; set; }
         public string CategoryLabel { get; set; }
+        public bool? ShowToApp { get; set; }
+        public bool? ShowToSite { get; set; }
     }
 }

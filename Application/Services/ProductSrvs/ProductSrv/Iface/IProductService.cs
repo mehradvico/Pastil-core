@@ -6,6 +6,7 @@ using Application.Services.ProductSrvs.ProductSrv.Dto;
 using Entities.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Application.Services.ProductSrvs.ProductSrv.Iface
 {
@@ -15,7 +16,7 @@ namespace Application.Services.ProductSrvs.ProductSrv.Iface
         Task<BaseResultDto<ProductVDto>> FindAsyncVDto(long id, bool visit);
         Task<BaseResultDto<ProductDto>> InsertAsyncDto(ProductDto dto);
         ProductSearchDto Search(ProductInputDto baseSearchDto);
-        Task<List<SearchProductDto>> SearchMinAsync(SearchRequestDto request);
+        Task<List<SearchProductDto>> SearchMinAsync(SearchRequestDto request, CancellationToken cancellationToken = default);
         Task<BaseResultDto> UpdateDtoAsync(ProductDto dto, long? storeId = null);
         BaseResultDto DeleteDto(long id);
         Task<Product> GetByIdAsync(long id);

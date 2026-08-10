@@ -361,7 +361,10 @@ namespace Application.Services.UserSrv
             user.Code = await user.Code.ToEnglishDigitsAsync();
             string hashedPassword = "";
 
-            var item = await _context.Users.Include(s => s.Role).FirstOrDefaultAsync(x => (!string.IsNullOrEmpty(x.Mobile) && x.Mobile == user.Mobile) || (!string.IsNullOrEmpty(x.Email) && x.Email == user.Mobile));
+            var item = await _context.Users
+                .Include(s => s.Role)
+                .ThenInclude(s => s.Permissions)
+                .FirstOrDefaultAsync(x => (!string.IsNullOrEmpty(x.Mobile) && x.Mobile == user.Mobile) || (!string.IsNullOrEmpty(x.Email) && x.Email == user.Mobile));
             if (item == null)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
@@ -374,7 +377,17 @@ namespace Application.Services.UserSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked);
             }
-            if (user.IsAdmin && item.Role.Label == RoleEnum.Customer.ToString())
+            var isPanelLogin = user.IsAdmin || user.IsSiteAdmin;
+            if (isPanelLogin && item.Role.Label == RoleEnum.Customer.ToString())
+            {
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
+            }
+            if (user.IsSiteAdmin &&
+                item.Role.Label != RoleEnum.Admin.ToString() &&
+                !item.Role.Permissions.Any(permission =>
+                    !permission.Deleted &&
+                    permission.Area == "Admin" &&
+                    permission.Controller == "SiteDashboard"))
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
             }
@@ -424,8 +437,8 @@ namespace Application.Services.UserSrv
 
             var tokenResult = await userTokenSevice.ResetTokenAsync(
                 item,
-                user.IsAdmin,
-                user.IsAdmin ? user.RememberMe : true);
+                isPanelLogin,
+                isPanelLogin ? user.RememberMe : true);
             await ChangUserCartAsync(item.Id, user.CartCode);
             await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSignInUser, userId: item.Id, token1: item.FirstName);
             return tokenResult;

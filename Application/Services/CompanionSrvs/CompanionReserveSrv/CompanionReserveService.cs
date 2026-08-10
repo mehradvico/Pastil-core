@@ -15,6 +15,7 @@ using Application.Services.CompanionSrvs.CompanionReservePackageSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionReserveUserPetSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
+using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
@@ -50,10 +51,12 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ICompanionReservePackageService _companionReservePackageService;
         private readonly IScoreTransactionService _scoreService;
+        private readonly IClubPointIntegrationService _clubPointIntegrationService;
         public CompanionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper,
             ICompanionReservePackageService companionReservePackageService, ICompanionReserveUserPetService companionReserveUserPetService,
             IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService,
-            IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService) : base(_context, mapper)
+            IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService,
+            IClubPointIntegrationService clubPointIntegrationService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -68,6 +71,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             this._companionReservePackageService = companionReservePackageService;
             this._pushNotificationService = pushNotificationService;
             this._scoreService = scoreService;
+            this._clubPointIntegrationService = clubPointIntegrationService;
         }
 
         public async Task<BaseResultDto<CompanionReserveAdminVDto>> FindAsyncAdminVDto(long id)
@@ -450,6 +454,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             _context.CompanionReserves.Update(model);
             await _context.SaveChangesAsync();
 
+            if (dto.IsCancel)
+                await _clubPointIntegrationService.CompanionReserveReversedAsync(model.BookerId, model.Id);
+
             var booker = _context.Users.FirstOrDefault(u => u.Id == model.BookerId);
             var companionAssistances = _context.CompanionAssistances.Include(s => s.Assistance).Include(s => s.Companion).FirstOrDefault(a => a.Id == model.CompanionAssistanceId);
             var companion = _context.Companions.Include(s => s.Owner).FirstOrDefault(a => a.Id == companionAssistances.CompanionId);
@@ -497,6 +504,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
             if (item.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete)
             {
+                if (dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete)
+                    await _clubPointIntegrationService.CompanionReserveCompletedAsync(item.BookerId, item.Id);
+
                 return new BaseResultDto<CompanionReserveOperatorDto>(false, Resource.Notification.ThisReserveStateHasCompletedBefore, dto);
             }
 
@@ -520,6 +530,11 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
             _context.CompanionReserves.Update(item);
             await _context.SaveChangesAsync();
+
+            if (dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete)
+                await _clubPointIntegrationService.CompanionReserveCompletedAsync(item.BookerId, item.Id);
+            else if (dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Cancelled)
+                await _clubPointIntegrationService.CompanionReserveReversedAsync(item.BookerId, item.Id);
 
             await _messageSender.SendMessageAsync(
                 messageType: MessageTypeEnum.UserAcceptOperatorChange,
@@ -555,6 +570,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
             if (item.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete)
             {
+                if (dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete)
+                    await _clubPointIntegrationService.CompanionReserveCompletedAsync(item.BookerId, item.Id);
+
                 return new BaseResultDto<CompanionReserveOperatorDto>(false, Resource.Notification.ThisReserveStateHasCompletedBefore, dto);
             }
 
@@ -578,6 +596,11 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
             _context.CompanionReserves.Update(item);
             await _context.SaveChangesAsync();
+
+            if (dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete)
+                await _clubPointIntegrationService.CompanionReserveCompletedAsync(item.BookerId, item.Id);
+            else if (dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Cancelled)
+                await _clubPointIntegrationService.CompanionReserveReversedAsync(item.BookerId, item.Id);
 
             await _messageSender.SendMessageAsync(
                 messageType: MessageTypeEnum.UserAcceptOperatorChange,

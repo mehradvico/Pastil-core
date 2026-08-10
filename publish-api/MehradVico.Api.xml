@@ -3775,6 +3775,16 @@
             اضافه و ویرایش دسترسی های نقش
             </summary>  
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.SearchAnalyticsController">
+            <summary>
+            آمار عبارت‌های جستجو شده و جستجوهای بدون نتیجه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SearchAnalyticsController.Get(System.Int32,System.Int32,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            دریافت پرتکرارترین عبارت‌های جستجو
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.SettlementController">
              <summary>
              تسویه حساب ها
@@ -3799,6 +3809,51 @@
             <summary>
             آیتم جدید
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SiteAssistanceController">
+            <summary>
+            مدیریت نمایش خدمات در سایت
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SiteBannerController">
+            <summary>
+            مدیریت بنرهای سایت
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SiteCompanionController">
+            <summary>
+            مدیریت نمایش نمایندگان در سایت
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SiteDashboardController">
+            <summary>
+            ورود و داشبورد مدیریت سایت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SiteDashboardController.Get(System.Boolean)">
+            <summary>
+            بررسی دسترسی کاربر به پنل مدیریت سایت
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SiteGalleryController">
+            <summary>
+            مدیریت گالری‌های سایت
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SitePansionController">
+            <summary>
+            مدیریت نمایش پانسیون‌ها در سایت
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SitePostController">
+            <summary>
+            مدیریت نوشته‌های سایت
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SiteStoreController">
+            <summary>
+            مدیریت نمایش فروشگاه‌ها در سایت
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.StateController">
              <summary>
@@ -4401,6 +4456,21 @@
             <summary>
              حذف آیتم 
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.UserMemoryController">
+            <summary>
+            مشاهده خاطرات کاربران توسط مدیر دارای دسترسی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserMemoryController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            مشاهده جزئیات خاطره
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserMemoryController.Get(Application.Services.MemorySrvs.MemorySrv.Dto.MemoryInputDto,System.Threading.CancellationToken)">
+            <summary>
+            جستجوی خاطرات کاربران
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserPetController">
              <summary>
@@ -6395,6 +6465,36 @@
              جستجو در نقشه
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.MemoryController">
+            <summary>
+            خاطرات روزانه کاربر و پت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.MemoryController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            دریافت جزئیات یک خاطره متعلق به کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.MemoryController.Get(Application.Services.MemorySrvs.MemorySrv.Dto.MemoryInputDto,System.Threading.CancellationToken)">
+            <summary>
+            جستجو و دریافت خاطرات کاربر براساس متن، پت و تاریخ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.MemoryController.Post(Application.Services.MemorySrvs.MemorySrv.Dto.MemoryDto,System.Threading.CancellationToken)">
+            <summary>
+            ثبت خاطره جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.MemoryController.Put(Application.Services.MemorySrvs.MemorySrv.Dto.MemoryDto,System.Threading.CancellationToken)">
+            <summary>
+            ویرایش خاطره متعلق به کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.MemoryController.Delete(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            حذف خاطره متعلق به کاربر
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PansionCommentController">
             <summary>
@@ -9168,9 +9268,44 @@
             مدیریت جستجو
             </summary>
         </member>
-        <member name="M:Api.Controllers.SearchController.Post(Application.Services.CommonSrv.SearchSrv.Dto.SearchRequestDto)">
+        <member name="M:Api.Controllers.SearchController.Post(Application.Services.CommonSrv.SearchSrv.Dto.SearchRequestDto,System.Threading.CancellationToken)">
             <summary>
             جستجو
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.Site.SiteAssistanceController">
+            <summary>
+            خدمات قابل نمایش در سایت معرفی پاستیل
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.Site.SiteBannerController">
+            <summary>
+            بنرهای قابل نمایش در سایت معرفی پاستیل
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.Site.SiteCompanionController">
+            <summary>
+            نمایندگان قابل نمایش در سایت معرفی پاستیل
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.Site.SiteGalleryController">
+            <summary>
+            گالری‌های فعال سایت معرفی پاستیل
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.Site.SitePansionController">
+            <summary>
+            پانسیون‌های قابل نمایش در سایت معرفی پاستیل
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.Site.SitePostController">
+            <summary>
+            نوشته‌های منتشرشده سایت معرفی پاستیل
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.Site.SiteStoreController">
+            <summary>
+            فروشگاه‌های قابل نمایش در سایت معرفی پاستیل
             </summary>
         </member>
         <member name="T:Api.Controllers.StaticPageController">
@@ -9311,27 +9446,6 @@
              جستجو
             </summary>
             <returns></returns> 
-        </member>
-        <member name="T:Api.Resources.Resource">
-            <summary>
-              A strongly-typed resource class, for looking up localized strings, etc.
-            </summary>
-        </member>
-        <member name="P:Api.Resources.Resource.ResourceManager">
-            <summary>
-              Returns the cached ResourceManager instance used by this class.
-            </summary>
-        </member>
-        <member name="P:Api.Resources.Resource.Culture">
-            <summary>
-              Overrides the current thread's CurrentUICulture property for all
-              resource lookups using this strongly typed resource class.
-            </summary>
-        </member>
-        <member name="P:Api.Resources.Resource.Hello">
-            <summary>
-              Looks up a localized string similar to Hello.
-            </summary>
         </member>
     </members>
 </doc>

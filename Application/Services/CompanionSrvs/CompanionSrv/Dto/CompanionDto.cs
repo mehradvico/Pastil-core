@@ -19,6 +19,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public long? BackgroundPictureId { get; set; }
         public long? IconId { get; set; }
         public bool Active { get; set; }
+        public bool ShowToSite { get; set; }
         public bool Approved { get; set; }
         public string ActivationValue { get; set; }
         public string AddressValue { get; set; }

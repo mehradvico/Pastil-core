@@ -7,5 +7,6 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
     {
         public bool? IsPersonal { get; set; }
         public long? AssistanceGroupId { get; set; }
+        public bool? ShowToSite { get; set; }
     }
 }

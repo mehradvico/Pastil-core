@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 namespace Application.Services.ProductSrvs.ProductSrv
 {
     public class ProductService : IProductService
@@ -431,14 +432,16 @@ namespace Application.Services.ProductSrvs.ProductSrv
             var connection = new SqlConnection(connectionString);
             await connection.ExecuteAsync("UpdateProductItemDiscount", new { FilterType = productUpdateType.ToString(), FilterIds = Id }, commandType: System.Data.CommandType.StoredProcedure);
         }
-        public async Task<List<SearchProductDto>> SearchMinAsync(SearchRequestDto request)
+        public async Task<List<SearchProductDto>> SearchMinAsync(SearchRequestDto request, CancellationToken cancellationToken = default)
         {
             using var connection = new SqlConnection(connectionString);
 
             var parameters = new
             {
-                ProductCount = request.ProductCount,
-                ProductNotId = request.ProductNotId
+                ProductCount = SearchQueryHelper.CandidateCount(request.ProductCount),
+                ProductNotId = request.ProductNotId,
+                Query = request.Q,
+                SearchTerms = string.Join(" ", request.SearchTerms)
             };
 
             var query = $@"
@@ -446,7 +449,8 @@ DECLARE @Keywords TABLE (Keyword NVARCHAR(255));
 
 INSERT INTO @Keywords (Keyword)
 SELECT value
-FROM STRING_SPLIT(N'{request.Q}', ' ');
+FROM STRING_SPLIT(@SearchTerms, ' ')
+WHERE LEN(value) >= 2;
 
 SELECT TOP(@ProductCount)
     p.Id,
@@ -476,6 +480,16 @@ SELECT TOP(@ProductCount)
            OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
            OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
            OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(c.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(p.ProductLabel, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR EXISTS (
+                SELECT 1
+                FROM ProductFeatureValues pfv
+                LEFT JOIN FeatureItems fi ON pfv.FeatureItemId = fi.Id
+                WHERE pfv.ProductId = p.Id
+                  AND (ISNULL(pfv.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+                    OR ISNULL(fi.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%')
+           )
     ) AS MatchScore
 FROM Products p
 
@@ -498,11 +512,16 @@ LEFT JOIN Brands br ON p.BrandId = br.Id
 WHERE
     p.Active = 1
     AND p.Deleted = 0
+    AND st.Active = 1
+    AND st.Deleted = 0
     AND (p.Id != @ProductNotId OR @ProductNotId IS NULL)
     AND (
-        p.Name COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%'
-        OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%'
-        OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + N'{request.Q}' + '%'
+        p.Name COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(c.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(p.ProductLabel, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
         OR EXISTS (
             SELECT 1
             FROM @Keywords k
@@ -510,12 +529,23 @@ WHERE
                OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
                OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
                OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(c.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(p.ProductLabel, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR EXISTS (
+                    SELECT 1
+                    FROM ProductFeatureValues pfv
+                    LEFT JOIN FeatureItems fi ON pfv.FeatureItemId = fi.Id
+                    WHERE pfv.ProductId = p.Id
+                      AND (ISNULL(pfv.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+                        OR ISNULL(fi.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%')
+               )
         )
     )
 ORDER BY p.StatusId DESC, MatchScore DESC;";
 
+            var command = new CommandDefinition(query, parameters, commandTimeout: 8, cancellationToken: cancellationToken);
             var result = await connection.QueryAsync<SearchProductDto, PictureVDto, string, string, SearchProductDto>(
-                query,
+                command,
                 (product, picture, categoryName, brandName) =>
                 {
                     product.Picture = picture;
@@ -523,8 +553,6 @@ ORDER BY p.StatusId DESC, MatchScore DESC;";
                     product.BrandName = brandName;
                     return product;
                 },
-                parameters,
-                commandType: CommandType.Text,
                 splitOn: "PictureId,CategoryName,BrandName"
             );
 

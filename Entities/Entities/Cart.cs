@@ -24,6 +24,8 @@ namespace Entities.Entities
         public long? DeliveryId { get; set; }
         public double DeliveryPrice { get; set; }
         public bool Changed { get; set; }
+        public long? ClubFreeDeliveryBenefitId { get; set; }
+        public double ClubDeliveryDiscount { get; set; }
 
         public Rebate Rebate { get; set; }
         public User User { get; set; }
@@ -31,6 +33,7 @@ namespace Entities.Entities
         public Merchant Merchant { get; set; }
         public Delivery Delivery { get; set; }
         public ICollection<CartStore> CartStores { get; set; }
+        public PastilClubField.ClubFreeDeliveryBenefit ClubFreeDeliveryBenefit { get; set; }
         //public ICollection<CartItem> CartItems { get; set; }
 
     }

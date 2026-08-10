@@ -8,6 +8,7 @@ namespace Entities.Entities
         public long? AssistanceGroupId { get; set; }
         public long? PictureId { get; set; }
         public bool Active { get; set; }
+        public bool ShowToSite { get; set; }
         public bool Deleted { get; set; }
 
         public AssistanceGroup AssistanceGroup { get; set; }

@@ -21,6 +21,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
         public bool? IsSchool { get; set; }
         public long CompanionId { get; set; }
         public bool Active { get; set; }
+        public bool ShowToSite { get; set; }
         public bool Approve { get; set; }
         public long StateId { get; set; }
         public long CityId { get; set; }

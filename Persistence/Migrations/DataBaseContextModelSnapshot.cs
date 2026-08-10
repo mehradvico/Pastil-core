@@ -232,6 +232,9 @@ namespace Persistence.Migrations
                     b.Property<long?>("PictureId")
                         .HasColumnType("bigint");
 
+                    b.Property<bool>("ShowToSite")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
@@ -391,6 +394,12 @@ namespace Persistence.Migrations
 
                     b.Property<int>("Priority")
                         .HasColumnType("int");
+
+                    b.Property<bool>("ShowToApp")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShowToSite")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Slug")
                         .HasMaxLength(200)
@@ -648,6 +657,12 @@ namespace Persistence.Migrations
                     b.Property<bool>("Changed")
                         .HasColumnType("bit");
 
+                    b.Property<double>("ClubDeliveryDiscount")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("ClubFreeDeliveryBenefitId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -693,6 +708,8 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AddressId");
+
+                    b.HasIndex("ClubFreeDeliveryBenefitId");
 
                     b.HasIndex("DeliveryId");
 
@@ -1138,6 +1155,9 @@ namespace Persistence.Migrations
 
                     b.Property<string>("SeoUrlText")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ShowToSite")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("SilverAccountCreateDate")
                         .HasColumnType("datetime2");
@@ -2858,6 +2878,45 @@ namespace Persistence.Migrations
                     b.ToTable("MapKeys");
                 });
 
+            modelBuilder.Entity("Entities.Entities.Memory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("MemoryDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MemoryDate");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("Deleted", "MemoryDate");
+
+                    b.ToTable("Memories");
+                });
+
             modelBuilder.Entity("Entities.Entities.Merchant", b =>
                 {
                     b.Property<long>("Id")
@@ -3208,6 +3267,9 @@ namespace Persistence.Migrations
 
                     b.Property<double>("SchoolPrice")
                         .HasColumnType("float");
+
+                    b.Property<bool>("ShowToSite")
+                        .HasColumnType("bit");
 
                     b.Property<long>("StateId")
                         .HasColumnType("bigint");
@@ -3727,6 +3789,9 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<long?>("ClubRewardRedemptionId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreateDateUtc")
                         .HasColumnType("datetime2");
 
@@ -3765,6 +3830,8 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClubRewardRedemptionId");
+
                     b.HasIndex("PaymentId")
                         .IsUnique()
                         .HasFilter("[PaymentId] IS NOT NULL");
@@ -3776,6 +3843,789 @@ namespace Persistence.Migrations
                     b.HasIndex("UserId", "Status", "EndDateUtc");
 
                     b.ToTable("PastilAiSubscriptions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubCoupon", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("OrderId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long?>("PaymentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RebateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ReservationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RewardRedemptionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Used")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("UsedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("PaymentId");
+
+                    b.HasIndex("RebateId")
+                        .IsUnique();
+
+                    b.HasIndex("RewardRedemptionId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "Used", "ExpiresAt");
+
+                    b.ToTable("ClubCoupons");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubFreeDeliveryBenefit", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal?>("MaximumDeliveryAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("RemainingUsageCount")
+                        .HasColumnType("int");
+
+                    b.Property<long>("RewardRedemptionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<long?>("StoreId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("RewardRedemptionId")
+                        .IsUnique();
+
+                    b.HasIndex("StoreId");
+
+                    b.HasIndex("UserId", "ExpiresAt", "RemainingUsageCount");
+
+                    b.ToTable("ClubFreeDeliveryBenefits", t =>
+                        {
+                            t.HasCheckConstraint("CK_ClubFreeDeliveryBenefit_RemainingUsageCount", "[RemainingUsageCount] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPointAccount", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AvailablePoint")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("DebtPoint")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("LastUpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("LifetimeEarnedPoint")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LifetimeReversedPoint")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LifetimeSpentPoint")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("ClubPointAccounts", t =>
+                        {
+                            t.HasCheckConstraint("CK_ClubPointAccount_AvailablePoint", "[AvailablePoint] >= 0");
+
+                            t.HasCheckConstraint("CK_ClubPointAccount_DebtPoint", "[DebtPoint] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPointRule", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DailyLimit")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("EndDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("EventType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LifetimeLimit")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MonthlyLimit")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long>("PointAmount")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("StartDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventType")
+                        .IsUnique();
+
+                    b.ToTable("ClubPointRules", t =>
+                        {
+                            t.HasCheckConstraint("CK_ClubPointRule_PointAmount", "[PointAmount] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPointTransaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AvailableAfter")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AvailableBefore")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatedByAdminId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CreatedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("DebtAfter")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("DebtBefore")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<long?>("ParentTransactionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PointAccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PointRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ReferralId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("RewardRedemptionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SourceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SourceType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TransactionType")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("ParentTransactionId");
+
+                    b.HasIndex("PointAccountId");
+
+                    b.HasIndex("PointRuleId");
+
+                    b.HasIndex("SourceType", "SourceId");
+
+                    b.HasIndex("UserId", "CreateDate");
+
+                    b.HasIndex("UserId", "PointRuleId", "CreateDate");
+
+                    b.ToTable("ClubPointTransactions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPromotionalCreditUsage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ApplicationMethod")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("PromotionalCreditId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReferenceKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PromotionalCreditId", "ReferenceKey")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "CreateDate");
+
+                    b.ToTable("ClubPromotionalCreditUsages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPromotionalWalletCredit", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<decimal>("OriginalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("RemainingAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("RewardRedemptionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<long?>("ServiceScopeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ServiceScopeType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RewardRedemptionId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "Status", "ExpiresAt");
+
+                    b.ToTable("ClubPromotionalWalletCredits", t =>
+                        {
+                            t.HasCheckConstraint("CK_ClubPromotionalWalletCredit_OriginalAmount", "[OriginalAmount] > 0");
+
+                            t.HasCheckConstraint("CK_ClubPromotionalWalletCredit_RemainingAmount", "[RemainingAmount] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardCostTransaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("BusinessId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("BusinessType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("GrossValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("OrderId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PastilFundedValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long?>("PaymentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ReservationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RewardRedemptionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("RewardType")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymentId");
+
+                    b.HasIndex("RewardRedemptionId", "CreateDate");
+
+                    b.HasIndex("UserId", "CreateDate");
+
+                    b.ToTable("ClubRewardCostTransactions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardOffer", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("ApprovedByAdminId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("ApprovedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("AutomationRuleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("GeneratedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("PointCostSnapshot")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("RedeemedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<long?>("RejectedByAdminId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("RejectedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("RewardTemplateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SourceType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RewardTemplateId", "Status");
+
+                    b.HasIndex("UserId", "RewardTemplateId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "Status", "ExpiresAt");
+
+                    b.ToTable("ClubRewardOffers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardPastilAITarget", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int?>("FreeDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsUpgrade")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("PlanId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RewardTemplateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("TargetPlanId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("RewardTemplateId")
+                        .IsUnique();
+
+                    b.HasIndex("TargetPlanId");
+
+                    b.ToTable("ClubRewardPastilAITargets");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardPetType", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("PetTypeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RewardTemplateId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetTypeId");
+
+                    b.HasIndex("RewardTemplateId", "PetTypeId")
+                        .IsUnique();
+
+                    b.ToTable("ClubRewardPetTypes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardRedemption", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("BenefitReferenceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("BenefitType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<long>("PointSpent")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PointTransactionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("RedeemedDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("RewardOfferId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RewardTemplateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("PointTransactionId");
+
+                    b.HasIndex("RewardOfferId")
+                        .IsUnique();
+
+                    b.HasIndex("RewardTemplateId");
+
+                    b.HasIndex("UserId", "RedeemedDate");
+
+                    b.ToTable("ClubRewardRedemptions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardTarget", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("IncludeChildren")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("RewardTemplateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("TargetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TargetType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RewardTemplateId", "TargetType", "TargetId")
+                        .IsUnique();
+
+                    b.ToTable("ClubRewardTargets");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardTemplate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ApplicationMethod")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("BenefitValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTimeOffset?>("EndDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ExpirationType")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ExpirationValue")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("FixedExpirationDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("FundingType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAutomationAllowed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsManualAllowed")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("MaximumBenefitValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("NotificationLevel")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PointCost")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("RewardType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ShortDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTimeOffset?>("StartDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Terms")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("Active", "StartDate", "EndDate");
+
+                    b.ToTable("ClubRewardTemplates", t =>
+                        {
+                            t.HasCheckConstraint("CK_ClubRewardTemplate_PointCost", "[PointCost] > 0");
+                        });
                 });
 
             modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatch", b =>
@@ -4998,6 +5848,12 @@ namespace Persistence.Migrations
                     b.Property<string>("ChildOrderId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<double>("ClubDeliveryDiscount")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("ClubFreeDeliveryBenefitId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -5073,6 +5929,8 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AddressId");
+
+                    b.HasIndex("ClubFreeDeliveryBenefitId");
 
                     b.HasIndex("DeliveryTypeId");
 
@@ -5711,6 +6569,49 @@ namespace Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ScoreTransactions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SearchQueryLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreateDateUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NormalizedQuery")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Query")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("ResultCount")
+                        .HasColumnType("int");
+
+                    b.Property<long>("TookMilliseconds")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreateDateUtc");
+
+                    b.HasIndex("NormalizedQuery");
+
+                    b.HasIndex("Channel", "CreateDateUtc");
+
+                    b.ToTable("SearchQueryLogs");
                 });
 
             modelBuilder.Entity("Entities.Entities.Security.OtpVerify", b =>
@@ -6365,6 +7266,9 @@ namespace Persistence.Migrations
                     b.Property<string>("SeoUrlText")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("ShowToSite")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
@@ -6900,6 +7804,41 @@ namespace Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("UserCategories");
+                });
+
+            modelBuilder.Entity("Entities.Entities.UserMemory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("MemoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserPetId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MemoryId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "Deleted");
+
+                    b.HasIndex("UserPetId", "Deleted");
+
+                    b.ToTable("UserMemories");
                 });
 
             modelBuilder.Entity("Entities.Entities.UserPet", b =>
@@ -7668,6 +8607,11 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("AddressId");
 
+                    b.HasOne("Entities.Entities.PastilClubField.ClubFreeDeliveryBenefit", "ClubFreeDeliveryBenefit")
+                        .WithMany()
+                        .HasForeignKey("ClubFreeDeliveryBenefitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Delivery", "Delivery")
                         .WithMany("Cart")
                         .HasForeignKey("DeliveryId");
@@ -7685,6 +8629,8 @@ namespace Persistence.Migrations
                         .HasForeignKey("UserId");
 
                     b.Navigation("Address");
+
+                    b.Navigation("ClubFreeDeliveryBenefit");
 
                     b.Navigation("Delivery");
 
@@ -8675,6 +9621,16 @@ namespace Persistence.Migrations
                     b.Navigation("Type");
                 });
 
+            modelBuilder.Entity("Entities.Entities.Memory", b =>
+                {
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Picture");
+                });
+
             modelBuilder.Entity("Entities.Entities.Merchant", b =>
                 {
                     b.HasOne("Entities.Entities.Bank", "Bank")
@@ -8928,6 +9884,11 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiSubscription", b =>
                 {
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardRedemption", "ClubRewardRedemption")
+                        .WithMany()
+                        .HasForeignKey("ClubRewardRedemptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Payment", "Payment")
                         .WithOne("PastilAiSubscription")
                         .HasForeignKey("Entities.Entities.PastilAIField.PastilAiSubscription", "PaymentId")
@@ -8950,6 +9911,8 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ClubRewardRedemption");
+
                     b.Navigation("Payment");
 
                     b.Navigation("Plan");
@@ -8957,6 +9920,293 @@ namespace Persistence.Migrations
                     b.Navigation("Rebate");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubCoupon", b =>
+                {
+                    b.HasOne("Entities.Entities.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Rebate", "Rebate")
+                        .WithOne("ClubCoupon")
+                        .HasForeignKey("Entities.Entities.PastilClubField.ClubCoupon", "RebateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardRedemption", "RewardRedemption")
+                        .WithMany()
+                        .HasForeignKey("RewardRedemptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("Rebate");
+
+                    b.Navigation("RewardRedemption");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubFreeDeliveryBenefit", b =>
+                {
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardRedemption", "RewardRedemption")
+                        .WithMany()
+                        .HasForeignKey("RewardRedemptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("RewardRedemption");
+
+                    b.Navigation("Store");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPointAccount", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithOne("ClubPointAccount")
+                        .HasForeignKey("Entities.Entities.PastilClubField.ClubPointAccount", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPointTransaction", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilClubField.ClubPointTransaction", "ParentTransaction")
+                        .WithMany()
+                        .HasForeignKey("ParentTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.PastilClubField.ClubPointAccount", "PointAccount")
+                        .WithMany("Transactions")
+                        .HasForeignKey("PointAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilClubField.ClubPointRule", "PointRule")
+                        .WithMany("Transactions")
+                        .HasForeignKey("PointRuleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ParentTransaction");
+
+                    b.Navigation("PointAccount");
+
+                    b.Navigation("PointRule");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPromotionalCreditUsage", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilClubField.ClubPromotionalWalletCredit", "PromotionalCredit")
+                        .WithMany()
+                        .HasForeignKey("PromotionalCreditId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PromotionalCredit");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPromotionalWalletCredit", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardRedemption", "RewardRedemption")
+                        .WithMany()
+                        .HasForeignKey("RewardRedemptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RewardRedemption");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardCostTransaction", b =>
+                {
+                    b.HasOne("Entities.Entities.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardRedemption", "RewardRedemption")
+                        .WithMany()
+                        .HasForeignKey("RewardRedemptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("RewardRedemption");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardOffer", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardTemplate", "RewardTemplate")
+                        .WithMany("Offers")
+                        .HasForeignKey("RewardTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RewardTemplate");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardPastilAITarget", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilAIField.PastilAiPlan", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardTemplate", "RewardTemplate")
+                        .WithOne("PastilAITarget")
+                        .HasForeignKey("Entities.Entities.PastilClubField.ClubRewardPastilAITarget", "RewardTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilAIField.PastilAiPlan", "TargetPlan")
+                        .WithMany()
+                        .HasForeignKey("TargetPlanId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("RewardTemplate");
+
+                    b.Navigation("TargetPlan");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardPetType", b =>
+                {
+                    b.HasOne("Entities.Entities.Pet", "PetType")
+                        .WithMany()
+                        .HasForeignKey("PetTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardTemplate", "RewardTemplate")
+                        .WithMany("PetTypes")
+                        .HasForeignKey("RewardTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PetType");
+
+                    b.Navigation("RewardTemplate");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardRedemption", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilClubField.ClubPointTransaction", "PointTransaction")
+                        .WithMany()
+                        .HasForeignKey("PointTransactionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardOffer", "RewardOffer")
+                        .WithOne("Redemption")
+                        .HasForeignKey("Entities.Entities.PastilClubField.ClubRewardRedemption", "RewardOfferId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardTemplate", "RewardTemplate")
+                        .WithMany()
+                        .HasForeignKey("RewardTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PointTransaction");
+
+                    b.Navigation("RewardOffer");
+
+                    b.Navigation("RewardTemplate");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardTarget", b =>
+                {
+                    b.HasOne("Entities.Entities.PastilClubField.ClubRewardTemplate", "RewardTemplate")
+                        .WithMany("Targets")
+                        .HasForeignKey("RewardTemplateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RewardTemplate");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardTemplate", b =>
+                {
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Picture");
                 });
 
             modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatch", b =>
@@ -9550,6 +10800,11 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("AddressId");
 
+                    b.HasOne("Entities.Entities.PastilClubField.ClubFreeDeliveryBenefit", "ClubFreeDeliveryBenefit")
+                        .WithMany()
+                        .HasForeignKey("ClubFreeDeliveryBenefitId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Code", "DeliveryType")
                         .WithMany()
                         .HasForeignKey("DeliveryTypeId")
@@ -9584,6 +10839,8 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Address");
+
+                    b.Navigation("ClubFreeDeliveryBenefit");
 
                     b.Navigation("DeliveryType");
 
@@ -10303,6 +11560,33 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Entities.Entities.UserMemory", b =>
+                {
+                    b.HasOne("Entities.Entities.Memory", "Memory")
+                        .WithOne("UserMemory")
+                        .HasForeignKey("Entities.Entities.UserMemory", "MemoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.UserPet", "UserPet")
+                        .WithMany()
+                        .HasForeignKey("UserPetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Memory");
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserPet");
+                });
+
             modelBuilder.Entity("Entities.Entities.UserPet", b =>
                 {
                     b.HasOne("Entities.Entities.PetBreed", "PetBreed2")
@@ -10834,6 +12118,11 @@ namespace Persistence.Migrations
                     b.Navigation("ParkPictures");
                 });
 
+            modelBuilder.Entity("Entities.Entities.Memory", b =>
+                {
+                    b.Navigation("UserMemory");
+                });
+
             modelBuilder.Entity("Entities.Entities.Notice", b =>
                 {
                     b.Navigation("PushNotifications");
@@ -10880,6 +12169,32 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.PastilAIField.PastilAiSubscription", b =>
                 {
                     b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPointAccount", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubPointRule", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardOffer", b =>
+                {
+                    b.Navigation("Redemption");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PastilClubField.ClubRewardTemplate", b =>
+                {
+                    b.Navigation("Offers");
+
+                    b.Navigation("PastilAITarget");
+
+                    b.Navigation("PetTypes");
+
+                    b.Navigation("Targets");
                 });
 
             modelBuilder.Entity("Entities.Entities.PastilMatchField.PastilMatchMessage", b =>
@@ -10953,6 +12268,11 @@ namespace Persistence.Migrations
                     b.Navigation("ProductOrderItems");
                 });
 
+            modelBuilder.Entity("Entities.Entities.Rebate", b =>
+                {
+                    b.Navigation("ClubCoupon");
+                });
+
             modelBuilder.Entity("Entities.Entities.Security.Permission", b =>
                 {
                     b.Navigation("Children");
@@ -10968,6 +12288,8 @@ namespace Persistence.Migrations
                     b.Navigation("CartItems");
 
                     b.Navigation("Carts");
+
+                    b.Navigation("ClubPointAccount");
 
                     b.Navigation("CompanionUsers");
 

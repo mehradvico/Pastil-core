@@ -431,7 +431,14 @@ namespace Application.Services.Order.PaymentSrv
             }
             if (reservedetail.FromWallet)
             {
-                var walletAmount = await _walletService.GetAmountValueAsync(reservedetail.BookerId);
+                var assistanceId = await _context.CompanionAssistances.AsNoTracking()
+                    .Where(item => item.Id == reservedetail.CompanionAssistanceId)
+                    .Select(item => (long?)item.AssistanceId)
+                    .FirstOrDefaultAsync();
+                var walletAmount = await _walletService.GetSpendableAmountValueAsync(
+                    reservedetail.BookerId,
+                    Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Assistance,
+                    assistanceId);
                 reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PrePaymentPrice);
                 await _context.SaveChangesAsync();
 
@@ -487,7 +494,10 @@ namespace Application.Services.Order.PaymentSrv
             }
             if (reservedetail.FromWallet)
             {
-                var walletAmount = await _walletService.GetAmountValueAsync(reservedetail.BookerId);
+                var walletAmount = await _walletService.GetSpendableAmountValueAsync(
+                    reservedetail.BookerId,
+                    Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Pansion,
+                    reservedetail.PansionId);
                 reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PaymentPrice);
                 await _context.SaveChangesAsync();
 

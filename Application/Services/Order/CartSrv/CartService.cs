@@ -19,6 +19,7 @@ using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
+using Entities.Entities.PastilClubField;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
@@ -227,7 +228,9 @@ namespace Application.Services.Order.CartSrv
                     cart.Price = cartStore.Price;
                     cart.Discount = cartStore.Discount;
                     cart.DeliveryPrice = cartStore.DeliveryPrice;
-                    cart.PaymentPrice = (cart.Price - cart.RebatePrice) + cart.DeliveryPrice;
+                    await ApplyClubFreeDeliveryAsync(cart, cartStore);
+                    cart.PaymentPrice = Math.Max(0,
+                        (cart.Price - cart.RebatePrice) + cart.DeliveryPrice - cart.ClubDeliveryDiscount);
                     cart.ItemCount = cart.CartStores.Count();
                     _context.Carts.Update(cart);
                     await _context.SaveChangesAsync();
@@ -563,7 +566,10 @@ namespace Application.Services.Order.CartSrv
 
                     if (cartUpdate.FromWallet)
                     {
-                        var walletAmount = await _walletService.GetAmountValueAsync(cart.UserId.Value);
+                        var walletAmount = await _walletService.GetSpendableAmountValueAsync(
+                            cart.UserId.Value,
+                            ClubRewardTargetTypeEnum.Store,
+                            cartStore.StoreId);
                         if (walletAmount < 1)
                         {
                             return new BaseResultDto(isSuccess: false);
@@ -605,7 +611,10 @@ namespace Application.Services.Order.CartSrv
                 };
                 if (cartUpdate.FromWallet)
                 {
-                    var walletAmount = await _walletService.GetAmountValueAsync(cart.UserId.Value);
+                    var walletAmount = await _walletService.GetSpendableAmountValueAsync(
+                        cart.UserId.Value,
+                        ClubRewardTargetTypeEnum.Store,
+                        cartStore.StoreId);
 
                     if (walletAmount >= productOrderDto.PaymentPrice)
                     {
@@ -638,6 +647,40 @@ namespace Application.Services.Order.CartSrv
         private BaseResultDto CartGetDelivery(CartUpdateDto cartUpdate, Cart cart)
         {
             return _deliveryService.GetDeliveries(cart: cart, cartUpdate.StoreId);
+        }
+
+        private async Task ApplyClubFreeDeliveryAsync(Cart cart, CartStore cartStore)
+        {
+            cart.ClubFreeDeliveryBenefitId = null;
+            cart.ClubDeliveryDiscount = 0;
+            if (!cart.UserId.HasValue || cartStore.DeliveryPrice <= 0)
+                return;
+
+            var cityId = cart.Address?.CityId ?? (cart.AddressId.HasValue
+                ? await _context.Addresses.AsNoTracking()
+                    .Where(item => item.Id == cart.AddressId.Value)
+                    .Select(item => (long?)item.CityId)
+                    .FirstOrDefaultAsync()
+                : null);
+            var now = DateTimeOffset.UtcNow;
+            var benefit = await _context.ClubFreeDeliveryBenefits.AsNoTracking()
+                .Where(item => item.UserId == cart.UserId.Value &&
+                    item.RemainingUsageCount > 0 &&
+                    item.ExpiresAt > now &&
+                    (!item.StoreId.HasValue || item.StoreId == cartStore.StoreId) &&
+                    (!item.CityId.HasValue || item.CityId == cityId))
+                .OrderBy(item => item.ExpiresAt)
+                .ThenBy(item => item.Id)
+                .FirstOrDefaultAsync();
+            if (benefit == null)
+                return;
+
+            cart.ClubFreeDeliveryBenefitId = benefit.Id;
+            cart.ClubDeliveryDiscount = Math.Min(
+                cartStore.DeliveryPrice,
+                benefit.MaximumDeliveryAmount.HasValue
+                    ? decimal.ToDouble(benefit.MaximumDeliveryAmount.Value)
+                    : cartStore.DeliveryPrice);
         }
     }
 }

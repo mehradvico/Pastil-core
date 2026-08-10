@@ -56,6 +56,14 @@ namespace Application.Services.Content.BannerSrv
             {
                 query = query.Where(s => s.Active == searchDto.Available);
             }
+            if (searchDto.ShowToApp.HasValue)
+            {
+                query = query.Where(s => s.ShowToApp == searchDto.ShowToApp.Value);
+            }
+            if (searchDto.ShowToSite.HasValue)
+            {
+                query = query.Where(s => s.ShowToSite == searchDto.ShowToSite.Value);
+            }
             if (!string.IsNullOrEmpty(searchDto.Q))
             {
                 query = query.Where(s => s.Name.Contains(searchDto.Q));

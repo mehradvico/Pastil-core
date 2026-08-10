@@ -25,6 +25,8 @@ using Utility.Reflection;
 using Utility.Reflection.Iface;
 using NetTopologySuite.IO.Converters;
 using Application.Services.PastilAISrv.Provider;
+using Application.Services.MemorySrvs.MemorySrv.Iface;
+using System.Threading.RateLimiting;
 
 DotEnvLoader.Load();
 
@@ -35,6 +37,21 @@ SecretConfiguration.Apply(
     includeVapidKeys: true);
 
 builder.Services.AddOutputCache();
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("Search", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 2,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 builder.Services.AddSignalR();
 builder.Services.AddAuthorization(options => options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireClaim("RoleId", ((long)RoleEnum.Admin).ToString())));
 builder.Services
@@ -68,6 +85,8 @@ builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlSe
 builder.Services.AddApplicationServices();
 builder.Services.Configure<PastilAiProviderOptions>(
     builder.Configuration.GetSection(PastilAiProviderOptions.SectionName));
+builder.Services.Configure<Application.Services.CommonSrv.SearchSrv.SearchHybridOptions>(
+    builder.Configuration.GetSection(Application.Services.CommonSrv.SearchSrv.SearchHybridOptions.SectionName));
 builder.Services.AddScoped<INoticeRealtimePublisher, NoticeRealtimePublisher>();
 builder.Services.AddScoped<IRestSharpApi, RestSharpApi>();
 builder.Services.AddScoped<IBackgroundTask, HangFireSchedule>();
@@ -185,6 +204,17 @@ builder.Services.AddHangfireServer();
 var app = builder.Build();
 var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>();
 recurringJobManager.AddOrUpdate<INoticeService>("ArchiveNotices", x => x.ArchiveExpiredAsync(), Cron.Hourly);
+var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
+    OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
+var memoryReminderHour = Math.Clamp(
+    builder.Configuration.GetValue<int?>("Memory:ReminderHour") ?? 22,
+    0,
+    23);
+recurringJobManager.AddOrUpdate<IMemoryService>(
+    "MemoryDailyReminder",
+    service => service.SendDailyReminderAsync(CancellationToken.None),
+    Cron.Daily(memoryReminderHour),
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
 
 app.UseRequestLocalization();
 app.UseHangfireDashboard();
@@ -198,6 +228,7 @@ app.UseRouting();
 app.UseCors("AllowPanel");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.UseOutputCache();
 app.MapControllers();
 app.MapHub<NoticeHub>("/hubs/notices");

@@ -7,6 +7,8 @@ using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistanceSrv.Dto;
+using Application.Services.CommonSrv.SearchSrv.Dto;
+using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.NoticeSrv.Iface;
 using Application.Services.Setting.NoticeSrv;
@@ -20,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
 {
@@ -90,6 +93,57 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
                     break;
             }
             return new CompanionAssistancePackageSearchDto(baseSearchDto, model, mapper);
+        }
+
+        public async Task<List<SearchCompanionAssistancePackageDto>> SearchMinAsync(
+            SearchRequestDto request,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _context.CompanionAssistancePackages
+                .AsNoTracking()
+                .Include(item => item.Picture)
+                .Include(item => item.CompanionAssistance).ThenInclude(item => item.Companion)
+                .Include(item => item.CompanionAssistance).ThenInclude(item => item.Assistance)
+                .Where(item =>
+                    !item.Deleted &&
+                    item.Active &&
+                    !item.CompanionAssistance.Deleted &&
+                    item.CompanionAssistance.Active &&
+                    item.CompanionAssistance.Approved &&
+                    !item.CompanionAssistance.Companion.Deleted &&
+                    item.CompanionAssistance.Companion.Active &&
+                    item.CompanionAssistance.Companion.Approved &&
+                    !item.CompanionAssistance.Assistance.Deleted &&
+                    item.CompanionAssistance.Assistance.Active);
+
+            var predicate = SearchQueryHelper.ContainsAny<CompanionAssistancePackage>(request.SearchTerms,
+                item => item.Name,
+                item => item.Discription,
+                item => item.CompanionAssistance.Companion.Name,
+                item => item.CompanionAssistance.Companion.SearchKey,
+                item => item.CompanionAssistance.Assistance.Name);
+            query = query.Where(predicate);
+
+            var candidates = await query
+                .OrderByDescending(item => item.CompanionAssistance.Companion.RateAvg)
+                .ThenBy(item => item.Price)
+                .Take(Math.Min(request.PackageCount * 3, SearchRequestDto.MaxPerTypeCount * 3))
+                .ToListAsync(cancellationToken);
+
+            return candidates.Select(item => new SearchCompanionAssistancePackageDto
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Price = item.Price,
+                PrePaymentPrice = item.PrePaymentPrice,
+                CompanionAssistanceId = item.CompanionAssistanceId,
+                CompanionId = item.CompanionAssistance.CompanionId,
+                CompanionName = item.CompanionAssistance.Companion.Name,
+                AssistanceId = item.CompanionAssistance.AssistanceId,
+                AssistanceName = item.CompanionAssistance.Assistance.Name,
+                Description = item.Discription,
+                Picture = mapper.Map<PictureVDto>(item.Picture)
+            }).ToList();
         }
 
         public override async Task<BaseResultDto<CompanionAssistancePackageDto>> InsertAsyncDto(CompanionAssistancePackageDto dto)

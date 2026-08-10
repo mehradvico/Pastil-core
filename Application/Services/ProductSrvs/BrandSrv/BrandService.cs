@@ -16,6 +16,8 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
+using Application.Common.Helpers;
+
 namespace Application.Services.ProductSrvs.BrandSrv
 {
     public class BrandService : CommonSrv<Brand, BrandDto>, IBrandService
@@ -101,7 +103,12 @@ namespace Application.Services.ProductSrvs.BrandSrv
         }
         public async Task<List<SearchBrandDto>> SearchMinAsync(SearchRequestDto request)
         {
-            var model = _context.Brands.Include(s => s.Icon).Where(s => s.Deleted == false && s.Active && (s.Name.Contains(request.Q) || s.SecondName.Contains(request.Q))).Take(request.BrandCount).Select(s => new SearchBrandDto { Id = s.Id, Name = s.Name, SecondName = s.SecondName, Icon = mapper.Map<PictureVDto>(s.Icon) });
+            var predicate = SearchQueryHelper.ContainsAny<Brand>(request.SearchTerms, item => item.Name, item => item.SecondName, item => item.Slug);
+            var model = _context.Brands.Include(s => s.Icon)
+                .Where(s => s.Deleted == false && s.Active)
+                .Where(predicate)
+                .Take(SearchQueryHelper.CandidateCount(request.BrandCount))
+                .Select(s => new SearchBrandDto { Id = s.Id, Name = s.Name, SecondName = s.SecondName, Icon = mapper.Map<PictureVDto>(s.Icon) });
             return await model.ToListAsync();
         }
     }

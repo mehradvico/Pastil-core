@@ -21,6 +21,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
             this.SilverAccount = dto.SilverAccount;
             this.HasInsurance = dto.HasInsurance;
             this.IsPersonal = dto.IsPersonal;
+            this.ShowToSite = dto.ShowToSite;
             this.AssistanceId = dto.AssistanceId;
             this.PetId = dto.PetId;
             this.AssistanceType = dto.AssistanceType;
@@ -36,6 +37,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public bool? SilverAccount { get; set; }
         public bool? HasInsurance { get; set; }
         public bool? IsPersonal { get; set; }
+        public bool? ShowToSite { get; set; }
         public long? AssistanceId { get; set; }
         public CompanionAssistanceTypeEnum? AssistanceType { get; set; }
 

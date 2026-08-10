@@ -20,5 +20,6 @@ namespace Application.Services.CommonSrv.SearchSrv.Dto
 
         public double Score { get; set; }
         public string Url { get; set; }
+        public string MatchedBy { get; set; }
     }
 }

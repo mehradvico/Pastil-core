@@ -33,6 +33,7 @@ namespace Api.Controllers
         public IActionResult Get([FromQuery] BannerInputDto dto)
         {
             dto.Available = true;
+            dto.ShowToApp = true;
             var post = bannerService.Search(dto);
             return Ok(post);
         }

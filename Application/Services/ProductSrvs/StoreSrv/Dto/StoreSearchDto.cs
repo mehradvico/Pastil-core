@@ -14,12 +14,14 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
             TypeId = dto.TypeId;
             CityId = dto.CityId;
             StateId = dto.StateId;
+            ShowToSite = dto.ShowToSite;
         }
         public long? UserId { get; set; }
         public long? TypeId { get; set; }
 
         public long? CityId { get; set; }
         public long? StateId { get; set; }
+        public bool? ShowToSite { get; set; }
 
     }
 }

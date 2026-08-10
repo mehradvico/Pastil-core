@@ -26,8 +26,9 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Title = p.Name,
                     SubTitle = $"{p.StoreName} · {p.Price:N0} تومان",
                     Picture = p.Picture,
-                    Score = SearchScoreHelper.Score(p.Name, q),
-                    Url = ""
+                    Score = Score(request, p.Name, p.SecondName, p.BrandName, p.CategoryName, p.StoreName) + 5,
+                    Url = $"/product/{p.Id}",
+                    MatchedBy = MatchField(q, ("name", p.Name), ("brand", p.BrandName), ("category", p.CategoryName), ("store", p.StoreName))
                 }));
             }
 
@@ -40,8 +41,9 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Title = b.Name,
                     SubTitle = "برند",
                     Picture = b.Icon,
-                    Score = SearchScoreHelper.Score(b.Name, q),
-                    Url = ""
+                    Score = Score(request, b.Name, b.SecondName),
+                    Url = $"/brand/{b.Id}",
+                    MatchedBy = MatchField(q, ("name", b.Name), ("secondName", b.SecondName))
                 }));
             }
 
@@ -54,8 +56,9 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Title = c.Name,
                     SubTitle = "دسته‌بندی",
                     Picture = c.Icon,
-                    Score = SearchScoreHelper.Score(c.Name, q),
-                    Url = ""
+                    Score = Score(request, c.Name, c.Label),
+                    Url = $"/category/{c.Id}",
+                    MatchedBy = MatchField(q, ("name", c.Name), ("label", c.Label))
                 }));
             }
 
@@ -68,8 +71,9 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Title = f.Name,
                     SubTitle = "ویژگی",
                     Picture = null,
-                    Score = SearchScoreHelper.Score(f.Name, q),
-                    Url = ""
+                    Score = Score(request, f.Name, f.FeatureName),
+                    Url = $"/feature/{f.Id}",
+                    MatchedBy = MatchField(q, ("name", f.Name), ("feature", f.FeatureName))
                 }));
             }
 
@@ -82,8 +86,9 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Title = c.Name,
                     SubTitle = "همیار",
                     Picture = c.Icon,
-                    Score = SearchScoreHelper.Score(c.Name, q),
-                    Url = ""
+                    Score = Score(request, c.Name) + Math.Min(10, c.RateAvg),
+                    Url = $"/companion/{c.Id}",
+                    MatchedBy = MatchField(q, ("name", c.Name))
                 }));
             }
 
@@ -96,8 +101,9 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Title = a.Name,
                     SubTitle = "خدمت",
                     Picture = a.Picture,
-                    Score = SearchScoreHelper.Score(a.Name, q),
-                    Url = ""
+                    Score = Score(request, a.Name),
+                    Url = $"/assistance/{a.Id}",
+                    MatchedBy = MatchField(q, ("name", a.Name))
                 }));
             }
 
@@ -110,8 +116,9 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Title = s.Name,
                     SubTitle = "فروشگاه",
                     Picture = s.Icon ?? s.Picture,
-                    Score = SearchScoreHelper.Score(s.Name, q),
-                    Url = ""
+                    Score = Score(request, s.Name) + Math.Min(10, s.RateAvg),
+                    Url = $"/store/{s.Id}",
+                    MatchedBy = MatchField(q, ("name", s.Name))
                 }));
             }
 
@@ -124,18 +131,54 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Title = p.Name,
                     SubTitle = "پانسیون",
                     Picture = p.Picture,
-                    Score = SearchScoreHelper.Score(p.Name, q),
-                    Url = ""
+                    Score = Score(request, p.Name) + Math.Min(10, p.RateAvg),
+                    Url = $"/pansion/{p.Id}",
+                    MatchedBy = MatchField(q, ("name", p.Name))
                 }));
             }
 
-            const int total = 20;
+            if (result.Packages != null)
+            {
+                items.AddRange(result.Packages.Select(package => new SearchItemDto
+                {
+                    Type = SearchItemType.CompanionAssistancePackage,
+                    Id = package.Id,
+                    Title = package.Name,
+                    SubTitle = $"{package.CompanionName} · {package.AssistanceName} · {package.Price:N0} تومان",
+                    Picture = package.Picture,
+                    Score = Score(request, package.Name, package.CompanionName, package.AssistanceName, package.Description) + 5,
+                    Url = $"/companion-assistance-package/{package.Id}",
+                    MatchedBy = MatchField(q, ("name", package.Name), ("companion", package.CompanionName), ("assistance", package.AssistanceName), ("description", package.Description))
+                }));
+            }
 
             return items
+                .Where(item => item.Score >= 20)
                 .OrderByDescending(x => x.Score)
                 .ThenBy(x => (int)x.Type)
-                .Take(total)
                 .ToList();
+        }
+
+        private static string MatchField(string query, params (string Name, string Value)[] fields)
+        {
+            var normalizedQuery = SearchNormalizeHelper.Normalize(query);
+            return fields
+                .Where(field => !string.IsNullOrWhiteSpace(field.Value) && SearchNormalizeHelper.Normalize(field.Value).Contains(normalizedQuery))
+                .Select(field => field.Name)
+                .FirstOrDefault() ?? "fuzzy";
+        }
+
+        private static double Score(SearchRequestDto request, string title, params string[] secondaryTexts)
+        {
+            var terms = request.SearchTerms
+                .Where(term => term.Length >= 3)
+                .DefaultIfEmpty(request.Q);
+
+            return terms.Max(term =>
+            {
+                var score = SearchScoreHelper.Score(title, term, secondaryTexts);
+                return term.Equals(request.Q, StringComparison.OrdinalIgnoreCase) ? score : score * 0.9;
+            });
         }
     }
 }

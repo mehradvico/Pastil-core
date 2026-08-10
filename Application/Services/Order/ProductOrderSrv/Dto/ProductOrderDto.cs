@@ -27,6 +27,8 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public double RebatePrice { get; set; }
         public long? DeliveryTypeId { get; set; }
         public double DeliveryPrice { get; set; }
+        public long? ClubFreeDeliveryBenefitId { get; set; }
+        public double ClubDeliveryDiscount { get; set; }
         public string TrackingCode { get; set; }
         public DateTime? CancelRequest { get; set; }
 

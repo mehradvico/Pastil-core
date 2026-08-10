@@ -57,6 +57,10 @@ namespace Application.Services.PansionSrvs.PansionSrv
             {
                 model = model.Where(s => s.Active == baseSearchDto.Available.Value);
             }
+            if (baseSearchDto.ShowToSite.HasValue)
+            {
+                model = model.Where(s => s.ShowToSite == baseSearchDto.ShowToSite.Value);
+            }
             if (baseSearchDto.IsSchool.HasValue)
             {
                 var isSchool = baseSearchDto.IsSchool.Value;
@@ -218,9 +222,11 @@ namespace Application.Services.PansionSrvs.PansionSrv
 
         public async Task<List<SearchPansionDto>> SearchMinAsync(SearchRequestDto request)
         {
-            var q = request.Q;
-
-            return await _context.Pansions.Where(p => p.Active && p.Approve && (p.Name.Contains(q))).OrderByDescending(p => p.RateAvg).Take(request.PansionCount).ProjectTo<SearchPansionDto>(mapper.ConfigurationProvider).ToListAsync();
+            var predicate = SearchQueryHelper.ContainsAny<Pansion>(request.SearchTerms, item => item.Name, item => item.Discription, item => item.AddressValue, item => item.City.Name, item => item.State.Name);
+            var query = _context.Pansions.Where(p => p.Active && p.Approve);
+            return await query.Where(predicate).OrderByDescending(p => p.RateAvg)
+                .Take(SearchQueryHelper.CandidateCount(request.PansionCount))
+                .ProjectTo<SearchPansionDto>(mapper.ConfigurationProvider).ToListAsync();
         }
 
     }

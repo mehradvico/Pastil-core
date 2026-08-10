@@ -6,6 +6,7 @@
         public long? TypeId { get; set; }
         public long? CityId { get; set; }
         public long? StateId { get; set; }
+        public bool? ShowToSite { get; set; }
 
     }
 }

@@ -29,6 +29,7 @@ namespace Application.Common.Enumerable.Code
         PushCompletePansionUser = 19,
         PushRegisterPansionCompanion = 20,
         PushRegisterPansionAdmin = 21,
-        PushCompletePansionAdmin = 22
+        PushCompletePansionAdmin = 22,
+        PushMemoryReminder = 23
     }
 }

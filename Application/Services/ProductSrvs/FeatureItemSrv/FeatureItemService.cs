@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Application.Common.Helpers;
+
 namespace Application.Services.ProductSrvs.FeatureItemSrv
 {
     public class FeatureItemService : CommonSrv<FeatureItem, FeatureItemDto>, IFeatureItemService
@@ -74,7 +76,12 @@ namespace Application.Services.ProductSrvs.FeatureItemSrv
         }
         public async Task<List<SearchFeatureItemDto>> SearchMinAsync(SearchRequestDto request)
         {
-            var model = _context.FeatureItems.Include(s => s.Feature).Where(s => s.Feature.IsGroup && s.Deleted == false && s.Feature.Deleted == false && s.Feature.Active && (s.Name.Contains(request.Q))).Take(request.FeatureCount).Select(s => new SearchFeatureItemDto { Id = s.Id, Name = s.Name, FeatureId = s.FeatureId, FeatureName = s.Feature.Name });
+            var predicate = SearchQueryHelper.ContainsAny<FeatureItem>(request.SearchTerms, item => item.Name, item => item.Feature.Name);
+            var model = _context.FeatureItems.Include(s => s.Feature)
+                .Where(s => s.Feature.IsGroup && s.Deleted == false && s.Feature.Deleted == false && s.Feature.Active)
+                .Where(predicate)
+                .Take(SearchQueryHelper.CandidateCount(request.FeatureCount))
+                .Select(s => new SearchFeatureItemDto { Id = s.Id, Name = s.Name, FeatureId = s.FeatureId, FeatureName = s.Feature.Name });
             return await model.ToListAsync();
         }
     }

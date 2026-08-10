@@ -4,6 +4,7 @@ using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.PastilMatchField;
 using Entities.Entities.PastilAIField;
+using Entities.Entities.PastilClubField;
 using Entities.Entities.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -34,6 +35,20 @@ namespace Persistence.Interface
         public DbSet<Category> Categories { get; set; }
         public DbSet<City> Cities { get; set; }
         public DbSet<ClubReward> ClubRewards { get; set; }
+        public DbSet<ClubPointAccount> ClubPointAccounts { get; set; }
+        public DbSet<ClubPointRule> ClubPointRules { get; set; }
+        public DbSet<ClubPointTransaction> ClubPointTransactions { get; set; }
+        public DbSet<ClubRewardTemplate> ClubRewardTemplates { get; set; }
+        public DbSet<ClubRewardTarget> ClubRewardTargets { get; set; }
+        public DbSet<ClubRewardPetType> ClubRewardPetTypes { get; set; }
+        public DbSet<ClubRewardOffer> ClubRewardOffers { get; set; }
+        public DbSet<ClubRewardRedemption> ClubRewardRedemptions { get; set; }
+        public DbSet<ClubCoupon> ClubCoupons { get; set; }
+        public DbSet<ClubFreeDeliveryBenefit> ClubFreeDeliveryBenefits { get; set; }
+        public DbSet<ClubPromotionalWalletCredit> ClubPromotionalWalletCredits { get; set; }
+        public DbSet<ClubPromotionalCreditUsage> ClubPromotionalCreditUsages { get; set; }
+        public DbSet<ClubRewardPastilAITarget> ClubRewardPastilAITargets { get; set; }
+        public DbSet<ClubRewardCostTransaction> ClubRewardCostTransactions { get; set; }
         public DbSet<Code> Codes { get; set; }
         public DbSet<CodeGroup> CodeGroups { get; set; }
         public DbSet<Comment> Comments { get; set; }
@@ -146,6 +161,7 @@ namespace Persistence.Interface
         public DbSet<Question> Questions { get; set; }
         public DbSet<Rebate> Rebate { get; set; }
         public DbSet<Reminder> Reminders { get; set; }
+        public DbSet<Memory> Memories { get; set; }
         public DbSet<ReminderCycle> ReminderCycles { get; set; }
         public DbSet<ReminderType> ReminderTypes { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -160,6 +176,7 @@ namespace Persistence.Interface
         public DbSet<State> States { get; set; }
         public DbSet<StaticPage> StaticPages { get; set; }
         public DbSet<Store> Stores { get; set; }
+        public DbSet<SearchQueryLog> SearchQueryLogs { get; set; }
         public DbSet<StoreComment> StoreComments { get; set; }
         public DbSet<StoryGroup> StoryGroups { get; set; }
         public DbSet<StoryItem> StoryItems { get; set; }
@@ -175,6 +192,7 @@ namespace Persistence.Interface
         public DbSet<UserBankCard> UserBankCards { get; set; }
         public DbSet<UserCategory> UserCategories { get; set; }
         public DbSet<UserPet> UserPets { get; set; }
+        public DbSet<UserMemory> UserMemories { get; set; }
         public DbSet<UserPetPicture> UserPetPictures { get; set; }
         public DbSet<UserPetRecord> UserPetRecords { get; set; }
         public DbSet<UserProduct> UserProducts { get; set; }

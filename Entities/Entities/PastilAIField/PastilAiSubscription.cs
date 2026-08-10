@@ -18,10 +18,12 @@ namespace Entities.Entities.PastilAIField
         public DateTime CreateDateUtc { get; set; }
         public DateTime? StartDateUtc { get; set; }
         public DateTime? EndDateUtc { get; set; }
+        public long? ClubRewardRedemptionId { get; set; }
         public User User { get; set; }
         public PastilAiPlan Plan { get; set; }
         public Payment Payment { get; set; }
         public Rebate Rebate { get; set; }
         public Wallet Wallet { get; set; }
+        public PastilClubField.ClubRewardRedemption ClubRewardRedemption { get; set; }
     }
 }

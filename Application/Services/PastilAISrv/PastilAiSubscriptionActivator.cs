@@ -73,7 +73,10 @@ namespace Application.Services.PastilAISrv
             subscription.StartDateUtc = now;
             subscription.EndDateUtc = (currentEnd ?? now).AddDays(subscription.Plan.DurationDays);
             if (subscription.Rebate != null)
-                _rebateService.IncreaseUseCount(subscription.Rebate, subscription.UserId);
+                _rebateService.IncreaseUseCount(
+                    subscription.Rebate,
+                    subscription.UserId,
+                    decimal.ToDouble(subscription.RebatePrice));
             await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return new BaseResultDto(true);

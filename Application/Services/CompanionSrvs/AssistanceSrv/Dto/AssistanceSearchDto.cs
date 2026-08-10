@@ -12,9 +12,11 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
         {
             IsPersonal = dto.IsPersonal;
             AssistanceGroupId = dto.AssistanceGroupId;
+            ShowToSite = dto.ShowToSite;
         }
 
         public bool? IsPersonal { get; set; }
         public long? AssistanceGroupId { get; set; }
+        public bool? ShowToSite { get; set; }
     }
 }

@@ -151,7 +151,7 @@ namespace Utility.Reflection
 
             var anchor = FindPermission(controllerPermissions, anchorAction.Name)
                 ?? controllerPermissions
-                    .Where(x => x.ParentId is >= 1 and <= 11)
+                    .Where(x => x.ParentId is >= 1 and <= 13)
                     .OrderBy(x => x.Deleted)
                     .ThenBy(x => x.Id)
                     .FirstOrDefault();
@@ -433,14 +433,16 @@ namespace Utility.Reflection
                 (7, N'مدیریت یادآورها', N'ReminderManagement', NULL, 8),
                 (8, N'مدیریت مالی', N'FinancialManagement', NULL, 9),
                 (9, N'مدیریت موقعیت ها', N'LocationManagement', N'locationManagement', 10),
-                (10, N'مدیریت پاستیل فرند', N'PastilMatchManagement', NULL, 11);
+                (10, N'مدیریت پاستیل فرند', N'PastilMatchManagement', NULL, 11),
+                (12, N'مدیریت سایت', N'SiteManagement', NULL, 12),
+                (13, N'مدیریت پاستیل کلاب', N'PastilClubManagement', NULL, 13);
 
             IF (
                 SELECT COUNT(*)
                 FROM dbo.Permissions AS p
                 INNER JOIN @Desired AS d ON d.Id = p.Id AND p.Label = d.Label
                 WHERE p.ParentId IS NULL
-            ) = 11
+            ) = 13
             BEGIN
                 UPDATE p
                 SET
@@ -501,8 +503,90 @@ namespace Utility.Reflection
             IF EXISTS
             (
                 SELECT 1
+                FROM dbo.Permissions
+                WHERE Id = 12
+                  AND NOT (ParentId IS NULL AND Label = N'SiteManagement')
+            )
+            BEGIN
+                DECLARE @RelocatedSitePermission TABLE (Id bigint NOT NULL);
+
+                INSERT INTO dbo.Permissions
+                    ([Name], Label, Area, Controller, [Action], IsMenu, Priority, ParentId, Deleted)
+                OUTPUT inserted.Id INTO @RelocatedSitePermission (Id)
+                SELECT
+                    [Name],
+                    Label,
+                    Area,
+                    Controller,
+                    [Action],
+                    IsMenu,
+                    Priority,
+                    ParentId,
+                    Deleted
+                FROM dbo.Permissions
+                WHERE Id = 12;
+
+                DECLARE @RelocatedSitePermissionId bigint =
+                    (SELECT TOP (1) Id FROM @RelocatedSitePermission);
+
+                UPDATE dbo.Permissions
+                SET ParentId = @RelocatedSitePermissionId
+                WHERE ParentId = 12;
+
+                UPDATE dbo.PermissionRole
+                SET PermissionsId = @RelocatedSitePermissionId
+                WHERE PermissionsId = 12;
+
+                DELETE FROM dbo.Permissions
+                WHERE Id = 12;
+            END;
+
+            IF EXISTS
+            (
+                SELECT 1
+                FROM dbo.Permissions
+                WHERE Id = 13
+                  AND NOT (ParentId IS NULL AND Label = N'PastilClubManagement')
+            )
+            BEGIN
+                DECLARE @RelocatedPastilClubPermission TABLE (Id bigint NOT NULL);
+
+                INSERT INTO dbo.Permissions
+                    ([Name], Label, Area, Controller, [Action], IsMenu, Priority, ParentId, Deleted)
+                OUTPUT inserted.Id INTO @RelocatedPastilClubPermission (Id)
+                SELECT
+                    [Name],
+                    Label,
+                    Area,
+                    Controller,
+                    [Action],
+                    IsMenu,
+                    Priority,
+                    ParentId,
+                    Deleted
+                FROM dbo.Permissions
+                WHERE Id = 13;
+
+                DECLARE @RelocatedPastilClubPermissionId bigint =
+                    (SELECT TOP (1) Id FROM @RelocatedPastilClubPermission);
+
+                UPDATE dbo.Permissions
+                SET ParentId = @RelocatedPastilClubPermissionId
+                WHERE ParentId = 13;
+
+                UPDATE dbo.PermissionRole
+                SET PermissionsId = @RelocatedPastilClubPermissionId
+                WHERE PermissionsId = 13;
+
+                DELETE FROM dbo.Permissions
+                WHERE Id = 13;
+            END;
+
+            IF EXISTS
+            (
+                SELECT 1
                 FROM dbo.Permissions AS p
-                WHERE p.Id BETWEEN 1 AND 11
+                WHERE p.Id BETWEEN 1 AND 13
                   AND NOT EXISTS
                   (
                       SELECT 1
@@ -511,7 +595,7 @@ namespace Utility.Reflection
                          OR p.Label = d.AlternateLabel
                   )
             )
-                THROW 51000, 'Permission IDs 1 through 11 contain a non-parent permission.', 1;
+                THROW 51000, 'Permission IDs 1 through 13 contain a non-parent permission.', 1;
 
             IF EXISTS
             (

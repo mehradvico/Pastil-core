@@ -21,6 +21,7 @@ namespace Entities.Entities
         public DateTime CreateDate { get; set; }
         public int MaxDiscountPercent { get; set; }
         public bool Active { get; set; }
+        public bool ShowToSite { get; set; }
         public bool Deleted { get; set; }
         public int CommentCount { get; set; }
         public double RateAvg { get; set; }

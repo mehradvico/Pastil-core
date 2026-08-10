@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Entities.Entities;
+using Entities.Entities.PastilClubField;
 using System.Threading.Tasks;
 
 namespace Application.Services.ProductSrvs.WalletSrv.IFace
@@ -8,6 +9,7 @@ namespace Application.Services.ProductSrvs.WalletSrv.IFace
     public interface IWalletService
     {
         Task<double> GetAmountValueAsync(long userId);
+        Task<double> GetSpendableAmountValueAsync(long userId, ClubRewardTargetTypeEnum scopeType, long? scopeId);
         Task<BaseResultDto<double>> GetAmountAsync(long userId);
         Task<BaseResultDto<WalletVDto>> FindAsyncVDto(long id);
         WalletSearchDto Search(WalletInputDto baseSearchDto);

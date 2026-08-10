@@ -15,6 +15,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Iface
         public long? CityId { get; set; }
         public List<long> NeighborhoodIds { get; set; }
         public bool? Suggested { get; set; }
+        public bool? ShowToSite { get; set; }
         public long? PetId { get; set; }
     }
 }

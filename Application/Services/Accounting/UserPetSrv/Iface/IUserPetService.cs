@@ -10,6 +10,7 @@ namespace Application.Services.Accounting.UserPetSrv.Iface
     {
         UserPetSearchDto Search(UserPetInputDto baseSearchDto);
         Task<BaseResultDto<UserPetVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto<UserPetDto>> UpdateAsyncDto(UserPetDto dto);
 
     }
 }

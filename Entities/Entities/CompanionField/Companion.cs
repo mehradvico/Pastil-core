@@ -20,6 +20,7 @@ namespace Entities.Entities
         public long? BackgroundPictureId { get; set; }
         public long? IconId { get; set; }
         public bool Active { get; set; }
+        public bool ShowToSite { get; set; }
         public bool Deleted { get; set; }
         public string AddressValue { get; set; }
         public string Phone { get; set; }

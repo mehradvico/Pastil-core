@@ -359,7 +359,12 @@ WHERE ct.Id IS NOT NULL;  -- اطمینان از وجود رکوردها
         }
         public async Task<List<SearchCategoryDto>> SearchMinAsync(SearchRequestDto request)
         {
-            var model = _context.Categories.Include(s => s.Icon).Where(s => s.Deleted == false && s.Active && (s.Name.Contains(request.Q))).Take(request.CategoryCount).Select(s => new SearchCategoryDto { Id = s.Id, Name = s.Name, Label = s.Label, Icon = mapper.Map<PictureVDto>(s.Icon) });
+            var predicate = SearchQueryHelper.ContainsAny<Entities.Entities.Category>(request.SearchTerms, item => item.Name, item => item.Label, item => item.Slug);
+            var model = _context.Categories.Include(s => s.Icon)
+                .Where(s => s.Deleted == false && s.Active)
+                .Where(predicate)
+                .Take(SearchQueryHelper.CandidateCount(request.CategoryCount))
+                .Select(s => new SearchCategoryDto { Id = s.Id, Name = s.Name, Label = s.Label, Icon = mapper.Map<PictureVDto>(s.Icon) });
             return await model.ToListAsync();
         }
         public async Task<BaseResultDto<List<SearchCategoryDto>>> GetAllActiveParents(long categoryId)

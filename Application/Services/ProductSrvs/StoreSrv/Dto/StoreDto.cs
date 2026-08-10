@@ -21,6 +21,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
         public bool Active { get; set; }
+        public bool ShowToSite { get; set; }
         public PictureVDto Picture { get; set; }
         public List<UserVDto> Users { get; set; }
 

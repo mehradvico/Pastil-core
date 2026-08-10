@@ -14,6 +14,8 @@ namespace Entities.Entities
         public long? Picture2Id { get; set; }
         public int ClickCount { get; set; }
         public bool Active { get; set; }
+        public bool ShowToApp { get; set; }
+        public bool ShowToSite { get; set; }
         public bool Deleted { get; set; }
         public Category Category { get; set; }
         public Picture Picture { get; set; }

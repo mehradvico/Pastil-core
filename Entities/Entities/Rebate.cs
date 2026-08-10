@@ -24,5 +24,6 @@ namespace Entities.Entities
         public User User { get; set; }
         public Product Product { get; set; }
         public Code Type { get; set; }
+        public PastilClubField.ClubCoupon ClubCoupon { get; set; }
     }
 }

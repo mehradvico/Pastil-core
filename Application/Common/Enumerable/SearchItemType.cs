@@ -15,6 +15,7 @@ namespace Application.Common.Enumerable
         Companion = 5,
         Assistance = 6,
         Store = 7,
-        Pansion = 8
+        Pansion = 8,
+        CompanionAssistancePackage = 9
     }
 }

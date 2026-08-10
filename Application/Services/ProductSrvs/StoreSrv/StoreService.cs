@@ -58,6 +58,10 @@ namespace Application.Services.ProductSrvs.StoreSrv
             {
                 model = model.Where(s => s.Active == baseSearchDto.Available);
             }
+            if (baseSearchDto.ShowToSite.HasValue)
+            {
+                model = model.Where(s => s.ShowToSite == baseSearchDto.ShowToSite.Value);
+            }
             if (baseSearchDto.TypeId.HasValue)
             {
                 model = model.Where(s => s.TypeId == baseSearchDto.TypeId);
@@ -210,11 +214,13 @@ namespace Application.Services.ProductSrvs.StoreSrv
 
         public async Task<List<SearchStoreDto>> SearchMinAsync(SearchRequestDto request)
         {
-            var q = request.Q;
-            return await _context.Stores.Where(s => !s.Deleted && s.Active && (s.Name.Contains(q))).OrderByDescending(s => s.RateAvg).Take(request.StoreCount).ProjectTo<SearchStoreDto>(mapper.ConfigurationProvider).ToListAsync();
+            var predicate = SearchQueryHelper.ContainsAny<Store>(request.SearchTerms, item => item.Name, item => item.Address, item => item.City.Name);
+            var query = _context.Stores.Where(s => !s.Deleted && s.Active);
+            return await query.Where(predicate).OrderByDescending(s => s.RateAvg)
+                .Take(SearchQueryHelper.CandidateCount(request.StoreCount))
+                .ProjectTo<SearchStoreDto>(mapper.ConfigurationProvider).ToListAsync();
         }
 
     }
 
 }
-

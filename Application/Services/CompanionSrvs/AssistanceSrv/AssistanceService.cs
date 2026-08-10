@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Application.Common.Helpers;
+
 namespace Application.Services.CompanionSrvs.AssistanceSrv
 {
     public class AssistanceService : CommonSrv<Assistance, AssistanceDto>, IAssistanceService
@@ -62,6 +64,11 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv
                 model = model.Where(s => !s.Active);
             }
 
+            if (baseSearchDto.ShowToSite.HasValue)
+            {
+                model = model.Where(s => s.ShowToSite == baseSearchDto.ShowToSite.Value);
+            }
+
             if (baseSearchDto.IsPersonal.HasValue)
             {
                 model = model.Where(s => s.IsPersonal == baseSearchDto.IsPersonal.Value);
@@ -103,7 +110,12 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv
 
         public async Task<List<SearchAssistanceDto>> SearchMinAsync(SearchRequestDto request)
         {
-            var list = await _context.Assistances.Where(s => s.Deleted == false && s.Active && s.Name.Contains(request.Q)).Take(request.AssistanceCount).Select(s => new SearchAssistanceDto { Id = s.Id, Name = s.Name, PictureId = s.PictureId, Picture = mapper.Map<PictureVDto>(s.Picture) }).ToListAsync();
+            var predicate = SearchQueryHelper.ContainsAny<Assistance>(request.SearchTerms, item => item.Name, item => item.AssistanceGroup.Name);
+            var query = _context.Assistances.Where(s => s.Deleted == false && s.Active);
+            var list = await query.Where(predicate)
+                .Take(SearchQueryHelper.CandidateCount(request.AssistanceCount))
+                .Select(s => new SearchAssistanceDto { Id = s.Id, Name = s.Name, PictureId = s.PictureId, Picture = mapper.Map<PictureVDto>(s.Picture) })
+                .ToListAsync();
             return list;
         }
     }

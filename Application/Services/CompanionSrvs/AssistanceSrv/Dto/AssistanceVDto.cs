@@ -10,6 +10,7 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
         public long? AssistanceGroupId { get; set; }
         public long? PictureId { get; set; }
         public bool Active { get; set; }
+        public bool ShowToSite { get; set; }
 
         public AssistanceGroupVDto AssistanceGroup { get; set; }
         public PictureVDto Picture { get; set; }

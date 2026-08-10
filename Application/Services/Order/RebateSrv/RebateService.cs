@@ -10,6 +10,7 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 using Entities.Entities;
 using Entities.Entities.CompanionField;
 using Entities.Entities.PansionField;
+using Entities.Entities.PastilClubField;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
@@ -129,6 +130,9 @@ namespace Application.Services.Order.RebateSrv
             if (!commonCheck.IsSuccess)
                 return commonCheck;
 
+            if (!IsClubTargetValid(rebate, cart))
+                return new BaseResultDto<RebateVDto>(false, Resource.Notification.NotPossibleUseRebateCode, null);
+
             if (rebate.ProductId.HasValue)
             {
                 var cartItem = _context.CartItems.FirstOrDefault(s =>
@@ -145,9 +149,9 @@ namespace Application.Services.Order.RebateSrv
             }
 
             var rebateDto = mapper.Map<RebateVDto>(rebate);
-            rebateDto.FinalPrice = rebateDto.IsPriceRebate
+            rebateDto.FinalPrice = ApplyClubMaximum(rebate, rebateDto.IsPriceRebate
                 ? rebateDto.PriceValue
-                : Math.Round(basePrice * (rebateDto.PriceValue / 100));
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100)));
 
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
@@ -169,10 +173,13 @@ namespace Application.Services.Order.RebateSrv
             if (!commonCheck.IsSuccess)
                 return commonCheck;
 
+            if (!IsClubTargetValid(rebate, companionReserve))
+                return new BaseResultDto<RebateVDto>(false, Resource.Notification.NotPossibleUseRebateCode, null);
+
             var rebateDto = mapper.Map<RebateVDto>(rebate);
-            rebateDto.FinalPrice = rebateDto.IsPriceRebate
+            rebateDto.FinalPrice = ApplyClubMaximum(rebate, rebateDto.IsPriceRebate
                 ? rebateDto.PriceValue
-                : Math.Round(basePrice * (rebateDto.PriceValue / 100));
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100)));
 
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
@@ -187,6 +194,10 @@ namespace Application.Services.Order.RebateSrv
         {
             var normalizedCode = CodeValue?.Replace(" ", "").Trim().ToLower();
             return _context.Rebate.Include(x => x.Type)
+                .Include(x => x.ClubCoupon)
+                    .ThenInclude(x => x.RewardRedemption)
+                        .ThenInclude(x => x.RewardTemplate)
+                            .ThenInclude(x => x.Targets)
                 .FirstOrDefault(x => !x.Deleted && x.CodeValue == normalizedCode);
         }
 
@@ -195,6 +206,11 @@ namespace Application.Services.Order.RebateSrv
             if (rebate == null || !rebate.Active || rebate.Deleted)
             {
                 return new BaseResultDto<RebateVDto>(false, Resource.Notification.NothingFound, null);
+            }
+            if (rebate.ClubCoupon != null &&
+                (rebate.ClubCoupon.Used || rebate.ClubCoupon.ExpiresAt <= DateTimeOffset.UtcNow))
+            {
+                return new BaseResultDto<RebateVDto>(false, Resource.Notification.ThisDiscountCodeExpired, null);
             }
             if (!string.Equals(rebate.Type?.Label, typeLabel, StringComparison.Ordinal))
             {
@@ -256,9 +272,9 @@ namespace Application.Services.Order.RebateSrv
                 return commonCheck;
 
             var rebateDto = mapper.Map<RebateVDto>(rebate);
-            rebateDto.FinalPrice = rebateDto.IsPriceRebate
+            rebateDto.FinalPrice = ApplyClubMaximum(rebate, rebateDto.IsPriceRebate
                 ? rebateDto.PriceValue
-                : Math.Round(basePrice * (rebateDto.PriceValue / 100));
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100)));
 
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
@@ -282,9 +298,9 @@ namespace Application.Services.Order.RebateSrv
                 return commonCheck;
 
             var rebateDto = mapper.Map<RebateVDto>(rebate);
-            rebateDto.FinalPrice = rebateDto.IsPriceRebate
+            rebateDto.FinalPrice = ApplyClubMaximum(rebate, rebateDto.IsPriceRebate
                 ? rebateDto.PriceValue
-                : Math.Round(basePrice * (rebateDto.PriceValue / 100));
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100)));
 
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
@@ -308,9 +324,9 @@ namespace Application.Services.Order.RebateSrv
                 return commonCheck;
 
             var rebateDto = mapper.Map<RebateVDto>(rebate);
-            rebateDto.FinalPrice = rebateDto.IsPriceRebate
+            rebateDto.FinalPrice = ApplyClubMaximum(rebate, rebateDto.IsPriceRebate
                 ? rebateDto.PriceValue
-                : Math.Round(basePrice * (rebateDto.PriceValue / 100));
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100)));
 
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
@@ -333,15 +349,18 @@ namespace Application.Services.Order.RebateSrv
             if (!commonCheck.IsSuccess)
                 return commonCheck;
 
+            if (!IsClubTargetValid(rebate, pansion))
+                return new BaseResultDto<RebateVDto>(false, Resource.Notification.NotPossibleUseRebateCode, null);
+
             var rebateDto = mapper.Map<RebateVDto>(rebate);
-            rebateDto.FinalPrice = rebateDto.IsPriceRebate
+            rebateDto.FinalPrice = ApplyClubMaximum(rebate, rebateDto.IsPriceRebate
                 ? rebateDto.PriceValue
-                : Math.Round(basePrice * (rebateDto.PriceValue / 100));
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100)));
 
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
 
-        public BaseResultDto<RebateVDto> GetRebateByCodeAsync(double basePrice, long userId, string typeLabel, string code)
+        public BaseResultDto<RebateVDto> GetRebateByCodeAsync(double basePrice, long userId, string typeLabel, string code, long? targetId = null)
         {
             var rebate = GetRebateByCodeValue(code);
             var commonCheck = ValidateRebateCommon(
@@ -353,11 +372,13 @@ namespace Application.Services.Order.RebateSrv
                 basePrice);
             if (!commonCheck.IsSuccess)
                 return commonCheck;
+            if (!IsClubTargetValid(rebate, typeLabel, targetId))
+                return new BaseResultDto<RebateVDto>(false, Resource.Notification.NotPossibleUseRebateCode, null);
 
             var rebateDto = mapper.Map<RebateVDto>(rebate);
-            rebateDto.FinalPrice = rebateDto.IsPriceRebate
+            rebateDto.FinalPrice = ApplyClubMaximum(rebate, rebateDto.IsPriceRebate
                 ? rebateDto.PriceValue
-                : Math.Round(basePrice * (rebateDto.PriceValue / 100));
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100)));
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
         private void UpdateUsageStatistics(Rebate rebate, long userId)
@@ -385,16 +406,87 @@ namespace Application.Services.Order.RebateSrv
             _context.SaveChanges();
         }
 
+        private static double ApplyClubMaximum(Rebate rebate, double calculatedValue)
+        {
+            var maximum = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.MaximumBenefitValue;
+            return maximum.HasValue
+                ? Math.Min(calculatedValue, decimal.ToDouble(maximum.Value))
+                : calculatedValue;
+        }
+
+        private static bool IsClubTargetValid(Rebate rebate, Cart cart)
+        {
+            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            if (targets == null || targets.Count == 0 ||
+                targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.Global))
+                return true;
+
+            var activeStore = cart.CartStores?.FirstOrDefault(item => item.Active);
+            if (activeStore == null)
+                return false;
+            return targets.Any(target => target.TargetType switch
+            {
+                ClubRewardTargetTypeEnum.Store => target.TargetId == activeStore.StoreId,
+                ClubRewardTargetTypeEnum.Product => activeStore.CartItems.Any(item => item.ProductItem.ProductId == target.TargetId),
+                ClubRewardTargetTypeEnum.ProductCategory => activeStore.CartItems.Any(item => item.ProductItem.Product.CategoryId == target.TargetId),
+                ClubRewardTargetTypeEnum.City => cart.Address?.CityId == target.TargetId,
+                _ => false
+            });
+        }
+
+        private bool IsClubTargetValid(Rebate rebate, CompanionReserve reserve)
+        {
+            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            if (targets == null || targets.Count == 0 || targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.Global))
+                return true;
+            var assistance = _context.CompanionAssistances.AsNoTracking()
+                .FirstOrDefault(item => item.Id == reserve.CompanionAssistanceId);
+            if (assistance == null)
+                return false;
+            return targets.Any(target => target.TargetType switch
+            {
+                ClubRewardTargetTypeEnum.Companion => target.TargetId == assistance.CompanionId,
+                ClubRewardTargetTypeEnum.Assistance => target.TargetId == assistance.AssistanceId,
+                ClubRewardTargetTypeEnum.CompanionPackage => reserve.CompanionAssistancePackages != null && reserve.CompanionAssistancePackages.Any(item => item.Id == target.TargetId),
+                _ => false
+            });
+        }
+
+        private static bool IsClubTargetValid(Rebate rebate, PansionReserve reserve)
+        {
+            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            return targets == null || targets.Count == 0 ||
+                targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.Global ||
+                    item.TargetType == ClubRewardTargetTypeEnum.Pansion && item.TargetId == reserve.PansionId);
+        }
+
+        private static bool IsClubTargetValid(Rebate rebate, string typeLabel, long? targetId)
+        {
+            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            if (targets == null || targets.Count == 0 || targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.Global))
+                return true;
+            if (typeLabel != RebateTypeLabels.PastilAI)
+                return true;
+            return typeLabel == RebateTypeLabels.PastilAI && targetId.HasValue &&
+                targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.PastilAIPlan && item.TargetId == targetId);
+        }
+
         public void IncreaseUseCount(ProductOrder order)
         {
             if (order.Rebate != null)
+            {
                 UpdateUsageStatistics(order.Rebate, order.UserId);
+                CompleteClubCoupon(order.Rebate.Id, order.RebatePrice, order.Id, null);
+            }
         }
 
         public void IncreaseUseCount(CompanionReserve reserve)
         {
             if (reserve.Rebate != null)
+            {
                 UpdateUsageStatistics(reserve.Rebate, reserve.BookerId);
+                CompleteClubCoupon(reserve.Rebate.Id, reserve.RebatePrice, null, reserve.Id);
+            }
         }
 
         public void IncreaseUseCount(Cargo cargo)
@@ -418,12 +510,50 @@ namespace Application.Services.Order.RebateSrv
         public void IncreaseUseCount(PansionReserve pansion)
         {
             if (pansion.Rebate != null)
+            {
                 UpdateUsageStatistics(pansion.Rebate, pansion.BookerId);
+                CompleteClubCoupon(pansion.Rebate.Id, pansion.RebatePrice, null, pansion.Id);
+            }
         }
 
-        public void IncreaseUseCount(Rebate rebate, long userId)
+        public void IncreaseUseCount(Rebate rebate, long userId, double fundedValue = 0)
         {
             UpdateUsageStatistics(rebate, userId);
+            CompleteClubCoupon(rebate?.Id, fundedValue, null, null);
+        }
+
+        private void CompleteClubCoupon(long? rebateId, double fundedValue, string orderId, long? reservationId)
+        {
+            if (!rebateId.HasValue)
+                return;
+            var coupon = _context.ClubCoupons.AsTracking()
+                .Include(item => item.RewardRedemption)
+                    .ThenInclude(item => item.RewardTemplate)
+                .FirstOrDefault(item => item.RebateId == rebateId.Value && !item.Used);
+            if (coupon == null)
+                return;
+
+            coupon.Used = true;
+            coupon.UsedDate = DateTimeOffset.UtcNow;
+            coupon.OrderId = orderId;
+            coupon.ReservationId = reservationId;
+            var target = _context.ClubRewardTargets.AsNoTracking()
+                .FirstOrDefault(item => item.RewardTemplateId == coupon.RewardRedemption.RewardTemplateId &&
+                    item.TargetType != ClubRewardTargetTypeEnum.Global);
+            _context.ClubRewardCostTransactions.Add(new ClubRewardCostTransaction
+            {
+                RewardRedemptionId = coupon.RewardRedemptionId,
+                UserId = coupon.UserId,
+                BusinessType = target?.TargetType ?? ClubRewardTargetTypeEnum.Global,
+                BusinessId = target?.TargetId,
+                RewardType = coupon.RewardRedemption.RewardTemplate.RewardType,
+                GrossValue = Convert.ToDecimal(fundedValue),
+                PastilFundedValue = Convert.ToDecimal(fundedValue),
+                OrderId = orderId,
+                ReservationId = reservationId,
+                CreateDate = DateTime.UtcNow
+            });
+            _context.SaveChanges();
         }
     }
 }

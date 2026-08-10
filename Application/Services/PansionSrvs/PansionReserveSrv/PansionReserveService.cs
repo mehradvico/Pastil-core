@@ -12,6 +12,7 @@ using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
+using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
@@ -46,9 +47,11 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
         private readonly IWalletService _walletService;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly IScoreTransactionService _scoreService;
+        private readonly IClubPointIntegrationService _clubPointIntegrationService;
         public PansionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper, IWalletService walletService,
             IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService, IMessageSenderService messageSender,
-            ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService) : base(_context, mapper)
+            ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService,
+            IClubPointIntegrationService clubPointIntegrationService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -61,6 +64,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             this._walletService = walletService;
             this._pushNotificationService = pushNotificationService;
             this._scoreService = scoreService;
+            this._clubPointIntegrationService = clubPointIntegrationService;
         }
         public async Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id)
         {
@@ -364,6 +368,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             _context.PansionReserves.Update(model);
             await _context.SaveChangesAsync();
 
+            if (dto.IsCancel)
+                await _clubPointIntegrationService.PansionReserveReversedAsync(model.BookerId, model.Id);
+
             var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
             var booker = _context.Users.FirstOrDefault(u => u.Id == model.BookerId);
 
@@ -376,6 +383,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
         {
             var item = await _context.PansionReserves.FirstOrDefaultAsync(s => s.Id == dto.Id);
 
+            if (item == null)
+                return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.NothingFound, dto);
+
             if (item.PaymentPrice == 0)
             {
                 return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.TheFinalPriceHasNotYetBeenRecordedForThisReserve, dto);
@@ -383,7 +393,15 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             item.StatusId = dto.StatusId;
 
             _context.PansionReserves.Update(item);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            if (dto.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete &&
+                item.IsReserved &&
+                !item.IsCancel)
+            {
+                await _clubPointIntegrationService.PansionReserveCompletedAsync(item.BookerId, item.Id);
+            }
+
             return new BaseResultDto<PansionReserveStatusDto>(true, mapper.Map<PansionReserveStatusDto>(item));
         }
 

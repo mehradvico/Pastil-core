@@ -18,6 +18,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public bool? SilverAccount { get; set; }
         public bool? HasInsurance { get; set; }
         public bool? IsPersonal { get; set; }
+        public bool? ShowToSite { get; set; }
         public long? AssistanceId { get; set; }
         public CompanionAssistanceTypeEnum? AssistanceType { get; set; }
     }

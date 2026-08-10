@@ -25,7 +25,9 @@ namespace Utility.Reflection
             new(7, "مدیریت یادآورها", "ReminderManagement", 8),
             new(8, "مدیریت مالی", "FinancialManagement", 9),
             new(9, "مدیریت موقعیت ها", "LocationManagement", 10),
-            new(10, "مدیریت پاستیل فرند", "PastilMatchManagement", 11)
+            new(10, "مدیریت پاستیل فرند", "PastilMatchManagement", 11),
+            new(12, "مدیریت سایت", "SiteManagement", 12),
+            new(13, "مدیریت پاستیل کلاب", "PastilClubManagement", 13)
         ];
 
         private static readonly HashSet<string> MenuControllers = new(StringComparer.OrdinalIgnoreCase)
@@ -70,9 +72,23 @@ namespace Utility.Reflection
             "Role",
             "State",
             "Store",
+            "SiteDashboard",
+            "SitePost",
+            "SiteGallery",
+            "SiteBanner",
+            "SiteCompanion",
+            "SiteAssistance",
+            "SitePansion",
+            "SiteStore",
             "StoryGroup",
             "Ticket",
             "User",
+            "UserMemory",
+            "PastilClubPointRule",
+            "PastilClubPointTransaction",
+            "PastilClubRewardTemplate",
+            "PastilClubRewardOffer",
+            "PastilClubRewardRedemption",
             "Variety",
             "Wallet"
         };
@@ -112,13 +128,15 @@ namespace Utility.Reflection
                 "TicketMessage",
                 "BaseDetail",
                 "ClubReward",
-                "NotifyMessage"
+                "NotifyMessage",
+                "SearchAnalytics"
             ]);
 
             AddGroup(result, "UserManager",
             [
                 "User",
                 "UserPet",
+                "UserMemory",
                 "Driver",           
                 "DriverUpdateStatus"
             ]);
@@ -310,6 +328,33 @@ namespace Utility.Reflection
                 "PastilMatchReport",
                 "PastilMatchReportReason",
                 "PastilMatchMessage"
+            ]);
+
+            AddGroup(result, "SiteManagement",
+            [
+                "SiteDashboard",
+                "SitePost",
+                "SiteGallery",
+                "SiteBanner",
+                "SiteCompanion",
+                "SiteAssistance",
+                "SitePansion",
+                "SiteStore"
+            ]);
+
+            AddGroup(result, "PastilClubManagement",
+            [
+                "PastilClubPointRule",
+                "PastilClubPointTransaction",
+                "PastilClubPointIncrease",
+                "PastilClubPointDecrease",
+                "PastilClubRewardTemplate",
+                "PastilClubRewardOffer",
+                "PastilClubRewardRedemption",
+                "PastilClubRewardApprove",
+                "PastilClubRewardReject",
+                "PastilClubRewardBulkApprove",
+                "PastilClubRewardBulkReject"
             ]);
 
             return result;

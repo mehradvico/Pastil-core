@@ -72,10 +72,10 @@ namespace Api.Areas.EndUser.Controllers
 
         [HttpPut]
         [ProducesResponseType(typeof(UserPetDto), 200)]
-        public IActionResult Put(UserPetDto UserPetDto)
+        public async Task<IActionResult> Put(UserPetDto UserPetDto)
         {
             UserPetDto.UserId = _currentUserHelper.CurrentUser.UserId;
-            var dto = _userPetService.UpdateDto(UserPetDto);
+            var dto = await _userPetService.UpdateAsyncDto(UserPetDto);
             return Ok(dto);
         }
         /// <summary>
