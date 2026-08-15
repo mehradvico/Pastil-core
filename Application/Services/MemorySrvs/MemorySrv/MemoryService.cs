@@ -245,10 +245,14 @@ namespace Application.Services.MemorySrvs.MemorySrv
 
         public async Task SendDailyReminderAsync(CancellationToken cancellationToken = default)
         {
-            var tehranToday = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TehranTimeZone).Date;
+            var tehranNow = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TehranTimeZone);
+            if (tehranNow.Hour < 22)
+                return;
+
+            var tehranToday = tehranNow.Date;
             var today = TehranStartOfDay(tehranToday);
             var tomorrow = TehranStartOfDay(tehranToday.AddDays(1));
-            var notificationToday = DateTime.Today;
+            var notificationToday = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TehranTimeZone).Date;
             var notificationTomorrow = notificationToday.AddDays(1);
             var pushTypeId = (long)PushTypeEnum.PushMemoryReminder;
 

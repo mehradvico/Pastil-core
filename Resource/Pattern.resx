@@ -183,6 +183,63 @@
   <data name="PushMemoryReminder" xml:space="preserve">
     <value>{0}, save today's memory with your pet in Pastil.</value>
   </data>
+  <data name="PushPetReminder" xml:space="preserve">
+    <value>{1} reminder for {0}: it is due {2}.</value>
+  </data>
+  <data name="PushPastilMatchRequestReceived" xml:space="preserve">
+    <value>{0} sent a friendship request for {1} and your pet.</value>
+  </data>
+  <data name="PushPastilMatchRequestAccepted" xml:space="preserve">
+    <value>{0} accepted your Pastil Match request. Open the chat and say hello.</value>
+  </data>
+  <data name="PushPastilMatchRequestRejected" xml:space="preserve">
+    <value>{0} did not accept your Pastil Match request.</value>
+  </data>
+  <data name="PushPastilMatchNewMessage" xml:space="preserve">
+    <value>{0} sent a Pastil Match message: {1}</value>
+  </data>
+  <data name="PushPastilMatchProfileLiked" xml:space="preserve">
+    <value>{0} liked {1}'s profile.</value>
+  </data>
+  <data name="PushPastilMatchClosed" xml:space="preserve">
+    <value>{0} ended the Pastil Match connection.</value>
+  </data>
+  <data name="PushPastilMatchVerificationApproved" xml:space="preserve">
+    <value>{0}'s Pastil Match profile was approved.</value>
+  </data>
+  <data name="PushPastilMatchVerificationRejected" xml:space="preserve">
+    <value>{0}'s Pastil Match profile verification was rejected. Check the profile for details.</value>
+  </data>
+  <data name="PushPastilMatchMessageReaction" xml:space="preserve">
+    <value>{0} reacted {1} to your message.</value>
+  </data>
+  <data name="PushPastilMatchRequestCancelled" xml:space="preserve">
+    <value>{0} cancelled the Pastil Match request.</value>
+  </data>
+  <data name="PushCompanionRequestApproved" xml:space="preserve">
+    <value>The companion request "{0}" was approved.</value>
+  </data>
+  <data name="PushCompanionRequestRejected" xml:space="preserve">
+    <value>The companion request "{0}" was rejected. Reason: {1}</value>
+  </data>
+  <data name="PushDriverRequestApproved" xml:space="preserve">
+    <value>The driver request "{0}" was approved.</value>
+  </data>
+  <data name="PushDriverRequestRejected" xml:space="preserve">
+    <value>The driver request "{0}" was rejected. Reason: {1}</value>
+  </data>
+  <data name="PushStoreRequestApproved" xml:space="preserve">
+    <value>The store request "{0}" was approved.</value>
+  </data>
+  <data name="PushStoreRequestRejected" xml:space="preserve">
+    <value>The store request "{0}" was rejected. Reason: {1}</value>
+  </data>
+  <data name="PushPansionRequestApproved" xml:space="preserve">
+    <value>The pansion request "{0}" was approved.</value>
+  </data>
+  <data name="PushPansionRequestRejected" xml:space="preserve">
+    <value>The pansion request "{0}" was rejected. Reason: {1}</value>
+  </data>
   <data name="RebateMinCartPrice" xml:space="preserve">
     <value>حداقل مبلغ سفارش باید {0} باشد</value>
   </data>

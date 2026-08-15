@@ -4,6 +4,7 @@ using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Service;
 using Application.Services.Accounting.UserSrv.Iface;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CommonSrv.SearchSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionSrv.Iface;
@@ -19,10 +20,12 @@ using Entities.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Application.Services.CompanionSrvs.CompanionSrv
@@ -34,14 +37,18 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
         private readonly IUserService _userService;
         private readonly ICodeService _codeService;
         private readonly INoticeService _notificationService;
+        private readonly IPushNotificationService _pushNotificationService;
+        private readonly ILogger<CompanionService> _logger;
         private readonly string connectionString;
-        public CompanionService(IDataBaseContext _context, IMapper mapper, IConfiguration config, IUserService userService, INoticeService notificationService, ICodeService codeService) : base(_context, mapper)
+        public CompanionService(IDataBaseContext _context, IMapper mapper, IConfiguration config, IUserService userService, INoticeService notificationService, ICodeService codeService, IPushNotificationService pushNotificationService, ILogger<CompanionService> logger) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             this._userService = userService;
             this._codeService = codeService;
             this._notificationService = notificationService;
+            this._pushNotificationService = pushNotificationService;
+            this._logger = logger;
             this.connectionString = config.GetValue<string>("connection");
         }
 
@@ -55,6 +62,19 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                 return new BaseResultDto<CompanionVDto>(true, mapper.Map<CompanionVDto>(item));
             }
             return new BaseResultDto<CompanionVDto>(false, mapper.Map<CompanionVDto>(item));
+        }
+
+        public async Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite)
+        {
+            var affectedRows = await _context.Companions
+                .Where(x => x.Id == id && !x.Deleted)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.ShowToSite, showToSite));
+
+            if (affectedRows == 0)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+            return new BaseResultDto(true);
         }
 
         public async Task<BaseResultDto<NearbyCompanionSearchDto>> GetNearbyAsync(long userId, NearbyCompanionInputDto inputDto)
@@ -306,11 +326,18 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                 var modelCheker = await InsertCheckerAsync(dto);
                 if (!modelCheker.IsSuccess)
                 {
-                    return new BaseResultDto<CompanionDto>(false, dto);
+                    return new BaseResultDto<CompanionDto>(false, modelCheker.Messages, dto);
                 }
                 else
                 {
                     var item = mapper.Map<Companion>(dto);
+                    item.Active = false;
+                    item.Approved = false;
+                    item.ActivationValue = null;
+                    item.ShowToSite = false;
+                    item.GoldAccountDate = null;
+                    item.SilverAccountDate = null;
+                    item.SilverAccountCreateDate = null;
                     var ownerId = dto.OwnerId;
                     var model = await _context.Users.Include(s => s.Companions).FirstOrDefaultAsync(s => s.Id == ownerId && !s.Deleted);
                     if (model == null)
@@ -322,22 +349,33 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                     {
                         return new BaseResultDto<CompanionDto>(false, Resource.Notification.AlreadyIsCompanion, dto);
                     }
+                    item.ReferralCode = await ReferralCodeGenerator.CreateCompanionCodeAsync(_context);
                     await _context.Companions.AddAsync(item);
                     await _context.SaveChangesAsync();
-                    var companionId = item.Id;
-                    await _context.SaveChangesAsync();
-                    await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionSubmitted, ActorUserId = item.OwnerId, ReferenceType = "Companion", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionName", item.Name } } });
+                    try
+                    {
+                        await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionSubmitted, ActorUserId = item.OwnerId, ReferenceType = "Companion", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionName", item.Name } } });
+                    }
+                    catch
+                    {
+                        // ثبت Notice نباید نتیجه ثبت موفق نماینده را ناموفق اعلام کند.
+                    }
                     return new BaseResultDto<CompanionDto>(true, mapper.Map<CompanionDto>(item));
 
                 }
             }
-            catch (Exception ex)
+            catch (DbUpdateException)
             {
-                return new BaseResultDto<CompanionDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionDto>(false, "اطلاعات نماینده با داده‌های موجود سازگار نیست. شناسه‌های انتخاب‌شده را بررسی کنید.", dto);
+            }
+            catch (Exception)
+            {
+                return new BaseResultDto<CompanionDto>(false, "خطا در ثبت نماینده. لطفاً اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.", dto);
             }
         }
         public async Task<BaseResultDto> InsertCheckerAsync(CompanionDto dto)
         {
+            dto.Name = dto.Name?.Trim();
             dto.Phone = await dto.Phone?.Trim().ToEnglishDigitsAsync();
             var errors = new List<Tuple<string, string>>();
 
@@ -350,11 +388,55 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                 errors.Add(new Tuple<string, string>(Resource.Notification.PleaseEnterThePhone, nameof(dto.Phone)));
 
             }
+            else if (!Regex.IsMatch(dto.Phone, @"^\+?\d{10,13}$"))
+            {
+                errors.Add(new Tuple<string, string>("شماره تماس معتبر نیست.", nameof(dto.Phone)));
+            }
+            if (dto.OwnerId <= 0 || !await _context.Users.AnyAsync(s => s.Id == dto.OwnerId && !s.Deleted))
+            {
+                errors.Add(new Tuple<string, string>("مالک یا مسئول انتخاب‌شده معتبر نیست.", nameof(dto.OwnerId)));
+            }
+            if (dto.CityId <= 0 || !await _context.Cities.AnyAsync(s => s.Id == dto.CityId))
+            {
+                errors.Add(new Tuple<string, string>("شهر انتخاب‌شده معتبر نیست.", nameof(dto.CityId)));
+            }
+            if (dto.NeighborhoodId.HasValue &&
+                !await _context.Neighborhoods.AnyAsync(s => s.Id == dto.NeighborhoodId.Value && s.CityId == dto.CityId))
+            {
+                errors.Add(new Tuple<string, string>("محله انتخاب‌شده متعلق به شهر انتخاب‌شده نیست.", nameof(dto.NeighborhoodId)));
+            }
+            if (string.IsNullOrWhiteSpace(dto.AddressValue))
+            {
+                errors.Add(new Tuple<string, string>("آدرس نماینده را وارد کنید.", nameof(dto.AddressValue)));
+            }
+
+            await ValidatePictureAsync(dto.PictureId, nameof(dto.PictureId), "تصویر اصلی", errors);
+            await ValidatePictureAsync(dto.BackgroundPictureId, nameof(dto.BackgroundPictureId), "تصویر پس‌زمینه", errors);
+            await ValidatePictureAsync(dto.IconId, nameof(dto.IconId), "آیکن", errors);
+
+            if (dto.Location != null &&
+                (dto.Location.x < -180 || dto.Location.x > 180 || dto.Location.y < -90 || dto.Location.y > 90))
+            {
+                errors.Add(new Tuple<string, string>("مختصات انتخاب‌شده روی نقشه معتبر نیست.", nameof(dto.Location)));
+            }
             if (errors.Any())
             {
                 return new BaseResultDto(isSuccess: false, messages: errors);
             }
             return new BaseResultDto(true);
+        }
+
+        private async Task ValidatePictureAsync(
+            long? pictureId,
+            string fieldName,
+            string fieldTitle,
+            List<Tuple<string, string>> errors)
+        {
+            if (pictureId.HasValue && pictureId.Value > 0 &&
+                !await _context.Pictures.AnyAsync(s => s.Id == pictureId.Value))
+            {
+                errors.Add(new Tuple<string, string>($"شناسه {fieldTitle} معتبر نیست.", fieldName));
+            }
         }
 
         public async Task<BaseResultDto> UpdateGoldAccountDto(CompanionGoldAccountDto dto)
@@ -412,26 +494,137 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
         {
             try
             {
-                var modelCheker = ModelHelper<CompanionDto>.ModelErrors(dto);
+                if (dto.Id <= 0)
+                    return new BaseResultDto(false, "شناسه نماینده معتبر نیست.");
+
+                var item = await _context.Companions
+                    .AsTracking()
+                    .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
+                if (item == null)
+                    return new BaseResultDto(false, "نماینده موردنظر یافت نشد.");
+
+                var modelCheker = await InsertCheckerAsync(dto);
                 if (!modelCheker.IsSuccess)
                 {
                     return modelCheker;
                 }
-                else
-                {
-                    var res = UpdateDto(dto);
-                    if (res.IsSuccess)
-                    {
-                        await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionUpdated, ActorUserId = dto.OwnerId, ReferenceType = "Companion", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "companionName", dto.Name } } });
 
-                    }
-                    return res;
+                var ownerHasAnotherCompanion = await _context.Companions.AnyAsync(s =>
+                    s.Id != dto.Id && s.OwnerId == dto.OwnerId && !s.Deleted);
+                if (ownerHasAnotherCompanion)
+                    return new BaseResultDto(false, "برای مالک انتخاب‌شده قبلاً نماینده ثبت شده است.");
+
+                mapper.Map(dto, item);
+                await _context.SaveChangesAsync();
+
+                try
+                {
+                    await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionUpdated, ActorUserId = dto.OwnerId, ReferenceType = "Companion", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "companionName", dto.Name } } });
                 }
+                catch
+                {
+                    // ثبت Notice نباید ویرایش موفق را ناموفق اعلام کند.
+                }
+
+                return new BaseResultDto(true);
+            }
+            catch (DbUpdateException)
+            {
+                return new BaseResultDto(false, "اطلاعات نماینده با داده‌های موجود سازگار نیست. شناسه‌های انتخاب‌شده را بررسی کنید.");
+            }
+            catch (Exception)
+            {
+                return new BaseResultDto(false, "خطا در ویرایش نماینده. لطفاً اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.");
+            }
+        }
+
+        public async Task<BaseResultDto> ResubmitAsyncDto(CompanionDto dto, long ownerId)
+        {
+            if (dto == null || dto.Id <= 0)
+                return new BaseResultDto(false, "شناسه درخواست نمایندگی معتبر نیست.");
+
+            var item = await _context.Companions
+                .AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.Id && s.OwnerId == ownerId && !s.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+            if (item.Approved)
+                return new BaseResultDto(false, "درخواست نمایندگی تأیید شده است و از مسیر ارسال مجدد قابل تغییر نیست.");
+
+            dto.OwnerId = ownerId;
+            var checker = await InsertCheckerAsync(dto);
+            if (!checker.IsSuccess)
+                return checker;
+
+            dto.Active = false;
+            dto.Approved = false;
+            dto.ActivationValue = null;
+            dto.ShowToSite = false;
+            var referralCode = item.ReferralCode;
+            var goldAccountDate = item.GoldAccountDate;
+            var silverAccountDate = item.SilverAccountDate;
+            var silverAccountCreateDate = item.SilverAccountCreateDate;
+            mapper.Map(dto, item);
+            item.ReferralCode = referralCode;
+            item.GoldAccountDate = goldAccountDate;
+            item.SilverAccountDate = silverAccountDate;
+            item.SilverAccountCreateDate = silverAccountCreateDate;
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _notificationService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.CompanionUpdated,
+                    ActorUserId = ownerId,
+                    ReferenceType = "Companion",
+                    ReferenceId = item.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.CompanionUpdated}:{item.Id}:{DateTime.UtcNow.Ticks}",
+                    Metadata = new Dictionary<string, string> { { "companionName", item.Name } }
+                });
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                _logger.LogError(ex, "Creating admin notice for resubmitted companion {CompanionId} failed.", item.Id);
             }
+
+            return new BaseResultDto(true);
+        }
+
+        public async Task<BaseResultDto> ActivationAsyncDto(CompanionActivationDto dto)
+        {
+            var item = await _context.Companions
+                .AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            if (!dto.Approved && string.IsNullOrWhiteSpace(dto.ActivationValue))
+                return new BaseResultDto(false, Resource.Notification.PleaseEnterTheActivationValueReason);
+
+            item.Approved = dto.Approved;
+            item.Active = dto.Approved;
+            item.ActivationValue = dto.Approved ? null : dto.ActivationValue.Trim();
+            item.ShowToSite = dto.Approved && item.ShowToSite;
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _pushNotificationService.SendPushAsync(
+                    dto.Approved
+                        ? PushTypeEnum.PushCompanionRequestApproved
+                        : PushTypeEnum.PushCompanionRequestRejected,
+                    item.OwnerId,
+                    token1: item.Name,
+                    token2: item.ActivationValue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Sending companion decision push for {CompanionId} failed.", item.Id);
+            }
+
+            return new BaseResultDto(true);
         }
 
         public BaseResultDto ActivationDto(CompanionActivationDto dto)

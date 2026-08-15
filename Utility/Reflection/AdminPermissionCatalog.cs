@@ -41,6 +41,7 @@ namespace Utility.Reflection
             "City",
             "Companion",
             "CompanionReserve",
+            "Expertise",
             "ContactUs",
             "Country",
             "Delivery",
@@ -160,6 +161,7 @@ namespace Utility.Reflection
                 "CompanionReport",
                 "Assistance",
                 "AssistanceGroup",
+                "Expertise",
                 "PansionActive",
                 "CompanionActivation",
                 "CompanionAssistance",
@@ -192,6 +194,7 @@ namespace Utility.Reflection
             AddGroup(result, "ShopManagement",
             [
                 "Store",
+                "StoreApproval",
                 "Product",
                 "Brand",
                 "BrandLanguage",

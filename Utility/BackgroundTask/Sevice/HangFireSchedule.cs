@@ -64,7 +64,13 @@ namespace Api.HangFire
         {
             await Task.Run(() =>
             {
-                _recurringJobManager.AddOrUpdate("Reminder", () => SyncReminderAsync(), "*/20 * * * *");
+                var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
+                    OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
+                _recurringJobManager.AddOrUpdate(
+                    "Reminder",
+                    () => _reminderService.SyncReminderAsync(),
+                    "0 9-11 * * *",
+                    new RecurringJobOptions { TimeZone = tehranTimeZone });
             });
         }
 

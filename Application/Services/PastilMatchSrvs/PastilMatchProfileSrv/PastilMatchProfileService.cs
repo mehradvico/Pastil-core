@@ -4,6 +4,7 @@ using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Iface;
 using Application.Services.Setting.NoticeSrv;
@@ -27,18 +28,21 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
         private readonly IMapper mapper;
         private readonly ICurrentUserHelper _currentUser;
         private readonly INoticeService _noticeService;
+        private readonly IPushNotificationService _pushNotificationService;
 
         public PastilMatchProfileService(
             IDataBaseContext _context,
             IMapper mapper,
             ICurrentUserHelper currentUser,
-            INoticeService noticeService
+            INoticeService noticeService,
+            IPushNotificationService pushNotificationService
         ) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             this._currentUser = currentUser;
             this._noticeService = noticeService;
+            _pushNotificationService = pushNotificationService;
         }
 
         public async Task<BaseResultDto<PastilMatchProfileVDto>> FindAsyncVDto(long id)
@@ -585,7 +589,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             }
         }
 
-        public BaseResultDto UpdateVerificationDto(
+        public async Task<BaseResultDto> UpdateVerificationDto(
             PastilMatchProfileVerificationDto dto
         )
         {
@@ -603,8 +607,9 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                     );
                 }
 
-                var item = _context.PastilMatchProfiles
-                    .FirstOrDefault(s =>
+                var item = await _context.PastilMatchProfiles
+                    .Include(s => s.UserPet)
+                    .FirstOrDefaultAsync(s =>
                         s.Id == dto.Id &&
                         !s.Deleted
                     );
@@ -640,8 +645,15 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                     : dto.AdminDescription;
                 item.VerificationDate = DateTime.Now;
 
-                _context.PastilMatchProfiles.Update(item);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
+
+                await _pushNotificationService.SendPushAsync(
+                    dto.IsVerified
+                        ? PushTypeEnum.PushPastilMatchVerificationApproved
+                        : PushTypeEnum.PushPastilMatchVerificationRejected,
+                    item.UserPet.UserId,
+                    item.UserPet.Name,
+                    dto.AdminDescription);
 
                 return new BaseResultDto(true);
             }

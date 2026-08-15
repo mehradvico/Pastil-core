@@ -48,7 +48,25 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler(errorApplication =>
+    {
+        errorApplication.Run(async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "text/html; charset=utf-8";
+
+            await context.Response.WriteAsync("""
+                <!doctype html>
+                <html lang="fa" dir="rtl">
+                <head><meta charset="utf-8"><title>خطای پرداخت</title></head>
+                <body style="font-family:sans-serif;text-align:center;padding:48px;background:#111827;color:#fff">
+                    <h2>خطایی هنگام پردازش پرداخت رخ داد</h2>
+                    <p>لطفاً چند لحظه دیگر دوباره تلاش کنید.</p>
+                </body>
+                </html>
+                """);
+        });
+    });
     app.UseHsts();
 }
 app.UseRequestLocalization();

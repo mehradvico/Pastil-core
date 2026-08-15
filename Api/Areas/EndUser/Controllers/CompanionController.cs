@@ -34,6 +34,7 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(CompanionSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionInputDto dto)
         {
+            dto.OwnerId = _currentUser.CurrentUser.UserId;
             var search = _companionService.Search(dto);
             return Ok(search);
         }
@@ -61,6 +62,8 @@ namespace Api.Areas.EndUser.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var companion = await _companionService.FindAsyncVDto(id);
+            if (!companion.IsSuccess || companion.Data?.OwnerId != _currentUser.CurrentUser.UserId)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(companion);
         }
 
@@ -74,6 +77,19 @@ namespace Api.Areas.EndUser.Controllers
         {
             dto.OwnerId = _currentUser.CurrentUser.UserId;
             var result = await _companionService.InsertAsyncDto(dto);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// ویرایش و ارسال مجدد درخواست نمایندگی
+        /// </summary>
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Put(CompanionDto dto)
+        {
+            var result = await _companionService.ResubmitAsyncDto(
+                dto,
+                _currentUser.CurrentUser.UserId);
             return Ok(result);
         }
     }

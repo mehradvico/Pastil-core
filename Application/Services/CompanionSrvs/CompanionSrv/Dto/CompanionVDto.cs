@@ -18,6 +18,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
     {
         public bool IsPersonal { get; set; }
         public long OwnerId { get; set; }
+        public string ReferralCode { get; set; }
         public DateTime? GoldAccountDate { get; set; }
         public DateTime? SilverAccountDate { get; set; }
         public DateTime? SilverAccountCreateDate { get; set; }

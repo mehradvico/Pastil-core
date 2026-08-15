@@ -3,6 +3,7 @@ using Application.Common.Enumerable.Code;
 using Application.Common.Interface;
 using Application.Services.Accounting.DriverSrv.Dto;
 using Application.Services.Accounting.DriverSrv.Iface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.EndUser.Controllers
@@ -14,6 +15,7 @@ namespace Api.Areas.EndUser.Controllers
     [Area("EndUser")]
     [Route("api/[area]/[controller]")]
     [ApiController]
+    [Authorize]
     public class DriverController : ControllerBase
     {
         private readonly IDriverService _DriverService;
@@ -32,6 +34,7 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(DriverSearchDto), 200)]
         public IActionResult Get([FromQuery] DriverInputDto dto)
         {
+            dto.OwnerId = _currentUser.CurrentUser.UserId;
             var search = _DriverService.Search(dto);
             return Ok(search);
         }
@@ -47,6 +50,8 @@ namespace Api.Areas.EndUser.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var Driver = await _DriverService.FindAsyncVDto(id);
+            if (!Driver.IsSuccess || Driver.Data?.OwnerId != _currentUser.CurrentUser.UserId)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(Driver);
         }
 
@@ -61,6 +66,19 @@ namespace Api.Areas.EndUser.Controllers
             dto.StatusId = (long)DriverRequestStatusEnum.DriverRequestStatus_Requested;
             dto.OwnerId = _currentUser.CurrentUser.UserId;
             var result = await _DriverService.InsertAsyncDto(dto);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// ویرایش و ارسال مجدد درخواست رانندگی
+        /// </summary>
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Put(DriverDto dto)
+        {
+            var result = await _DriverService.ResubmitAsyncDto(
+                dto,
+                _currentUser.CurrentUser.UserId);
             return Ok(result);
         }
     }

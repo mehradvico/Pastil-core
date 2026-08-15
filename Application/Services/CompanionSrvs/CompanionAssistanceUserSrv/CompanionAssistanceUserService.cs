@@ -50,6 +50,44 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceUserSrv
         {
             var model = _context.CompanionAssistanceUsers.Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion).Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).Include(s => s.User).AsQueryable().Where(s => !s.Deleted);
 
+            return Search(baseSearchDto, model);
+        }
+
+        public CompanionAssistanceUserSearchDto SearchPublic(CompanionAssistanceUserInputDto baseSearchDto)
+        {
+            var model = _context.CompanionAssistanceUsers
+                .AsNoTracking()
+                .Include(s => s.CompanionAssistance)
+                    .ThenInclude(s => s.Companion)
+                .Include(s => s.CompanionAssistance)
+                    .ThenInclude(s => s.Assistance)
+                .Include(s => s.User)
+                .Where(s =>
+                    !s.Deleted &&
+                    s.Active &&
+                    !s.User.Deleted &&
+                    !s.CompanionAssistance.Deleted &&
+                    s.CompanionAssistance.Active &&
+                    s.CompanionAssistance.Approved &&
+                    !s.CompanionAssistance.Companion.Deleted &&
+                    s.CompanionAssistance.Companion.Active &&
+                    s.CompanionAssistance.Companion.Approved &&
+                    _context.CompanionUsers.Any(companionUser =>
+                        companionUser.CompanionId == s.CompanionAssistance.CompanionId &&
+                        companionUser.UserId == s.UserId &&
+                        !companionUser.Deleted &&
+                        companionUser.Active &&
+                        companionUser.UserAccept == true));
+
+            baseSearchDto.Available = true;
+            return Search(baseSearchDto, model);
+        }
+
+        private CompanionAssistanceUserSearchDto Search(
+            CompanionAssistanceUserInputDto baseSearchDto,
+            IQueryable<CompanionAssistanceUser> model)
+        {
+
             if (baseSearchDto.Available.HasValue)
             {
                 model = model.Where(s => s.Active == baseSearchDto.Available.Value);
@@ -116,7 +154,8 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceUserSrv
                     s.CompanionId == companionAssistance.CompanionId &&
                     s.UserId == dto.UserId &&
                     !s.Deleted &&
-                    s.Active
+                    s.Active &&
+                    s.UserAccept == true
                 );
 
                 if (!hasCompanionUser)

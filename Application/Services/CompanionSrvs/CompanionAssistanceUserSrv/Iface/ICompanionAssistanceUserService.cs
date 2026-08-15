@@ -13,6 +13,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Iface
     public interface ICompanionAssistanceUserService : ICommonSrv<CompanionAssistanceUser, CompanionAssistanceUserDto>
     {
         CompanionAssistanceUserSearchDto Search(CompanionAssistanceUserInputDto baseSearchDto);
+        CompanionAssistanceUserSearchDto SearchPublic(CompanionAssistanceUserInputDto baseSearchDto);
         Task<BaseResultDto<CompanionAssistanceUserVDto>> FindAsyncVDto(long id);
         BaseResultDto ActivationDto(CompanionAssistanceUserActivationDto dto);
     }

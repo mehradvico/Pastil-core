@@ -10,5 +10,6 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
     public class PansionApproveDto : Id_FieldDto
     {
         public bool Approve { get; set; }
+        public string ApprovalValue { get; set; }
     }
 }

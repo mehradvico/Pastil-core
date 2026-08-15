@@ -83,6 +83,102 @@ namespace Application.Services.Content.DeliverySrv
             return new BaseResultDto<DeliveryVDto>(false, mapper.Map<DeliveryVDto>(item));
         }
 
+        public async Task<BaseResultDto<DeliveryVDto>> FindForStoreAsync(long id, long storeId)
+        {
+            var item = await _context.Deliveries
+                .Include(s => s.DeliveryType)
+                .Include(s => s.City)
+                    .ThenInclude(s => s.State)
+                .Include(s => s.State)
+                .Include(s => s.Store)
+                    .ThenInclude(s => s.Picture)
+                .FirstOrDefaultAsync(s =>
+                    s.Id == id &&
+                    s.StoreId == storeId &&
+                    !s.Deleted);
+
+            return item == null
+                ? new BaseResultDto<DeliveryVDto>(false, "روش ارسال یافت نشد یا متعلق به این فروشگاه نیست.", null)
+                : new BaseResultDto<DeliveryVDto>(true, mapper.Map<DeliveryVDto>(item));
+        }
+
+        public async Task<BaseResultDto<DeliveryDto>> InsertForStoreAsync(DeliveryDto dto, long storeId)
+        {
+            var validation = await ValidateForStoreAsync(dto, storeId);
+            if (validation != null)
+                return new BaseResultDto<DeliveryDto>(false, validation, dto);
+
+            dto.Id = 0;
+            dto.StoreId = storeId;
+            dto.Deleted = false;
+            return await base.InsertAsyncDto(dto);
+        }
+
+        public async Task<BaseResultDto> UpdateForStoreAsync(DeliveryDto dto, long storeId)
+        {
+            var item = await _context.Deliveries
+                .AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.Id && s.StoreId == storeId && !s.Deleted);
+
+            if (item == null)
+                return new BaseResultDto(false, "روش ارسال یافت نشد یا متعلق به این فروشگاه نیست.");
+
+            var validation = await ValidateForStoreAsync(dto, storeId);
+            if (validation != null)
+                return new BaseResultDto(false, validation);
+
+            item.DeliveryTypeId = dto.DeliveryTypeId;
+            item.BasePrice = dto.AfterRent ? 0 : dto.BasePrice;
+            item.MinPriceForFree = dto.MinPriceForFree;
+            item.MinCountForFree = dto.MinCountForFree;
+            item.MaxDays = dto.MaxDays;
+            item.CityId = dto.CityId;
+            item.StateId = dto.StateId;
+            item.Active = dto.Active;
+            item.AfterRent = dto.AfterRent;
+
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
+        public async Task<BaseResultDto> DeleteForStoreAsync(long id, long storeId)
+        {
+            var item = await _context.Deliveries
+                .AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == id && s.StoreId == storeId && !s.Deleted);
+
+            if (item == null)
+                return new BaseResultDto(false, "روش ارسال یافت نشد یا متعلق به این فروشگاه نیست.");
+
+            item.Deleted = true;
+            item.Active = false;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
+        private async Task<string> ValidateForStoreAsync(DeliveryDto dto, long storeId)
+        {
+            if (storeId <= 0)
+                return "فروشگاه فعالی برای کاربر جاری یافت نشد.";
+            if (dto.DeliveryTypeId <= 0 ||
+                !await _context.Codes.AnyAsync(s => s.Id == dto.DeliveryTypeId && s.Active))
+                return "نوع روش ارسال معتبر نیست.";
+            if (dto.BasePrice < 0 || dto.MinPriceForFree < 0 || dto.MinCountForFree < 0 || dto.MaxDays < 0)
+                return "مقادیر هزینه، تعداد و زمان تحویل نمی‌توانند منفی باشند.";
+            if (dto.CityId.HasValue &&
+                !await _context.Cities.AnyAsync(s => s.Id == dto.CityId.Value))
+                return "شهر انتخاب‌شده معتبر نیست.";
+            if (dto.StateId.HasValue &&
+                !await _context.States.AnyAsync(s => s.Id == dto.StateId.Value))
+                return "استان انتخاب‌شده معتبر نیست.";
+            if (dto.CityId.HasValue && dto.StateId.HasValue &&
+                !await _context.Cities.AnyAsync(s =>
+                    s.Id == dto.CityId.Value && s.StateId == dto.StateId.Value))
+                return "شهر انتخاب‌شده متعلق به استان انتخاب‌شده نیست.";
+
+            return null;
+        }
+
         public BaseResultDto GetDeliveries(Cart cart, long? storeId)
         {
             var result = new List<DeliveryResultVDto>();

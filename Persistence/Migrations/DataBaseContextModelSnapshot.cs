@@ -1123,6 +1123,11 @@ namespace Persistence.Migrations
                     b.Property<int>("RateCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("ReferralCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<string>("SearchKey")
                         .HasColumnType("nvarchar(max)");
 
@@ -1182,6 +1187,9 @@ namespace Persistence.Migrations
                     b.HasIndex("PetId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("ReferralCode")
+                        .IsUnique();
 
                     b.ToTable("Companions");
                 });
@@ -1613,6 +1621,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("ExpertiseId")
+                        .HasColumnType("bigint");
+
                     b.Property<bool?>("UserAccept")
                         .HasColumnType("bit");
 
@@ -1622,6 +1633,8 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CompanionId");
+
+                    b.HasIndex("ExpertiseId");
 
                     b.HasIndex("UserId");
 
@@ -1662,6 +1675,35 @@ namespace Persistence.Migrations
                     b.HasIndex("StateId");
 
                     b.ToTable("CompanionZones");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionField.Expertise", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name", "Deleted");
+
+                    b.ToTable("Expertises");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionReserve", b =>
@@ -3213,6 +3255,9 @@ namespace Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("AddressValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ApprovalValue")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Approve")
@@ -6218,6 +6263,9 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<int>("AttemptCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Body")
                         .HasColumnType("nvarchar(max)");
 
@@ -6229,6 +6277,9 @@ namespace Persistence.Migrations
 
                     b.Property<bool>("IsSend")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("NextAttemptDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<long?>("NoticeId")
                         .HasColumnType("bigint");
@@ -6280,6 +6331,8 @@ namespace Persistence.Migrations
                     b.HasIndex("NoticeId");
 
                     b.HasIndex("PushPatternId");
+
+                    b.HasIndex("IsSend", "Status", "NextAttemptDate", "SendDate");
 
                     b.ToTable("PushNotifications");
                 });
@@ -6541,7 +6594,9 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ReminderTypeId");
 
-                    b.HasIndex("UserPetId");
+                    b.HasIndex("UserPetId", "ReminderTypeId", "ReminderCycleId", "StartDate")
+                        .IsUnique()
+                        .HasFilter("[Deleted] = 0");
 
                     b.ToTable("Reminders");
                 });
@@ -6565,7 +6620,10 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReminderCycles");
+                    b.ToTable("ReminderCycles", t =>
+                        {
+                            t.HasCheckConstraint("CK_ReminderCycle_Cycle", "[Cycle] > 0");
+                        });
                 });
 
             modelBuilder.Entity("Entities.Entities.ReminderType", b =>
@@ -6816,7 +6874,20 @@ namespace Persistence.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("ReferralCode")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<long?>("ReferredByCompanionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ReferredByStoreId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ReferredByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("RegistrationReferralSource")
+                        .HasColumnType("int");
 
                     b.Property<string>("RequestCode")
                         .HasColumnType("nvarchar(max)");
@@ -6830,11 +6901,27 @@ namespace Persistence.Migrations
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
+                    b.Property<string>("UsedReferralCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PictureId");
 
+                    b.HasIndex("ReferralCode")
+                        .IsUnique()
+                        .HasFilter("[ReferralCode] IS NOT NULL");
+
+                    b.HasIndex("ReferredByCompanionId");
+
+                    b.HasIndex("ReferredByStoreId");
+
+                    b.HasIndex("ReferredByUserId");
+
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("RegistrationReferralSource", "ReferredByUserId", "ReferredByCompanionId", "ReferredByStoreId");
 
                     b.ToTable("Users");
                 });
@@ -7242,6 +7329,12 @@ namespace Persistence.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ApprovalValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
                     b.Property<long>("CityId")
                         .HasColumnType("bigint");
 
@@ -7291,6 +7384,11 @@ namespace Persistence.Migrations
                     b.Property<int>("RateCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("ReferralCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<string>("SeoCanonical")
                         .HasColumnType("nvarchar(max)");
 
@@ -7334,6 +7432,9 @@ namespace Persistence.Migrations
                     b.HasIndex("IconId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("ReferralCode")
+                        .IsUnique();
 
                     b.HasIndex("TypeId");
 
@@ -9115,6 +9216,11 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.CompanionField.Expertise", "Expertise")
+                        .WithMany("CompanionUsers")
+                        .HasForeignKey("ExpertiseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Security.User", "User")
                         .WithMany("CompanionUsers")
                         .HasForeignKey("UserId")
@@ -9122,6 +9228,8 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Companion");
+
+                    b.Navigation("Expertise");
 
                     b.Navigation("User");
                 });
@@ -11175,6 +11283,21 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("PictureId");
 
+                    b.HasOne("Entities.Entities.Companion", null)
+                        .WithMany()
+                        .HasForeignKey("ReferredByCompanionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Store", null)
+                        .WithMany()
+                        .HasForeignKey("ReferredByStoreId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", null)
+                        .WithMany()
+                        .HasForeignKey("ReferredByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Security.Role", "Role")
                         .WithMany("Users")
                         .HasForeignKey("RoleId")
@@ -12113,6 +12236,11 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionInsurancePackageSale", b =>
                 {
                     b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionField.Expertise", b =>
+                {
+                    b.Navigation("CompanionUsers");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionReserve", b =>

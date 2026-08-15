@@ -15,5 +15,6 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv.Iface
         PastilMatchRequestSearchDto Search(PastilMatchRequestInputDto dto);
         Task<BaseResultDto<PastilMatchRequestVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto> UpdateResponseDto(PastilMatchRequestResponseDto dto);
+        Task<BaseResultDto> DeleteAsyncDto(long id);
     }
 }

@@ -65,5 +65,60 @@ namespace Application.Services.ReminderSrvs.ReminderTypeSrv
             }
             return new ReminderTypeSearchDto(baseSearchDto, model, mapper);
         }
+
+        public override async Task<BaseResultDto<ReminderTypeDto>> InsertAsyncDto(ReminderTypeDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return new BaseResultDto<ReminderTypeDto>(false, Resource.Notification.InvalidData, dto);
+
+            var name = dto.Name.Trim();
+            var duplicate = await _context.ReminderTypes.AsNoTracking().AnyAsync(item =>
+                !item.Deleted && item.Name == name);
+            if (duplicate)
+                return new BaseResultDto<ReminderTypeDto>(false, Resource.Notification.DuplicateValue, dto);
+
+            var item = new ReminderType { Name = name, Deleted = false };
+            await _context.ReminderTypes.AddAsync(item);
+            await _context.SaveChangesAsync();
+            return new BaseResultDto<ReminderTypeDto>(true, mapper.Map<ReminderTypeDto>(item));
+        }
+
+        public override BaseResultDto UpdateDto(ReminderTypeDto dto)
+        {
+            if (dto.Id <= 0 || string.IsNullOrWhiteSpace(dto.Name))
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            var item = _context.ReminderTypes.FirstOrDefault(type => type.Id == dto.Id && !type.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            var name = dto.Name.Trim();
+            var duplicate = _context.ReminderTypes.AsNoTracking().Any(type =>
+                type.Id != dto.Id &&
+                !type.Deleted &&
+                type.Name == name);
+            if (duplicate)
+                return new BaseResultDto(false, Resource.Notification.DuplicateValue);
+
+            item.Name = name;
+            _context.SaveChanges();
+            return new BaseResultDto(true);
+        }
+
+        public override BaseResultDto DeleteDto(long id)
+        {
+            var item = _context.ReminderTypes.FirstOrDefault(type => type.Id == id && !type.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            var inUse = _context.Reminders.AsNoTracking().Any(reminder =>
+                !reminder.Deleted && reminder.ReminderTypeId == id);
+            if (inUse)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            item.Deleted = true;
+            _context.SaveChanges();
+            return new BaseResultDto(true);
+        }
     }
 }

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// ویژگی ها
+    /// ویژگی های دسته بندی
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]

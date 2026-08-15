@@ -27,6 +27,7 @@ using Application.Services.TripSrv.TripSrv.Dto;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
@@ -53,11 +54,12 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         private readonly ICompanionReservePackageService _companionReservePackageService;
         private readonly IScoreTransactionService _scoreService;
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
+        private readonly ILogger<CompanionReserveService> _logger;
         public CompanionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper,
             ICompanionReservePackageService companionReservePackageService, ICompanionReserveUserPetService companionReserveUserPetService,
             IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService,
             IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService,
-            IClubPointIntegrationService clubPointIntegrationService) : base(_context, mapper)
+            IClubPointIntegrationService clubPointIntegrationService, ILogger<CompanionReserveService> logger) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -73,6 +75,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             this._pushNotificationService = pushNotificationService;
             this._scoreService = scoreService;
             this._clubPointIntegrationService = clubPointIntegrationService;
+            this._logger = logger;
         }
 
         public async Task<BaseResultDto<CompanionReserveAdminVDto>> FindAsyncAdminVDto(long id)
@@ -221,10 +224,110 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     {
                         return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.PleaseEnterTheAddress, dto);
                     }
-                    var companionAssistance = await _context.CompanionAssistances.Include(s => s.Companion).ThenInclude(s => s.CompanionZones).FirstOrDefaultAsync(s =>
-                        s.Id == dto.CompanionAssistanceId && s.Active && !s.Deleted && s.Companion.Active);
+                    var companionAssistance = await _context.CompanionAssistances
+                        .Include(s => s.Companion)
+                        .ThenInclude(s => s.CompanionZones)
+                        .Include(s => s.Codes)
+                        .FirstOrDefaultAsync(s =>
+                            s.Id == dto.CompanionAssistanceId &&
+                            s.Active &&
+                            s.Approved &&
+                            !s.Deleted &&
+                            s.Companion.Active);
                     if (companionAssistance == null)
                         return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.NothingFound, dto);
+
+                    if (!companionAssistance.Codes.Any(s => s.Id == dto.CompanionAssistanceTypeId))
+                    {
+                        return new BaseResultDto<CompanionReserveDto>(
+                            false,
+                            "نوع ارائه انتخاب‌شده متعلق به این خدمت نیست.",
+                            dto);
+                    }
+
+                    if (ReservationScheduleValidator.IsDateInPast(dto.DoDate, DateTime.Now))
+                    {
+                        return new BaseResultDto<CompanionReserveDto>(
+                            false,
+                            "امکان رزرو خدمت در تاریخ گذشته وجود ندارد.",
+                            dto);
+                    }
+
+                    if (dto.CompanionAssistanceTimeId.HasValue)
+                    {
+                        var selectedTime = await _context.CompanionAssistanceTimes
+                            .AsNoTracking()
+                            .Include(s => s.WeekDay)
+                            .FirstOrDefaultAsync(s =>
+                                s.Id == dto.CompanionAssistanceTimeId.Value &&
+                                s.CompanionAssistanceId == dto.CompanionAssistanceId &&
+                                s.Active &&
+                                !s.Deleted);
+
+                        if (selectedTime == null)
+                        {
+                            return new BaseResultDto<CompanionReserveDto>(
+                                false,
+                                "زمان انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.",
+                                dto);
+                        }
+
+                        if (!ReservationScheduleValidator.IsWeekDayMatch(dto.DoDate, selectedTime.WeekDay?.Label))
+                        {
+                            return new BaseResultDto<CompanionReserveDto>(
+                                false,
+                                "روز تاریخ رزرو با روز زمان انتخاب‌شده هماهنگ نیست.",
+                                dto);
+                        }
+
+                        if (!ReservationScheduleValidator.TryGetServiceStartDateTime(
+                                dto.DoDate,
+                                selectedTime.StartTime,
+                                out var serviceStartDateTime))
+                        {
+                            return new BaseResultDto<CompanionReserveDto>(
+                                false,
+                                "ساعت شروع خدمت معتبر نیست.",
+                                dto);
+                        }
+
+                        if (serviceStartDateTime <= DateTime.Now)
+                        {
+                            return new BaseResultDto<CompanionReserveDto>(
+                                false,
+                                "امکان رزرو خدمت در زمان گذشته وجود ندارد.",
+                                dto);
+                        }
+                    }
+                    else if (await _context.CompanionAssistanceTimes.AnyAsync(s =>
+                                 s.CompanionAssistanceId == dto.CompanionAssistanceId &&
+                                 s.Active &&
+                                 !s.Deleted))
+                    {
+                        return new BaseResultDto<CompanionReserveDto>(
+                            false,
+                            "انتخاب زمان خدمت الزامی است.",
+                            dto);
+                    }
+
+                    if (dto.CompanionAssistanceUserId.HasValue)
+                    {
+                        var validAssistanceUser = await _context.CompanionAssistanceUsers
+                            .AsNoTracking()
+                            .AnyAsync(s =>
+                                s.Id == dto.CompanionAssistanceUserId.Value &&
+                                s.CompanionAssistanceId == dto.CompanionAssistanceId &&
+                                s.Active &&
+                                !s.Deleted);
+
+                        if (!validAssistanceUser)
+                        {
+                            return new BaseResultDto<CompanionReserveDto>(
+                                false,
+                                "اپراتور انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.",
+                                dto);
+                        }
+                    }
 
                     if (dto.AddressId.HasValue)
                     {
@@ -286,41 +389,144 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    var booker = _context.Users.FirstOrDefault(u => u.Id == item.BookerId);
-                    var companionAssistances = _context.CompanionAssistances.Include(s => s.Assistance).Include(s => s.Companion).FirstOrDefault(a => a.Id == item.CompanionAssistanceId);
-                    var companion = _context.Companions.Include(s => s.Owner).FirstOrDefault(a => a.Id == companionAssistances.CompanionId);
-                    var companionAssistanceUser = _context.CompanionAssistanceUsers.Include(s => s.User).FirstOrDefault(a => a.Id == item.CompanionAssistanceUserId);
-                    var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
-                    string nameText = string.Format("{0}_{1}", booker.FirstName, booker.LastName).Replace(" ", "_");
-
-                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForUser, mobileReceptor: booker.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name);
-                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForCompanion, mobileReceptor: companion.Owner.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: booker.FirstName);
-                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForAdmin, mobileReceptor: adminMobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: companion.Name);
-                    await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterReserveUser, userId: booker.Id, token1: companionAssistances.Assistance.Name, token2: booker.FirstName);
-                    await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterReserveCompanion, userId: companion.Owner.Id, token1: companionAssistances.Assistance.Name, token2: nameText);
-
-                    if (companionAssistanceUser != null)
-                    {
-                        await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.CompanionReserveForCompanionUser, mobileReceptor: companionAssistanceUser.User.Mobile, emailReceptor: null, token1: companionAssistances.Assistance.Name, token2: companion.Name);
-                    }
-                    await _notificationService.CreateAsync(new NoticeCreateDto
-                    {
-                        Label = NoticeTypeLabels.CompanionReserveRegistered,
-                        ActorUserId = booker.Id,
-                        ReferenceType = "CompanionReserve",
-                        ReferenceId = item.Id,
-                        DeduplicationKey = $"{NoticeTypeLabels.CompanionReserveRegistered}:{item.Id}",
-                        Metadata = new Dictionary<string, string> { { "userName", $"{booker.FirstName} {booker.LastName}".Trim() }, { "companionName", companion.Name }, { "serviceName", companionAssistances.Assistance.Name }, { "mobile", booker.Mobile } }
-                    });
+                    await SendCreatedNotificationsAsync(item.Id);
                     return new BaseResultDto<CompanionReserveDto>(true, mapper.Map<CompanionReserveDto>(item));
                 }
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Creating companion reserve failed for assistance {CompanionAssistanceId} and booker {BookerId}.", dto?.CompanionAssistanceId, dto?.BookerId);
                 return new BaseResultDto<CompanionReserveDto>(isSuccess: false, val: Resource.Notification.Unsuccess, data: dto);
             }
         }
+
+        private async Task SendCreatedNotificationsAsync(long reserveId)
+        {
+            try
+            {
+                var reserve = await _context.CompanionReserves
+                    .AsNoTracking()
+                    .Include(s => s.Booker)
+                    .Include(s => s.CompanionAssistance)
+                    .ThenInclude(s => s.Assistance)
+                    .Include(s => s.CompanionAssistance)
+                    .ThenInclude(s => s.Companion)
+                    .ThenInclude(s => s.Owner)
+                    .Include(s => s.CompanionAssistanceUser)
+                    .ThenInclude(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Id == reserveId);
+
+                if (reserve?.Booker == null ||
+                    reserve.CompanionAssistance?.Assistance == null ||
+                    reserve.CompanionAssistance.Companion?.Owner == null)
+                {
+                    _logger.LogError("Notification data for companion reserve {ReserveId} is incomplete.", reserveId);
+                    return;
+                }
+
+                var booker = reserve.Booker;
+                var assistance = reserve.CompanionAssistance.Assistance;
+                var companion = reserve.CompanionAssistance.Companion;
+                var nameText = $"{booker.FirstName}_{booker.LastName}".Replace(" ", "_");
+
+                await RunPostCommitActionAsync(
+                    () => _messageSender.SendMessageAsync(
+                        MessageTypeEnum.CompanionReserveForUser,
+                        booker.Mobile,
+                        null,
+                        token1: assistance.Name),
+                    reserveId,
+                    "user SMS");
+
+                await RunPostCommitActionAsync(
+                    () => _messageSender.SendMessageAsync(
+                        MessageTypeEnum.CompanionReserveForCompanion,
+                        companion.Owner.Mobile,
+                        null,
+                        token1: assistance.Name,
+                        token2: booker.FirstName),
+                    reserveId,
+                    "companion SMS");
+
+                await RunPostCommitActionAsync(
+                    () => _messageSender.SendMessageAsync(
+                        MessageTypeEnum.CompanionReserveForAdmin,
+                        _adminSettingHelper.BaseAdminSetting?.AdminMobiles,
+                        null,
+                        token1: assistance.Name,
+                        token2: companion.Name),
+                    reserveId,
+                    "admin SMS");
+
+                await RunPostCommitActionAsync(
+                    () => _pushNotificationService.SendPushAsync(
+                        PushTypeEnum.PushRegisterReserveUser,
+                        booker.Id,
+                        token1: companion.Name,
+                        token2: booker.FirstName),
+                    reserveId,
+                    "user push");
+
+                await RunPostCommitActionAsync(
+                    () => _pushNotificationService.SendPushAsync(
+                        PushTypeEnum.PushRegisterReserveCompanion,
+                        companion.Owner.Id,
+                        token1: assistance.Name,
+                        token2: nameText),
+                    reserveId,
+                    "companion push");
+
+                if (reserve.CompanionAssistanceUser?.User != null)
+                {
+                    await RunPostCommitActionAsync(
+                        () => _messageSender.SendMessageAsync(
+                            MessageTypeEnum.CompanionReserveForCompanionUser,
+                            reserve.CompanionAssistanceUser.User.Mobile,
+                            null,
+                            token1: assistance.Name,
+                            token2: companion.Name),
+                        reserveId,
+                        "operator SMS");
+                }
+
+                await RunPostCommitActionAsync(
+                    () => _notificationService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.CompanionReserveRegistered,
+                        ActorUserId = booker.Id,
+                        ReferenceType = "CompanionReserve",
+                        ReferenceId = reserve.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.CompanionReserveRegistered}:{reserve.Id}",
+                        Metadata = new Dictionary<string, string>
+                        {
+                            { "userName", $"{booker.FirstName} {booker.LastName}".Trim() },
+                            { "companionName", companion.Name },
+                            { "serviceName", assistance.Name },
+                            { "mobile", booker.Mobile }
+                        }
+                    }),
+                    reserveId,
+                    "admin notice");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Preparing notifications for companion reserve {ReserveId} failed.", reserveId);
+            }
+        }
+
+        private async Task RunPostCommitActionAsync(Func<Task> action, long reserveId, string actionName)
+        {
+            try
+            {
+                await action();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Post-commit action {ActionName} failed for companion reserve {ReserveId}.", actionName, reserveId);
+            }
+        }
+
         public async Task<BaseResultDto> UpdateAsyncDto(CompanionReserveUpdateDto dto)
         {
             try
@@ -340,6 +546,35 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                 if (item.IsCancel)
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
+
+                if (dto.CompanionAssistanceTimeId.HasValue)
+                {
+                    var selectedTime = await _context.CompanionAssistanceTimes
+                        .AsNoTracking()
+                        .Include(s => s.WeekDay)
+                        .FirstOrDefaultAsync(s =>
+                            s.Id == dto.CompanionAssistanceTimeId.Value &&
+                            s.CompanionAssistanceId == item.CompanionAssistanceId &&
+                            s.Active &&
+                            !s.Deleted);
+
+                    if (selectedTime == null)
+                        return new BaseResultDto(false, "زمان انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.");
+
+                    if (!ReservationScheduleValidator.IsWeekDayMatch(item.DoDate, selectedTime.WeekDay?.Label))
+                        return new BaseResultDto(false, "روز تاریخ رزرو با روز زمان انتخاب‌شده هماهنگ نیست.");
+
+                    if (!ReservationScheduleValidator.TryGetServiceStartDateTime(item.DoDate, selectedTime.StartTime, out var serviceStart) ||
+                        serviceStart <= DateTime.Now)
+                        return new BaseResultDto(false, "امکان انتخاب زمان گذشته وجود ندارد.");
+                }
+                else if (await _context.CompanionAssistanceTimes.AnyAsync(s =>
+                             s.CompanionAssistanceId == item.CompanionAssistanceId &&
+                             s.Active &&
+                             !s.Deleted))
+                {
+                    return new BaseResultDto(false, "انتخاب زمان خدمت الزامی است.");
+                }
 
                 item.CompanionAssistanceTimeId = dto.CompanionAssistanceTimeId;
                 item.IsFemale = dto.IsFemale;
@@ -375,12 +610,16 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                 await _context.SaveChangesAsync();
 
-                await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionReserveUpdated, ReferenceType = "CompanionReserve", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionReserveUpdated}:{item.Id}:{DateTime.UtcNow.Ticks}" });
+                await RunPostCommitActionAsync(
+                    () => _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionReserveUpdated, ReferenceType = "CompanionReserve", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionReserveUpdated}:{item.Id}:{DateTime.UtcNow.Ticks}" }),
+                    item.Id,
+                    "update notice");
 
                 return new BaseResultDto(isSuccess: true);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Updating companion reserve {ReserveId} failed.", dto?.Id);
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
         }
@@ -437,8 +676,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Companion reserve payment callback failed for reserve {ReserveId}.", reserveId);
                 return new BaseResultDto(false);
             }
         }

@@ -4,6 +4,7 @@ using Application.Services.Content.ContactUsSrv.Iface;
 using Application.Services.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers
 {
@@ -13,6 +14,7 @@ namespace Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [AllowAnonymous]
+    [EnableRateLimiting("ContactUs")]
     public class ContactUsController : ControllerBase
     {
         private IContactUsService ContactUsService;
@@ -29,7 +31,8 @@ namespace Api.Controllers
         /// آیتم جدید
         /// </summary>
         [HttpPost]
-        [ProducesResponseType(typeof(ContactUsDto), 200)]
+        [ProducesResponseType(typeof(Application.Common.Dto.Result.BaseResultDto), 200)]
+        [ProducesResponseType(429)]
         public async Task<IActionResult> Post(ContactUsDto dto)
         {
             dto.UserId = _currentUser?.UserId;

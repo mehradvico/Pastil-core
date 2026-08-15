@@ -5,7 +5,6 @@ using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.Accounting.ScoreTransactionSrv.Dto;
 using Application.Services.Accounting.ScoreTransactionSrv.Iface;
-using Application.Services.Dto;
 using Application.Services.Setting.CodeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
@@ -23,13 +22,13 @@ namespace Application.Services.Accounting.ScoreTransactionSrv
     {
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
-        private readonly CurrentUserDto _currentUser;
+        private readonly ICurrentUserHelper _currentUserHelper;
         private readonly ICodeService _codeService;
         public ScoreTransactionService(IDataBaseContext _context, IMapper mapper, ICurrentUserHelper currentUserHelper, ICodeService codeService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
-            this._currentUser = currentUserHelper.CurrentUser;
+            this._currentUserHelper = currentUserHelper;
             this._codeService = codeService;
         }
 
@@ -75,12 +74,16 @@ namespace Application.Services.Accounting.ScoreTransactionSrv
 
         public async Task<BaseResultDto<bool>> RedeemRewardAsync(long rewardId)
         {
+            var currentUser = _currentUserHelper.CurrentUser;
+            if (currentUser == null)
+                return new BaseResultDto<bool>(false, Resource.Notification.AccessDenied, false);
+
             var reward = await _context.ClubRewards.Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == rewardId && s.Active && !s.Deleted);
 
             if (reward == null || reward.Rebate == null)
                 return new BaseResultDto<bool>(isSuccess: false, val: Resource.Notification.NothingFound, data: false);
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == _currentUser.UserId && !u.Deleted);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == currentUser.UserId && !u.Deleted);
             if (user == null)
                 return new BaseResultDto<bool>(isSuccess: false, val: Resource.Notification.UserNotFound, data: false);
 

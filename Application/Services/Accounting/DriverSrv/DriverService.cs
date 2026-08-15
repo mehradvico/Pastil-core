@@ -6,6 +6,7 @@ using Application.Common.Service;
 using Application.Services.Accounting.DriverSrv.Dto;
 using Application.Services.Accounting.DriverSrv.Iface;
 using Application.Services.Accounting.UserSrv.Iface;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.Setting.NoticeSrv;
 using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
@@ -13,6 +14,7 @@ using AutoMapper;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
@@ -29,13 +31,17 @@ namespace Application.Services.Accounting.DriverSrv
         private readonly IUserService _userService;
         private readonly ICurrentUserHelper _currentUser;
         private readonly INoticeService _noticeService;
-        public DriverService(IDataBaseContext _context, IMapper mapper, IUserService userService, ICurrentUserHelper currentUser, INoticeService noticeService) : base(_context, mapper)
+        private readonly IPushNotificationService _pushNotificationService;
+        private readonly ILogger<DriverService> _logger;
+        public DriverService(IDataBaseContext _context, IMapper mapper, IUserService userService, ICurrentUserHelper currentUser, INoticeService noticeService, IPushNotificationService pushNotificationService, ILogger<DriverService> logger) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             this._userService = userService;
             this._currentUser = currentUser;
             this._noticeService = noticeService;
+            this._pushNotificationService = pushNotificationService;
+            this._logger = logger;
         }
 
         public async Task<BaseResultDto<DriverVDto>> FindAsyncVDto(long id)
@@ -113,6 +119,11 @@ namespace Application.Services.Accounting.DriverSrv
                 else
                 {
                     var item = mapper.Map<Driver>(dto);
+                    item.StatusId = (long)DriverRequestStatusEnum.DriverRequestStatus_Requested;
+                    item.Active = false;
+                    item.Approved = false;
+                    item.Rate = 0;
+                    item.AdminDetail = null;
                     if (dto.Rate != 0 && (dto.Rate > 5 || dto.Rate < 1))
                     {
                         return new BaseResultDto<DriverDto>(false, val1: Resource.Notification.TheRangeEnteredIsNotCorrect, val2: nameof(dto.Rate), data: dto);
@@ -129,14 +140,22 @@ namespace Application.Services.Accounting.DriverSrv
                     }
                     await _context.Drivers.AddAsync(item);
                     await _context.SaveChangesAsync();
-                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.DriverSubmitted, ActorUserId = item.OwnerId, ReferenceType = "Driver", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.DriverSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "driverName", item.Name } } });
+                    try
+                    {
+                        await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.DriverSubmitted, ActorUserId = item.OwnerId, ReferenceType = "Driver", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.DriverSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "driverName", item.Name } } });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Creating admin notice for driver request {DriverId} failed.", item.Id);
+                    }
                     return new BaseResultDto<DriverDto>(true, mapper.Map<DriverDto>(item));
 
                 }
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<DriverDto>(isSuccess: false, val: ex.Message, data: dto);
+                _logger.LogError(ex, "Creating driver request for owner {OwnerId} failed.", dto?.OwnerId);
+                return new BaseResultDto<DriverDto>(false, "خطا در ثبت درخواست رانندگی. اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.", dto);
             }
         }
         public async Task<BaseResultDto> InsertCheckerAsync(DriverDto dto)
@@ -160,6 +179,22 @@ namespace Application.Services.Accounting.DriverSrv
             {
                 errors.Add(new Tuple<string, string>(Resource.Notification.PleaseEnterTheLicensePlateNumber, nameof(dto.LicensePlateNumber)));
             }
+            if (dto.OwnerId <= 0 || !await _context.Users.AnyAsync(s => s.Id == dto.OwnerId && !s.Deleted))
+                errors.Add(Tuple.Create("کاربر درخواست‌دهنده معتبر نیست.", nameof(dto.OwnerId)));
+            if (dto.CityId <= 0 || !await _context.Cities.AnyAsync(s => s.Id == dto.CityId))
+                errors.Add(Tuple.Create("شهر انتخاب‌شده معتبر نیست.", nameof(dto.CityId)));
+            if (dto.NeighborhoodId.HasValue &&
+                !await _context.Neighborhoods.AnyAsync(s => s.Id == dto.NeighborhoodId.Value && s.CityId == dto.CityId))
+                errors.Add(Tuple.Create("محله انتخاب‌شده متعلق به شهر انتخاب‌شده نیست.", nameof(dto.NeighborhoodId)));
+            if (!dto.CertificatePictureId.HasValue || dto.CertificatePictureId.Value <= 0 ||
+                !await _context.Pictures.AnyAsync(s => s.Id == dto.CertificatePictureId.Value))
+                errors.Add(Tuple.Create("تصویر گواهینامه معتبر را بارگذاری کنید.", nameof(dto.CertificatePictureId)));
+            if (!dto.VehicleCardPictureId.HasValue || dto.VehicleCardPictureId.Value <= 0 ||
+                !await _context.Pictures.AnyAsync(s => s.Id == dto.VehicleCardPictureId.Value))
+                errors.Add(Tuple.Create("تصویر کارت خودرو معتبر را بارگذاری کنید.", nameof(dto.VehicleCardPictureId)));
+            if (dto.ProfilePictureId.HasValue && dto.ProfilePictureId.Value > 0 &&
+                !await _context.Pictures.AnyAsync(s => s.Id == dto.ProfilePictureId.Value))
+                errors.Add(Tuple.Create("تصویر پروفایل معتبر نیست.", nameof(dto.ProfilePictureId)));
             if (errors.Any())
             {
                 return new BaseResultDto(isSuccess: false, messages: errors);
@@ -197,6 +232,93 @@ namespace Application.Services.Accounting.DriverSrv
             if (result.IsSuccess)
                 await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.DriverUpdated, ActorUserId = dto.OwnerId, ReferenceType = "Driver", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.DriverUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "driverName", dto.Name } } });
             return result;
+        }
+
+        public async Task<BaseResultDto> ResubmitAsyncDto(DriverDto dto, long ownerId)
+        {
+            if (dto == null || dto.Id <= 0)
+                return new BaseResultDto(false, "شناسه درخواست رانندگی معتبر نیست.");
+
+            dto.OwnerId = ownerId;
+            var checker = await InsertCheckerAsync(dto);
+            if (!checker.IsSuccess)
+                return checker;
+
+            var item = await _context.Drivers
+                .AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.Id && s.OwnerId == ownerId && !s.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+            if (item.Approved)
+                return new BaseResultDto(false, "درخواست رانندگی تأیید شده است و از مسیر ارسال مجدد قابل تغییر نیست.");
+
+            mapper.Map(dto, item);
+            item.OwnerId = ownerId;
+            item.StatusId = (long)DriverRequestStatusEnum.DriverRequestStatus_Requested;
+            item.Active = false;
+            item.Approved = false;
+            item.Rate = 0;
+            item.AdminDetail = null;
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _noticeService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.DriverUpdated,
+                    ActorUserId = ownerId,
+                    ReferenceType = "Driver",
+                    ReferenceId = item.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.DriverUpdated}:{item.Id}:{DateTime.UtcNow.Ticks}",
+                    Metadata = new Dictionary<string, string> { { "driverName", item.Name } }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Creating admin notice for resubmitted driver {DriverId} failed.", item.Id);
+            }
+
+            return new BaseResultDto(true);
+        }
+
+        public async Task<BaseResultDto> DriverUpdateStatusAsyncDto(DriverUpdateStatusDto dto)
+        {
+            if (dto.StatusId != (long)DriverRequestStatusEnum.DriverRequestStatus_Accepted &&
+                dto.StatusId != (long)DriverRequestStatusEnum.DriverRequestStatus_Rejected)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            if (dto.StatusId == (long)DriverRequestStatusEnum.DriverRequestStatus_Rejected &&
+                string.IsNullOrWhiteSpace(dto.AdminDetail))
+                return new BaseResultDto(false, Resource.Notification.PleaseEnterTheAdminDetail);
+
+            var driver = await _context.Drivers
+                .AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
+            if (driver == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            var approved = dto.StatusId == (long)DriverRequestStatusEnum.DriverRequestStatus_Accepted;
+            driver.StatusId = dto.StatusId;
+            driver.Approved = approved;
+            driver.Active = approved;
+            driver.AdminDetail = approved ? null : dto.AdminDetail.Trim();
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _pushNotificationService.SendPushAsync(
+                    approved ? PushTypeEnum.PushDriverRequestApproved : PushTypeEnum.PushDriverRequestRejected,
+                    driver.OwnerId,
+                    token1: driver.Name,
+                    token2: driver.AdminDetail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Sending driver decision push for {DriverId} failed.", driver.Id);
+            }
+
+            return new BaseResultDto(true);
         }
 
         public BaseResultDto DriverUpdateStatusDto(DriverUpdateStatusDto dto)

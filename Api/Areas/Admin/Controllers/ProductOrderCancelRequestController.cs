@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// سفارش ها
+    /// درخواست های لغو سفارش
     /// </summary>
     ///
     [Area("Admin")]

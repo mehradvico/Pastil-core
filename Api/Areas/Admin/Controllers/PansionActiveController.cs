@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// پانسیون ها
+    /// فعال سازی پانسیون
     /// </summary>
     /// 
     [Area("Admin")]

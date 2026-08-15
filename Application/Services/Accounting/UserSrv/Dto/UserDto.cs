@@ -27,6 +27,11 @@ namespace Application.Services.Dto
         public string LastName { get; set; }
         [Display(Name = nameof(Resource.Field.ReferralCode), ResourceType = typeof(Resource.Field))]
         public string ReferralCode { get; set; }
+        public Entities.Entities.Security.RegistrationReferralSource RegistrationReferralSource { get; set; }
+        public string UsedReferralCode { get; set; }
+        public long? ReferredByUserId { get; set; }
+        public long? ReferredByCompanionId { get; set; }
+        public long? ReferredByStoreId { get; set; }
 
         [Display(Name = nameof(Resource.Field.Password), ResourceType = typeof(Resource.Field))]
         public string Password { get; set; }

@@ -14,6 +14,11 @@ namespace Application.Services.Dto
         public string LastName { get; set; }
         public string FullName { get; set; }
         public string ReferralCode { get; set; }
+        public Entities.Entities.Security.RegistrationReferralSource RegistrationReferralSource { get; set; }
+        public string UsedReferralCode { get; set; }
+        public long? ReferredByUserId { get; set; }
+        public long? ReferredByCompanionId { get; set; }
+        public long? ReferredByStoreId { get; set; }
         public long? PictureId { get; set; }
         public long? CompanionId { get; set; }
         public long? DriverId { get; set; }

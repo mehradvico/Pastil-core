@@ -23,6 +23,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
         public bool Active { get; set; }
         public bool ShowToSite { get; set; }
         public bool Approve { get; set; }
+        public string ApprovalValue { get; set; }
         public long StateId { get; set; }
         public long CityId { get; set; }
         public string Discription { get; set; }

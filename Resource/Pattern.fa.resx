@@ -183,6 +183,63 @@
   <data name="PushMemoryReminder" xml:space="preserve">
     <value>{0} عزیز، خاطره امروزت با پتت رو در پاستیل ثبت کن.</value>
   </data>
+  <data name="PushPetReminder" xml:space="preserve">
+    <value>یادآور {1} برای {0}: موعد آن {2} است.</value>
+  </data>
+  <data name="PushPastilMatchRequestReceived" xml:space="preserve">
+    <value>{0} برای دوستی پت {1} با پت شما درخواست فرستاد.</value>
+  </data>
+  <data name="PushPastilMatchRequestAccepted" xml:space="preserve">
+    <value>{0} درخواست شما را قبول کرد؛ وارد پاستیل‌مچ شوید و با او گفتگو کنید.</value>
+  </data>
+  <data name="PushPastilMatchRequestRejected" xml:space="preserve">
+    <value>{0} درخواست پاستیل‌مچ شما را نپذیرفت.</value>
+  </data>
+  <data name="PushPastilMatchNewMessage" xml:space="preserve">
+    <value>{0} در پاستیل‌مچ پیام داد: {1}</value>
+  </data>
+  <data name="PushPastilMatchProfileLiked" xml:space="preserve">
+    <value>{0} پروفایل {1} را پسندید.</value>
+  </data>
+  <data name="PushPastilMatchClosed" xml:space="preserve">
+    <value>{0} ارتباط پاستیل‌مچ را پایان داد.</value>
+  </data>
+  <data name="PushPastilMatchVerificationApproved" xml:space="preserve">
+    <value>پروفایل پاستیل‌مچ {0} تأیید شد.</value>
+  </data>
+  <data name="PushPastilMatchVerificationRejected" xml:space="preserve">
+    <value>درخواست تأیید پروفایل پاستیل‌مچ {0} رد شد؛ جزئیات را در پروفایل ببینید.</value>
+  </data>
+  <data name="PushPastilMatchMessageReaction" xml:space="preserve">
+    <value>{0} با {1} به پیام شما واکنش نشان داد.</value>
+  </data>
+  <data name="PushPastilMatchRequestCancelled" xml:space="preserve">
+    <value>{0} درخواست پاستیل‌مچ خود را لغو کرد.</value>
+  </data>
+  <data name="PushCompanionRequestApproved" xml:space="preserve">
+    <value>درخواست نمایندگی «{0}» تأیید شد؛ اکنون می‌توانید مدیریت نمایندگی را شروع کنید.</value>
+  </data>
+  <data name="PushCompanionRequestRejected" xml:space="preserve">
+    <value>درخواست نمایندگی «{0}» رد شد. دلیل: {1}</value>
+  </data>
+  <data name="PushDriverRequestApproved" xml:space="preserve">
+    <value>درخواست رانندگی «{0}» تأیید شد.</value>
+  </data>
+  <data name="PushDriverRequestRejected" xml:space="preserve">
+    <value>درخواست رانندگی «{0}» رد شد. دلیل: {1}</value>
+  </data>
+  <data name="PushStoreRequestApproved" xml:space="preserve">
+    <value>درخواست فروشگاه «{0}» تأیید شد؛ اکنون می‌توانید فروشگاه را مدیریت کنید.</value>
+  </data>
+  <data name="PushStoreRequestRejected" xml:space="preserve">
+    <value>درخواست فروشگاه «{0}» رد شد. دلیل: {1}</value>
+  </data>
+  <data name="PushPansionRequestApproved" xml:space="preserve">
+    <value>درخواست پانسیون «{0}» تأیید شد.</value>
+  </data>
+  <data name="PushPansionRequestRejected" xml:space="preserve">
+    <value>درخواست پانسیون «{0}» رد شد. دلیل: {1}</value>
+  </data>
   <data name="RebateMinCartPrice" xml:space="preserve">
     <value>حداقل مبلغ سفارش باید {0} باشد</value>
   </data>

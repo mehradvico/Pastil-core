@@ -40,7 +40,7 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<UserDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var item = await userService.FindAsyncDto(id);
+            var item = await userService.FindAsyncDto(_currentUserHelper.CurrentUser.UserId);
             return Ok(item);
         }
 
@@ -51,6 +51,7 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public IActionResult Put(UserDto userDto)
         {
+            userDto.Id = _currentUserHelper.CurrentUser.UserId;
             var dto = userService.UpdateDto(userDto);
             return Ok(dto);
         }

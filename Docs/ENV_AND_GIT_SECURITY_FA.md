@@ -12,6 +12,7 @@ PASTIL_PAYMENT_CONNECTION=
 PASTIL_FILE_CONNECTION=
 PASTIL_REALTIME_CONNECTION=
 PASTIL_JWT_KEY=
+PASTIL_PASSWORD_PEPPER=
 PASTIL_VAPID_PUBLIC_KEY=
 PASTIL_VAPID_PRIVATE_KEY=
 PASTIL_AI_GEMINI_API_KEY=
@@ -21,6 +22,28 @@ PASTIL_AI_DEEPSEEK_API_KEY=
 PASTIL_AI_AVALAI_API_KEY=
 PASTIL_AI_GAPGPT_API_KEY=
 ```
+
+## امنیت رمز عبور کاربران
+
+رمز کاربران با `ASP.NET Core PasswordHasher`، الگوریتم PBKDF2، Salt اختصاصی و
+`600000` iteration ذخیره می‌شود. Hashهای قدیمی SHA-256 در اولین ورود موفق کاربر
+به‌صورت خودکار به فرمت جدید ارتقا پیدا می‌کنند و نیازی به Reset گروهی رمزها نیست.
+
+برای فعال‌کردن Pepper روی سرور، یک مقدار تصادفی حداقل 32 بایتی بسازید و فقط در
+فایل `.env` سرویس API قرار دهید:
+
+```bash
+openssl rand -base64 48
+```
+
+```env
+PASTIL_PASSWORD_PEPPER=GENERATED_RANDOM_VALUE
+```
+
+این مقدار نباید داخل Git، دیتابیس یا `appsettings.json` واقعی قرار بگیرد. بعد از
+استقرار نیز Pepper را حذف یا عوض نکنید؛ تغییر آن باید همراه با برنامه مهاجرت یا
+نگهداری Pepper قبلی انجام شود، وگرنه Hashهایی که با مقدار قبلی ساخته شده‌اند قابل
+اعتبارسنجی نخواهند بود.
 
 مقدارهای داخل `.env` را داخل کوتیشن قرار ندهید مگر اینکه خود مقدار واقعاً با کوتیشن شروع یا تمام شود. وجود `=` یا `;` داخل Connection String مشکلی ایجاد نمی‌کند.
 

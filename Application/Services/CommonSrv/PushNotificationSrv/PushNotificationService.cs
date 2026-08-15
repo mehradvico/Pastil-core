@@ -6,10 +6,12 @@ using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WebPush;
@@ -20,11 +22,17 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
     {
         private readonly IDataBaseContext _context;
         private readonly VapidKeysOption _vapid;
+        private readonly ILogger<PushNotificationService> _logger;
+        private const int MaxAttemptCount = 3;
 
-        public PushNotificationService(IDataBaseContext context, IOptions<VapidKeysOption> vapid)
+        public PushNotificationService(
+            IDataBaseContext context,
+            IOptions<VapidKeysOption> vapid,
+            ILogger<PushNotificationService> logger)
         {
             _context = context;
             _vapid = vapid.Value;
+            _logger = logger;
         }
 
         public async Task SendPushAsync(
@@ -71,6 +79,8 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 StatusText = null,
                 CreateDate = DateTime.Now,
                 SendDate = sendDate,
+                AttemptCount = 0,
+                NextAttemptDate = null,
 
                 Token1 = token1,
                 Token2 = token2,
@@ -95,7 +105,8 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 .Where(x =>
                     x.IsSend == false &&
                     x.Status == null &&
-                    (x.SendDate == null || (x.SendDate.HasValue && x.SendDate.Value < now)))
+                    (x.SendDate == null || x.SendDate.Value <= now) &&
+                    (x.NextAttemptDate == null || x.NextAttemptDate.Value <= now))
                 .OrderBy(x => x.Id)
                 .Take(pageSize)
                 .AsTracking()
@@ -132,9 +143,10 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             var invalidSubscriptions = new List<Entities.Entities.PushSubscription>();
             foreach (var subscription in subscriptions)
             {
-                if (await TrySendAsync(client, vapid, payload, subscription))
+                var result = await TrySendAsync(client, vapid, payload, subscription);
+                if (result == PushSendResult.Success)
                     subscription.LastSeen = DateTime.UtcNow;
-                else
+                else if (result == PushSendResult.Expired)
                     invalidSubscriptions.Add(subscription);
             }
             if (invalidSubscriptions.Count > 0)
@@ -170,6 +182,8 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
         private async Task SendSingleAsync(PushPattern pattern, PushNotification notif)
         {
             notif.IsSend = true;
+            notif.AttemptCount++;
+            notif.NextAttemptDate = null;
             _context.PushNotifications.Update(notif);
             await _context.SaveChangesAsync();
 
@@ -211,50 +225,112 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 var vapid = new VapidDetails("mailto:admin@pastil.pet", _vapid.PublicKey, _vapid.PrivateKey);
 
                 int sent = 0;
+                int transientFailures = 0;
                 var toDelete = new List<Entities.Entities.PushSubscription>();
 
                 foreach (var s in subs)
                 {
-                    var ok = await TrySendAsync(client, vapid, payload, s);
-                    if (ok)
+                    var result = await TrySendAsync(client, vapid, payload, s);
+                    if (result == PushSendResult.Success)
                     {
                         sent++;
                         s.LastSeen = DateTime.UtcNow;
                     }
-                    else
+                    else if (result == PushSendResult.Expired)
                     {
                         toDelete.Add(s);
+                    }
+                    else
+                    {
+                        transientFailures++;
                     }
                 }
 
                 if (toDelete.Count > 0)
                     _context.PushSubscriptions.RemoveRange(toDelete);
 
-                notif.SentDate = DateTime.Now;
-                notif.Status = sent > 0;
-                notif.StatusText = sent > 0 ? "OK" : "FAILED";
-
-                _context.PushNotifications.Update(notif);
-                await _context.SaveChangesAsync();
+                if (sent > 0)
+                {
+                    notif.SentDate = DateTime.Now;
+                    notif.Status = true;
+                    notif.StatusText = "OK";
+                    notif.NextAttemptDate = null;
+                    _context.PushNotifications.Update(notif);
+                    await _context.SaveChangesAsync();
+                }
+                else if (transientFailures > 0 && notif.AttemptCount < MaxAttemptCount)
+                {
+                    await MarkForRetryAsync(notif);
+                }
+                else
+                {
+                    await MarkFailedAsync(notif, Resource.Notification.Unsuccess);
+                }
             }
             catch (Exception ex)
             {
-                await MarkFailedAsync(notif, ex.Message);
+                _logger.LogError(ex, "Sending push notification {PushNotificationId} failed", notif.Id);
+                if (notif.AttemptCount < MaxAttemptCount)
+                    await MarkForRetryAsync(notif);
+                else
+                    await MarkFailedAsync(notif, ex.Message);
             }
         }
 
-        private static async Task<bool> TrySendAsync(WebPushClient client, VapidDetails vapid, string payload, Entities.Entities.PushSubscription s)
+        private async Task<PushSendResult> TrySendAsync(
+            WebPushClient client,
+            VapidDetails vapid,
+            string payload,
+            Entities.Entities.PushSubscription subscription)
         {
             try
             {
-                var sub = new WebPush.PushSubscription(s.Endpoint, s.P256dh, s.Auth);
+                var sub = new WebPush.PushSubscription(
+                    subscription.Endpoint,
+                    subscription.P256dh,
+                    subscription.Auth);
                 await client.SendNotificationAsync(sub, payload, vapid);
-                return true;
+                return PushSendResult.Success;
             }
-            catch
+            catch (WebPushException exception) when (
+                exception.StatusCode == HttpStatusCode.Gone ||
+                exception.StatusCode == HttpStatusCode.NotFound)
             {
-                return false;
+                _logger.LogInformation(
+                    "Removing expired push subscription {PushSubscriptionId}; endpoint returned {StatusCode}",
+                    subscription.Id,
+                    exception.StatusCode);
+                return PushSendResult.Expired;
             }
+            catch (WebPushException exception)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "Web push delivery failed for subscription {PushSubscriptionId} with status {StatusCode}",
+                    subscription.Id,
+                    exception.StatusCode);
+                return PushSendResult.TransientFailure;
+            }
+            catch (Exception exception)
+            {
+                _logger.LogWarning(
+                    exception,
+                    "Web push delivery failed for subscription {PushSubscriptionId}",
+                    subscription.Id);
+                return PushSendResult.TransientFailure;
+            }
+        }
+
+        private async Task MarkForRetryAsync(PushNotification notif)
+        {
+            notif.IsSend = false;
+            notif.Status = null;
+            notif.StatusText = $"RETRY {notif.AttemptCount}/{MaxAttemptCount}";
+            notif.SentDate = null;
+            notif.NextAttemptDate = DateTime.Now.AddMinutes(5 * notif.AttemptCount);
+
+            _context.PushNotifications.Update(notif);
+            await _context.SaveChangesAsync();
         }
 
         private async Task MarkFailedAsync(PushNotification notif, string statusText)
@@ -262,6 +338,8 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             notif.Status = false;
             notif.StatusText = statusText;
             notif.SentDate = DateTime.Now;
+            notif.IsSend = true;
+            notif.NextAttemptDate = null;
 
             _context.PushNotifications.Update(notif);
             await _context.SaveChangesAsync();
@@ -295,6 +373,13 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             public string Url { get; set; }
             public string Icon { get; set; }
             public string Tag { get; set; }
+        }
+
+        private enum PushSendResult
+        {
+            Success = 1,
+            Expired = 2,
+            TransientFailure = 3
         }
     }
 }

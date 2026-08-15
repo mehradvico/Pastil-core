@@ -102,14 +102,14 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             if (userToken != null)
             {
                 await _context.UserTokens
-                    .Where(x => x.UserId == userToken.UserId && !x.Deleted)
+                    .Where(x => x.Id == userToken.Id && !x.Deleted)
                     .ExecuteUpdateAsync(setters => setters
                         .SetProperty(token => token.Deleted, true));
 
                 var createdDto = CreateToken(
                     userToken.User,
                     refreshToken.IsAdmin,
-                    refreshTokenExpiresAt: userToken.RefreshTokenExp);
+                    rememberMe: true);
                 await transaction.CommitAsync();
                 return new BaseResultDto<UserTokenDto>(true, createdDto);
             }

@@ -3,6 +3,7 @@ using Application.Services.Accounting.UserSrv.Iface;
 using Application.Services.Dto;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using System;
 
 namespace Application.Common.CurrentUser
 {
@@ -21,14 +22,46 @@ namespace Application.Common.CurrentUser
         {
             get
             {
-                if (_httpContextAccessor.HttpContext != null)
-                {
-                    var token = _httpContextAccessor?.HttpContext?.GetTokenAsync("access_token").Result;
-                    return _userService.GetByTokenDto(token).Result;
-                }
-                return null;
+                var context = _httpContextAccessor.HttpContext;
+                if (context?.User?.Identity?.IsAuthenticated != true)
+                    return null;
+
+                var token = GetAccessToken(context);
+                if (string.IsNullOrWhiteSpace(token))
+                    return null;
+
+                return _userService
+                    .GetByTokenDto(token)
+                    .GetAwaiter()
+                    .GetResult();
 
             }
+        }
+
+        private static string GetAccessToken(HttpContext context)
+        {
+            try
+            {
+                var authenticationToken = context
+                    .GetTokenAsync("access_token")
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (!string.IsNullOrWhiteSpace(authenticationToken))
+                    return authenticationToken;
+            }
+            catch (InvalidOperationException)
+            {
+                // سرویس‌هایی مانند Payment درخواست Callback ناشناس دارند و
+                // عمداً Authentication Scheme در آن‌ها ثبت نشده است.
+            }
+
+            var authorization = context.Request.Headers.Authorization.ToString();
+            const string bearerPrefix = "Bearer ";
+
+            return authorization.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase)
+                ? authorization[bearerPrefix.Length..].Trim()
+                : null;
         }
     }
 }

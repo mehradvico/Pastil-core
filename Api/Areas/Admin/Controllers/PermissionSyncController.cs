@@ -1,5 +1,6 @@
 using System.Xml.Linq;
 using Api.Authorization;
+using Application.Common.Dto.Result;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Utility.Reflection.Dto;
@@ -39,7 +40,16 @@ namespace Api.Areas.Admin.Controllers
                 xmlComments,
                 cancellationToken);
 
-            return Ok(result);
+            if (result.UnmappedControllers.Count > 0)
+            {
+                var controllers = string.Join("، ", result.UnmappedControllers);
+                return BadRequest(new BaseResultDto<PermissionSyncResultDto>(
+                    false,
+                    $"کنترلرهای بدون گروه دسترسی پیدا شدند: {controllers}",
+                    result));
+            }
+
+            return Ok(new BaseResultDto<PermissionSyncResultDto>(true, result));
         }
     }
 }

@@ -31,15 +31,8 @@ namespace Api.Areas.Admin.Controllers
         public IActionResult Put(StoreDto dto) => Ok(_service.UpdateDto(dto));
 
         [HttpPatch("{id:long}/visibility")]
-        public async Task<IActionResult> PatchVisibility(long id, SiteVisibilityDto dto)
-        {
-            var current = await _service.FindAsyncDto(id);
-            if (!current.IsSuccess || current.Data == null)
-                return Ok(current);
-
-            current.Data.ShowToSite = dto.ShowToSite;
-            return Ok(_service.UpdateDto(current.Data));
-        }
+        public async Task<IActionResult> Put(long id, SiteVisibilityDto dto) =>
+            Ok(await _service.UpdateSiteVisibilityAsync(id, dto.ShowToSite));
 
         [HttpDelete]
         public IActionResult Delete(long id) => Ok(_service.DeleteDto(id));

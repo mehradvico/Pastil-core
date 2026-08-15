@@ -9,6 +9,7 @@ namespace Entities.Entities
 {
     public class Store : Seo_Full_Field
     {
+        public string ReferralCode { get; set; }
         public string Phone { get; set; }
         public string Mobile { get; set; }
         public string Email { get; set; }
@@ -21,6 +22,8 @@ namespace Entities.Entities
         public DateTime CreateDate { get; set; }
         public int MaxDiscountPercent { get; set; }
         public bool Active { get; set; }
+        public bool Approved { get; set; }
+        public string ApprovalValue { get; set; }
         public bool ShowToSite { get; set; }
         public bool Deleted { get; set; }
         public int CommentCount { get; set; }

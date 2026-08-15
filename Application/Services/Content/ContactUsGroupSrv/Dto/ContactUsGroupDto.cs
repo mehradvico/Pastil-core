@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Field;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Application.Services.Content.ContactUsGroupSrv.Dto
@@ -14,8 +15,7 @@ namespace Application.Services.Content.ContactUsGroupSrv.Dto
         [Display(Name = nameof(Resource.Field.Active), ResourceType = typeof(Resource.Field))]
         public bool Active { get; set; }
         public string Roles { get; set; }
-
-
+        public List<ContactUsFormFieldDto> FormFields { get; set; } = new List<ContactUsFormFieldDto>();
 
     }
 }

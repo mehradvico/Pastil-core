@@ -53,8 +53,9 @@ namespace Api.Areas.Agent.Controllers
                 return Forbid();
             dto.Active = false;
             dto.Approved = false;
+            dto.OwnerId = _currentUserService.CurrentUser.UserId;
             dto.Id = _currentUserService.CurrentUser.CompanionId.Value;
-            var companion = await _companionService.UpdateAsyncDto(dto);
+            var companion = await _companionService.ResubmitAsyncDto(dto, _currentUserService.CurrentUser.UserId);
             return Ok(companion);
         }
     }

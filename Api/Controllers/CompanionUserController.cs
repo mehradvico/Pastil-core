@@ -29,7 +29,7 @@ namespace Api.Controllers
         [ProducesResponseType(typeof(CompanionUserSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionUserInputDto dto)
         {
-            var CompanionUser = CompanionUserService.SearchDto(dto);
+            var CompanionUser = CompanionUserService.SearchPublic(dto);
             return Ok(CompanionUser);
         }
     }

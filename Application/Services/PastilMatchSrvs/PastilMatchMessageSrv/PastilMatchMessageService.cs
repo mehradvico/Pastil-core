@@ -4,6 +4,7 @@ using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Iface;
 using AutoMapper;
@@ -23,12 +24,18 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly ICurrentUserHelper _currentUser;
+        private readonly IPushNotificationService _pushNotificationService;
 
-        public PastilMatchMessageService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUser) : base(context, mapper)
+        public PastilMatchMessageService(
+            IDataBaseContext context,
+            IMapper mapper,
+            ICurrentUserHelper currentUser,
+            IPushNotificationService pushNotificationService) : base(context, mapper)
         {
             _context = context;
             this.mapper = mapper;
             _currentUser = currentUser;
+            _pushNotificationService = pushNotificationService;
         }
 
         public async Task<BaseResultDto<PastilMatchMessageVDto>> FindAsyncVDto(long id)
@@ -207,6 +214,15 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
 
                 await _context.PastilMatchMessages.AddAsync(item);
                 await _context.SaveChangesAsync();
+
+                var receiverProfile = senderProfile.Id == pastilMatch.FirstProfileId
+                    ? pastilMatch.SecondProfile
+                    : pastilMatch.FirstProfile;
+                await _pushNotificationService.SendPushAsync(
+                    PushTypeEnum.PushPastilMatchNewMessage,
+                    receiverProfile.UserPet.UserId,
+                    senderProfile.UserPet.User.FirstName,
+                    GetMessagePreview(dto));
 
                 return new BaseResultDto<PastilMatchMessageDto>(true, mapper.Map<PastilMatchMessageDto>(item));
             }
@@ -483,7 +499,22 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
 
         private IQueryable<PastilMatch> GetMatchQuery()
         {
-            return _context.PastilMatches.Include(s => s.FirstProfile).ThenInclude(s => s.UserPet).Include(s => s.SecondProfile).ThenInclude(s => s.UserPet).AsQueryable();
+            return _context.PastilMatches
+                .Include(s => s.FirstProfile).ThenInclude(s => s.UserPet).ThenInclude(s => s.User)
+                .Include(s => s.SecondProfile).ThenInclude(s => s.UserPet).ThenInclude(s => s.User)
+                .AsQueryable();
+        }
+
+        private static string GetMessagePreview(PastilMatchMessageDto dto)
+        {
+            if (dto.PastilMatchMessageTypeId == (long)PastilMatchMessageTypeEnum.PastilMatchMessageType_Image)
+                return "تصویر";
+
+            if (dto.PastilMatchMessageTypeId == (long)PastilMatchMessageTypeEnum.PastilMatchMessageType_Voice)
+                return "پیام صوتی";
+
+            var content = dto.Content?.Trim().Replace("\r", " ").Replace("\n", " ") ?? "پیام جدید";
+            return content.Length <= 80 ? content : $"{content[..80]}…";
         }
 
         private IQueryable<PastilMatchMessage> GetMessageQuery()

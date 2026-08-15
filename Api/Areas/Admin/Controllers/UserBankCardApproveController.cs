@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// کارت های بانکی
+    /// تایید کارت بانکی کاربر
     /// </summary>
     /// 
     [Area("Admin")]

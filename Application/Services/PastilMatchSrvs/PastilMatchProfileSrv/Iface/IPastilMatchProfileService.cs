@@ -16,6 +16,6 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Iface
         Task<BaseResultDto<PastilMatchProfileVDto>> FindAsyncVDto(long id);
         BaseResultDto UpdateActiveDto(PastilMatchProfileActiveDto dto);
         Task<BaseResultDto> RequestVerificationDto(PastilMatchProfileVerificationRequestDto dto);
-        BaseResultDto UpdateVerificationDto(PastilMatchProfileVerificationDto dto);
+        Task<BaseResultDto> UpdateVerificationDto(PastilMatchProfileVerificationDto dto);
     }
 }

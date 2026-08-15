@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// رزروهای نمایندگان
+    /// تغییر وضعیت رزرو نماینده
     /// </summary>
     /// 
     [Area("Admin")]

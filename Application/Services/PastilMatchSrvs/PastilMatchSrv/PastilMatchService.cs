@@ -3,6 +3,7 @@ using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.PastilMatchSrvs.PastilMatchSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchSrv.Iface;
 using AutoMapper;
@@ -22,12 +23,18 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly ICurrentUserHelper _currentUser;
+        private readonly IPushNotificationService _pushNotificationService;
 
-        public PastilMatchService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUser) : base(context, mapper)
+        public PastilMatchService(
+            IDataBaseContext context,
+            IMapper mapper,
+            ICurrentUserHelper currentUser,
+            IPushNotificationService pushNotificationService) : base(context, mapper)
         {
             _context = context;
             this.mapper = mapper;
             _currentUser = currentUser;
+            _pushNotificationService = pushNotificationService;
         }
 
         public async Task<BaseResultDto<PastilMatchVDto>> FindAsyncVDto(long id)
@@ -147,6 +154,43 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchSrv
         public override BaseResultDto DeleteDto(PastilMatchDto dto)
         {
             return DeleteDto(dto.Id);
+        }
+
+        public async Task<BaseResultDto> DeleteAsyncDto(long id)
+        {
+            var userId = _currentUser.CurrentUser.UserId;
+            var item = await _context.PastilMatches
+                .Include(s => s.FirstProfile).ThenInclude(s => s.UserPet).ThenInclude(s => s.User)
+                .Include(s => s.SecondProfile).ThenInclude(s => s.UserPet).ThenInclude(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            if (item.FirstProfile.UserPet.UserId != userId && item.SecondProfile.UserPet.UserId != userId)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+            if (item.StatusId != (long)PastilMatchStatusEnum.PastilMatchStatus_Active)
+                return new BaseResultDto(false, Resource.Notification.PastilMatchNotActive);
+
+            var actorProfile = item.FirstProfile.UserPet.UserId == userId
+                ? item.FirstProfile
+                : item.SecondProfile;
+            var receiverProfile = actorProfile.Id == item.FirstProfileId
+                ? item.SecondProfile
+                : item.FirstProfile;
+
+            item.StatusId = (long)PastilMatchStatusEnum.PastilMatchStatus_Closed;
+            item.CloseDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            await _pushNotificationService.SendPushAsync(
+                PushTypeEnum.PushPastilMatchClosed,
+                receiverProfile.UserPet.UserId,
+                actorProfile.UserPet.User.FirstName,
+                actorProfile.UserPet.Name);
+
+            return new BaseResultDto(true);
         }
 
         private IQueryable<PastilMatch> GetPastilMatchQuery()

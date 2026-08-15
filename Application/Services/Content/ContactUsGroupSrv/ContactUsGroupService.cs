@@ -39,46 +39,27 @@ namespace Application.Services.Content.ContactUsGroupSrv
             {
                 query = query.Where(s => s.Name.Contains(searchDto.Q));
             }
-            if (searchDto.SortBy != Common.Enumerable.SortEnum.Default)
+            switch (searchDto.SortBy)
             {
-                switch (searchDto.SortBy)
-                {
-                    case Common.Enumerable.SortEnum.Default:
-                        {
-                            query = query.OrderBy(s => s.Priority);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.New:
-                        {
-                            query = query.OrderByDescending(s => s.Id);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.Old:
-                        {
-                            query = query.OrderBy(s => s.Id);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.Name:
-                        {
-                            query = query.OrderByDescending(s => s.Name);
-                            break;
-                        }
-
-                    case Common.Enumerable.SortEnum.MorePriority:
-                        {
-                            query = query.OrderByDescending(s => s.Priority);
-                            break;
-                        }
-                    case Common.Enumerable.SortEnum.LessPriority:
-                        {
-                            query = query.OrderBy(s => s.Priority);
-                            break;
-                        }
-                    default:
-                        break;
-                }
+                case Common.Enumerable.SortEnum.New:
+                    query = query.OrderByDescending(s => s.Id);
+                    break;
+                case Common.Enumerable.SortEnum.Old:
+                    query = query.OrderBy(s => s.Id);
+                    break;
+                case Common.Enumerable.SortEnum.Name:
+                    query = query.OrderBy(s => s.Name);
+                    break;
+                case Common.Enumerable.SortEnum.MorePriority:
+                    query = query.OrderByDescending(s => s.Priority);
+                    break;
+                default:
+                    query = query.OrderBy(s => s.Priority);
+                    break;
             }
-            return new BaseSearchDto<ContactUsGroup, ContactUsGroupDto>(searchDto, query, mapper);
+            var result = new BaseSearchDto<ContactUsGroup, ContactUsGroupDto>(searchDto, query, mapper);
+            SetFormFields(result.List);
+            return result;
         }
         public BaseResultDto GetForRole()
         {
@@ -86,9 +67,20 @@ namespace Application.Services.Content.ContactUsGroupSrv
 
             if (_currentUserDto.RoleEnum != RoleEnum.Admin.ToString())
             {
-                model = model.Where(s => s.Roles.Contains(_currentUserDto.RoleEnum));
+                model = model.Where(s => s.Roles != null && s.Roles.Contains(_currentUserDto.RoleEnum));
             }
-            return new BaseResultDto<List<ContactUsGroupDto>>(true, mapper.Map<List<ContactUsGroupDto>>(model));
+            model = model.OrderBy(s => s.Priority);
+            var items = mapper.Map<List<ContactUsGroupDto>>(model);
+            SetFormFields(items);
+            return new BaseResultDto<List<ContactUsGroupDto>>(true, items);
+        }
+
+        private static void SetFormFields(List<ContactUsGroupDto> items)
+        {
+            foreach (var item in items)
+            {
+                item.FormFields = ContactUsGroupFormSchema.GetFields(item.Label);
+            }
         }
 
     }

@@ -76,12 +76,12 @@ namespace Api.Areas.Companion.Controllers
         /// 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<CompanionUserDto>), 200)]
-        public IActionResult Put(CompanionUserDto CompanionUserDto)
+        public async Task<IActionResult> Put(CompanionUserDto CompanionUserDto)
         {
             if (!CurrentUserDto.CompanionId.HasValue)
                 return Forbid();
             CompanionUserDto.CompanionId = CurrentUserDto.CompanionId.Value;
-            var result = CompanionUserService.Active(CompanionUserDto);
+            var result = await CompanionUserService.Active(CompanionUserDto);
             return Ok(result);
         }
 

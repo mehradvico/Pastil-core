@@ -56,6 +56,7 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
                 else
                 {
                     sub.DeviceKey = dto.DeviceKey;
+                    sub.UserId = null;
                 }
             }
 

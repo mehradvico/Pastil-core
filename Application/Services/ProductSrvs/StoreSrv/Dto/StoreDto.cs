@@ -8,6 +8,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
 {
     public class StoreDto : Seo_Full_FieldDto
     {
+        public string ReferralCode { get; set; }
         public string Phone { get; set; }
         public string Mobile { get; set; }
         public string Email { get; set; }
@@ -21,6 +22,8 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
         public bool Active { get; set; }
+        public bool Approved { get; set; }
+        public string ApprovalValue { get; set; }
         public bool ShowToSite { get; set; }
         public PictureVDto Picture { get; set; }
         public List<UserVDto> Users { get; set; }

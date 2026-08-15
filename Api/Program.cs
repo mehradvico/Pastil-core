@@ -12,6 +12,7 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -26,6 +27,7 @@ using Utility.Reflection.Iface;
 using NetTopologySuite.IO.Converters;
 using Application.Services.PastilAISrv.Provider;
 using Application.Services.MemorySrvs.MemorySrv.Iface;
+using Application.Services.ReminderSrvs.ReminderSrv.Iface;
 using System.Threading.RateLimiting;
 
 DotEnvLoader.Load();
@@ -37,6 +39,13 @@ SecretConfiguration.Apply(
     includeVapidKeys: true);
 
 builder.Services.AddOutputCache();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+    options.ForwardLimit = 1;
+});
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy("Search", httpContext =>
@@ -47,6 +56,39 @@ builder.Services.AddRateLimiter(options =>
                 PermitLimit = 30,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 2,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("ContactUs", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("AccountSignIn", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("AccountRecovery", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 AutoReplenishment = true
             }));
@@ -206,15 +248,20 @@ var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>(
 recurringJobManager.AddOrUpdate<INoticeService>("ArchiveNotices", x => x.ArchiveExpiredAsync(), Cron.Hourly);
 var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
     OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
-var memoryReminderHour = Math.Clamp(
-    builder.Configuration.GetValue<int?>("Memory:ReminderHour") ?? 22,
-    0,
-    23);
 recurringJobManager.AddOrUpdate<IMemoryService>(
     "MemoryDailyReminder",
     service => service.SendDailyReminderAsync(CancellationToken.None),
-    Cron.Daily(memoryReminderHour),
+    Cron.Hourly,
     new RecurringJobOptions { TimeZone = tehranTimeZone });
+recurringJobManager.AddOrUpdate<IReminderService>(
+    "Reminder",
+    service => service.SyncReminderAsync(),
+    Cron.Hourly,
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
+recurringJobManager.AddOrUpdate<Application.Services.CommonSrv.PushNotificationSrv.Iface.IPushNotificationService>(
+    "PushNotificationDispatch",
+    service => service.SendPushGroupAsync(100),
+    "*/5 * * * *");
 
 app.UseRequestLocalization();
 app.UseHangfireDashboard();
@@ -222,6 +269,7 @@ if (app.Environment.IsDevelopment())
 {
 
 }
+app.UseForwardedHeaders();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

@@ -4,6 +4,7 @@ using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Iface;
 using AutoMapper;
@@ -23,12 +24,18 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly ICurrentUserHelper _currentUser;
+        private readonly IPushNotificationService _pushNotificationService;
 
-        public PastilMatchMessageReactionService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUser) : base(context, mapper)
+        public PastilMatchMessageReactionService(
+            IDataBaseContext context,
+            IMapper mapper,
+            ICurrentUserHelper currentUser,
+            IPushNotificationService pushNotificationService) : base(context, mapper)
         {
             _context = context;
             this.mapper = mapper;
             _currentUser = currentUser;
+            _pushNotificationService = pushNotificationService;
         }
 
         public async Task<BaseResultDto<PastilMatchMessageReactionVDto>> FindAsyncVDto(long id)
@@ -128,8 +135,8 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
                 }
 
                 var message = await _context.PastilMatchMessages
-                    .Include(s => s.PastilMatch).ThenInclude(s => s.FirstProfile).ThenInclude(s => s.UserPet)
-                    .Include(s => s.PastilMatch).ThenInclude(s => s.SecondProfile).ThenInclude(s => s.UserPet)
+                    .Include(s => s.PastilMatch).ThenInclude(s => s.FirstProfile).ThenInclude(s => s.UserPet).ThenInclude(s => s.User)
+                    .Include(s => s.PastilMatch).ThenInclude(s => s.SecondProfile).ThenInclude(s => s.UserPet).ThenInclude(s => s.User)
                     .FirstOrDefaultAsync(s => s.Id == dto.PastilMatchMessageId && !s.Deleted);
 
                 if (message == null)
@@ -182,6 +189,25 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
                 }
 
                 await _context.SaveChangesAsync();
+
+                if (message.SenderProfileId.HasValue)
+                {
+                    var reactorProfile = reactorProfileId == message.PastilMatch.FirstProfileId
+                        ? message.PastilMatch.FirstProfile
+                        : message.PastilMatch.SecondProfile;
+                    var messageSenderProfile = message.SenderProfileId == message.PastilMatch.FirstProfileId
+                        ? message.PastilMatch.FirstProfile
+                        : message.PastilMatch.SecondProfile;
+
+                    if (messageSenderProfile.UserPet.UserId != userId)
+                    {
+                        await _pushNotificationService.SendPushAsync(
+                            PushTypeEnum.PushPastilMatchMessageReaction,
+                            messageSenderProfile.UserPet.UserId,
+                            reactorProfile.UserPet.User.FirstName,
+                            reactionValue);
+                    }
+                }
 
                 return new BaseResultDto<PastilMatchMessageReactionDto>(true, mapper.Map<PastilMatchMessageReactionDto>(item));
             }

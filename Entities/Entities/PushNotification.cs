@@ -35,6 +35,8 @@ namespace Entities.Entities
         public DateTime CreateDate { get; set; }
         public DateTime? SendDate { get; set; }
         public DateTime? SentDate { get; set; }
+        public int AttemptCount { get; set; }
+        public DateTime? NextAttemptDate { get; set; }
 
         public PushPattern PushPattern { get; set; }
         public Notice Notice { get; set; }

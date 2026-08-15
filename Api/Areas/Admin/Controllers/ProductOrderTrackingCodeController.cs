@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// سفارش ها
+    /// ثبت کد رهگیری سفارش
     /// </summary>
     ///
     [Area("Admin")]

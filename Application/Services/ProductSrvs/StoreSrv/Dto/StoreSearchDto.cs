@@ -15,6 +15,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
             CityId = dto.CityId;
             StateId = dto.StateId;
             ShowToSite = dto.ShowToSite;
+            Approved = dto.Approved;
         }
         public long? UserId { get; set; }
         public long? TypeId { get; set; }
@@ -22,6 +23,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
         public long? CityId { get; set; }
         public long? StateId { get; set; }
         public bool? ShowToSite { get; set; }
+        public bool? Approved { get; set; }
 
     }
 }

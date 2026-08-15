@@ -2,6 +2,8 @@
 using Application.Common.Helpers;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Common.Enumerable.Code;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv.Iface;
 using AutoMapper;
@@ -21,12 +23,18 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly ICurrentUserHelper _currentUser;
+        private readonly IPushNotificationService _pushNotificationService;
 
-        public PastilMatchProfileLikeService( IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUser) : base(context, mapper)
+        public PastilMatchProfileLikeService(
+            IDataBaseContext context,
+            IMapper mapper,
+            ICurrentUserHelper currentUser,
+            IPushNotificationService pushNotificationService) : base(context, mapper)
         {
             _context = context;
             this.mapper = mapper;
             _currentUser = currentUser;
+            _pushNotificationService = pushNotificationService;
         }
 
         public override async Task<BaseResultDto<PastilMatchProfileLikeDto>>
@@ -48,7 +56,9 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv
                     return new BaseResultDto<PastilMatchProfileLikeDto>(false, Resource.Notification.PastilMatchProfileCannotLikeItself, dto);
                 }
 
-                var likerProfile = await _context.PastilMatchProfiles.Include(s => s.UserPet).FirstOrDefaultAsync(s => s.Id == dto.LikerProfileId && !s.Deleted);
+                var likerProfile = await _context.PastilMatchProfiles
+                    .Include(s => s.UserPet).ThenInclude(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Id == dto.LikerProfileId && !s.Deleted);
 
                 if (likerProfile == null)
                 {
@@ -60,7 +70,9 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv
                     return new BaseResultDto<PastilMatchProfileLikeDto>(false, Resource.Notification.AccessDenied,dto);
                 }
 
-                var likedProfile = await _context.PastilMatchProfiles.FirstOrDefaultAsync(s => s.Id == dto.LikedProfileId && !s.Deleted && s.IsActive);
+                var likedProfile = await _context.PastilMatchProfiles
+                    .Include(s => s.UserPet)
+                    .FirstOrDefaultAsync(s => s.Id == dto.LikedProfileId && !s.Deleted && s.IsActive);
 
                 if (likedProfile == null)
                 {
@@ -96,6 +108,12 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv
                 _context.PastilMatchProfiles.Update(likedProfile);
 
                 await _context.SaveChangesAsync();
+
+                await _pushNotificationService.SendPushAsync(
+                    PushTypeEnum.PushPastilMatchProfileLiked,
+                    likedProfile.UserPet.UserId,
+                    likerProfile.UserPet.User.FirstName,
+                    likedProfile.UserPet.Name);
 
                 return new BaseResultDto<PastilMatchProfileLikeDto>(true, mapper.Map<PastilMatchProfileLikeDto>(profileLike));
             }

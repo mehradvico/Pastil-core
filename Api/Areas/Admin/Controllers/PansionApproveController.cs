@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// پانسیون ها
+    /// تایید درخواست پانسیون
     /// </summary>
     /// 
     [Area("Admin")]
@@ -29,9 +29,9 @@ namespace Api.Areas.Admin.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(PansionApproveDto dto)
+        public async Task<IActionResult> Put(PansionApproveDto dto)
         {
-            var Pansion = _PansionService.UpdatePansionApproveDto(dto);
+            var Pansion = await _PansionService.UpdatePansionApproveAsyncDto(dto);
             return Ok(Pansion);
         }
     }

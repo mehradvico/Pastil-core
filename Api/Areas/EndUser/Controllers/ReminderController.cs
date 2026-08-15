@@ -39,9 +39,11 @@ namespace Api.Areas.EndUser.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BaseResultDto<ReminderVDto>), 200)]
         public async Task<IActionResult> Get(long id)
-        {          
-            var Driver = await _reminderService.FindAsyncVDto(id);
-            return Ok(Driver);
+        {
+            var result = await _reminderService.FindUserAsyncVDto(
+                id,
+                _currentUser.CurrentUser.UserId);
+            return Ok(result);
         }
 
         /// <summary>
@@ -62,10 +64,12 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>  
         [HttpPost]
         [ProducesResponseType(typeof(BaseResultDto<ReminderDto>), 200)]
-        public async Task<IActionResult> Post(ReminderDto roleDto)
+        public async Task<IActionResult> Post(ReminderDto reminderDto)
         {
-            var dto = await _reminderService.InsertAsyncDto(roleDto);
-            return Ok(dto);
+            var result = await _reminderService.InsertUserAsyncDto(
+                reminderDto,
+                _currentUser.CurrentUser.UserId);
+            return Ok(result);
         }
         /// <summary>
         /// حذف آیتم
@@ -73,10 +77,12 @@ namespace Api.Areas.EndUser.Controllers
         ///
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
-            var dto = _reminderService.DeleteDto(id);
-            return Ok(dto);
+            var result = await _reminderService.DeleteUserAsync(
+                id,
+                _currentUser.CurrentUser.UserId);
+            return Ok(result);
         }
     }
 }

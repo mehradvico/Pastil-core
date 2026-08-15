@@ -4,6 +4,7 @@ using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.PastilMatchSrvs.PastilMatchRequestSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchRequestSrv.Iface;
 using Application.Services.PastilMatchSrvs.PastilMatchSuggestionSrv;
@@ -24,12 +25,18 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly ICurrentUserHelper _currentUser;
+        private readonly IPushNotificationService _pushNotificationService;
 
-        public PastilMatchRequestService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUser) : base(context, mapper)
+        public PastilMatchRequestService(
+            IDataBaseContext context,
+            IMapper mapper,
+            ICurrentUserHelper currentUser,
+            IPushNotificationService pushNotificationService) : base(context, mapper)
         {
             _context = context;
             this.mapper = mapper;
             _currentUser = currentUser;
+            _pushNotificationService = pushNotificationService;
         }
 
         public async Task<BaseResultDto<PastilMatchRequestVDto>> FindAsyncVDto(long id)
@@ -133,6 +140,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
 
                 var senderProfile = await _context.PastilMatchProfiles
                     .Include(s => s.UserPet)
+                    .ThenInclude(s => s.User)
                     .Include(s => s.PastilMatchProfileGoals.Where(goal => !goal.Deleted))
                     .FirstOrDefaultAsync(s =>
                         s.Id == dto.SenderProfileId &&
@@ -153,6 +161,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
 
                 var receiverProfile = await _context.PastilMatchProfiles
                     .Include(s => s.UserPet)
+                    .ThenInclude(s => s.User)
                     .Include(s => s.PastilMatchProfileGoals.Where(goal => !goal.Deleted))
                     .FirstOrDefaultAsync(s =>
                         s.Id == dto.ReceiverProfileId &&
@@ -230,6 +239,12 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
                 await _context.PastilMatchRequests.AddAsync(item);
                 await _context.SaveChangesAsync();
 
+                await _pushNotificationService.SendPushAsync(
+                    PushTypeEnum.PushPastilMatchRequestReceived,
+                    receiverProfile.UserPet.UserId,
+                    senderProfile.UserPet.User.FirstName,
+                    senderProfile.UserPet.Name);
+
                 return new BaseResultDto<PastilMatchRequestDto>(true, mapper.Map<PastilMatchRequestDto>(item));
             }
             catch (Exception ex)
@@ -251,7 +266,10 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
                     return new BaseResultDto(false, Resource.Notification.InvalidPastilMatchRequestStatus);
                 }
 
-                var item = await _context.PastilMatchRequests.Include(s => s.ReceiverProfile).ThenInclude(s => s.UserPet).FirstOrDefaultAsync(s => s.Id == dto.Id);
+                var item = await _context.PastilMatchRequests
+                    .Include(s => s.SenderProfile).ThenInclude(s => s.UserPet).ThenInclude(s => s.User)
+                    .Include(s => s.ReceiverProfile).ThenInclude(s => s.UserPet).ThenInclude(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Id == dto.Id);
 
                 if (item == null)
                 {
@@ -299,6 +317,14 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
 
                 _context.PastilMatchRequests.Update(item);
                 await _context.SaveChangesAsync();
+
+                await _pushNotificationService.SendPushAsync(
+                    dto.StatusId == acceptedStatusId
+                        ? PushTypeEnum.PushPastilMatchRequestAccepted
+                        : PushTypeEnum.PushPastilMatchRequestRejected,
+                    item.SenderProfile.UserPet.UserId,
+                    item.ReceiverProfile.UserPet.User.FirstName,
+                    item.ReceiverProfile.UserPet.Name);
 
                 return new BaseResultDto(true);
             }
@@ -376,6 +402,36 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
             );
 
             return score.TotalPercent;
+        }
+
+        public async Task<BaseResultDto> DeleteAsyncDto(long id)
+        {
+            var userId = _currentUser.CurrentUser.UserId;
+            var item = await _context.PastilMatchRequests
+                .Include(s => s.SenderProfile).ThenInclude(s => s.UserPet).ThenInclude(s => s.User)
+                .Include(s => s.ReceiverProfile).ThenInclude(s => s.UserPet)
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            if (item.SenderProfile.UserPet.UserId != userId)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+            if (item.StatusId != (long)PastilMatchRequestStatusEnum.PastilMatchRequestStatus_Pending)
+                return new BaseResultDto(false, Resource.Notification.PastilMatchRequestNotPending);
+
+            item.StatusId = (long)PastilMatchRequestStatusEnum.PastilMatchRequestStatus_Cancelled;
+            item.CancelDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            await _pushNotificationService.SendPushAsync(
+                PushTypeEnum.PushPastilMatchRequestCancelled,
+                item.ReceiverProfile.UserPet.UserId,
+                item.SenderProfile.UserPet.User.FirstName,
+                item.SenderProfile.UserPet.Name);
+
+            return new BaseResultDto(true);
         }
 
         private static IEnumerable<long> GetBreedIds(PastilMatchProfile profile)

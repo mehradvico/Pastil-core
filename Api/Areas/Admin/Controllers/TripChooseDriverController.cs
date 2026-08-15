@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// سفر ها
+    /// انتخاب راننده سفر
     /// </summary>
     /// 
     [Area("Admin")]
@@ -37,4 +37,3 @@ namespace Api.Areas.Admin.Controllers
         }
     }
 }
-

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// رانندگان
+    /// تغییر وضعیت راننده
     /// </summary>
     /// 
     [Area("Admin")]
@@ -30,9 +30,9 @@ namespace Api.Areas.Admin.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(DriverUpdateStatusDto dto)
+        public async Task<IActionResult> Put(DriverUpdateStatusDto dto)
         {
-            var Driver = _DriverService.DriverUpdateStatusDto(dto);
+            var Driver = await _DriverService.DriverUpdateStatusAsyncDto(dto);
             return Ok(Driver);
         }
     }

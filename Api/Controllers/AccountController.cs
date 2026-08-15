@@ -8,6 +8,7 @@ using Application.Services.Accounting.UserTokenSrv.Iface;
 using Application.Services.Dto;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Controllers
 {
@@ -59,6 +60,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpPost]
         [Route("signin")]
+        [EnableRateLimiting("AccountSignIn")]
         public async Task<IActionResult> Post(SignInDto dto)
         {
             var signIn = await userService.SignIn(dto);
@@ -69,6 +71,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpPost]
         [Route("signup")]
+        [EnableRateLimiting("AccountSignIn")]
         public async Task<IActionResult> Post(SignUpDto dto)
         {
             var signUp = await userService.SignUp(dto);
@@ -100,6 +103,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpPost]
         [Route("changepassword")]
+        [EnableRateLimiting("AccountRecovery")]
         public async Task<IActionResult> Post(ChangePasswordDto dto)
         {
             var signUp = await userService.ChangePassword(dto);
@@ -110,6 +114,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpPost]
         [Route("forgetpassword")]
+        [EnableRateLimiting("AccountRecovery")]
         public async Task<IActionResult> Post(ForgetPasswordDto dto)
         {
             var forget = await userService.ForgetPassword(dto);
@@ -120,6 +125,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpPost]
         [Route("resetpassword")]
+        [EnableRateLimiting("AccountRecovery")]
         public async Task<IActionResult> Post(ResetPasswordDto dto)
         {
             var reset = await userService.ResetPassword(dto);

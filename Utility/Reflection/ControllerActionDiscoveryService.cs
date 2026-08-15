@@ -23,7 +23,7 @@ namespace Utility.Reflection
         {
             var summaries = ReadXmlSummaries(xmlComments);
 
-            return assembly
+            var controllers = assembly
                 .GetTypes()
                 .Where(IsAdminApiController)
                 .Select(type => CreateControllerInfo(type, summaries))
@@ -31,6 +31,9 @@ namespace Utility.Reflection
                 .ThenBy(controller => controller.Priority)
                 .ThenBy(controller => controller.Name)
                 .ToList();
+
+            EnsureUniqueControllerDisplayNames(controllers);
+            return controllers;
         }
 
         public async Task<PermissionSyncResultDto> SynchronizePermissionsAsync(
@@ -57,6 +60,7 @@ namespace Utility.Reflection
             await using var transaction = await _context.BeginTransactionAsync(cancellationToken);
             try
             {
+                await AcquireSynchronizationLockAsync(cancellationToken);
                 await NormalizeParentPermissionsAsync(cancellationToken);
 
                 var permissions = await _context.Permissions
@@ -69,6 +73,8 @@ namespace Utility.Reflection
                 {
                     SynchronizeController(controller, permissions, result);
                 }
+
+                EnsureUniquePermissionKeys(permissions, controllers);
 
                 await _context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
@@ -130,6 +136,26 @@ namespace Utility.Reflection
             };
         }
 
+        private static void EnsureUniqueControllerDisplayNames(
+            IReadOnlyCollection<ControllerActionInfoDto> controllers)
+        {
+            var duplicate = controllers
+                .GroupBy(
+                    controller => $"{controller.ParentId}:{NormalizeKey(controller.Summary)}",
+                    StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault(group => group.Count() > 1);
+
+            if (duplicate == null)
+                return;
+
+            var controllerNames = string.Join(
+                ", ",
+                duplicate.Select(x => x.Name).OrderBy(x => x));
+
+            throw new InvalidOperationException(
+                $"Duplicate admin permission display name detected for: {controllerNames}.");
+        }
+
         private void SynchronizeController(
             ControllerActionInfoDto controller,
             List<Permission> permissions,
@@ -146,10 +172,14 @@ namespace Utility.Reflection
             var controllerPermissions = permissions
                 .Where(x =>
                     string.Equals(x.Controller, controller.Name, StringComparison.OrdinalIgnoreCase) &&
-                    string.Equals(x.Area, "Admin", StringComparison.OrdinalIgnoreCase))
+                    (string.IsNullOrWhiteSpace(x.Area) ||
+                     string.Equals(x.Area, "Admin", StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
-            var anchor = FindPermission(controllerPermissions, anchorAction.Name)
+            var anchor = FindPermission(
+                    controllerPermissions,
+                    anchorAction.Name,
+                    controller.ParentId)
                 ?? controllerPermissions
                     .Where(x => x.ParentId is >= 1 and <= 13)
                     .OrderBy(x => x.Deleted)
@@ -189,9 +219,14 @@ namespace Utility.Reflection
             if (anchorWasChanged && anchor.Id != 0)
                 result.UpdatedCount++;
 
+            var canonicalPermissions = new List<Permission> { anchor };
+
             foreach (var action in controller.Actions.Where(x => x != anchorAction))
             {
-                var permission = FindPermission(controllerPermissions, action.Name);
+                var permission = FindPermission(
+                    controllerPermissions,
+                    action.Name,
+                    anchor.Id == 0 ? null : anchor.Id);
                 var permissionIsNew = permission == null;
                 if (permission == null)
                 {
@@ -224,18 +259,115 @@ namespace Utility.Reflection
 
                 if (changed && permission.Id != 0)
                     result.UpdatedCount++;
+
+                canonicalPermissions.Add(permission);
             }
+
+            MergeDuplicateControllerPermissions(
+                controllerPermissions,
+                canonicalPermissions,
+                permissions,
+                result);
         }
 
         private static Permission FindPermission(
             IEnumerable<Permission> permissions,
-            string action)
+            string action,
+            long? expectedParentId)
         {
             return permissions
                 .Where(x => string.Equals(x.Action, action, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(x => x.Deleted)
+                .ThenByDescending(x =>
+                    string.Equals(x.Area, "Admin", StringComparison.OrdinalIgnoreCase))
+                .ThenByDescending(x =>
+                    expectedParentId.HasValue && x.ParentId == expectedParentId)
                 .ThenBy(x => x.Id)
                 .FirstOrDefault();
+        }
+
+        private void MergeDuplicateControllerPermissions(
+            IReadOnlyCollection<Permission> controllerPermissions,
+            IReadOnlyCollection<Permission> canonicalPermissions,
+            List<Permission> allPermissions,
+            PermissionSyncResultDto result)
+        {
+            var duplicates = controllerPermissions
+                .Where(permission => !canonicalPermissions.Contains(permission))
+                .ToList();
+
+            foreach (var duplicate in duplicates)
+            {
+                var canonical = canonicalPermissions.FirstOrDefault(permission =>
+                    string.Equals(
+                        permission.Action,
+                        duplicate.Action,
+                        StringComparison.OrdinalIgnoreCase));
+
+                if (canonical == null)
+                {
+                    if (!duplicate.Deleted || duplicate.IsMenu)
+                    {
+                        duplicate.Deleted = true;
+                        duplicate.IsMenu = false;
+                        result.UpdatedCount++;
+                    }
+
+                    continue;
+                }
+
+                foreach (var role in duplicate.Roles.ToList())
+                {
+                    if (canonical.Roles.All(x => x.Id != role.Id))
+                        canonical.Roles.Add(role);
+                }
+
+                duplicate.Roles.Clear();
+
+                foreach (var child in allPermissions.Where(x => x.ParentId == duplicate.Id))
+                {
+                    child.Parent = canonical;
+                    child.ParentId = canonical.Id == 0 ? null : canonical.Id;
+                }
+
+                _context.Permissions.Remove(duplicate);
+                allPermissions.Remove(duplicate);
+                result.MergedDuplicateCount++;
+            }
+        }
+
+        private static void EnsureUniquePermissionKeys(
+            IReadOnlyCollection<Permission> permissions,
+            IReadOnlyCollection<ControllerActionInfoDto> controllers)
+        {
+            var controllerNames = controllers
+                .Select(x => x.Name)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var duplicate = permissions
+                .Where(x =>
+                    !x.Deleted &&
+                    controllerNames.Contains(x.Controller) &&
+                    (string.IsNullOrWhiteSpace(x.Area) ||
+                     string.Equals(x.Area, "Admin", StringComparison.OrdinalIgnoreCase)))
+                .GroupBy(
+                    x => $"{NormalizeKey(x.Controller)}:{NormalizeKey(x.Action)}",
+                    StringComparer.OrdinalIgnoreCase)
+                .FirstOrDefault(group => group.Count() > 1);
+
+            if (duplicate == null)
+                return;
+
+            throw new InvalidOperationException(
+                $"Duplicate admin permission key detected for controller '{duplicate.First().Controller}' " +
+                $"and action '{duplicate.First().Action}'.");
+        }
+
+        private static string NormalizeKey(string value)
+        {
+            return string.IsNullOrWhiteSpace(value)
+                ? string.Empty
+                : value.Trim().ToUpperInvariant();
         }
 
         private static bool ApplyPermission(
@@ -307,6 +439,16 @@ namespace Utility.Reflection
                 throw new InvalidOperationException("Permission synchronization requires an EF Core DbContext.");
 
             await dbContext.Database.ExecuteSqlRawAsync(ParentNormalizationSql, cancellationToken);
+        }
+
+        private async Task AcquireSynchronizationLockAsync(CancellationToken cancellationToken)
+        {
+            if (_context is not DbContext dbContext)
+                throw new InvalidOperationException("Permission synchronization requires an EF Core DbContext.");
+
+            await dbContext.Database.ExecuteSqlRawAsync(
+                SynchronizationLockSql,
+                cancellationToken);
         }
 
         private static bool IsAdminApiController(Type type)
@@ -409,6 +551,19 @@ namespace Utility.Reflection
                         StringSplitOptions.RemoveEmptyEntries));
         }
 
+        private const string SynchronizationLockSql = """
+            DECLARE @LockResult int;
+
+            EXEC @LockResult = sys.sp_getapplock
+                @Resource = N'Pastil.PermissionSync',
+                @LockMode = N'Exclusive',
+                @LockOwner = N'Transaction',
+                @LockTimeout = 30000;
+
+            IF @LockResult < 0
+                THROW 51002, 'Could not acquire the permission synchronization lock.', 1;
+            """;
+
         private const string ParentNormalizationSql = """
             SET XACT_ABORT ON;
 
@@ -436,6 +591,61 @@ namespace Utility.Reflection
                 (10, N'مدیریت پاستیل فرند', N'PastilMatchManagement', NULL, 11),
                 (12, N'مدیریت سایت', N'SiteManagement', NULL, 12),
                 (13, N'مدیریت پاستیل کلاب', N'PastilClubManagement', NULL, 13);
+
+            CREATE TABLE #DuplicateParentMap
+            (
+                DuplicateId bigint NOT NULL PRIMARY KEY,
+                CanonicalId bigint NOT NULL
+            );
+
+            ;WITH ParentCandidates AS
+            (
+                SELECT
+                    p.Id,
+                    d.Id AS DesiredId,
+                    FIRST_VALUE(p.Id) OVER
+                    (
+                        PARTITION BY d.Id
+                        ORDER BY CASE WHEN p.Id = d.Id THEN 0 ELSE 1 END, p.Id
+                    ) AS CanonicalId
+                FROM dbo.Permissions AS p
+                INNER JOIN @Desired AS d
+                    ON p.Label = d.Label OR p.Label = d.AlternateLabel
+                WHERE p.ParentId IS NULL
+            )
+            INSERT INTO #DuplicateParentMap (DuplicateId, CanonicalId)
+            SELECT Id, CanonicalId
+            FROM ParentCandidates
+            WHERE Id <> CanonicalId;
+
+            INSERT INTO dbo.PermissionRole (PermissionsId, RolesId)
+            SELECT DISTINCT duplicateMap.CanonicalId, permissionRole.RolesId
+            FROM #DuplicateParentMap AS duplicateMap
+            INNER JOIN dbo.PermissionRole AS permissionRole
+                ON permissionRole.PermissionsId = duplicateMap.DuplicateId
+            WHERE NOT EXISTS
+            (
+                SELECT 1
+                FROM dbo.PermissionRole AS existingRole
+                WHERE existingRole.PermissionsId = duplicateMap.CanonicalId
+                  AND existingRole.RolesId = permissionRole.RolesId
+            );
+
+            UPDATE child
+            SET child.ParentId = duplicateMap.CanonicalId
+            FROM dbo.Permissions AS child
+            INNER JOIN #DuplicateParentMap AS duplicateMap
+                ON child.ParentId = duplicateMap.DuplicateId;
+
+            DELETE permissionRole
+            FROM dbo.PermissionRole AS permissionRole
+            INNER JOIN #DuplicateParentMap AS duplicateMap
+                ON permissionRole.PermissionsId = duplicateMap.DuplicateId;
+
+            DELETE duplicateParent
+            FROM dbo.Permissions AS duplicateParent
+            INNER JOIN #DuplicateParentMap AS duplicateMap
+                ON duplicateParent.Id = duplicateMap.DuplicateId;
 
             IF (
                 SELECT COUNT(*)

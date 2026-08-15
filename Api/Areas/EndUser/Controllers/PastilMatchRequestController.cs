@@ -60,9 +60,9 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), StatusCodes.Status200OK)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
-            var result = _pastilMatchRequestService.DeleteDto(id);
+            var result = await _pastilMatchRequestService.DeleteAsyncDto(id);
             return Ok(result);
         }
     }

@@ -14,6 +14,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
 {
     public class StoreVDto : Seo_Full_FieldDto
     {
+        public string ReferralCode { get; set; }
         public string Phone { get; set; }
         public string Mobile { get; set; }
         public string Email { get; set; }
@@ -26,7 +27,10 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
         public int MaxDiscountPercent { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
+        public int CommentCount { get; set; }
         public bool Active { get; set; }
+        public bool Approved { get; set; }
+        public string ApprovalValue { get; set; }
         public bool ShowToSite { get; set; }
         public decimal CommissionPercent { get; set; }
         public PointDto Location { get; set; }

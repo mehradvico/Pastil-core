@@ -12,11 +12,14 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Iface
     {
         CompanionSearchDto Search(CompanionInputDto baseSearchDto);
         Task<BaseResultDto<CompanionVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
         Task<BaseResultDto<NearbyCompanionSearchDto>> GetNearbyAsync(long userId, NearbyCompanionInputDto inputDto);
         Task<BaseResultDto> UpdateGoldAccountDto(CompanionGoldAccountDto dto);
         BaseResultDto UpdateSilverAccountDto(CompanionSilverAccountDto dto);
         BaseResultDto ActivationDto(CompanionActivationDto dto);
         Task<BaseResultDto> UpdateAsyncDto(CompanionDto dto);
+        Task<BaseResultDto> ResubmitAsyncDto(CompanionDto dto, long ownerId);
+        Task<BaseResultDto> ActivationAsyncDto(CompanionActivationDto dto);
         Task<List<SearchCompanionDto>> SearchMinAsync(SearchRequestDto request);
         void UpdateCompanionCommentCount(long companionId);
         Task UpdateCompanionCommentRateAsync(long Id);

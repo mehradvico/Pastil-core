@@ -178,6 +178,7 @@ namespace Persistence.Context
         public DbSet<EmailHost> EmailHosts { get; set; }
         public DbSet<EmailSetting> EmailSettings { get; set; }
         public DbSet<Feature> Features { get; set; }
+        public DbSet<Expertise> Expertises { get; set; }
         public DbSet<FeatureItem> FeatureItems { get; set; }
         public DbSet<File> Files { get; set; }
         public DbSet<Gallery> Galleries { get; set; }
@@ -332,6 +333,75 @@ namespace Persistence.Context
             modelBuilder.Entity<Store>()
                 .Property(item => item.CommissionPercent)
                 .HasPrecision(5, 2);
+            modelBuilder.Entity<Companion>(entity =>
+            {
+                entity.Property(item => item.ReferralCode)
+                    .IsRequired()
+                    .HasMaxLength(10);
+                entity.HasIndex(item => item.ReferralCode)
+                    .IsUnique();
+            });
+            modelBuilder.Entity<Store>(entity =>
+            {
+                entity.Property(item => item.ReferralCode)
+                    .IsRequired()
+                    .HasMaxLength(10);
+                entity.HasIndex(item => item.ReferralCode)
+                    .IsUnique();
+            });
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.Property(item => item.ReferralCode)
+                    .HasMaxLength(10);
+                entity.Property(item => item.UsedReferralCode)
+                    .HasMaxLength(10);
+                entity.HasIndex(item => item.ReferralCode)
+                    .IsUnique()
+                    .HasFilter("[ReferralCode] IS NOT NULL");
+                entity.HasIndex(item => new
+                {
+                    item.RegistrationReferralSource,
+                    item.ReferredByUserId,
+                    item.ReferredByCompanionId,
+                    item.ReferredByStoreId
+                });
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(item => item.ReferredByUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<Companion>()
+                    .WithMany()
+                    .HasForeignKey(item => item.ReferredByCompanionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<Store>()
+                    .WithMany()
+                    .HasForeignKey(item => item.ReferredByStoreId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<Reminder>(entity =>
+            {
+                entity.HasIndex(item => new
+                {
+                    item.UserPetId,
+                    item.ReminderTypeId,
+                    item.ReminderCycleId,
+                    item.StartDate
+                })
+                    .IsUnique()
+                    .HasFilter("[Deleted] = 0");
+            });
+            modelBuilder.Entity<ReminderCycle>()
+                .ToTable(table => table.HasCheckConstraint(
+                    "CK_ReminderCycle_Cycle",
+                    "[Cycle] > 0"));
+            modelBuilder.Entity<PushNotification>()
+                .HasIndex(item => new
+                {
+                    item.IsSend,
+                    item.Status,
+                    item.NextAttemptDate,
+                    item.SendDate
+                });
             modelBuilder.Entity<ClubPointAccount>(entity =>
             {
                 entity.ToTable(table =>
@@ -900,6 +970,21 @@ namespace Persistence.Context
                 .HasOne(x => x.AssistanceGroup)
                 .WithMany(x => x.Assistances)
                 .HasForeignKey(x => x.AssistanceGroupId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Expertise>(entity =>
+            {
+                entity.Property(x => x.Name)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.HasIndex(x => new { x.Name, x.Deleted });
+            });
+
+            modelBuilder.Entity<CompanionUser>()
+                .HasOne(x => x.Expertise)
+                .WithMany(x => x.CompanionUsers)
+                .HasForeignKey(x => x.ExpertiseId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<PostComment>().ToTable("PostComments");

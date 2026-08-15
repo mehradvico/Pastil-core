@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// کاربران نماینده
+    /// تغییر وضعیت فعالیت کاربر نماینده
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]

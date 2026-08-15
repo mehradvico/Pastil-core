@@ -41,7 +41,11 @@ namespace Api.Areas.Seller.Controllers
         [ProducesResponseType(typeof(BaseResultDto<DeliveryDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var role = await DeliveryService.FindAsyncDto(id);
+            var storeId = _currentUser.CurrentUser?.StoreId ?? 0;
+            if (storeId <= 0)
+                return BadRequest(new BaseResultDto(false, "فروشگاه فعالی برای کاربر جاری یافت نشد."));
+
+            var role = await DeliveryService.FindForStoreAsync(id, storeId);
             return Ok(role);
         }
         /// <summary>
@@ -53,7 +57,11 @@ namespace Api.Areas.Seller.Controllers
         [ProducesResponseType(typeof(BaseInputDto), 200)]
         public IActionResult Get([FromQuery] DeliveryInputDto dto)
         {
-            dto.StoreId = _currentUser.CurrentUser.StoreId;
+            var storeId = _currentUser.CurrentUser?.StoreId ?? 0;
+            if (storeId <= 0)
+                return BadRequest(new BaseResultDto(false, "فروشگاه فعالی برای کاربر جاری یافت نشد."));
+
+            dto.StoreId = storeId;
             var searchDto = DeliveryService.Search(dto);
             return Ok(searchDto);
         }
@@ -64,8 +72,11 @@ namespace Api.Areas.Seller.Controllers
         [ProducesResponseType(typeof(BaseResultDto<DeliveryDto>), 200)]
         public async Task<IActionResult> Post(DeliveryDto deliveryDto)
         {
-            deliveryDto.StoreId = _currentUser.CurrentUser.StoreId;
-            var dto = await DeliveryService.InsertAsyncDto(deliveryDto);
+            var storeId = _currentUser.CurrentUser?.StoreId ?? 0;
+            if (storeId <= 0)
+                return BadRequest(new BaseResultDto(false, "فروشگاه فعالی برای کاربر جاری یافت نشد."));
+
+            var dto = await DeliveryService.InsertForStoreAsync(deliveryDto, storeId);
             return Ok(dto);
         }
         /// <summary>
@@ -74,10 +85,13 @@ namespace Api.Areas.Seller.Controllers
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(DeliveryDto DeliveryDto)
+        public async Task<IActionResult> Put(DeliveryDto DeliveryDto)
         {
-            DeliveryDto.StoreId = _currentUser.CurrentUser.StoreId;
-            var dto = DeliveryService.UpdateDto(DeliveryDto);
+            var storeId = _currentUser.CurrentUser?.StoreId ?? 0;
+            if (storeId <= 0)
+                return BadRequest(new BaseResultDto(false, "فروشگاه فعالی برای کاربر جاری یافت نشد."));
+
+            var dto = await DeliveryService.UpdateForStoreAsync(DeliveryDto, storeId);
             return Ok(dto);
         }
         /// <summary>
@@ -86,9 +100,13 @@ namespace Api.Areas.Seller.Controllers
         ///
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
-            var dto = DeliveryService.DeleteDto(id);
+            var storeId = _currentUser.CurrentUser?.StoreId ?? 0;
+            if (storeId <= 0)
+                return BadRequest(new BaseResultDto(false, "فروشگاه فعالی برای کاربر جاری یافت نشد."));
+
+            var dto = await DeliveryService.DeleteForStoreAsync(id, storeId);
             return Ok(dto);
         }
     }

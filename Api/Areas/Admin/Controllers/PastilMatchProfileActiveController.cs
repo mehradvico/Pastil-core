@@ -8,7 +8,7 @@ namespace Api.Areas.Admin.Controllers
 {
 
     /// <summary>
-    /// پروفایل های پاستیل مچ
+    /// فعال سازی پروفایل پاستیل مچ
     /// </summary>
     /// <returns></returns>
     /// 

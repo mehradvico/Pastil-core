@@ -63,9 +63,21 @@ namespace Api.Areas.Admin.Controllers
         /// 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<CompanionUserDto>), 200)]
-        public IActionResult Put(CompanionUserDto CompanionUserDto)
+        public async Task<IActionResult> Put(CompanionUserDto CompanionUserDto)
         {
-            var result = CompanionUserService.UpdateDto(CompanionUserDto);
+            var result = await CompanionUserService.UpdateAsyncDto(CompanionUserDto);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// تغییر وضعیت فعالیت کاربر نماینده
+        /// </summary>
+        [HttpPatch("{id}/active")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Put(long id, CompanionUserDto CompanionUserDto)
+        {
+            CompanionUserDto.Id = id;
+            var result = await CompanionUserService.Active(CompanionUserDto);
             return Ok(result);
         }
 

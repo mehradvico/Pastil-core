@@ -19,6 +19,11 @@ namespace Entities.Entities.Security
         public bool Deleted { get; set; }
         public long RoleId { get; set; }
         public string ReferralCode { get; set; }
+        public RegistrationReferralSource RegistrationReferralSource { get; set; }
+        public string UsedReferralCode { get; set; }
+        public long? ReferredByUserId { get; set; }
+        public long? ReferredByCompanionId { get; set; }
+        public long? ReferredByStoreId { get; set; }
         public string RequestCode { get; set; }
         public string Expertise { get; set; }
         public int RequestCodeTryCount { get; set; }

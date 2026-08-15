@@ -8,7 +8,7 @@ namespace Api.Areas.Admin.Controllers
 {
 
     /// <summary>
-    /// پروفایل های پاستیل مچ
+    /// تایید پروفایل پاستیل مچ
     /// </summary>
     /// <returns></returns>
     /// 
@@ -31,9 +31,9 @@ namespace Api.Areas.Admin.Controllers
         /// 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(PastilMatchProfileVerificationDto dto)
+        public async Task<IActionResult> Put(PastilMatchProfileVerificationDto dto)
         {
-            var result = _pastilMatchProfileService.UpdateVerificationDto(dto);
+            var result = await _pastilMatchProfileService.UpdateVerificationDto(dto);
             return Ok(result);
         }
     }

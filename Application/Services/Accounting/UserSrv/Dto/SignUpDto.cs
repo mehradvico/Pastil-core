@@ -12,5 +12,7 @@
         public bool TwoFactorEnabled { get; set; }
         public string Code { get; set; }
         public string CartCode { get; set; }
+        public Entities.Entities.Security.RegistrationReferralSource ReferralSource { get; set; }
+        public string ReferralCode { get; set; }
     }
 }

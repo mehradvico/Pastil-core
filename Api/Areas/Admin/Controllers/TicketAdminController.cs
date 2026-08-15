@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// تیکت‌ ها
+    /// تخصیص مدیر رسیدگی به تیکت
     /// </summary>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]

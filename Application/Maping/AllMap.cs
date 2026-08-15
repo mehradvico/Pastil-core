@@ -27,6 +27,7 @@ using Application.Services.CompanionSrv.CompanionReserveSrv.Dto;
 using Application.Services.CompanionSrvs.AssistanceQuestionnaireSrv.Dto;
 using Application.Services.CompanionSrvs.AssistanceGroupSrv.Dto;
 using Application.Services.CompanionSrvs.AssistanceSrv.Dto;
+using Application.Services.CompanionSrvs.ExpertiseSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistanceReportSrv.Dto;
@@ -179,6 +180,8 @@ namespace Application.Maping
             CreateMap<Assistance, AssistanceVDto>();
             CreateMap<AssistanceQuestionnaire, AssistanceQuestionnaireDto>().ReverseMap();
             CreateMap<AssistanceQuestionnaire, AssistanceQuestionnaireVDto>();
+            CreateMap<Expertise, ExpertiseDto>().ReverseMap();
+            CreateMap<Expertise, ExpertiseVDto>();
             //Assistance End ----------------------------------------------
 
 
@@ -277,7 +280,8 @@ namespace Application.Maping
                 .ForMember(x => x.CompanionPets, y => y.Ignore()).ForMember(x => x.CompanionTypes, y => y.Ignore()).ForMember(x => x.ActivationValue, y => y.Ignore())
                 .ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore())
                 .ForMember(x => x.Icon, y => y.Ignore()).ForMember(x => x.GoldAccountDate, y => y.Ignore()).ForMember(x => x.SilverAccountDate, y => y.Ignore())
-                .ForMember(x => x.SilverAccountCreateDate, y => y.Ignore()).ForMember(x => x.Owner, y => y.Ignore()).ForMember(x => x.BackgroundPicture, y => y.Ignore());
+                .ForMember(x => x.SilverAccountCreateDate, y => y.Ignore()).ForMember(x => x.Owner, y => y.Ignore()).ForMember(x => x.BackgroundPicture, y => y.Ignore())
+                .ForMember(x => x.ReferralCode, y => y.Ignore());
             CreateMap<Companion, CompanionVDto>()
                 .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.Owner))
                 .ForMember(dest => dest.Picture, opt => opt.MapFrom(src => src.Picture))
@@ -793,7 +797,7 @@ namespace Application.Maping
 
             //Store
             CreateMap<Store, StoreDto>();
-            CreateMap<StoreDto, Store>().ForMember(x => x.Users, opt => opt.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.MaxDiscountPercent, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.Icon, y => y.Ignore());
+            CreateMap<StoreDto, Store>().ForMember(x => x.Users, opt => opt.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.MaxDiscountPercent, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.Icon, y => y.Ignore()).ForMember(x => x.ReferralCode, y => y.Ignore());
             CreateMap<Store, StoreMinVDto>().ForMember(x => x.StoreId, o => o.MapFrom(m => m.Id));
             CreateMap<Store, StoreVDto>();
             CreateMap<Store, StoreFinanceVDto>().ForMember(d => d.HasCommission, o => o.MapFrom(s => s.CommissionPercent != 0));
@@ -847,22 +851,52 @@ namespace Application.Maping
             //User
             CreateMap<Role, RoleDto>().ReverseMap();
             CreateMap<User, UserDto>().ForMember(x => x.Password, opt => opt.Ignore());
-            CreateMap<UserDto, User>().ForMember(x => x.Password, opt => opt.Ignore()).ForMember(x => x.Picture, opt => opt.Ignore());
+            CreateMap<UserDto, User>()
+                .ForMember(x => x.Password, opt => opt.Ignore())
+                .ForMember(x => x.Picture, opt => opt.Ignore())
+                .ForMember(x => x.ReferralCode, opt => opt.Ignore())
+                .ForMember(x => x.RegistrationReferralSource, opt => opt.Ignore())
+                .ForMember(x => x.UsedReferralCode, opt => opt.Ignore())
+                .ForMember(x => x.ReferredByUserId, opt => opt.Ignore())
+                .ForMember(x => x.ReferredByCompanionId, opt => opt.Ignore())
+                .ForMember(x => x.ReferredByStoreId, opt => opt.Ignore());
             CreateMap<User, UserVDto>().ForMember(x => x.FullName, o => o.MapFrom(m => string.Format("{0} {1}", m.FirstName, m.LastName))).ForMember(x => x.RoleName, o => o.MapFrom(m => string.Format("{0}", m.Role.Name)));
             CreateMap<User, UserMinVDto>().ForMember(x => x.FullName, o => o.MapFrom(m => string.Format("{0} {1}", m.FirstName, m.LastName)));
             CreateMap<User, CurrentUserDto>()
-                .ForMember(x => x.CompanionId, o => o.MapFrom(m => m.Companions.Where(c => !c.Deleted).Select(c => (long?)c.Id).FirstOrDefault()))
+                .ForMember(x => x.CompanionId, o => o.MapFrom(m => m.Companions.Where(c => !c.Deleted && c.Active && c.Approved).Select(c => (long?)c.Id).FirstOrDefault()))
                 .ForMember(x => x.DriverId, o => o.MapFrom(m => m.Driver != null && !m.Driver.Deleted && m.Driver.StatusId == (long)DriverRequestStatusEnum.DriverRequestStatus_Accepted ? (long?)m.Driver.Id : null))
                 .ForMember(x => x.RoleEnum, o => o.MapFrom(m => m.Role != null ? m.Role.Label : null))
                 .ForMember(x => x.RoleName, o => o.MapFrom(m => m.Role != null ? m.Role.Name : null))
                 .ForMember(x => x.UserId, o => o.MapFrom(m => m.Id))
                 .ForMember(x => x.IsFemale, o => o.MapFrom(m => m.IsFemale))
                 .ForMember(x => x.FullName, o => o.MapFrom(m => $"{m.FirstName} {m.LastName}"))
-                .ForMember(x => x.IsCompanionUser, o => o.MapFrom(m => m.Companions.Any(c => !c.Deleted) && m.CompanionUsers.Any(cu => cu.UserId == m.Id)))
+                .ForMember(x => x.IsCompanionUser, o => o.MapFrom(m =>
+                    m.Companions.Any(c => !c.Deleted && c.Active && c.Approved) ||
+                    m.CompanionUsers.Any(cu =>
+                        !cu.Deleted && cu.Active && cu.UserAccept == true &&
+                        !cu.Companion.Deleted && cu.Companion.Active && cu.Companion.Approved)))
+                .ForMember(x => x.CanSetExpertise, o => o.MapFrom(m =>
+                    m.Companions.Any(c => !c.Deleted && c.Active && c.Approved) ||
+                    m.CompanionUsers.Any(cu =>
+                        !cu.Deleted && cu.Active && cu.UserAccept == true &&
+                        !cu.Companion.Deleted && cu.Companion.Active && cu.Companion.Approved)))
+                .ForMember(x => x.Expertise, o => o.MapFrom(m =>
+                    m.Companions.Any(c => !c.Deleted && c.Active && c.Approved) ||
+                    m.CompanionUsers.Any(cu =>
+                        !cu.Deleted && cu.Active && cu.UserAccept == true &&
+                        !cu.Companion.Deleted && cu.Companion.Active && cu.Companion.Approved)
+                            ? m.Expertise
+                            : null))
                 .ForMember(x => x.PictureId, o => o.MapFrom(m => m.PictureId))
                 .ForMember(x => x.StoreId, o => o.MapFrom(m => m.Stores.Where(c => !c.Deleted).Select(c => (long?)c.Id).FirstOrDefault()));
 
-            CreateMap<SignUpDto, UserDto>();
+            CreateMap<SignUpDto, UserDto>()
+                .ForMember(x => x.ReferralCode, opt => opt.Ignore())
+                .ForMember(x => x.RegistrationReferralSource, opt => opt.Ignore())
+                .ForMember(x => x.UsedReferralCode, opt => opt.Ignore())
+                .ForMember(x => x.ReferredByUserId, opt => opt.Ignore())
+                .ForMember(x => x.ReferredByCompanionId, opt => opt.Ignore())
+                .ForMember(x => x.ReferredByStoreId, opt => opt.Ignore());
             CreateMap<CreateUserTokenDto, UserTokenDto>();
             CreateMap<CreateUserTokenDto, UserToken>();
             //User End ----------------------------------------------

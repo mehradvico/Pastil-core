@@ -12,10 +12,15 @@ namespace Application.Services.StoreSrv.Iface
     {
         StoreSearchDto Search(StoreInputDto baseSearchDto);
         Task<BaseResultDto<StoreVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
         Task SetMaxDiscountAsync(long storeId, int maxDiscount);
         void UpdateStoreCommentCount(long storeId);
         Task UpdateStoreCommentRateAsync(long Id);
         Task<List<SearchStoreDto>> SearchMinAsync(SearchRequestDto request);
+        Task<BaseResultDto<StoreVDto>> FindRequestAsync(long id, long userId);
+        Task<BaseResultDto<StoreDto>> InsertRequestAsync(StoreDto dto, long userId);
+        Task<BaseResultDto> ResubmitRequestAsync(StoreDto dto, long userId);
+        Task<BaseResultDto> UpdateApprovalAsync(StoreApprovalDto dto);
 
 
     }

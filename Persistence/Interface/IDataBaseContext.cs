@@ -97,6 +97,7 @@ namespace Persistence.Interface
         public DbSet<EmailHost> EmailHosts { get; set; }
         public DbSet<EmailSetting> EmailSettings { get; set; }
         public DbSet<Feature> Features { get; set; }
+        public DbSet<Expertise> Expertises { get; set; }
         public DbSet<FeatureItem> FeatureItems { get; set; }
         public DbSet<File> Files { get; set; }
         public DbSet<Gallery> Galleries { get; set; }

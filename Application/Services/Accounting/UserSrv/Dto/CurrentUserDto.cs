@@ -23,6 +23,7 @@ namespace Application.Services.Dto
         public bool IsFemale { get; set; }
         public string Expertise { get; set; }
         public bool IsCompanionUser { get; set; }
+        public bool CanSetExpertise { get; set; }
 
         public double WalletAmount { get; set; }
         public PictureVDto Picture { get; set; }

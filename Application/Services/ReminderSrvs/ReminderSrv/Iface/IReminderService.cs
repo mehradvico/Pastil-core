@@ -14,6 +14,9 @@ namespace Application.Services.ReminderSrvs.ReminderSrv.Iface
     {
         ReminderSearchDto Search(ReminderInputDto baseSearchDto);
         Task<BaseResultDto<ReminderVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto<ReminderVDto>> FindUserAsyncVDto(long id, long userId);
+        Task<BaseResultDto<ReminderDto>> InsertUserAsyncDto(ReminderDto dto, long userId);
+        Task<BaseResultDto> DeleteUserAsync(long id, long userId);
         Task SyncReminderAsync();
     }
 }

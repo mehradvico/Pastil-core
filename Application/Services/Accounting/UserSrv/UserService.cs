@@ -5,6 +5,7 @@ using Application.Common.Enumerable.Message;
 using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Service;
+using Application.Common.Security.Iface;
 using Application.Services.Accounting.OtpVerifySrv.Dto;
 using Application.Services.Accounting.OtpVerifySrv.Iface;
 using Application.Services.Accounting.UserSrv.Dto;
@@ -43,8 +44,9 @@ namespace Application.Services.UserSrv
         private readonly IMessageSenderService _messageSenderService;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly INoticeService _noticeService;
+        private readonly IUserPasswordService _passwordService;
 
-        public UserService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserTokenService userTokenSevice, IOtpVerifyService otpVerifyService, IMapper mapper, IConfiguration configuration, IRegixHelper RegixHelper, IBaseDetailService baseDetailService, IMessageSenderService messageSenderService, INoticeService noticeService) : base(_context, mapper)
+        public UserService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserTokenService userTokenSevice, IOtpVerifyService otpVerifyService, IMapper mapper, IConfiguration configuration, IRegixHelper RegixHelper, IBaseDetailService baseDetailService, IMessageSenderService messageSenderService, INoticeService noticeService, IUserPasswordService passwordService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -56,11 +58,14 @@ namespace Application.Services.UserSrv
             this._messageSenderService = messageSenderService;
             this._pushNotificationService = pushNotificationService;
             this._noticeService = noticeService;
+            this._passwordService = passwordService;
         }
         public override async Task<BaseResultDto<UserDto>> InsertAsyncDto(UserDto dto)
         {
             try
             {
+                dto.Expertise = null;
+
                 var modelCheker = ModelHelper<UserDto>.ModelErrors(dto);
                 if (!modelCheker.IsSuccess)
                 {
@@ -97,26 +102,22 @@ namespace Application.Services.UserSrv
                     {
                         errors.Add(new Tuple<string, string>(Resource.Notification.ThePasswordIsWrong, nameof(dto.Password)));
                     }
-                    dto.ReferralCode = await dto.ReferralCode.ToEnglishDigitsAsync();
-                    if (!string.IsNullOrEmpty(dto.ReferralCode) && !ReferralCodeIsUnique(dto.ReferralCode))
-                    {
-                        errors.Add(new Tuple<string, string>(Resource.Notification.TheBonusCodeIsWrong, nameof(dto.ReferralCode)));
-                    }
                     if (errors.Any())
                     {
                         return new BaseResultDto<UserDto>(isSuccess: false, messages: errors, dto);
                     }
 
-                    var passwordHash = dto.Password?.Tosha256Hash();
                     var item = mapper.Map<User>(dto);
-                    item.Password = passwordHash;
+                    item.Password = string.IsNullOrEmpty(dto.Password)
+                        ? null
+                        : _passwordService.HashPassword(item, dto.Password);
                     item.CreateDate = DateTime.Now;
-
-                    var random = new Random();
-                    do
-                    {
-                        item.ReferralCode = random.Next(1_000_000, 10_000_000).ToString();
-                    } while (await _context.Users.AnyAsync(u => u.ReferralCode == item.ReferralCode));
+                    item.ReferralCode = await ReferralCodeGenerator.CreateUserCodeAsync(_context);
+                    item.RegistrationReferralSource = dto.RegistrationReferralSource;
+                    item.UsedReferralCode = dto.UsedReferralCode;
+                    item.ReferredByUserId = dto.ReferredByUserId;
+                    item.ReferredByCompanionId = dto.ReferredByCompanionId;
+                    item.ReferredByStoreId = dto.ReferredByStoreId;
 
                     await _context.Users.AddAsync(item);
                     await _context.SaveChangesAsync();
@@ -157,7 +158,15 @@ namespace Application.Services.UserSrv
                 }
                 else
                 {
-                    var item = _context.Users.FirstOrDefault(s => s.Id == dto.Id);
+                    var item = _context.Users.FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
+                    if (item == null)
+                    {
+                        return new BaseResultDto<UserDto>(
+                            false,
+                            Resource.Notification.NothingFound,
+                            dto);
+                    }
+
                     var errors = new List<Tuple<string, string>>();
                     dto.Mobile = dto.Mobile.ToEnglishDigitsAsync().Result;
 
@@ -193,6 +202,39 @@ namespace Application.Services.UserSrv
                         return new BaseResultDto(isSuccess: false, messages: errors);
                     }
 
+                    var assignedExpertise = _context.CompanionUsers
+                        .Where(companionUser =>
+                            companionUser.UserId == item.Id &&
+                            !companionUser.Deleted &&
+                            companionUser.UserAccept != false &&
+                            companionUser.ExpertiseId.HasValue &&
+                            companionUser.Expertise.Active &&
+                            !companionUser.Expertise.Deleted)
+                        .OrderByDescending(companionUser => companionUser.UserAccept == true)
+                        .ThenByDescending(companionUser => companionUser.Id)
+                        .Select(companionUser => companionUser.Expertise.Name)
+                        .FirstOrDefault();
+
+                    var canSetExpertise = CanHaveExpertise(item.Id);
+                    if (string.IsNullOrWhiteSpace(assignedExpertise) &&
+                        !canSetExpertise &&
+                        !string.IsNullOrWhiteSpace(dto.Expertise))
+                    {
+                        return new BaseResultDto<UserDto>(
+                            false,
+                            "عنوان شغلی فقط برای صاحب نمایندگی یا عضو فعال و تأییدشده نمایندگی قابل ثبت است.",
+                            nameof(dto.Expertise),
+                            dto);
+                    }
+
+                    dto.Expertise = !string.IsNullOrWhiteSpace(assignedExpertise)
+                        ? canSetExpertise
+                            ? assignedExpertise
+                            : item.Expertise
+                        : canSetExpertise
+                            ? dto.Expertise?.Trim()
+                            : null;
+
                     var passwordHash = item.Password;
                     if (!string.IsNullOrEmpty(dto.Password))
                     {
@@ -205,7 +247,7 @@ namespace Application.Services.UserSrv
                         {
                             return new BaseResultDto<UserDto>(isSuccess: false, messages: errors, dto);
                         }
-                        passwordHash = dto.Password.Tosha256Hash();
+                        passwordHash = _passwordService.HashPassword(item, dto.Password);
                     }
 
                     mapper.Map(dto, item);
@@ -259,17 +301,6 @@ namespace Application.Services.UserSrv
         User GetUserByEmail(string email)
         {
             return _context.Users.FirstOrDefault(x => x.Email == email);
-        }
-        bool ReferralCodeIsUnique(string bouns)
-        {
-            var item = GetUserByReferralCode(bouns);
-            if (item == null)
-                return true;
-            return false;
-        }
-        User GetUserByReferralCode(string bouns)
-        {
-            return _context.Users.FirstOrDefault(x => x.ReferralCode == bouns);
         }
         public UserSearchDto Search(UserInputDto searchDto)
         {
@@ -359,8 +390,6 @@ namespace Application.Services.UserSrv
             user.Mobile = await user.Mobile.ToEnglishDigitsAsync();
             user.Password = await user.Password.ToEnglishDigitsAsync();
             user.Code = await user.Code.ToEnglishDigitsAsync();
-            string hashedPassword = "";
-
             var item = await _context.Users
                 .Include(s => s.Role)
                 .ThenInclude(s => s.Permissions)
@@ -402,9 +431,7 @@ namespace Application.Services.UserSrv
                 }
                 if (string.IsNullOrEmpty(user.Password))
                     return new BaseResultDto(isSuccess: false, val1: Resource.Notification.PleaseEnterThePassword, val2: nameof(user.Password));
-                else
-                    hashedPassword = user.Password.Tosha256Hash();
-                if (item.Password != hashedPassword)
+                if (!await VerifyAndUpgradePasswordAsync(item, user.Password))
                 {
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
                 }
@@ -424,10 +451,7 @@ namespace Application.Services.UserSrv
                 {
                     if (string.IsNullOrEmpty(user.Password))
                         return new BaseResultDto(isSuccess: false, val1: Resource.Notification.PleaseEnterThePassword, val2: nameof(user.Password));
-                    else
-                        hashedPassword = user.Password.Tosha256Hash();
-
-                    if (item.Password != hashedPassword)
+                    if (!await VerifyAndUpgradePasswordAsync(item, user.Password))
                     {
                         return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
                     }
@@ -443,6 +467,31 @@ namespace Application.Services.UserSrv
             await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSignInUser, userId: item.Id, token1: item.FirstName);
             return tokenResult;
         }
+
+        private async Task<bool> VerifyAndUpgradePasswordAsync(
+            User user,
+            string providedPassword)
+        {
+            var verification = _passwordService.VerifyPassword(
+                user,
+                user.Password,
+                providedPassword);
+
+            if (!verification.Succeeded)
+            {
+                return false;
+            }
+
+            if (verification.NeedsRehash)
+            {
+                user.Password = _passwordService.HashPassword(
+                    user,
+                    providedPassword);
+                await _context.SaveChangesAsync();
+            }
+
+            return true;
+        }
         private UserTokenDto CreateToken(long userId)
         {
             var user = _context.Users.Include(s => s.Role).FirstOrDefault(s => s.Id == userId);
@@ -457,9 +506,22 @@ namespace Application.Services.UserSrv
                 return new BaseResultDto(isSuccess: false, val1: Resource.Notification.TheCodeIsWrong, val2: nameof(user.Code));
             }
             user.Password = await user.Password.ToEnglishDigitsAsync();
+            user.Mobile = await user.Mobile.ToEnglishDigitsAsync();
+            user.Email = await user.Email.ToEnglishDigitsAsync();
+            var referral = await ResolveRegistrationReferralAsync(user);
+            if (!referral.IsSuccess)
+            {
+                return new BaseResultDto<SignUpDto>(false, referral.Messages, user);
+            }
+
             var userDto = mapper.Map<UserDto>(user);
 
             userDto.RoleId = (long)RoleEnum.Customer;
+            userDto.RegistrationReferralSource = user.ReferralSource;
+            userDto.UsedReferralCode = referral.ReferralCode;
+            userDto.ReferredByUserId = referral.UserId;
+            userDto.ReferredByCompanionId = referral.CompanionId;
+            userDto.ReferredByStoreId = referral.StoreId;
 
             var insertResult = await InsertAsyncDto(userDto);
             if (insertResult.IsSuccess)
@@ -478,6 +540,174 @@ namespace Application.Services.UserSrv
             }
         }
 
+        private async Task<RegistrationReferralResolution> ResolveRegistrationReferralAsync(SignUpDto dto)
+        {
+            var result = new RegistrationReferralResolution();
+
+            if (!Enum.IsDefined(typeof(RegistrationReferralSource), dto.ReferralSource))
+            {
+                result.AddError(Resource.Notification.InvalidData, nameof(dto.ReferralSource));
+                return result;
+            }
+
+            var requiresReferralCode = dto.ReferralSource == RegistrationReferralSource.Clinic ||
+                                       dto.ReferralSource == RegistrationReferralSource.PetShop ||
+                                       dto.ReferralSource == RegistrationReferralSource.Acquaintances;
+
+            if (!requiresReferralCode)
+            {
+                result.IsSuccess = true;
+                return result;
+            }
+
+            var referralCode = string.IsNullOrWhiteSpace(dto.ReferralCode)
+                ? null
+                : (await dto.ReferralCode.Trim().ToEnglishDigitsAsync());
+
+            if (string.IsNullOrWhiteSpace(referralCode) || referralCode.Any(character => !char.IsDigit(character)))
+            {
+                result.AddError(Resource.Notification.TheReferralCodeIsWrong, nameof(dto.ReferralCode));
+                return result;
+            }
+
+            switch (dto.ReferralSource)
+            {
+                case RegistrationReferralSource.Clinic:
+                {
+                    if (referralCode.Length != 10)
+                    {
+                        result.AddError(Resource.Notification.TheReferralCodeIsWrong, nameof(dto.ReferralCode));
+                        return result;
+                    }
+
+                    var companion = await _context.Companions
+                        .AsNoTracking()
+                        .Include(item => item.Owner)
+                        .FirstOrDefaultAsync(item =>
+                            !item.Deleted && item.Active && item.Approved &&
+                            item.ReferralCode == referralCode);
+
+                    if (companion == null)
+                    {
+                        result.AddError(Resource.Notification.TheReferralCodeIsWrong, nameof(dto.ReferralCode));
+                        return result;
+                    }
+
+                    if (HasSameRegistrationIdentity(
+                            dto,
+                            companion.Owner?.Mobile,
+                            companion.Owner?.Email))
+                    {
+                        result.AddError(Resource.Notification.ReferralCodeCanNotBeYours, nameof(dto.ReferralCode));
+                        return result;
+                    }
+
+                    result.CompanionId = companion.Id;
+                    break;
+                }
+                case RegistrationReferralSource.PetShop:
+                {
+                    if (referralCode.Length != 10)
+                    {
+                        result.AddError(Resource.Notification.TheReferralCodeIsWrong, nameof(dto.ReferralCode));
+                        return result;
+                    }
+
+                    var store = await _context.Stores
+                        .AsNoTracking()
+                        .Include(item => item.Users)
+                        .FirstOrDefaultAsync(item =>
+                            !item.Deleted && item.Active &&
+                            item.ReferralCode == referralCode);
+
+                    if (store == null)
+                    {
+                        result.AddError(Resource.Notification.TheReferralCodeIsWrong, nameof(dto.ReferralCode));
+                        return result;
+                    }
+
+                    if (store.Users?.Any(owner =>
+                            HasSameRegistrationIdentity(dto, owner.Mobile, owner.Email)) == true)
+                    {
+                        result.AddError(Resource.Notification.ReferralCodeCanNotBeYours, nameof(dto.ReferralCode));
+                        return result;
+                    }
+
+                    result.StoreId = store.Id;
+                    break;
+                }
+                case RegistrationReferralSource.Acquaintances:
+                {
+                    if (referralCode.Length != 7)
+                    {
+                        result.AddError(Resource.Notification.TheReferralCodeIsWrong, nameof(dto.ReferralCode));
+                        return result;
+                    }
+
+                    var referrer = await _context.Users
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(item =>
+                            !item.Deleted && !item.Locked &&
+                            item.ReferralCode == referralCode);
+
+                    if (referrer == null)
+                    {
+                        result.AddError(Resource.Notification.TheReferralCodeIsWrong, nameof(dto.ReferralCode));
+                        return result;
+                    }
+
+                    if (HasSameRegistrationIdentity(dto, referrer.Mobile, referrer.Email))
+                    {
+                        result.AddError(Resource.Notification.ReferralCodeCanNotBeYours, nameof(dto.ReferralCode));
+                        return result;
+                    }
+
+                    result.UserId = referrer.Id;
+                    break;
+                }
+            }
+
+            result.ReferralCode = referralCode;
+            result.IsSuccess = true;
+            return result;
+        }
+
+        private static bool HasSameRegistrationIdentity(
+            SignUpDto registration,
+            string candidateMobile,
+            string candidateEmail)
+        {
+            var hasSameMobile = !string.IsNullOrWhiteSpace(registration.Mobile) &&
+                                !string.IsNullOrWhiteSpace(candidateMobile) &&
+                                string.Equals(
+                                    registration.Mobile.Trim(),
+                                    candidateMobile.Trim(),
+                                    StringComparison.OrdinalIgnoreCase);
+            var hasSameEmail = !string.IsNullOrWhiteSpace(registration.Email) &&
+                               !string.IsNullOrWhiteSpace(candidateEmail) &&
+                               string.Equals(
+                                   registration.Email.Trim(),
+                                   candidateEmail.Trim(),
+                                   StringComparison.OrdinalIgnoreCase);
+
+            return hasSameMobile || hasSameEmail;
+        }
+
+        private sealed class RegistrationReferralResolution
+        {
+            public bool IsSuccess { get; set; }
+            public string ReferralCode { get; set; }
+            public long? UserId { get; set; }
+            public long? CompanionId { get; set; }
+            public long? StoreId { get; set; }
+            public List<Tuple<string, string>> Messages { get; } = new List<Tuple<string, string>>();
+
+            public void AddError(string message, string field)
+            {
+                Messages.Add(new Tuple<string, string>(message, field));
+            }
+        }
+
         public async Task<BaseResultDto> ChangePassword(ChangePasswordDto user)
         {
             user.NewPassword = await user.NewPassword.ToEnglishDigitsAsync();
@@ -487,17 +717,25 @@ namespace Application.Services.UserSrv
 
             user.Mobile = await user.Mobile.ToEnglishDigitsAsync();
             user.OldPassword = await user.OldPassword.ToEnglishDigitsAsync();
-            user.OldPassword = user.OldPassword.Tosha256Hash();
-            var item = await _context.Users.FirstOrDefaultAsync(s => (s.Mobile == user.Mobile || s.Email == user.Mobile) && s.Password == user.OldPassword);
-            if (item == null)
+            var item = await _context.Users.FirstOrDefaultAsync(s =>
+                (s.Mobile == user.Mobile || s.Email == user.Mobile) &&
+                !s.Deleted &&
+                !s.Locked);
+            if (item == null ||
+                !_passwordService.VerifyPassword(
+                    item,
+                    item.Password,
+                    user.OldPassword).Succeeded)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
             }
             else
             {
-                item.Password = user.NewPassword.Tosha256Hash();
+                item.Password = _passwordService.HashPassword(
+                    item,
+                    user.NewPassword);
                 _context.Users.Update(item);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return await userTokenSevice.ResetTokenAsync(item);
             }
         }
@@ -555,9 +793,11 @@ namespace Application.Services.UserSrv
 
                 item.RequestCode = null;
                 item.RequestCodeTryCount = 0;
-                item.Password = dto.Password.Tosha256Hash();
+                item.Password = _passwordService.HashPassword(
+                    item,
+                    dto.Password);
                 _context.Users.Update(item);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
                 return await userTokenSevice.ResetTokenAsync(item);
 
 
@@ -592,14 +832,23 @@ namespace Application.Services.UserSrv
             if (!string.IsNullOrEmpty(token))
             {
                 var hashed = token.Tosha256Hash();
-                var userToken = await _context.UserTokens.AsNoTracking().Include(s => s.User).ThenInclude(s => s.CompanionUsers)
+                var userToken = await _context.UserTokens.AsNoTracking()
+                    .Include(s => s.User).ThenInclude(s => s.CompanionUsers).ThenInclude(s => s.Companion)
+                    .Include(s => s.User).ThenInclude(s => s.CompanionUsers).ThenInclude(s => s.Expertise)
                     .Include(s => s.User).ThenInclude(s => s.Picture).Include(s => s.User).ThenInclude(s => s.Role)
                     .Include(s => s.User).ThenInclude(s => s.Companions).Include(s => s.User).ThenInclude(s => s.Driver)
                     .Include(s => s.User).ThenInclude(s => s.UserCurrentLocation).ThenInclude(s => s.City)
                     .Include(s => s.User).ThenInclude(s => s.UserCurrentLocation).ThenInclude(s => s.Neighborhood)
                     .Include(s => s.User).ThenInclude(s => s.Stores).FirstOrDefaultAsync(x => x.TokenHash == hashed);
                 if (userToken != null)
-                    return mapper.Map<CurrentUserDto>(userToken.User);
+                {
+                    var currentUser = mapper.Map<CurrentUserDto>(userToken.User);
+                    currentUser.Expertise = await ResolveProfileExpertiseAsync(
+                        userToken.User.Id,
+                        userToken.User.Expertise);
+
+                    return currentUser;
+                }
             }
 
             return null;
@@ -816,8 +1065,73 @@ namespace Application.Services.UserSrv
         {
             var item = await _context.Users.Include(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
-                return new BaseResultDto<UserDto>(true, mapper.Map<UserDto>(item));
+            {
+                var dto = mapper.Map<UserDto>(item);
+                dto.Expertise = await ResolveProfileExpertiseAsync(item.Id, item.Expertise);
+
+                return new BaseResultDto<UserDto>(true, dto);
+            }
             return new BaseResultDto<UserDto>(false, mapper.Map<UserDto>(item));
+        }
+
+        private bool CanHaveExpertise(long userId)
+        {
+            return _context.Companions.Any(companion =>
+                       companion.OwnerId == userId &&
+                       !companion.Deleted &&
+                       companion.Active &&
+                       companion.Approved) ||
+                   _context.CompanionUsers.Any(companionUser =>
+                       companionUser.UserId == userId &&
+                       !companionUser.Deleted &&
+                       companionUser.Active &&
+                       companionUser.UserAccept == true &&
+                       !companionUser.Companion.Deleted &&
+                       companionUser.Companion.Active &&
+                       companionUser.Companion.Approved);
+        }
+
+        private async Task<bool> CanHaveExpertiseAsync(long userId)
+        {
+            return await _context.Companions.AsNoTracking().AnyAsync(companion =>
+                       companion.OwnerId == userId &&
+                       !companion.Deleted &&
+                       companion.Active &&
+                       companion.Approved) ||
+                   await _context.CompanionUsers.AsNoTracking().AnyAsync(companionUser =>
+                       companionUser.UserId == userId &&
+                       !companionUser.Deleted &&
+                       companionUser.Active &&
+                       companionUser.UserAccept == true &&
+                       !companionUser.Companion.Deleted &&
+                       companionUser.Companion.Active &&
+                       companionUser.Companion.Approved);
+        }
+
+        private async Task<string> ResolveProfileExpertiseAsync(
+            long userId,
+            string storedExpertise)
+        {
+            var assignedExpertise = await _context.CompanionUsers
+                .AsNoTracking()
+                .Where(companionUser =>
+                    companionUser.UserId == userId &&
+                    !companionUser.Deleted &&
+                    companionUser.UserAccept != false &&
+                    companionUser.ExpertiseId.HasValue &&
+                    companionUser.Expertise.Active &&
+                    !companionUser.Expertise.Deleted)
+                .OrderByDescending(companionUser => companionUser.UserAccept == true)
+                .ThenByDescending(companionUser => companionUser.Id)
+                .Select(companionUser => companionUser.Expertise.Name)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrWhiteSpace(assignedExpertise))
+                return assignedExpertise;
+
+            return await CanHaveExpertiseAsync(userId)
+                ? storedExpertise
+                : null;
         }
     }
 }

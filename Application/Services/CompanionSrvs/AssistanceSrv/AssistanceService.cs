@@ -42,6 +42,19 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv
             return new BaseResultDto<AssistanceVDto>(false, mapper.Map<AssistanceVDto>(item));
         }
 
+        public async Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite)
+        {
+            var affectedRows = await _context.Assistances
+                .Where(x => x.Id == id && !x.Deleted)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.ShowToSite, showToSite));
+
+            if (affectedRows == 0)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+            return new BaseResultDto(true);
+        }
+
         public AssistanceSearchDto Search(AssistanceInputDto baseSearchDto)
         {
             var model = _context.Assistances

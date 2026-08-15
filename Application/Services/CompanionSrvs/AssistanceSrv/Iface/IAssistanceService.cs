@@ -12,6 +12,7 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Iface
     {
         AssistanceSearchDto Search(AssistanceInputDto baseSearchDto);
         Task<BaseResultDto<AssistanceVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
         Task<List<SearchAssistanceDto>> SearchMinAsync(SearchRequestDto request);
 
     }

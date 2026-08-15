@@ -6,6 +6,8 @@ using Application.Common.Geography.Services;
 using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Interface;
+using Application.Common.Security;
+using Application.Common.Security.Iface;
 using Application.Maping;
 using Application.Services.Accounting.ClubRewardSrv;
 using Application.Services.Accounting.ClubRewardSrv.Iface;
@@ -84,6 +86,8 @@ using Application.Services.CompanionSrvs.AssistanceSrv;
 using Application.Services.CompanionSrvs.AssistanceSrv.Iface;
 using Application.Services.CompanionSrvs.AssistanceGroupSrv;
 using Application.Services.CompanionSrvs.AssistanceGroupSrv.Iface;
+using Application.Services.CompanionSrvs.ExpertiseSrv;
+using Application.Services.CompanionSrvs.ExpertiseSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionAssistanceReportSrv.Iface;
@@ -346,9 +350,11 @@ using AutoMapper;
 using Entities.Entities.PastilMatchField;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Entities.Entities.Security;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
@@ -361,6 +367,13 @@ public static class ConfigureServices
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
         services.AddLocalization(options => options.ResourcesPath = "Resource");
+        services.Configure<PasswordHasherOptions>(options =>
+        {
+            options.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3;
+            options.IterationCount = 600_000;
+        });
+        services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+        services.AddScoped<IUserPasswordService, UserPasswordService>();
 
         services.Configure<RequestLocalizationOptions>(options =>
         {
@@ -388,6 +401,7 @@ public static class ConfigureServices
         services.AddScoped<IAdminSettingService, AdminSettingService>();
         services.AddScoped<IAssistanceQuestionnaireService, AssistanceQuestionnaireService>();
         services.AddScoped<IAssistanceGroupService, AssistanceGroupService>();
+        services.AddScoped<IExpertiseService, ExpertiseService>();
         services.AddScoped<IAssistanceService, AssistanceService>();
         services.AddScoped<IBankCardService, BankCardService>();
         services.AddScoped<IBankService, BankService>();

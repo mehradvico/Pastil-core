@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// نمایندگان
+    /// فعال سازی نمایندگان
     /// </summary>
     /// 
     [Area("Admin")]
@@ -31,9 +31,9 @@ namespace Api.Areas.Admin.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(CompanionActivationDto dto)
+        public async Task<IActionResult> Put(CompanionActivationDto dto)
         {
-            var companion = _companionService.ActivationDto(dto);
+            var companion = await _companionService.ActivationAsyncDto(dto);
             return Ok(companion);
         }
     }

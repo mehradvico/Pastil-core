@@ -50,6 +50,10 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var Pansion = await _PansionService.FindAsyncVDto(id);
+            if (!Pansion.IsSuccess ||
+                !_currentUser.CurrentUser.CompanionId.HasValue ||
+                Pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId.Value)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(Pansion);
         }
 
@@ -62,6 +66,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<PansionDto>), 200)]
         public async Task<IActionResult> Post(PansionDto dto)
         {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             dto.CompanionId = _currentUser.CurrentUser.CompanionId!.Value;
             var result = await _PansionService.InsertAsyncDto(dto);
             return Ok(result);
@@ -74,10 +80,15 @@ namespace Api.Areas.Companion.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(PansionDto dto)
+        public async Task<IActionResult> Put(PansionDto dto)
         {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             dto.CompanionId = _currentUser.CurrentUser.CompanionId!.Value;
-            var Pansion = _PansionService.UpdateDto(dto);
+            var Pansion = await _PansionService.ResubmitAsyncDto(
+                dto,
+                dto.CompanionId,
+                _currentUser.CurrentUser.UserId);
             return Ok(Pansion);
         }
     }

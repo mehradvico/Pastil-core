@@ -34,7 +34,14 @@ namespace Api.Areas.EndUser.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Subscribe([FromBody] PushSubscribeDto dto)
         {
-            var res = await _pushSubscriptionService.SubscribeAsync(null, dto);
+            long? userId = null;
+            if (User.Identity?.IsAuthenticated == true &&
+                long.TryParse(User.FindFirst("UserId")?.Value, out var authenticatedUserId))
+            {
+                userId = authenticatedUserId;
+            }
+
+            var res = await _pushSubscriptionService.SubscribeAsync(userId, dto);
             return Ok(res);
         }
 

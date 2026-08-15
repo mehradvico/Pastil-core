@@ -28,7 +28,7 @@ namespace Api.Controllers
         [ProducesResponseType(typeof(CompanionAssistanceUserSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionAssistanceUserInputDto dto)
         {
-            var search = _companionAssistanceUserService.Search(dto);
+            var search = _companionAssistanceUserService.SearchPublic(dto);
             return Ok(search);
         }
 

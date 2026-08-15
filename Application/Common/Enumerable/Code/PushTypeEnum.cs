@@ -30,6 +30,27 @@ namespace Application.Common.Enumerable.Code
         PushRegisterPansionCompanion = 20,
         PushRegisterPansionAdmin = 21,
         PushCompletePansionAdmin = 22,
-        PushMemoryReminder = 23
+        PushMemoryReminder = 23,
+        PushReminderOneWeekBefore = 24,
+        PushReminderOneDayBefore = 25,
+        PushReminderOneDayAfter = 26,
+        PushPastilMatchRequestReceived = 27,
+        PushPastilMatchRequestAccepted = 28,
+        PushPastilMatchRequestRejected = 29,
+        PushPastilMatchNewMessage = 30,
+        PushPastilMatchProfileLiked = 31,
+        PushPastilMatchClosed = 32,
+        PushPastilMatchVerificationApproved = 33,
+        PushPastilMatchVerificationRejected = 34,
+        PushPastilMatchMessageReaction = 35,
+        PushPastilMatchRequestCancelled = 36,
+        PushCompanionRequestApproved = 37,
+        PushCompanionRequestRejected = 38,
+        PushDriverRequestApproved = 39,
+        PushDriverRequestRejected = 40,
+        PushStoreRequestApproved = 41,
+        PushStoreRequestRejected = 42,
+        PushPansionRequestApproved = 43,
+        PushPansionRequestRejected = 44
     }
 }

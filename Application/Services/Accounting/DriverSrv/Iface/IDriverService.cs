@@ -11,6 +11,8 @@ namespace Application.Services.Accounting.DriverSrv.Iface
         DriverSearchDto Search(DriverInputDto baseSearchDto);
         Task<BaseResultDto<DriverVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto> UpdateAsyncDto(DriverDto dto);
+        Task<BaseResultDto> ResubmitAsyncDto(DriverDto dto, long ownerId);
+        Task<BaseResultDto> DriverUpdateStatusAsyncDto(DriverUpdateStatusDto dto);
         BaseResultDto DriverUpdateStatusDto(DriverUpdateStatusDto dto);
     }
 }
