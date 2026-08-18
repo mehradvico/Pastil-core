@@ -52,7 +52,15 @@ namespace Application.Services.Content.PostSrv
         }
         public override async Task<BaseResultDto<PostDto>> FindAsyncDto(long id)
         {
-            var item = await _context.Posts.Include(s => s.User).Include(s => s.PostFiles).Include(s => s.Categories).Include(s => s.Hashtags).Include(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.Posts
+                .Include(s => s.User)
+                .Include(s => s.PostFiles)
+                .Include(s => s.PostPictures)
+                    .ThenInclude(s => s.Picture)
+                .Include(s => s.Categories)
+                .Include(s => s.Hashtags)
+                .Include(s => s.Picture)
+                .FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
                 return new BaseResultDto<PostDto>(true, mapper.Map<PostDto>(item));
             return new BaseResultDto<PostDto>(false, mapper.Map<PostDto>(item));
@@ -208,6 +216,12 @@ namespace Application.Services.Content.PostSrv
                 }
                 else
                 {
+                    var pictureValidation = ValidatePictures(dto);
+                    if (!pictureValidation.IsSuccess)
+                    {
+                        return new BaseResultDto<PostDto>(false, pictureValidation.Messages, dto);
+                    }
+
                     var item = mapper.Map<Post>(dto);
                     item.ParentId = item.ParentId == 0 ? null : item.ParentId;
                     item.CreateDate = DateTime.Now;
@@ -266,8 +280,12 @@ namespace Application.Services.Content.PostSrv
         {
             try
             {
-
                 var orginal = _context.Posts.AsTracking().FirstOrDefault(p => p.Id == dto.Id);
+                if (orginal == null)
+                {
+                    return new BaseResultDto(isSuccess: false, val: "پست موردنظر پیدا نشد.");
+                }
+
                 if (_currentUserHelper.CurrentUser.RoleEnum == RoleEnum.Operator.ToString())
                 {
                     if (orginal.UserId != _currentUserHelper.CurrentUser.UserId)
@@ -275,29 +293,10 @@ namespace Application.Services.Content.PostSrv
                         return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
                     }
                 }
-                if (orginal.Edited)
-                {
-                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.ThisArticleHasAlreadyBeenEdited);
-                }
-                else if (orginal.ParentId.HasValue || orginal.AdminConfirm == false || _currentUserHelper.CurrentUser.RoleEnum == RoleEnum.Admin.ToString())
-                {
-                    return UpdatingDto(dto);
-                }
-                dto.Id = 0;
-                dto.ParentId = orginal.Id;
-                var inserted = InsertAsyncDto(dto).Result;
-                if (!inserted.IsSuccess)
-                {
-                    return inserted;
-                }
-                else
-                {
-                    orginal.Edited = true;
-                    _context.Posts.Update(orginal);
-                    _context.SaveChanges();
-                    return inserted;
 
-                }
+                // دسترسی به Endpoint توسط Permission کنترل می‌شود؛ ویرایش همیشه روی همان پست انجام می‌شود.
+                // فیلد Edited دیگر نباید باعث مسدود شدن ویرایش یا ساخت نسخه فرزند شود.
+                return UpdatingDto(dto);
             }
             catch (Exception ex)
             {
@@ -306,6 +305,8 @@ namespace Application.Services.Content.PostSrv
         }
         private BaseResultDto UpdatingDto(PostDto dto)
         {
+            using var transaction = _context.BeginTransaction();
+
             try
             {
                 var modelCheker = ModelHelper<PostDto>.ModelErrors(dto);
@@ -315,12 +316,44 @@ namespace Application.Services.Content.PostSrv
                 }
                 else
                 {
-                    var item = _context.Posts.Include(s => s.Hashtags).Include(s => s.PostFiles).Include(s => s.Categories).AsTracking().FirstOrDefault(s => s.Id == dto.Id);
+                    var pictureValidation = ValidatePictures(dto);
+                    if (!pictureValidation.IsSuccess)
+                    {
+                        return pictureValidation;
+                    }
+
+                    var item = _context.Posts
+                        .Include(s => s.Hashtags)
+                        .Include(s => s.PostFiles)
+                        .Include(s => s.PostPictures)
+                        .Include(s => s.Categories)
+                        .AsTracking()
+                        .FirstOrDefault(s => s.Id == dto.Id);
+
+                    if (item == null)
+                    {
+                        return new BaseResultDto(isSuccess: false, val: "پست موردنظر پیدا نشد.");
+                    }
+
                     var userId = item.UserId;
                     var parentId = item.ParentId;
+                    var createDate = item.CreateDate;
+                    var visitCount = item.VisitCount;
+                    var commentCount = item.CommentCount;
+                    var edited = item.Edited;
+                    var deleted = item.Deleted;
+
                     mapper.Map(dto, item);
+
                     item.UserId = userId;
                     item.ParentId = parentId;
+                    item.CreateDate = createDate;
+                    item.VisitCount = visitCount;
+                    item.CommentCount = commentCount;
+                    item.Edited = edited;
+                    item.Deleted = deleted;
+                    item.UpdateDate = DateTime.Now;
+
                     _context.Posts.Update(item);
                     _context.SaveChanges();
                     if (dto.CategoryIds == null)
@@ -338,7 +371,7 @@ namespace Application.Services.Content.PostSrv
                     dto.CategoryIds = dto.CategoryIds.Distinct().ToList();
                     postCategoryService.InsertOrUpdate(item, dto.CategoryIds);
 
-                    if (dto.HashTagList != null && dto.HashTagList.Any())
+                    if (dto.HashTagList != null)
                     {
                         dto.HashTagList = dto.HashTagList.Distinct().ToList();
                         postHashtagService.InsertOrUpdate(item, dto.HashTagList);
@@ -348,13 +381,43 @@ namespace Application.Services.Content.PostSrv
                     _postFileService.InsertOrUpdate(item, dto.PostFilesList);
                     _postPictureService.InsertOrUpdate(item, dto.PostPicturesList);
 
+                    transaction.Commit();
                     return new BaseResultDto<PostDto>(true, mapper.Map<PostDto>(item));
                 }
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 return new BaseResultDto(isSuccess: false, val: ex.Message);
             }
+        }
+
+        private BaseResultDto ValidatePictures(PostDto dto)
+        {
+            if (dto.PictureId.HasValue && !_context.Pictures.Any(s => s.Id == dto.PictureId.Value))
+            {
+                return new BaseResultDto(isSuccess: false, val: "تصویر اصلی پست معتبر نیست یا حذف شده است.");
+            }
+
+            if (dto.PostPicturesList == null)
+            {
+                return new BaseResultDto(true);
+            }
+
+            dto.PostPicturesList = dto.PostPicturesList
+                .Where(s => s != null)
+                .GroupBy(s => s.PictureId)
+                .Select(s => s.First())
+                .ToList();
+
+            var pictureIds = dto.PostPicturesList.Select(s => s.PictureId).ToList();
+            var validPictureCount = _context.Pictures.Count(s => pictureIds.Contains(s.Id));
+            if (validPictureCount != pictureIds.Count)
+            {
+                return new BaseResultDto(isSuccess: false, val: "یک یا چند تصویر ضمیمه پست معتبر نیست یا حذف شده است.");
+            }
+
+            return new BaseResultDto(true);
         }
 
         public async Task<BaseResultDto<PostVDto>> FindAsyncVDto(long id, bool visit = true)
@@ -375,7 +438,7 @@ namespace Application.Services.Content.PostSrv
         }
         public async Task<BaseResultDto<PostVDto>> GetByUrlAsyncVDto(string url, bool visit = true)
         {
-            var item = await _context.Posts.Include(s => s.User).Include(s => s.Picture).Include(s => s.PostFiles).Include(s => s.Hashtags).Include(s => s.Category).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).FirstOrDefaultAsync(s => s.SeoH1.Contains(url) && s.Active && s.Deleted != true);
+            var item = await _context.Posts.Include(s => s.User).Include(s => s.Picture).Include(s => s.PostFiles).Include(s => s.PostPictures).ThenInclude(s => s.Picture).Include(s => s.Hashtags).Include(s => s.Category).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).FirstOrDefaultAsync(s => s.SeoH1.Contains(url) && s.Active && s.Deleted != true);
             if (item != null)
             {
                 if (visit)

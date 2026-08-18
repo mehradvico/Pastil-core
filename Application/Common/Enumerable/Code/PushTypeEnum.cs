@@ -51,6 +51,7 @@ namespace Application.Common.Enumerable.Code
         PushStoreRequestApproved = 41,
         PushStoreRequestRejected = 42,
         PushPansionRequestApproved = 43,
-        PushPansionRequestRejected = 44
+        PushPansionRequestRejected = 44,
+        PushCompanionReserveAssigned = 45
     }
 }

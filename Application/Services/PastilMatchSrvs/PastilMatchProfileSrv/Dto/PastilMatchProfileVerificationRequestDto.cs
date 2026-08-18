@@ -9,5 +9,10 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto
 {
     public class PastilMatchProfileVerificationRequestDto : Id_FieldDto
     {
+        /// <summary>
+        /// شناسه پروفایل پاستیل مچ. فیلد Id برای سازگاری با کلاینت‌های قدیمی
+        /// همچنان پشتیبانی می‌شود.
+        /// </summary>
+        public long? PastilMatchProfileId { get; set; }
     }
 }

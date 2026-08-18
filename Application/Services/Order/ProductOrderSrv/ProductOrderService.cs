@@ -13,6 +13,7 @@ using Application.Services.Order.ProductOrderOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
+using Application.Services.Order.ShippingSrv.Iface;
 using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using Application.Services.ProductSrvs.ProductSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
@@ -52,12 +53,14 @@ namespace Application.Services.Order.ProductOrderSrv
         private readonly ICodeService _codeService;
         private readonly IScoreTransactionService _scoreService;
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
+        private readonly IShipmentService _shipmentService;
 
         public ProductOrderService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserProductService userProductService,
             INoticeService notificationService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IWalletService walletService,
             IUserService userService, IProductService productService, IRebateService rebateService, IScoreTransactionService scoreService,
             IMessageSenderService messageSenderService,
-            IClubPointIntegrationService clubPointIntegrationService) : base(_context, mapper)
+            IClubPointIntegrationService clubPointIntegrationService,
+            IShipmentService shipmentService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -73,6 +76,7 @@ namespace Application.Services.Order.ProductOrderSrv
             this._codeService = codeService;
             this._scoreService = scoreService;
             this._clubPointIntegrationService = clubPointIntegrationService;
+            this._shipmentService = shipmentService;
         }
         public async Task<BaseResultDto> FindAsyncVDto(string id, long? userId = null)
         {
@@ -209,7 +213,7 @@ namespace Application.Services.Order.ProductOrderSrv
 
         public async Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false)
         {
-            var productOrder = await _context.ProductOrders.AsTracking().Include(s => s.User).Include(s => s.Rebate).Include(s => s.ProductOrderStores).ThenInclude(s => s.Store).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).ThenInclude(s => s.ProductItem).ThenInclude(s => s.Product).FirstOrDefaultAsync(s => s.Id == productOrderId);
+            var productOrder = await _context.ProductOrders.AsTracking().Include(s => s.User).Include(s => s.Address).Include(s => s.Rebate).Include(s => s.ProductOrderStores).ThenInclude(s => s.Store).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems).ThenInclude(s => s.ProductItem).ThenInclude(s => s.Product).FirstOrDefaultAsync(s => s.Id == productOrderId);
             if (productOrder == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (productOrder.IsPaid)
@@ -270,6 +274,14 @@ namespace Application.Services.Order.ProductOrderSrv
                 );
             }
             await _context.SaveChangesAsync();
+            try
+            {
+                await _shipmentService.CreateForPaidOrderAsync(productOrder);
+            }
+            catch
+            {
+                // پرداخت موفق نباید به دلیل اختلال سرویس حمل‌ونقل ناموفق اعلام شود.
+            }
             var cart = await _context.Carts.AsTracking().Include(s => s.CartStores.Where(a => a.Active)).ThenInclude(s => s.CartItems).FirstOrDefaultAsync(s => s.UserId == productOrder.UserId);
             if (cart != null)
             {

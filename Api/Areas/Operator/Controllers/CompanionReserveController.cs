@@ -49,7 +49,7 @@ namespace Api.Areas.Operator.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionReserveVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var companion = await _companionReserveService.FindAsyncVDto(id);
+            var companion = await _companionReserveService.FindAsyncOperatorVDto(id);
             return Ok(companion);
         }
     }

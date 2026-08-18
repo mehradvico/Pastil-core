@@ -14,6 +14,7 @@ using Application.Services.Accounting.UserTokenSrv.Dto;
 using Application.Services.Accounting.UserTokenSrv.Iface;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.Dto;
+using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using Application.Services.Setting.BaseDetailSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
 using Application.Services.Setting.NoticeSrv;
@@ -45,8 +46,21 @@ namespace Application.Services.UserSrv
         private readonly IPushNotificationService _pushNotificationService;
         private readonly INoticeService _noticeService;
         private readonly IUserPasswordService _passwordService;
+        private readonly IClubPointIntegrationService _clubPointIntegrationService;
 
-        public UserService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserTokenService userTokenSevice, IOtpVerifyService otpVerifyService, IMapper mapper, IConfiguration configuration, IRegixHelper RegixHelper, IBaseDetailService baseDetailService, IMessageSenderService messageSenderService, INoticeService noticeService, IUserPasswordService passwordService) : base(_context, mapper)
+        public UserService(
+            IDataBaseContext _context,
+            IPushNotificationService pushNotificationService,
+            IUserTokenService userTokenSevice,
+            IOtpVerifyService otpVerifyService,
+            IMapper mapper,
+            IConfiguration configuration,
+            IRegixHelper RegixHelper,
+            IBaseDetailService baseDetailService,
+            IMessageSenderService messageSenderService,
+            INoticeService noticeService,
+            IUserPasswordService passwordService,
+            IClubPointIntegrationService clubPointIntegrationService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -59,6 +73,7 @@ namespace Application.Services.UserSrv
             this._pushNotificationService = pushNotificationService;
             this._noticeService = noticeService;
             this._passwordService = passwordService;
+            this._clubPointIntegrationService = clubPointIntegrationService;
         }
         public override async Task<BaseResultDto<UserDto>> InsertAsyncDto(UserDto dto)
         {
@@ -526,6 +541,14 @@ namespace Application.Services.UserSrv
             var insertResult = await InsertAsyncDto(userDto);
             if (insertResult.IsSuccess)
             {
+                if (referral.RewardRecipientUserId.HasValue)
+                {
+                    await _clubPointIntegrationService.RegistrationReferralCompletedAsync(
+                        insertResult.Data.Id,
+                        referral.RewardRecipientUserId.Value,
+                        referral.CompanionId.HasValue || referral.StoreId.HasValue);
+                }
+
                 var token = CreateToken(insertResult.Data.Id);
                 await ChangUserCartAsync(insertResult.Data.Id, user.CartCode);
 
@@ -603,6 +626,7 @@ namespace Application.Services.UserSrv
                     }
 
                     result.CompanionId = companion.Id;
+                    result.RewardRecipientUserId = companion.OwnerId;
                     break;
                 }
                 case RegistrationReferralSource.PetShop:
@@ -634,6 +658,16 @@ namespace Application.Services.UserSrv
                     }
 
                     result.StoreId = store.Id;
+                    result.RewardRecipientUserId = store.Users
+                        .OrderBy(item => item.Id)
+                        .Select(item => (long?)item.Id)
+                        .FirstOrDefault();
+
+                    if (!result.RewardRecipientUserId.HasValue)
+                    {
+                        result.AddError(Resource.Notification.TheReferralCodeIsWrong, nameof(dto.ReferralCode));
+                        return result;
+                    }
                     break;
                 }
                 case RegistrationReferralSource.Acquaintances:
@@ -663,6 +697,7 @@ namespace Application.Services.UserSrv
                     }
 
                     result.UserId = referrer.Id;
+                    result.RewardRecipientUserId = referrer.Id;
                     break;
                 }
             }
@@ -700,6 +735,7 @@ namespace Application.Services.UserSrv
             public long? UserId { get; set; }
             public long? CompanionId { get; set; }
             public long? StoreId { get; set; }
+            public long? RewardRecipientUserId { get; set; }
             public List<Tuple<string, string>> Messages { get; } = new List<Tuple<string, string>>();
 
             public void AddError(string message, string field)

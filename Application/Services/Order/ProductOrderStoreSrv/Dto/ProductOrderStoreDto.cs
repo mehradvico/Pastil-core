@@ -16,6 +16,10 @@ namespace Application.Services.Order.ProductOrderStoreSrv.Dto
         public bool Edited { get; set; }
         public long? DeliveryId { get; set; }
         public double DeliveryPrice { get; set; }
+        public long? ShippingQuoteId { get; set; }
+        public Entities.Entities.ShippingField.ShippingProviderEnum? ShippingProvider { get; set; }
+        public Entities.Entities.ShippingField.ShippingPaymentModeEnum? ShippingPaymentMode { get; set; }
+        public double ShippingQuotedPrice { get; set; }
         public double PaymentPrice { get; set; }
         public List<ProductOrderItemDto> ProductOrderItems { get; set; }
 

@@ -38,7 +38,8 @@ namespace Application.Services.Content.PostPictureSrv
             var item = _context.PostPictures.FirstOrDefault(s => s.PostId == PostPicture.PostId && s.PictureId == PostPicture.PictureId);
             if (item != null)
             {
-                PostPicture.Label = item.Label;
+                item.Name = PostPicture.Name;
+                item.Label = PostPicture.Label;
                 _context.PostPictures.Update(item);
             }
             else
@@ -51,20 +52,38 @@ namespace Application.Services.Content.PostPictureSrv
 
         public void InsertOrUpdate(Post post, List<PostPictureDto> PostPicturesDto)
         {
-            if (post.PostPictures != null)
+            if (PostPicturesDto == null)
             {
-                _context.PostPictures.RemoveRange(post.PostPictures);
-                _context.SaveChanges();
+                return;
             }
-            else
+
+            var oldItems = post.PostPictures?.ToList() ?? _context.PostPictures
+                .Where(s => s.PostId == post.Id)
+                .ToList();
+
+            if (oldItems.Any())
             {
-                post.PostPictures = new List<PostPicture>();
+                _context.PostPictures.RemoveRange(oldItems);
             }
-            PostPicturesDto.ForEach(s => s.PostId = post.Id);
-            foreach (var item in PostPicturesDto)
+
+            var newItems = PostPicturesDto
+                .Where(s => s != null)
+                .GroupBy(s => s.PictureId)
+                .Select(group =>
+                {
+                    var s = group.First();
+                    s.PostId = post.Id;
+                    return mapper.Map<PostPicture>(s);
+                })
+                .ToList();
+
+            if (newItems.Any())
             {
-                InsertOrUpdate(item);
+                _context.PostPictures.AddRange(newItems);
             }
+
+            _context.SaveChanges();
+            post.PostPictures = newItems;
         }
     }
 }

@@ -5,6 +5,7 @@ using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.Content.CargoSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Entities.Entities;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Application.Services.CompanionSrv.CompanionReserveSrv.Iface
@@ -27,6 +28,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Iface
         Task<BaseResultDto> ClearRebateCodeAsync(long id);
         Task<BaseResultDto<int>> ReserveCountAsync(long id);
         Task<BaseResultDto> UpdatePermittedAsyncDto(long id);
+        Task<BaseResultDto<List<CompanionReserveAssigneeVDto>>> GetCompanionReserveAssigneesAsync(long reserveId, bool adminAccess = false);
+        Task<BaseResultDto<CompanionReserveAdminVDto>> AssignCompanionReserveAsync(CompanionReserveAssignDto dto, bool adminAccess = false);
+        Task<BaseResultDto<CompanionReserveVDto>> FindAsyncOperatorVDto(long id);
 
     }
 }

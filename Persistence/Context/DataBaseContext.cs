@@ -7,6 +7,7 @@ using Entities.Entities.PastilMatchField;
 using Entities.Entities.PastilAIField;
 using Entities.Entities.PastilClubField;
 using Entities.Entities.Security;
+using Entities.Entities.ShippingField;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -157,6 +158,8 @@ namespace Persistence.Context
         public DbSet<ContactUsItem> ContactUsItems { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<Delivery> Deliveries { get; set; }
+        public DbSet<ShippingQuote> ShippingQuotes { get; set; }
+        public DbSet<Shipment> Shipments { get; set; }
         public DbSet<DeliveryDistance> DeliveryDistances { get; set; }
         public DbSet<Detail> Details { get; set; }
         public DbSet<Discount> Discounts { get; set; }
@@ -1076,6 +1079,9 @@ namespace Persistence.Context
             });
             modelBuilder.Entity<Product>(e =>
             {
+                e.Property(p => p.ShippingLengthCm).HasPrecision(10, 2);
+                e.Property(p => p.ShippingWidthCm).HasPrecision(10, 2);
+                e.Property(p => p.ShippingHeightCm).HasPrecision(10, 2);
                 e.HasOne(p => p.Status)
                 .WithMany()
                 .HasForeignKey(p => p.StatusId).OnDelete(DeleteBehavior.NoAction);
@@ -1118,6 +1124,61 @@ namespace Persistence.Context
                 .WithMany()
                 .HasForeignKey(p => p.DeliveryTypeId).OnDelete(DeleteBehavior.NoAction);
 
+            });
+            modelBuilder.Entity<ShippingQuote>(entity =>
+            {
+                entity.Property(item => item.Currency).HasMaxLength(10).IsRequired();
+                entity.Property(item => item.ExternalQuoteId).HasMaxLength(250);
+                entity.Property(item => item.RequestFingerprint).HasMaxLength(128).IsRequired();
+                entity.HasIndex(item => item.Token).IsUnique();
+                entity.HasIndex(item => new { item.UserId, item.CartStoreId, item.Status });
+                entity.HasIndex(item => item.ExpiresAtUtc);
+                entity.HasOne(item => item.CartStore)
+                    .WithMany()
+                    .HasForeignKey(item => item.CartStoreId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(item => item.User)
+                    .WithMany()
+                    .HasForeignKey(item => item.UserId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(item => item.Address)
+                    .WithMany()
+                    .HasForeignKey(item => item.AddressId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(item => item.Delivery)
+                    .WithMany()
+                    .HasForeignKey(item => item.DeliveryId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+            modelBuilder.Entity<CartStore>(entity =>
+            {
+                entity.HasOne(item => item.ShippingQuote)
+                    .WithMany()
+                    .HasForeignKey(item => item.ShippingQuoteId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+            modelBuilder.Entity<ProductOrderStore>(entity =>
+            {
+                entity.HasOne(item => item.ShippingQuote)
+                    .WithMany()
+                    .HasForeignKey(item => item.ShippingQuoteId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+            modelBuilder.Entity<Shipment>(entity =>
+            {
+                entity.Property(item => item.ExternalShipmentId).HasMaxLength(250);
+                entity.Property(item => item.TrackingCode).HasMaxLength(250);
+                entity.Property(item => item.FailureReason).HasMaxLength(1000);
+                entity.HasIndex(item => item.ProductOrderStoreId).IsUnique();
+                entity.HasIndex(item => new { item.Provider, item.Status });
+                entity.HasOne(item => item.ProductOrderStore)
+                    .WithOne(item => item.Shipment)
+                    .HasForeignKey<Shipment>(item => item.ProductOrderStoreId)
+                    .OnDelete(DeleteBehavior.NoAction);
+                entity.HasOne(item => item.ShippingQuote)
+                    .WithMany()
+                    .HasForeignKey(item => item.ShippingQuoteId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
             modelBuilder.Entity<ProductFeatureValue>(e =>
             {

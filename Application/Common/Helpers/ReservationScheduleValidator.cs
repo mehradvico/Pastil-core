@@ -47,5 +47,34 @@ namespace Application.Common.Helpers
             startDateTime = serviceDate.Date.Add(parsedStartTime);
             return true;
         }
+
+        public static bool TryGetServiceTimeRange(
+            string startTime,
+            string endTime,
+            out TimeSpan start,
+            out TimeSpan end)
+        {
+            var validStart = TimeSpan.TryParseExact(
+                startTime,
+                "hh\\:mm",
+                CultureInfo.InvariantCulture,
+                out start);
+            var validEnd = TimeSpan.TryParseExact(
+                endTime,
+                "hh\\:mm",
+                CultureInfo.InvariantCulture,
+                out end);
+
+            return validStart && validEnd && end > start;
+        }
+
+        public static bool HasTimeRangeOverlap(
+            TimeSpan firstStart,
+            TimeSpan firstEnd,
+            TimeSpan secondStart,
+            TimeSpan secondEnd)
+        {
+            return firstStart < secondEnd && secondStart < firstEnd;
+        }
     }
 }

@@ -15,5 +15,10 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv.Iface
         Task PetProfileCompletedAsync(long userId, long userPetId, CancellationToken cancellationToken = default);
         Task MemoryCreatedAsync(long userId, long memoryId, DateTimeOffset memoryDate, CancellationToken cancellationToken = default);
         Task MemoryReversedAsync(long userId, long memoryId, DateTimeOffset memoryDate, CancellationToken cancellationToken = default);
+        Task RegistrationReferralCompletedAsync(
+            long newUserId,
+            long referrerUserId,
+            bool isBusinessReferral,
+            CancellationToken cancellationToken = default);
     }
 }

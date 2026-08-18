@@ -1,5 +1,6 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.LocationField;
+using Entities.Entities.ShippingField;
 using System.Collections.Generic;
 
 namespace Entities.Entities
@@ -17,6 +18,10 @@ namespace Entities.Entities
         public bool Active { get; set; }
         public bool Deleted { get; set; }
         public bool AfterRent { get; set; }
+        public ShippingProviderEnum ShippingProvider { get; set; }
+        public bool LivePricing { get; set; }
+        public bool AllowPrepaid { get; set; } = true;
+        public bool AllowReceiverPay { get; set; }
         public long? StoreId { get; set; }
         public City City { get; set; }
         public Code DeliveryType { get; set; }

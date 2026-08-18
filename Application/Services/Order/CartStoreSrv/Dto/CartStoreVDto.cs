@@ -16,6 +16,10 @@ namespace Application.Services.Order.CartStoreSrv.Dto
         public long StoreId { get; set; }
         public long? DeliveryId { get; set; }
         public double DeliveryPrice { get; set; }
+        public long? ShippingQuoteId { get; set; }
+        public Entities.Entities.ShippingField.ShippingProviderEnum? ShippingProvider { get; set; }
+        public Entities.Entities.ShippingField.ShippingPaymentModeEnum? ShippingPaymentMode { get; set; }
+        public double ShippingQuotedPrice { get; set; }
         public double PaymentPrice { get; set; }
         public bool Active { get; set; }
         public DeliveryVDto Delivery { get; set; }

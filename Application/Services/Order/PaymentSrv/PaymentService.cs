@@ -25,6 +25,7 @@ using Entities.Entities.PastilAIField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Persistence.Interface;
 using System;
 using System.Data;
@@ -54,6 +55,7 @@ namespace Application.Services.Order.PaymentSrv
         private readonly IPaymentTestModeService _paymentTestModeService;
         private readonly ICurrentUserHelper _currentUserHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<PaymentService> _logger;
 
         public PaymentService(
             IDataBaseContext context,
@@ -72,7 +74,8 @@ namespace Application.Services.Order.PaymentSrv
             IPaymentTestModeService paymentTestModeService,
             ICurrentUserHelper currentUserHelper,
             IHttpContextAccessor httpContextAccessor,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<PaymentService> logger)
             : base(context, mapper)
         {
             _context = context;
@@ -92,6 +95,7 @@ namespace Application.Services.Order.PaymentSrv
             _currentUserHelper = currentUserHelper;
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<BaseResultDto> InsertWalletPaymentAsyncDto(PaymentStartDto dto)
@@ -240,10 +244,36 @@ namespace Application.Services.Order.PaymentSrv
                     await _context.SaveChangesAsync(true);
                 }
 
+                if (startResult.IsSuccess && _paymentTestModeService.IsEnabled)
+                {
+                    var testCallbackResult = await _merchantService.CallbackAsync(item);
+                    if (!testCallbackResult.IsSuccess)
+                    {
+                        await HandleFailedPaymentAsync(item);
+                        return new BaseResultDto<PaymentStartDto>(
+                            false,
+                            testCallbackResult.Messages,
+                            dto);
+                    }
+
+                    var applyResult = await ApplyAndMapPaymentAsync(item);
+                    return new BaseResultDto<PaymentStartDto>(
+                        applyResult.IsSuccess,
+                        applyResult.Messages,
+                        dto);
+                }
+
                 return startResult;
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                _logger.LogError(
+                    exception,
+                    "Payment start failed for payment {PaymentId} and callback target {CallbackType}/{CallbackId}.",
+                    item?.Id,
+                    dto.CallBackTypeLabel,
+                    dto.CallBackId);
+
                 if (item != null && item.IsSuccess == null)
                 {
                     item.IsSuccess = false;
@@ -433,8 +463,12 @@ namespace Application.Services.Order.PaymentSrv
 
                 return await ApplyAndMapPaymentAsync(payment);
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                _logger.LogError(
+                    exception,
+                    "Payment callback failed while applying payment {PaymentId} to its target.",
+                    paymentId);
                 return new BaseResultDto<PaymentDto>(false, Resource.Notification.Unsuccess, null);
             }
         }

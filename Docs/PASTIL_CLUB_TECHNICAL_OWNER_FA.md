@@ -343,7 +343,7 @@ Migration برای Companion و Storeهای قبلی نیز Backfill انجام 
 
 Self-referral بر اساس Mobile و Email کنترل می‌شود. اگر یک شخص با موبایل و ایمیل کاملاً متفاوت ثبت‌نام کند، بدون NaturalCode/KYC امکان تشخیص قطعی نیست. اگر امتیاز Referral ارزش مالی بالا پیدا کرد، قبل از فعال‌سازی Ruleهای 6 تا 8 باید KYC، محدودیت دستگاه/IP و Anti-Fraud اضافه شود.
 
-### وضعیت فعلی امتیاز Referral
+### امتیاز Referral
 
 Entity، Enum و EventTypeهای زیر آماده‌اند:
 
@@ -353,7 +353,9 @@ UserReferralReferee = 7
 BusinessReferralUser = 8
 ```
 
-اما `UserService.SignUp` فعلاً فقط Attribution را ذخیره می‌کند و `IClubPointIntegrationService` را برای این سه Event صدا نمی‌زند. بنابراین Ruleهای 6 تا 8 را تا زمان اتصال کامل و تست Anti-Fraud فعال نکنید.
+`UserService.SignUp` بعد از ثبت موفق کاربر، `IClubPointIntegrationService` را فراخوانی می‌کند. برای کد کاربر Eventهای `6` و `7` و برای کد Companion/Store Eventهای `6` و `8` اجرا می‌شوند. دریافت‌کننده Event شماره `6` در حالت کسب‌وکار، مالک Companion یا اولین کاربر مالک Store است. کلیدهای تراکنش بر پایه شناسه کاربر جدید ساخته می‌شوند و اجرای تکراری امتیاز مضاعف ایجاد نمی‌کند.
+
+Ruleهای پیش‌فرض هر سه Event فعال و مبلغ هرکدام `100` امتیاز است؛ مبلغ و محدودیت‌ها همچنان از پنل قابل ویرایش هستند.
 
 ## 12. Companion، Store و Pansion
 
@@ -582,10 +584,9 @@ dotnet ef migrations has-pending-model-changes --project Persistence --startup-p
 
 این موارد بخشی از وضعیت فعلی نیستند و برای فاز بعد پیشنهاد می‌شوند:
 
-1. اتصال Signup به Eventهای Referral و ثبت امتیاز معرف/دعوت‌شده/کسب‌وکار.
-2. Anti-Fraud معرفی شامل KYC، Device/IP limit و سقف روزانه کسب‌وکار.
-3. Job انقضای Offer و Benefit و Notification.
-4. Reconciliation Job برای Eventهای امتیاز ناموفق.
-5. Dashboard و گزارش مالی Funding.
-6. جدا کردن DTO عمومی Site از Admin برای مخفی کردن ReferralCode و اطلاعات داخلی.
-7. تکمیل Actionهای Approve/Reject در UI پنل در صورت نیاز عملیاتی.
+1. Anti-Fraud معرفی شامل KYC، Device/IP limit و سقف روزانه کسب‌وکار.
+2. Job انقضای Offer و Benefit و Notification.
+3. Reconciliation Job برای Eventهای امتیاز ناموفق.
+4. Dashboard و گزارش مالی Funding.
+5. جدا کردن DTO عمومی Site از Admin برای مخفی کردن ReferralCode و اطلاعات داخلی.
+6. تکمیل Actionهای Approve/Reject در UI پنل در صورت نیاز عملیاتی.

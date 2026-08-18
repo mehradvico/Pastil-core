@@ -1,4 +1,5 @@
 ﻿using Entities.Entities.CommonField;
+using Entities.Entities.ShippingField;
 using System.Collections.Generic;
 
 namespace Entities.Entities
@@ -15,10 +16,16 @@ namespace Entities.Entities
         public bool Edited { get; set; }
         public long? DeliveryId { get; set; }
         public double DeliveryPrice { get; set; }
+        public long? ShippingQuoteId { get; set; }
+        public ShippingProviderEnum? ShippingProvider { get; set; }
+        public ShippingPaymentModeEnum? ShippingPaymentMode { get; set; }
+        public double ShippingQuotedPrice { get; set; }
         public double PaymentPrice { get; set; }
         public Delivery Delivery { get; set; }
         public Store Store { get; set; }
         public ProductOrder ProductOrder { get; set; }
+        public ShippingQuote ShippingQuote { get; set; }
+        public Shipment Shipment { get; set; }
         public ICollection<ProductOrderItem> ProductOrderItems { get; set; }
     }
 }

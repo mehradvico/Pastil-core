@@ -1107,6 +1107,26 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionReserveAssignController">
+            <summary>
+            تخصیص رزرو خدمت به کاربر نمایندگی توسط مدیر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionReserveAssignController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveAssignDto)">
+            <summary>
+            تخصیص یا تغییر مسئول انجام رزرو توسط مدیر
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionReserveAssigneeController">
+            <summary>
+            کاربران قابل تخصیص به رزرو خدمت توسط مدیر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionReserveAssigneeController.Get(System.Int64)">
+            <summary>
+            دریافت کاربران فعال و تأییدشده همان خدمت برای تخصیص رزرو توسط مدیر
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionReserveCancelController">
             <summary>
             لغو رزرو نماینده
@@ -5355,6 +5375,26 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveAssignController">
+            <summary>
+            تخصیص رزرو خدمت به کاربر نمایندگی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveAssignController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveAssignDto)">
+            <summary>
+            تخصیص یا تغییر مسئول انجام رزرو
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveAssigneeController">
+            <summary>
+            کاربران قابل تخصیص به رزرو خدمت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveAssigneeController.Get(System.Int64)">
+            <summary>
+            دریافت کاربران فعال و تأییدشده همان خدمت برای تخصیص رزرو
+            </summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionReserveCancelController">
             <summary>
             مدیریت کنسلی رزرو نماینده
@@ -7406,6 +7446,26 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ShippingQuoteController">
+            <summary>
+            قیمت لحظه‌ای روش‌های ارسال
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ShippingQuoteController.Post(Application.Services.Order.ShippingSrv.Dto.ShippingQuoteCreateDto,System.Threading.CancellationToken)">
+            <summary>
+            دریافت قیمت روش‌های ارسال فروشگاه فعال در سبد
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ShippingSelectionController">
+            <summary>
+            انتخاب قیمت ارسال برای سبد
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ShippingSelectionController.Post(Application.Services.Order.ShippingSrv.Dto.ShippingQuoteSelectDto,System.Threading.CancellationToken)">
+            <summary>
+            اعمال Quote معتبر روی سبد
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.StoreCommentController">
             <summary>
             مرتبط با فروشگاه ها
@@ -8043,6 +8103,11 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.DeliveryController.GetTypes">
+            <summary>
+            انواع فعال روش ارسال
+            </summary>
         </member>
         <member name="M:Api.Areas.Seller.Controllers.DeliveryController.Post(Application.Services.Order.DeliverySrv.Dto.DeliveryDto)">
             <summary>

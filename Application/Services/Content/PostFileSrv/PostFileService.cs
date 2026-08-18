@@ -38,7 +38,8 @@ namespace Application.Services.Content.PostFileSrv
             var item = _context.PostFiles.FirstOrDefault(s => s.PostId == postFile.PostId && s.FileId == postFile.FileId);
             if (item != null)
             {
-                postFile.Label = item.Label;
+                item.Name = postFile.Name;
+                item.Label = postFile.Label;
                 _context.PostFiles.Update(item);
             }
             else
@@ -51,20 +52,38 @@ namespace Application.Services.Content.PostFileSrv
 
         public void InsertOrUpdate(Post post, List<PostFileDto> postFilesDto)
         {
-            if (post.PostFiles != null)
+            if (postFilesDto == null)
             {
-                _context.PostFiles.RemoveRange(post.PostFiles);
-                _context.SaveChanges();
+                return;
             }
-            else
+
+            var oldItems = post.PostFiles?.ToList() ?? _context.PostFiles
+                .Where(s => s.PostId == post.Id)
+                .ToList();
+
+            if (oldItems.Any())
             {
-                post.PostFiles = new List<PostFile>();
+                _context.PostFiles.RemoveRange(oldItems);
             }
-            postFilesDto.ForEach(s => s.PostId = post.Id);
-            foreach (var item in postFilesDto)
+
+            var newItems = postFilesDto
+                .Where(s => s != null)
+                .GroupBy(s => s.FileId)
+                .Select(group =>
+                {
+                    var s = group.First();
+                    s.PostId = post.Id;
+                    return mapper.Map<PostFile>(s);
+                })
+                .ToList();
+
+            if (newItems.Any())
             {
-                InsertOrUpdate(item);
+                _context.PostFiles.AddRange(newItems);
             }
+
+            _context.SaveChanges();
+            post.PostFiles = newItems;
         }
     }
 }

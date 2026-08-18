@@ -4,6 +4,7 @@ using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.ProductSrvs.ProductPictureSrv.Dto;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.Services.ProductSrvs.ProductSrv.Dto
 {
@@ -27,6 +28,14 @@ namespace Application.Services.ProductSrvs.ProductSrv.Dto
         public int RateCount { get; set; }
         public long? StoreId { get; set; }
         public string AdminDescription { get; set; }
+        [Range(1, 1000000)]
+        public int? ShippingWeightGrams { get; set; }
+        [Range(typeof(decimal), "0.01", "10000")]
+        public decimal? ShippingLengthCm { get; set; }
+        [Range(typeof(decimal), "0.01", "10000")]
+        public decimal? ShippingWidthCm { get; set; }
+        [Range(typeof(decimal), "0.01", "10000")]
+        public decimal? ShippingHeightCm { get; set; }
 
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }

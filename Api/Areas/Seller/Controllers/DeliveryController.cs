@@ -6,6 +6,7 @@ using Application.Services.Order.DeliverySrv.Dto;
 using Application.Services.Order.DeliverySrv.iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace Api.Areas.Seller.Controllers
 {
@@ -64,6 +65,20 @@ namespace Api.Areas.Seller.Controllers
             dto.StoreId = storeId;
             var searchDto = DeliveryService.Search(dto);
             return Ok(searchDto);
+        }
+
+        /// <summary>
+        /// انواع فعال روش ارسال
+        /// </summary>
+        [HttpGet("types")]
+        [ProducesResponseType(typeof(BaseResultDto<List<DeliveryTypeOptionDto>>), 200)]
+        public async Task<IActionResult> GetTypes()
+        {
+            var storeId = _currentUser.CurrentUser?.StoreId ?? 0;
+            if (storeId <= 0)
+                return BadRequest(new BaseResultDto(false, "فروشگاه فعالی برای کاربر جاری یافت نشد."));
+
+            return Ok(await DeliveryService.GetDeliveryTypesAsync());
         }
         /// <summary>
         /// آیتم جدید

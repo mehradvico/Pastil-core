@@ -14,6 +14,7 @@ using Application.Services.Order.ProductOrderItemSrv.Iface;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
+using Application.Services.Order.ShippingSrv.Iface;
 using Application.Services.ProductSrvs.ProductItemSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
@@ -45,9 +46,10 @@ namespace Application.Services.Order.CartSrv
         private readonly IWalletService _walletService;
         private readonly IUserService _userService;
         private readonly IAddressService _addressService;
+        private readonly IShippingQuoteService _shippingQuoteService;
 
 
-        public CartService(IDataBaseContext _context, IMapper mapper, IUserService userService, IAddressService addressService, IProductItemService productItemService, IRebateService rebateService, IProductOrderService productOrderService, IProductOrderItemService productOrderItemService, ICodeService codeService, IPaymentService paymentService, ICurrentUserHelper currentUser, IDeliveryService deliveryService, IWalletService walletService)
+        public CartService(IDataBaseContext _context, IMapper mapper, IUserService userService, IAddressService addressService, IProductItemService productItemService, IRebateService rebateService, IProductOrderService productOrderService, IProductOrderItemService productOrderItemService, ICodeService codeService, IPaymentService paymentService, ICurrentUserHelper currentUser, IDeliveryService deliveryService, IWalletService walletService, IShippingQuoteService shippingQuoteService)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -62,6 +64,7 @@ namespace Application.Services.Order.CartSrv
             _walletService = walletService;
             _userService = userService;
             _addressService = addressService;
+            _shippingQuoteService = shippingQuoteService;
         }
         public async Task<BaseResultDto> CartUpdateAsync(CartUpdateDto cartUpdate)
             {
@@ -359,8 +362,22 @@ namespace Application.Services.Order.CartSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
+            if (!cart.UserId.HasValue ||
+                !await _context.Addresses.AnyAsync(item =>
+                    item.Id == cartUpdate.AddressId.Value &&
+                    item.UserId == cart.UserId.Value &&
+                    !item.Deleted))
+                return new BaseResultDto(isSuccess: false, val: "آدرس انتخاب‌شده متعلق به کاربر جاری نیست.");
             cart.AddressId = cartUpdate.AddressId;
             cart.Address = null;
+            foreach (var cartStore in cart.CartStores)
+            {
+                cartStore.ShippingQuoteId = null;
+                cartStore.ShippingProvider = null;
+                cartStore.ShippingPaymentMode = null;
+                cartStore.ShippingQuotedPrice = 0;
+                cartStore.DeliveryPrice = 0;
+            }
             _context.Carts.Update(cart);
             await _context.SaveChangesAsync();
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
@@ -454,6 +471,10 @@ namespace Application.Services.Order.CartSrv
                 cartStore.Delivery = null;
                 cart.Delivery = null;
                 cartStore.DeliveryPrice = delivery.DeliveryPrice;
+                cartStore.ShippingQuoteId = null;
+                cartStore.ShippingProvider = null;
+                cartStore.ShippingPaymentMode = null;
+                cartStore.ShippingQuotedPrice = 0;
                 cart.DeliveryId = delivery.Id;
 
                 _context.CartStores.Update(cartStore);
@@ -484,6 +505,10 @@ namespace Application.Services.Order.CartSrv
                 {
                     s.Delivery = null;
                     s.DeliveryPrice = 0;
+                    s.ShippingQuoteId = null;
+                    s.ShippingProvider = null;
+                    s.ShippingPaymentMode = null;
+                    s.ShippingQuotedPrice = 0;
                     _context.CartStores.Update(s);
                 }
                 await _context.SaveChangesAsync();
@@ -541,6 +566,12 @@ namespace Application.Services.Order.CartSrv
                     {
                         return new BaseResultDto(isSuccess: false, val: Resource.Notification.PleaseSelectTheDeliveryType);
                     }
+                    var shippingValidation = await _shippingQuoteService.ValidateSelectionAsync(
+                        cartStore,
+                        cart.UserId.Value,
+                        cart.AddressId);
+                    if (!shippingValidation.IsSuccess)
+                        return shippingValidation;
                 }
                 var productOrderDto = mapper.Map<ProductOrderDto>(cart);
 

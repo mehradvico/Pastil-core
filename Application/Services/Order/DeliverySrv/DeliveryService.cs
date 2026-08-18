@@ -19,6 +19,7 @@ namespace Application.Services.Content.DeliverySrv
 {
     public class DeliveryService : CommonSrv<Delivery, DeliveryDto>, IDeliveryService
     {
+        private static readonly string[] DeliveryTypeLabels = System.Enum.GetNames<DeliveryTypeEnum>();
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly IBaseDetailService _baseDetailService;
@@ -136,6 +137,10 @@ namespace Application.Services.Content.DeliverySrv
             item.StateId = dto.StateId;
             item.Active = dto.Active;
             item.AfterRent = dto.AfterRent;
+            item.ShippingProvider = dto.ShippingProvider;
+            item.LivePricing = dto.LivePricing;
+            item.AllowPrepaid = dto.AllowPrepaid;
+            item.AllowReceiverPay = dto.AllowReceiverPay;
 
             await _context.SaveChangesAsync();
             return new BaseResultDto(true);
@@ -156,15 +161,48 @@ namespace Application.Services.Content.DeliverySrv
             return new BaseResultDto(true);
         }
 
+        public async Task<BaseResultDto<List<DeliveryTypeOptionDto>>> GetDeliveryTypesAsync()
+        {
+            var items = await _context.Codes
+                .AsNoTracking()
+                .Where(s => s.Active && DeliveryTypeLabels.Contains(s.Label))
+                .OrderBy(s => s.Priority)
+                .ThenBy(s => s.Id)
+                .Select(s => new DeliveryTypeOptionDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    Label = s.Label,
+                    Priority = s.Priority
+                })
+                .ToListAsync();
+
+            return items.Any()
+                ? new BaseResultDto<List<DeliveryTypeOptionDto>>(true, items)
+                : new BaseResultDto<List<DeliveryTypeOptionDto>>(
+                    false,
+                    "هیچ نوع روش ارسال فعالی در تنظیمات سیستم یافت نشد.",
+                    items);
+        }
+
         private async Task<string> ValidateForStoreAsync(DeliveryDto dto, long storeId)
         {
             if (storeId <= 0)
                 return "فروشگاه فعالی برای کاربر جاری یافت نشد.";
             if (dto.DeliveryTypeId <= 0 ||
-                !await _context.Codes.AnyAsync(s => s.Id == dto.DeliveryTypeId && s.Active))
+                !await _context.Codes.AnyAsync(s =>
+                    s.Id == dto.DeliveryTypeId &&
+                    s.Active &&
+                    DeliveryTypeLabels.Contains(s.Label)))
                 return "نوع روش ارسال معتبر نیست.";
             if (dto.BasePrice < 0 || dto.MinPriceForFree < 0 || dto.MinCountForFree < 0 || dto.MaxDays < 0)
                 return "مقادیر هزینه، تعداد و زمان تحویل نمی‌توانند منفی باشند.";
+            if (!System.Enum.IsDefined(dto.ShippingProvider))
+                return "ارائه‌دهنده ارسال معتبر نیست.";
+            if (dto.LivePricing && dto.ShippingProvider == Entities.Entities.ShippingField.ShippingProviderEnum.None)
+                return "برای قیمت‌گذاری لحظه‌ای باید ارائه‌دهنده ارسال انتخاب شود.";
+            if (!dto.AllowPrepaid && !dto.AllowReceiverPay && !dto.AfterRent)
+                return "حداقل یکی از حالت‌های پرداخت کرایه باید فعال باشد.";
             if (dto.CityId.HasValue &&
                 !await _context.Cities.AnyAsync(s => s.Id == dto.CityId.Value))
                 return "شهر انتخاب‌شده معتبر نیست.";

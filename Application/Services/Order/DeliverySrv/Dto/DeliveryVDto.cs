@@ -22,6 +22,10 @@ namespace Application.Services.Order.DeliverySrv.Dto
         public bool Deleted { get; set; }
         public long? StoreId { get; set; }
         public bool AfterRent { get; set; }
+        public Entities.Entities.ShippingField.ShippingProviderEnum ShippingProvider { get; set; }
+        public bool LivePricing { get; set; }
+        public bool AllowPrepaid { get; set; }
+        public bool AllowReceiverPay { get; set; }
 
         public StoreMinVDto Store { get; set; }
         public CityVDto City { get; set; }

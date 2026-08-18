@@ -13,6 +13,7 @@ using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities.PastilMatchField;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NetTopologySuite.Geometries;
 using Persistence.Interface;
 using System;
@@ -29,13 +30,15 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
         private readonly ICurrentUserHelper _currentUser;
         private readonly INoticeService _noticeService;
         private readonly IPushNotificationService _pushNotificationService;
+        private readonly ILogger<PastilMatchProfileService> _logger;
 
         public PastilMatchProfileService(
             IDataBaseContext _context,
             IMapper mapper,
             ICurrentUserHelper currentUser,
             INoticeService noticeService,
-            IPushNotificationService pushNotificationService
+            IPushNotificationService pushNotificationService,
+            ILogger<PastilMatchProfileService> logger
         ) : base(_context, mapper)
         {
             this._context = _context;
@@ -43,6 +46,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             this._currentUser = currentUser;
             this._noticeService = noticeService;
             _pushNotificationService = pushNotificationService;
+            _logger = logger;
         }
 
         public async Task<BaseResultDto<PastilMatchProfileVDto>> FindAsyncVDto(long id)
@@ -519,11 +523,25 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
+                var profileId = dto.PastilMatchProfileId.GetValueOrDefault();
+
+                if (profileId <= 0)
+                {
+                    profileId = dto.Id;
+                }
+
+                if (profileId <= 0)
+                {
+                    return new BaseResultDto(
+                        false,
+                        Resource.Notification.NothingFound
+                    );
+                }
 
                 var item = await _context.PastilMatchProfiles
                     .Include(s => s.UserPet)
                     .FirstOrDefaultAsync(s =>
-                        s.Id == dto.Id &&
+                        s.Id == profileId &&
                         !s.Deleted
                     );
 
@@ -565,18 +583,30 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
 
                 _context.PastilMatchProfiles.Update(item);
                 await _context.SaveChangesAsync();
-                await _noticeService.CreateAsync(new NoticeCreateDto
+
+                try
                 {
-                    Label = NoticeTypeLabels.PastilMatchVerificationRequested,
-                    ActorUserId = userId,
-                    ReferenceType = "PastilMatchProfile",
-                    ReferenceId = item.Id,
-                    DeduplicationKey = $"{NoticeTypeLabels.PastilMatchVerificationRequested}:{item.Id}:{DateTime.UtcNow.Ticks}",
-                    Metadata = new Dictionary<string, string>
+                    await _noticeService.CreateAsync(new NoticeCreateDto
                     {
-                        { "userPetId", item.UserPetId.ToString() }
-                    }
-                });
+                        Label = NoticeTypeLabels.PastilMatchVerificationRequested,
+                        ActorUserId = userId,
+                        ReferenceType = "PastilMatchProfile",
+                        ReferenceId = item.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.PastilMatchVerificationRequested}:{item.Id}:{DateTime.UtcNow.Ticks}",
+                        Metadata = new Dictionary<string, string>
+                        {
+                            { "userPetId", item.UserPetId.ToString() }
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Pastil Match verification request {ProfileId} was saved, but its admin notice failed.",
+                        item.Id
+                    );
+                }
 
                 return new BaseResultDto(true);
             }
@@ -595,20 +625,9 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
         {
             try
             {
-                var isAdmin =
-                    _currentUser.CurrentUser.RoleEnum ==
-                    RoleEnum.Admin.ToString();
-
-                if (!isAdmin)
-                {
-                    return new BaseResultDto(
-                        false,
-                        Resource.Notification.AccessDenied
-                    );
-                }
-
                 var item = await _context.PastilMatchProfiles
                     .Include(s => s.UserPet)
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(s =>
                         s.Id == dto.Id &&
                         !s.Deleted
@@ -622,14 +641,6 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                     );
                 }
 
-                if (item.IsVerified != null)
-                {
-                    return new BaseResultDto(
-                        false,
-                        Resource.Notification.PastilMatchVerificationRequestNotPending
-                    );
-                }
-
                 if (!dto.IsVerified &&
                     string.IsNullOrWhiteSpace(dto.AdminDescription))
                 {
@@ -639,21 +650,56 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                     );
                 }
 
-                item.IsVerified = dto.IsVerified;
-                item.AdminDescription = dto.IsVerified
+                var adminDescription = dto.IsVerified
                     ? null
-                    : dto.AdminDescription;
-                item.VerificationDate = DateTime.Now;
+                    : dto.AdminDescription.Trim();
+                var verificationDate = DateTime.Now;
 
-                await _context.SaveChangesAsync();
+                var updatedRows = await _context.PastilMatchProfiles
+                    .Where(s =>
+                        s.Id == dto.Id &&
+                        !s.Deleted
+                    )
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(
+                            profile => profile.IsVerified,
+                            (bool?)dto.IsVerified
+                        )
+                        .SetProperty(
+                            profile => profile.AdminDescription,
+                            adminDescription
+                        )
+                        .SetProperty(
+                            profile => profile.VerificationDate,
+                            verificationDate
+                        ));
 
-                await _pushNotificationService.SendPushAsync(
-                    dto.IsVerified
-                        ? PushTypeEnum.PushPastilMatchVerificationApproved
-                        : PushTypeEnum.PushPastilMatchVerificationRejected,
-                    item.UserPet.UserId,
-                    item.UserPet.Name,
-                    dto.AdminDescription);
+                if (updatedRows != 1)
+                {
+                    return new BaseResultDto(
+                        false,
+                        Resource.Notification.OperationFailed
+                    );
+                }
+
+                try
+                {
+                    await _pushNotificationService.SendPushAsync(
+                        dto.IsVerified
+                            ? PushTypeEnum.PushPastilMatchVerificationApproved
+                            : PushTypeEnum.PushPastilMatchVerificationRejected,
+                        item.UserPet.UserId,
+                        item.UserPet.Name,
+                        adminDescription);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Pastil Match profile {ProfileId} verification was saved, but its push notification failed.",
+                        item.Id
+                    );
+                }
 
                 return new BaseResultDto(true);
             }

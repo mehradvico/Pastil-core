@@ -18,6 +18,13 @@ namespace Application.Common.Configuration
             Override(configuration, "Search:Hybrid:SemanticWeight", "PASTIL_SEARCH_HYBRID_WEIGHT");
             Override(configuration, "Security:MerchantEncryptionKey", "PASTIL_MERCHANT_ENCRYPTION_KEY");
             Override(configuration, "Security:PasswordPepper", "PASTIL_PASSWORD_PEPPER");
+            Override(configuration, "Shipping:TestMode", "PASTIL_SHIPPING_TEST_MODE");
+            Override(configuration, "Shipping:AloPeyk:BaseUrl", "PASTIL_SHIPPING_ALOPEYK_BASE_URL");
+            Override(configuration, "Shipping:AloPeyk:ApiKey", "PASTIL_SHIPPING_ALOPEYK_API_KEY");
+            Override(configuration, "Shipping:Tipax:BaseUrl", "PASTIL_SHIPPING_TIPAX_BASE_URL");
+            Override(configuration, "Shipping:Tipax:ApiKey", "PASTIL_SHIPPING_TIPAX_API_KEY");
+            Override(configuration, "Shipping:SnappBox:BaseUrl", "PASTIL_SHIPPING_SNAPPBOX_BASE_URL");
+            Override(configuration, "Shipping:SnappBox:ApiKey", "PASTIL_SHIPPING_SNAPPBOX_API_KEY");
 
             if (includeVapidKeys)
             {

@@ -84,6 +84,41 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv
                 ClubPointSourceTypeEnum.Memory, memoryId, ClubPointEventKeyFactory.BuildMemorySourceKey(userId, memoryDate),
                 $"بازگشت امتیاز خاطره روزانه {memoryId}"), cancellationToken);
 
+        public async Task RegistrationReferralCompletedAsync(
+            long newUserId,
+            long referrerUserId,
+            bool isBusinessReferral,
+            CancellationToken cancellationToken = default)
+        {
+            if (newUserId <= 0 || referrerUserId <= 0 || newUserId == referrerUserId)
+                return;
+
+            var sourceType = isBusinessReferral
+                ? ClubPointSourceTypeEnum.BusinessReferral
+                : ClubPointSourceTypeEnum.UserReferral;
+            var referralKind = isBusinessReferral ? "business" : "user";
+
+            await AwardSafeAsync(Create(
+                referrerUserId,
+                ClubPointEventTypeEnum.UserReferralReferrer,
+                sourceType,
+                newUserId,
+                $"registration:{newUserId}:{referralKind}:referrer",
+                $"امتیاز معرفی کاربر {newUserId}"), cancellationToken);
+
+            await AwardSafeAsync(Create(
+                newUserId,
+                isBusinessReferral
+                    ? ClubPointEventTypeEnum.BusinessReferralUser
+                    : ClubPointEventTypeEnum.UserReferralReferee,
+                sourceType,
+                newUserId,
+                $"registration:{newUserId}:{referralKind}:referee",
+                isBusinessReferral
+                    ? "امتیاز ثبت‌نام با کد معرف کسب‌وکار"
+                    : $"امتیاز ثبت‌نام با کد معرف کاربر {referrerUserId}"), cancellationToken);
+        }
+
         private async Task AwardSafeAsync(ClubPointEventDto dto, CancellationToken cancellationToken)
         {
             await ExecuteSafeAsync(

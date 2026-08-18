@@ -6,6 +6,7 @@ using Entities.Entities.PastilMatchField;
 using Entities.Entities.PastilAIField;
 using Entities.Entities.PastilClubField;
 using Entities.Entities.Security;
+using Entities.Entities.ShippingField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -77,6 +78,8 @@ namespace Persistence.Interface
         public DbSet<Country> Countries { get; set; }
         public DbSet<Delivery> Deliveries { get; set; }
         public DbSet<DeliveryDistance> DeliveryDistances { get; set; }
+        public DbSet<ShippingQuote> ShippingQuotes { get; set; }
+        public DbSet<Shipment> Shipments { get; set; }
         public DbSet<Detail> Details { get; set; }
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<DiscountGroup> DiscountGroups { get; set; }

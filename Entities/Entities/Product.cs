@@ -35,6 +35,10 @@ namespace Entities.Entities
         public long? Variety2Id { get; set; }
         public long? StoreId { get; set; }
         public string AdminDescription { get; set; }
+        public int? ShippingWeightGrams { get; set; }
+        public decimal? ShippingLengthCm { get; set; }
+        public decimal? ShippingWidthCm { get; set; }
+        public decimal? ShippingHeightCm { get; set; }
         public DiscountGroup DiscountGroup { get; set; }
         public Variety Variety { get; set; }
         public Variety Variety2 { get; set; }

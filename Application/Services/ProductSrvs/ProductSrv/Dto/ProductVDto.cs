@@ -41,6 +41,10 @@ namespace Application.Services.ProductSrvs.ProductSrv.Dto
         public long? Variety2Id { get; set; }
         public long? StoreId { get; set; }
         public string AdminDescription { get; set; }
+        public int? ShippingWeightGrams { get; set; }
+        public decimal? ShippingLengthCm { get; set; }
+        public decimal? ShippingWidthCm { get; set; }
+        public decimal? ShippingHeightCm { get; set; }
         public bool Active { get; set; }
         public StoreMinVDto Store { get; set; }
         public PointDto Location { get; set; }

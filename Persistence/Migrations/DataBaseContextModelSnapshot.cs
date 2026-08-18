@@ -791,6 +791,18 @@ namespace Persistence.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
+                    b.Property<int?>("ShippingPaymentMode")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ShippingProvider")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("ShippingQuoteId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("ShippingQuotedPrice")
+                        .HasColumnType("float");
+
                     b.Property<long>("StoreId")
                         .HasColumnType("bigint");
 
@@ -799,6 +811,8 @@ namespace Persistence.Migrations
                     b.HasIndex("CartId");
 
                     b.HasIndex("DeliveryId");
+
+                    b.HasIndex("ShippingQuoteId");
 
                     b.HasIndex("StoreId");
 
@@ -2005,6 +2019,12 @@ namespace Persistence.Migrations
                     b.Property<bool>("AfterRent")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("AllowPrepaid")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AllowReceiverPay")
+                        .HasColumnType("bit");
+
                     b.Property<double>("BasePrice")
                         .HasColumnType("float");
 
@@ -2017,6 +2037,9 @@ namespace Persistence.Migrations
                     b.Property<long>("DeliveryTypeId")
                         .HasColumnType("bigint");
 
+                    b.Property<bool>("LivePricing")
+                        .HasColumnType("bit");
+
                     b.Property<int>("MaxDays")
                         .HasColumnType("int");
 
@@ -2025,6 +2048,9 @@ namespace Persistence.Migrations
 
                     b.Property<double>("MinPriceForFree")
                         .HasColumnType("float");
+
+                    b.Property<int>("ShippingProvider")
+                        .HasColumnType("int");
 
                     b.Property<long?>("StateId")
                         .HasColumnType("bigint");
@@ -5695,6 +5721,21 @@ namespace Persistence.Migrations
                     b.Property<string>("SeoUrlText")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal?>("ShippingHeightCm")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("ShippingLengthCm")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int?>("ShippingWeightGrams")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("ShippingWidthCm")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<string>("Slug")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -6122,6 +6163,18 @@ namespace Persistence.Migrations
                     b.Property<string>("ProductOrderId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("ShippingPaymentMode")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ShippingProvider")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("ShippingQuoteId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("ShippingQuotedPrice")
+                        .HasColumnType("float");
+
                     b.Property<long>("StoreId")
                         .HasColumnType("bigint");
 
@@ -6130,6 +6183,8 @@ namespace Persistence.Migrations
                     b.HasIndex("DeliveryId");
 
                     b.HasIndex("ProductOrderId");
+
+                    b.HasIndex("ShippingQuoteId");
 
                     b.HasIndex("StoreId");
 
@@ -7093,6 +7148,147 @@ namespace Persistence.Migrations
                     b.HasIndex("SettlementId");
 
                     b.ToTable("SettlementStores");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ShippingField.Shipment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<double>("ChargedPrice")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeliveredAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExternalShipmentId")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("PaymentMode")
+                        .HasColumnType("int");
+
+                    b.Property<long>("ProductOrderStoreId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Provider")
+                        .HasColumnType("int");
+
+                    b.Property<double>("QuotedPrice")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("RequestedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ShippingQuoteId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TrackingCode")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductOrderStoreId")
+                        .IsUnique();
+
+                    b.HasIndex("ShippingQuoteId");
+
+                    b.HasIndex("Provider", "Status");
+
+                    b.ToTable("Shipments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ShippingField.ShippingQuote", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AddressId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CartStoreId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<long>("DeliveryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExternalQuoteId")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<int>("PaymentMode")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Provider")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RequestFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime?>("SelectedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("Token")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UsedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddressId");
+
+                    b.HasIndex("CartStoreId");
+
+                    b.HasIndex("DeliveryId");
+
+                    b.HasIndex("ExpiresAtUtc");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "CartStoreId", "Status");
+
+                    b.ToTable("ShippingQuotes");
                 });
 
             modelBuilder.Entity("Entities.Entities.Sms", b =>
@@ -8836,6 +9032,11 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("DeliveryId");
 
+                    b.HasOne("Entities.Entities.ShippingField.ShippingQuote", "ShippingQuote")
+                        .WithMany()
+                        .HasForeignKey("ShippingQuoteId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Entities.Entities.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
@@ -8845,6 +9046,8 @@ namespace Persistence.Migrations
                     b.Navigation("Cart");
 
                     b.Navigation("Delivery");
+
+                    b.Navigation("ShippingQuote");
 
                     b.Navigation("Store");
                 });
@@ -11060,6 +11263,11 @@ namespace Persistence.Migrations
                         .WithMany("ProductOrderStores")
                         .HasForeignKey("ProductOrderId");
 
+                    b.HasOne("Entities.Entities.ShippingField.ShippingQuote", "ShippingQuote")
+                        .WithMany()
+                        .HasForeignKey("ShippingQuoteId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Entities.Entities.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
@@ -11069,6 +11277,8 @@ namespace Persistence.Migrations
                     b.Navigation("Delivery");
 
                     b.Navigation("ProductOrder");
+
+                    b.Navigation("ShippingQuote");
 
                     b.Navigation("Store");
                 });
@@ -11406,6 +11616,58 @@ namespace Persistence.Migrations
                     b.Navigation("ProductOrder");
 
                     b.Navigation("Settlement");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ShippingField.Shipment", b =>
+                {
+                    b.HasOne("Entities.Entities.ProductOrderStore", "ProductOrderStore")
+                        .WithOne("Shipment")
+                        .HasForeignKey("Entities.Entities.ShippingField.Shipment", "ProductOrderStoreId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ShippingField.ShippingQuote", "ShippingQuote")
+                        .WithMany()
+                        .HasForeignKey("ShippingQuoteId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("ProductOrderStore");
+
+                    b.Navigation("ShippingQuote");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ShippingField.ShippingQuote", b =>
+                {
+                    b.HasOne("Entities.Entities.Address", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CartStore", "CartStore")
+                        .WithMany()
+                        .HasForeignKey("CartStoreId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Entities.Entities.Delivery", "Delivery")
+                        .WithMany()
+                        .HasForeignKey("DeliveryId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Address");
+
+                    b.Navigation("CartStore");
+
+                    b.Navigation("Delivery");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Entities.Entities.Sms", b =>
@@ -12462,6 +12724,8 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.ProductOrderStore", b =>
                 {
                     b.Navigation("ProductOrderItems");
+
+                    b.Navigation("Shipment");
                 });
 
             modelBuilder.Entity("Entities.Entities.Rebate", b =>

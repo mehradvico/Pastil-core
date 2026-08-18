@@ -211,6 +211,9 @@ using Application.Services.Order.CartSrv;
 using Application.Services.Order.CartSrv.Iface;
 using Application.Services.Order.DeliveryDistanceSrv.iface;
 using Application.Services.Order.DeliverySrv.iface;
+using Application.Services.Order.ShippingSrv;
+using Application.Services.Order.ShippingSrv.Iface;
+using Application.Services.Order.ShippingSrv.Provider;
 using Application.Services.Order.MerchantSrv.Iface;
 using Application.Services.Order.PaymentGatewaySrv;
 using Application.Services.Order.PaymentGatewaySrv.Gateways;
@@ -396,6 +399,9 @@ public static class ConfigureServices
         services.AddOptions<PaymentTestModeOptions>()
             .Configure<IConfiguration>((options, configuration) =>
                 configuration.GetSection(PaymentTestModeOptions.SectionName).Bind(options));
+        services.AddOptions<ShippingOptions>()
+            .Configure<IConfiguration>((options, configuration) =>
+                configuration.GetSection(ShippingOptions.SectionName).Bind(options));
         services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IAdminSettingHelper, AdminSettingHelper>();
         services.AddScoped<IAdminSettingService, AdminSettingService>();
@@ -460,6 +466,11 @@ public static class ConfigureServices
         services.AddScoped<IDayToDateService, DayToDateService>();
         services.AddScoped<IDeliveryDistanceService, DeliveryDistanceService>();
         services.AddScoped<IDeliveryService, DeliveryService>();
+        services.AddScoped<IShippingQuoteService, ShippingQuoteService>();
+        services.AddScoped<IShipmentService, ShipmentService>();
+        services.AddScoped<IShippingProvider, AloPeykShippingProvider>();
+        services.AddScoped<IShippingProvider, TipaxShippingProvider>();
+        services.AddScoped<IShippingProvider, SnappBoxShippingProvider>();
         services.AddScoped<IDetailService, DetailService>();
         services.AddScoped<IDiscountGroupService, DiscountGroupService>();
         services.AddScoped<IDiscountService, DiscountService>();
