@@ -143,6 +143,7 @@ if (response?.isSuccess !== true) {
 | Match | `GET` | `/api/EndUser/PastilMatch/{id}` | جزئیات Match |
 | Match | `GET` | `/api/EndUser/PastilMatch` | لیست Matchها |
 | Match | `DELETE` | `/api/EndUser/PastilMatch?id={id}` | بستن Match فعال |
+| Park | `GET` | `/api/EndUser/PastilMatchPark` | لیست پارک‌ها با عکس اصلی و گالری برای هدف قرار در پارک |
 | Message | `GET` | `/api/EndUser/PastilMatchMessage/{id}` | جزئیات پیام |
 | Message | `GET` | `/api/EndUser/PastilMatchMessage` | پیام‌ها، Pagination و Sync |
 | Message | `POST` | `/api/EndUser/PastilMatchMessage` | ارسال پیام |
@@ -787,6 +788,42 @@ DELETE /api/EndUser/PastilMatch?id={matchId}
 
 ## ۱۰. چت Pastil Match
 
+### دریافت پارک‌ها برای هدف «قرار در پارک»
+
+بعد از انتخاب هدف `109`، لیست پارک‌ها را از Endpoint زیر بگیرید:
+
+```http
+GET /api/EndUser/PastilMatchPark?pastilMatchGoalId=109&cityId={cityId}&pageIndex=1&pageSize=24&sortBy=2
+Authorization: Bearer {token}
+```
+
+پاسخ داخل `data.list` است. هر آیتم شامل `picture` برای عکس اصلی و
+`parkPictures[].picture` برای گالری است. اگر هدفی غیر از `109` ارسال شود، پاسخ
+`isSuccess=false` خواهد بود. `pageSize` در سرور حداکثر `100` است.
+
+نمونه ساده‌شده:
+
+```json
+{
+  "isSuccess": true,
+  "data": {
+    "totalCount": 24,
+    "list": [
+      {
+        "id": 12,
+        "name": "بوستان ملت",
+        "addressValue": "خیابان ولیعصر، بالاتر از بزرگراه نیایش",
+        "location": { "x": 51.409993, "y": 35.7780523, "location": "51.409993,35.7780523" },
+        "picture": { "id": 501, "baseUrl": "..." },
+        "parkPictures": [
+          { "id": 81, "pictureId": 502, "picture": { "id": 502, "baseUrl": "..." } }
+        ]
+      }
+    ]
+  }
+}
+```
+
 در پیاده‌سازی فعلی Endpoint اختصاصی SignalR برای Pastil Match وجود ندارد. چت REST است؛ فرانت باید:
 
 - در ورود صفحه پیام‌ها را Fetch کند.
@@ -826,6 +863,7 @@ GET /api/EndUser/PastilMatchMessage?pastilMatchId=73&beforeMessageId=820&pageInd
   "senderProfileId": 41,
   "pastilMatchMessageTypeId": 117,
   "replyToMessageId": null,
+  "parkId": null,
   "content": "سلام، برای فردا وقت دارید؟",
   "isEdited": false,
   "editDate": null,
@@ -836,6 +874,7 @@ GET /api/EndUser/PastilMatchMessage?pastilMatchId=73&beforeMessageId=820&pageInd
   "createDate": "2026-08-16T15:30:00+03:30",
   "pastilMatchMessageType": {},
   "replyToMessage": null,
+  "park": null,
   "attachments": [],
   "reactions": []
 }
@@ -860,6 +899,30 @@ POST /api/EndUser/PastilMatchMessage
 ```
 
 برای Text، `content` اجباری است. `senderProfileId` باید پروفایل متعلق به کاربر جاری و یکی از دو پروفایل همان Match باشد.
+
+### ارسال کارت پارک در چت
+
+برای مچی که `pastilMatchGoalId=109` دارد، همان Endpoint پیام متنی را با `parkId`
+فراخوانی کنید. برای کارت پارک، `content` می‌تواند خالی باشد:
+
+```http
+POST /api/EndUser/PastilMatchMessage
+```
+
+```json
+{
+  "pastilMatchId": 73,
+  "senderProfileId": 41,
+  "pastilMatchMessageTypeId": 117,
+  "replyToMessageId": null,
+  "parkId": 12,
+  "content": null
+}
+```
+
+پیام دریافتی `parkId` و آبجکت کامل `park` را همراه عکس اصلی، گالری، آدرس و
+مختصات دارد؛ کارت را از همین آبجکت Render کنید. سرور اجازه ارسال `parkId` برای
+مچ‌هایی با هدفی غیر از `109` را نمی‌دهد. برای پیام متنی عادی `parkId=null` است.
 
 ### Reply
 

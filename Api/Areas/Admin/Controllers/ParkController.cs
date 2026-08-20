@@ -68,6 +68,17 @@ namespace Api.Areas.Admin.Controllers
             var dto = ParkService.UpdateDto(ParkDto);
             return Ok(dto);
         }
+
+        /// <summary>
+        /// ثبت یا حذف عکس اصلی پارک بدون بازنویسی سایر اطلاعات پارک
+        /// </summary>
+        [HttpPut("Picture")]
+        [ProducesResponseType(typeof(BaseResultDto), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Put(ParkMainPictureDto dto)
+        {
+            var result = await ParkService.UpdateMainPictureAsync(dto);
+            return Ok(result);
+        }
         /// <summary>
         /// حذف آیتم
         /// </summary>

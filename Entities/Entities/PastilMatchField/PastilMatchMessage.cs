@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Entities.Entities.LocationField;
 
 namespace Entities.Entities.PastilMatchField
 {
@@ -13,6 +14,7 @@ namespace Entities.Entities.PastilMatchField
         public long? SenderProfileId { get; set; }
         public long PastilMatchMessageTypeId { get; set; }
         public long? ReplyToMessageId { get; set; }
+        public long? ParkId { get; set; }
 
         public string Content { get; set; }
 
@@ -32,6 +34,7 @@ namespace Entities.Entities.PastilMatchField
         public PastilMatchProfile SenderProfile { get; set; }
         public Code PastilMatchMessageType { get; set; }
         public PastilMatchMessage ReplyToMessage { get; set; }
+        public Park Park { get; set; }
 
         public ICollection<PastilMatchMessageAttachment> Attachments { get; set; }
         public ICollection<PastilMatchMessageReaction> Reactions { get; set; }

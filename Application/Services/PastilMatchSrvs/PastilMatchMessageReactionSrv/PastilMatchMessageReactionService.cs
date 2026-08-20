@@ -43,7 +43,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = await GetReactionQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted && !s.PastilMatchMessage.Deleted);
 
@@ -68,7 +68,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
         public PastilMatchMessageReactionSearchDto Search(PastilMatchMessageReactionInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
             var model = GetReactionQuery().Where(s => !s.Deleted && !s.PastilMatchMessage.Deleted);
 
@@ -121,6 +121,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 if (string.IsNullOrWhiteSpace(dto.Reaction))
                 {
@@ -158,6 +159,14 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
                 else if (message.PastilMatch.SecondProfile.UserPet.UserId == userId)
                 {
                     reactorProfileId = message.PastilMatch.SecondProfileId;
+                }
+                else if (isAdmin)
+                {
+                    reactorProfileId = message.SenderProfileId.HasValue
+                        ? (message.SenderProfileId == message.PastilMatch.FirstProfileId
+                            ? message.PastilMatch.SecondProfileId
+                            : message.PastilMatch.FirstProfileId)
+                        : message.PastilMatch.FirstProfileId;
                 }
                 else
                 {
@@ -222,7 +231,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = _context.PastilMatchMessageReactions.Include(s => s.ReactorProfile).ThenInclude(s => s.UserPet).FirstOrDefault(s => s.Id == id && !s.Deleted);
 

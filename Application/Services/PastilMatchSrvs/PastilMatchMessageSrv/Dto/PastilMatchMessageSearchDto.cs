@@ -18,6 +18,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto
             SenderProfileId = dto.SenderProfileId;
             PastilMatchMessageTypeId = dto.PastilMatchMessageTypeId;
             ReplyToMessageId = dto.ReplyToMessageId;
+            ParkId = dto.ParkId;
             IsPinned = dto.IsPinned;
             IsRead = dto.IsRead;
             BeforeMessageId = dto.BeforeMessageId;
@@ -28,6 +29,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto
         public long? SenderProfileId { get; set; }
         public long? PastilMatchMessageTypeId { get; set; }
         public long? ReplyToMessageId { get; set; }
+        public long? ParkId { get; set; }
         public bool? IsPinned { get; set; }
         public bool? IsRead { get; set; }
         public long? BeforeMessageId { get; set; }

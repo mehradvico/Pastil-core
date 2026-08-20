@@ -41,5 +41,38 @@ namespace Application.Services.LocationFields.ParkPictureSrv
             }
             return new ParkPictureSearchDto(searchDto, model, mapper);
         }
+
+        public override async Task<BaseResultDto<ParkPictureDto>> InsertAsyncDto(ParkPictureDto dto)
+        {
+            try
+            {
+                if (!await _context.Parks.AnyAsync(s => s.Id == dto.ParkId) ||
+                    !await _context.Pictures.AnyAsync(s => s.Id == dto.PictureId))
+                {
+                    return new BaseResultDto<ParkPictureDto>(false, Resource.Notification.NothingFound, dto);
+                }
+
+                var existing = await _context.ParkPictures
+                    .FirstOrDefaultAsync(s => s.ParkId == dto.ParkId && s.PictureId == dto.PictureId);
+
+                if (existing != null)
+                {
+                    existing.Deleted = false;
+                    existing.Label = dto.Label;
+                    await _context.SaveChangesAsync();
+                    return new BaseResultDto<ParkPictureDto>(true, mapper.Map<ParkPictureDto>(existing));
+                }
+
+                var item = mapper.Map<ParkPicture>(dto);
+                item.Deleted = false;
+                await _context.ParkPictures.AddAsync(item);
+                await _context.SaveChangesAsync();
+                return new BaseResultDto<ParkPictureDto>(true, mapper.Map<ParkPictureDto>(item));
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<ParkPictureDto>(false, ex.Message, dto);
+            }
+        }
     }
 }

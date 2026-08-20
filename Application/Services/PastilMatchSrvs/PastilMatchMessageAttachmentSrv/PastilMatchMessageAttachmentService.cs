@@ -36,7 +36,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = await GetAttachmentQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
 
@@ -61,7 +61,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv
         public PastilMatchMessageAttachmentSearchDto Search(PastilMatchMessageAttachmentInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
             var model = GetAttachmentQuery().Where(s => !s.Deleted && !s.PastilMatchMessage.Deleted);
 
@@ -114,6 +114,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 if (string.IsNullOrWhiteSpace(dto.Url))
                 {
@@ -142,7 +143,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv
                     return new BaseResultDto<PastilMatchMessageAttachmentDto>(false, Resource.Notification.NothingFound, dto);
                 }
 
-                if (message.SenderProfileId == null || message.SenderProfile.UserPet.UserId != userId)
+                if (message.SenderProfileId == null || (!isAdmin && message.SenderProfile.UserPet.UserId != userId))
                 {
                     return new BaseResultDto<PastilMatchMessageAttachmentDto>(false, Resource.Notification.AccessDenied, dto);
                 }
@@ -216,7 +217,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = _context.PastilMatchMessageAttachments
                     .Include(s => s.PastilMatchMessage).ThenInclude(s => s.SenderProfile).ThenInclude(s => s.UserPet)

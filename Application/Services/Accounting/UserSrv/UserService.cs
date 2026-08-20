@@ -384,7 +384,7 @@ namespace Application.Services.UserSrv
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFount);
             else if (userToken.User.Locked)
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked);
-            else if (userToken.User.Role.Label == RoleEnum.Admin.ToString())
+            else if (userToken.User.RoleId == (long)RoleEnum.Admin)
             {
                 return new BaseResultDto(isSuccess: true);
             }

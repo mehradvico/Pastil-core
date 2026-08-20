@@ -43,7 +43,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = await GetMessageQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
 
@@ -68,7 +68,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
         public PastilMatchMessageSearchDto Search(PastilMatchMessageInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
             var model = GetMessageQuery().Where(s => !s.Deleted);
 
@@ -95,6 +95,11 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             if (dto.ReplyToMessageId.HasValue)
             {
                 model = model.Where(s => s.ReplyToMessageId == dto.ReplyToMessageId.Value);
+            }
+
+            if (dto.ParkId.HasValue)
+            {
+                model = model.Where(s => s.ParkId == dto.ParkId.Value);
             }
 
             if (dto.IsPinned.HasValue)
@@ -146,6 +151,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 if (!dto.SenderProfileId.HasValue)
                 {
@@ -174,6 +180,26 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                     return new BaseResultDto<PastilMatchMessageDto>(false, Resource.Notification.PastilMatchNotActive, dto);
                 }
 
+                string parkName = null;
+                if (dto.ParkId.HasValue)
+                {
+                    if (pastilMatch.PastilMatchGoalId != (long)PastilMatchGoalEnum.PastilMatchGoal_ParkMeetup ||
+                        dto.PastilMatchMessageTypeId != (long)PastilMatchMessageTypeEnum.PastilMatchMessageType_Text)
+                    {
+                        return new BaseResultDto<PastilMatchMessageDto>(false, Resource.Notification.InvalidPastilMatchGoal, dto);
+                    }
+
+                    parkName = await _context.Parks
+                        .Where(s => s.Id == dto.ParkId.Value)
+                        .Select(s => s.Name)
+                        .FirstOrDefaultAsync();
+
+                    if (parkName == null)
+                    {
+                        return new BaseResultDto<PastilMatchMessageDto>(false, Resource.Notification.NothingFound, dto);
+                    }
+                }
+
                 var senderProfile = dto.SenderProfileId.Value == pastilMatch.FirstProfileId ? pastilMatch.FirstProfile : dto.SenderProfileId.Value == pastilMatch.SecondProfileId ? pastilMatch.SecondProfile : null;
 
                 if (senderProfile == null)
@@ -181,12 +207,13 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                     return new BaseResultDto<PastilMatchMessageDto>(false, Resource.Notification.AccessDenied, dto);
                 }
 
-                if (senderProfile.UserPet.UserId != userId)
+                if (!isAdmin && senderProfile.UserPet.UserId != userId)
                 {
                     return new BaseResultDto<PastilMatchMessageDto>(false, Resource.Notification.AccessDenied, dto);
                 }
 
-                if (dto.PastilMatchMessageTypeId == (long)PastilMatchMessageTypeEnum.PastilMatchMessageType_Text && string.IsNullOrWhiteSpace(dto.Content))
+                if (dto.PastilMatchMessageTypeId == (long)PastilMatchMessageTypeEnum.PastilMatchMessageType_Text &&
+                    !dto.ParkId.HasValue && string.IsNullOrWhiteSpace(dto.Content))
                 {
                     return new BaseResultDto<PastilMatchMessageDto>(false, Resource.Notification.PastilMatchMessageContentRequired, dto);
                 }
@@ -222,7 +249,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                     PushTypeEnum.PushPastilMatchNewMessage,
                     receiverProfile.UserPet.UserId,
                     senderProfile.UserPet.User.FirstName,
-                    GetMessagePreview(dto));
+                    GetMessagePreview(dto, parkName));
 
                 return new BaseResultDto<PastilMatchMessageDto>(true, mapper.Map<PastilMatchMessageDto>(item));
             }
@@ -237,6 +264,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 if (string.IsNullOrWhiteSpace(dto.Content))
                 {
@@ -250,7 +278,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
                 }
 
-                if (item.SenderProfileId == null || item.SenderProfile.UserPet.UserId != userId)
+                if (item.SenderProfileId == null || (!isAdmin && item.SenderProfile.UserPet.UserId != userId))
                 {
                     return new BaseResultDto(false, Resource.Notification.AccessDenied);
                 }
@@ -285,6 +313,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = await _context.PastilMatchMessages
                     .Include(s => s.PastilMatch).ThenInclude(s => s.FirstProfile).ThenInclude(s => s.UserPet)
@@ -296,7 +325,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
                 }
 
-                if (!IsMatchParticipant(item.PastilMatch, userId))
+                if (!isAdmin && !IsMatchParticipant(item.PastilMatch, userId))
                 {
                     return new BaseResultDto(false, Resource.Notification.AccessDenied);
                 }
@@ -325,6 +354,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = await _context.PastilMatchMessages
                     .Include(s => s.SenderProfile).ThenInclude(s => s.UserPet)
@@ -337,7 +367,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
                 }
 
-                if (!IsMatchParticipant(item.PastilMatch, userId) || item.SenderProfileId == null || item.SenderProfile.UserPet.UserId == userId)
+                if ((!isAdmin && !IsMatchParticipant(item.PastilMatch, userId)) || item.SenderProfileId == null || item.SenderProfile.UserPet.UserId == userId)
                 {
                     return new BaseResultDto(false, Resource.Notification.AccessDenied);
                 }
@@ -362,6 +392,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var pastilMatch = await GetMatchQuery().FirstOrDefaultAsync(s => s.Id == dto.PastilMatchId);
 
@@ -370,7 +401,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
                 }
 
-                if (!IsMatchParticipant(pastilMatch, userId))
+                if (!isAdmin && !IsMatchParticipant(pastilMatch, userId))
                 {
                     return new BaseResultDto(false, Resource.Notification.AccessDenied);
                 }
@@ -458,7 +489,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = _context.PastilMatchMessages.Include(s => s.SenderProfile).ThenInclude(s => s.UserPet).FirstOrDefault(s => s.Id == id && !s.Deleted);
 
@@ -505,8 +536,11 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                 .AsQueryable();
         }
 
-        private static string GetMessagePreview(PastilMatchMessageDto dto)
+        private static string GetMessagePreview(PastilMatchMessageDto dto, string parkName = null)
         {
+            if (dto.ParkId.HasValue)
+                return string.IsNullOrWhiteSpace(parkName) ? "پیشنهاد پارک" : $"پارک {parkName}";
+
             if (dto.PastilMatchMessageTypeId == (long)PastilMatchMessageTypeEnum.PastilMatchMessageType_Image)
                 return "تصویر";
 
@@ -521,7 +555,11 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
         {
             return _context.PastilMatchMessages
                 .Include(s => s.PastilMatchMessageType)
-                .Include(s => s.ReplyToMessage)
+                .Include(s => s.ReplyToMessage).ThenInclude(s => s.Park).ThenInclude(s => s.Picture)
+                .Include(s => s.ReplyToMessage).ThenInclude(s => s.Park).ThenInclude(s => s.ParkPictures.Where(p => !p.Deleted)).ThenInclude(s => s.Picture)
+                .Include(s => s.Park).ThenInclude(s => s.Picture)
+                .Include(s => s.Park).ThenInclude(s => s.ParkPictures.Where(p => !p.Deleted)).ThenInclude(s => s.Picture)
+                .Include(s => s.Park).ThenInclude(s => s.Neighborhood).ThenInclude(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.Attachments.Where(a => !a.Deleted))
                 .Include(s => s.Reactions.Where(r => !r.Deleted))
                 .Include(s => s.PastilMatch).ThenInclude(s => s.FirstProfile).ThenInclude(s => s.UserPet)

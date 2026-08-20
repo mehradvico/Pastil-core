@@ -393,6 +393,11 @@ namespace Persistence.Context
                     .IsUnique()
                     .HasFilter("[Deleted] = 0");
             });
+            modelBuilder.Entity<PastilMatchMessage>()
+                .HasOne(item => item.Park)
+                .WithMany()
+                .HasForeignKey(item => item.ParkId)
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<ReminderCycle>()
                 .ToTable(table => table.HasCheckConstraint(
                     "CK_ReminderCycle_Cycle",

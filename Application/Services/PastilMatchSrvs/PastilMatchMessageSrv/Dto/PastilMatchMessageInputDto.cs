@@ -14,6 +14,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto
         public long? SenderProfileId { get; set; }
         public long? PastilMatchMessageTypeId { get; set; }
         public long? ReplyToMessageId { get; set; }
+        public long? ParkId { get; set; }
         public bool? IsPinned { get; set; }
         public bool? IsRead { get; set; }
         public long? BeforeMessageId { get; set; }

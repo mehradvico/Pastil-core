@@ -13,6 +13,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto
         public long? SenderProfileId { get; set; }
         public long PastilMatchMessageTypeId { get; set; }
         public long? ReplyToMessageId { get; set; }
+        public long? ParkId { get; set; }
         public string Content { get; set; }
     }
 }

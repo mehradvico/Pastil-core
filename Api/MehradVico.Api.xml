@@ -2501,6 +2501,11 @@
             ویرایش آیتم
             </summary>
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.ParkController.Put(Application.Services.LocationFields.ParkSrv.Dto.ParkMainPictureDto)">
+            <summary>
+            ثبت یا حذف عکس اصلی پارک بدون بازنویسی سایر اطلاعات پارک
+            </summary>
+        </member>
         <member name="M:Api.Areas.Admin.Controllers.ParkController.Delete(System.Int64)">
              <summary>
              حذف آیتم
@@ -7046,6 +7051,16 @@
         <member name="M:Api.Areas.EndUser.Controllers.PastilMatchMessageReadController.Put(Application.Services.PastilMatchSrvs.PastilMatchMessageSrv.Dto.PastilMatchMessageReadDto)">
             <summary>
             خوانده‌شده کردن پیام‌ها تا شناسه مشخص‌شده
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PastilMatchParkController">
+            <summary>
+            پارک‌های قابل انتخاب برای هدف قرار در پارک در پاستیل مچ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PastilMatchParkController.Get(Application.Services.PastilMatchSrvs.PastilMatchParkSrv.Dto.PastilMatchParkInputDto)">
+            <summary>
+            لیست پارک‌ها همراه عکس اصلی و گالری
             </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PastilMatchProfileController">

@@ -42,7 +42,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = await GetPastilMatchQuery().FirstOrDefaultAsync(s => s.Id == id);
 
@@ -67,7 +67,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchSrv
         public PastilMatchSearchDto Search(PastilMatchInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
             var model = GetPastilMatchQuery();
 
@@ -118,7 +118,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString();
+                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
 
                 var item = _context.PastilMatches.Include(s => s.FirstProfile).ThenInclude(s => s.UserPet).Include(s => s.SecondProfile).ThenInclude(s => s.UserPet).FirstOrDefault(s => s.Id == id);
 
