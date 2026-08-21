@@ -50,7 +50,13 @@ namespace Application.Services.ProductSrvs.WalletSrv
 
         public async Task<BaseResultDto<WalletVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Wallets.Include(s => s.User).Include(s => s.ProductOrder).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+            var item = await _context.Wallets
+                .Include(s => s.User)
+                .Include(s => s.Payment)
+                .Include(s => s.ProductOrder)
+                .Include(s => s.CompanionReserve)
+                .Include(s => s.PansionReserve)
+                .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
                 return new BaseResultDto<WalletVDto>(true, mapper.Map<WalletVDto>(item));
@@ -355,7 +361,14 @@ namespace Application.Services.ProductSrvs.WalletSrv
             string ReferenceKey);
         public WalletSearchDto Search(WalletInputDto baseSearchDto)
         {
-            var query = _context.Wallets.Include(s => s.User).Where(s => !s.Deleted).AsQueryable();
+            var query = _context.Wallets
+                .Include(s => s.User)
+                .Include(s => s.Payment)
+                .Include(s => s.ProductOrder)
+                .Include(s => s.CompanionReserve)
+                .Include(s => s.PansionReserve)
+                .Where(s => !s.Deleted)
+                .AsQueryable();
 
             if (baseSearchDto.UserId.HasValue)
             {

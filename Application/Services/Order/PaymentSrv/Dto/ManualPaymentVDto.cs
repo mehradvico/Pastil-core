@@ -6,6 +6,7 @@ namespace Application.Services.Order.PaymentSrv.Dto
     public class ManualPaymentVDto
     {
         public long PaymentId { get; set; }
+        public string PaymentCode { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public PaymentCallbackTypeEnum TargetType { get; set; }

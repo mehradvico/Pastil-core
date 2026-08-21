@@ -7,6 +7,7 @@ namespace Entities.Entities
 {
     public class CompanionReserve : Id_Field
     {
+        public string ReserveCode { get; set; }
         public long BookerId { get; set; }
         public double PrePaymentPrice { get; set; }
         public double OperatorFinalPrice { get; set; }

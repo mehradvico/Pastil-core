@@ -11,6 +11,7 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
     public class ProductOrderVDto
     {
         public string Id { get; set; }
+        public string OrderCode { get; set; }
 
         public long UserId { get; set; }
         public long? AddressId { get; set; }

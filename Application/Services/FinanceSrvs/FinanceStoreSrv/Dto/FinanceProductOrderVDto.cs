@@ -9,6 +9,7 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv.Dto
     public class FinanceProductOrderVDto
     {
         public string ProductOrderId { get; set; }
+        public string OrderCode { get; set; }
         public string BuyerFullName { get; set; }
         public double PaymentPrice { get; set; }
         public decimal CommissionPercent { get; set; }

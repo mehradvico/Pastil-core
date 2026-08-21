@@ -17,6 +17,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv.Dto
 {
     public class PansionReserveVDto : Id_FieldDto
     {
+        public string ReserveCode { get; set; }
         public long PansionId { get; set; }
         public long BookerId { get; set; }
         public long UserPetId { get; set; }

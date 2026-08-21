@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
+using Application.Common.Helpers;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
@@ -37,6 +38,10 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
 
             if (msg == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            if (!PersianPushTextHelper.ContainsPersian(msg.Title) ||
+                !PersianPushTextHelper.ContainsPersian(msg.Body))
+                return new BaseResultDto(false, "عنوان و متن پوش نوتیفیکیشن باید فارسی باشند.");
 
             var client = new WebPushClient();
             var vapid = new VapidDetails("mailto:admin@pastil.pet", _vapid.PublicKey, _vapid.PrivateKey);

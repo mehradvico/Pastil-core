@@ -8,6 +8,7 @@ namespace Application.Services.Order.PaymentSrv.Dto
     public class PaymentInputDto : BaseInputDto, IPaymentSearchFields
     {
         public string ProductOrderId { get; set; }
+        public string PaymentCode { get; set; }
 
     }
 }

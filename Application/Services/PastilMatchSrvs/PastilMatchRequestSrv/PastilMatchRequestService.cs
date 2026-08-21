@@ -288,6 +288,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
 
                 item.StatusId = dto.StatusId;
                 item.ResponseDate = DateTime.Now;
+                PastilMatch createdPastilMatch = null;
 
                 if (dto.StatusId == acceptedStatusId)
                 {
@@ -300,7 +301,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
                         return new BaseResultDto(false, Resource.Notification.PastilMatchAlreadyExists);
                     }
 
-                    var pastilMatch = new PastilMatch
+                    createdPastilMatch = new PastilMatch
                     {
                         PastilMatchRequestId = item.Id,
                         FirstProfileId = item.SenderProfileId,
@@ -312,7 +313,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
                         CreateDate = DateTime.Now
                     };
 
-                    await _context.PastilMatches.AddAsync(pastilMatch);
+                    await _context.PastilMatches.AddAsync(createdPastilMatch);
                 }
 
                 _context.PastilMatchRequests.Update(item);
@@ -324,7 +325,9 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchRequestSrv
                         : PushTypeEnum.PushPastilMatchRequestRejected,
                     item.SenderProfile.UserPet.UserId,
                     item.ReceiverProfile.UserPet.User.FirstName,
-                    item.ReceiverProfile.UserPet.Name);
+                    item.ReceiverProfile.UserPet.Name,
+                    createdPastilMatch?.Id.ToString(),
+                    item.SenderProfileId.ToString());
 
                 return new BaseResultDto(true);
             }

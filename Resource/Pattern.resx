@@ -166,13 +166,10 @@
     <value>You have a new reservation from {0} for {1}</value>
   </data>
   <data name="PushRegisterReserveUser" xml:space="preserve">
-    <value>Dear {0}, {1} has been reserved for your pet.</value>
+    <value>Dear {0}, {1} services at {2} have been reserved for your pet.</value>
   </data>
   <data name="PushSentOrderUser" xml:space="preserve">
     <value>Dear {0}, Your order {1} has been sent</value>
-  </data>
-  <data name="PushSignInUser" xml:space="preserve">
-    <value>Dear {0}, Welcome Back to Pastil</value>
   </data>
   <data name="PushSignUpUser" xml:space="preserve">
     <value>Dear {0}, Welcome to Pastil</value>

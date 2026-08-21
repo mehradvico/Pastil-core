@@ -6,6 +6,7 @@ namespace Application.Services.Order.PaymentSrv.Dto
     public class PaymentVDto
     {
         public string Id { get; set; }
+        public string PaymentCode { get; set; }
         public long? MerchantId { get; set; }
         public string ProductOrderId { get; set; }
         public long? CompanionReserveId { get; set; }

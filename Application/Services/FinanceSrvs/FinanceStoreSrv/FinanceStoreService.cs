@@ -44,6 +44,7 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv
                     .Select(o => new FinanceProductOrderVDto
                     {
                         ProductOrderId = o.Id,
+                        OrderCode = o.OrderCode,
                         BuyerFullName = o.User != null ? ((o.User.FirstName ?? "") + " " + (o.User.LastName ?? "")).Trim() : "",
                         PaymentPrice = o.PaymentPrice,
 

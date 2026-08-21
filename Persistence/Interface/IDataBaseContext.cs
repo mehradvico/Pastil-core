@@ -19,6 +19,8 @@ namespace Persistence.Interface
     public interface IDataBaseContext : IDbContextTransactionManager
     {
         Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default);
+        Task<long> GetNextPaymentCodeNumberAsync(CancellationToken cancellationToken = default);
+        Task<long> GetNextBusinessCodeNumberAsync(CancellationToken cancellationToken = default);
         public DbSet<Address> Addresses { get; set; }
         public DbSet<AdminSetting> AdminSettings { get; set; }
         public DbSet<AssistanceGroup> AssistanceGroups { get; set; }

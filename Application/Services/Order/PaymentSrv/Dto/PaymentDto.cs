@@ -7,6 +7,8 @@ namespace Application.Services.Order.PaymentSrv.Dto
 {
     public class PaymentDto : Id_FieldDto
     {
+        public string PaymentCode { get; set; }
+        public string ReferenceCode { get; set; }
         public long? MerchantId { get; set; }
         public string ProductOrderId { get; set; }
         public long? CompanionReserveId { get; set; }

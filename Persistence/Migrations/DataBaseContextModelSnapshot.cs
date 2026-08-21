@@ -23,6 +23,10 @@ namespace Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.HasSequence("BusinessCodeSequence");
+
+            modelBuilder.HasSequence("PaymentCodeSequence");
+
             modelBuilder.Entity("BrandCategory", b =>
                 {
                     b.Property<long>("BrandsId")
@@ -1821,6 +1825,10 @@ namespace Persistence.Migrations
                     b.Property<double>("RebatePrice")
                         .HasColumnType("float");
 
+                    b.Property<string>("ReserveCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<double>("SiteShare")
                         .HasColumnType("float");
 
@@ -1850,6 +1858,10 @@ namespace Persistence.Migrations
                     b.HasIndex("OperatorStateId");
 
                     b.HasIndex("RebateId");
+
+                    b.HasIndex("ReserveCode")
+                        .IsUnique()
+                        .HasFilter("[ReserveCode] IS NOT NULL");
 
                     b.HasIndex("StateId");
 
@@ -3481,6 +3493,10 @@ namespace Persistence.Migrations
                     b.Property<double>("RebatePrice")
                         .HasColumnType("float");
 
+                    b.Property<string>("ReserveCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<DateTime?>("SchoolCreateDate")
                         .HasColumnType("datetime2");
 
@@ -3509,6 +3525,10 @@ namespace Persistence.Migrations
                     b.HasIndex("PansionId");
 
                     b.HasIndex("RebateId");
+
+                    b.HasIndex("ReserveCode")
+                        .IsUnique()
+                        .HasFilter("[ReserveCode] IS NOT NULL");
 
                     b.HasIndex("StatusId");
 
@@ -5237,6 +5257,11 @@ namespace Persistence.Migrations
                     b.Property<double>("GrossAmount")
                         .HasColumnType("float");
 
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(36)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(36)");
+
                     b.Property<bool>("IsOnline")
                         .HasColumnType("bit");
 
@@ -5245,6 +5270,17 @@ namespace Persistence.Migrations
 
                     b.Property<long?>("MerchantId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("PaymentCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<bool>("PaymentIsLink")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PaymentUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
 
                     b.Property<string>("ProductOrderId")
                         .HasColumnType("nvarchar(450)");
@@ -5281,7 +5317,15 @@ namespace Persistence.Migrations
 
                     b.HasIndex("FileId");
 
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("[IdempotencyKey] IS NOT NULL");
+
                     b.HasIndex("MerchantId");
+
+                    b.HasIndex("PaymentCode")
+                        .IsUnique()
+                        .HasFilter("[PaymentCode] IS NOT NULL");
 
                     b.HasIndex("ProductOrderId");
 
@@ -6008,6 +6052,10 @@ namespace Persistence.Migrations
                     b.Property<bool>("IsPaid")
                         .HasColumnType("bit");
 
+                    b.Property<string>("OrderCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<string>("ParentOrderId")
                         .HasColumnType("nvarchar(max)");
 
@@ -6069,6 +6117,10 @@ namespace Persistence.Migrations
                     b.HasIndex("ClubFreeDeliveryBenefitId");
 
                     b.HasIndex("DeliveryTypeId");
+
+                    b.HasIndex("OrderCode")
+                        .IsUnique()
+                        .HasFilter("[OrderCode] IS NOT NULL");
 
                     b.HasIndex("PaymentTypeId");
 

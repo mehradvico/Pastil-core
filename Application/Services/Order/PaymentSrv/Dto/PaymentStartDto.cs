@@ -5,6 +5,7 @@ namespace Application.Services.Order.PaymentSrv.Dto
 {
     public class PaymentStartDto
     {
+        public string PaymentCode { get; set; }
         public bool IsOnline { get; set; }
         public string ProductOrderId { get; set; }
         public long? CompanionReserveId { get; set; }

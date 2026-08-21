@@ -14,6 +14,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
 {
     public class CompanionReserveAdminVDto : Id_FieldDto
     {
+        public string ReserveCode { get; set; }
         public long BookerId { get; set; }
 
         public double PrePaymentPrice { get; set; }

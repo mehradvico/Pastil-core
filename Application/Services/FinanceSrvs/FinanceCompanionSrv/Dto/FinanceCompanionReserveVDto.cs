@@ -9,6 +9,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv.Dto
     public class FinanceCompanionReserveVDto
     {
         public string ReserveId { get; set; }
+        public string ReserveCode { get; set; }
         public string BookerFullName { get; set; }
         public double PaymentPrice { get; set; }
         public decimal CommissionPercent { get; set; }

@@ -214,7 +214,9 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
                             PushTypeEnum.PushPastilMatchMessageReaction,
                             messageSenderProfile.UserPet.UserId,
                             reactorProfile.UserPet.User.FirstName,
-                            reactionValue);
+                            reactionValue,
+                            message.PastilMatchId.ToString(),
+                            messageSenderProfile.Id.ToString());
                     }
                 }
 

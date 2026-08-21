@@ -249,7 +249,9 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                     PushTypeEnum.PushPastilMatchNewMessage,
                     receiverProfile.UserPet.UserId,
                     senderProfile.UserPet.User.FirstName,
-                    GetMessagePreview(dto, parkName));
+                    GetMessagePreview(dto, parkName),
+                    dto.PastilMatchId.ToString(),
+                    receiverProfile.Id.ToString());
 
                 return new BaseResultDto<PastilMatchMessageDto>(true, mapper.Map<PastilMatchMessageDto>(item));
             }

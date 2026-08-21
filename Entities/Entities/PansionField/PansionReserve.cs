@@ -10,6 +10,7 @@ namespace Entities.Entities.PansionField
 {
     public class PansionReserve : Id_Field
     {
+        public string ReserveCode { get; set; }
         public long PansionId { get; set; }
         public long BookerId { get; set; }
         public long UserPetId { get; set; }

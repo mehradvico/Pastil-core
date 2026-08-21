@@ -15,6 +15,7 @@ using Application.Services.CompanionSrvs.CompanionReservePackageSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionReserveUserPetSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
+using Application.Services.Order.PaymentSrv;
 using Application.Services.Order.PaymentGatewaySrv.Iface;
 using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
@@ -126,6 +127,14 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 model = model.Where(s => s.BookerId == baseSearchDto.BookerId.Value);
             }
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.Q))
+            {
+                var queryText = baseSearchDto.Q.Trim();
+                model = model.Where(s => s.ReserveCode == queryText ||
+                    s.Booker.FirstName.Contains(queryText) ||
+                    s.Booker.LastName.Contains(queryText) ||
+                    s.Booker.Mobile.Contains(queryText));
+            }
             if (baseSearchDto.CompanionId.HasValue)
             {
                 model = model.Where(s => s.CompanionAssistance.CompanionId == baseSearchDto.CompanionId.Value);
@@ -223,6 +232,10 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     item.DoneDate = null;
                     item.OperatorChangeStateDate = null;
                     item.CreateDate = DateTime.Now;
+                    item.ReserveCode = PaymentCodeGenerator.Create(
+                        PaymentCallbackTypeEnum.CompanionReserve,
+                        item.CreateDate,
+                        await _context.GetNextBusinessCodeNumberAsync());
                     item.OperatorStateId = (long)CompanionReserveOperatorStateEnum.OperatorState_InComplete;
                     item.UserResponse = null;
                     if (_currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString())
@@ -507,8 +520,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     () => _pushNotificationService.SendPushAsync(
                         PushTypeEnum.PushRegisterReserveUser,
                         booker.Id,
-                        token1: companion.Name,
-                        token2: booker.FirstName),
+                        token1: booker.FirstName,
+                        token2: assistance.Name,
+                        token3: companion.Name),
                     reserveId,
                     "user push");
 

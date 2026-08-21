@@ -1,127 +1,218 @@
-/* --- Font: Yekan Bakh (from your assets) --- */
 @font-face {
     font-family: "YekanBakh";
-    src: url("../fonts/YEKAN BAKH.TTF") format("truetype");
-    font-weight: normal;
+    src: url("../fonts/YekanBakh-Regular.woff2") format("woff2");
+    font-weight: 400;
     font-style: normal;
+    font-display: swap;
 }
 
-* {
+@font-face {
+    font-family: "YekanBakh";
+    src: url("../fonts/YekanBakh-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "YekanBakh";
+    src: url("../fonts/YekanBakh-Black.woff2") format("woff2");
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --navy-950: #050b17;
+    --navy-900: #081426;
+    --navy-800: #0d1d33;
+    --navy-700: #142a45;
+    --blue: #0878bd;
+    --orange: #e97b55;
+    --text: #f8fafc;
+    --muted: #93a4ba;
+}
+
+*, *::before, *::after {
     box-sizing: border-box;
 }
 
+html,
 body {
+    min-height: 100%;
+}
+
+body.payment-page {
     margin: 0;
-    font-family: "YekanBakh", sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
     direction: rtl;
-    background: linear-gradient(135deg, #2b86a3 0%, #e7eef4 45%, #f2b59e 100%);
-    min-height: 100vh;
+    background: var(--navy-950);
+    color: var(--text);
+    font-family: "YekanBakh", Tahoma, sans-serif !important;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Page wrapper */
-.payment-page {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 16px;
+body.payment-page *,
+body.payment-page *::before,
+body.payment-page *::after {
+    font-family: "YekanBakh", Tahoma, sans-serif !important;
 }
 
-/* Card */
+.payment-shell {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px 16px;
+    background:
+        radial-gradient(circle at 50% 8%, rgba(8, 120, 189, .2), transparent 34%),
+        linear-gradient(160deg, var(--navy-900), var(--navy-950) 72%);
+}
+
 .payment-card {
-    width: 420px;
-    max-width: 92vw;
-    background: #0b5a77;
-    border-radius: 18px;
-    box-shadow: 0 12px 28px rgba(0,0,0,.25);
-    padding: 26px 22px 18px;
+    width: min(100%, 430px);
+    padding: 34px 28px 24px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 28px;
+    background: linear-gradient(155deg, rgba(20, 42, 69, .98), rgba(8, 20, 38, .99));
+    box-shadow: 0 28px 80px rgba(0, 0, 0, .48);
     text-align: center;
 }
 
-/* Logo row */
 .brand {
     display: flex;
     justify-content: center;
-    margin-bottom: 18px;
+    margin: 0 0 46px;
 }
 
 .brand-logo {
-    height: 46px;
+    display: block;
     width: auto;
+    height: 48px;
+    object-fit: contain;
 }
 
-/* Status Icon */
 .status-icon {
-    display: flex;
-    justify-content: center;
-    margin: 10px 0 6px;
+    display: grid;
+    place-items: center;
+    width: 98px;
+    height: 98px;
+    margin: 0 auto 30px;
+    border-radius: 30px;
 }
 
-    .status-icon img {
-        width: 120px;
-        height: 120px;
-        object-fit: contain;
-    }
-
-/* Text */
-.status-text {
-    color: #ffffff;
-    margin-top: 6px;
-    margin-bottom: 14px;
-    font-size: 18px;
+.is-success .status-icon {
+    background: rgba(41, 199, 120, .1);
+    box-shadow: 0 0 42px rgba(41, 199, 120, .12);
 }
 
-/* Info list (the empty space above button in your design) */
-.info-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 18px;
-    text-align: right;
+.is-failed .status-icon {
+    background: rgba(255, 93, 104, .1);
+    box-shadow: 0 0 42px rgba(255, 93, 104, .12);
 }
 
-    .info-list li {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 10px 8px;
-        border-bottom: 1px solid rgba(255,255,255,.18);
-        color: rgba(255,255,255,.92);
-        font-size: 14px;
-    }
+.status-icon svg {
+    display: block;
+    flex: none;
+    width: 82px !important;
+    height: 82px !important;
+    max-width: 82px !important;
+    max-height: 82px !important;
+}
 
-        .info-list li:last-child {
-            border-bottom: none;
-        }
-
-    .info-list span {
-        opacity: .85;
-    }
-
-    .info-list b {
-        font-weight: 700;
-        color: #ffffff;
-    }
-
-/* Button */
-.actions {
-    margin-top: 8px;
+.payment-card h1 {
+    margin: 0;
+    color: var(--text);
+    font-size: clamp(21px, 5.5vw, 27px);
+    font-weight: 900;
+    line-height: 1.7;
 }
 
 .btn-return {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
     width: 100%;
-    background: #e08263;
-    color: #ffffff;
-    text-decoration: none;
-    padding: 14px 18px;
-    border-radius: 28px;
-    font-size: 16px;
-    font-weight: 700;
-    transition: transform .08s ease-in-out, filter .08s ease-in-out;
+    min-height: 56px;
+    margin-top: 52px;
+    padding: 12px 20px;
+    border: 0;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--orange), #cb5f40);
+    box-shadow: 0 14px 34px rgba(203, 95, 64, .22);
+    color: #fff !important;
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none !important;
+    transition: transform .15s ease, filter .15s ease;
 }
 
-    .btn-return:hover {
-        filter: brightness(1.03);
-        transform: translateY(-1px);
+.return-arrow {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    color: #fff;
+    font-family: Arial, sans-serif !important;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1;
+}
+
+.btn-return:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.btn-return:active {
+    transform: scale(.985);
+}
+
+.btn-return:focus-visible {
+    outline: 3px solid rgba(233, 123, 85, .35);
+    outline-offset: 3px;
+}
+
+.security-note {
+    margin-top: 28px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .payment-shell {
+        padding: 18px 14px;
     }
+
+    .payment-card {
+        padding: 30px 20px 22px;
+        border-radius: 24px;
+    }
+
+    .brand {
+        margin-bottom: 42px;
+    }
+
+    .brand-logo {
+        height: 42px;
+    }
+
+    .btn-return {
+        margin-top: 46px;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .payment-card {
+        animation: card-enter .35s ease-out both;
+    }
+
+    @keyframes card-enter {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+}

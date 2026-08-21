@@ -10,6 +10,7 @@ using Application.Services.Accounting.ScoreTransactionSrv.Iface;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.Order.RebateSrv.Iface;
+using Application.Services.Order.PaymentSrv;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
 using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
@@ -91,6 +92,14 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             {
                 model = model.Where(s => s.BookerId == baseSearchDto.BookerId.Value);
             }
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.Q))
+            {
+                var queryText = baseSearchDto.Q.Trim();
+                model = model.Where(s => s.ReserveCode == queryText ||
+                    s.Booker.FirstName.Contains(queryText) ||
+                    s.Booker.LastName.Contains(queryText) ||
+                    s.Booker.Mobile.Contains(queryText));
+            }
             if (baseSearchDto.PansionId.HasValue)
             {
                 model = model.Where(s => s.PansionId == baseSearchDto.PansionId.Value);
@@ -143,6 +152,10 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     var item = mapper.Map<PansionReserve>(dto);
                     item.IsCancel = false;
                     item.CreateDate = DateTime.Now;
+                    item.ReserveCode = PaymentCodeGenerator.Create(
+                        PaymentCallbackTypeEnum.PansionReserve,
+                        item.CreateDate,
+                        await _context.GetNextBusinessCodeNumberAsync());
                     if (_currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString())
                     {
                         item.IsReserved = true;

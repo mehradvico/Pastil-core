@@ -214,7 +214,7 @@ namespace Resource {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dear {0}, {1} has been reserved for your pet..
+        ///   Looks up a localized string similar to Dear {0}, {1} services at {2} have been reserved for your pet..
         /// </summary>
         public static string PushRegisterReserveUser {
             get {
@@ -228,15 +228,6 @@ namespace Resource {
         public static string PushSentOrderUser {
             get {
                 return ResourceManager.GetString("PushSentOrderUser", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Dear {0}, Welcome Back to Pastil.
-        /// </summary>
-        public static string PushSignInUser {
-            get {
-                return ResourceManager.GetString("PushSignInUser", resourceCulture);
             }
         }
         

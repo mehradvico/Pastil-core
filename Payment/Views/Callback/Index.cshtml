@@ -1,101 +1,46 @@
-﻿@using Application.Common.Dto.Result
+@using Application.Common.Dto.Result
 @using Application.Common.Helpers
-@using Application.Common.Enumerable
 @using Application.Services.Order.PaymentSrv.Dto
 @model BaseResultDto<PaymentDto>
 
 @{
     ViewData["Title"] = "بازگشت از پرداخت";
-    var p = Model?.Data;
-
     var isSuccess = Model?.IsSuccess == true;
-
-    var returnUrl =
-        TempData["ReturnToSiteUrl"]?.ToString()
-        ?? AppSettingsHelper.BaseUrl;
-
-    var orderId = p?.ProductOrderId;
-    var refNumber = p?.RefNumber;
-    var amount = p?.Amount;
+    var returnUrl = TempData["ReturnToSiteUrl"]?.ToString() ?? AppSettingsHelper.BaseUrl;
 }
 
-<link href="~/assets/payment/css/style.css" rel="stylesheet" />
+<section class="payment-shell @(isSuccess ? "is-success" : "is-failed")">
+    <main class="payment-card" aria-labelledby="payment-result-title">
+        <header class="brand">
+            <img class="brand-logo" src="~/Assets/Payment/images/Logo.png" alt="پاستیل" />
+        </header>
 
-<section class="payment-page">
-    <div class="payment-card">
-
-        <div class="brand">
-            <img class="brand-logo" src="~/Assets/Payment/images/Logo.png" alt="PASTIL" />
-        </div>
-
-        <div class="status-icon">
+        <div class="status-icon" aria-hidden="true">
             @if (isSuccess)
             {
-                <img src="~/Assets/Payment/images/Success.png" alt="success" />
+                <svg width="82" height="82" viewBox="0 0 82 82" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="41" cy="41" r="37" stroke="#29C778" stroke-width="4" />
+                    <path d="M24 41.5L35.5 53L59 29.5" stroke="#29C778" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
             }
             else
             {
-                <img src="~/Assets/Payment/images/False.png" alt="failed" />
+                <svg width="82" height="82" viewBox="0 0 82 82" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="41" cy="41" r="37" stroke="#FF5D68" stroke-width="4" />
+                    <path d="M29 29L53 53M53 29L29 53" stroke="#FF5D68" stroke-width="6" stroke-linecap="round" />
+                </svg>
             }
         </div>
 
-        <div class="status-text">
-            @if (isSuccess)
-            {
-                <strong>@Resource.Notification.Success</strong>
-            }
-            else
-            {
-                <strong>@Resource.Notification.Unsuccess</strong>
-            }
-        </div>
+        <h1 id="payment-result-title">
+            @(isSuccess ? "پرداخت با موفقیت انجام شد" : "پرداخت شما ناموفق بود.")
+        </h1>
 
-        @if (p != null)
-        {
-            <ul class="info-list">
-                @if (p.Type?.Label == PaymentTypeEnum.PaymentType_ProductOrder.ToString())
-                {
-                    @if (!string.IsNullOrWhiteSpace(orderId))
-                    {
-                        <li>
-                            <span>شماره سفارش</span>
-                            <b>@orderId</b>
-                        </li>
-                    }
-                }
-                else if (p.Type?.Label == PaymentTypeEnum.PaymentType_Wallet.ToString()
-                && p.CallBackTypeLabel == PaymentCallbackTypeEnum.ProductOrder.ToString())
-                {
-                    @if (!string.IsNullOrWhiteSpace(p.CallBackId))
-                    {
-                        <li>
-                            <span>شماره سفارش</span>
-                            <b>@p.CallBackId</b>
-                        </li>
-                    }
-                }
+        <a class="btn-return" href="@returnUrl">
+            <span>بازگشت به اپ پاستیل</span>
+            <span class="return-arrow" aria-hidden="true">←</span>
+        </a>
 
-                @if (!string.IsNullOrWhiteSpace(refNumber))
-                {
-                    <li>
-                        <span>پیگیری پرداخت</span>
-                        <b>@refNumber</b>
-                    </li>
-                }
-
-                @if (amount.HasValue)
-                {
-                    <li>
-                        <span>مبلغ</span>
-                        <b>@amount.Value.ToString("n0") تومان</b>
-                    </li>
-                }
-            </ul>
-        }
-
-        <div class="actions">
-            <a class="btn-return" href="@returnUrl">بازگشت به سایت</a>
-        </div>
-
-    </div>
+        <footer class="security-note">پرداخت امن پاستیل</footer>
+    </main>
 </section>

@@ -20,6 +20,8 @@ namespace Application.Services.ProductSrvs.WalletSrv.Dto
         public DateTime CreateDate { get; set; }
         public long UserId { get; set; }
         public long? PaymentId { get; set; }
+        public string PaymentCode { get; set; }
+        public string ReferenceCode { get; set; }
         public string ProductOrderId { get; set; }
         public long? CompanionReserveId { get; set; }
         public long? PansionReserveId { get; set; }

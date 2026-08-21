@@ -9,7 +9,6 @@ namespace Application.Common.Enumerable.Code
     public enum PushTypeEnum
     {
         PushSignUpUser = 1,
-        PushSignInUser = 2,
         PushSignUpAdmin = 3,
         PushRegisterOrderUser = 4,
         PushProccessOrderUser = 5,

@@ -131,6 +131,9 @@ namespace Application.Services.Order.PaymentSrv
 
             try
             {
+                if (!TryGetIdempotencyKey(out var idempotencyKey, out var idempotencyError))
+                    return new BaseResultDto(false, idempotencyError);
+
                 dto.GrossAmount = dto.GrossAmount > 0
                     ? dto.GrossAmount
                     : dto.Amount + dto.RebateAmount + dto.WalletAmount;
@@ -154,6 +157,20 @@ namespace Application.Services.Order.PaymentSrv
                     return new BaseResultDto(false, Resource.Notification.PleaseSelectTheMerchant);
 
                 await using var createTransaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
+                if (idempotencyKey != null)
+                {
+                    var existingPayment = await _context.Payments.AsNoTracking()
+                        .FirstOrDefaultAsync(s => s.IdempotencyKey == idempotencyKey);
+                    if (existingPayment != null)
+                    {
+                        await createTransaction.RollbackAsync();
+                        if (!IsSameCheckout(existingPayment, dto))
+                            return new BaseResultDto(false, "این Idempotency-Key قبلاً برای Checkout دیگری استفاده شده است.");
+
+                        return CreateIdempotentReplayResult(existingPayment);
+                    }
+                }
+
                 if (dto.RebateId.HasValue)
                 {
                     var now = DateTime.Now;
@@ -199,6 +216,8 @@ namespace Application.Services.Order.PaymentSrv
                 item = mapper.Map<Payment>(dto);
                 item.CreateDate = DateTime.Now;
                 item.IsOnline = true;
+                item.IdempotencyKey = idempotencyKey;
+                item.PaymentCode = await CreateUniquePaymentCodeAsync();
                 item.CallbackToken = isInternalSettlement
                     ? null
                     : Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
@@ -213,6 +232,7 @@ namespace Application.Services.Order.PaymentSrv
                 await createTransaction.CommitAsync();
 
                 dto.PaymentId = item.Id;
+                dto.PaymentCode = item.PaymentCode;
                 if (isInternalSettlement)
                 {
                     var applyResult = await ApplyAndMapPaymentAsync(item);
@@ -234,6 +254,11 @@ namespace Application.Services.Order.PaymentSrv
 
                 dto.CallbackUrl = $"{paymentBaseUrl}/callback/{item.Id}?callbackToken={item.CallbackToken}";
                 var startResult = await _merchantService.StartAsync(dto);
+
+                item.PaymentUrl = dto.PaymentUrl;
+                item.PaymentIsLink = dto.PaymentIsLink;
+                _context.Payments.Update(item);
+                await _context.SaveChangesAsync();
 
                 if (!startResult.IsSuccess)
                 {
@@ -356,8 +381,10 @@ namespace Application.Services.Order.PaymentSrv
                 targetResult.ReferenceId = subscription.Id.ToString();
             }
 
+            var paymentCreateDate = DateTime.Now;
             var payment = new Entities.Entities.Payment
             {
+                PaymentCode = await CreateUniquePaymentCodeAsync(),
                 MerchantId = null,
                 ProductOrderId = dto.TargetType == PaymentCallbackTypeEnum.ProductOrder ? targetResult.ReferenceId : null,
                 CompanionReserveId = dto.TargetType == PaymentCallbackTypeEnum.CompanionReserve ? ParseNullableLong(targetResult.ReferenceId) : null,
@@ -369,7 +396,7 @@ namespace Application.Services.Order.PaymentSrv
                 GrossAmount = targetResult.Amount,
                 RebateAmount = 0,
                 WalletAmount = 0,
-                CreateDate = DateTime.Now,
+                CreateDate = paymentCreateDate,
                 Description = dto.Description?.Trim(),
                 IsSuccess = true,
                 IsOnline = false,
@@ -429,7 +456,7 @@ namespace Application.Services.Order.PaymentSrv
 
                 if (payment.AppliedDate.HasValue)
                 {
-                    return new BaseResultDto<PaymentDto>(true, mapper.Map<PaymentDto>(payment));
+                    return new BaseResultDto<PaymentDto>(true, await MapPaymentForDisplayAsync(payment));
                 }
 
                 if (payment.IsSuccess == null && payment.CreateDate < DateTime.Now.AddMinutes(-30))
@@ -437,7 +464,7 @@ namespace Application.Services.Order.PaymentSrv
                     payment.IsSuccess = false;
                     payment.GatewayStatus = "EXPIRED";
                     await _context.SaveChangesAsync();
-                    return new BaseResultDto<PaymentDto>(false, Resource.Notification.Unsuccess, null);
+                    return new BaseResultDto<PaymentDto>(false, Resource.Notification.Unsuccess, await MapPaymentForDisplayAsync(payment));
                 }
 
                 if (payment.IsSuccess == false)
@@ -445,7 +472,7 @@ namespace Application.Services.Order.PaymentSrv
                     return new BaseResultDto<PaymentDto>(
                         false,
                         Resource.Notification.Unsuccess,
-                        mapper.Map<PaymentDto>(payment));
+                        await MapPaymentForDisplayAsync(payment));
                 }
 
                 if (payment.IsSuccess != true)
@@ -457,7 +484,7 @@ namespace Application.Services.Order.PaymentSrv
                         return new BaseResultDto<PaymentDto>(
                             false,
                             callbackResult.Messages,
-                            mapper.Map<PaymentDto>(payment));
+                            await MapPaymentForDisplayAsync(payment));
                     }
                 }
 
@@ -487,14 +514,14 @@ namespace Application.Services.Order.PaymentSrv
             if (lockedPayment.AppliedDate.HasValue)
             {
                 await transaction.CommitAsync();
-                return new BaseResultDto<PaymentDto>(true, mapper.Map<PaymentDto>(lockedPayment));
+                return new BaseResultDto<PaymentDto>(true, await MapPaymentForDisplayAsync(lockedPayment));
             }
 
             var snapshotValidation = await ValidatePaymentSnapshotAsync(lockedPayment);
             if (!snapshotValidation.IsSuccess)
             {
                 await transaction.RollbackAsync();
-                return new BaseResultDto<PaymentDto>(false, snapshotValidation.Messages, mapper.Map<PaymentDto>(lockedPayment));
+                return new BaseResultDto<PaymentDto>(false, snapshotValidation.Messages, await MapPaymentForDisplayAsync(lockedPayment));
             }
 
             var applyResult = await ApplySuccessfulPaymentAsync(lockedPayment);
@@ -508,7 +535,7 @@ namespace Application.Services.Order.PaymentSrv
                             .SetProperty(s => s.IsSuccess, false)
                             .SetProperty(s => s.GatewayStatus, "WALLET_TARGET_FAILED"));
                 }
-                return new BaseResultDto<PaymentDto>(false, applyResult.Messages, mapper.Map<PaymentDto>(lockedPayment));
+                return new BaseResultDto<PaymentDto>(false, applyResult.Messages, await MapPaymentForDisplayAsync(lockedPayment));
             }
 
             lockedPayment.AppliedDate = DateTime.UtcNow;
@@ -521,7 +548,32 @@ namespace Application.Services.Order.PaymentSrv
             return new BaseResultDto<PaymentDto>(
                 true,
                 applyResult.Messages,
-                mapper.Map<PaymentDto>(lockedPayment));
+                await MapPaymentForDisplayAsync(lockedPayment));
+        }
+
+        private async Task<PaymentDto> MapPaymentForDisplayAsync(Entities.Entities.Payment payment)
+        {
+            var dto = mapper.Map<PaymentDto>(payment);
+            dto.ReferenceCode = payment.CallBackTypeLabel switch
+            {
+                nameof(PaymentCallbackTypeEnum.ProductOrder) =>
+                    payment.ProductOrder?.OrderCode ?? await _context.ProductOrders.AsNoTracking()
+                        .Where(item => item.Id == (payment.CallBackId ?? payment.ProductOrderId))
+                        .Select(item => item.OrderCode)
+                        .FirstOrDefaultAsync(),
+                nameof(PaymentCallbackTypeEnum.CompanionReserve) when long.TryParse(payment.CallBackId, out var companionReserveId) =>
+                    await _context.CompanionReserves.AsNoTracking()
+                        .Where(item => item.Id == companionReserveId)
+                        .Select(item => item.ReserveCode)
+                        .FirstOrDefaultAsync(),
+                nameof(PaymentCallbackTypeEnum.PansionReserve) when long.TryParse(payment.CallBackId, out var pansionReserveId) =>
+                    await _context.PansionReserves.AsNoTracking()
+                        .Where(item => item.Id == pansionReserveId)
+                        .Select(item => item.ReserveCode)
+                        .FirstOrDefaultAsync(),
+                _ => null
+            };
+            return dto;
         }
 
         private static bool IsValidCallbackToken(string expectedToken, string callbackToken)
@@ -557,6 +609,11 @@ namespace Application.Services.Order.PaymentSrv
             if (!string.IsNullOrEmpty(baseSearchDto.ProductOrderId))
             {
                 query = query.Where(s => s.ProductOrderId == baseSearchDto.ProductOrderId);
+            }
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.PaymentCode))
+            {
+                var paymentCode = baseSearchDto.PaymentCode.Trim();
+                query = query.Where(s => s.PaymentCode == paymentCode);
             }
             switch (baseSearchDto.SortBy)
             {
@@ -1341,6 +1398,7 @@ namespace Application.Services.Order.PaymentSrv
             return new ManualPaymentVDto
             {
                 PaymentId = payment.Id,
+                PaymentCode = payment.PaymentCode,
                 TargetType = targetType,
                 CallbackId = payment.CallBackId,
                 UserId = payment.UserId,
@@ -1350,6 +1408,85 @@ namespace Application.Services.Order.PaymentSrv
                 Description = payment.Description,
                 IsSuccess = payment.IsSuccess == true
             };
+        }
+
+        private async Task<string> CreateUniquePaymentCodeAsync()
+        {
+            for (var attempt = 0; attempt < 10; attempt++)
+            {
+                var token = PaymentCodeGenerator.CreatePaymentToken();
+                if (!await _context.Payments.AsNoTracking().AnyAsync(payment => payment.PaymentCode == token))
+                    return token;
+            }
+
+            throw new InvalidOperationException("امکان تولید توکن یکتای پرداخت وجود ندارد.");
+        }
+
+        private bool TryGetIdempotencyKey(out string idempotencyKey, out string error)
+        {
+            idempotencyKey = null;
+            error = null;
+            var request = _httpContextAccessor.HttpContext?.Request;
+            if (request == null || !request.Headers.TryGetValue("Idempotency-Key", out var values))
+                return true;
+
+            var rawValue = values.Count == 1 ? values[0]?.Trim() : null;
+            if (!Guid.TryParseExact(rawValue, "D", out var parsed) || parsed == Guid.Empty)
+            {
+                error = "هدر Idempotency-Key باید یک UUID معتبر باشد.";
+                return false;
+            }
+
+            idempotencyKey = parsed.ToString("D");
+            return true;
+        }
+
+        private static bool IsSameCheckout(Payment payment, PaymentStartDto dto)
+        {
+            const double tolerance = 0.01;
+            return payment.UserId == dto.UserId &&
+                   string.Equals(payment.CallBackTypeLabel, dto.CallBackTypeLabel, StringComparison.Ordinal) &&
+                   string.Equals(payment.CallBackId, dto.CallBackId, StringComparison.Ordinal) &&
+                   payment.MerchantId == dto.MerchantId &&
+                   Math.Abs(payment.Amount - dto.Amount) <= tolerance &&
+                   Math.Abs(payment.GrossAmount - dto.GrossAmount) <= tolerance &&
+                   Math.Abs(payment.RebateAmount - dto.RebateAmount) <= tolerance &&
+                   Math.Abs(payment.WalletAmount - dto.WalletAmount) <= tolerance;
+        }
+
+        private static BaseResultDto CreateIdempotentReplayResult(Payment payment)
+        {
+            var dto = new PaymentStartDto
+            {
+                PaymentId = payment.Id,
+                PaymentCode = payment.PaymentCode,
+                IsOnline = payment.IsOnline,
+                MerchantId = payment.MerchantId,
+                RebateId = payment.RebateId,
+                ProductOrderId = payment.ProductOrderId,
+                CompanionReserveId = payment.CompanionReserveId,
+                TripId = payment.TripId,
+                CargoId = payment.CargoId,
+                CompanionInsurancePackageSaleId = payment.CompanionInsurancePackageSaleId,
+                Amount = payment.Amount,
+                GrossAmount = payment.GrossAmount,
+                RebateAmount = payment.RebateAmount,
+                WalletAmount = payment.WalletAmount,
+                UserId = payment.UserId,
+                TypeId = payment.TypeId,
+                CallBackTypeLabel = payment.CallBackTypeLabel,
+                CallBackId = payment.CallBackId,
+                PaymentUrl = payment.PaymentUrl,
+                PaymentIsLink = payment.PaymentIsLink
+            };
+
+            if (payment.IsSuccess == false && string.IsNullOrWhiteSpace(payment.PaymentUrl))
+                return new BaseResultDto<PaymentStartDto>(false, "تلاش قبلی این Checkout ناموفق بوده است.", dto);
+
+            if (payment.IsSuccess == null && string.IsNullOrWhiteSpace(payment.PaymentUrl))
+                return new BaseResultDto<PaymentStartDto>(false, "درخواست پرداخت در حال پردازش است؛ همین درخواست را دوباره ارسال کنید.", dto);
+
+            return new BaseResultDto<PaymentStartDto>(true, dto);
         }
 
         private async Task MarkManualPaymentDateAsync(PaymentCallbackTypeEnum targetType, string callbackId)

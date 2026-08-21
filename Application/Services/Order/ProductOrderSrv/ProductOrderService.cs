@@ -12,6 +12,7 @@ using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.Order.ProductOrderOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
+using Application.Services.Order.PaymentSrv;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.Order.ShippingSrv.Iface;
 using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
@@ -108,6 +109,10 @@ namespace Application.Services.Order.ProductOrderSrv
                     DateTime justNow = DateTime.UtcNow;
                     item.CreateDate = DateTime.Now;
                     item.Id = justNow.ToFa("yyyy") + justNow.ToFa("MM") + justNow.ToFa("dd") + justNow.ToString("HHmmssff");
+                    item.OrderCode = PaymentCodeGenerator.Create(
+                        PaymentCallbackTypeEnum.ProductOrder,
+                        item.CreateDate,
+                        await _context.GetNextBusinessCodeNumberAsync());
 
                     await _context.ProductOrders.AddAsync(item);
 
@@ -147,7 +152,9 @@ namespace Application.Services.Order.ProductOrderSrv
             }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
             {
-                query = query.Where(s => s.User.FirstName.Contains(baseSearchDto.Q) || s.User.LastName.Contains(baseSearchDto.Q) || s.User.Mobile.Contains(baseSearchDto.Q));
+                var queryText = baseSearchDto.Q.Trim();
+                query = query.Where(s => s.OrderCode == queryText || s.Id == queryText ||
+                    s.User.FirstName.Contains(queryText) || s.User.LastName.Contains(queryText) || s.User.Mobile.Contains(queryText));
             }
             if (!string.IsNullOrEmpty(baseSearchDto.TrackingCode))
             {

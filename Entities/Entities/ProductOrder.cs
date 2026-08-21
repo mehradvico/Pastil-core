@@ -7,6 +7,7 @@ namespace Entities.Entities
     public class ProductOrder
     {
         public string Id { get; set; }
+        public string OrderCode { get; set; }
         public long UserId { get; set; }
         public long? AddressId { get; set; }
         public long PaymentTypeId { get; set; }

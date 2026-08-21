@@ -44,6 +44,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                     .Select(r => new FinanceCompanionReserveVDto
                     {
                         ReserveId = r.Id.ToString(),
+                        ReserveCode = r.ReserveCode,
                         BookerFullName = (r.Booker != null ? ((r.Booker.FirstName ?? "") + " " + (r.Booker.LastName ?? "")).Trim() : ""),
                         PaymentPrice = r.PaymentPrice,
                         CommissionPercent = r.CompanionAssistance != null ? r.CompanionAssistance.CommissionPercent : 0,
@@ -71,6 +72,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                     .Select(r => new FinanceCompanionReserveVDto
                     {
                         ReserveId = r.Id.ToString(),
+                        ReserveCode = r.ReserveCode,
                         BookerFullName = (r.Booker != null ? ((r.Booker.FirstName ?? "") + " " + (r.Booker.LastName ?? "")).Trim() : ""),
                         PaymentPrice = r.PaymentPrice,
                         CommissionPercent = r.DayCount > 0 ? r.Pansion.DailyCommissionPercent : r.Pansion.HourlyCommissionPercent,

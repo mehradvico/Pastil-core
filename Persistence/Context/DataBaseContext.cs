@@ -35,6 +35,39 @@ namespace Persistence.Context
             return Database.BeginTransactionAsync(isolationLevel, cancellationToken);
         }
 
+        public async Task<long> GetNextPaymentCodeNumberAsync(CancellationToken cancellationToken = default)
+        {
+            return await GetNextSequenceValueAsync("PaymentCodeSequence", cancellationToken);
+        }
+
+        public async Task<long> GetNextBusinessCodeNumberAsync(CancellationToken cancellationToken = default)
+        {
+            return await GetNextSequenceValueAsync("BusinessCodeSequence", cancellationToken);
+        }
+
+        private async Task<long> GetNextSequenceValueAsync(string sequenceName, CancellationToken cancellationToken)
+        {
+            var connection = Database.GetDbConnection();
+            var shouldCloseConnection = connection.State != ConnectionState.Open;
+
+            if (shouldCloseConnection)
+                await connection.OpenAsync(cancellationToken);
+
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = $"SELECT NEXT VALUE FOR dbo.{sequenceName};";
+                command.Transaction = Database.CurrentTransaction?.GetDbTransaction();
+                var result = await command.ExecuteScalarAsync(cancellationToken);
+                return Convert.ToInt64(result);
+            }
+            finally
+            {
+                if (shouldCloseConnection)
+                    await connection.CloseAsync();
+            }
+        }
+
         public override int SaveChanges()
         {
             return SaveChanges(true);
@@ -325,6 +358,25 @@ namespace Persistence.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasSequence<long>("PaymentCodeSequence");
+            modelBuilder.HasSequence<long>("BusinessCodeSequence");
+
+            modelBuilder.Entity<CompanionReserve>(entity =>
+            {
+                entity.Property(item => item.ReserveCode).HasMaxLength(40);
+                entity.HasIndex(item => item.ReserveCode).IsUnique().HasFilter("[ReserveCode] IS NOT NULL");
+            });
+            modelBuilder.Entity<PansionReserve>(entity =>
+            {
+                entity.Property(item => item.ReserveCode).HasMaxLength(40);
+                entity.HasIndex(item => item.ReserveCode).IsUnique().HasFilter("[ReserveCode] IS NOT NULL");
+            });
+            modelBuilder.Entity<ProductOrder>(entity =>
+            {
+                entity.Property(item => item.OrderCode).HasMaxLength(40);
+                entity.HasIndex(item => item.OrderCode).IsUnique().HasFilter("[OrderCode] IS NOT NULL");
+            });
+
             modelBuilder.Entity<CompanionAssistance>()
                 .Property(item => item.CommissionPercent)
                 .HasPrecision(5, 2);
@@ -679,8 +731,17 @@ namespace Persistence.Context
 
             modelBuilder.Entity<Payment>(entity =>
             {
+                entity.Property(item => item.PaymentCode).HasMaxLength(40);
+                entity.Property(item => item.IdempotencyKey).HasMaxLength(36).IsUnicode(false);
                 entity.Property(item => item.CallbackToken).HasMaxLength(64);
                 entity.Property(item => item.ApprovedIp).HasMaxLength(64);
+                entity.Property(item => item.PaymentUrl).HasMaxLength(2048);
+                entity.HasIndex(item => item.PaymentCode)
+                    .IsUnique()
+                    .HasFilter("[PaymentCode] IS NOT NULL");
+                entity.HasIndex(item => item.IdempotencyKey)
+                    .IsUnique()
+                    .HasFilter("[IdempotencyKey] IS NOT NULL");
                 entity.HasIndex(item => item.CallbackToken)
                     .IsUnique()
                     .HasFilter("[CallbackToken] IS NOT NULL");

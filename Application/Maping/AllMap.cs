@@ -332,6 +332,7 @@ namespace Application.Maping
             CreateMap<CompanionReserve, CompanionReserveCancelDto>().ReverseMap();
             CreateMap<CompanionReserve, CompanionReserveOperatorDto>().ReverseMap();
             CreateMap<CompanionReserveDto, CompanionReserve>()
+                .ForMember(x => x.ReserveCode, y => y.Ignore())
                 .ForMember(x => x.FromWallet, y => y.Ignore()).ForMember(x => x.WalletPrice, y => y.Ignore()).ForMember(x => x.Wallet, y => y.Ignore())
                 .ForMember(x => x.Address, y => y.Ignore()).ForMember(x => x.Booker, y => y.Ignore()).ForMember(x => x.CompanionAssistance, y => y.Ignore())
                 .ForMember(x => x.CompanionAssistanceTime, y => y.Ignore()).ForMember(x => x.CompanionAssistanceUser, y => y.Ignore())
@@ -545,6 +546,7 @@ namespace Application.Maping
             CreateMap<PansionPet, PansionPetVDto>();
             CreateMap<PansionReserve, PansionReserveCancelDto>().ReverseMap();
             CreateMap<PansionReserveDto, PansionReserve>()
+                .ForMember(x => x.ReserveCode, y => y.Ignore())
                 .ForMember(x => x.FromWallet, y => y.Ignore()).ForMember(x => x.WalletPrice, y => y.Ignore()).ForMember(x => x.Wallet, y => y.Ignore())
                 .ForMember(x => x.Booker, y => y.Ignore()).ForMember(x => x.StatusId, y => y.Ignore());
             CreateMap<PansionReserveRebateCodeDto, PansionReserve>();
@@ -708,7 +710,9 @@ namespace Application.Maping
 
 
             //ProductOrder
-            CreateMap<ProductOrder, ProductOrderDto>().ReverseMap();
+            CreateMap<ProductOrder, ProductOrderDto>();
+            CreateMap<ProductOrderDto, ProductOrder>()
+                .ForMember(x => x.OrderCode, y => y.Ignore());
             CreateMap<ProductOrder, ProductOrderVDto>();
             CreateMap<ProductOrderStore, ProductOrderStoreDto>().ReverseMap();
             CreateMap<ProductOrderStore, ProductOrderStoreVDto>();
@@ -915,7 +919,15 @@ namespace Application.Maping
 
             //Wallet
             CreateMap<Wallet, WalletDto>().ReverseMap();
-            CreateMap<Wallet, WalletVDto>();
+            CreateMap<Wallet, WalletVDto>()
+                .ForMember(destination => destination.PaymentCode,
+                    options => options.MapFrom(source => source.Payment == null ? null : source.Payment.PaymentCode))
+                .ForMember(destination => destination.ReferenceCode,
+                    options => options.MapFrom(source =>
+                        source.Payment != null ? source.Payment.PaymentCode :
+                        source.ProductOrder != null ? source.ProductOrder.OrderCode :
+                        source.CompanionReserve != null ? source.CompanionReserve.ReserveCode :
+                        source.PansionReserve != null ? source.PansionReserve.ReserveCode : null));
             CreateMap<Wallet, Wallet>().ForMember(x => x.Id, y => y.Ignore()).ForMember(x => x.ProductOrderId, y => y.Ignore()).ForMember(x => x.ProductOrder, y => y.Ignore());
             //Wallet End ----------------------------------------------
         }

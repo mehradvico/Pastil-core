@@ -6,6 +6,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
 {
     public class CompanionReserveDto : Id_FieldDto
     {
+        public string ReserveCode { get; set; }
         public long BookerId { get; set; }
         public List<long> UserPetIds { get; set; }
         public DateTime DoDate { get; set; }

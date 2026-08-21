@@ -1,6 +1,7 @@
 ﻿using AngleSharp.Dom;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
+using Application.Common.Helpers;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using Entities.Entities;
@@ -134,6 +135,9 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
 
         public async Task SendNoticeToAdminsAsync(long noticeId, string title, string body, string url)
         {
+            title = PersianPushTextHelper.EnsurePersian(title, PersianPushTextHelper.DefaultTitle);
+            body = PersianPushTextHelper.EnsurePersian(body, PersianPushTextHelper.DefaultBody);
+
             var subscriptions = await _context.PushSubscriptions.Include(x => x.User).Where(x => x.IsActive && x.UserId.HasValue && x.User.RoleId == (long)RoleEnum.Admin).AsTracking().ToListAsync();
             if (subscriptions.Count == 0)
                 return;
@@ -189,15 +193,15 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
 
             try
             {
-                var titleTpl = GetPatternValue(pattern.Title);
-                var bodyTpl = GetPatternValue(pattern.Body);
+                var titleTpl = PersianPushTextHelper.ResolvePattern(pattern.Title, PersianPushTextHelper.DefaultTitle);
+                var bodyTpl = PersianPushTextHelper.ResolvePattern(pattern.Body, PersianPushTextHelper.DefaultBody);
 
                 var title = FormatTokens(titleTpl, notif.Token1, notif.Token2, notif.Token3, notif.Token4, notif.Token5);
                 var body = FormatTokens(bodyTpl, notif.Token1, notif.Token2, notif.Token3, notif.Token4, notif.Token5);
 
                 notif.Title = title;
                 notif.Body = body;
-                notif.Url = pattern.Url;
+                notif.Url = FormatTokens(pattern.Url, notif.Token1, notif.Token2, notif.Token3, notif.Token4, notif.Token5);
                 notif.Icon = pattern.Icon;
                 notif.Tag = pattern.Tag;
 
@@ -343,14 +347,6 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
 
             _context.PushNotifications.Update(notif);
             await _context.SaveChangesAsync();
-        }
-
-        private static string GetPatternValue(string key)
-        {
-            if (string.IsNullOrWhiteSpace(key))
-                return string.Empty;
-
-            return Resource.Pattern.ResourceManager.GetString(key) ?? string.Empty;
         }
 
         private static string FormatTokens(string template, string t1, string t2, string t3, string t4, string t5)

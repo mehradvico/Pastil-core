@@ -7,6 +7,8 @@ namespace Entities.Entities
 {
     public class Payment : Id_Field
     {
+        public string PaymentCode { get; set; }
+        public string IdempotencyKey { get; set; }
         public long? MerchantId { get; set; }
         public long? RebateId { get; set; }
         public string ProductOrderId { get; set; }
@@ -30,6 +32,8 @@ namespace Entities.Entities
         public string Token { get; set; }
         public string CallbackToken { get; set; }
         public string GatewayStatus { get; set; }
+        public string PaymentUrl { get; set; }
+        public bool PaymentIsLink { get; set; }
         public double GrossAmount { get; set; }
         public double RebateAmount { get; set; }
         public double WalletAmount { get; set; }

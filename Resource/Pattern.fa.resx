@@ -166,13 +166,10 @@
     <value>شما یک رزرو از طرف {0} برای {1} دارید</value>
   </data>
   <data name="PushRegisterReserveUser" xml:space="preserve">
-    <value>{0} عزیز، {1} برای پت شما رزرو شد</value>
+    <value>{0} عزیز، خدمات {1} در {2} برای پت شما رزرو گردید</value>
   </data>
   <data name="PushSentOrderUser" xml:space="preserve">
     <value>{0} عزیز، سفارش شما با شماره {1} ارسال شد</value>
-  </data>
-  <data name="PushSignInUser" xml:space="preserve">
-    <value>خوش برگشتی {0} عزیز</value>
   </data>
   <data name="PushSignUpUser" xml:space="preserve">
     <value>به پاستیل خوش اومدی {0} عزیز</value>
@@ -184,7 +181,7 @@
     <value>{0} عزیز، خاطره امروزت با پتت رو در پاستیل ثبت کن.</value>
   </data>
   <data name="PushPetReminder" xml:space="preserve">
-    <value>یادآور {1} برای {0}: موعد آن {2} است.</value>
+    <value>یادآوری! موعد «{1}» برای پت «{0}» {2}</value>
   </data>
   <data name="PushPastilMatchRequestReceived" xml:space="preserve">
     <value>{0} برای دوستی پت {1} با پت شما درخواست فرستاد.</value>
@@ -239,6 +236,48 @@
   </data>
   <data name="PushPansionRequestRejected" xml:space="preserve">
     <value>درخواست پانسیون «{0}» رد شد. دلیل: {1}</value>
+  </data>
+  <data name="PushSignUpAdmin" xml:space="preserve">
+    <value>مدیر عزیز، به پاستیل خوش آمدید.</value>
+  </data>
+  <data name="PushRegisterOrderStore" xml:space="preserve">
+    <value>یک سفارش جدید برای فروشگاه ثبت شد.</value>
+  </data>
+  <data name="PushRegisterOrderAdmin" xml:space="preserve">
+    <value>یک سفارش جدید در پاستیل ثبت شد.</value>
+  </data>
+  <data name="PushSentOrderAdmin" xml:space="preserve">
+    <value>یک سفارش برای مشتری ارسال شد.</value>
+  </data>
+  <data name="PushRegisterReserveAdmin" xml:space="preserve">
+    <value>یک رزرو جدید در پاستیل ثبت شد.</value>
+  </data>
+  <data name="PushCompleteReserveAdmin" xml:space="preserve">
+    <value>یک رزرو در پاستیل تکمیل شد.</value>
+  </data>
+  <data name="PushCancelReserveAdmin" xml:space="preserve">
+    <value>یک رزرو در پاستیل لغو شد.</value>
+  </data>
+  <data name="PushCompletePansionUser" xml:space="preserve">
+    <value>رزرو پانسیون شما با موفقیت تکمیل شد.</value>
+  </data>
+  <data name="PushRegisterPansionAdmin" xml:space="preserve">
+    <value>یک رزرو پانسیون جدید ثبت شد.</value>
+  </data>
+  <data name="PushCompletePansionAdmin" xml:space="preserve">
+    <value>یک رزرو پانسیون تکمیل شد.</value>
+  </data>
+  <data name="PushReminderOneWeekBefore" xml:space="preserve">
+    <value>یادآوری! یک هفته دیگر موعد «{1}» برای پت «{0}» است.</value>
+  </data>
+  <data name="PushReminderOneDayBefore" xml:space="preserve">
+    <value>یادآوری! فردا موعد «{1}» برای پت «{0}» است.</value>
+  </data>
+  <data name="PushReminderOneDayAfter" xml:space="preserve">
+    <value>یادآوری! دیروز موعد «{1}» برای پت «{0}» بوده است.</value>
+  </data>
+  <data name="PushCompanionReserveAssigned" xml:space="preserve">
+    <value>خدمت {0} برای کاربر {1} به شما اختصاص داده شد.</value>
   </data>
   <data name="RebateMinCartPrice" xml:space="preserve">
     <value>حداقل مبلغ سفارش باید {0} باشد</value>

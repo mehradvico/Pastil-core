@@ -2,6 +2,7 @@
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Common.Service;
+using Application.Common.Helpers;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
@@ -42,6 +43,24 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
             return new BaseResultDto<PushMessageVDto>(false, _mapper.Map<PushMessageVDto>(item));
         }
 
+        public override async Task<BaseResultDto<PushMessageDto>> InsertAsyncDto(PushMessageDto dto)
+        {
+            var validation = ValidatePersianText(dto);
+            if (validation != null)
+                return new BaseResultDto<PushMessageDto>(false, validation, dto);
+
+            return await base.InsertAsyncDto(dto);
+        }
+
+        public override BaseResultDto UpdateDto(PushMessageDto dto)
+        {
+            var validation = ValidatePersianText(dto);
+            if (validation != null)
+                return new BaseResultDto(false, validation);
+
+            return base.UpdateDto(dto);
+        }
+
         public PushMessageSearchDto Search(PushMessageInputDto dto)
         {
             var query = _context.PushMessages.Include(s => s.Picture).Include(s => s.PushMessageType).AsQueryable().Where(s => !s.Deleted);
@@ -51,6 +70,20 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
                 query = query.Where(s => s.PushMessageTypeId == dto.PushMessageTypeId.Value);
             }
             return new PushMessageSearchDto(dto, query, _mapper);
+        }
+
+        private static string ValidatePersianText(PushMessageDto dto)
+        {
+            if (dto == null)
+                return "اطلاعات پوش نوتیفیکیشن وارد نشده است.";
+
+            if (!PersianPushTextHelper.ContainsPersian(dto.Title))
+                return "عنوان پوش نوتیفیکیشن باید فارسی باشد.";
+
+            if (!PersianPushTextHelper.ContainsPersian(dto.Body))
+                return "متن پوش نوتیفیکیشن باید فارسی باشد.";
+
+            return null;
         }
     }
 }

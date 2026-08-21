@@ -479,7 +479,6 @@ namespace Application.Services.UserSrv
                 isPanelLogin,
                 isPanelLogin ? user.RememberMe : true);
             await ChangUserCartAsync(item.Id, user.CartCode);
-            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSignInUser, userId: item.Id, token1: item.FirstName);
             return tokenResult;
         }
 

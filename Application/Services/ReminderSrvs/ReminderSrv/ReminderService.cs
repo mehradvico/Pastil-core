@@ -281,15 +281,15 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
                 ReminderNotificationMoment.SevenDaysBefore => new ReminderNotification(
                     PushTypeEnum.PushReminderOneWeekBefore,
                     MessageTypeEnum.UserReminderOneWeekAgo,
-                    "یک هفته دیگر"),
+                    "یک هفته دیگر است."),
                 ReminderNotificationMoment.OneDayBefore => new ReminderNotification(
                     PushTypeEnum.PushReminderOneDayBefore,
                     MessageTypeEnum.UserReminderOneDayAgo,
-                    "فردا"),
+                    "فردا است."),
                 ReminderNotificationMoment.OneDayAfter => new ReminderNotification(
                     PushTypeEnum.PushReminderOneDayAfter,
                     MessageTypeEnum.UserReminderTomorrow,
-                    "دیروز"),
+                    "دیروز بوده است."),
                 _ => null
             };
 
