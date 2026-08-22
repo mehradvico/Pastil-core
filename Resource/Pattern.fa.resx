@@ -279,6 +279,15 @@
   <data name="PushCompanionReserveAssigned" xml:space="preserve">
     <value>خدمت {0} برای کاربر {1} به شما اختصاص داده شد.</value>
   </data>
+  <data name="PushCompanionReserveReviewReminder" xml:space="preserve">
+    <value>{0} عزیز، لطفاً نظر خود درباره خدمت «{1}» از «{2}» را ثبت نمایید.</value>
+  </data>
+  <data name="PushPansionReserveReviewReminder" xml:space="preserve">
+    <value>{0} عزیز، لطفاً نظر خود درباره «{1}» را ثبت نمایید.</value>
+  </data>
+  <data name="PushProductStockAvailable" xml:space="preserve">
+    <value>{0} عزیز، پت‌شاپ «{2}» کالای «{1}» که منتظرش بودی را موجود کرد.</value>
+  </data>
   <data name="RebateMinCartPrice" xml:space="preserve">
     <value>حداقل مبلغ سفارش باید {0} باشد</value>
   </data>

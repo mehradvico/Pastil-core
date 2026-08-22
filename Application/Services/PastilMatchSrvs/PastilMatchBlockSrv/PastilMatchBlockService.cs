@@ -186,6 +186,8 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchBlockSrv
 
         public override BaseResultDto DeleteDto(long id)
         {
+            using var transaction = _context.BeginTransaction();
+
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
@@ -204,14 +206,46 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchBlockSrv
                 }
 
                 item.Deleted = true;
-
                 _context.PastilMatchBlocks.Update(item);
+
+                var activeBlockExists = _context.PastilMatchBlocks.Any(block =>
+                    !block.Deleted &&
+                    block.Id != item.Id &&
+                    ((block.BlockerUserId == item.BlockerUserId && block.BlockedUserId == item.BlockedUserId) ||
+                     (block.BlockerUserId == item.BlockedUserId && block.BlockedUserId == item.BlockerUserId)));
+
+                if (!activeBlockExists)
+                {
+                    var blockedStatusId = (long)PastilMatchStatusEnum.PastilMatchStatus_Blocked;
+                    var activeStatusId = (long)PastilMatchStatusEnum.PastilMatchStatus_Active;
+                    var blockedMatches = _context.PastilMatches
+                        .Include(match => match.FirstProfile).ThenInclude(profile => profile.UserPet)
+                        .Include(match => match.SecondProfile).ThenInclude(profile => profile.UserPet)
+                        .Where(match => match.StatusId == blockedStatusId &&
+                            ((match.FirstProfile.UserPet.UserId == item.BlockerUserId &&
+                              match.SecondProfile.UserPet.UserId == item.BlockedUserId) ||
+                             (match.FirstProfile.UserPet.UserId == item.BlockedUserId &&
+                              match.SecondProfile.UserPet.UserId == item.BlockerUserId)))
+                        .ToList();
+
+                    foreach (var blockedMatch in blockedMatches)
+                    {
+                        blockedMatch.StatusId = activeStatusId;
+                        blockedMatch.CloseDate = null;
+                    }
+
+                    if (blockedMatches.Any())
+                        _context.PastilMatches.UpdateRange(blockedMatches);
+                }
+
                 _context.SaveChanges();
+                transaction.Commit();
 
                 return new BaseResultDto(true);
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 return new BaseResultDto(false, ex.Message);
             }
         }

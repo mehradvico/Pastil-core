@@ -7424,6 +7424,11 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ProductStockAlertController">
+            <summary>
+            اعلان موجودشدن محصولات مورد انتظار کاربر
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.ReminderController">
              <summary>
              مدیریت یادآوری ها

@@ -1,6 +1,7 @@
 ﻿using AngleSharp.Dom;
 using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
+using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Interface;
 using Application.Common.Service;
@@ -70,13 +71,48 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
                     return modelCheker;
                 }
 
+                var currentUserId = _currentUserHelper.CurrentUser.UserId;
+                var reserve = await _context.CompanionReserves
+                    .Include(reserve => reserve.CompanionAssistance)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(reserve =>
+                        reserve.Id == dto.CompanionReserveId &&
+                        reserve.BookerId == currentUserId &&
+                        reserve.IsReserved &&
+                        !reserve.IsCancel &&
+                        reserve.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete);
+                if (reserve == null)
+                {
+                    return new BaseResultDto<CompanionReserveCommentDto>(
+                        false,
+                        "ثبت نظر فقط برای رزرو تکمیل‌شده‌ی خودتان امکان‌پذیر است.",
+                        dto);
+                }
+
                 bool existed = await _context.CompanionReserveComments.AnyAsync(x => x.CompanionReserveId == dto.CompanionReserveId);
                 if (existed)
                 {
                     return new BaseResultDto<CompanionReserveCommentDto>(false, val: Resource.Notification.DuplicateValue, data: dto);
                 }
 
-                if (!dto.CompanionReserveCommentRates.Any())
+                var rates = dto.CompanionReserveCommentRates ?? new List<CompanionReserveCommentRateDto>();
+                var questionnaireIds = await _context.AssistanceQuestionnaires
+                    .AsNoTracking()
+                    .Where(questionnaire =>
+                        questionnaire.AssistanceId == reserve.CompanionAssistance.AssistanceId &&
+                        !questionnaire.Deleted)
+                    .Select(questionnaire => questionnaire.Id)
+                    .ToListAsync();
+                var submittedQuestionnaireIds = rates
+                    .Select(rate => rate.AssistanceQuestionnaireId)
+                    .ToList();
+                var hasValidQuestionnaireAnswers = questionnaireIds.Count > 0 &&
+                    submittedQuestionnaireIds.Count == questionnaireIds.Count &&
+                    submittedQuestionnaireIds.Distinct().Count() == submittedQuestionnaireIds.Count &&
+                    submittedQuestionnaireIds.All(questionnaireIds.Contains) &&
+                    rates.All(rate => rate.Rate is >= 1 and <= 5);
+
+                if (!hasValidQuestionnaireAnswers)
                 {
                     return new BaseResultDto<CompanionReserveCommentDto>(false, val: Resource.Notification.PleaseAnswerTheQuestions, data: dto);
                 }
@@ -89,7 +125,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
                     item.StatusId = commentStatus.Id;
                     item.CreateDate = DateTime.Now;
                     item.Answer = null;
-                    item.UserId = _currentUserHelper.CurrentUser.UserId;
+                    item.UserId = currentUserId;
 
                     await _context.CompanionReserveComments.AddAsync(item);
                     await _context.SaveChangesAsync();

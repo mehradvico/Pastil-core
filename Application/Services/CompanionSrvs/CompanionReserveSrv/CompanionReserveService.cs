@@ -1406,6 +1406,18 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     () => _clubPointIntegrationService.CompanionReserveCompletedAsync(item.BookerId, item.Id),
                     item.Id,
                     "club completion point");
+
+                await RunPostCommitActionAsync(
+                    () => _pushNotificationService.SendPushAsync(
+                        PushTypeEnum.PushCompanionReserveReviewReminder,
+                        item.BookerId,
+                        token1: item.Booker.FirstName,
+                        token2: item.CompanionAssistance.Assistance.Name,
+                        token3: item.CompanionAssistance.Companion.Name,
+                        token4: item.Id.ToString(),
+                        sendDate: DateTime.Now.AddHours(12)),
+                    item.Id,
+                    "companion reserve review reminder");
             }
             else if (dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Cancelled)
             {

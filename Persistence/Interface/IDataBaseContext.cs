@@ -152,6 +152,7 @@ namespace Persistence.Interface
         public DbSet<ProductFile> ProductFiles { get; set; }
         public DbSet<ProductItem> ProductItems { get; set; }
         public DbSet<ProductLike> ProductLikes { get; set; }
+        public DbSet<ProductStockAlert> ProductStockAlerts { get; set; }
         public DbSet<ProductOrder> ProductOrders { get; set; }
         public DbSet<ProductOrderItem> ProductOrderItems { get; set; }
         public DbSet<ProductOrderStore> ProductOrderStores { get; set; }

@@ -559,7 +559,10 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
         public async Task<BaseResultDto> UpdatePansionReserveStatusDto(PansionReserveStatusDto dto)
         {
-            var item = await _context.PansionReserves.FirstOrDefaultAsync(s => s.Id == dto.Id);
+            var item = await _context.PansionReserves
+                .Include(s => s.Booker)
+                .Include(s => s.Pansion)
+                .FirstOrDefaultAsync(s => s.Id == dto.Id);
 
             if (item == null)
                 return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.NothingFound, dto);
@@ -568,16 +571,28 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             {
                 return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.TheFinalPriceHasNotYetBeenRecordedForThisReserve, dto);
             }
+            var wasComplete = item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete;
             item.StatusId = dto.StatusId;
 
             _context.PansionReserves.Update(item);
             await _context.SaveChangesAsync();
 
             if (dto.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete &&
+                !wasComplete &&
                 item.IsReserved &&
                 !item.IsCancel)
             {
                 await _clubPointIntegrationService.PansionReserveCompletedAsync(item.BookerId, item.Id);
+                await RunPostCommitActionAsync(
+                    () => _pushNotificationService.SendPushAsync(
+                        PushTypeEnum.PushPansionReserveReviewReminder,
+                        item.BookerId,
+                        token1: item.Booker.FirstName,
+                        token2: item.Pansion.Name,
+                        token3: item.Id.ToString(),
+                        sendDate: DateTime.Now.AddHours(12)),
+                    item.Id,
+                    "pansion reserve review reminder");
             }
 
             return new BaseResultDto<PansionReserveStatusDto>(true, mapper.Map<PansionReserveStatusDto>(item));

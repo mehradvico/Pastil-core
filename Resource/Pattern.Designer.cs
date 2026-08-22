@@ -221,6 +221,33 @@ namespace Resource {
                 return ResourceManager.GetString("PushRegisterReserveUser", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, please share your review for {1} at {2}.
+        /// </summary>
+        public static string PushCompanionReserveReviewReminder {
+            get {
+                return ResourceManager.GetString("PushCompanionReserveReviewReminder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, please share your review for {1}.
+        /// </summary>
+        public static string PushPansionReserveReviewReminder {
+            get {
+                return ResourceManager.GetString("PushPansionReserveReviewReminder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Dear {0}, pet shop {2} has restocked {1}.
+        /// </summary>
+        public static string PushProductStockAvailable {
+            get {
+                return ResourceManager.GetString("PushProductStockAvailable", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Dear {0}, Your order {1} has been sent.

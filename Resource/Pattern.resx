@@ -237,6 +237,15 @@
   <data name="PushPansionRequestRejected" xml:space="preserve">
     <value>The pansion request "{0}" was rejected. Reason: {1}</value>
   </data>
+  <data name="PushCompanionReserveReviewReminder" xml:space="preserve">
+    <value>Dear {0}, please share your review for {1} at {2}.</value>
+  </data>
+  <data name="PushPansionReserveReviewReminder" xml:space="preserve">
+    <value>Dear {0}, please share your review for {1}.</value>
+  </data>
+  <data name="PushProductStockAvailable" xml:space="preserve">
+    <value>Dear {0}, pet shop {2} has restocked {1}.</value>
+  </data>
   <data name="RebateMinCartPrice" xml:space="preserve">
     <value>حداقل مبلغ سفارش باید {0} باشد</value>
   </data>

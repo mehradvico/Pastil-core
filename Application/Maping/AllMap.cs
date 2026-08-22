@@ -123,6 +123,7 @@ using Application.Services.ProductSrvs.ProductFeatureValueSrv.Dto;
 using Application.Services.ProductSrvs.ProductFileSrv.Dto;
 using Application.Services.ProductSrvs.ProductItemSrv.Dto;
 using Application.Services.ProductSrvs.ProductLikeSrv.Dto;
+using Application.Services.ProductSrvs.ProductStockAlertSrv.Dto;
 using Application.Services.ProductSrvs.ProductPictureSrv.Dto;
 using Application.Services.ProductSrvs.ProductReportSrv.Dto;
 using Application.Services.ProductSrvs.ProductSrv.Dto;
@@ -693,6 +694,9 @@ namespace Application.Maping
             CreateMap<ProductComment, ProductCommentDto>().ReverseMap();
             CreateMap<ProductComment, ProductCommentVDto>().ForMember(x => x.UserIsLike, o => o.MapFrom(m => (m.CommentLikes != null && m.CommentLikes.Any()) ? (bool?)m.CommentLikes.First().IsLike : null)).ForMember(x => x.ProductName, o => o.MapFrom(m => m.Product.Name)); ;
             CreateMap<ProductLike, ProductLikeDto>().ReverseMap();
+            CreateMap<ProductStockAlert, ProductStockAlertDto>().ReverseMap();
+            CreateMap<ProductStockAlert, ProductStockAlertVDto>()
+                .ForMember(destination => destination.ProductName, options => options.MapFrom(source => source.Product.Name));
             CreateMap<ProductItemDto, ProductItem>().ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.BasePrice)).ForMember(dest => dest.VarietyItem, opt => opt.Ignore()).ForMember(dest => dest.VarietyItem2, opt => opt.Ignore()).ForMember(dest => dest.Store, opt => opt.Ignore());
             CreateMap<ProductItem, ProductItemDto>().ForMember(dest => dest.BasePrice, opt => opt.MapFrom(src => src.Price));
             CreateMap<ProductItem, ProductItemVDto>().ForMember(dest => dest.VarietyName, opt => opt.MapFrom(src => src.VarietyItem.Name));

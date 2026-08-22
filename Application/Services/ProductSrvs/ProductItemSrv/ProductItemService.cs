@@ -5,6 +5,7 @@ using Application.Services.ProductSrvs.ProductItemSrv.Dto;
 using Application.Services.ProductSrvs.ProductItemSrv.Iface;
 using Application.Services.ProductSrvs.ProductSrv.Dto;
 using Application.Services.ProductSrvs.ProductSrv.Iface;
+using Application.Services.ProductSrvs.ProductStockAlertSrv.Iface;
 using Application.Services.ProductSrvs.VarietyItemSrv.Dto;
 using Application.Services.ProductSrvs.VarietySrv.Dto;
 using AutoMapper;
@@ -23,11 +24,13 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly IProductService _productService;
-        public ProductItemService(IDataBaseContext _context, IMapper mapper, IProductService productService) : base(_context, mapper)
+        private readonly IProductStockAlertService _productStockAlertService;
+        public ProductItemService(IDataBaseContext _context, IMapper mapper, IProductService productService, IProductStockAlertService productStockAlertService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             this._productService = productService;
+            this._productStockAlertService = productStockAlertService;
         }
 
         public ProductItemSearchDto SearchDto(ProductItemInputDto dto)
@@ -81,7 +84,36 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
             {
                 productItemListUpdate.ProductItems.ForEach(s => s.StoreId = productItemListUpdate.StoreId);
                 productItemListUpdate.ProductItems.ForEach(s => s.ProductId = productItemListUpdate.ProductId);
+
+                var submittedKeys = productItemListUpdate.ProductItems
+                    .Select(item => BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id))
+                    .ToHashSet();
+                var previousItems = await _context.ProductItems
+                    .AsNoTracking()
+                    .Where(item => item.ProductId == productItemListUpdate.ProductId && item.StoreId == productItemListUpdate.StoreId && !item.Deleted)
+                    .ToListAsync();
+
                 InsertOrUpdate(productItemListUpdate.ProductItems);
+
+                var currentItems = await _context.ProductItems
+                    .AsNoTracking()
+                    .Include(item => item.Store)
+                    .Where(item => item.ProductId == productItemListUpdate.ProductId && item.StoreId == productItemListUpdate.StoreId && !item.Deleted)
+                    .ToListAsync();
+                var previousByKey = previousItems
+                    .GroupBy(item => BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id))
+                    .ToDictionary(group => group.Key, group => group.First());
+                var restockedItems = currentItems
+                    .Where(item => submittedKeys.Contains(BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id)) &&
+                                   item.Quantity > 0 && item.Active && item.SystemActive && item.Store != null && item.Store.Active &&
+                                   (!previousByKey.TryGetValue(BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id), out var previous) || previous.Quantity <= 0))
+                    .GroupBy(item => new { item.ProductId, item.StoreId })
+                    .Select(group => group.Key)
+                    .ToList();
+
+                foreach (var restockedItem in restockedItems)
+                    await _productStockAlertService.NotifyRestockedAsync(restockedItem.ProductId, restockedItem.StoreId);
+
                 await _productService.UpdateProductPriceAsync(ProductUpdateTypeEnum.Product, Id: productItemListUpdate.ProductId.ToString());
                 return new BaseResultDto(true);
 
@@ -91,6 +123,9 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
                 return new BaseResultDto(false);
             }
         }
+
+        private static string BuildInventoryKey(long? varietyItemId, long? varietyItem2Id)
+            => $"{varietyItemId?.ToString() ?? "null"}|{varietyItem2Id?.ToString() ?? "null"}";
         public async Task<BaseResultDto> GetInsertOrUpdateListAsync(ProductItemListRequestDto productItemListrequest)
         {
             ProductItemListUpdateDto productItemListUpdate = new ProductItemListUpdateDto();

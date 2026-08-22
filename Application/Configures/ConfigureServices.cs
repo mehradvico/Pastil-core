@@ -288,6 +288,8 @@ using Application.Services.ProductSrvs.ProductItemSrv;
 using Application.Services.ProductSrvs.ProductItemSrv.Iface;
 using Application.Services.ProductSrvs.ProductLikeSrv;
 using Application.Services.ProductSrvs.ProductLikeSrv.Iface;
+using Application.Services.ProductSrvs.ProductStockAlertSrv;
+using Application.Services.ProductSrvs.ProductStockAlertSrv.Iface;
 using Application.Services.ProductSrvs.ProductPictureSrv;
 using Application.Services.ProductSrvs.ProductPictureSrv.Iface;
 using Application.Services.ProductSrvs.ProductRelateSrv;
@@ -547,6 +549,7 @@ public static class ConfigureServices
         services.AddScoped<IProductFileService, ProductFileService>();
         services.AddScoped<IProductItemService, ProductItemService>();
         services.AddScoped<IProductLikeService, ProductLikeService>();
+        services.AddScoped<IProductStockAlertService, ProductStockAlertService>();
         services.AddScoped<IProductOrderItemService, ProductOrderItemService>();
         services.AddScoped<IProductOrderService, ProductOrderService>();
         services.AddScoped<IProductOrderStoreService, ProductOrderStoreService>();

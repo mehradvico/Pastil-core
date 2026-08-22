@@ -264,6 +264,7 @@ namespace Persistence.Context
         public DbSet<ProductFile> ProductFiles { get; set; }
         public DbSet<ProductItem> ProductItems { get; set; }
         public DbSet<ProductLike> ProductLikes { get; set; }
+        public DbSet<ProductStockAlert> ProductStockAlerts { get; set; }
         public DbSet<ProductOrder> ProductOrders { get; set; }
         public DbSet<ProductOrderItem> ProductOrderItems { get; set; }
         public DbSet<ProductOrderStore> ProductOrderStores { get; set; }
@@ -370,6 +371,35 @@ namespace Persistence.Context
             {
                 entity.Property(item => item.ReserveCode).HasMaxLength(40);
                 entity.HasIndex(item => item.ReserveCode).IsUnique().HasFilter("[ReserveCode] IS NOT NULL");
+            });
+            modelBuilder.Entity<PansionComment>(entity =>
+            {
+                entity.HasIndex(item => item.PansionReserveId)
+                    .IsUnique()
+                    .HasFilter("[PansionReserveId] IS NOT NULL");
+                entity.HasOne(item => item.PansionReserve)
+                    .WithMany()
+                    .HasForeignKey(item => item.PansionReserveId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<ProductStockAlert>(entity =>
+            {
+                entity.HasIndex(item => new { item.UserId, item.ProductId })
+                    .IsUnique()
+                    .HasFilter("[IsActive] = 1");
+                entity.HasIndex(item => item.ProductId);
+                entity.HasOne(item => item.User)
+                    .WithMany()
+                    .HasForeignKey(item => item.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Product)
+                    .WithMany()
+                    .HasForeignKey(item => item.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.NotifiedStore)
+                    .WithMany()
+                    .HasForeignKey(item => item.NotifiedStoreId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
             modelBuilder.Entity<ProductOrder>(entity =>
             {

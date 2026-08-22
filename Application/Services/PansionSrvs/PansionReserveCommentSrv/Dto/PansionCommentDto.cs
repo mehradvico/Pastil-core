@@ -10,5 +10,6 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv.Dto
     public class PansionCommentDto : CommentDto
     {
         public long PansionId { get; set; }
+        public long PansionReserveId { get; set; }
     }
 }

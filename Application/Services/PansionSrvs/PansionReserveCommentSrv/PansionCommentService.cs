@@ -1,5 +1,6 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
+using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Service;
 using Application.Services.PansionSrvs.PansionCommentSrv.Dto;
@@ -48,6 +49,7 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
         {
             try
             {
+                dto.Text = await SanitizeTextHelper.ToSanitizeAsync(dto.Text);
                 var modelCheker = ModelHelper<PansionCommentDto>.ModelErrors(dto);
                 if (!modelCheker.IsSuccess)
                 {
@@ -55,20 +57,50 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
                 }
                 else
                 {
+                    if (dto.PansionReserveId <= 0)
+                    {
+                        return new BaseResultDto<PansionCommentDto>(
+                            false,
+                            "شناسه رزرو پانسیون برای ثبت نظر الزامی است.",
+                            dto);
+                    }
+
                     if (dto.Rate.HasValue && (dto.Rate.Value > 5 || dto.Rate.Value < 1))
                     {
                         return new BaseResultDto<PansionCommentDto>(false, val1: Resource.Notification.TheRangeEnteredIsNotCorrect, val2: nameof(dto.Rate), data: dto);
                     }
 
+                    var reserve = await _context.PansionReserves
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(reserve =>
+                            reserve.Id == dto.PansionReserveId &&
+                            reserve.BookerId == dto.UserId &&
+                            reserve.IsReserved &&
+                            !reserve.IsCancel &&
+                            reserve.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete);
+                    if (reserve == null)
+                    {
+                        return new BaseResultDto<PansionCommentDto>(
+                            false,
+                            "ثبت نظر فقط برای رزرو تکمیل‌شده‌ی خودتان امکان‌پذیر است.",
+                            dto);
+                    }
+
+                    if (reserve.PansionId != dto.PansionId)
+                    {
+                        return new BaseResultDto<PansionCommentDto>(false, Resource.Notification.InvalidData, dto);
+                    }
+
+                    if (await _context.PansionComments.AnyAsync(comment =>
+                            comment.PansionReserveId == dto.PansionReserveId))
+                    {
+                        return new BaseResultDto<PansionCommentDto>(false, Resource.Notification.DuplicateValue, dto);
+                    }
+
                     var item = mapper.Map<PansionComment>(dto);
-                    if (dto.UserId.HasValue)
-                    {
-                        item.IsReserved = await _context.PansionReserves.AnyAsync(r => r.BookerId == dto.UserId.Value && r.PansionId == dto.PansionId && !r.IsCancel && r.IsReserved);
-                    }
-                    else
-                    {
-                        item.IsReserved = false;
-                    }
+                    item.PansionId = reserve.PansionId;
+                    item.PansionReserveId = reserve.Id;
+                    item.IsReserved = true;
                     var commentStatus = await codeService.GetByLabelAsync(CommentEnum.Comment_NotChecked.ToString());
                     if (commentStatus != null)
                     {

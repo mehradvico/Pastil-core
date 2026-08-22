@@ -6008,6 +6008,45 @@ namespace Persistence.Migrations
                     b.ToTable("ProductLikes");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ProductStockAlert", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("NotifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("NotifiedStoreId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("NotifiedStoreId");
+
+                    b.HasIndex("UserId", "ProductId")
+                        .IsUnique()
+                        .HasFilter("[IsActive] = 1");
+
+                    b.ToTable("ProductStockAlerts");
+                });
+
             modelBuilder.Entity("Entities.Entities.ProductOrder", b =>
                 {
                     b.Property<string>("Id")
@@ -8736,7 +8775,14 @@ namespace Persistence.Migrations
                     b.Property<long>("PansionId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("PansionReserveId")
+                        .HasColumnType("bigint");
+
                     b.HasIndex("PansionId");
+
+                    b.HasIndex("PansionReserveId")
+                        .IsUnique()
+                        .HasFilter("[PansionReserveId] IS NOT NULL");
 
                     b.ToTable("PansionComments");
                 });
@@ -11237,6 +11283,32 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ProductStockAlert", b =>
+                {
+                    b.HasOne("Entities.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Store", "NotifiedStore")
+                        .WithMany()
+                        .HasForeignKey("NotifiedStoreId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("NotifiedStore");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Entities.Entities.ProductOrder", b =>
                 {
                     b.HasOne("Entities.Entities.Address", "Address")
@@ -12414,7 +12486,14 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.PansionField.PansionReserve", "PansionReserve")
+                        .WithMany()
+                        .HasForeignKey("PansionReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Pansion");
+
+                    b.Navigation("PansionReserve");
                 });
 
             modelBuilder.Entity("Entities.Entities.PostComment", b =>
