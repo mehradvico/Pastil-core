@@ -590,7 +590,8 @@ namespace Utility.Reflection
                 (9, N'مدیریت موقعیت ها', N'LocationManagement', N'locationManagement', 10),
                 (10, N'مدیریت پاستیل فرند', N'PastilMatchManagement', NULL, 11),
                 (12, N'مدیریت سایت', N'SiteManagement', NULL, 12),
-                (13, N'مدیریت پاستیل کلاب', N'PastilClubManagement', NULL, 13);
+                (13, N'مدیریت پاستیل کلاب', N'PastilClubManagement', NULL, 13),
+                (14, N'مدیریت پت رسان', N'TripManagement', NULL, 14);
 
             CREATE TABLE #DuplicateParentMap
             (
@@ -652,7 +653,7 @@ namespace Utility.Reflection
                 FROM dbo.Permissions AS p
                 INNER JOIN @Desired AS d ON d.Id = p.Id AND p.Label = d.Label
                 WHERE p.ParentId IS NULL
-            ) = 13
+            ) = 14
             BEGIN
                 UPDATE p
                 SET
@@ -795,8 +796,49 @@ namespace Utility.Reflection
             IF EXISTS
             (
                 SELECT 1
+                FROM dbo.Permissions
+                WHERE Id = 14
+                  AND NOT (ParentId IS NULL AND Label = N'TripManagement')
+            )
+            BEGIN
+                DECLARE @RelocatedTripPermission TABLE (Id bigint NOT NULL);
+
+                INSERT INTO dbo.Permissions
+                    ([Name], Label, Area, Controller, [Action], IsMenu, Priority, ParentId, Deleted)
+                OUTPUT inserted.Id INTO @RelocatedTripPermission (Id)
+                SELECT
+                    [Name],
+                    Label,
+                    Area,
+                    Controller,
+                    [Action],
+                    IsMenu,
+                    Priority,
+                    ParentId,
+                    Deleted
+                FROM dbo.Permissions
+                WHERE Id = 14;
+
+                DECLARE @RelocatedTripPermissionId bigint =
+                    (SELECT TOP (1) Id FROM @RelocatedTripPermission);
+
+                UPDATE dbo.Permissions
+                SET ParentId = @RelocatedTripPermissionId
+                WHERE ParentId = 14;
+
+                UPDATE dbo.PermissionRole
+                SET PermissionsId = @RelocatedTripPermissionId
+                WHERE PermissionsId = 14;
+
+                DELETE FROM dbo.Permissions
+                WHERE Id = 14;
+            END;
+
+            IF EXISTS
+            (
+                SELECT 1
                 FROM dbo.Permissions AS p
-                WHERE p.Id BETWEEN 1 AND 13
+                WHERE p.Id BETWEEN 1 AND 14
                   AND NOT EXISTS
                   (
                       SELECT 1
@@ -805,7 +847,7 @@ namespace Utility.Reflection
                          OR p.Label = d.AlternateLabel
                   )
             )
-                THROW 51000, 'Permission IDs 1 through 13 contain a non-parent permission.', 1;
+                THROW 51000, 'Permission IDs 1 through 14 contain a non-parent permission.', 1;
 
             IF EXISTS
             (

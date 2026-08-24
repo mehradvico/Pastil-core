@@ -220,10 +220,10 @@
     <value>The companion request "{0}" was rejected. Reason: {1}</value>
   </data>
   <data name="PushDriverRequestApproved" xml:space="preserve">
-    <value>The driver request "{0}" was approved.</value>
+    <value>Dear driver {0}, your identity has been verified</value>
   </data>
   <data name="PushDriverRequestRejected" xml:space="preserve">
-    <value>The driver request "{0}" was rejected. Reason: {1}</value>
+    <value>Dear driver {0}, your submitted information was not approved, please review and fix the issues</value>
   </data>
   <data name="PushStoreRequestApproved" xml:space="preserve">
     <value>The store request "{0}" was approved.</value>

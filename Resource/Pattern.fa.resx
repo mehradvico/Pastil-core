@@ -220,10 +220,10 @@
     <value>درخواست نمایندگی «{0}» رد شد. دلیل: {1}</value>
   </data>
   <data name="PushDriverRequestApproved" xml:space="preserve">
-    <value>درخواست رانندگی «{0}» تأیید شد.</value>
+    <value>راننده {0} عزیز، احراز هویت شما انجام شد</value>
   </data>
   <data name="PushDriverRequestRejected" xml:space="preserve">
-    <value>درخواست رانندگی «{0}» رد شد. دلیل: {1}</value>
+    <value>راننده {0} گرامی، اطلاعات ارسالی شما مورد تایید واقع نشد، لطفا ایرادات را بررسی و رفع نمایید</value>
   </data>
   <data name="PushStoreRequestApproved" xml:space="preserve">
     <value>درخواست فروشگاه «{0}» تأیید شد؛ اکنون می‌توانید فروشگاه را مدیریت کنید.</value>

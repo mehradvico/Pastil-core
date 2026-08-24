@@ -864,6 +864,18 @@ namespace Persistence.Context
                 entity.HasIndex(item => new { item.Channel, item.CreateDateUtc });
             });
 
+            modelBuilder.Entity<PastilMatchProfile>(entity =>
+            {
+                entity.Property(item => item.Username)
+                    .HasMaxLength(32);
+
+                // Usernames are unique among active profiles. Soft-deleted profiles
+                // must not permanently reserve a handle.
+                entity.HasIndex(item => item.Username)
+                    .IsUnique()
+                    .HasFilter("[Username] IS NOT NULL AND [Deleted] = 0");
+            });
+
             var cascadeFKs = modelBuilder.Model.GetEntityTypes()
 .SelectMany(t => t.GetForeignKeys())
 .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);

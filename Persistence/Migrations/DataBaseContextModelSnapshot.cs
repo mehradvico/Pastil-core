@@ -4995,6 +4995,10 @@ namespace Persistence.Migrations
                     b.Property<long>("UserPetId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Username")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<DateTime?>("VerificationDate")
                         .HasColumnType("datetime2");
 
@@ -5009,6 +5013,10 @@ namespace Persistence.Migrations
                     b.HasIndex("SocialLevelId");
 
                     b.HasIndex("UserPetId");
+
+                    b.HasIndex("Username")
+                        .IsUnique()
+                        .HasFilter("[Username] IS NOT NULL AND [Deleted] = 0");
 
                     b.ToTable("PastilMatchProfiles");
                 });

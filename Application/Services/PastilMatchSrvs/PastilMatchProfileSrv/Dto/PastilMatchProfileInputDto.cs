@@ -16,6 +16,10 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto
         public long? SocialLevelId { get; set; }
         public long? CityId { get; set; }
         public long? NeighborhoodId { get; set; }
+        /// <summary>
+        /// Exact profile username to search for. The value is normalized by the API.
+        /// </summary>
+        public string Username { get; set; }
         public bool? IsVerified { get; set; }
         public List<long> PastilMatchGoalIds { get; set; }
         public PointDto LiveLocation { get; set; }

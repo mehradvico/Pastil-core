@@ -123,7 +123,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
+builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(
+    builder.Configuration["connection"],
+    x => x.UseNetTopologySuite().MigrationsAssembly(typeof(DataBaseContext).Assembly.FullName)));
 builder.Services.AddApplicationServices();
 builder.Services.Configure<PastilAiProviderOptions>(
     builder.Configuration.GetSection(PastilAiProviderOptions.SectionName));

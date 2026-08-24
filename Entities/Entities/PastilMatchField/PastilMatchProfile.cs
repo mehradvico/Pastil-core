@@ -18,6 +18,11 @@ namespace Entities.Entities.PastilMatchField
         public Point LiveLocation { get; set; }
         public long? CityId { get; set; }
         public long? NeighborhoodId { get; set; }
+        /// <summary>
+        /// A public, unique Telegram-style handle for the profile.
+        /// It is stored normalized (lowercase) and may be null for legacy profiles.
+        /// </summary>
+        public string Username { get; set; }
         public string Description { get; set; }
 
         public bool IsActive { get; set; }

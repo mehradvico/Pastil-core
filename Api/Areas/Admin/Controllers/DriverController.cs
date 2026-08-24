@@ -1,5 +1,4 @@
 ﻿using Application.Common.Dto.Result;
-using Application.Common.Enumerable.Code;
 using Application.Services.Accounting.DriverSrv.Dto;
 using Application.Services.Accounting.DriverSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -52,20 +51,19 @@ namespace Api.Areas.Admin.Controllers
 
 
         /// <summary>
-        /// آیتم جدید
+        /// آیتم جدید — وضعیت فعال/تایید‌شده انتخابی ادمین در فرم حفظ می‌شود (override نمی‌شود).
         /// </summary>
         /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(typeof(BaseResultDto<DriverDto>), 200)]
         public async Task<IActionResult> Post(DriverDto dto)
         {
-            dto.StatusId = (long)DriverRequestStatusEnum.DriverRequestStatus_Accepted;
             var result = await _DriverService.InsertAsyncDto(dto);
             return Ok(result);
         }
 
         /// <summary>
-        ///  ویرایش آیتم 
+        ///  ویرایش آیتم
         /// </summary>
         /// <returns>
         /// </returns>
@@ -77,15 +75,7 @@ namespace Api.Areas.Admin.Controllers
             return Ok(Driver);
         }
 
-        /// <summary>
-        ///  حذف آیتم 
-        /// </summary>  
-        [HttpDelete]
-        [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
-        {
-            var dto = _DriverService.DeleteDto(id);
-            return Ok(dto);
-        }
+        // حذف راننده از پنل ادمین عمداً حذف شده است — رانندگان نباید حذف شوند،
+        // فقط می‌توانند رد/تایید یا غیرفعال شوند (از طریق تغییر وضعیت).
     }
 }

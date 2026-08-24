@@ -1,12 +1,29 @@
 @using Application.Common.Dto.Result
 @using Application.Common.Helpers
 @using Application.Services.Order.PaymentSrv.Dto
+@using System.Globalization
 @model BaseResultDto<PaymentDto>
 
 @{
     ViewData["Title"] = "بازگشت از پرداخت";
     var isSuccess = Model?.IsSuccess == true;
     var returnUrl = TempData["ReturnToSiteUrl"]?.ToString() ?? AppSettingsHelper.BaseUrl;
+    var payment = Model?.Data;
+    var targetType = payment?.CallBackTypeLabel;
+    var targetCode = payment?.ReferenceCode;
+    var targetId = targetType == "PastilAI" ? payment?.CallBackId : null;
+    var targetLabel = targetType switch
+    {
+        "ProductOrder" => "کد سفارش",
+        "CompanionReserve" or "PansionReserve" => "کد رزرو",
+        "PastilAI" => "شناسه خرید پاستیل AI",
+        _ => "کد تراکنش"
+    };
+    var trackingCode = payment?.RefNumber;
+    var paymentCode = payment?.PaymentCode;
+    var amountText = payment == null
+        ? null
+        : payment.Amount.ToString("N0", CultureInfo.GetCultureInfo("fa-IR"));
 }
 
 <section class="payment-shell @(isSuccess ? "is-success" : "is-failed")">
@@ -35,6 +52,44 @@
         <h1 id="payment-result-title">
             @(isSuccess ? "پرداخت با موفقیت انجام شد" : "پرداخت شما ناموفق بود.")
         </h1>
+
+        @if (payment != null)
+        {
+            <section class="payment-details" aria-label="جزئیات پرداخت">
+                @if (!string.IsNullOrWhiteSpace(targetCode))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">@targetLabel</span>
+                        <strong class="detail-value">@targetCode</strong>
+                    </div>
+                }
+                else if (!string.IsNullOrWhiteSpace(targetId))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">@targetLabel</span>
+                        <strong class="detail-value">@targetId</strong>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(paymentCode))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">کد پرداخت</span>
+                        <strong class="detail-value">@paymentCode</strong>
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(trackingCode))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">کد پیگیری پرداخت</span>
+                        <strong class="detail-value">@trackingCode</strong>
+                    </div>
+                }
+                <div class="detail-row amount-row">
+                    <span class="detail-label">مبلغ</span>
+                    <strong class="detail-value">@amountText تومان</strong>
+                </div>
+            </section>
+        }
 
         <a class="btn-return" href="@returnUrl">
             <span>بازگشت به اپ پاستیل</span>

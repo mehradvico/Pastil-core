@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Interface;
 using Application.Services.Accounting.DriverSrv.Dto;
 using Application.Services.Accounting.DriverSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,7 @@ namespace Api.Areas.Driver.Controllers
     /// <summary>
     /// مدیریت رانندگان
     /// </summary>
-    /// 
+    ///
     [Area("Driver")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -17,9 +18,11 @@ namespace Api.Areas.Driver.Controllers
     public class DriverController : ControllerBase
     {
         private readonly IDriverService _DriverService;
-        public DriverController(IDriverService DriverService)
+        private readonly ICurrentUserHelper _currentUser;
+        public DriverController(IDriverService DriverService, ICurrentUserHelper currentUser)
         {
             this._DriverService = DriverService;
+            this._currentUser = currentUser;
         }
 
         /// <summary>
@@ -50,7 +53,8 @@ namespace Api.Areas.Driver.Controllers
         }
 
         /// <summary>
-        ///  ویرایش آیتم 
+        ///  ویرایش اطلاعات راننده/خودرو توسط خودِ راننده — با این کار راننده از حالت
+        ///  احراز‌شده خارج می‌شود و باید دوباره توسط ادمین بررسی و تایید شود.
         /// </summary>
         /// <returns>
         /// </returns>
@@ -58,9 +62,10 @@ namespace Api.Areas.Driver.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(DriverDto dto)
         {
-            dto.Approved = false;
-            var Driver = await _DriverService.UpdateAsyncDto(dto);
-            return Ok(Driver);
+            var result = await _DriverService.ResubmitAsyncDto(dto, _currentUser.CurrentUser.UserId);
+            return Ok(result);
         }
+
+        // حذف راننده از این مسیر عمداً وجود ندارد — راننده نمی‌تواند پروفایل/خودروی خودش را حذف کند.
     }
 }

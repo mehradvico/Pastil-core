@@ -20,6 +20,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto
             this.SocialLevelId = dto.SocialLevelId;
             this.CityId = dto.CityId;
             this.NeighborhoodId = dto.NeighborhoodId;
+            this.Username = dto.Username;
             this.IsVerified = dto.IsVerified;
             this.PastilMatchGoalIds = dto.PastilMatchGoalIds;
             this.LiveLocation = dto.LiveLocation;
@@ -31,6 +32,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto
         public long? SocialLevelId { get; set; }
         public long? CityId { get; set; }
         public long? NeighborhoodId { get; set; }
+        public string Username { get; set; }
         public bool? IsVerified { get; set; }
         public List<long> PastilMatchGoalIds { get; set; }
         public PointDto LiveLocation { get; set; }

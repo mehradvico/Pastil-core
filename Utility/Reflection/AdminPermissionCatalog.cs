@@ -27,7 +27,8 @@ namespace Utility.Reflection
             new(9, "مدیریت موقعیت ها", "LocationManagement", 10),
             new(10, "مدیریت پاستیل فرند", "PastilMatchManagement", 11),
             new(12, "مدیریت سایت", "SiteManagement", 12),
-            new(13, "مدیریت پاستیل کلاب", "PastilClubManagement", 13)
+            new(13, "مدیریت پاستیل کلاب", "PastilClubManagement", 13),
+            new(14, "مدیریت پت رسان", "TripManagement", 14)
         ];
 
         private static readonly HashSet<string> MenuControllers = new(StringComparer.OrdinalIgnoreCase)
@@ -47,6 +48,7 @@ namespace Utility.Reflection
             "Delivery",
             "Detail",
             "Discount",
+            "Driver",
             "DiscussionQuestion",
             "PastilAI",
             "Feature",
@@ -137,9 +139,7 @@ namespace Utility.Reflection
             [
                 "User",
                 "UserPet",
-                "UserMemory",
-                "Driver",           
-                "DriverUpdateStatus"
+                "UserMemory"
             ]);
 
             AddGroup(result, "PetManagement",
@@ -358,6 +358,14 @@ namespace Utility.Reflection
                 "PastilClubRewardBulkApprove",
                 "PastilClubRewardBulkReject",
                 "Rebate"
+            ]);
+
+            // مدیریت پت رسان: راننده/خودرو و بخش‌های سفر/تحویل که بعداً اضافه می‌شوند
+            // (مثل کنترلرهای Trip/Cargo هنگام بازطراحی) باید به همین گروه اضافه شوند.
+            AddGroup(result, "TripManagement",
+            [
+                "Driver",
+                "DriverUpdateStatus"
             ]);
 
             return result;

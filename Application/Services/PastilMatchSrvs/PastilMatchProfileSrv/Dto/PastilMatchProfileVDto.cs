@@ -21,6 +21,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Dto
         public PointDto LiveLocation { get; set; }
         public long? CityId { get; set; }
         public long? NeighborhoodId { get; set; }
+        public string Username { get; set; }
         public string Description { get; set; }
 
         public bool IsActive { get; set; }

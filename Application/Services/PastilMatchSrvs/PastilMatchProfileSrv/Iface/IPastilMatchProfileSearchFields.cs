@@ -14,6 +14,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv.Iface
         public long? SocialLevelId { get; set; }
         public long? CityId { get; set; }
         public long? NeighborhoodId { get; set; }
+        public string Username { get; set; }
         public bool? IsVerified { get; set; }
         public List<long> PastilMatchGoalIds { get; set; }
         public PointDto LiveLocation { get; set; }

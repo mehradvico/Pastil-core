@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Interface;
@@ -118,26 +119,20 @@ namespace Application.Services.Accounting.DriverSrv
                 }
                 else
                 {
+                    // ادمین از پنل راننده را مستقیم با وضعیت انتخابی خودش (مثلا فعال/تایید شده) ثبت می‌کند؛
+                    // برای درخواست ثبت‌نام خودِ راننده (غیر ادمین) همیشه در وضعیت «در انتظار بررسی» شروع می‌شود.
+                    var isAdmin = _currentUser.CurrentUser?.RoleId == (long)RoleEnum.Admin;
+
                     var item = mapper.Map<Driver>(dto);
-                    item.StatusId = (long)DriverRequestStatusEnum.DriverRequestStatus_Requested;
-                    item.Active = false;
-                    item.Approved = false;
-                    item.Rate = 0;
-                    item.AdminDetail = null;
-                    if (dto.Rate != 0 && (dto.Rate > 5 || dto.Rate < 1))
+                    if (!isAdmin)
                     {
-                        return new BaseResultDto<DriverDto>(false, val1: Resource.Notification.TheRangeEnteredIsNotCorrect, val2: nameof(dto.Rate), data: dto);
+                        item.StatusId = (long)DriverRequestStatusEnum.DriverRequestStatus_Requested;
+                        item.Active = false;
+                        item.Approved = false;
+                        item.Rate = 0;
+                        item.AdminDetail = null;
                     }
-                    var ownerId = dto.OwnerId;
-                    var model = await _context.Users.Include(s => s.Driver).FirstOrDefaultAsync(s => s.Id == ownerId && !s.Deleted);
-                    if (model == null)
-                    {
-                        return new BaseResultDto<DriverDto>(false, Resource.Notification.NothingFound, dto);
-                    }
-                    if (model.Driver != null)
-                    {
-                        return new BaseResultDto<DriverDto>(false, Resource.Notification.AlreadyIsDriver, dto);
-                    }
+                    // اعتبار کاربر و عدم‌تکرار پیش‌تر در ValidateDriverFieldsAsync/InsertCheckerAsync بررسی شده است.
                     await _context.Drivers.AddAsync(item);
                     await _context.SaveChangesAsync();
                     try
@@ -158,7 +153,14 @@ namespace Application.Services.Accounting.DriverSrv
                 return new BaseResultDto<DriverDto>(false, "خطا در ثبت درخواست رانندگی. اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.", dto);
             }
         }
-        public async Task<BaseResultDto> InsertCheckerAsync(DriverDto dto)
+        public Task<BaseResultDto> InsertCheckerAsync(DriverDto dto) => ValidateDriverFieldsAsync(dto, excludeDriverId: null);
+
+        /// <summary>
+        /// اعتبارسنجی کامل فیلدهای مهم راننده و خودرو (نام، تلفن، خودرو، پلاک، شهر/محله، مدارک).
+        /// برای ثبت و ویرایش هر دو استفاده می‌شود تا خطای خالی/بی‌محتوا به فرانت برنگردد.
+        /// excludeDriverId: هنگام ویرایش، شناسه رکورد جاری برای نادیده گرفتن آن در بررسی «قبلا راننده بوده».
+        /// </summary>
+        private async Task<BaseResultDto> ValidateDriverFieldsAsync(DriverDto dto, long? excludeDriverId)
         {
             dto.Phone = await dto.Phone?.Trim().ToEnglishDigitsAsync();
             var errors = new List<Tuple<string, string>>();
@@ -195,12 +197,21 @@ namespace Application.Services.Accounting.DriverSrv
             if (dto.ProfilePictureId.HasValue && dto.ProfilePictureId.Value > 0 &&
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.ProfilePictureId.Value))
                 errors.Add(Tuple.Create("تصویر پروفایل معتبر نیست.", nameof(dto.ProfilePictureId)));
+            if (dto.Rate != 0 && (dto.Rate > 5 || dto.Rate < 1))
+                errors.Add(Tuple.Create(Resource.Notification.TheRangeEnteredIsNotCorrect, nameof(dto.Rate)));
+            if (dto.OwnerId > 0 && await _context.Drivers.AnyAsync(s => s.OwnerId == dto.OwnerId && !s.Deleted && s.Id != (excludeDriverId ?? 0)))
+                errors.Add(Tuple.Create(Resource.Notification.AlreadyIsDriver, nameof(dto.OwnerId)));
             if (errors.Any())
             {
                 return new BaseResultDto(isSuccess: false, messages: errors);
             }
             return new BaseResultDto(true);
         }
+        /// <summary>
+        /// ویرایش راننده از پنل ادمین. برخلاف ثبت‌نام/ویرایش خودِ راننده، این مسیر وضعیت
+        /// فعال/تایید‌شده را که ادمین در فرم انتخاب کرده دست‌نخورده نگه می‌دارد (override نمی‌کند)
+        /// و باعث خروج راننده از حالت احراز‌شده نمی‌شود.
+        /// </summary>
         public override BaseResultDto UpdateDto(DriverDto dto)
         {
             try
@@ -212,10 +223,14 @@ namespace Application.Services.Accounting.DriverSrv
                 }
                 else
                 {
-                    var item = mapper.Map<Driver>(dto);
-                    var driver = _context.Drivers.FirstOrDefault(x => x.Id == item.Id);
-                    _context.Drivers.Attach(item);
-                    _context.Entry(item).State = EntityState.Modified;
+                    var driver = _context.Drivers.AsTracking().FirstOrDefault(x => x.Id == dto.Id && !x.Deleted);
+                    if (driver == null)
+                    {
+                        return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
+                    }
+                    // Map(source, destination) فقط فیلدهای موجود در DTO را می‌نویسد و Deleted/نویگیشن‌ها را دست‌نخورده می‌گذارد
+                    // (برخلاف Attach + EntityState.Modified قبلی که کل موجودیت را با مقادیر پیش‌فرض DTO بازنویسی می‌کرد).
+                    mapper.Map(dto, driver);
                     _context.SaveChanges();
                     return new BaseResultDto(isSuccess: true);
                 }
@@ -228,19 +243,29 @@ namespace Application.Services.Accounting.DriverSrv
 
         public async Task<BaseResultDto> UpdateAsyncDto(DriverDto dto)
         {
+            var checker = await ValidateDriverFieldsAsync(dto, excludeDriverId: dto.Id);
+            if (!checker.IsSuccess)
+                return checker;
+
             var result = UpdateDto(dto);
             if (result.IsSuccess)
                 await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.DriverUpdated, ActorUserId = dto.OwnerId, ReferenceType = "Driver", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.DriverUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "driverName", dto.Name } } });
             return result;
         }
 
+        /// <summary>
+        /// ویرایش اطلاعات راننده/خودرو توسط خودِ راننده (چه اولین درخواست هنوز تایید نشده، چه بعد از تایید).
+        /// همیشه مجاز است؛ اما هر بار که خودِ راننده اطلاعاتش را عوض کند، از حالت احراز‌شده خارج می‌شود
+        /// (Approved/Active=false, StatusId=Requested) و باید دوباره توسط ادمین بررسی و تایید شود.
+        /// امتیاز (Rate) که از سفرهای واقعی به‌دست آمده حفظ می‌شود و صفر نمی‌شود.
+        /// </summary>
         public async Task<BaseResultDto> ResubmitAsyncDto(DriverDto dto, long ownerId)
         {
             if (dto == null || dto.Id <= 0)
                 return new BaseResultDto(false, "شناسه درخواست رانندگی معتبر نیست.");
 
             dto.OwnerId = ownerId;
-            var checker = await InsertCheckerAsync(dto);
+            var checker = await ValidateDriverFieldsAsync(dto, excludeDriverId: dto.Id);
             if (!checker.IsSuccess)
                 return checker;
 
@@ -250,15 +275,13 @@ namespace Application.Services.Accounting.DriverSrv
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
-            if (item.Approved)
-                return new BaseResultDto(false, "درخواست رانندگی تأیید شده است و از مسیر ارسال مجدد قابل تغییر نیست.");
-
+            var previousRate = item.Rate;
             mapper.Map(dto, item);
             item.OwnerId = ownerId;
             item.StatusId = (long)DriverRequestStatusEnum.DriverRequestStatus_Requested;
             item.Active = false;
             item.Approved = false;
-            item.Rate = 0;
+            item.Rate = previousRate;
             item.AdminDetail = null;
             await _context.SaveChangesAsync();
 

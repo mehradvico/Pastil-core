@@ -19,6 +19,7 @@ using Persistence.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
@@ -31,6 +32,22 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
         private readonly INoticeService _noticeService;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ILogger<PastilMatchProfileService> _logger;
+
+        private static readonly Regex UsernamePattern = new(
+            "^[a-z][a-z0-9_]{4,31}$",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        private static string NormalizeUsername(string username)
+        {
+            return string.IsNullOrWhiteSpace(username)
+                ? null
+                : username.Trim().ToLowerInvariant();
+        }
+
+        private static bool IsValidUsername(string username)
+        {
+            return username != null && UsernamePattern.IsMatch(username);
+        }
 
         public PastilMatchProfileService(
             IDataBaseContext _context,
@@ -136,11 +153,19 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             if (!string.IsNullOrWhiteSpace(baseSearchDto.Q))
             {
                 var q = baseSearchDto.Q.Trim();
+                var normalizedQ = q.ToLowerInvariant();
 
                 model = model.Where(s =>
                     s.Description.Contains(q) ||
-                    s.UserPet.Name.Contains(q)
+                    s.UserPet.Name.Contains(q) ||
+                    s.Username.Contains(normalizedQ)
                 );
+            }
+
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.Username))
+            {
+                var username = NormalizeUsername(baseSearchDto.Username);
+                model = model.Where(s => s.Username == username);
             }
 
             if (baseSearchDto.Available.HasValue)
@@ -282,6 +307,18 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                     return modelChecker;
                 }
 
+                var normalizedUsername = NormalizeUsername(dto.Username);
+                if (normalizedUsername != null && !IsValidUsername(normalizedUsername))
+                {
+                    return new BaseResultDto<PastilMatchProfileDto>(
+                        false,
+                        "نام کاربری باید ۵ تا ۳۲ کاراکتر باشد، با حرف انگلیسی شروع شود و فقط شامل حروف انگلیسی کوچک، عدد و _ باشد.",
+                        dto
+                    );
+                }
+
+                dto.Username = normalizedUsername;
+
                 var userId = _currentUser.CurrentUser.UserId;
 
                 var userPet = await _context.UserPets
@@ -312,6 +349,17 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                     return new BaseResultDto<PastilMatchProfileDto>(
                         false,
                         Resource.Notification.PastilMatchProfileAlreadyExists,
+                        dto
+                    );
+                }
+
+                if (normalizedUsername != null && await _context.PastilMatchProfiles.AnyAsync(s =>
+                        !s.Deleted &&
+                        s.Username == normalizedUsername))
+                {
+                    return new BaseResultDto<PastilMatchProfileDto>(
+                        false,
+                        "این نام کاربری قبلاً برای یک پروفایل فعال استفاده شده است.",
                         dto
                     );
                 }
@@ -373,6 +421,17 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                     mapper.Map<PastilMatchProfileDto>(item)
                 );
             }
+            catch (DbUpdateException ex) when (
+                ex.InnerException?.Message.Contains(
+                    "IX_PastilMatchProfiles_Username",
+                    StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return new BaseResultDto<PastilMatchProfileDto>(
+                    false,
+                    "این نام کاربری قبلاً برای یک پروفایل فعال استفاده شده است.",
+                    dto
+                );
+            }
             catch (Exception ex)
             {
                 return new BaseResultDto<PastilMatchProfileDto>(
@@ -423,6 +482,31 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                     );
                 }
 
+                var normalizedUsername = dto.Username == null
+                    ? item.Username
+                    : NormalizeUsername(dto.Username);
+
+                if (normalizedUsername != null && !IsValidUsername(normalizedUsername))
+                {
+                    return new BaseResultDto(
+                        false,
+                        "نام کاربری باید ۵ تا ۳۲ کاراکتر باشد، با حرف انگلیسی شروع شود و فقط شامل حروف انگلیسی کوچک، عدد و _ باشد."
+                    );
+                }
+
+                if (normalizedUsername != null && _context.PastilMatchProfiles.Any(s =>
+                        s.Id != item.Id &&
+                        !s.Deleted &&
+                        s.Username == normalizedUsername))
+                {
+                    return new BaseResultDto(
+                        false,
+                        "این نام کاربری قبلاً برای یک پروفایل فعال استفاده شده است."
+                    );
+                }
+
+                dto.Username = normalizedUsername;
+
                 var userPetId = item.UserPetId;
                 var likeCount = item.LikeCount;
                 var isActive = item.IsActive;
@@ -455,6 +539,16 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                 _context.SaveChanges();
 
                 return new BaseResultDto(true);
+            }
+            catch (DbUpdateException ex) when (
+                ex.InnerException?.Message.Contains(
+                    "IX_PastilMatchProfiles_Username",
+                    StringComparison.OrdinalIgnoreCase) == true)
+            {
+                return new BaseResultDto(
+                    false,
+                    "این نام کاربری قبلاً برای یک پروفایل فعال استفاده شده است."
+                );
             }
             catch (Exception ex)
             {
