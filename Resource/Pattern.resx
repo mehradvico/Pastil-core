@@ -177,6 +177,27 @@
   <data name="Push_Title" xml:space="preserve">
     <value>Pastil</value>
   </data>
+  <data name="PushTripArrivedOrigin" xml:space="preserve">
+    <value>The driver arrived at the pickup point</value>
+  </data>
+  <data name="PushTripPetPickedUp" xml:space="preserve">
+    <value>Your pet has been picked up, the trip has started</value>
+  </data>
+  <data name="PushTripArrivedDestination" xml:space="preserve">
+    <value>Your pet arrived at the destination</value>
+  </data>
+  <data name="PushTripCompleted" xml:space="preserve">
+    <value>Pet-courier trip completed — please rate the driver</value>
+  </data>
+  <data name="PushTripCanceled" xml:space="preserve">
+    <value>The pet-courier trip was canceled</value>
+  </data>
+  <data name="PushTripRequestAvailable" xml:space="preserve">
+    <value>A new pet-courier trip is available to accept</value>
+  </data>
+  <data name="PushTripDriverCanceled" xml:space="preserve">
+    <value>Your driver canceled — we're finding you a new one</value>
+  </data>
   <data name="PushMemoryReminder" xml:space="preserve">
     <value>{0}, save today's memory with your pet in Pastil.</value>
   </data>

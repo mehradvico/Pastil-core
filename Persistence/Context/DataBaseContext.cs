@@ -306,6 +306,7 @@ namespace Persistence.Context
         public DbSet<TripAddress> TripAddresses { get; set; }
         public DbSet<TripOption> TripOptions { get; set; }
         public DbSet<TripStop> TripStops { get; set; }
+        public DbSet<TripPet> TripPets { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserCurrentLocation> UserCurrentLocations { get; set; }
         public DbSet<UserBankCard> UserBankCards { get; set; }
@@ -1175,6 +1176,24 @@ namespace Persistence.Context
                 .HasOne(t => t.DriverStatus)
                 .WithMany()
                 .HasForeignKey(t => t.DriverStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.CompanionReserve)
+                .WithMany()
+                .HasForeignKey(t => t.CompanionReserveId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<TripPet>()
+                .HasOne(tp => tp.Trip)
+                .WithMany(t => t.TripPets)
+                .HasForeignKey(tp => tp.TripId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TripPet>()
+                .HasOne(tp => tp.UserPet)
+                .WithMany()
+                .HasForeignKey(tp => tp.UserPetId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 

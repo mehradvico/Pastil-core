@@ -312,7 +312,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                 {
                     return new BaseResultDto<PastilMatchProfileDto>(
                         false,
-                        "نام کاربری باید ۵ تا ۳۲ کاراکتر باشد، با حرف انگلیسی شروع شود و فقط شامل حروف انگلیسی کوچک، عدد و _ باشد.",
+                        Resource.Notification.PastilMatchUsernameInvalidFormat,
                         dto
                     );
                 }
@@ -359,7 +359,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                 {
                     return new BaseResultDto<PastilMatchProfileDto>(
                         false,
-                        "این نام کاربری قبلاً برای یک پروفایل فعال استفاده شده است.",
+                        Resource.Notification.PastilMatchUsernameAlreadyTaken,
                         dto
                     );
                 }
@@ -428,7 +428,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             {
                 return new BaseResultDto<PastilMatchProfileDto>(
                     false,
-                    "این نام کاربری قبلاً برای یک پروفایل فعال استفاده شده است.",
+                    Resource.Notification.PastilMatchUsernameAlreadyTaken,
                     dto
                 );
             }
@@ -490,7 +490,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                 {
                     return new BaseResultDto(
                         false,
-                        "نام کاربری باید ۵ تا ۳۲ کاراکتر باشد، با حرف انگلیسی شروع شود و فقط شامل حروف انگلیسی کوچک، عدد و _ باشد."
+                        Resource.Notification.PastilMatchUsernameInvalidFormat
                     );
                 }
 
@@ -501,7 +501,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
                 {
                     return new BaseResultDto(
                         false,
-                        "این نام کاربری قبلاً برای یک پروفایل فعال استفاده شده است."
+                        Resource.Notification.PastilMatchUsernameAlreadyTaken
                     );
                 }
 
@@ -547,7 +547,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             {
                 return new BaseResultDto(
                     false,
-                    "این نام کاربری قبلاً برای یک پروفایل فعال استفاده شده است."
+                    Resource.Notification.PastilMatchUsernameAlreadyTaken
                 );
             }
             catch (Exception ex)

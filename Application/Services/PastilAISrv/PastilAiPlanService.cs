@@ -64,7 +64,7 @@ namespace Application.Services.PastilAISrv
                 return new BaseResultDto<PastilAiPlanVDto>(false, Resource.Notification.InvalidData, null);
             if (!string.Equals(plan.Code, PastilAiPlanCode.Free.ToString(), StringComparison.OrdinalIgnoreCase) &&
                 dto.PurchaseEnabled && dto.Price < 10000)
-                return new BaseResultDto<PastilAiPlanVDto>(false, "برای فعال‌کردن خرید، قیمت پلن باید بیشتر از صفر باشد.", null);
+                return new BaseResultDto<PastilAiPlanVDto>(false, Resource.Notification.PastilAiPlanPriceRequiredForPurchase, null);
 
             plan.Name = dto.Name.Trim();
             plan.Description = dto.Description?.Trim();
@@ -153,7 +153,7 @@ namespace Application.Services.PastilAISrv
                 .Select(x => (long?)x.Id)
                 .FirstOrDefaultAsync(cancellationToken);
             if (!typeId.HasValue)
-                return new BaseResultDto(false, "نوع پرداخت PastilAI در تنظیمات سیستم ثبت نشده است.");
+                return new BaseResultDto(false, Resource.Notification.PastilAiPaymentTypeNotConfigured);
 
             var subscription = new PastilAiSubscription
             {

@@ -31,6 +31,9 @@ namespace Application.Services.Setting.NoticeSrv
         public const string TripDriverRequested = "Trip.DriverRequested";
         public const string TripDriverSelectionRequired = "Trip.DriverSelectionRequired";
         public const string TripCancelledByUser = "Trip.CancelledByUser";
+        public const string TripPetPickedUp = "Trip.PetPickedUp";
+        public const string TripArrivedDestination = "Trip.ArrivedDestination";
+        public const string TripDriverCanceled = "Trip.DriverCanceled";
         public const string PastilMatchProfileSubmitted = "PastilMatch.ProfileSubmitted";
         public const string PastilMatchVerificationRequested = "PastilMatch.VerificationRequested";
         public const string PastilMatchReportSubmitted = "PastilMatch.ReportSubmitted";

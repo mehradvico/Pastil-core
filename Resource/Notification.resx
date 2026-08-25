@@ -519,6 +519,111 @@
   <data name="PleaseSelectPastilMatchGoal" xml:space="preserve">
     <value>Please Select Pastil Match Goal</value>
   </data>
+  <data name="PastilAiChatQuotaExceeded" xml:space="preserve">
+    <value>Pastil Ai Chat Quota Exceeded</value>
+  </data>
+  <data name="PastilAiImageQuotaExceeded" xml:space="preserve">
+    <value>Pastil Ai Image Quota Exceeded</value>
+  </data>
+  <data name="PastilAiAudioQuotaExceeded" xml:space="preserve">
+    <value>Pastil Ai Audio Quota Exceeded</value>
+  </data>
+  <data name="PastilAiVideoQuotaExceeded" xml:space="preserve">
+    <value>Pastil Ai Video Quota Exceeded</value>
+  </data>
+  <data name="PastilAiPlanPriceRequiredForPurchase" xml:space="preserve">
+    <value>Pastil Ai Plan Price Required For Purchase</value>
+  </data>
+  <data name="PastilAiPaymentTypeNotConfigured" xml:space="preserve">
+    <value>Pastil Ai Payment Type Not Configured</value>
+  </data>
+  <data name="PastilAiResponseUnavailable" xml:space="preserve">
+    <value>Pastil Ai Response Unavailable</value>
+  </data>
+  <data name="PastilAiRequestCancelled" xml:space="preserve">
+    <value>Pastil Ai Request Cancelled</value>
+  </data>
+  <data name="PastilAiEmergencyResponse" xml:space="preserve">
+    <value>Pastil Ai Emergency Response</value>
+  </data>
+  <data name="PastilMatchUsernameInvalidFormat" xml:space="preserve">
+    <value>Pastil Match Username Invalid Format</value>
+  </data>
+  <data name="PastilMatchUsernameAlreadyTaken" xml:space="preserve">
+    <value>Pastil Match Username Already Taken</value>
+  </data>
+  <data name="PastilMatchMessagePreviewParkSuggestion" xml:space="preserve">
+    <value>Pastil Match Message Preview Park Suggestion</value>
+  </data>
+  <data name="PastilMatchMessagePreviewParkNamedFormat" xml:space="preserve">
+    <value>Pastil Match Message Preview Park Named Format</value>
+  </data>
+  <data name="PastilMatchMessagePreviewImage" xml:space="preserve">
+    <value>Pastil Match Message Preview Image</value>
+  </data>
+  <data name="PastilMatchMessagePreviewVoice" xml:space="preserve">
+    <value>Pastil Match Message Preview Voice</value>
+  </data>
+  <data name="PastilMatchMessagePreviewNewMessage" xml:space="preserve">
+    <value>Pastil Match Message Preview New Message</value>
+  </data>
+  <data name="PansionCreateRequestFailed" xml:space="preserve">
+    <value>Pansion Create Request Failed</value>
+  </data>
+  <data name="PansionPleaseSelectCenterType" xml:space="preserve">
+    <value>Pansion Please Select Center Type</value>
+  </data>
+  <data name="PansionSelectedStateInvalid" xml:space="preserve">
+    <value>Pansion Selected State Invalid</value>
+  </data>
+  <data name="PansionSelectedCityNotInState" xml:space="preserve">
+    <value>Pansion Selected City Not In State</value>
+  </data>
+  <data name="PansionPleaseEnterAddress" xml:space="preserve">
+    <value>Pansion Please Enter Address</value>
+  </data>
+  <data name="PansionPleaseEnterOpenHour" xml:space="preserve">
+    <value>Pansion Please Enter Open Hour</value>
+  </data>
+  <data name="PansionPleaseEnterCloseHour" xml:space="preserve">
+    <value>Pansion Please Enter Close Hour</value>
+  </data>
+  <data name="PansionSchoolPriceMustBeGreaterThanZero" xml:space="preserve">
+    <value>Pansion School Price Must Be Greater Than Zero</value>
+  </data>
+  <data name="PansionPriceMustBeGreaterThanZero" xml:space="preserve">
+    <value>Pansion Price Must Be Greater Than Zero</value>
+  </data>
+  <data name="PansionPictureInvalid" xml:space="preserve">
+    <value>Pansion Picture Invalid</value>
+  </data>
+  <data name="PansionRequestIdInvalid" xml:space="preserve">
+    <value>Pansion Request Id Invalid</value>
+  </data>
+  <data name="PansionRequestAlreadyApprovedCannotResubmit" xml:space="preserve">
+    <value>Pansion Request Already Approved Cannot Resubmit</value>
+  </data>
+  <data name="PansionSchoolModeRequiresFullTimeRange" xml:space="preserve">
+    <value>Pansion School Mode Requires Full Time Range</value>
+  </data>
+  <data name="PansionDailyModeRequiresFullDateRange" xml:space="preserve">
+    <value>Pansion Daily Mode Requires Full Date Range</value>
+  </data>
+  <data name="PansionActivityTypeNotSpecified" xml:space="preserve">
+    <value>Pansion Activity Type Not Specified</value>
+  </data>
+  <data name="PansionCannotReserveSchoolInPast" xml:space="preserve">
+    <value>Pansion Cannot Reserve School In Past</value>
+  </data>
+  <data name="PansionReservePaymentAlreadyStartedCannotChangeFinancials" xml:space="preserve">
+    <value>Pansion Reserve Payment Already Started Cannot Change Financials</value>
+  </data>
+  <data name="PansionCommentReserveIdRequired" xml:space="preserve">
+    <value>Pansion Comment Reserve Id Required</value>
+  </data>
+  <data name="PansionCommentOnlyForYourCompletedReserve" xml:space="preserve">
+    <value>Pansion Comment Only For Your Completed Reserve</value>
+  </data>
   <data name="PastilMatchProfileAlreadyExists" xml:space="preserve">
     <value>Pastil Match Profile Already Exists</value>
   </data>

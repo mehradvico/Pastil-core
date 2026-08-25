@@ -61,7 +61,7 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
                     {
                         return new BaseResultDto<PansionCommentDto>(
                             false,
-                            "شناسه رزرو پانسیون برای ثبت نظر الزامی است.",
+                            Resource.Notification.PansionCommentReserveIdRequired,
                             dto);
                     }
 
@@ -82,7 +82,7 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
                     {
                         return new BaseResultDto<PansionCommentDto>(
                             false,
-                            "ثبت نظر فقط برای رزرو تکمیل‌شده‌ی خودتان امکان‌پذیر است.",
+                            Resource.Notification.PansionCommentOnlyForYourCompletedReserve,
                             dto);
                     }
 

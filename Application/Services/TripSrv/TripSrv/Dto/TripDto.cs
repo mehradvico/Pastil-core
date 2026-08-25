@@ -49,6 +49,13 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public double RebatePrice { get; set; }
         public bool FromWallet { get; set; }
         public double WalletPrice { get; set; }
+        public int ProgressStageId { get; set; }
+        public bool IsReturnLeg { get; set; }
+        public long? CompanionReserveId { get; set; }
+        public int? ScheduledLeadMinutes { get; set; }
+        public DateTime? ScheduledDepartureAt { get; set; }
+        public bool OwnerRidesAlong { get; set; }
+        public List<long> UserPetIds { get; set; } = new List<long>();
         public CodeVDto DriverStatus { get; set; }
         public UserVDto User { get; set; }
         public CodeVDto TripStatus { get; set; }

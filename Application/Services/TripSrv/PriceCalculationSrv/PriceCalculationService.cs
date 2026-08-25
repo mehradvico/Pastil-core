@@ -35,7 +35,7 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
         }
         public async Task<BaseResultDto<PriceCalculationVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.PriceCalculations.FirstOrDefaultAsync(s => s.Id == id && s.Deleted != false);
+            var item = await _context.PriceCalculations.FirstOrDefaultAsync(s => s.Id == id && s.Deleted == false);
             if (item != null)
             {
                 return new BaseResultDto<PriceCalculationVDto>(true, mapper.Map<PriceCalculationVDto>(item));
@@ -45,7 +45,7 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
 
         public PriceCalculationSearchDto Search(PriceCalculationInputDto baseSearchDto)
         {
-            var model = _context.PriceCalculations.AsQueryable().Where(s => s.Deleted != false);
+            var model = _context.PriceCalculations.AsQueryable().Where(s => s.Deleted == false);
 
             switch (baseSearchDto.SortBy)
             {
@@ -115,12 +115,12 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
                 return 0;
             }
             double price = 0;
-            var distanceKm = await _geographyService.GetDrivingDistanceAsync(tripDto.Origin, tripDto.Destination, true, true);
+            var distanceMeter = await _geographyService.GetDrivingDistanceAsync(tripDto.Origin, tripDto.Destination, false, true);
             if (tripDto.SecondDestination != null && tripDto.SecondDestination.x > 0)
-                distanceKm += await _geographyService.GetDrivingDistanceAsync(tripDto.Destination, tripDto.SecondDestination, true, true);
+                distanceMeter += await _geographyService.GetDrivingDistanceAsync(tripDto.Destination, tripDto.SecondDestination, false, true);
             if (tripDto.RoundTrip)
-                distanceKm = distanceKm * 2;
-            price = distanceKm * priceCalculation.Price;
+                distanceMeter = distanceMeter * 2;
+            price = distanceMeter * priceCalculation.Price;
             if (tripDto.TripStopId.HasValue)
             {
                 var tripStop = await _tripStopService.FindAsync(tripDto.TripStopId.Value);

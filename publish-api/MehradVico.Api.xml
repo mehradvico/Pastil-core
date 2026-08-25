@@ -1762,21 +1762,16 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.DriverController.Post(Application.Services.Accounting.DriverSrv.Dto.DriverDto)">
             <summary>
-            آیتم جدید
+            آیتم جدید — وضعیت فعال/تایید‌شده انتخابی ادمین در فرم حفظ می‌شود (override نمی‌شود).
             </summary>
             <returns></returns>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.DriverController.Put(Application.Services.Accounting.DriverSrv.Dto.DriverDto)">
             <summary>
-             ویرایش آیتم 
+             ویرایش آیتم
             </summary>
             <returns>
             </returns>
-        </member>
-        <member name="M:Api.Areas.Admin.Controllers.DriverController.Delete(System.Int64)">
-            <summary>
-             حذف آیتم 
-            </summary>  
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DriverUpdateStatusController">
             <summary>
@@ -4504,6 +4499,16 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.TripLiveController">
+            <summary>
+            نقشه‌ی زنده‌ی سفرهای فعال پت‌رسان (برای Polling در پنل ادمین)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TripLiveController.Get">
+            <summary>
+            همه‌ی سفرهای فعال به همراه آخرین موقعیت راننده و کاربر
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.TripOptionController">
             <summary>
             گزینه های سفر
@@ -5878,9 +5883,9 @@
             </returns>
         </member>
         <member name="T:Api.Areas.Driver.Controllers.DriverController">
-            <summary>
-            مدیریت رانندگان
-            </summary>
+             <summary>
+             مدیریت رانندگان
+             </summary>
             
         </member>
         <member name="M:Api.Areas.Driver.Controllers.DriverController.Get(Application.Services.Accounting.DriverSrv.Dto.DriverInputDto)">
@@ -5899,7 +5904,8 @@
         </member>
         <member name="M:Api.Areas.Driver.Controllers.DriverController.Put(Application.Services.Accounting.DriverSrv.Dto.DriverDto)">
             <summary>
-             ویرایش آیتم 
+             ویرایش اطلاعات راننده/خودرو توسط خودِ راننده — با این کار راننده از حالت
+             احراز‌شده خارج می‌شود و باید دوباره توسط ادمین بررسی و تایید شود.
             </summary>
             <returns>
             </returns>
@@ -5915,6 +5921,32 @@
              پرداخت دستی سفر ها
             </summary>
             
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripArrivedDestinationController">
+            <summary>
+            اعلام رسیدن راننده به مقصد (پت‌رسان). برای سفر رفت‌وبرگشت، این عمل مسیر برگشت را
+            از نو (با مبدا/مقصد جابه‌جا‌شده) شروع می‌کند به‌جای پایان سفر.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripArrivedDestinationController.Put(System.Int64)">
+            <summary>
+            «به مقصد رسیدم»
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripArrivedOriginController">
+            <summary>
+            اعلام رسیدن راننده به مبدا (پت‌رسان)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripArrivedOriginController.Put(System.Int64)">
+            <summary>
+            «به مبدا رسیدم»
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripAvailableController">
+            <summary>
+            سفرهای لحظه‌ایِ بدون‌راننده — قابل مرور و پذیرفتن برای هر راننده‌ای (پت‌رسان)
+            </summary>
         </member>
         <member name="T:Api.Areas.Driver.Controllers.TripChangeStatusController">
             <summary>
@@ -5962,6 +5994,16 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripDriverCancelController">
+            <summary>
+            لغو سفرِ پذیرفته‌شده توسط راننده — سفر به حالت بدون‌راننده برمی‌گردد و دوباره Broadcast می‌شود (پت‌رسان)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripLiveController">
+            <summary>
+            لوکیشن زنده‌ی کاربر + وضعیت فعلی سفر، برای راننده — فقط برای Polling در طول یک سفر فعال.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Driver.Controllers.TripOptionController">
             <summary>
             مدیریت گزینه های سفر
@@ -5981,6 +6023,16 @@
             <param name="id">شناسه خدمات</param>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripPetPickedUpController">
+            <summary>
+            اعلام تحویل گرفتن پت توسط راننده (پت‌رسان)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.TripPetPickedUpController.Put(System.Int64)">
+            <summary>
+            «پت را تحویل گرفتم»
+            </summary>
         </member>
         <member name="T:Api.Areas.Driver.Controllers.TripStopController">
             <summary>
@@ -7673,6 +7725,11 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.TripLiveController">
+            <summary>
+            لوکیشن زنده‌ی راننده + وضعیت فعلی سفر، برای کاربر — فقط برای Polling در طول یک سفر فعال.
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripOptionController">
             <summary>
             مدیریت گزینه های سفر
@@ -7716,6 +7773,16 @@
             </summary>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.TripReservationController">
+            <summary>
+            ساخت سفر پت‌رسانِ متصل به یک رزرو (حالت دو — راننده هم‌زمان با نوبت کلینیک)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripReservationController.Post(Application.Services.TripSrv.TripSrv.Dto.TripReservationCreateDto)">
+            <summary>
+            آیتم جدید
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripSetRebateController">
             <summary>

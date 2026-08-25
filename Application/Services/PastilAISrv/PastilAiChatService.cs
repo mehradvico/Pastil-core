@@ -171,7 +171,7 @@ namespace Application.Services.PastilAISrv
                         Response = new PastilAiProviderResponse
                         {
                             IsSuccess = true,
-                            Answer = "این وضعیت می‌تواند اورژانسی باشد. همین حالا با نزدیک‌ترین مرکز دامپزشکی تماس بگیرید یا حیوان را به مرکز شبانه‌روزی برسانید. برای دریافت پاسخ آنلاین منتظر نمانید.",
+                            Answer = Resource.Notification.PastilAiEmergencyResponse,
                             Scope = PastilAiScope.PetMedical,
                             IsEmergency = true,
                             Model = "emergency-rule-v1"
@@ -216,7 +216,7 @@ namespace Application.Services.PastilAISrv
                 if (!routed.Response.IsSuccess)
                 {
                     assistant.Status = PastilAiMessageStatus.Failed;
-                    assistant.Content = "در حال حاضر امکان پاسخ‌گویی وجود ندارد. لطفاً کمی بعد دوباره تلاش کنید.";
+                    assistant.Content = Resource.Notification.PastilAiResponseUnavailable;
                     await ReleaseQuotaAsync(userId, inputType, cancellationToken);
                 }
                 else
@@ -260,7 +260,7 @@ namespace Application.Services.PastilAISrv
                 if (assistant != null)
                 {
                     assistant.Status = PastilAiMessageStatus.Failed;
-                    assistant.Content = "درخواست لغو شد.";
+                    assistant.Content = Resource.Notification.PastilAiRequestCancelled;
                     _context.PastilAiMessages.Update(assistant);
                     await _context.SaveChangesAsync(CancellationToken.None);
                 }
@@ -284,8 +284,7 @@ namespace Application.Services.PastilAISrv
                     }
 
                     assistant.Status = PastilAiMessageStatus.Failed;
-                    assistant.Content =
-                        "در حال حاضر امکان پاسخ‌گویی وجود ندارد. لطفاً کمی بعد دوباره تلاش کنید.";
+                    assistant.Content = Resource.Notification.PastilAiResponseUnavailable;
 
                     _context.PastilAiMessages.Update(assistant);
 
@@ -548,27 +547,24 @@ namespace Application.Services.PastilAISrv
             return $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
         }
 
+        private static readonly string[] NearbyIntentKeywords =
+        {
+            "نزدیک", "اطراف", "پت شاپ", "پت‌شاپ", "کلینیک", "دامپزشک"
+        };
+
         private static bool ContainsNearbyIntent(string value) =>
-            value.Contains("نزدیک", StringComparison.OrdinalIgnoreCase) ||
-            value.Contains("اطراف", StringComparison.OrdinalIgnoreCase) ||
-            value.Contains("پت شاپ", StringComparison.OrdinalIgnoreCase) ||
-            value.Contains("پت‌شاپ", StringComparison.OrdinalIgnoreCase) ||
-            value.Contains("کلینیک", StringComparison.OrdinalIgnoreCase) ||
-            value.Contains("دامپزشک", StringComparison.OrdinalIgnoreCase);
+            NearbyIntentKeywords.Any(keyword => value.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+
+        private static readonly string[] EmergencyIntentKeywords =
+        {
+            "نفس نمی", "نفس نمیکش", "بیهوش", "بی هوش", "تشنج",
+            "خونریزی شدید", "خون ریزی شدید", "مسموم", "ادرار نمی", "ادرار نمیکن"
+        };
 
         private static bool IsEmergencyIntent(string value)
         {
             var normalized = value.Replace("‌", " ").ToLowerInvariant();
-            return normalized.Contains("نفس نمی") ||
-                   normalized.Contains("نفس نمیکش") ||
-                   normalized.Contains("بیهوش") ||
-                   normalized.Contains("بی هوش") ||
-                   normalized.Contains("تشنج") ||
-                   normalized.Contains("خونریزی شدید") ||
-                   normalized.Contains("خون ریزی شدید") ||
-                   normalized.Contains("مسموم") ||
-                   normalized.Contains("ادرار نمی") ||
-                   normalized.Contains("ادرار نمیکن");
+            return EmergencyIntentKeywords.Any(normalized.Contains);
         }
 
         private static bool IsAllowedImage(Picture picture) =>

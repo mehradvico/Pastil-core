@@ -42,6 +42,21 @@ namespace Entities.Entities
         public double PaymentPrice { get; set; }
         public bool FromWallet { get; set; }
         public double WalletPrice { get; set; }
+
+        // پیشرفت ریز سفر (TripProgressStageEnum) — مستقل از TripStatusId، فقط برای وضعیت Accepted معنا دارد.
+        public int ProgressStageId { get; set; }
+        // برای سفر رفت‌وبرگشت: بعد از ArrivedDestination، اگر RoundTrip=true، این true می‌شود و
+        // ProgressStageId دوباره از EnRouteOrigin شروع می‌شود (این‌بار با مبدا/مقصد جابه‌جا‌شده).
+        public bool IsReturnLeg { get; set; }
+        public DateTime? ProgressUpdateDate { get; set; }
+
+        // اتصال به رزرو کلینیک/نماینده (فقط برای سفرهای «رزرو هم‌زمان»، حالت دو پت‌رسان)
+        public long? CompanionReserveId { get; set; }
+        public int? ScheduledLeadMinutes { get; set; }
+        public DateTime? ScheduledDepartureAt { get; set; }
+        public bool OwnerRidesAlong { get; set; }
+        public bool ScheduledDispatched { get; set; }
+
         public Code DriverStatus { get; set; }
         public Code TripStatus { get; set; }
         public UserPet UserPet { get; set; }
@@ -51,6 +66,8 @@ namespace Entities.Entities
         public Rebate Rebate { get; set; }
         public Wallet Wallet { get; set; }
         public User User { get; set; }
+        public CompanionReserve CompanionReserve { get; set; }
         public ICollection<TripOption> TripOptions { get; set; }
+        public ICollection<TripPet> TripPets { get; set; }
     }
 }

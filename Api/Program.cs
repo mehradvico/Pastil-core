@@ -264,6 +264,10 @@ recurringJobManager.AddOrUpdate<Application.Services.CommonSrv.PushNotificationS
     "PushNotificationDispatch",
     service => service.SendPushGroupAsync(100),
     "*/5 * * * *");
+recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
+    "DispatchScheduledTrips",
+    service => service.DispatchScheduledTripsAsync(),
+    "* * * * *");
 
 app.UseRequestLocalization();
 app.UseHangfireDashboard();

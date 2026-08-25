@@ -119,8 +119,6 @@ namespace Application.Services.Accounting.DriverSrv
                 }
                 else
                 {
-                    // ادمین از پنل راننده را مستقیم با وضعیت انتخابی خودش (مثلا فعال/تایید شده) ثبت می‌کند؛
-                    // برای درخواست ثبت‌نام خودِ راننده (غیر ادمین) همیشه در وضعیت «در انتظار بررسی» شروع می‌شود.
                     var isAdmin = _currentUser.CurrentUser?.RoleId == (long)RoleEnum.Admin;
 
                     var item = mapper.Map<Driver>(dto);
@@ -132,7 +130,6 @@ namespace Application.Services.Accounting.DriverSrv
                         item.Rate = 0;
                         item.AdminDetail = null;
                     }
-                    // اعتبار کاربر و عدم‌تکرار پیش‌تر در ValidateDriverFieldsAsync/InsertCheckerAsync بررسی شده است.
                     await _context.Drivers.AddAsync(item);
                     await _context.SaveChangesAsync();
                     try
@@ -155,11 +152,6 @@ namespace Application.Services.Accounting.DriverSrv
         }
         public Task<BaseResultDto> InsertCheckerAsync(DriverDto dto) => ValidateDriverFieldsAsync(dto, excludeDriverId: null);
 
-        /// <summary>
-        /// اعتبارسنجی کامل فیلدهای مهم راننده و خودرو (نام، تلفن، خودرو، پلاک، شهر/محله، مدارک).
-        /// برای ثبت و ویرایش هر دو استفاده می‌شود تا خطای خالی/بی‌محتوا به فرانت برنگردد.
-        /// excludeDriverId: هنگام ویرایش، شناسه رکورد جاری برای نادیده گرفتن آن در بررسی «قبلا راننده بوده».
-        /// </summary>
         private async Task<BaseResultDto> ValidateDriverFieldsAsync(DriverDto dto, long? excludeDriverId)
         {
             dto.Phone = await dto.Phone?.Trim().ToEnglishDigitsAsync();
@@ -207,11 +199,6 @@ namespace Application.Services.Accounting.DriverSrv
             }
             return new BaseResultDto(true);
         }
-        /// <summary>
-        /// ویرایش راننده از پنل ادمین. برخلاف ثبت‌نام/ویرایش خودِ راننده، این مسیر وضعیت
-        /// فعال/تایید‌شده را که ادمین در فرم انتخاب کرده دست‌نخورده نگه می‌دارد (override نمی‌کند)
-        /// و باعث خروج راننده از حالت احراز‌شده نمی‌شود.
-        /// </summary>
         public override BaseResultDto UpdateDto(DriverDto dto)
         {
             try
@@ -228,8 +215,6 @@ namespace Application.Services.Accounting.DriverSrv
                     {
                         return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
                     }
-                    // Map(source, destination) فقط فیلدهای موجود در DTO را می‌نویسد و Deleted/نویگیشن‌ها را دست‌نخورده می‌گذارد
-                    // (برخلاف Attach + EntityState.Modified قبلی که کل موجودیت را با مقادیر پیش‌فرض DTO بازنویسی می‌کرد).
                     mapper.Map(dto, driver);
                     _context.SaveChanges();
                     return new BaseResultDto(isSuccess: true);
@@ -252,13 +237,6 @@ namespace Application.Services.Accounting.DriverSrv
                 await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.DriverUpdated, ActorUserId = dto.OwnerId, ReferenceType = "Driver", ReferenceId = dto.Id, DeduplicationKey = $"{NoticeTypeLabels.DriverUpdated}:{dto.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "driverName", dto.Name } } });
             return result;
         }
-
-        /// <summary>
-        /// ویرایش اطلاعات راننده/خودرو توسط خودِ راننده (چه اولین درخواست هنوز تایید نشده، چه بعد از تایید).
-        /// همیشه مجاز است؛ اما هر بار که خودِ راننده اطلاعاتش را عوض کند، از حالت احراز‌شده خارج می‌شود
-        /// (Approved/Active=false, StatusId=Requested) و باید دوباره توسط ادمین بررسی و تایید شود.
-        /// امتیاز (Rate) که از سفرهای واقعی به‌دست آمده حفظ می‌شود و صفر نمی‌شود.
-        /// </summary>
         public async Task<BaseResultDto> ResubmitAsyncDto(DriverDto dto, long ownerId)
         {
             if (dto == null || dto.Id <= 0)

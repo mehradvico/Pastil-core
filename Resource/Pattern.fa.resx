@@ -177,6 +177,27 @@
   <data name="Push_Title" xml:space="preserve">
     <value>پاستیل</value>
   </data>
+  <data name="PushTripArrivedOrigin" xml:space="preserve">
+    <value>راننده به مبدا رسید</value>
+  </data>
+  <data name="PushTripPetPickedUp" xml:space="preserve">
+    <value>پت شما تحویل گرفته شد، سفر آغاز شد</value>
+  </data>
+  <data name="PushTripArrivedDestination" xml:space="preserve">
+    <value>پت شما به مقصد رسید</value>
+  </data>
+  <data name="PushTripCompleted" xml:space="preserve">
+    <value>سفر پت‌رسان تکمیل شد — لطفا به راننده امتیاز دهید</value>
+  </data>
+  <data name="PushTripCanceled" xml:space="preserve">
+    <value>سفر پت‌رسان لغو شد</value>
+  </data>
+  <data name="PushTripRequestAvailable" xml:space="preserve">
+    <value>یک سفر پت‌رسان جدید در انتظار پذیرش است</value>
+  </data>
+  <data name="PushTripDriverCanceled" xml:space="preserve">
+    <value>راننده‌ی شما لغو کرد، در حال یافتن راننده‌ی جدید هستیم</value>
+  </data>
   <data name="PushMemoryReminder" xml:space="preserve">
     <value>{0} عزیز، خاطره امروزت با پتت رو در پاستیل ثبت کن.</value>
   </data>

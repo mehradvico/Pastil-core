@@ -34,6 +34,9 @@ namespace Api.Areas.EndUser.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var UserBankCard = await UserBankCardService.FindAsyncVDto(id);
+            if (UserBankCard.IsSuccess && UserBankCard.Data?.UserId != _currentUser.CurrentUser.UserId)
+                return Ok(new BaseResultDto<UserBankCardVDto>(false, Resource.Notification.AccessDenied, default));
+
             return Ok(UserBankCard);
         }
         /// <summary>

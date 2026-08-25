@@ -17,7 +17,7 @@ namespace File.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
+    [Authorize]
     public class PictureUploadController : ControllerBase
     {
         private readonly IPictureService pictureService;

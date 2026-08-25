@@ -541,15 +541,17 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
         private static string GetMessagePreview(PastilMatchMessageDto dto, string parkName = null)
         {
             if (dto.ParkId.HasValue)
-                return string.IsNullOrWhiteSpace(parkName) ? "پیشنهاد پارک" : $"پارک {parkName}";
+                return string.IsNullOrWhiteSpace(parkName)
+                    ? Resource.Notification.PastilMatchMessagePreviewParkSuggestion
+                    : string.Format(Resource.Notification.PastilMatchMessagePreviewParkNamedFormat, parkName);
 
             if (dto.PastilMatchMessageTypeId == (long)PastilMatchMessageTypeEnum.PastilMatchMessageType_Image)
-                return "تصویر";
+                return Resource.Notification.PastilMatchMessagePreviewImage;
 
             if (dto.PastilMatchMessageTypeId == (long)PastilMatchMessageTypeEnum.PastilMatchMessageType_Voice)
-                return "پیام صوتی";
+                return Resource.Notification.PastilMatchMessagePreviewVoice;
 
-            var content = dto.Content?.Trim().Replace("\r", " ").Replace("\n", " ") ?? "پیام جدید";
+            var content = dto.Content?.Trim().Replace("\r", " ").Replace("\n", " ") ?? Resource.Notification.PastilMatchMessagePreviewNewMessage;
             return content.Length <= 80 ? content : $"{content[..80]}…";
         }
 

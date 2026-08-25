@@ -7,13 +7,13 @@ namespace Application.Services.PastilAISrv
         public static string Validate(PastilAiPlan plan, PastilAiDailyUsage usage, PastilAiInputType inputType)
         {
             if (plan.DailyChatLimit.HasValue && usage.ChatCount >= plan.DailyChatLimit.Value)
-                return "سهمیه روزانه گفت‌وگوی شما تمام شده است.";
+                return Resource.Notification.PastilAiChatQuotaExceeded;
             if (inputType == PastilAiInputType.Image && plan.DailyImageLimit.HasValue && usage.ImageCount >= plan.DailyImageLimit.Value)
-                return "سهمیه روزانه ارسال تصویر شما تمام شده است.";
+                return Resource.Notification.PastilAiImageQuotaExceeded;
             if (inputType == PastilAiInputType.Audio && plan.DailyAudioLimit.HasValue && usage.AudioCount >= plan.DailyAudioLimit.Value)
-                return "سهمیه روزانه ارسال صوت شما تمام شده است.";
+                return Resource.Notification.PastilAiAudioQuotaExceeded;
             if (inputType == PastilAiInputType.Video && plan.DailyVideoLimit.HasValue && usage.VideoCount >= plan.DailyVideoLimit.Value)
-                return "سهمیه روزانه ارسال ویدیو شما تمام شده است.";
+                return Resource.Notification.PastilAiVideoQuotaExceeded;
             return null;
         }
     }

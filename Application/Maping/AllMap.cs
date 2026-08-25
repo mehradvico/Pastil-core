@@ -155,6 +155,7 @@ using Entities.Entities.Security;
 using NetTopologySuite.Geometries;
 using Resource;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Application.Maping
@@ -832,9 +833,9 @@ namespace Application.Maping
 
 
             //Trip
-            CreateMap<Trip, TripDto>();
-            CreateMap<TripDto, Trip>().ForMember(x => x.FromWallet, y => y.Ignore()).ForMember(x => x.WalletPrice, y => y.Ignore()).ForMember(x => x.Wallet, y => y.Ignore()).ForMember(x => x.PaymentPrice, y => y.Ignore()).ForMember(x => x.Discount, y => y.Ignore()).ForMember(x => x.RebatePrice, y => y.Ignore()).ForMember(x => x.RebateId, y => y.Ignore()).ForMember(x => x.Rebate, y => y.Ignore()).ForMember(x => x.IsPaid, y => y.Ignore()).ForMember(x => x.ManualPayDate, y => y.Ignore()).ForMember(x => x.DriverStatus, y => y.Ignore()).ForMember(x => x.TripStatus, y => y.Ignore()).ForMember(x => x.UserPet, y => y.Ignore()).ForMember(x => x.Driver, y => y.Ignore()).ForMember(x => x.FromCity, y => y.Ignore()).ForMember(x => x.TripStop, y => y.Ignore()).ForMember(x => x.TripOptions, y => y.Ignore());
-            CreateMap<Trip, TripVDto>();
+            CreateMap<Trip, TripDto>().ForMember(x => x.UserPetIds, y => y.MapFrom(s => s.TripPets != null ? s.TripPets.Select(tp => tp.UserPetId).ToList() : new List<long>()));
+            CreateMap<TripDto, Trip>().ForMember(x => x.FromWallet, y => y.Ignore()).ForMember(x => x.WalletPrice, y => y.Ignore()).ForMember(x => x.Wallet, y => y.Ignore()).ForMember(x => x.PaymentPrice, y => y.Ignore()).ForMember(x => x.Discount, y => y.Ignore()).ForMember(x => x.RebatePrice, y => y.Ignore()).ForMember(x => x.RebateId, y => y.Ignore()).ForMember(x => x.Rebate, y => y.Ignore()).ForMember(x => x.IsPaid, y => y.Ignore()).ForMember(x => x.ManualPayDate, y => y.Ignore()).ForMember(x => x.DriverStatus, y => y.Ignore()).ForMember(x => x.TripStatus, y => y.Ignore()).ForMember(x => x.UserPet, y => y.Ignore()).ForMember(x => x.Driver, y => y.Ignore()).ForMember(x => x.FromCity, y => y.Ignore()).ForMember(x => x.TripStop, y => y.Ignore()).ForMember(x => x.TripOptions, y => y.Ignore()).ForMember(x => x.TripPets, y => y.Ignore()).ForMember(x => x.CompanionReserve, y => y.Ignore());
+            CreateMap<Trip, TripVDto>().ForMember(x => x.UserPets, y => y.MapFrom(s => s.TripPets != null ? s.TripPets.Select(tp => tp.UserPet).ToList() : new List<UserPet>()));
             CreateMap<Trip, TripShareDto>().ReverseMap();
             CreateMap<ManualPayTripDto, Trip>();
             CreateMap<TripSetRebateCodeDto, Trip>();
@@ -853,6 +854,7 @@ namespace Application.Maping
             CreateMap<TripAddress, TripAddressDto>().ReverseMap();
             CreateMap<TripAddress, TripAddressVDto>();
             CreateMap<PriceCalculation, PriceCalculationVDto>();
+            CreateMap<PriceCalculation, PriceCalculationDto>().ReverseMap();
             //Trip End ----------------------------------------------
 
 

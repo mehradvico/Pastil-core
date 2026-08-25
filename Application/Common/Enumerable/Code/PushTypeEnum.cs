@@ -54,6 +54,13 @@ namespace Application.Common.Enumerable.Code
         PushCompanionReserveAssigned = 45,
         PushCompanionReserveReviewReminder = 46,
         PushPansionReserveReviewReminder = 47,
-        PushProductStockAvailable = 48
+        PushProductStockAvailable = 48,
+        PushTripArrivedOrigin = 49,
+        PushTripPetPickedUp = 50,
+        PushTripArrivedDestination = 51,
+        PushTripCompleted = 52,
+        PushTripCanceled = 53,
+        PushTripRequestAvailable = 54,
+        PushTripDriverCanceled = 55
     }
 }

@@ -519,6 +519,111 @@
   <data name="PleaseSelectPastilMatchGoal" xml:space="preserve">
     <value>لطفا هدف خود را وارد نمایید.</value>
   </data>
+  <data name="PastilAiChatQuotaExceeded" xml:space="preserve">
+    <value>سهمیه روزانه گفت‌وگوی شما تمام شده است.</value>
+  </data>
+  <data name="PastilAiImageQuotaExceeded" xml:space="preserve">
+    <value>سهمیه روزانه ارسال تصویر شما تمام شده است.</value>
+  </data>
+  <data name="PastilAiAudioQuotaExceeded" xml:space="preserve">
+    <value>سهمیه روزانه ارسال صوت شما تمام شده است.</value>
+  </data>
+  <data name="PastilAiVideoQuotaExceeded" xml:space="preserve">
+    <value>سهمیه روزانه ارسال ویدیو شما تمام شده است.</value>
+  </data>
+  <data name="PastilAiPlanPriceRequiredForPurchase" xml:space="preserve">
+    <value>برای فعال‌کردن خرید، قیمت پلن باید بیشتر از صفر باشد.</value>
+  </data>
+  <data name="PastilAiPaymentTypeNotConfigured" xml:space="preserve">
+    <value>نوع پرداخت PastilAI در تنظیمات سیستم ثبت نشده است.</value>
+  </data>
+  <data name="PastilAiResponseUnavailable" xml:space="preserve">
+    <value>در حال حاضر امکان پاسخ‌گویی وجود ندارد. لطفاً کمی بعد دوباره تلاش کنید.</value>
+  </data>
+  <data name="PastilAiRequestCancelled" xml:space="preserve">
+    <value>درخواست لغو شد.</value>
+  </data>
+  <data name="PastilAiEmergencyResponse" xml:space="preserve">
+    <value>این وضعیت می‌تواند اورژانسی باشد. همین حالا با نزدیک‌ترین مرکز دامپزشکی تماس بگیرید یا حیوان را به مرکز شبانه‌روزی برسانید. برای دریافت پاسخ آنلاین منتظر نمانید.</value>
+  </data>
+  <data name="PastilMatchUsernameInvalidFormat" xml:space="preserve">
+    <value>نام کاربری باید ۵ تا ۳۲ کاراکتر باشد، با حرف انگلیسی شروع شود و فقط شامل حروف انگلیسی کوچک، عدد و _ باشد.</value>
+  </data>
+  <data name="PastilMatchUsernameAlreadyTaken" xml:space="preserve">
+    <value>این نام کاربری قبلاً برای یک پروفایل فعال استفاده شده است.</value>
+  </data>
+  <data name="PastilMatchMessagePreviewParkSuggestion" xml:space="preserve">
+    <value>پیشنهاد پارک</value>
+  </data>
+  <data name="PastilMatchMessagePreviewParkNamedFormat" xml:space="preserve">
+    <value>پارک {0}</value>
+  </data>
+  <data name="PastilMatchMessagePreviewImage" xml:space="preserve">
+    <value>تصویر</value>
+  </data>
+  <data name="PastilMatchMessagePreviewVoice" xml:space="preserve">
+    <value>پیام صوتی</value>
+  </data>
+  <data name="PastilMatchMessagePreviewNewMessage" xml:space="preserve">
+    <value>پیام جدید</value>
+  </data>
+  <data name="PansionCreateRequestFailed" xml:space="preserve">
+    <value>خطا در ثبت درخواست پانسیون. اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.</value>
+  </data>
+  <data name="PansionPleaseSelectCenterType" xml:space="preserve">
+    <value>نوع مرکز (پانسیون یا مدرسه) را انتخاب کنید.</value>
+  </data>
+  <data name="PansionSelectedStateInvalid" xml:space="preserve">
+    <value>استان انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="PansionSelectedCityNotInState" xml:space="preserve">
+    <value>شهر انتخاب‌شده متعلق به استان انتخاب‌شده نیست.</value>
+  </data>
+  <data name="PansionPleaseEnterAddress" xml:space="preserve">
+    <value>آدرس پانسیون را وارد کنید.</value>
+  </data>
+  <data name="PansionPleaseEnterOpenHour" xml:space="preserve">
+    <value>ساعت شروع فعالیت را وارد کنید.</value>
+  </data>
+  <data name="PansionPleaseEnterCloseHour" xml:space="preserve">
+    <value>ساعت پایان فعالیت را وارد کنید.</value>
+  </data>
+  <data name="PansionSchoolPriceMustBeGreaterThanZero" xml:space="preserve">
+    <value>هزینه مدرسه باید بیشتر از صفر باشد.</value>
+  </data>
+  <data name="PansionPriceMustBeGreaterThanZero" xml:space="preserve">
+    <value>هزینه پانسیون باید بیشتر از صفر باشد.</value>
+  </data>
+  <data name="PansionPictureInvalid" xml:space="preserve">
+    <value>تصویر پانسیون معتبر نیست.</value>
+  </data>
+  <data name="PansionRequestIdInvalid" xml:space="preserve">
+    <value>شناسه درخواست پانسیون معتبر نیست.</value>
+  </data>
+  <data name="PansionRequestAlreadyApprovedCannotResubmit" xml:space="preserve">
+    <value>درخواست پانسیون تأیید شده است و از مسیر ارسال مجدد قابل تغییر نیست.</value>
+  </data>
+  <data name="PansionSchoolModeRequiresFullTimeRange" xml:space="preserve">
+    <value>این مرکز مهد ساعتی است؛ تاریخ و بازه ساعت را کامل ارسال کنید.</value>
+  </data>
+  <data name="PansionDailyModeRequiresFullDateRange" xml:space="preserve">
+    <value>این مرکز پانسیون روزانه است؛ بازه تاریخ ورود و خروج را کامل ارسال کنید.</value>
+  </data>
+  <data name="PansionActivityTypeNotSpecified" xml:space="preserve">
+    <value>نوع فعالیت پانسیون مشخص نشده است.</value>
+  </data>
+  <data name="PansionCannotReserveSchoolInPast" xml:space="preserve">
+    <value>امکان رزرو مهد در زمان گذشته وجود ندارد.</value>
+  </data>
+  <data name="PansionReservePaymentAlreadyStartedCannotChangeFinancials" xml:space="preserve">
+    <value>پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.</value>
+  </data>
+  <data name="PansionCommentReserveIdRequired" xml:space="preserve">
+    <value>شناسه رزرو پانسیون برای ثبت نظر الزامی است.</value>
+  </data>
+  <data name="PansionCommentOnlyForYourCompletedReserve" xml:space="preserve">
+    <value>ثبت نظر فقط برای رزرو تکمیل‌شده‌ی خودتان امکان‌پذیر است.</value>
+  </data>
   <data name="PastilMatchProfileAlreadyExists" xml:space="preserve">
     <value>این پت از قبل پروفایل دارد</value>
   </data>

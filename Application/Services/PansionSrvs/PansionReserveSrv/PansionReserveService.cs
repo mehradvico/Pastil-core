@@ -182,10 +182,10 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         return new BaseResultDto<PansionReserveDto>(
                             false,
                             pansion.IsSchool == true
-                                ? "این مرکز مهد ساعتی است؛ تاریخ و بازه ساعت را کامل ارسال کنید."
+                                ? Resource.Notification.PansionSchoolModeRequiresFullTimeRange
                                 : pansion.IsSchool == false
-                                    ? "این مرکز پانسیون روزانه است؛ بازه تاریخ ورود و خروج را کامل ارسال کنید."
-                                    : "نوع فعالیت پانسیون مشخص نشده است.",
+                                    ? Resource.Notification.PansionDailyModeRequiresFullDateRange
+                                    : Resource.Notification.PansionActivityTypeNotSpecified,
                             dto);
                     }
 
@@ -212,7 +212,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         {
                             return new BaseResultDto<PansionReserveDto>(
                                 false,
-                                "امکان رزرو مهد در زمان گذشته وجود ندارد.",
+                                Resource.Notification.PansionCannotReserveSchoolInPast,
                                 dto);
                         }
 

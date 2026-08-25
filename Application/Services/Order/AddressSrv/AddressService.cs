@@ -42,6 +42,12 @@ namespace Application.Services.Content.AddressSrv
                 }
                 else
                 {
+                    var existingAddress = _context.Addresses.AsNoTracking()
+                        .FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
+
+                    if (existingAddress == null || existingAddress.UserId != _currentUserHelper.CurrentUser.UserId)
+                        return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
+
                     long addressId = dto.Id;
                     dto.Id = 0;
                     var newAddress = InsertAsyncDto(dto).Result;

@@ -49,6 +49,10 @@ namespace Utility.Reflection
             "Detail",
             "Discount",
             "Driver",
+            "Trip",
+            "TripOption",
+            "TripStop",
+            "PriceCalculation",
             "DiscussionQuestion",
             "PastilAI",
             "Feature",
@@ -164,6 +168,8 @@ namespace Utility.Reflection
                 "Expertise",
                 "PansionActive",
                 "CompanionActivation",
+                "CompanionReserveAssign",
+                "CompanionReserveAssignee",
                 "CompanionAssistance",
                 "CompanionAssistancePackageActivation",
                 "CompanionAssistanceUserActivation",
@@ -187,8 +193,7 @@ namespace Utility.Reflection
                 "CompanionAssistancePackagePicture",
                 "CompanionComment",
                 "CompanionPet",
-                "CompanionType",
-                "PriceCalculation"
+                "CompanionType"
             ]);
 
             AddGroup(result, "ShopManagement",
@@ -207,9 +212,6 @@ namespace Utility.Reflection
                 "StoreComment",
                 "ProductReport",
                 "DiscussionAnswer",
-                "Trip",
-                "TripOption",
-                "TripStop",
                 "ProductComment",
                 "Cargo",
                 "ProductFile",
@@ -227,10 +229,6 @@ namespace Utility.Reflection
                 "ProductRelate",
                 "ProductsExcel",
                 "StoreUser",
-                "TripAddress",
-                "TripChangeStatus",
-                "TripChooseDriver",
-                "TripShare",
                 "UpdateCargoStatus",
                 "VarietyItem"
             ]);
@@ -360,12 +358,19 @@ namespace Utility.Reflection
                 "Rebate"
             ]);
 
-            // مدیریت پت رسان: راننده/خودرو و بخش‌های سفر/تحویل که بعداً اضافه می‌شوند
-            // (مثل کنترلرهای Trip/Cargo هنگام بازطراحی) باید به همین گروه اضافه شوند.
             AddGroup(result, "TripManagement",
             [
                 "Driver",
-                "DriverUpdateStatus"
+                "DriverUpdateStatus",
+                "Trip",
+                "TripLive",
+                "TripOption",
+                "TripStop",
+                "TripAddress",
+                "TripChangeStatus",
+                "TripChooseDriver",
+                "TripShare",
+                "PriceCalculation"
             ]);
 
             return result;

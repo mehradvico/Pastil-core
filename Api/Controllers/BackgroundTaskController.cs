@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Api.Authorization;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Utility.BackgroundTask.Iface;
 using Utility.Reflection.Iface;
 
@@ -9,6 +11,7 @@ namespace Api.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = PolicyNames.AdminOnly)]
     public class BackgroundTaskController : ControllerBase
     {
         private readonly IBackgroundTask backgroundTask;

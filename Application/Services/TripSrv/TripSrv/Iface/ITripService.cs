@@ -1,8 +1,10 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Enumerable;
 using Application.Common.Interface;
 using Application.Services.Content.CargoSrv.Dto;
 using Application.Services.TripSrv.TripSrv.Dto;
 using Entities.Entities;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Application.Services.TripSrv.TripSrv.Iface
@@ -26,5 +28,21 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto> SetWalletAsyncDto(TripSetWalletDto dto);
         Task<BaseResultDto> ClearRebateCodeAsync(long id);
         Task SyncDriverAcceptAsync();
+
+        // پت‌رسان — مراحل ریز پیشرفت سفر
+        Task<BaseResultDto<TripVDto>> AdvanceTripProgressAsync(long tripId, long driverId, TripProgressStageEnum targetStage);
+        Task<BaseResultDto<TripLiveDto>> GetLiveForUserAsync(long tripId, long userId);
+        Task<BaseResultDto<TripLiveDto>> GetLiveForDriverAsync(long tripId, long driverId);
+
+        // پت‌رسان — حالت دو: سفر متصل به رزرو
+        Task<BaseResultDto<TripDto>> CreateReservationLinkedTripAsync(TripReservationCreateDto dto, long userId);
+        Task DispatchScheduledTripsAsync();
+
+        // پت‌رسان — نقشه‌ی زنده‌ی ادمین
+        Task<BaseResultDto<List<TripAdminLiveDto>>> GetActiveTripsForAdminAsync();
+
+        // پت‌رسان — Broadcast سفر لحظه‌ای به همه‌ی راننده‌ها
+        Task<BaseResultDto<List<TripVDto>>> GetAvailableTripsForDriverAsync();
+        Task<BaseResultDto<TripVDto>> CancelByDriverAsync(long tripId, long driverId);
     }
 }

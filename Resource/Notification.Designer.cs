@@ -475,6 +475,258 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Pastil Ai Chat Quota Exceeded.
+        /// </summary>
+        public static string PastilAiChatQuotaExceeded {
+            get {
+                return ResourceManager.GetString("PastilAiChatQuotaExceeded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Ai Image Quota Exceeded.
+        /// </summary>
+        public static string PastilAiImageQuotaExceeded {
+            get {
+                return ResourceManager.GetString("PastilAiImageQuotaExceeded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Ai Audio Quota Exceeded.
+        /// </summary>
+        public static string PastilAiAudioQuotaExceeded {
+            get {
+                return ResourceManager.GetString("PastilAiAudioQuotaExceeded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Ai Video Quota Exceeded.
+        /// </summary>
+        public static string PastilAiVideoQuotaExceeded {
+            get {
+                return ResourceManager.GetString("PastilAiVideoQuotaExceeded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Ai Plan Price Required For Purchase.
+        /// </summary>
+        public static string PastilAiPlanPriceRequiredForPurchase {
+            get {
+                return ResourceManager.GetString("PastilAiPlanPriceRequiredForPurchase", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Ai Payment Type Not Configured.
+        /// </summary>
+        public static string PastilAiPaymentTypeNotConfigured {
+            get {
+                return ResourceManager.GetString("PastilAiPaymentTypeNotConfigured", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Ai Response Unavailable.
+        /// </summary>
+        public static string PastilAiResponseUnavailable {
+            get {
+                return ResourceManager.GetString("PastilAiResponseUnavailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Ai Request Cancelled.
+        /// </summary>
+        public static string PastilAiRequestCancelled {
+            get {
+                return ResourceManager.GetString("PastilAiRequestCancelled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Ai Emergency Response.
+        /// </summary>
+        public static string PastilAiEmergencyResponse {
+            get {
+                return ResourceManager.GetString("PastilAiEmergencyResponse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Create Request Failed.
+        /// </summary>
+        public static string PansionCreateRequestFailed {
+            get {
+                return ResourceManager.GetString("PansionCreateRequestFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Please Select Center Type.
+        /// </summary>
+        public static string PansionPleaseSelectCenterType {
+            get {
+                return ResourceManager.GetString("PansionPleaseSelectCenterType", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Selected State Invalid.
+        /// </summary>
+        public static string PansionSelectedStateInvalid {
+            get {
+                return ResourceManager.GetString("PansionSelectedStateInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Selected City Not In State.
+        /// </summary>
+        public static string PansionSelectedCityNotInState {
+            get {
+                return ResourceManager.GetString("PansionSelectedCityNotInState", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Please Enter Address.
+        /// </summary>
+        public static string PansionPleaseEnterAddress {
+            get {
+                return ResourceManager.GetString("PansionPleaseEnterAddress", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Please Enter Open Hour.
+        /// </summary>
+        public static string PansionPleaseEnterOpenHour {
+            get {
+                return ResourceManager.GetString("PansionPleaseEnterOpenHour", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Please Enter Close Hour.
+        /// </summary>
+        public static string PansionPleaseEnterCloseHour {
+            get {
+                return ResourceManager.GetString("PansionPleaseEnterCloseHour", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion School Price Must Be Greater Than Zero.
+        /// </summary>
+        public static string PansionSchoolPriceMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("PansionSchoolPriceMustBeGreaterThanZero", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Price Must Be Greater Than Zero.
+        /// </summary>
+        public static string PansionPriceMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("PansionPriceMustBeGreaterThanZero", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Picture Invalid.
+        /// </summary>
+        public static string PansionPictureInvalid {
+            get {
+                return ResourceManager.GetString("PansionPictureInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Request Id Invalid.
+        /// </summary>
+        public static string PansionRequestIdInvalid {
+            get {
+                return ResourceManager.GetString("PansionRequestIdInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Request Already Approved Cannot Resubmit.
+        /// </summary>
+        public static string PansionRequestAlreadyApprovedCannotResubmit {
+            get {
+                return ResourceManager.GetString("PansionRequestAlreadyApprovedCannotResubmit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion School Mode Requires Full Time Range.
+        /// </summary>
+        public static string PansionSchoolModeRequiresFullTimeRange {
+            get {
+                return ResourceManager.GetString("PansionSchoolModeRequiresFullTimeRange", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Daily Mode Requires Full Date Range.
+        /// </summary>
+        public static string PansionDailyModeRequiresFullDateRange {
+            get {
+                return ResourceManager.GetString("PansionDailyModeRequiresFullDateRange", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Activity Type Not Specified.
+        /// </summary>
+        public static string PansionActivityTypeNotSpecified {
+            get {
+                return ResourceManager.GetString("PansionActivityTypeNotSpecified", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Cannot Reserve School In Past.
+        /// </summary>
+        public static string PansionCannotReserveSchoolInPast {
+            get {
+                return ResourceManager.GetString("PansionCannotReserveSchoolInPast", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Reserve Payment Already Started Cannot Change Financials.
+        /// </summary>
+        public static string PansionReservePaymentAlreadyStartedCannotChangeFinancials {
+            get {
+                return ResourceManager.GetString("PansionReservePaymentAlreadyStartedCannotChangeFinancials", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Comment Reserve Id Required.
+        /// </summary>
+        public static string PansionCommentReserveIdRequired {
+            get {
+                return ResourceManager.GetString("PansionCommentReserveIdRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pansion Comment Only For Your Completed Reserve.
+        /// </summary>
+        public static string PansionCommentOnlyForYourCompletedReserve {
+            get {
+                return ResourceManager.GetString("PansionCommentOnlyForYourCompletedReserve", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Pastil Match Admin Description Required.
         /// </summary>
         public static string PastilMatchAdminDescriptionRequired {
@@ -770,7 +1022,70 @@ namespace Resource {
                 return ResourceManager.GetString("PastilMatchVoiceDurationRequired", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Username Invalid Format.
+        /// </summary>
+        public static string PastilMatchUsernameInvalidFormat {
+            get {
+                return ResourceManager.GetString("PastilMatchUsernameInvalidFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Username Already Taken.
+        /// </summary>
+        public static string PastilMatchUsernameAlreadyTaken {
+            get {
+                return ResourceManager.GetString("PastilMatchUsernameAlreadyTaken", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Message Preview Park Suggestion.
+        /// </summary>
+        public static string PastilMatchMessagePreviewParkSuggestion {
+            get {
+                return ResourceManager.GetString("PastilMatchMessagePreviewParkSuggestion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Message Preview Park Named Format.
+        /// </summary>
+        public static string PastilMatchMessagePreviewParkNamedFormat {
+            get {
+                return ResourceManager.GetString("PastilMatchMessagePreviewParkNamedFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Message Preview Image.
+        /// </summary>
+        public static string PastilMatchMessagePreviewImage {
+            get {
+                return ResourceManager.GetString("PastilMatchMessagePreviewImage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Message Preview Voice.
+        /// </summary>
+        public static string PastilMatchMessagePreviewVoice {
+            get {
+                return ResourceManager.GetString("PastilMatchMessagePreviewVoice", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil Match Message Preview New Message.
+        /// </summary>
+        public static string PastilMatchMessagePreviewNewMessage {
+            get {
+                return ResourceManager.GetString("PastilMatchMessagePreviewNewMessage", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Please answer the questions.
         /// </summary>

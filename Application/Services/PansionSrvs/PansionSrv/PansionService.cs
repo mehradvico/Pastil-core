@@ -200,7 +200,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Creating pansion request for companion {CompanionId} failed.", dto?.CompanionId);
-                return new BaseResultDto<PansionDto>(false, "خطا در ثبت درخواست پانسیون. اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.", dto);
+                return new BaseResultDto<PansionDto>(false, Resource.Notification.PansionCreateRequestFailed, dto);
             }
         }
         private async Task<BaseResultDto> ValidateRequestAsync(PansionDto dto)
@@ -220,24 +220,24 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 errors.Add(new Tuple<string, string>(Resource.Notification.PleaseEnterTheName, nameof(dto.Name)));
             }
             if (!dto.IsSchool.HasValue)
-                errors.Add(Tuple.Create("نوع مرکز (پانسیون یا مدرسه) را انتخاب کنید.", nameof(dto.IsSchool)));
+                errors.Add(Tuple.Create(Resource.Notification.PansionPleaseSelectCenterType, nameof(dto.IsSchool)));
             if (dto.StateId <= 0 || !await _context.States.AnyAsync(s => s.Id == dto.StateId))
-                errors.Add(Tuple.Create("استان انتخاب‌شده معتبر نیست.", nameof(dto.StateId)));
+                errors.Add(Tuple.Create(Resource.Notification.PansionSelectedStateInvalid, nameof(dto.StateId)));
             if (dto.CityId <= 0 || !await _context.Cities.AnyAsync(s => s.Id == dto.CityId && s.StateId == dto.StateId))
-                errors.Add(Tuple.Create("شهر انتخاب‌شده متعلق به استان انتخاب‌شده نیست.", nameof(dto.CityId)));
+                errors.Add(Tuple.Create(Resource.Notification.PansionSelectedCityNotInState, nameof(dto.CityId)));
             if (string.IsNullOrWhiteSpace(dto.AddressValue))
-                errors.Add(Tuple.Create("آدرس پانسیون را وارد کنید.", nameof(dto.AddressValue)));
+                errors.Add(Tuple.Create(Resource.Notification.PansionPleaseEnterAddress, nameof(dto.AddressValue)));
             if (string.IsNullOrWhiteSpace(dto.OpenHour))
-                errors.Add(Tuple.Create("ساعت شروع فعالیت را وارد کنید.", nameof(dto.OpenHour)));
+                errors.Add(Tuple.Create(Resource.Notification.PansionPleaseEnterOpenHour, nameof(dto.OpenHour)));
             if (string.IsNullOrWhiteSpace(dto.CloseHour))
-                errors.Add(Tuple.Create("ساعت پایان فعالیت را وارد کنید.", nameof(dto.CloseHour)));
+                errors.Add(Tuple.Create(Resource.Notification.PansionPleaseEnterCloseHour, nameof(dto.CloseHour)));
             if (dto.IsSchool == true && dto.SchoolPrice <= 0)
-                errors.Add(Tuple.Create("هزینه مدرسه باید بیشتر از صفر باشد.", nameof(dto.SchoolPrice)));
+                errors.Add(Tuple.Create(Resource.Notification.PansionSchoolPriceMustBeGreaterThanZero, nameof(dto.SchoolPrice)));
             if (dto.IsSchool == false && dto.PansionPrice <= 0)
-                errors.Add(Tuple.Create("هزینه پانسیون باید بیشتر از صفر باشد.", nameof(dto.PansionPrice)));
+                errors.Add(Tuple.Create(Resource.Notification.PansionPriceMustBeGreaterThanZero, nameof(dto.PansionPrice)));
             if (dto.PictureId.HasValue && dto.PictureId.Value > 0 &&
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.PictureId.Value))
-                errors.Add(Tuple.Create("تصویر پانسیون معتبر نیست.", nameof(dto.PictureId)));
+                errors.Add(Tuple.Create(Resource.Notification.PansionPictureInvalid, nameof(dto.PictureId)));
             if (errors.Any())
             {
                 return new BaseResultDto(isSuccess: false, messages: errors);
@@ -256,7 +256,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
         public async Task<BaseResultDto> ResubmitAsyncDto(PansionDto dto, long companionId, long ownerId)
         {
             if (dto == null || dto.Id <= 0)
-                return new BaseResultDto(false, "شناسه درخواست پانسیون معتبر نیست.");
+                return new BaseResultDto(false, Resource.Notification.PansionRequestIdInvalid);
 
             var companionIsValid = await _context.Companions.AnyAsync(s =>
                 s.Id == companionId &&
@@ -278,7 +278,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
             if (item.Approve)
-                return new BaseResultDto(false, "درخواست پانسیون تأیید شده است و از مسیر ارسال مجدد قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.PansionRequestAlreadyApprovedCannotResubmit);
 
             dto.CompanionId = companionId;
             dto.Active = false;
