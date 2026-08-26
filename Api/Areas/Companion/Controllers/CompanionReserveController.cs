@@ -51,6 +51,8 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var companion = await _companionReserveService.FindAsyncAdminVDto(id);
+            if (companion.IsSuccess && companion.Data?.CompanionAssistance?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<CompanionReserveAdminVDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(companion);
         }
 
@@ -63,21 +65,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionReserveDto>), 200)]
         public async Task<IActionResult> Post(CompanionReserveDto dto)
         {
+            dto.BookerId = _currentUserHelper.CurrentUser.UserId;
             var result = await _companionReserveService.InsertAsyncDto(dto);
             return Ok(result);
-        }
-
-        /// <summary>
-        ///  ویرایش آیتم 
-        /// </summary>
-        /// <returns>
-        /// </returns>
-        [HttpPut]
-        [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(CompanionReserveDto dto)
-        {
-            var companion = _companionReserveService.UpdateDto(dto);
-            return Ok(companion);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Api.HangFire;
 using Api.Authorization;
 using Api.Hubs;
+using Api.Middleware;
 using Api.Swagger;
 using Application.Common.Configuration;
 using Application.Common.Enumerable;
@@ -286,6 +287,7 @@ app.UseRateLimiter();
 app.UseOutputCache();
 app.MapControllers();
 app.MapHub<NoticeHub>("/hubs/notices");
+app.UseSwaggerAccessControl();
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {

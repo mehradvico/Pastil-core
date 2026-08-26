@@ -165,7 +165,7 @@ namespace Application.Services.Order.PaymentSrv
                     {
                         await createTransaction.RollbackAsync();
                         if (!IsSameCheckout(existingPayment, dto))
-                            return new BaseResultDto(false, "این Idempotency-Key قبلاً برای Checkout دیگری استفاده شده است.");
+                            return new BaseResultDto(false, Resource.Notification.PaymentIdempotencyKeyAlreadyUsedForDifferentCheckout);
 
                         return CreateIdempotentReplayResult(existingPayment);
                     }
@@ -210,7 +210,7 @@ namespace Application.Services.Order.PaymentSrv
                         (s.IsSuccess == null || s.IsSuccess == true)))
                 {
                     await createTransaction.RollbackAsync();
-                    return new BaseResultDto(false, "برای این مورد یک پرداخت فعال یا موفق وجود دارد.");
+                    return new BaseResultDto(false, Resource.Notification.PaymentActiveOrSuccessfulPaymentAlreadyExistsForTarget);
                 }
 
                 item = mapper.Map<Payment>(dto);
@@ -340,7 +340,7 @@ namespace Application.Services.Order.PaymentSrv
             if (!string.IsNullOrWhiteSpace(refNumber) &&
                 await _context.Payments.AnyAsync(s => !s.IsOnline && s.IsSuccess == true && s.RefNumber == refNumber))
             {
-                return new BaseResultDto<ManualPaymentVDto>(false, "شماره پیگیری قبلاً برای یک پرداخت موفق ثبت شده است.", null);
+                return new BaseResultDto<ManualPaymentVDto>(false, Resource.Notification.PaymentRefNumberAlreadyUsedForSuccessfulPayment, null);
             }
 
             var targetResult = await ResolveManualPaymentTargetAsync(dto);
@@ -362,7 +362,7 @@ namespace Application.Services.Order.PaymentSrv
 
             if (!typeId.HasValue)
             {
-                return new BaseResultDto<ManualPaymentVDto>(false, "نوع پرداخت در تنظیمات سیستم ثبت نشده است.", null);
+                return new BaseResultDto<ManualPaymentVDto>(false, Resource.Notification.PaymentTypeNotConfiguredInSystem, null);
             }
 
             PastilAiSubscription subscription = null;
@@ -430,7 +430,7 @@ namespace Application.Services.Order.PaymentSrv
 
                 payment.IsSuccess = false;
                 payment.GatewayStatus = "ManualCallbackFailed";
-                payment.Description = AppendDescription(payment.Description, "اعمال نتیجه پرداخت روی آیتم ناموفق بود.");
+                payment.Description = AppendDescription(payment.Description, Resource.Notification.PaymentApplyResultToTargetFailed);
                 await _context.SaveChangesAsync();
                 return new BaseResultDto<ManualPaymentVDto>(false, Resource.Notification.Unsuccess, MapManualPayment(payment, dto.TargetType.Value));
             }
@@ -1251,7 +1251,7 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 if (item.IsPaid)
                 {
-                    return ManualPaymentTargetResult.Fail("این سفارش قبلاً پرداخت شده است.");
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentOrderAlreadyPaid);
                 }
                 return ManualPaymentTargetResult.Success(item.UserId, item.PaymentPrice, dto.ReferenceId);
             }
@@ -1273,7 +1273,7 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 if (item.IsReserved)
                 {
-                    return ManualPaymentTargetResult.Fail("این رزرو قبلاً پرداخت شده است.");
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentReserveAlreadyPaid);
                 }
                 return ManualPaymentTargetResult.Success(item.BookerId, item.PrePaymentPrice, dto.ReferenceId);
             }
@@ -1290,7 +1290,7 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 if (item.IsReserved)
                 {
-                    return ManualPaymentTargetResult.Fail("این رزرو قبلاً پرداخت شده است.");
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentReserveAlreadyPaid);
                 }
                 return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
             }
@@ -1307,7 +1307,7 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 if (item.IsPaid)
                 {
-                    return ManualPaymentTargetResult.Fail("این سفر قبلاً پرداخت شده است.");
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentTripAlreadyPaid);
                 }
                 return ManualPaymentTargetResult.Success(item.UserId, item.PaymentPrice, dto.ReferenceId);
             }
@@ -1324,7 +1324,7 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 if (item.IsPaid)
                 {
-                    return ManualPaymentTargetResult.Fail("این درخواست کارگو قبلاً پرداخت شده است.");
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentCargoRequestAlreadyPaid);
                 }
                 return ManualPaymentTargetResult.Success(item.UserId, item.PaymentPrice, dto.ReferenceId);
             }
@@ -1341,7 +1341,7 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 if (item.IsPaid)
                 {
-                    return ManualPaymentTargetResult.Fail("این بیمه قبلاً پرداخت شده است.");
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentInsuranceAlreadyPaid);
                 }
                 return ManualPaymentTargetResult.Success(item.UserId, item.PaymentPrice, dto.ReferenceId);
             }
@@ -1433,7 +1433,7 @@ namespace Application.Services.Order.PaymentSrv
             var rawValue = values.Count == 1 ? values[0]?.Trim() : null;
             if (!Guid.TryParseExact(rawValue, "D", out var parsed) || parsed == Guid.Empty)
             {
-                error = "هدر Idempotency-Key باید یک UUID معتبر باشد.";
+                error = Resource.Notification.PaymentIdempotencyKeyHeaderMustBeValidUuid;
                 return false;
             }
 
@@ -1481,10 +1481,10 @@ namespace Application.Services.Order.PaymentSrv
             };
 
             if (payment.IsSuccess == false && string.IsNullOrWhiteSpace(payment.PaymentUrl))
-                return new BaseResultDto<PaymentStartDto>(false, "تلاش قبلی این Checkout ناموفق بوده است.", dto);
+                return new BaseResultDto<PaymentStartDto>(false, Resource.Notification.PaymentPreviousCheckoutAttemptFailed, dto);
 
             if (payment.IsSuccess == null && string.IsNullOrWhiteSpace(payment.PaymentUrl))
-                return new BaseResultDto<PaymentStartDto>(false, "درخواست پرداخت در حال پردازش است؛ همین درخواست را دوباره ارسال کنید.", dto);
+                return new BaseResultDto<PaymentStartDto>(false, Resource.Notification.PaymentRequestBeingProcessedResubmitSame, dto);
 
             return new BaseResultDto<PaymentStartDto>(true, dto);
         }

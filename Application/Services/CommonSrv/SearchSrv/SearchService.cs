@@ -73,7 +73,7 @@ namespace Application.Services.CommonSrv.SearchSrv
             request.SearchTerms = SearchNormalizeHelper.BuildTerms(request.Q, request.EnableFuzzy);
 
             if (request.Q.Length < 2)
-                return new BaseResultDto<SearchDto>(false, "عبارت جستجو باید حداقل دو کاراکتر باشد.", new SearchDto());
+                return new BaseResultDto<SearchDto>(false, Resource.Notification.SearchQueryTooShort, new SearchDto());
 
             cancellationToken.ThrowIfCancellationRequested();
 

@@ -61,7 +61,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionAssistanceTimeUpdateListDto>), 200)]
         public async Task<IActionResult> Post(CompanionAssistanceTimeUpdateListDto dto)
         {
-            var result = await _companionAssistanceTimeService.InsertUpdateListAsync(dto);
+            var result = await _companionAssistanceTimeService.InsertUpdateListAsync(dto, _currentUserHelper.CurrentUser.CompanionId);
             return Ok(result);
         }
 

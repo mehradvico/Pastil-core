@@ -40,6 +40,8 @@ namespace Api.Areas.EndUser.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var role = await _petService.FindAsyncDto(id);
+            if (role.IsSuccess && role.Data?.UserPet?.UserId != _currentUserHelper.CurrentUser.UserId)
+                return Ok(new BaseResultDto<UserPetRecordDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(role);
         }
         /// <summary>

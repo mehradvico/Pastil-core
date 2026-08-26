@@ -43,6 +43,15 @@ namespace Application.Services.PansionSrvs.PansionSrv
             this._logger = logger;
         }
 
+        public BaseResultDto GetSiteMap()
+        {
+            var list = _context.Pansions.AsNoTracking()
+                .Where(s => s.Active && s.ShowToSite)
+                .Select(s => new PansionSiteMapDto { Id = s.Id, Name = s.Name })
+                .ToList();
+            return new BaseResultDto<List<PansionSiteMapDto>>(true, list);
+        }
+
         public async Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id)
         {
             var item = await _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.City).ThenInclude(s => s.State)
@@ -244,9 +253,13 @@ namespace Application.Services.PansionSrvs.PansionSrv
             }
             return new BaseResultDto(true);
         }
-        public BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto)
+        public BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto, long? companionId = null)
         {
             var item = _context.Pansions.FirstOrDefault(s => s.Id == dto.Id);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (companionId.HasValue && item.CompanionId != companionId.Value)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
             item.Active = dto.Active;
             _context.Pansions.Update(item);
             _context.SaveChanges();

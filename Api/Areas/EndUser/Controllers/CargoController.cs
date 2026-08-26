@@ -46,10 +46,10 @@ namespace Api.Areas.EndUser.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<CargoDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<CargoVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var Cargo = await _cargoService.FindAsyncDto(id);
+            var Cargo = await _cargoService.FindAsyncVDto(id);
             return Ok(Cargo);
         }
 

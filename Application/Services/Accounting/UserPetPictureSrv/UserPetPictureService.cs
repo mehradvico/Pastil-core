@@ -32,6 +32,19 @@ namespace Application.Services.Accounting.UserPetPictureSrv
             return new BaseResultDto<UserPetPictureVDto>(false, mapper.Map<UserPetPictureVDto>(item));
         }
 
+        public async Task<BaseResultDto<UserPetPictureVDto>> FindAsyncVDto(long id, long userId)
+        {
+            var item = await _context.UserPetPictures.Include(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id && s.UserPet.UserId == userId);
+            if (item != null)
+                return new BaseResultDto<UserPetPictureVDto>(true, mapper.Map<UserPetPictureVDto>(item));
+            return new BaseResultDto<UserPetPictureVDto>(false, mapper.Map<UserPetPictureVDto>(item));
+        }
+
+        public Task<bool> IsUserPetOwnedByAsync(long userPetId, long userId)
+        {
+            return _context.UserPets.AnyAsync(s => s.Id == userPetId && s.UserId == userId);
+        }
+
         public UserPetPictureSearchDto Search(UserPetPictureInputDto searchDto)
         {
             var model = _context.UserPetPictures.Include(s => s.Picture).AsQueryable().Where(s => !s.Deleted);

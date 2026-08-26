@@ -95,6 +95,10 @@ namespace Application.Services.CompanionSrvs.CompanionCommentSrv
             try
             {
                 var item = _context.CompanionComments.FirstOrDefault(s => s.Id.Equals(dto.Id));
+                if (item == null)
+                    return new BaseResultDto(false, Resource.Notification.NothingFound);
+                if (item.CompanionId != dto.CompanionId)
+                    return new BaseResultDto(false, Resource.Notification.AccessDenied);
                 item.StatusId = dto.StatusId;
                 item.Answer = dto.Answer;
                 _context.CompanionComments.Update(item);

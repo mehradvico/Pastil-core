@@ -137,7 +137,7 @@ namespace Application.Services.Content.ContactUsSrv
                 {
                     return new BaseResultDto<ContactUsDto>(
                         false,
-                        "اطلاعات تکمیلی فرم بیش از حد مجاز است.",
+                        Resource.Notification.ContactUsFormItemsExceedLimit,
                         dto);
                 }
 
@@ -185,7 +185,7 @@ namespace Application.Services.Content.ContactUsSrv
                 {
                     return new BaseResultDto<ContactUsDto>(
                         false,
-                        "این درخواست به‌تازگی ثبت شده است و نیازی به ارسال مجدد نیست.",
+                        Resource.Notification.ContactUsDuplicateRecentSubmission,
                         dto);
                 }
 
@@ -215,7 +215,7 @@ namespace Application.Services.Content.ContactUsSrv
                     {
                         return new BaseResultDto<ContactUsDto>(
                             false,
-                            "فایل پیوست معتبر نیست، قبلاً استفاده شده یا زمان آپلود آن گذشته است.",
+                            Resource.Notification.ContactUsAttachmentInvalidOrExpired,
                             dto);
                     }
                 }
@@ -379,7 +379,7 @@ namespace Application.Services.Content.ContactUsSrv
 
             if (duplicateKey != null)
             {
-                return "هر فیلد تکمیلی فقط یک‌بار قابل ارسال است.";
+                return Resource.Notification.ContactUsFormFieldDuplicate;
             }
 
             var values = items
@@ -389,7 +389,7 @@ namespace Application.Services.Content.ContactUsSrv
             if (values.Keys.Any(key => fields.All(field =>
                     !field.Key.Equals(key, StringComparison.OrdinalIgnoreCase))))
             {
-                return "یکی از فیلدهای تکمیلی برای دپارتمان انتخاب‌شده معتبر نیست.";
+                return Resource.Notification.ContactUsFormFieldNotValidForDepartment;
             }
 
             foreach (var field in fields)
@@ -398,7 +398,7 @@ namespace Application.Services.Content.ContactUsSrv
 
                 if (field.Required && string.IsNullOrWhiteSpace(value))
                 {
-                    return $"فیلد «{field.Label}» الزامی است.";
+                    return string.Format(Resource.Notification.ContactUsFormFieldRequired, field.Label);
                 }
 
                 if (string.IsNullOrWhiteSpace(value))
@@ -408,27 +408,27 @@ namespace Application.Services.Content.ContactUsSrv
 
                 if (field.MaxLength.HasValue && value.Length > field.MaxLength.Value)
                 {
-                    return $"مقدار فیلد «{field.Label}» بیش از حد مجاز است.";
+                    return string.Format(Resource.Notification.ContactUsFormFieldValueExceedsLimit, field.Label);
                 }
 
                 if (field.InputType == "select" && field.Options.All(option =>
                         !option.Value.Equals(value, StringComparison.OrdinalIgnoreCase)))
                 {
-                    return $"مقدار انتخاب‌شده برای «{field.Label}» معتبر نیست.";
+                    return string.Format(Resource.Notification.ContactUsFormFieldSelectedValueInvalid, field.Label);
                 }
 
                 if (field.InputType == "number" &&
                     (!decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var number) ||
                      number < (field.MinValue ?? 0)))
                 {
-                    return $"مقدار «{field.Label}» باید عدد معتبر باشد.";
+                    return string.Format(Resource.Notification.ContactUsFormFieldMustBeValidNumber, field.Label);
                 }
 
                 if (field.InputType == "url" &&
                     (!Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
                      (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
                 {
-                    return $"لینک واردشده برای «{field.Label}» معتبر نیست.";
+                    return string.Format(Resource.Notification.ContactUsFormFieldInvalidUrl, field.Label);
                 }
             }
 

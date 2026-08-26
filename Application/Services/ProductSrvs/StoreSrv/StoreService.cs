@@ -207,7 +207,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
                 return new BaseResultDto<StoreDto>(false, Resource.Notification.NothingFound, dto);
 
             if (await _context.Stores.AnyAsync(s => !s.Deleted && s.Users.Any(u => u.Id == userId)))
-                return new BaseResultDto<StoreDto>(false, "برای این کاربر قبلاً درخواست فروشگاه ثبت شده است.", dto);
+                return new BaseResultDto<StoreDto>(false, Resource.Notification.StoreRequestAlreadyExistsForUser, dto);
 
             var item = mapper.Map<Store>(dto);
             item.Active = false;
@@ -232,7 +232,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Creating store request for user {UserId} failed.", userId);
-                return new BaseResultDto<StoreDto>(false, "اطلاعات فروشگاه با داده‌های موجود سازگار نیست. شناسه‌های انتخاب‌شده را بررسی کنید.", dto);
+                return new BaseResultDto<StoreDto>(false, Resource.Notification.StoreDataConflictsWithExistingData, dto);
             }
             await TryCreateNoticeAsync(item, NoticeTypeLabels.StoreSubmitted, userId);
 
@@ -242,7 +242,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
         public async Task<BaseResultDto> ResubmitRequestAsync(StoreDto dto, long userId)
         {
             if (dto == null || dto.Id <= 0)
-                return new BaseResultDto(false, "شناسه درخواست فروشگاه معتبر نیست.");
+                return new BaseResultDto(false, Resource.Notification.StoreRequestIdIsInvalid);
 
             var checker = await ValidateRequestAsync(dto);
             if (!checker.IsSuccess)
@@ -259,7 +259,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
             if (item.Approved)
-                return new BaseResultDto(false, "درخواست فروشگاه تأیید شده است و از مسیر ارسال مجدد قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.StoreRequestAlreadyApprovedCannotResubmit);
 
             if (await _context.Stores.AnyAsync(s => s.Id != item.Id && !s.Deleted && s.Name == dto.Name))
                 return new BaseResultDto(false, Resource.Notification.TheNameIsDuplicate);
@@ -292,7 +292,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
             catch (DbUpdateException ex)
             {
                 _logger.LogError(ex, "Resubmitting store request {StoreId} failed.", item.Id);
-                return new BaseResultDto(false, "اطلاعات فروشگاه با داده‌های موجود سازگار نیست. شناسه‌های انتخاب‌شده را بررسی کنید.");
+                return new BaseResultDto(false, Resource.Notification.StoreDataConflictsWithExistingData);
             }
             await TryCreateNoticeAsync(item, NoticeTypeLabels.StoreUpdated, userId);
 
@@ -313,27 +313,27 @@ namespace Application.Services.ProductSrvs.StoreSrv
             if (string.IsNullOrWhiteSpace(dto.Name))
                 errors.Add(Tuple.Create(Resource.Notification.PleaseEnterTheName, nameof(dto.Name)));
             if (string.IsNullOrWhiteSpace(dto.Phone) && string.IsNullOrWhiteSpace(dto.Mobile))
-                errors.Add(Tuple.Create("حداقل یکی از شماره تماس یا موبایل را وارد کنید.", nameof(dto.Mobile)));
+                errors.Add(Tuple.Create(Resource.Notification.StorePhoneOrMobileRequired, nameof(dto.Mobile)));
             if (!string.IsNullOrWhiteSpace(dto.Mobile) && !Regex.IsMatch(dto.Mobile, @"^\+?\d{10,13}$"))
-                errors.Add(Tuple.Create("شماره موبایل معتبر نیست.", nameof(dto.Mobile)));
+                errors.Add(Tuple.Create(Resource.Notification.StoreMobileIsInvalid, nameof(dto.Mobile)));
             if (string.IsNullOrWhiteSpace(dto.Address))
-                errors.Add(Tuple.Create("آدرس فروشگاه را وارد کنید.", nameof(dto.Address)));
+                errors.Add(Tuple.Create(Resource.Notification.StoreAddressRequired, nameof(dto.Address)));
             if (dto.TypeId <= 0 || !await _context.Codes.AnyAsync(s =>
                     s.Id == dto.TypeId &&
                     s.Active &&
                     s.CodeGroup.Label == CodeGroupEnum.Store_Type.ToString()))
-                errors.Add(Tuple.Create("نوع فروشگاه معتبر نیست.", nameof(dto.TypeId)));
+                errors.Add(Tuple.Create(Resource.Notification.StoreTypeIsInvalid, nameof(dto.TypeId)));
             if (dto.CityId <= 0 || !await _context.Cities.AnyAsync(s => s.Id == dto.CityId))
-                errors.Add(Tuple.Create("شهر انتخاب‌شده معتبر نیست.", nameof(dto.CityId)));
+                errors.Add(Tuple.Create(Resource.Notification.StoreCityIsInvalid, nameof(dto.CityId)));
             if (dto.PictureId.HasValue && dto.PictureId.Value > 0 &&
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.PictureId.Value))
-                errors.Add(Tuple.Create("تصویر فروشگاه معتبر نیست.", nameof(dto.PictureId)));
+                errors.Add(Tuple.Create(Resource.Notification.StorePictureIsInvalid, nameof(dto.PictureId)));
             if (dto.IconId.HasValue && dto.IconId.Value > 0 &&
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.IconId.Value))
-                errors.Add(Tuple.Create("آیکن فروشگاه معتبر نیست.", nameof(dto.IconId)));
+                errors.Add(Tuple.Create(Resource.Notification.StoreIconIsInvalid, nameof(dto.IconId)));
             if (dto.Location != null &&
                 (dto.Location.x < -180 || dto.Location.x > 180 || dto.Location.y < -90 || dto.Location.y > 90))
-                errors.Add(Tuple.Create("مختصات انتخاب‌شده روی نقشه معتبر نیست.", nameof(dto.Location)));
+                errors.Add(Tuple.Create(Resource.Notification.StoreMapCoordinatesAreInvalid, nameof(dto.Location)));
 
             return errors.Any()
                 ? new BaseResultDto(false, errors)
@@ -354,7 +354,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
 
             var owner = item.Users.OrderBy(s => s.Id).FirstOrDefault();
             if (owner == null)
-                return new BaseResultDto(false, "کاربر مسئول فروشگاه مشخص نشده است.");
+                return new BaseResultDto(false, Resource.Notification.StoreOwnerNotSpecified);
 
             item.Approved = dto.Approved;
             item.Active = dto.Approved;

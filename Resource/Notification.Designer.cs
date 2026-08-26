@@ -729,6 +729,1644 @@ namespace Resource {
         /// <summary>
         ///   Looks up a localized string similar to Pastil Match Admin Description Required.
         /// </summary>
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Payment Started Financial Data Locked.
+        /// </summary>
+        public static string CompanionPaymentStartedFinancialDataLocked {
+            get {
+                return ResourceManager.GetString("CompanionPaymentStartedFinancialDataLocked", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Expertise Name Required.
+        /// </summary>
+        public static string CompanionExpertiseNameRequired {
+            get {
+                return ResourceManager.GetString("CompanionExpertiseNameRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Expertise Name Already Registered.
+        /// </summary>
+        public static string CompanionExpertiseNameAlreadyRegistered {
+            get {
+                return ResourceManager.GetString("CompanionExpertiseNameAlreadyRegistered", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Expertise Data Invalid.
+        /// </summary>
+        public static string CompanionExpertiseDataInvalid {
+            get {
+                return ResourceManager.GetString("CompanionExpertiseDataInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Expertise In Use Cannot Delete.
+        /// </summary>
+        public static string CompanionExpertiseInUseCannotDelete {
+            get {
+                return ResourceManager.GetString("CompanionExpertiseInUseCannotDelete", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Select Active Valid Job Title.
+        /// </summary>
+        public static string CompanionSelectActiveValidJobTitle {
+            get {
+                return ResourceManager.GetString("CompanionSelectActiveValidJobTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Data Conflicts With Existing.
+        /// </summary>
+        public static string CompanionDataConflictsWithExisting {
+            get {
+                return ResourceManager.GetString("CompanionDataConflictsWithExisting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Insert Error Retry.
+        /// </summary>
+        public static string CompanionInsertErrorRetry {
+            get {
+                return ResourceManager.GetString("CompanionInsertErrorRetry", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Phone Not Valid.
+        /// </summary>
+        public static string CompanionPhoneNotValid {
+            get {
+                return ResourceManager.GetString("CompanionPhoneNotValid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Owner Selection Not Valid.
+        /// </summary>
+        public static string CompanionOwnerSelectionNotValid {
+            get {
+                return ResourceManager.GetString("CompanionOwnerSelectionNotValid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion City Selection Not Valid.
+        /// </summary>
+        public static string CompanionCitySelectionNotValid {
+            get {
+                return ResourceManager.GetString("CompanionCitySelectionNotValid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Neighborhood Not In Selected City.
+        /// </summary>
+        public static string CompanionNeighborhoodNotInSelectedCity {
+            get {
+                return ResourceManager.GetString("CompanionNeighborhoodNotInSelectedCity", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Enter Address.
+        /// </summary>
+        public static string CompanionEnterAddress {
+            get {
+                return ResourceManager.GetString("CompanionEnterAddress", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Selected Location Coordinates Not Valid.
+        /// </summary>
+        public static string CompanionSelectedLocationCoordinatesNotValid {
+            get {
+                return ResourceManager.GetString("CompanionSelectedLocationCoordinatesNotValid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Selected Id Not Valid Format.
+        /// </summary>
+        public static string CompanionSelectedIdNotValidFormat {
+            get {
+                return ResourceManager.GetString("CompanionSelectedIdNotValidFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Picture Title Main.
+        /// </summary>
+        public static string CompanionPictureTitleMain {
+            get {
+                return ResourceManager.GetString("CompanionPictureTitleMain", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Picture Title Background.
+        /// </summary>
+        public static string CompanionPictureTitleBackground {
+            get {
+                return ResourceManager.GetString("CompanionPictureTitleBackground", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Picture Title Icon.
+        /// </summary>
+        public static string CompanionPictureTitleIcon {
+            get {
+                return ResourceManager.GetString("CompanionPictureTitleIcon", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Id Not Valid.
+        /// </summary>
+        public static string CompanionIdNotValid {
+            get {
+                return ResourceManager.GetString("CompanionIdNotValid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Not Found.
+        /// </summary>
+        public static string CompanionNotFound {
+            get {
+                return ResourceManager.GetString("CompanionNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Already Registered For Owner.
+        /// </summary>
+        public static string CompanionAlreadyRegisteredForOwner {
+            get {
+                return ResourceManager.GetString("CompanionAlreadyRegisteredForOwner", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Update Error Retry.
+        /// </summary>
+        public static string CompanionUpdateErrorRetry {
+            get {
+                return ResourceManager.GetString("CompanionUpdateErrorRetry", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Request Id Not Valid.
+        /// </summary>
+        public static string CompanionRequestIdNotValid {
+            get {
+                return ResourceManager.GetString("CompanionRequestIdNotValid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Request Already Approved Cannot Resubmit.
+        /// </summary>
+        public static string CompanionRequestAlreadyApprovedCannotResubmit {
+            get {
+                return ResourceManager.GetString("CompanionRequestAlreadyApprovedCannotResubmit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Type Assistance.
+        /// </summary>
+        public static string CompanionReserveTypeAssistance {
+            get {
+                return ResourceManager.GetString("CompanionReserveTypeAssistance", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Operator Name Clinic Fallback.
+        /// </summary>
+        public static string CompanionReserveOperatorNameClinicFallback {
+            get {
+                return ResourceManager.GetString("CompanionReserveOperatorNameClinicFallback", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Type Pansion Daily.
+        /// </summary>
+        public static string CompanionReserveTypePansionDaily {
+            get {
+                return ResourceManager.GetString("CompanionReserveTypePansionDaily", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Type Pansion Hourly.
+        /// </summary>
+        public static string CompanionReserveTypePansionHourly {
+            get {
+                return ResourceManager.GetString("CompanionReserveTypePansionHourly", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Comment Only For Own Completed Reserve.
+        /// </summary>
+        public static string CompanionReserveCommentOnlyForOwnCompletedReserve {
+            get {
+                return ResourceManager.GetString("CompanionReserveCommentOnlyForOwnCompletedReserve", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Assistance Type Not Belong To Service.
+        /// </summary>
+        public static string CompanionReserveAssistanceTypeNotBelongToService {
+            get {
+                return ResourceManager.GetString("CompanionReserveAssistanceTypeNotBelongToService", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Cannot Book Past Date.
+        /// </summary>
+        public static string CompanionReserveCannotBookPastDate {
+            get {
+                return ResourceManager.GetString("CompanionReserveCannotBookPastDate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Time Not Belong Or Inactive.
+        /// </summary>
+        public static string CompanionReserveTimeNotBelongOrInactive {
+            get {
+                return ResourceManager.GetString("CompanionReserveTimeNotBelongOrInactive", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Day Mismatch With Selected Time.
+        /// </summary>
+        public static string CompanionReserveDayMismatchWithSelectedTime {
+            get {
+                return ResourceManager.GetString("CompanionReserveDayMismatchWithSelectedTime", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Service Start Time Not Valid.
+        /// </summary>
+        public static string CompanionReserveServiceStartTimeNotValid {
+            get {
+                return ResourceManager.GetString("CompanionReserveServiceStartTimeNotValid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Cannot Book Past Time.
+        /// </summary>
+        public static string CompanionReserveCannotBookPastTime {
+            get {
+                return ResourceManager.GetString("CompanionReserveCannotBookPastTime", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Service Time Selection Required.
+        /// </summary>
+        public static string CompanionReserveServiceTimeSelectionRequired {
+            get {
+                return ResourceManager.GetString("CompanionReserveServiceTimeSelectionRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Operator Not Belong Or Inactive.
+        /// </summary>
+        public static string CompanionReserveOperatorNotBelongOrInactive {
+            get {
+                return ResourceManager.GetString("CompanionReserveOperatorNotBelongOrInactive", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Operator Membership Not Active Or Confirmed.
+        /// </summary>
+        public static string CompanionReserveOperatorMembershipNotActiveOrConfirmed {
+            get {
+                return ResourceManager.GetString("CompanionReserveOperatorMembershipNotActiveOrConfirmed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Operator Has Schedule Conflict.
+        /// </summary>
+        public static string CompanionReserveOperatorHasScheduleConflict {
+            get {
+                return ResourceManager.GetString("CompanionReserveOperatorHasScheduleConflict", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Only Paid Active Can Be Assigned.
+        /// </summary>
+        public static string CompanionReserveOnlyPaidActiveCanBeAssigned {
+            get {
+                return ResourceManager.GetString("CompanionReserveOnlyPaidActiveCanBeAssigned", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve No Successful Payment Registered.
+        /// </summary>
+        public static string CompanionReserveNoSuccessfulPaymentRegistered {
+            get {
+                return ResourceManager.GetString("CompanionReserveNoSuccessfulPaymentRegistered", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Payment Amount Mismatch Cannot Auto Assign.
+        /// </summary>
+        public static string CompanionReservePaymentAmountMismatchCannotAutoAssign {
+            get {
+                return ResourceManager.GetString("CompanionReservePaymentAmountMismatchCannotAutoAssign", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Payment Succeeded But Apply Failed.
+        /// </summary>
+        public static string CompanionReservePaymentSucceededButApplyFailed {
+            get {
+                return ResourceManager.GetString("CompanionReservePaymentSucceededButApplyFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Completed Cannot Reassign.
+        /// </summary>
+        public static string CompanionReserveCompletedCannotReassign {
+            get {
+                return ResourceManager.GetString("CompanionReserveCompletedCannotReassign", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve User Not Belong Or Inactive.
+        /// </summary>
+        public static string CompanionReserveUserNotBelongOrInactive {
+            get {
+                return ResourceManager.GetString("CompanionReserveUserNotBelongOrInactive", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve User Membership Not Active Or Confirmed.
+        /// </summary>
+        public static string CompanionReserveUserMembershipNotActiveOrConfirmed {
+            get {
+                return ResourceManager.GetString("CompanionReserveUserMembershipNotActiveOrConfirmed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve User Has Schedule Conflict.
+        /// </summary>
+        public static string CompanionReserveUserHasScheduleConflict {
+            get {
+                return ResourceManager.GetString("CompanionReserveUserHasScheduleConflict", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Cannot Select Past Time.
+        /// </summary>
+        public static string CompanionReserveCannotSelectPastTime {
+            get {
+                return ResourceManager.GetString("CompanionReserveCannotSelectPastTime", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Paid State Code Not Configured.
+        /// </summary>
+        public static string CompanionReservePaidStateCodeNotConfigured {
+            get {
+                return ResourceManager.GetString("CompanionReservePaidStateCodeNotConfigured", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Reserve Payment Started Financial Data Locked.
+        /// </summary>
+        public static string CompanionReservePaymentStartedFinancialDataLocked {
+            get {
+                return ResourceManager.GetString("CompanionReservePaymentStartedFinancialDataLocked", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Active Cart Not Found For Store.
+        /// </summary>
+        public static string ShippingActiveCartNotFoundForStore {
+            get {
+                return ResourceManager.GetString("ShippingActiveCartNotFoundForStore", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Select Delivery Address First.
+        /// </summary>
+        public static string ShippingSelectDeliveryAddressFirst {
+            get {
+                return ResourceManager.GetString("ShippingSelectDeliveryAddressFirst", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping No Active Delivery Method For Store.
+        /// </summary>
+        public static string ShippingNoActiveDeliveryMethodForStore {
+            get {
+                return ResourceManager.GetString("ShippingNoActiveDeliveryMethodForStore", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Quote Currently Unavailable.
+        /// </summary>
+        public static string ShippingQuoteCurrentlyUnavailable {
+            get {
+                return ResourceManager.GetString("ShippingQuoteCurrentlyUnavailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Selected Quote Invalid.
+        /// </summary>
+        public static string ShippingSelectedQuoteInvalid {
+            get {
+                return ResourceManager.GetString("ShippingSelectedQuoteInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Quote Expired Refetch.
+        /// </summary>
+        public static string ShippingQuoteExpiredRefetch {
+            get {
+                return ResourceManager.GetString("ShippingQuoteExpiredRefetch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Cart Address Changed Refetch Quote.
+        /// </summary>
+        public static string ShippingCartAddressChangedRefetchQuote {
+            get {
+                return ResourceManager.GetString("ShippingCartAddressChangedRefetchQuote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Method Selected Successfully.
+        /// </summary>
+        public static string ShippingMethodSelectedSuccessfully {
+            get {
+                return ResourceManager.GetString("ShippingMethodSelectedSuccessfully", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Method Not Selected.
+        /// </summary>
+        public static string ShippingMethodNotSelected {
+            get {
+                return ResourceManager.GetString("ShippingMethodNotSelected", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Selected Method No Longer Active.
+        /// </summary>
+        public static string ShippingSelectedMethodNoLongerActive {
+            get {
+                return ResourceManager.GetString("ShippingSelectedMethodNoLongerActive", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Live Quote Required For Method.
+        /// </summary>
+        public static string ShippingLiveQuoteRequiredForMethod {
+            get {
+                return ResourceManager.GetString("ShippingLiveQuoteRequiredForMethod", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Quote Expired Fetch New.
+        /// </summary>
+        public static string ShippingQuoteExpiredFetchNew {
+            get {
+                return ResourceManager.GetString("ShippingQuoteExpiredFetchNew", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Quote Info Invalid.
+        /// </summary>
+        public static string ShippingQuoteInfoInvalid {
+            get {
+                return ResourceManager.GetString("ShippingQuoteInfoInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Cart Contents Changed Fetch New Quote.
+        /// </summary>
+        public static string ShippingCartContentsChangedFetchNewQuote {
+            get {
+                return ResourceManager.GetString("ShippingCartContentsChangedFetchNewQuote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Cart Amount Invalid.
+        /// </summary>
+        public static string ShippingCartAmountInvalid {
+            get {
+                return ResourceManager.GetString("ShippingCartAmountInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery Not Found Or Not Belong To Store.
+        /// </summary>
+        public static string DeliveryNotFoundOrNotBelongToStore {
+            get {
+                return ResourceManager.GetString("DeliveryNotFoundOrNotBelongToStore", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery No Active Types Configured.
+        /// </summary>
+        public static string DeliveryNoActiveTypesConfigured {
+            get {
+                return ResourceManager.GetString("DeliveryNoActiveTypesConfigured", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery No Active Store For Current User.
+        /// </summary>
+        public static string DeliveryNoActiveStoreForCurrentUser {
+            get {
+                return ResourceManager.GetString("DeliveryNoActiveStoreForCurrentUser", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery Type Invalid.
+        /// </summary>
+        public static string DeliveryTypeInvalid {
+            get {
+                return ResourceManager.GetString("DeliveryTypeInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery Cost Count Days Cannot Be Negative.
+        /// </summary>
+        public static string DeliveryCostCountDaysCannotBeNegative {
+            get {
+                return ResourceManager.GetString("DeliveryCostCountDaysCannotBeNegative", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery Shipping Provider Invalid.
+        /// </summary>
+        public static string DeliveryShippingProviderInvalid {
+            get {
+                return ResourceManager.GetString("DeliveryShippingProviderInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery Provider Required For Live Pricing.
+        /// </summary>
+        public static string DeliveryProviderRequiredForLivePricing {
+            get {
+                return ResourceManager.GetString("DeliveryProviderRequiredForLivePricing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery At Least One Payment Mode Required.
+        /// </summary>
+        public static string DeliveryAtLeastOnePaymentModeRequired {
+            get {
+                return ResourceManager.GetString("DeliveryAtLeastOnePaymentModeRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery Selected City Invalid.
+        /// </summary>
+        public static string DeliverySelectedCityInvalid {
+            get {
+                return ResourceManager.GetString("DeliverySelectedCityInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery Selected State Invalid.
+        /// </summary>
+        public static string DeliverySelectedStateInvalid {
+            get {
+                return ResourceManager.GetString("DeliverySelectedStateInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery City Not In Selected State.
+        /// </summary>
+        public static string DeliveryCityNotInSelectedState {
+            get {
+                return ResourceManager.GetString("DeliveryCityNotInSelectedState", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cart Selected Address Not Owned By Current User.
+        /// </summary>
+        public static string CartSelectedAddressNotOwnedByCurrentUser {
+            get {
+                return ResourceManager.GetString("CartSelectedAddressNotOwnedByCurrentUser", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Merchant Gateway Encryption Key Not Configured.
+        /// </summary>
+        public static string MerchantGatewayEncryptionKeyNotConfigured {
+            get {
+                return ResourceManager.GetString("MerchantGatewayEncryptionKeyNotConfigured", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Idempotency Key Already Used For Different Checkout.
+        /// </summary>
+        public static string PaymentIdempotencyKeyAlreadyUsedForDifferentCheckout {
+            get {
+                return ResourceManager.GetString("PaymentIdempotencyKeyAlreadyUsedForDifferentCheckout", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Active Or Successful Payment Already Exists For Target.
+        /// </summary>
+        public static string PaymentActiveOrSuccessfulPaymentAlreadyExistsForTarget {
+            get {
+                return ResourceManager.GetString("PaymentActiveOrSuccessfulPaymentAlreadyExistsForTarget", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Ref Number Already Used For Successful Payment.
+        /// </summary>
+        public static string PaymentRefNumberAlreadyUsedForSuccessfulPayment {
+            get {
+                return ResourceManager.GetString("PaymentRefNumberAlreadyUsedForSuccessfulPayment", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Type Not Configured In System.
+        /// </summary>
+        public static string PaymentTypeNotConfiguredInSystem {
+            get {
+                return ResourceManager.GetString("PaymentTypeNotConfiguredInSystem", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Apply Result To Target Failed.
+        /// </summary>
+        public static string PaymentApplyResultToTargetFailed {
+            get {
+                return ResourceManager.GetString("PaymentApplyResultToTargetFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Order Already Paid.
+        /// </summary>
+        public static string PaymentOrderAlreadyPaid {
+            get {
+                return ResourceManager.GetString("PaymentOrderAlreadyPaid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Reserve Already Paid.
+        /// </summary>
+        public static string PaymentReserveAlreadyPaid {
+            get {
+                return ResourceManager.GetString("PaymentReserveAlreadyPaid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Trip Already Paid.
+        /// </summary>
+        public static string PaymentTripAlreadyPaid {
+            get {
+                return ResourceManager.GetString("PaymentTripAlreadyPaid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Cargo Request Already Paid.
+        /// </summary>
+        public static string PaymentCargoRequestAlreadyPaid {
+            get {
+                return ResourceManager.GetString("PaymentCargoRequestAlreadyPaid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Insurance Already Paid.
+        /// </summary>
+        public static string PaymentInsuranceAlreadyPaid {
+            get {
+                return ResourceManager.GetString("PaymentInsuranceAlreadyPaid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Idempotency Key Header Must Be Valid Uuid.
+        /// </summary>
+        public static string PaymentIdempotencyKeyHeaderMustBeValidUuid {
+            get {
+                return ResourceManager.GetString("PaymentIdempotencyKeyHeaderMustBeValidUuid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Previous Checkout Attempt Failed.
+        /// </summary>
+        public static string PaymentPreviousCheckoutAttemptFailed {
+            get {
+                return ResourceManager.GetString("PaymentPreviousCheckoutAttemptFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Request Being Processed Resubmit Same.
+        /// </summary>
+        public static string PaymentRequestBeingProcessedResubmitSame {
+            get {
+                return ResourceManager.GetString("PaymentRequestBeingProcessedResubmitSame", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Post Not Found.
+        /// </summary>
+        public static string PostNotFound {
+            get {
+                return ResourceManager.GetString("PostNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Post Main Picture Invalid Or Deleted.
+        /// </summary>
+        public static string PostMainPictureInvalidOrDeleted {
+            get {
+                return ResourceManager.GetString("PostMainPictureInvalidOrDeleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Post Attached Picture Invalid Or Deleted.
+        /// </summary>
+        public static string PostAttachedPictureInvalidOrDeleted {
+            get {
+                return ResourceManager.GetString("PostAttachedPictureInvalidOrDeleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Form Items Exceed Limit.
+        /// </summary>
+        public static string ContactUsFormItemsExceedLimit {
+            get {
+                return ResourceManager.GetString("ContactUsFormItemsExceedLimit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Duplicate Recent Submission.
+        /// </summary>
+        public static string ContactUsDuplicateRecentSubmission {
+            get {
+                return ResourceManager.GetString("ContactUsDuplicateRecentSubmission", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Attachment Invalid Or Expired.
+        /// </summary>
+        public static string ContactUsAttachmentInvalidOrExpired {
+            get {
+                return ResourceManager.GetString("ContactUsAttachmentInvalidOrExpired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Form Field Duplicate.
+        /// </summary>
+        public static string ContactUsFormFieldDuplicate {
+            get {
+                return ResourceManager.GetString("ContactUsFormFieldDuplicate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Form Field Not Valid For Department.
+        /// </summary>
+        public static string ContactUsFormFieldNotValidForDepartment {
+            get {
+                return ResourceManager.GetString("ContactUsFormFieldNotValidForDepartment", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Form Field Required.
+        /// </summary>
+        public static string ContactUsFormFieldRequired {
+            get {
+                return ResourceManager.GetString("ContactUsFormFieldRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Form Field Value Exceeds Limit.
+        /// </summary>
+        public static string ContactUsFormFieldValueExceedsLimit {
+            get {
+                return ResourceManager.GetString("ContactUsFormFieldValueExceedsLimit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Form Field Selected Value Invalid.
+        /// </summary>
+        public static string ContactUsFormFieldSelectedValueInvalid {
+            get {
+                return ResourceManager.GetString("ContactUsFormFieldSelectedValueInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Form Field Must Be Valid Number.
+        /// </summary>
+        public static string ContactUsFormFieldMustBeValidNumber {
+            get {
+                return ResourceManager.GetString("ContactUsFormFieldMustBeValidNumber", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Contact Us Form Field Invalid Url.
+        /// </summary>
+        public static string ContactUsFormFieldInvalidUrl {
+            get {
+                return ResourceManager.GetString("ContactUsFormFieldInvalidUrl", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Cargo Payment Started Financial Data Locked.
+        /// </summary>
+        public static string CargoPaymentStartedFinancialDataLocked {
+            get {
+                return ResourceManager.GetString("CargoPaymentStartedFinancialDataLocked", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search Query Too Short.
+        /// </summary>
+        public static string SearchQueryTooShort {
+            get {
+                return ResourceManager.GetString("SearchQueryTooShort", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Push Message Data Not Provided.
+        /// </summary>
+        public static string PushMessageDataNotProvided {
+            get {
+                return ResourceManager.GetString("PushMessageDataNotProvided", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Push Message Title Must Be Persian.
+        /// </summary>
+        public static string PushMessageTitleMustBePersian {
+            get {
+                return ResourceManager.GetString("PushMessageTitleMustBePersian", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Push Message Body Must Be Persian.
+        /// </summary>
+        public static string PushMessageBodyMustBePersian {
+            get {
+                return ResourceManager.GetString("PushMessageBodyMustBePersian", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Push Broadcast Title And Body Must Be Persian.
+        /// </summary>
+        public static string PushBroadcastTitleAndBodyMustBePersian {
+            get {
+                return ResourceManager.GetString("PushBroadcastTitleAndBodyMustBePersian", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to User Expertise Only For Companion Owner Or Approved Member.
+        /// </summary>
+        public static string UserExpertiseOnlyForCompanionOwnerOrApprovedMember {
+            get {
+                return ResourceManager.GetString("UserExpertiseOnlyForCompanionOwnerOrApprovedMember", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ticket Settings Incomplete.
+        /// </summary>
+        public static string TicketSettingsIncomplete {
+            get {
+                return ResourceManager.GetString("TicketSettingsIncomplete", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ticket Picked By Another Admin.
+        /// </summary>
+        public static string TicketPickedByAnotherAdmin {
+            get {
+                return ResourceManager.GetString("TicketPickedByAnotherAdmin", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Score Transaction Reward Gift Name Prefix.
+        /// </summary>
+        public static string ScoreTransactionRewardGiftNamePrefix {
+            get {
+                return ResourceManager.GetString("ScoreTransactionRewardGiftNamePrefix", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Score Transaction Earned For Description Prefix.
+        /// </summary>
+        public static string ScoreTransactionEarnedForDescriptionPrefix {
+            get {
+                return ResourceManager.GetString("ScoreTransactionEarnedForDescriptionPrefix", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Driver Registration Failed Check Form.
+        /// </summary>
+        public static string DriverRegistrationFailedCheckForm {
+            get {
+                return ResourceManager.GetString("DriverRegistrationFailedCheckForm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Driver Requester User Invalid.
+        /// </summary>
+        public static string DriverRequesterUserInvalid {
+            get {
+                return ResourceManager.GetString("DriverRequesterUserInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Driver Selected City Invalid.
+        /// </summary>
+        public static string DriverSelectedCityInvalid {
+            get {
+                return ResourceManager.GetString("DriverSelectedCityInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Driver Selected Neighborhood Not In City.
+        /// </summary>
+        public static string DriverSelectedNeighborhoodNotInCity {
+            get {
+                return ResourceManager.GetString("DriverSelectedNeighborhoodNotInCity", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Driver Certificate Picture Required.
+        /// </summary>
+        public static string DriverCertificatePictureRequired {
+            get {
+                return ResourceManager.GetString("DriverCertificatePictureRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Driver Vehicle Card Picture Required.
+        /// </summary>
+        public static string DriverVehicleCardPictureRequired {
+            get {
+                return ResourceManager.GetString("DriverVehicleCardPictureRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Driver Profile Picture Invalid.
+        /// </summary>
+        public static string DriverProfilePictureInvalid {
+            get {
+                return ResourceManager.GetString("DriverProfilePictureInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Driver Request Id Invalid.
+        /// </summary>
+        public static string DriverRequestIdInvalid {
+            get {
+                return ResourceManager.GetString("DriverRequestIdInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Request Already Exists For User.
+        /// </summary>
+        public static string StoreRequestAlreadyExistsForUser {
+            get {
+                return ResourceManager.GetString("StoreRequestAlreadyExistsForUser", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Data Conflicts With Existing Data.
+        /// </summary>
+        public static string StoreDataConflictsWithExistingData {
+            get {
+                return ResourceManager.GetString("StoreDataConflictsWithExistingData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Request Id Is Invalid.
+        /// </summary>
+        public static string StoreRequestIdIsInvalid {
+            get {
+                return ResourceManager.GetString("StoreRequestIdIsInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Request Already Approved Cannot Resubmit.
+        /// </summary>
+        public static string StoreRequestAlreadyApprovedCannotResubmit {
+            get {
+                return ResourceManager.GetString("StoreRequestAlreadyApprovedCannotResubmit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Phone Or Mobile Required.
+        /// </summary>
+        public static string StorePhoneOrMobileRequired {
+            get {
+                return ResourceManager.GetString("StorePhoneOrMobileRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Mobile Is Invalid.
+        /// </summary>
+        public static string StoreMobileIsInvalid {
+            get {
+                return ResourceManager.GetString("StoreMobileIsInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Address Required.
+        /// </summary>
+        public static string StoreAddressRequired {
+            get {
+                return ResourceManager.GetString("StoreAddressRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Type Is Invalid.
+        /// </summary>
+        public static string StoreTypeIsInvalid {
+            get {
+                return ResourceManager.GetString("StoreTypeIsInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store City Is Invalid.
+        /// </summary>
+        public static string StoreCityIsInvalid {
+            get {
+                return ResourceManager.GetString("StoreCityIsInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Picture Is Invalid.
+        /// </summary>
+        public static string StorePictureIsInvalid {
+            get {
+                return ResourceManager.GetString("StorePictureIsInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Icon Is Invalid.
+        /// </summary>
+        public static string StoreIconIsInvalid {
+            get {
+                return ResourceManager.GetString("StoreIconIsInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Map Coordinates Are Invalid.
+        /// </summary>
+        public static string StoreMapCoordinatesAreInvalid {
+            get {
+                return ResourceManager.GetString("StoreMapCoordinatesAreInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store Owner Not Specified.
+        /// </summary>
+        public static string StoreOwnerNotSpecified {
+            get {
+                return ResourceManager.GetString("StoreOwnerNotSpecified", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Product Stock Alert Product Id Is Invalid.
+        /// </summary>
+        public static string ProductStockAlertProductIdIsInvalid {
+            get {
+                return ResourceManager.GetString("ProductStockAlertProductIdIsInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Rule Already Exists For Event.
+        /// </summary>
+        public static string ClubPointRuleAlreadyExistsForEvent {
+            get {
+                return ResourceManager.GetString("ClubPointRuleAlreadyExistsForEvent", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Order Completed Description.
+        /// </summary>
+        public static string ClubPointOrderCompletedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointOrderCompletedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Order Reversed Description.
+        /// </summary>
+        public static string ClubPointOrderReversedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointOrderReversedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Companion Reserve Completed Description.
+        /// </summary>
+        public static string ClubPointCompanionReserveCompletedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointCompanionReserveCompletedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Companion Reserve Reversed Description.
+        /// </summary>
+        public static string ClubPointCompanionReserveReversedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointCompanionReserveReversedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Pansion Reserve Completed Description.
+        /// </summary>
+        public static string ClubPointPansionReserveCompletedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointPansionReserveCompletedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Pansion Reserve Reversed Description.
+        /// </summary>
+        public static string ClubPointPansionReserveReversedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointPansionReserveReversedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Pet Profile Completed Description.
+        /// </summary>
+        public static string ClubPointPetProfileCompletedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointPetProfileCompletedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Memory Created Description.
+        /// </summary>
+        public static string ClubPointMemoryCreatedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointMemoryCreatedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Memory Reversed Description.
+        /// </summary>
+        public static string ClubPointMemoryReversedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointMemoryReversedDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point User Referral Description.
+        /// </summary>
+        public static string ClubPointUserReferralDescription {
+            get {
+                return ResourceManager.GetString("ClubPointUserReferralDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point Business Referral Signup Description.
+        /// </summary>
+        public static string ClubPointBusinessReferralSignupDescription {
+            get {
+                return ResourceManager.GetString("ClubPointBusinessReferralSignupDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Club Point User Referral Signup Description.
+        /// </summary>
+        public static string ClubPointUserReferralSignupDescription {
+            get {
+                return ResourceManager.GetString("ClubPointUserReferralSignupDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Trip Cannot Be Canceled After Pet Pickup.
+        /// </summary>
+        public static string TripCannotBeCanceledAfterPetPickup {
+            get {
+                return ResourceManager.GetString("TripCannotBeCanceledAfterPetPickup", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Trip Financial Data Locked After Payment Started.
+        /// </summary>
+        public static string TripFinancialDataLockedAfterPaymentStarted {
+            get {
+                return ResourceManager.GetString("TripFinancialDataLockedAfterPaymentStarted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Trip Cannot Be Canceled By Driver After Pet Pickup.
+        /// </summary>
+        public static string TripCannotBeCanceledByDriverAfterPetPickup {
+            get {
+                return ResourceManager.GetString("TripCannotBeCanceledByDriverAfterPetPickup", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Trip Not In Status To Change Stage.
+        /// </summary>
+        public static string TripNotInStatusToChangeStage {
+            get {
+                return ResourceManager.GetString("TripNotInStatusToChangeStage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Trip Requested Stage Not In Allowed Sequence.
+        /// </summary>
+        public static string TripRequestedStageNotInAllowedSequence {
+            get {
+                return ResourceManager.GetString("TripRequestedStageNotInAllowedSequence", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Trip Is Not Currently Active.
+        /// </summary>
+        public static string TripIsNotCurrentlyActive {
+            get {
+                return ResourceManager.GetString("TripIsNotCurrentlyActive", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Trip Driver Movement Interval Must Be60 Or120.
+        /// </summary>
+        public static string TripDriverMovementIntervalMustBe60Or120 {
+            get {
+                return ResourceManager.GetString("TripDriverMovementIntervalMustBe60Or120", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Trip Insufficient Time To Appointment For Interval.
+        /// </summary>
+        public static string TripInsufficientTimeToAppointmentForInterval {
+            get {
+                return ResourceManager.GetString("TripInsufficientTimeToAppointmentForInterval", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Trip Pet Delivery Already Exists For Reserve.
+        /// </summary>
+        public static string TripPetDeliveryAlreadyExistsForReserve {
+            get {
+                return ResourceManager.GetString("TripPetDeliveryAlreadyExistsForReserve", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reminder One Week Away Text.
+        /// </summary>
+        public static string ReminderOneWeekAwayText {
+            get {
+                return ResourceManager.GetString("ReminderOneWeekAwayText", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reminder Tomorrow Text.
+        /// </summary>
+        public static string ReminderTomorrowText {
+            get {
+                return ResourceManager.GetString("ReminderTomorrowText", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reminder Yesterday Text.
+        /// </summary>
+        public static string ReminderYesterdayText {
+            get {
+                return ResourceManager.GetString("ReminderYesterdayText", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Memory Not Found.
+        /// </summary>
+        public static string MemoryNotFound {
+            get {
+                return ResourceManager.GetString("MemoryNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Memory Id Is Invalid.
+        /// </summary>
+        public static string MemoryIdIsInvalid {
+            get {
+                return ResourceManager.GetString("MemoryIdIsInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Memory Text Required.
+        /// </summary>
+        public static string MemoryTextRequired {
+            get {
+                return ResourceManager.GetString("MemoryTextRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Memory Text Max Length4000.
+        /// </summary>
+        public static string MemoryTextMaxLength4000 {
+            get {
+                return ResourceManager.GetString("MemoryTextMaxLength4000", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Memory Date Time Required.
+        /// </summary>
+        public static string MemoryDateTimeRequired {
+            get {
+                return ResourceManager.GetString("MemoryDateTimeRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Memory Date Cannot Be In Future.
+        /// </summary>
+        public static string MemoryDateCannotBeInFuture {
+            get {
+                return ResourceManager.GetString("MemoryDateCannotBeInFuture", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Memory Selected Pet Does Not Belong To User.
+        /// </summary>
+        public static string MemorySelectedPetDoesNotBelongToUser {
+            get {
+                return ResourceManager.GetString("MemorySelectedPetDoesNotBelongToUser", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Memory Selected Picture Not Found.
+        /// </summary>
+        public static string MemorySelectedPictureNotFound {
+            get {
+                return ResourceManager.GetString("MemorySelectedPictureNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Memory Already Exists For Day.
+        /// </summary>
+        public static string MemoryAlreadyExistsForDay {
+            get {
+                return ResourceManager.GetString("MemoryAlreadyExistsForDay", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search Result Type Brand.
+        /// </summary>
+        public static string SearchResultTypeBrand {
+            get {
+                return ResourceManager.GetString("SearchResultTypeBrand", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search Result Type Category.
+        /// </summary>
+        public static string SearchResultTypeCategory {
+            get {
+                return ResourceManager.GetString("SearchResultTypeCategory", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search Result Type Feature.
+        /// </summary>
+        public static string SearchResultTypeFeature {
+            get {
+                return ResourceManager.GetString("SearchResultTypeFeature", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search Result Type Companion.
+        /// </summary>
+        public static string SearchResultTypeCompanion {
+            get {
+                return ResourceManager.GetString("SearchResultTypeCompanion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search Result Type Assistance.
+        /// </summary>
+        public static string SearchResultTypeAssistance {
+            get {
+                return ResourceManager.GetString("SearchResultTypeAssistance", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search Result Type Store.
+        /// </summary>
+        public static string SearchResultTypeStore {
+            get {
+                return ResourceManager.GetString("SearchResultTypeStore", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search Result Type Pansion.
+        /// </summary>
+        public static string SearchResultTypePansion {
+            get {
+                return ResourceManager.GetString("SearchResultTypePansion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Provider Service Disabled.
+        /// </summary>
+        public static string ShippingProviderServiceDisabled {
+            get {
+                return ResourceManager.GetString("ShippingProviderServiceDisabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Provider Connection Settings Incomplete Format.
+        /// </summary>
+        public static string ShippingProviderConnectionSettingsIncompleteFormat {
+            get {
+                return ResourceManager.GetString("ShippingProviderConnectionSettingsIncompleteFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Provider Api Contract Not Implemented Format.
+        /// </summary>
+        public static string ShippingProviderApiContractNotImplementedFormat {
+            get {
+                return ResourceManager.GetString("ShippingProviderApiContractNotImplementedFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Provider Api Contract Not Configured Format.
+        /// </summary>
+        public static string ShippingProviderApiContractNotConfiguredFormat {
+            get {
+                return ResourceManager.GetString("ShippingProviderApiContractNotConfiguredFormat", resourceCulture);
+            }
+        }
+
         public static string PastilMatchAdminDescriptionRequired {
             get {
                 return ResourceManager.GetString("PastilMatchAdminDescriptionRequired", resourceCulture);

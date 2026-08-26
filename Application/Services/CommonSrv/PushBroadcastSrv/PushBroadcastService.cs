@@ -41,7 +41,7 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
 
             if (!PersianPushTextHelper.ContainsPersian(msg.Title) ||
                 !PersianPushTextHelper.ContainsPersian(msg.Body))
-                return new BaseResultDto(false, "عنوان و متن پوش نوتیفیکیشن باید فارسی باشند.");
+                return new BaseResultDto(false, Resource.Notification.PushBroadcastTitleAndBodyMustBePersian);
 
             var client = new WebPushClient();
             var vapid = new VapidDetails("mailto:admin@pastil.pet", _vapid.PublicKey, _vapid.PrivateKey);

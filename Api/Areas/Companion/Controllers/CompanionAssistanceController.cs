@@ -54,6 +54,8 @@ namespace Api.Areas.Companion.Controllers
         {
 
             var companion = await _companionAssistanceService.FindAsyncDto(id);
+            if (companion.IsSuccess && companion.Data?.CompanionId != _currentUserDto.CompanionId)
+                return Ok(new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(companion);
         }
 
@@ -84,17 +86,20 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Put(CompanionAssistanceDto dto)
         {
             dto.Active = false;
-            var companion = await _companionAssistanceService.UpdateAsyncDto(dto);
+            var companion = await _companionAssistanceService.UpdateAsyncDto(dto, _currentUserDto.CompanionId);
             return Ok(companion);
         }
 
         /// <summary>
-        ///  حذف آیتم 
-        /// </summary>  
+        ///  حذف آیتم
+        /// </summary>
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await _companionAssistanceService.FindAsyncDto(id);
+            if (!existing.IsSuccess || existing.Data?.CompanionId != _currentUserDto.CompanionId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             var dto = _companionAssistanceService.DeleteDto(id);
             return Ok(dto);
         }

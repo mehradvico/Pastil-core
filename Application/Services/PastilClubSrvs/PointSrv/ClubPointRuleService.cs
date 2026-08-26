@@ -95,7 +95,7 @@ namespace Application.Services.PastilClubSrvs.PointSrv
             if (await _context.ClubPointRules.AsNoTracking().AnyAsync(
                     item => item.EventType == dto.EventType && item.Id != currentId,
                     cancellationToken))
-                return new BaseResultDto<ClubPointRuleDto>(false, "برای این رویداد قبلاً قانون امتیاز تعریف شده است.", dto);
+                return new BaseResultDto<ClubPointRuleDto>(false, Resource.Notification.ClubPointRuleAlreadyExistsForEvent, dto);
             return null;
         }
 

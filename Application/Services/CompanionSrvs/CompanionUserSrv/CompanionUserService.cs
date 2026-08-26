@@ -145,7 +145,7 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv
                 {
                     return new BaseResultDto<CompanionUserDto>(
                         false,
-                        "لطفاً یک عنوان شغلی فعال و معتبر انتخاب کنید.",
+                        Resource.Notification.CompanionSelectActiveValidJobTitle,
                         nameof(dto.ExpertiseId),
                         dto);
                 }
@@ -252,7 +252,7 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv
                 {
                     return new BaseResultDto<CompanionUserDto>(
                         false,
-                        "لطفاً یک عنوان شغلی فعال و معتبر انتخاب کنید.",
+                        Resource.Notification.CompanionSelectActiveValidJobTitle,
                         nameof(dto.ExpertiseId),
                         dto);
                 }
@@ -432,7 +432,7 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv
             {
                 return new BaseResultDto(
                     false,
-                    "لطفاً یک عنوان شغلی فعال و معتبر انتخاب کنید.",
+                    Resource.Notification.CompanionSelectActiveValidJobTitle,
                     nameof(user.ExpertiseId));
             }
 

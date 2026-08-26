@@ -47,7 +47,7 @@ namespace Application.Services.MemorySrvs.MemorySrv
 
             var item = await Project(query).FirstOrDefaultAsync(cancellationToken);
             return item == null
-                ? new BaseResultDto<MemoryVDto>(false, "خاطره موردنظر پیدا نشد.", null)
+                ? new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemoryNotFound, null)
                 : new BaseResultDto<MemoryVDto>(true, item);
         }
 
@@ -167,7 +167,7 @@ namespace Application.Services.MemorySrvs.MemorySrv
             CancellationToken cancellationToken = default)
         {
             if (dto.Id <= 0)
-                return new BaseResultDto<MemoryVDto>(false, "شناسه خاطره معتبر نیست.", null);
+                return new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemoryIdIsInvalid, null);
 
             var validation = await ValidateAsync(userId, dto, cancellationToken);
             if (validation != null)
@@ -183,7 +183,7 @@ namespace Application.Services.MemorySrvs.MemorySrv
                     cancellationToken);
 
             if (userMemory == null)
-                return new BaseResultDto<MemoryVDto>(false, "خاطره موردنظر پیدا نشد.", null);
+                return new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemoryNotFound, null);
 
             var previousMemoryDate = userMemory.Memory.MemoryDate;
             userMemory.UserPetId = dto.UserPetId;
@@ -227,7 +227,7 @@ namespace Application.Services.MemorySrvs.MemorySrv
                     cancellationToken);
 
             if (userMemory == null)
-                return new BaseResultDto(false, "خاطره موردنظر پیدا نشد.");
+                return new BaseResultDto(false, Resource.Notification.MemoryNotFound);
 
             userMemory.Deleted = true;
             userMemory.Memory.Deleted = true;
@@ -319,16 +319,16 @@ namespace Application.Services.MemorySrvs.MemorySrv
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(dto.Text))
-                return new BaseResultDto<MemoryVDto>(false, "متن خاطره الزامی است.", null);
+                return new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemoryTextRequired, null);
 
             if (dto.Text.Trim().Length > 4000)
-                return new BaseResultDto<MemoryVDto>(false, "متن خاطره حداکثر می‌تواند ۴۰۰۰ کاراکتر باشد.", null);
+                return new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemoryTextMaxLength4000, null);
 
             if (dto.MemoryDate == default)
-                return new BaseResultDto<MemoryVDto>(false, "تاریخ و ساعت خاطره الزامی است.", null);
+                return new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemoryDateTimeRequired, null);
 
             if (dto.MemoryDate > DateTimeOffset.UtcNow.AddMinutes(5))
-                return new BaseResultDto<MemoryVDto>(false, "تاریخ خاطره نمی‌تواند مربوط به آینده باشد.", null);
+                return new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemoryDateCannotBeInFuture, null);
 
             var ownsPet = await _context.UserPets.AnyAsync(item =>
                 item.Id == dto.UserPetId &&
@@ -338,12 +338,12 @@ namespace Application.Services.MemorySrvs.MemorySrv
                 cancellationToken);
 
             if (!ownsPet)
-                return new BaseResultDto<MemoryVDto>(false, "پت انتخاب‌شده متعلق به این کاربر نیست.", null);
+                return new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemorySelectedPetDoesNotBelongToUser, null);
 
             if (dto.PictureId.HasValue &&
                 !await _context.Pictures.AnyAsync(item => item.Id == dto.PictureId.Value, cancellationToken))
             {
-                return new BaseResultDto<MemoryVDto>(false, "تصویر انتخاب‌شده پیدا نشد.", null);
+                return new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemorySelectedPictureNotFound, null);
             }
 
             var memoryDate = TimeZoneInfo.ConvertTime(dto.MemoryDate, TehranTimeZone).Date;
@@ -358,7 +358,7 @@ namespace Application.Services.MemorySrvs.MemorySrv
                 item.Memory.MemoryDate < to,
                 cancellationToken);
             if (duplicateDay)
-                return new BaseResultDto<MemoryVDto>(false, "برای این روز قبلاً خاطره ثبت شده است.", null);
+                return new BaseResultDto<MemoryVDto>(false, Resource.Notification.MemoryAlreadyExistsForDay, null);
 
             return null;
         }

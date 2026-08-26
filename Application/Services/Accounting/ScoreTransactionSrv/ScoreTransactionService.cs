@@ -107,7 +107,7 @@ namespace Application.Services.Accounting.ScoreTransactionSrv
 
             var newUserRebate = new Rebate
             {
-                Name = $"هدیه پاستیل کلاب: {reward.Name}",
+                Name = string.Format(Resource.Notification.ScoreTransactionRewardGiftNamePrefix, reward.Name),
                 UserId = user.Id,
                 TypeId = reward.Rebate.TypeId,
                 CodeValue = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
@@ -143,7 +143,7 @@ namespace Application.Services.Accounting.ScoreTransactionSrv
                 TransactionTypeId = typeCode.Id,
                 ReferenceId = referenceId,
                 CreateDate = DateTime.Now,
-                Description = $"امتیاز دریافتی برای {type.ToString().Replace("ScoreTransactionType_", "")}"
+                Description = string.Format(Resource.Notification.ScoreTransactionEarnedForDescriptionPrefix, type.ToString().Replace("ScoreTransactionType_", ""))
             };
 
             user.CurrentScore += amount;

@@ -66,10 +66,10 @@ namespace Application.Services.CompanionSrvs.ExpertiseSrv
         {
             dto.Name = dto.Name?.Trim();
             if (string.IsNullOrWhiteSpace(dto.Name))
-                return new BaseResultDto<ExpertiseDto>(false, "عنوان تخصص الزامی است.", nameof(dto.Name), dto);
+                return new BaseResultDto<ExpertiseDto>(false, Resource.Notification.CompanionExpertiseNameRequired, nameof(dto.Name), dto);
 
             if (await NameExistsAsync(dto.Name, null))
-                return new BaseResultDto<ExpertiseDto>(false, "این عنوان تخصص قبلاً ثبت شده است.", nameof(dto.Name), dto);
+                return new BaseResultDto<ExpertiseDto>(false, Resource.Notification.CompanionExpertiseNameAlreadyRegistered, nameof(dto.Name), dto);
 
             return await InsertAsyncDto(dto);
         }
@@ -78,10 +78,10 @@ namespace Application.Services.CompanionSrvs.ExpertiseSrv
         {
             dto.Name = dto.Name?.Trim();
             if (dto.Id <= 0 || string.IsNullOrWhiteSpace(dto.Name))
-                return new BaseResultDto(false, "اطلاعات تخصص معتبر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CompanionExpertiseDataInvalid);
 
             if (await NameExistsAsync(dto.Name, dto.Id))
-                return new BaseResultDto(false, "این عنوان تخصص قبلاً ثبت شده است.", nameof(dto.Name));
+                return new BaseResultDto(false, Resource.Notification.CompanionExpertiseNameAlreadyRegistered, nameof(dto.Name));
 
             return UpdateDto(dto);
         }
@@ -93,7 +93,7 @@ namespace Application.Services.CompanionSrvs.ExpertiseSrv
                 .AnyAsync(x => x.ExpertiseId == id && !x.Deleted);
 
             if (isUsed)
-                return new BaseResultDto(false, "این تخصص به کاربر نمایندگی متصل است و قابل حذف نیست؛ آن را غیرفعال کنید.");
+                return new BaseResultDto(false, Resource.Notification.CompanionExpertiseInUseCannotDelete);
 
             return DeleteDto(id);
         }

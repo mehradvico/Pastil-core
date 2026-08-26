@@ -85,7 +85,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
                 {
                     return new BaseResultDto<CompanionReserveCommentDto>(
                         false,
-                        "ثبت نظر فقط برای رزرو تکمیل‌شده‌ی خودتان امکان‌پذیر است.",
+                        Resource.Notification.CompanionReserveCommentOnlyForOwnCompletedReserve,
                         dto);
                 }
 

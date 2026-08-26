@@ -54,9 +54,9 @@ namespace Application.Services.Order.ShippingSrv
                 .FirstOrDefaultAsync(item => item.UserId == userId, cancellationToken);
             var cartStore = cart?.CartStores.FirstOrDefault(item => item.StoreId == storeId && item.Active);
             if (cartStore == null || cartStore.CartItems == null || !cartStore.CartItems.Any())
-                return Failed("سبد فعالی برای این فروشگاه یافت نشد.");
+                return Failed(Resource.Notification.ShippingActiveCartNotFoundForStore);
             if (!cart.AddressId.HasValue || cart.Address == null)
-                return Failed("ابتدا آدرس دریافت سفارش را انتخاب کنید.");
+                return Failed(Resource.Notification.ShippingSelectDeliveryAddressFirst);
 
             var deliveries = await _context.Deliveries
                 .Include(item => item.DeliveryType)
@@ -64,7 +64,7 @@ namespace Application.Services.Order.ShippingSrv
                 .OrderBy(item => item.Id)
                 .ToListAsync(cancellationToken);
             if (!deliveries.Any())
-                return Failed("روش ارسال فعالی برای این فروشگاه تعریف نشده است.");
+                return Failed(Resource.Notification.ShippingNoActiveDeliveryMethodForStore);
 
             var now = DateTime.UtcNow;
             var results = new List<ShippingQuoteVDto>();
@@ -108,7 +108,7 @@ namespace Application.Services.Order.ShippingSrv
             await _context.SaveChangesAsync(cancellationToken);
             return results.Any()
                 ? new BaseResultDto<List<ShippingQuoteVDto>>(true, results)
-                : Failed("در حال حاضر امکان دریافت قیمت ارسال وجود ندارد.");
+                : Failed(Resource.Notification.ShippingQuoteCurrentlyUnavailable);
         }
 
         public async Task<BaseResultDto> SelectQuoteAsync(
@@ -122,11 +122,11 @@ namespace Application.Services.Order.ShippingSrv
                 .AsTracking()
                 .FirstOrDefaultAsync(item => item.Token == quoteToken && item.UserId == userId, cancellationToken);
             if (quote == null)
-                return new BaseResultDto(false, "قیمت ارسال انتخاب‌شده معتبر نیست.");
+                return new BaseResultDto(false, Resource.Notification.ShippingSelectedQuoteInvalid);
             if (quote.Status != ShippingQuoteStatusEnum.Active || quote.ExpiresAtUtc <= DateTime.UtcNow)
-                return new BaseResultDto(false, "اعتبار قیمت ارسال تمام شده است؛ قیمت را مجدداً دریافت کنید.");
+                return new BaseResultDto(false, Resource.Notification.ShippingQuoteExpiredRefetch);
             if (quote.CartStore?.Cart?.AddressId != quote.AddressId)
-                return new BaseResultDto(false, "آدرس سبد پس از دریافت قیمت تغییر کرده است؛ قیمت را مجدداً دریافت کنید.");
+                return new BaseResultDto(false, Resource.Notification.ShippingCartAddressChangedRefetchQuote);
 
             var previousQuotes = await _context.ShippingQuotes
                 .Where(item => item.CartStoreId == quote.CartStoreId &&
@@ -147,7 +147,7 @@ namespace Application.Services.Order.ShippingSrv
                 : 0;
 
             await _context.SaveChangesAsync(cancellationToken);
-            return new BaseResultDto(true, "روش ارسال با موفقیت انتخاب شد.");
+            return new BaseResultDto(true, Resource.Notification.ShippingMethodSelectedSuccessfully);
         }
 
         public async Task<BaseResultDto> ValidateSelectionAsync(
@@ -157,17 +157,17 @@ namespace Application.Services.Order.ShippingSrv
             CancellationToken cancellationToken = default)
         {
             if (!cartStore.DeliveryId.HasValue)
-                return new BaseResultDto(false, "روش ارسال انتخاب نشده است.");
+                return new BaseResultDto(false, Resource.Notification.ShippingMethodNotSelected);
 
             var delivery = await _context.Deliveries.AsNoTracking()
                 .FirstOrDefaultAsync(item => item.Id == cartStore.DeliveryId.Value &&
                     item.StoreId == cartStore.StoreId && item.Active && !item.Deleted, cancellationToken);
             if (delivery == null)
-                return new BaseResultDto(false, "روش ارسال انتخاب‌شده دیگر فعال نیست.");
+                return new BaseResultDto(false, Resource.Notification.ShippingSelectedMethodNoLongerActive);
             if (!delivery.LivePricing || delivery.ShippingProvider == ShippingProviderEnum.None)
                 return new BaseResultDto(true);
             if (!cartStore.ShippingQuoteId.HasValue || !addressId.HasValue)
-                return new BaseResultDto(false, "برای این روش ارسال باید قیمت لحظه‌ای دریافت شود.");
+                return new BaseResultDto(false, Resource.Notification.ShippingLiveQuoteRequiredForMethod);
 
             var quote = await _context.ShippingQuotes.AsNoTracking()
                 .FirstOrDefaultAsync(item => item.Id == cartStore.ShippingQuoteId.Value &&
@@ -175,21 +175,21 @@ namespace Application.Services.Order.ShippingSrv
                     item.AddressId == addressId.Value && item.DeliveryId == delivery.Id &&
                     item.Status == ShippingQuoteStatusEnum.Selected, cancellationToken);
             if (quote == null || quote.ExpiresAtUtc <= DateTime.UtcNow)
-                return new BaseResultDto(false, "قیمت ارسال منقضی شده است؛ لطفاً قیمت جدید دریافت کنید.");
+                return new BaseResultDto(false, Resource.Notification.ShippingQuoteExpiredFetchNew);
             if (cartStore.ShippingQuotedPrice != quote.Price ||
                 cartStore.ShippingProvider != quote.Provider ||
                 cartStore.ShippingPaymentMode != quote.PaymentMode)
-                return new BaseResultDto(false, "اطلاعات قیمت ارسال معتبر نیست.");
+                return new BaseResultDto(false, Resource.Notification.ShippingQuoteInfoInvalid);
             if (!string.Equals(
                     quote.RequestFingerprint,
                     CreateFingerprint(cartStore, addressId.Value, delivery.Id),
                     StringComparison.Ordinal))
-                return new BaseResultDto(false, "محتویات سبد پس از دریافت قیمت ارسال تغییر کرده است؛ قیمت جدید دریافت کنید.");
+                return new BaseResultDto(false, Resource.Notification.ShippingCartContentsChangedFetchNewQuote);
 
             var expectedPayablePrice = quote.PaymentMode == ShippingPaymentModeEnum.Prepaid ? quote.Price : 0;
             return cartStore.DeliveryPrice == expectedPayablePrice
                 ? new BaseResultDto(true)
-                : new BaseResultDto(false, "مبلغ ارسال سبد معتبر نیست.");
+                : new BaseResultDto(false, Resource.Notification.ShippingCartAmountInvalid);
         }
 
         private ShippingProviderQuoteRequest CreateProviderRequest(

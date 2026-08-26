@@ -104,7 +104,7 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task<BaseResultDto<TripVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).ThenInclude(tp => tp.UserPet).ThenInclude(up => up.Pet).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).ThenInclude(tp => tp.UserPet).ThenInclude(up => up.Pet).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(item));
@@ -114,7 +114,7 @@ namespace Application.Services.TripSrv.TripSrv
 
         public override async Task<BaseResultDto<TripDto>> FindAsyncDto(long id)
         {
-            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(item));
@@ -124,7 +124,7 @@ namespace Application.Services.TripSrv.TripSrv
 
         public TripSearchDto Search(TripInputDto baseSearchDto)
         {
-            var model = _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).AsQueryable();
+            var model = _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).AsQueryable();
 
             if (baseSearchDto.FromCityId.HasValue)
             {
@@ -500,11 +500,16 @@ namespace Application.Services.TripSrv.TripSrv
             }
             else if (dto.DriverStatusId == (long)DriverStatusEnum.DriverStatus_Rejected)
             {
-                await _context.Trips
-                    .Where(t => t.Id == dto.Id)
+                var rejectedRows = await _context.Trips
+                    .Where(t => t.Id == dto.Id
+                        && (t.DriverId == null || t.DriverId == dto.DriverId)
+                        && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested)
                     .ExecuteUpdateAsync(s => s.SetProperty(t => t.DriverStatusId, dto.DriverStatusId));
 
-                await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverSelectionRequired, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripDriverSelectionRequired}:{trip.Id}" });
+                if (rejectedRows > 0)
+                {
+                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverSelectionRequired, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripDriverSelectionRequired}:{trip.Id}" });
+                }
             }
             else
             {
@@ -541,7 +546,7 @@ namespace Application.Services.TripSrv.TripSrv
             {
                 if (trip.ProgressStageId >= (int)TripProgressStageEnum.PetPickedUp)
                 {
-                    return new BaseResultDto<TripUserChangeStatusDto>(false, "پت تحویل گرفته شده و سفر دیگر از این مسیر قابل لغو نیست.", dto);
+                    return new BaseResultDto<TripUserChangeStatusDto>(false, Resource.Notification.TripCannotBeCanceledAfterPetPickup, dto);
                 }
 
                 await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripCancelledByUser, ActorUserId = trip.UserId, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripCancelledByUser}:{trip.Id}" });
@@ -634,7 +639,7 @@ namespace Application.Services.TripSrv.TripSrv
                 return new BaseResultDto<TripSetRebateCodeDto>(false, Resource.Notification.NothingFound, dto);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.TripFinancialDataLockedAfterPaymentStarted);
             if (item.Price == 0)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.FinalPriceIsNotAvailable);
@@ -667,7 +672,7 @@ namespace Application.Services.TripSrv.TripSrv
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.TripFinancialDataLockedAfterPaymentStarted);
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -687,7 +692,7 @@ namespace Application.Services.TripSrv.TripSrv
                 return new BaseResultDto<TripSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.TripFinancialDataLockedAfterPaymentStarted);
             if (dto.FromWallet)
             {
                 item.FromWallet = true;
@@ -840,7 +845,7 @@ namespace Application.Services.TripSrv.TripSrv
                 return new BaseResultDto<TripVDto>(false, Resource.Notification.PleaseChangeTheStatus, null);
 
             if (trip.ProgressStageId >= (int)TripProgressStageEnum.PetPickedUp)
-                return new BaseResultDto<TripVDto>(false, "پت تحویل گرفته شده و سفر دیگر توسط راننده قابل لغو نیست.", null);
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.TripCannotBeCanceledByDriverAfterPetPickup, null);
 
             trip.DriverId = null;
             trip.DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested;
@@ -894,13 +899,13 @@ namespace Application.Services.TripSrv.TripSrv
                 return new BaseResultDto<TripVDto>(false, Resource.Notification.AccessDenied, null);
 
             if (trip.TripStatusId != (long)TripStatusEnum.TripStatus_Accepted)
-                return new BaseResultDto<TripVDto>(false, "این سفر در وضعیتی نیست که بتوان مرحله‌اش را تغییر داد.", null);
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.TripNotInStatusToChangeStage, null);
 
             var currentIndex = Array.IndexOf(ProgressOrder, (TripProgressStageEnum)trip.ProgressStageId);
             var targetIndex = Array.IndexOf(ProgressOrder, targetStage);
 
             if (targetIndex < 0 || targetIndex != currentIndex + 1)
-                return new BaseResultDto<TripVDto>(false, "مرحله‌ی درخواستی با توالی مجاز سفر همخوانی ندارد.", null);
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.TripRequestedStageNotInAllowedSequence, null);
 
             trip.ProgressStageId = (int)targetStage;
             trip.ProgressUpdateDate = DateTime.Now;
@@ -959,7 +964,7 @@ namespace Application.Services.TripSrv.TripSrv
                 return new BaseResultDto<TripLiveDto>(false, Resource.Notification.NothingFound, null);
 
             if (trip.TripStatusId != (long)TripStatusEnum.TripStatus_Accepted || trip.Driver == null)
-                return new BaseResultDto<TripLiveDto>(false, "سفر در حال حاضر فعال نیست.", null);
+                return new BaseResultDto<TripLiveDto>(false, Resource.Notification.TripIsNotCurrentlyActive, null);
 
             var location = await _context.UserCurrentLocations.AsNoTracking()
                 .FirstOrDefaultAsync(s => s.UserId == trip.Driver.OwnerId);
@@ -977,7 +982,7 @@ namespace Application.Services.TripSrv.TripSrv
                 return new BaseResultDto<TripLiveDto>(false, Resource.Notification.NothingFound, null);
 
             if (trip.TripStatusId != (long)TripStatusEnum.TripStatus_Accepted)
-                return new BaseResultDto<TripLiveDto>(false, "سفر در حال حاضر فعال نیست.", null);
+                return new BaseResultDto<TripLiveDto>(false, Resource.Notification.TripIsNotCurrentlyActive, null);
 
             var location = await _context.UserCurrentLocations.AsNoTracking()
                 .FirstOrDefaultAsync(s => s.UserId == trip.UserId);
@@ -1061,7 +1066,7 @@ namespace Application.Services.TripSrv.TripSrv
         public async Task<BaseResultDto<TripDto>> CreateReservationLinkedTripAsync(TripReservationCreateDto dto, long userId)
         {
             if (dto.ScheduledLeadMinutes != 60 && dto.ScheduledLeadMinutes != 120)
-                return new BaseResultDto<TripDto>(false, "فاصله‌ی زمانی حرکت راننده فقط می‌تواند ۶۰ یا ۱۲۰ دقیقه باشد.", null);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripDriverMovementIntervalMustBe60Or120, null);
 
             if (dto.Origin == null)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetOrigin, null);
@@ -1077,21 +1082,22 @@ namespace Application.Services.TripSrv.TripSrv
 
             var scheduledDepartureAt = reserve.DoDate.AddMinutes(-dto.ScheduledLeadMinutes);
             if (scheduledDepartureAt <= DateTime.Now)
-                return new BaseResultDto<TripDto>(false, "فاصله تا زمان نوبت برای این فاصله‌ی زمانی کافی نیست.", null);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripInsufficientTimeToAppointmentForInterval, null);
 
             var alreadyLinked = await _context.Trips.AnyAsync(s =>
                 s.CompanionReserveId == dto.CompanionReserveId &&
                 s.TripStatusId != (long)TripStatusEnum.TripStatus_Canceled);
 
             if (alreadyLinked)
-                return new BaseResultDto<TripDto>(false, "برای این رزرو قبلاً یک سفر پت‌رسان ثبت شده است.", null);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripPetDeliveryAlreadyExistsForReserve, null);
 
             var priceInput = new TripDto
             {
                 Origin = dto.Origin,
                 Destination = dto.Destination,
                 FromAddress = dto.FromAddress,
-                ToAddress = dto.ToAddress
+                ToAddress = dto.ToAddress,
+                TripStartDateTime = scheduledDepartureAt
             };
 
             var trip = new Trip
@@ -1116,12 +1122,20 @@ namespace Application.Services.TripSrv.TripSrv
             try
             {
                 trip.Price = await _priceCalculationService.CalculateTripPrice(priceInput);
-                trip.PaymentPrice = trip.Price;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Calculating price for reservation-linked trip (reserve {ReserveId}) failed.", dto.CompanionReserveId);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.Unsuccess, null);
             }
+
+            if (trip.Price <= 0)
+            {
+                _logger.LogError("Calculated price for reservation-linked trip (reserve {ReserveId}) was {Price} — refusing to create a free trip.", dto.CompanionReserveId, trip.Price);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.Unsuccess, null);
+            }
+
+            trip.PaymentPrice = trip.Price;
 
             ApplyTripPets(trip, dto.UserPetIds, null);
 

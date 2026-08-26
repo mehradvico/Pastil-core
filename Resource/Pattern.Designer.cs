@@ -86,6 +86,33 @@ namespace Resource {
                 return ResourceManager.GetString("DeliveryDays", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Free for orders above {0} and {1} items or more.
+        /// </summary>
+        public static string DeliveryFreeShippingAbovePriceAndCount {
+            get {
+                return ResourceManager.GetString("DeliveryFreeShippingAbovePriceAndCount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Free for orders above {0}.
+        /// </summary>
+        public static string DeliveryFreeShippingAbovePrice {
+            get {
+                return ResourceManager.GetString("DeliveryFreeShippingAbovePrice", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Free for orders above {0} items.
+        /// </summary>
+        public static string DeliveryFreeShippingAboveCount {
+            get {
+                return ResourceManager.GetString("DeliveryFreeShippingAboveCount", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to The {0} must be at least {1} number.

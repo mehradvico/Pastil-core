@@ -283,7 +283,7 @@ namespace Application.Services.Content.PostSrv
                 var orginal = _context.Posts.AsTracking().FirstOrDefault(p => p.Id == dto.Id);
                 if (orginal == null)
                 {
-                    return new BaseResultDto(isSuccess: false, val: "پست موردنظر پیدا نشد.");
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.PostNotFound);
                 }
 
                 if (_currentUserHelper.CurrentUser.RoleEnum == RoleEnum.Operator.ToString())
@@ -332,7 +332,7 @@ namespace Application.Services.Content.PostSrv
 
                     if (item == null)
                     {
-                        return new BaseResultDto(isSuccess: false, val: "پست موردنظر پیدا نشد.");
+                        return new BaseResultDto(isSuccess: false, val: Resource.Notification.PostNotFound);
                     }
 
                     var userId = item.UserId;
@@ -396,7 +396,7 @@ namespace Application.Services.Content.PostSrv
         {
             if (dto.PictureId.HasValue && !_context.Pictures.Any(s => s.Id == dto.PictureId.Value))
             {
-                return new BaseResultDto(isSuccess: false, val: "تصویر اصلی پست معتبر نیست یا حذف شده است.");
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.PostMainPictureInvalidOrDeleted);
             }
 
             if (dto.PostPicturesList == null)
@@ -414,7 +414,7 @@ namespace Application.Services.Content.PostSrv
             var validPictureCount = _context.Pictures.Count(s => pictureIds.Contains(s.Id));
             if (validPictureCount != pictureIds.Count)
             {
-                return new BaseResultDto(isSuccess: false, val: "یک یا چند تصویر ضمیمه پست معتبر نیست یا حذف شده است.");
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.PostAttachedPictureInvalidOrDeleted);
             }
 
             return new BaseResultDto(true);

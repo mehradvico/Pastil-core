@@ -264,10 +264,19 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceTimeSrv
             return new BaseResultDto<CompanionAssistanceTimeUpdateListDto>(true, result);
         }
 
-        public async Task<BaseResultDto> InsertUpdateListAsync(CompanionAssistanceTimeUpdateListDto dto)
+        public async Task<BaseResultDto> InsertUpdateListAsync(CompanionAssistanceTimeUpdateListDto dto, long? companionId = null)
         {
             try
             {
+                if (companionId.HasValue)
+                {
+                    var belongsToCompanion = await _context.CompanionAssistances
+                        .AsNoTracking()
+                        .AnyAsync(s => s.Id == dto.CompanionAssistanceId && s.CompanionId == companionId.Value && !s.Deleted);
+                    if (!belongsToCompanion)
+                        return new BaseResultDto<CompanionAssistanceTimeUpdateListDto>(false, Resource.Notification.AccessDenied, dto);
+                }
+
                 foreach (var item in dto.CompanionAssistanceTimeUpdateList)
                 {
                     var dbTimes = await _context.CompanionAssistanceTimes

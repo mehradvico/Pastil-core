@@ -75,13 +75,13 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
         private static string ValidatePersianText(PushMessageDto dto)
         {
             if (dto == null)
-                return "اطلاعات پوش نوتیفیکیشن وارد نشده است.";
+                return Resource.Notification.PushMessageDataNotProvided;
 
             if (!PersianPushTextHelper.ContainsPersian(dto.Title))
-                return "عنوان پوش نوتیفیکیشن باید فارسی باشد.";
+                return Resource.Notification.PushMessageTitleMustBePersian;
 
             if (!PersianPushTextHelper.ContainsPersian(dto.Body))
-                return "متن پوش نوتیفیکیشن باید فارسی باشد.";
+                return Resource.Notification.PushMessageBodyMustBePersian;
 
             return null;
         }

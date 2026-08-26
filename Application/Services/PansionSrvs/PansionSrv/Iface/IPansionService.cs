@@ -17,11 +17,12 @@ namespace Application.Services.PansionSrvs.PansionSrv.Iface
         PansionSearchDto Search(PansionInputDto baseSearchDto);
         Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
-        BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto);
+        BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto, long? companionId = null);
         Task<BaseResultDto> UpdatePansionApproveAsyncDto(PansionApproveDto dto);
         Task<BaseResultDto> ResubmitAsyncDto(PansionDto dto, long companionId, long ownerId);
         void UpdatePansionCommentCount(long pansionId);
         Task<List<SearchPansionDto>> SearchMinAsync(SearchRequestDto request);
+        BaseResultDto GetSiteMap();
 
     }
 }

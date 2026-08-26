@@ -49,6 +49,8 @@ namespace Api.Areas.EndUser.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var agency = await _tripAddress.FindAsyncDto(id);
+            if (agency.IsSuccess && agency.Data?.UserId != _currentUser.CurrentUser.UserId)
+                return Ok(new BaseResultDto<TripAddressDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(agency);
         }
 
@@ -71,8 +73,11 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>  
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await _tripAddress.FindAsyncDto(id);
+            if (!existing.IsSuccess || existing.Data?.UserId != _currentUser.CurrentUser.UserId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             var dto = _tripAddress.DeleteDto(id);
             return Ok(dto);
         }

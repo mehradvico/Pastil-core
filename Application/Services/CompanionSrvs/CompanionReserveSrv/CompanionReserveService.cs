@@ -267,7 +267,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     {
                         return new BaseResultDto<CompanionReserveDto>(
                             false,
-                            "نوع ارائه انتخاب‌شده متعلق به این خدمت نیست.",
+                            Resource.Notification.CompanionReserveAssistanceTypeNotBelongToService,
                             dto);
                     }
 
@@ -275,7 +275,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     {
                         return new BaseResultDto<CompanionReserveDto>(
                             false,
-                            "امکان رزرو خدمت در تاریخ گذشته وجود ندارد.",
+                            Resource.Notification.CompanionReserveCannotBookPastDate,
                             dto);
                     }
 
@@ -295,7 +295,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         {
                             return new BaseResultDto<CompanionReserveDto>(
                                 false,
-                                "زمان انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.",
+                                Resource.Notification.CompanionReserveTimeNotBelongOrInactive,
                                 dto);
                         }
 
@@ -303,7 +303,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         {
                             return new BaseResultDto<CompanionReserveDto>(
                                 false,
-                                "روز تاریخ رزرو با روز زمان انتخاب‌شده هماهنگ نیست.",
+                                Resource.Notification.CompanionReserveDayMismatchWithSelectedTime,
                                 dto);
                         }
 
@@ -314,7 +314,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         {
                             return new BaseResultDto<CompanionReserveDto>(
                                 false,
-                                "ساعت شروع خدمت معتبر نیست.",
+                                Resource.Notification.CompanionReserveServiceStartTimeNotValid,
                                 dto);
                         }
 
@@ -322,7 +322,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         {
                             return new BaseResultDto<CompanionReserveDto>(
                                 false,
-                                "امکان رزرو خدمت در زمان گذشته وجود ندارد.",
+                                Resource.Notification.CompanionReserveCannotBookPastTime,
                                 dto);
                         }
                     }
@@ -333,7 +333,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     {
                         return new BaseResultDto<CompanionReserveDto>(
                             false,
-                            "انتخاب زمان خدمت الزامی است.",
+                            Resource.Notification.CompanionReserveServiceTimeSelectionRequired,
                             dto);
                     }
 
@@ -351,7 +351,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         {
                             return new BaseResultDto<CompanionReserveDto>(
                                 false,
-                                "اپراتور انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.",
+                                Resource.Notification.CompanionReserveOperatorNotBelongOrInactive,
                                 dto);
                         }
 
@@ -368,7 +368,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         {
                             return new BaseResultDto<CompanionReserveDto>(
                                 false,
-                                "عضویت اپراتور انتخاب‌شده در این نمایندگی فعال و تأییدشده نیست.",
+                                Resource.Notification.CompanionReserveOperatorMembershipNotActiveOrConfirmed,
                                 dto);
                         }
 
@@ -381,7 +381,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         {
                             return new BaseResultDto<CompanionReserveDto>(
                                 false,
-                                "اپراتور انتخاب‌شده در این بازه زمانی رزرو فعال دیگری دارد.",
+                                Resource.Notification.CompanionReserveOperatorHasScheduleConflict,
                                 dto);
                         }
                     }
@@ -703,7 +703,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto<CompanionReserveAdminVDto>(
                     false,
-                    "فقط رزرو پرداخت‌شده و فعال قابل تخصیص است.",
+                    Resource.Notification.CompanionReserveOnlyPaidActiveCanBeAssigned,
                     null);
             }
 
@@ -728,7 +728,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 {
                     return new BaseResultDto<CompanionReserveAdminVDto>(
                         false,
-                        "برای این رزرو پرداخت موفقی ثبت نشده است.",
+                        Resource.Notification.CompanionReserveNoSuccessfulPaymentRegistered,
                         null);
                 }
 
@@ -744,7 +744,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 {
                     return new BaseResultDto<CompanionReserveAdminVDto>(
                         false,
-                        "اطلاعات مبلغ پرداخت موفق با مبلغ رزرو مطابقت ندارد و امکان تخصیص خودکار نیست.",
+                        Resource.Notification.CompanionReservePaymentAmountMismatchCannotAutoAssign,
                         null);
                 }
 
@@ -755,7 +755,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 {
                     return new BaseResultDto<CompanionReserveAdminVDto>(
                         false,
-                        "پرداخت موفق است اما اعمال آن روی رزرو ناموفق بود؛ گزارش Callback پرداخت را بررسی کنید.",
+                        Resource.Notification.CompanionReservePaymentSucceededButApplyFailed,
                         null);
                 }
 
@@ -774,7 +774,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto<CompanionReserveAdminVDto>(
                     false,
-                    "رزرو انجام‌شده قابل تخصیص مجدد نیست.",
+                    Resource.Notification.CompanionReserveCompletedCannotReassign,
                     null);
             }
 
@@ -792,7 +792,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto<CompanionReserveAdminVDto>(
                     false,
-                    "کاربر انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.",
+                    Resource.Notification.CompanionReserveUserNotBelongOrInactive,
                     null);
             }
 
@@ -809,7 +809,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto<CompanionReserveAdminVDto>(
                     false,
-                    "عضویت کاربر انتخاب‌شده در این نمایندگی فعال و تأییدشده نیست.",
+                    Resource.Notification.CompanionReserveUserMembershipNotActiveOrConfirmed,
                     null);
             }
 
@@ -829,7 +829,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto<CompanionReserveAdminVDto>(
                     false,
-                    "کاربر انتخاب‌شده در این بازه زمانی رزرو فعال دیگری دارد.",
+                    Resource.Notification.CompanionReserveUserHasScheduleConflict,
                     null);
             }
 
@@ -999,21 +999,21 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                             !s.Deleted);
 
                     if (selectedTime == null)
-                        return new BaseResultDto(false, "زمان انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.");
+                        return new BaseResultDto(false, Resource.Notification.CompanionReserveTimeNotBelongOrInactive);
 
                     if (!ReservationScheduleValidator.IsWeekDayMatch(item.DoDate, selectedTime.WeekDay?.Label))
-                        return new BaseResultDto(false, "روز تاریخ رزرو با روز زمان انتخاب‌شده هماهنگ نیست.");
+                        return new BaseResultDto(false, Resource.Notification.CompanionReserveDayMismatchWithSelectedTime);
 
                     if (!ReservationScheduleValidator.TryGetServiceStartDateTime(item.DoDate, selectedTime.StartTime, out var serviceStart) ||
                         serviceStart <= DateTime.Now)
-                        return new BaseResultDto(false, "امکان انتخاب زمان گذشته وجود ندارد.");
+                        return new BaseResultDto(false, Resource.Notification.CompanionReserveCannotSelectPastTime);
                 }
                 else if (await _context.CompanionAssistanceTimes.AnyAsync(s =>
                              s.CompanionAssistanceId == item.CompanionAssistanceId &&
                              s.Active &&
                              !s.Deleted))
                 {
-                    return new BaseResultDto(false, "انتخاب زمان خدمت الزامی است.");
+                    return new BaseResultDto(false, Resource.Notification.CompanionReserveServiceTimeSelectionRequired);
                 }
 
                 item.CompanionAssistanceTimeId = dto.CompanionAssistanceTimeId;
@@ -1228,9 +1228,19 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             return new BaseResultDto<CompanionReserveCancelDto>(true, mapper.Map<CompanionReserveCancelDto>(model));
         }
 
-        public async Task<BaseResultDto> UpdateReserveStateDto(CompanionReserveChangeStateDto dto)
+        public async Task<BaseResultDto> UpdateReserveStateDto(CompanionReserveChangeStateDto dto, long? companionId = null)
         {
-            var item = await _context.CompanionReserves.FirstOrDefaultAsync(s => s.Id == dto.Id);
+            var item = await _context.CompanionReserves.Include(s => s.CompanionAssistance).FirstOrDefaultAsync(s => s.Id == dto.Id);
+
+            if (item == null)
+            {
+                return new BaseResultDto<CompanionReserveChangeStateDto>(false, Resource.Notification.NothingFound, dto);
+            }
+
+            if (companionId.HasValue && item.CompanionAssistance?.CompanionId != companionId.Value)
+            {
+                return new BaseResultDto<CompanionReserveChangeStateDto>(false, Resource.Notification.AccessDenied, dto);
+            }
 
             if (item.PaymentPrice == 0)
             {
@@ -1368,7 +1378,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     item.Id);
                 return new BaseResultDto<CompanionReserveOperatorDto>(
                     false,
-                    "وضعیت پرداخت‌شده رزرو در تنظیمات سیستم پیدا نشد.",
+                    Resource.Notification.CompanionReservePaidStateCodeNotConfigured,
                     dto);
             }
 
@@ -1500,7 +1510,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CompanionReservePaymentStartedFinancialDataLocked);
             var originalPrice = item.PrePaymentPrice + item.RebatePrice;
             item.PrePaymentPrice = originalPrice;
             var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
@@ -1535,7 +1545,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CompanionReservePaymentStartedFinancialDataLocked);
             if (!item.RebateId.HasValue)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -1561,7 +1571,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 return new BaseResultDto<CompanionReserveSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CompanionReservePaymentStartedFinancialDataLocked);
             if (item.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Complete)
             {
                 return new BaseResultDto<CompanionReserveSetWalletDto>(false, Resource.Notification.ThisReserveIsCompleted, dto);

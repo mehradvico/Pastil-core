@@ -11,7 +11,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv.Iface
     {
         CompanionAssistanceSearchDto Search(CompanionAssistanceInputDto baseSearchDto);
         Task<BaseResultDto<CompanionAssistanceVDto>> FindAsyncVDto(long Id);
-        Task<BaseResultDto> UpdateAsyncDto(CompanionAssistanceDto dto);
+        Task<BaseResultDto> UpdateAsyncDto(CompanionAssistanceDto dto, long? companionId = null);
         BaseResultDto ActivationDto(CompanionAssistanceActivationDto dto);
     }
 }

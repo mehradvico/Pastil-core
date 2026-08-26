@@ -99,7 +99,7 @@ namespace Application.Services.Content.DeliverySrv
                     !s.Deleted);
 
             return item == null
-                ? new BaseResultDto<DeliveryVDto>(false, "روش ارسال یافت نشد یا متعلق به این فروشگاه نیست.", null)
+                ? new BaseResultDto<DeliveryVDto>(false, Resource.Notification.DeliveryNotFoundOrNotBelongToStore, null)
                 : new BaseResultDto<DeliveryVDto>(true, mapper.Map<DeliveryVDto>(item));
         }
 
@@ -122,7 +122,7 @@ namespace Application.Services.Content.DeliverySrv
                 .FirstOrDefaultAsync(s => s.Id == dto.Id && s.StoreId == storeId && !s.Deleted);
 
             if (item == null)
-                return new BaseResultDto(false, "روش ارسال یافت نشد یا متعلق به این فروشگاه نیست.");
+                return new BaseResultDto(false, Resource.Notification.DeliveryNotFoundOrNotBelongToStore);
 
             var validation = await ValidateForStoreAsync(dto, storeId);
             if (validation != null)
@@ -153,7 +153,7 @@ namespace Application.Services.Content.DeliverySrv
                 .FirstOrDefaultAsync(s => s.Id == id && s.StoreId == storeId && !s.Deleted);
 
             if (item == null)
-                return new BaseResultDto(false, "روش ارسال یافت نشد یا متعلق به این فروشگاه نیست.");
+                return new BaseResultDto(false, Resource.Notification.DeliveryNotFoundOrNotBelongToStore);
 
             item.Deleted = true;
             item.Active = false;
@@ -181,38 +181,38 @@ namespace Application.Services.Content.DeliverySrv
                 ? new BaseResultDto<List<DeliveryTypeOptionDto>>(true, items)
                 : new BaseResultDto<List<DeliveryTypeOptionDto>>(
                     false,
-                    "هیچ نوع روش ارسال فعالی در تنظیمات سیستم یافت نشد.",
+                    Resource.Notification.DeliveryNoActiveTypesConfigured,
                     items);
         }
 
         private async Task<string> ValidateForStoreAsync(DeliveryDto dto, long storeId)
         {
             if (storeId <= 0)
-                return "فروشگاه فعالی برای کاربر جاری یافت نشد.";
+                return Resource.Notification.DeliveryNoActiveStoreForCurrentUser;
             if (dto.DeliveryTypeId <= 0 ||
                 !await _context.Codes.AnyAsync(s =>
                     s.Id == dto.DeliveryTypeId &&
                     s.Active &&
                     DeliveryTypeLabels.Contains(s.Label)))
-                return "نوع روش ارسال معتبر نیست.";
+                return Resource.Notification.DeliveryTypeInvalid;
             if (dto.BasePrice < 0 || dto.MinPriceForFree < 0 || dto.MinCountForFree < 0 || dto.MaxDays < 0)
-                return "مقادیر هزینه، تعداد و زمان تحویل نمی‌توانند منفی باشند.";
+                return Resource.Notification.DeliveryCostCountDaysCannotBeNegative;
             if (!System.Enum.IsDefined(dto.ShippingProvider))
-                return "ارائه‌دهنده ارسال معتبر نیست.";
+                return Resource.Notification.DeliveryShippingProviderInvalid;
             if (dto.LivePricing && dto.ShippingProvider == Entities.Entities.ShippingField.ShippingProviderEnum.None)
-                return "برای قیمت‌گذاری لحظه‌ای باید ارائه‌دهنده ارسال انتخاب شود.";
+                return Resource.Notification.DeliveryProviderRequiredForLivePricing;
             if (!dto.AllowPrepaid && !dto.AllowReceiverPay && !dto.AfterRent)
-                return "حداقل یکی از حالت‌های پرداخت کرایه باید فعال باشد.";
+                return Resource.Notification.DeliveryAtLeastOnePaymentModeRequired;
             if (dto.CityId.HasValue &&
                 !await _context.Cities.AnyAsync(s => s.Id == dto.CityId.Value))
-                return "شهر انتخاب‌شده معتبر نیست.";
+                return Resource.Notification.DeliverySelectedCityInvalid;
             if (dto.StateId.HasValue &&
                 !await _context.States.AnyAsync(s => s.Id == dto.StateId.Value))
-                return "استان انتخاب‌شده معتبر نیست.";
+                return Resource.Notification.DeliverySelectedStateInvalid;
             if (dto.CityId.HasValue && dto.StateId.HasValue &&
                 !await _context.Cities.AnyAsync(s =>
                     s.Id == dto.CityId.Value && s.StateId == dto.StateId.Value))
-                return "شهر انتخاب‌شده متعلق به استان انتخاب‌شده نیست.";
+                return Resource.Notification.DeliveryCityNotInSelectedState;
 
             return null;
         }
@@ -309,15 +309,15 @@ namespace Application.Services.Content.DeliverySrv
             }
             if (delivery.MinCountForFree > 0 && delivery.MinPriceForFree > 0)
             {
-                newItem.MinPriceForFreeString = $"رایگان برای خرید بیشتر از {delivery.MinPriceForFree.ToCurency()} و تعداد {delivery.MinCountForFree} قلم جنس و بیشتر";
+                newItem.MinPriceForFreeString = string.Format(Resource.Pattern.DeliveryFreeShippingAbovePriceAndCount, delivery.MinPriceForFree.ToCurency(), delivery.MinCountForFree);
             }
             else if (delivery.MinPriceForFree > 0)
             {
-                newItem.MinPriceForFreeString = $"رایگان برای خرید بیشتر از {delivery.MinPriceForFree.ToCurency()}";
+                newItem.MinPriceForFreeString = string.Format(Resource.Pattern.DeliveryFreeShippingAbovePrice, delivery.MinPriceForFree.ToCurency());
             }
             else if (delivery.MinCountForFree > 0)
             {
-                newItem.MinPriceForFreeString = $"رایگان برای خرید بیشتر از {delivery.MinCountForFree} قلم جنس";
+                newItem.MinPriceForFreeString = string.Format(Resource.Pattern.DeliveryFreeShippingAboveCount, delivery.MinCountForFree);
             }
             return newItem;
         }

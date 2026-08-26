@@ -45,13 +45,15 @@ namespace Api.Areas.EndUser.Controllers
         }
 
         /// <summary>
-        /// ویرایش آیتم 
-        /// </summary>  
+        /// ویرایش آیتم
+        /// </summary>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public IActionResult Put(UserDto userDto)
         {
             userDto.Id = _currentUserHelper.CurrentUser.UserId;
+            userDto.RoleId = _currentUserHelper.CurrentUser.RoleId;
+            userDto.Locked = false;
             var dto = userService.UpdateDto(userDto);
             return Ok(dto);
         }

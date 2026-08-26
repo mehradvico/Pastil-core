@@ -83,7 +83,7 @@ namespace Application.Services.ProductSrvs.DiscountSrv
         public async Task<BaseResultDto> ActiveAsync(DiscountDto discount)
         {
             var item = await _context.Discounts.Include(s => s.Type).FirstOrDefaultAsync(s => s.Id == discount.Id && s.StoreId == discount.StoreId);
-            if (item == null)
+            if (item != null)
             {
                 item.Active = discount.Active;
                 _context.Discounts.Update(item);

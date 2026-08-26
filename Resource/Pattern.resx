@@ -126,6 +126,15 @@
   <data name="DeliveryDays" xml:space="preserve">
     <value>Shipping in the next {0} days</value>
   </data>
+  <data name="DeliveryFreeShippingAbovePriceAndCount" xml:space="preserve">
+    <value>Free for orders above {0} and {1} items or more</value>
+  </data>
+  <data name="DeliveryFreeShippingAbovePrice" xml:space="preserve">
+    <value>Free for orders above {0}</value>
+  </data>
+  <data name="DeliveryFreeShippingAboveCount" xml:space="preserve">
+    <value>Free for orders above {0} items</value>
+  </data>
   <data name="NumberEnteredMustLeastNumber" xml:space="preserve">
     <value>The {0} must be at least {1} number</value>
   </data>

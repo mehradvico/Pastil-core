@@ -50,6 +50,8 @@ namespace Api.Areas.EndUser.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var Trip = await _tripService.FindAsyncDto(id);
+            if (Trip.IsSuccess && Trip.Data?.UserId != _currentUserHelper.CurrentUser.UserId)
+                return Ok(new BaseResultDto<TripDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(Trip);
         }
     }

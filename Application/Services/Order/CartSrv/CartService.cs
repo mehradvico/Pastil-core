@@ -367,7 +367,7 @@ namespace Application.Services.Order.CartSrv
                     item.Id == cartUpdate.AddressId.Value &&
                     item.UserId == cart.UserId.Value &&
                     !item.Deleted))
-                return new BaseResultDto(isSuccess: false, val: "آدرس انتخاب‌شده متعلق به کاربر جاری نیست.");
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.CartSelectedAddressNotOwnedByCurrentUser);
             cart.AddressId = cartUpdate.AddressId;
             cart.Address = null;
             foreach (var cartStore in cart.CartStores)
@@ -494,6 +494,12 @@ namespace Application.Services.Order.CartSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
+            if (!cart.UserId.HasValue ||
+                !await _context.Addresses.AnyAsync(item =>
+                    item.Id == cartUpdate.AddressId.Value &&
+                    item.UserId == cart.UserId.Value &&
+                    !item.Deleted))
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.CartSelectedAddressNotOwnedByCurrentUser);
             _addressService.DeleteDto(cartUpdate.AddressId.Value);
             if (cartUpdate.AddressId == cart.AddressId)
             {

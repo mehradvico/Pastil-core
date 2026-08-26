@@ -51,7 +51,7 @@ namespace Application.Services.Order.MerchantSrv
         public override async Task<BaseResultDto<MerchantDto>> InsertAsyncDto(MerchantDto dto)
         {
             if (_encryptionKey == null)
-                return new BaseResultDto<MerchantDto>(false, "کلید رمزنگاری اطلاعات درگاه تنظیم نشده است.", null);
+                return new BaseResultDto<MerchantDto>(false, Resource.Notification.MerchantGatewayEncryptionKeyNotConfigured, null);
 
             var protectedDto = CopyDto(dto);
             ProtectDto(protectedDto);
@@ -64,7 +64,7 @@ namespace Application.Services.Order.MerchantSrv
         public async Task<BaseResultDto> UpdateSecureAsyncDto(MerchantDto dto)
         {
             if (_encryptionKey == null)
-                return new BaseResultDto(false, "کلید رمزنگاری اطلاعات درگاه تنظیم نشده است.");
+                return new BaseResultDto(false, Resource.Notification.MerchantGatewayEncryptionKeyNotConfigured);
 
             var merchant = await _context.Merchants.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
             if (merchant == null)

@@ -27,6 +27,7 @@
         CategorySearch,
         CategoryMenu,
         CategorySiteMap,
+        PansionSiteMap,
         CategoryStore,
         Feature,
         PermissionMenu,

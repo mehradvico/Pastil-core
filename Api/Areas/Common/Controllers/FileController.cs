@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Services.Filing.FileSrv.Dto;
 using Application.Services.Filing.FileSrv.Iface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Common.Controllers
@@ -12,6 +13,7 @@ namespace Api.Areas.Common.Controllers
     [Area("Common")]
     [Route("api/[area]/[controller]")]
     [ApiController]
+    [Authorize]
     public class FileController : ControllerBase
     {
         private readonly IFileService _fileService;

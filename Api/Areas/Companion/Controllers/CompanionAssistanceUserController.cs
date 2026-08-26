@@ -51,6 +51,8 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var agency = await _companionAssistanceUserService.FindAsyncVDto(id);
+            if (agency.IsSuccess && agency.Data?.CompanionAssistance?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<CompanionAssistanceUserVDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(agency);
         }
 
@@ -75,20 +77,29 @@ namespace Api.Areas.Companion.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(CompanionAssistanceUserDto dto)
+        public async Task<IActionResult> Put(CompanionAssistanceUserDto dto)
         {
+            var existing = await _companionAssistanceUserService.FindAsyncVDto(dto.Id);
+            if (!existing.IsSuccess || existing.Data?.CompanionAssistance?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
+
             dto.Active = false;
+            dto.CompanionAssistanceId = existing.Data.CompanionAssistanceId;
             var agency = _companionAssistanceUserService.UpdateDto(dto);
             return Ok(agency);
         }
 
         /// <summary>
-        /// حذف آیتم 
-        /// </summary>  
+        /// حذف آیتم
+        /// </summary>
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await _companionAssistanceUserService.FindAsyncVDto(id);
+            if (!existing.IsSuccess || existing.Data?.CompanionAssistance?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
+
             var dto = _companionAssistanceUserService.DeleteDto(id);
             return Ok(dto);
         }

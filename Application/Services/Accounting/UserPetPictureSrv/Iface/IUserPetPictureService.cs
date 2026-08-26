@@ -14,6 +14,8 @@ namespace Application.Services.Accounting.UserPetPictureSrv.Iface
     {
         UserPetPictureSearchDto Search(UserPetPictureInputDto searchDto);
         Task<BaseResultDto<UserPetPictureVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto<UserPetPictureVDto>> FindAsyncVDto(long id, long userId);
+        Task<bool> IsUserPetOwnedByAsync(long userPetId, long userId);
 
         void InsertOrUpdate(UserPetPictureDto UserPetPicture);
         void InsertOrUpdate(UserPet UserPet, List<UserPetPictureDto> UserPetPicturesDto);

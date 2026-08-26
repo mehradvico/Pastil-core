@@ -1,5 +1,6 @@
 ﻿using AngleSharp.Dom;
 using Application.Common.Dto.Result;
+using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Common.Interface;
@@ -159,16 +160,20 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 return new BaseResultDto<CompanionAssistanceDto>(isSuccess: false, val: ex.Message, data: dto);
             }
         }
-        public async Task<BaseResultDto> UpdateAsyncDto(CompanionAssistanceDto dto)
+        public async Task<BaseResultDto> UpdateAsyncDto(CompanionAssistanceDto dto, long? companionId = null)
         {
             try
             {
 
                 var item = await _context.CompanionAssistances.Include(s => s.Codes).AsNoTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
+                if (item == null)
+                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.NothingFound, dto);
+                if (companionId.HasValue && item.CompanionId != companionId.Value)
+                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.AccessDenied, dto);
                 item.Active = dto.Active;
                 item.AssistanceId = dto.AssistanceId;
                 item.IsSinglePackage = dto.IsSinglePackage;
-                if (_currentUser.CompanionId == null)
+                if (_currentUser.RoleEnum == RoleEnum.Admin.ToString())
                 {
                     item.Approved = dto.Approved;
                 }

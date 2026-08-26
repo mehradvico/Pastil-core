@@ -73,10 +73,13 @@ namespace Api.Areas.Companion.Controllers
         /// 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<CompanionPetDto>), 200)]
-        public IActionResult Put(CompanionPetDto CompanionPetDto)
+        public async Task<IActionResult> Put(CompanionPetDto CompanionPetDto)
         {
             if (!_current.CurrentUser.CompanionId.HasValue)
                 return Forbid();
+            var existing = await CompanionPetService.FindAsyncDto(CompanionPetDto.Id);
+            if (!existing.IsSuccess || existing.Data?.CompanionId != _current.CurrentUser.CompanionId.Value)
+                return Ok(new BaseResultDto<CompanionPetDto>(false, Resource.Notification.AccessDenied, default));
             CompanionPetDto.CompanionId = _current.CurrentUser.CompanionId.Value;
             var result = CompanionPetService.UpdateDto(CompanionPetDto);
             return Ok(result);
@@ -86,11 +89,14 @@ namespace Api.Areas.Companion.Controllers
         /// حذف آیتم
         /// </summary>
         /// <returns></returns>
-        /// 
+        ///
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto<CompanionPetDto>), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await CompanionPetService.FindAsyncDto(id);
+            if (!existing.IsSuccess || existing.Data?.CompanionId != _current.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<CompanionPetDto>(false, Resource.Notification.AccessDenied, default));
             var result = CompanionPetService.DeleteDto(id);
             return Ok(result);
         }

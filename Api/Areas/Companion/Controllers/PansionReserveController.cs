@@ -49,7 +49,7 @@ namespace Api.Areas.Pansion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<PansionReserveVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var Pansion = await _PansionReserveService.FindAsyncVDto(id);
+            var Pansion = await _PansionReserveService.FindAsyncVDto(id, companionId: _currentUserHelper.CurrentUser.CompanionId);
             return Ok(Pansion);
         }
     }

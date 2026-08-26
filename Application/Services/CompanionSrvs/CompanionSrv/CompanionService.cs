@@ -366,11 +366,11 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             }
             catch (DbUpdateException)
             {
-                return new BaseResultDto<CompanionDto>(false, "اطلاعات نماینده با داده‌های موجود سازگار نیست. شناسه‌های انتخاب‌شده را بررسی کنید.", dto);
+                return new BaseResultDto<CompanionDto>(false, Resource.Notification.CompanionDataConflictsWithExisting, dto);
             }
             catch (Exception)
             {
-                return new BaseResultDto<CompanionDto>(false, "خطا در ثبت نماینده. لطفاً اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.", dto);
+                return new BaseResultDto<CompanionDto>(false, Resource.Notification.CompanionInsertErrorRetry, dto);
             }
         }
         public async Task<BaseResultDto> InsertCheckerAsync(CompanionDto dto)
@@ -390,34 +390,34 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             }
             else if (!Regex.IsMatch(dto.Phone, @"^\+?\d{10,13}$"))
             {
-                errors.Add(new Tuple<string, string>("شماره تماس معتبر نیست.", nameof(dto.Phone)));
+                errors.Add(new Tuple<string, string>(Resource.Notification.CompanionPhoneNotValid, nameof(dto.Phone)));
             }
             if (dto.OwnerId <= 0 || !await _context.Users.AnyAsync(s => s.Id == dto.OwnerId && !s.Deleted))
             {
-                errors.Add(new Tuple<string, string>("مالک یا مسئول انتخاب‌شده معتبر نیست.", nameof(dto.OwnerId)));
+                errors.Add(new Tuple<string, string>(Resource.Notification.CompanionOwnerSelectionNotValid, nameof(dto.OwnerId)));
             }
             if (dto.CityId <= 0 || !await _context.Cities.AnyAsync(s => s.Id == dto.CityId))
             {
-                errors.Add(new Tuple<string, string>("شهر انتخاب‌شده معتبر نیست.", nameof(dto.CityId)));
+                errors.Add(new Tuple<string, string>(Resource.Notification.CompanionCitySelectionNotValid, nameof(dto.CityId)));
             }
             if (dto.NeighborhoodId.HasValue &&
                 !await _context.Neighborhoods.AnyAsync(s => s.Id == dto.NeighborhoodId.Value && s.CityId == dto.CityId))
             {
-                errors.Add(new Tuple<string, string>("محله انتخاب‌شده متعلق به شهر انتخاب‌شده نیست.", nameof(dto.NeighborhoodId)));
+                errors.Add(new Tuple<string, string>(Resource.Notification.CompanionNeighborhoodNotInSelectedCity, nameof(dto.NeighborhoodId)));
             }
             if (string.IsNullOrWhiteSpace(dto.AddressValue))
             {
-                errors.Add(new Tuple<string, string>("آدرس نماینده را وارد کنید.", nameof(dto.AddressValue)));
+                errors.Add(new Tuple<string, string>(Resource.Notification.CompanionEnterAddress, nameof(dto.AddressValue)));
             }
 
-            await ValidatePictureAsync(dto.PictureId, nameof(dto.PictureId), "تصویر اصلی", errors);
-            await ValidatePictureAsync(dto.BackgroundPictureId, nameof(dto.BackgroundPictureId), "تصویر پس‌زمینه", errors);
-            await ValidatePictureAsync(dto.IconId, nameof(dto.IconId), "آیکن", errors);
+            await ValidatePictureAsync(dto.PictureId, nameof(dto.PictureId), Resource.Notification.CompanionPictureTitleMain, errors);
+            await ValidatePictureAsync(dto.BackgroundPictureId, nameof(dto.BackgroundPictureId), Resource.Notification.CompanionPictureTitleBackground, errors);
+            await ValidatePictureAsync(dto.IconId, nameof(dto.IconId), Resource.Notification.CompanionPictureTitleIcon, errors);
 
             if (dto.Location != null &&
                 (dto.Location.x < -180 || dto.Location.x > 180 || dto.Location.y < -90 || dto.Location.y > 90))
             {
-                errors.Add(new Tuple<string, string>("مختصات انتخاب‌شده روی نقشه معتبر نیست.", nameof(dto.Location)));
+                errors.Add(new Tuple<string, string>(Resource.Notification.CompanionSelectedLocationCoordinatesNotValid, nameof(dto.Location)));
             }
             if (errors.Any())
             {
@@ -435,7 +435,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             if (pictureId.HasValue && pictureId.Value > 0 &&
                 !await _context.Pictures.AnyAsync(s => s.Id == pictureId.Value))
             {
-                errors.Add(new Tuple<string, string>($"شناسه {fieldTitle} معتبر نیست.", fieldName));
+                errors.Add(new Tuple<string, string>(string.Format(Resource.Notification.CompanionSelectedIdNotValidFormat, fieldTitle), fieldName));
             }
         }
 
@@ -495,13 +495,13 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             try
             {
                 if (dto.Id <= 0)
-                    return new BaseResultDto(false, "شناسه نماینده معتبر نیست.");
+                    return new BaseResultDto(false, Resource.Notification.CompanionIdNotValid);
 
                 var item = await _context.Companions
                     .AsTracking()
                     .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
                 if (item == null)
-                    return new BaseResultDto(false, "نماینده موردنظر یافت نشد.");
+                    return new BaseResultDto(false, Resource.Notification.CompanionNotFound);
 
                 var modelCheker = await InsertCheckerAsync(dto);
                 if (!modelCheker.IsSuccess)
@@ -512,7 +512,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                 var ownerHasAnotherCompanion = await _context.Companions.AnyAsync(s =>
                     s.Id != dto.Id && s.OwnerId == dto.OwnerId && !s.Deleted);
                 if (ownerHasAnotherCompanion)
-                    return new BaseResultDto(false, "برای مالک انتخاب‌شده قبلاً نماینده ثبت شده است.");
+                    return new BaseResultDto(false, Resource.Notification.CompanionAlreadyRegisteredForOwner);
 
                 mapper.Map(dto, item);
                 await _context.SaveChangesAsync();
@@ -530,18 +530,18 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             }
             catch (DbUpdateException)
             {
-                return new BaseResultDto(false, "اطلاعات نماینده با داده‌های موجود سازگار نیست. شناسه‌های انتخاب‌شده را بررسی کنید.");
+                return new BaseResultDto(false, Resource.Notification.CompanionDataConflictsWithExisting);
             }
             catch (Exception)
             {
-                return new BaseResultDto(false, "خطا در ویرایش نماینده. لطفاً اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.");
+                return new BaseResultDto(false, Resource.Notification.CompanionUpdateErrorRetry);
             }
         }
 
         public async Task<BaseResultDto> ResubmitAsyncDto(CompanionDto dto, long ownerId)
         {
             if (dto == null || dto.Id <= 0)
-                return new BaseResultDto(false, "شناسه درخواست نمایندگی معتبر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CompanionRequestIdNotValid);
 
             var item = await _context.Companions
                 .AsTracking()
@@ -550,7 +550,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
             if (item.Approved)
-                return new BaseResultDto(false, "درخواست نمایندگی تأیید شده است و از مسیر ارسال مجدد قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CompanionRequestAlreadyApprovedCannotResubmit);
 
             dto.OwnerId = ownerId;
             var checker = await InsertCheckerAsync(dto);

@@ -39,6 +39,8 @@ namespace Api.Areas.EndUser.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var role = await _userPetService.FindAsyncVDto(id);
+            if (role.IsSuccess && role.Data?.UserId != _currentUserHelper.CurrentUser.UserId)
+                return Ok(new BaseResultDto<UserPetVDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(role);
         }
         /// <summary>
@@ -84,8 +86,11 @@ namespace Api.Areas.EndUser.Controllers
         ///
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await _userPetService.FindAsyncVDto(id);
+            if (!existing.IsSuccess || existing.Data?.UserId != _currentUserHelper.CurrentUser.UserId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             var dto = _userPetService.DeleteDto(id);
             return Ok(dto);
         }

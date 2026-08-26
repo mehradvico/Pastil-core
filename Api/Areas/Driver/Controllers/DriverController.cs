@@ -33,13 +33,14 @@ namespace Api.Areas.Driver.Controllers
         [ProducesResponseType(typeof(DriverSearchDto), 200)]
         public IActionResult Get([FromQuery] DriverInputDto dto)
         {
+            dto.OwnerId = _currentUser.CurrentUser.UserId;
             var search = _DriverService.Search(dto);
             return Ok(search);
         }
 
 
         /// <summary>
-        ///  اطلاعات آیتم 
+        ///  اطلاعات آیتم
         /// </summary>
         /// <param name="id">شناسه نماینده</param>
         /// <returns>
@@ -49,6 +50,8 @@ namespace Api.Areas.Driver.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var Driver = await _DriverService.FindAsyncVDto(id);
+            if (!Driver.IsSuccess || Driver.Data?.OwnerId != _currentUser.CurrentUser.UserId)
+                return Ok(new BaseResultDto<DriverDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(Driver);
         }
 

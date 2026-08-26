@@ -75,6 +75,10 @@ namespace Application.Services.ProductSrvs.StoreCommentSrv
             try
             {
                 var item = _context.StoreComments.FirstOrDefault(s => s.Id.Equals(dto.Id));
+                if (item == null)
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
+                if (item.StoreId != dto.StoreId)
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
                 item.StatusId = dto.StatusId;
                 item.Answer = dto.Answer;
                 _context.StoreComments.Update(item);

@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.Filing.PictureSrv.Iface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Areas.Common.Controllers
@@ -12,6 +13,7 @@ namespace Api.Areas.Common.Controllers
     [Area("Common")]
     [Route("api/[area]/[controller]")]
     [ApiController]
+    [Authorize]
     public class PictureController : ControllerBase
     {
         private readonly IPictureService _pictureService;

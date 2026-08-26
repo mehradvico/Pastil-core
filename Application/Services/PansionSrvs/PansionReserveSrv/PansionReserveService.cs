@@ -71,11 +71,13 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             this._clubPointIntegrationService = clubPointIntegrationService;
             this._logger = logger;
         }
-        public async Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null)
+        public async Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null, long? companionId = null)
         {
             var query = _context.PansionReserves.Include(s => s.Status).Include(s => s.Booker).Include(s => s.UserPet).Include(s => s.Rebate).Where(s => s.Id == id);
             if (bookerId.HasValue)
                 query = query.Where(s => s.BookerId == bookerId.Value);
+            if (companionId.HasValue)
+                query = query.Where(s => s.Pansion.CompanionId == companionId.Value);
             var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
@@ -557,7 +559,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             return new BaseResultDto<PansionReserveCancelDto>(true, mapper.Map<PansionReserveCancelDto>(model));
         }
 
-        public async Task<BaseResultDto> UpdatePansionReserveStatusDto(PansionReserveStatusDto dto)
+        public async Task<BaseResultDto> UpdatePansionReserveStatusDto(PansionReserveStatusDto dto, long? companionId = null)
         {
             var item = await _context.PansionReserves
                 .Include(s => s.Booker)
@@ -566,6 +568,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
             if (item == null)
                 return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.NothingFound, dto);
+
+            if (companionId.HasValue && item.Pansion?.CompanionId != companionId.Value)
+                return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.AccessDenied, dto);
 
             if (item.PaymentPrice == 0)
             {
@@ -616,7 +621,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.PansionReservePaymentAlreadyStartedCannotChangeFinancials);
             var originalPrice = item.PaymentPrice + item.RebatePrice;
             item.Price = originalPrice;
             var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
@@ -651,7 +656,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.PansionReservePaymentAlreadyStartedCannotChangeFinancials);
             if (!item.RebateId.HasValue)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -677,7 +682,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 return new BaseResultDto<PansionReserveWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.PansionReservePaymentAlreadyStartedCannotChangeFinancials);
             if (item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete)
             {
                 return new BaseResultDto<PansionReserveWalletDto>(false, Resource.Notification.ThisReserveIsCompleted, dto);

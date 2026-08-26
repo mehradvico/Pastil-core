@@ -56,6 +56,7 @@ namespace Api.Areas.Seller.Controllers
         public IActionResult Get([FromQuery] ProductInputDto dto)
         {
             dto.IsAdmin = true;
+            dto.CreateStoreId = _storeId;
             var product = productService.Search(dto);
             return Ok(product);
         }
@@ -69,6 +70,7 @@ namespace Api.Areas.Seller.Controllers
         [ProducesResponseType(typeof(BaseResultDto<ProductDto>), 200)]
         public async Task<IActionResult> Post(ProductDto productDto)
         {
+            productDto.StoreId = _storeId;
             var item = await productService.InsertAsyncDto(productDto);
             return Ok(item);
         }

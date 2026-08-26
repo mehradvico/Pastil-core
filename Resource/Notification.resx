@@ -624,6 +624,552 @@
   <data name="PansionCommentOnlyForYourCompletedReserve" xml:space="preserve">
     <value>Pansion Comment Only For Your Completed Reserve</value>
   </data>
+    <data name="CompanionPaymentStartedFinancialDataLocked" xml:space="preserve">
+    <value>Companion Payment Started Financial Data Locked</value>
+  </data>
+  <data name="CompanionExpertiseNameRequired" xml:space="preserve">
+    <value>Companion Expertise Name Required</value>
+  </data>
+  <data name="CompanionExpertiseNameAlreadyRegistered" xml:space="preserve">
+    <value>Companion Expertise Name Already Registered</value>
+  </data>
+  <data name="CompanionExpertiseDataInvalid" xml:space="preserve">
+    <value>Companion Expertise Data Invalid</value>
+  </data>
+  <data name="CompanionExpertiseInUseCannotDelete" xml:space="preserve">
+    <value>Companion Expertise In Use Cannot Delete</value>
+  </data>
+  <data name="CompanionSelectActiveValidJobTitle" xml:space="preserve">
+    <value>Companion Select Active Valid Job Title</value>
+  </data>
+  <data name="CompanionDataConflictsWithExisting" xml:space="preserve">
+    <value>Companion Data Conflicts With Existing</value>
+  </data>
+  <data name="CompanionInsertErrorRetry" xml:space="preserve">
+    <value>Companion Insert Error Retry</value>
+  </data>
+  <data name="CompanionPhoneNotValid" xml:space="preserve">
+    <value>Companion Phone Not Valid</value>
+  </data>
+  <data name="CompanionOwnerSelectionNotValid" xml:space="preserve">
+    <value>Companion Owner Selection Not Valid</value>
+  </data>
+  <data name="CompanionCitySelectionNotValid" xml:space="preserve">
+    <value>Companion City Selection Not Valid</value>
+  </data>
+  <data name="CompanionNeighborhoodNotInSelectedCity" xml:space="preserve">
+    <value>Companion Neighborhood Not In Selected City</value>
+  </data>
+  <data name="CompanionEnterAddress" xml:space="preserve">
+    <value>Companion Enter Address</value>
+  </data>
+  <data name="CompanionSelectedLocationCoordinatesNotValid" xml:space="preserve">
+    <value>Companion Selected Location Coordinates Not Valid</value>
+  </data>
+  <data name="CompanionSelectedIdNotValidFormat" xml:space="preserve">
+    <value>Companion Selected Id Not Valid Format</value>
+  </data>
+  <data name="CompanionPictureTitleMain" xml:space="preserve">
+    <value>Companion Picture Title Main</value>
+  </data>
+  <data name="CompanionPictureTitleBackground" xml:space="preserve">
+    <value>Companion Picture Title Background</value>
+  </data>
+  <data name="CompanionPictureTitleIcon" xml:space="preserve">
+    <value>Companion Picture Title Icon</value>
+  </data>
+  <data name="CompanionIdNotValid" xml:space="preserve">
+    <value>Companion Id Not Valid</value>
+  </data>
+  <data name="CompanionNotFound" xml:space="preserve">
+    <value>Companion Not Found</value>
+  </data>
+  <data name="CompanionAlreadyRegisteredForOwner" xml:space="preserve">
+    <value>Companion Already Registered For Owner</value>
+  </data>
+  <data name="CompanionUpdateErrorRetry" xml:space="preserve">
+    <value>Companion Update Error Retry</value>
+  </data>
+  <data name="CompanionRequestIdNotValid" xml:space="preserve">
+    <value>Companion Request Id Not Valid</value>
+  </data>
+  <data name="CompanionRequestAlreadyApprovedCannotResubmit" xml:space="preserve">
+    <value>Companion Request Already Approved Cannot Resubmit</value>
+  </data>
+  <data name="CompanionReserveTypeAssistance" xml:space="preserve">
+    <value>Companion Reserve Type Assistance</value>
+  </data>
+  <data name="CompanionReserveOperatorNameClinicFallback" xml:space="preserve">
+    <value>Companion Reserve Operator Name Clinic Fallback</value>
+  </data>
+  <data name="CompanionReserveTypePansionDaily" xml:space="preserve">
+    <value>Companion Reserve Type Pansion Daily</value>
+  </data>
+  <data name="CompanionReserveTypePansionHourly" xml:space="preserve">
+    <value>Companion Reserve Type Pansion Hourly</value>
+  </data>
+  <data name="CompanionReserveCommentOnlyForOwnCompletedReserve" xml:space="preserve">
+    <value>Companion Reserve Comment Only For Own Completed Reserve</value>
+  </data>
+  <data name="CompanionReserveAssistanceTypeNotBelongToService" xml:space="preserve">
+    <value>Companion Reserve Assistance Type Not Belong To Service</value>
+  </data>
+  <data name="CompanionReserveCannotBookPastDate" xml:space="preserve">
+    <value>Companion Reserve Cannot Book Past Date</value>
+  </data>
+  <data name="CompanionReserveTimeNotBelongOrInactive" xml:space="preserve">
+    <value>Companion Reserve Time Not Belong Or Inactive</value>
+  </data>
+  <data name="CompanionReserveDayMismatchWithSelectedTime" xml:space="preserve">
+    <value>Companion Reserve Day Mismatch With Selected Time</value>
+  </data>
+  <data name="CompanionReserveServiceStartTimeNotValid" xml:space="preserve">
+    <value>Companion Reserve Service Start Time Not Valid</value>
+  </data>
+  <data name="CompanionReserveCannotBookPastTime" xml:space="preserve">
+    <value>Companion Reserve Cannot Book Past Time</value>
+  </data>
+  <data name="CompanionReserveServiceTimeSelectionRequired" xml:space="preserve">
+    <value>Companion Reserve Service Time Selection Required</value>
+  </data>
+  <data name="CompanionReserveOperatorNotBelongOrInactive" xml:space="preserve">
+    <value>Companion Reserve Operator Not Belong Or Inactive</value>
+  </data>
+  <data name="CompanionReserveOperatorMembershipNotActiveOrConfirmed" xml:space="preserve">
+    <value>Companion Reserve Operator Membership Not Active Or Confirmed</value>
+  </data>
+  <data name="CompanionReserveOperatorHasScheduleConflict" xml:space="preserve">
+    <value>Companion Reserve Operator Has Schedule Conflict</value>
+  </data>
+  <data name="CompanionReserveOnlyPaidActiveCanBeAssigned" xml:space="preserve">
+    <value>Companion Reserve Only Paid Active Can Be Assigned</value>
+  </data>
+  <data name="CompanionReserveNoSuccessfulPaymentRegistered" xml:space="preserve">
+    <value>Companion Reserve No Successful Payment Registered</value>
+  </data>
+  <data name="CompanionReservePaymentAmountMismatchCannotAutoAssign" xml:space="preserve">
+    <value>Companion Reserve Payment Amount Mismatch Cannot Auto Assign</value>
+  </data>
+  <data name="CompanionReservePaymentSucceededButApplyFailed" xml:space="preserve">
+    <value>Companion Reserve Payment Succeeded But Apply Failed</value>
+  </data>
+  <data name="CompanionReserveCompletedCannotReassign" xml:space="preserve">
+    <value>Companion Reserve Completed Cannot Reassign</value>
+  </data>
+  <data name="CompanionReserveUserNotBelongOrInactive" xml:space="preserve">
+    <value>Companion Reserve User Not Belong Or Inactive</value>
+  </data>
+  <data name="CompanionReserveUserMembershipNotActiveOrConfirmed" xml:space="preserve">
+    <value>Companion Reserve User Membership Not Active Or Confirmed</value>
+  </data>
+  <data name="CompanionReserveUserHasScheduleConflict" xml:space="preserve">
+    <value>Companion Reserve User Has Schedule Conflict</value>
+  </data>
+  <data name="CompanionReserveCannotSelectPastTime" xml:space="preserve">
+    <value>Companion Reserve Cannot Select Past Time</value>
+  </data>
+  <data name="CompanionReservePaidStateCodeNotConfigured" xml:space="preserve">
+    <value>Companion Reserve Paid State Code Not Configured</value>
+  </data>
+  <data name="CompanionReservePaymentStartedFinancialDataLocked" xml:space="preserve">
+    <value>Companion Reserve Payment Started Financial Data Locked</value>
+  </data>
+  <data name="ShippingActiveCartNotFoundForStore" xml:space="preserve">
+    <value>Shipping Active Cart Not Found For Store</value>
+  </data>
+  <data name="ShippingSelectDeliveryAddressFirst" xml:space="preserve">
+    <value>Shipping Select Delivery Address First</value>
+  </data>
+  <data name="ShippingNoActiveDeliveryMethodForStore" xml:space="preserve">
+    <value>Shipping No Active Delivery Method For Store</value>
+  </data>
+  <data name="ShippingQuoteCurrentlyUnavailable" xml:space="preserve">
+    <value>Shipping Quote Currently Unavailable</value>
+  </data>
+  <data name="ShippingSelectedQuoteInvalid" xml:space="preserve">
+    <value>Shipping Selected Quote Invalid</value>
+  </data>
+  <data name="ShippingQuoteExpiredRefetch" xml:space="preserve">
+    <value>Shipping Quote Expired Refetch</value>
+  </data>
+  <data name="ShippingCartAddressChangedRefetchQuote" xml:space="preserve">
+    <value>Shipping Cart Address Changed Refetch Quote</value>
+  </data>
+  <data name="ShippingMethodSelectedSuccessfully" xml:space="preserve">
+    <value>Shipping Method Selected Successfully</value>
+  </data>
+  <data name="ShippingMethodNotSelected" xml:space="preserve">
+    <value>Shipping Method Not Selected</value>
+  </data>
+  <data name="ShippingSelectedMethodNoLongerActive" xml:space="preserve">
+    <value>Shipping Selected Method No Longer Active</value>
+  </data>
+  <data name="ShippingLiveQuoteRequiredForMethod" xml:space="preserve">
+    <value>Shipping Live Quote Required For Method</value>
+  </data>
+  <data name="ShippingQuoteExpiredFetchNew" xml:space="preserve">
+    <value>Shipping Quote Expired Fetch New</value>
+  </data>
+  <data name="ShippingQuoteInfoInvalid" xml:space="preserve">
+    <value>Shipping Quote Info Invalid</value>
+  </data>
+  <data name="ShippingCartContentsChangedFetchNewQuote" xml:space="preserve">
+    <value>Shipping Cart Contents Changed Fetch New Quote</value>
+  </data>
+  <data name="ShippingCartAmountInvalid" xml:space="preserve">
+    <value>Shipping Cart Amount Invalid</value>
+  </data>
+  <data name="DeliveryNotFoundOrNotBelongToStore" xml:space="preserve">
+    <value>Delivery Not Found Or Not Belong To Store</value>
+  </data>
+  <data name="DeliveryNoActiveTypesConfigured" xml:space="preserve">
+    <value>Delivery No Active Types Configured</value>
+  </data>
+  <data name="DeliveryNoActiveStoreForCurrentUser" xml:space="preserve">
+    <value>Delivery No Active Store For Current User</value>
+  </data>
+  <data name="DeliveryTypeInvalid" xml:space="preserve">
+    <value>Delivery Type Invalid</value>
+  </data>
+  <data name="DeliveryCostCountDaysCannotBeNegative" xml:space="preserve">
+    <value>Delivery Cost Count Days Cannot Be Negative</value>
+  </data>
+  <data name="DeliveryShippingProviderInvalid" xml:space="preserve">
+    <value>Delivery Shipping Provider Invalid</value>
+  </data>
+  <data name="DeliveryProviderRequiredForLivePricing" xml:space="preserve">
+    <value>Delivery Provider Required For Live Pricing</value>
+  </data>
+  <data name="DeliveryAtLeastOnePaymentModeRequired" xml:space="preserve">
+    <value>Delivery At Least One Payment Mode Required</value>
+  </data>
+  <data name="DeliverySelectedCityInvalid" xml:space="preserve">
+    <value>Delivery Selected City Invalid</value>
+  </data>
+  <data name="DeliverySelectedStateInvalid" xml:space="preserve">
+    <value>Delivery Selected State Invalid</value>
+  </data>
+  <data name="DeliveryCityNotInSelectedState" xml:space="preserve">
+    <value>Delivery City Not In Selected State</value>
+  </data>
+  <data name="CartSelectedAddressNotOwnedByCurrentUser" xml:space="preserve">
+    <value>Cart Selected Address Not Owned By Current User</value>
+  </data>
+  <data name="MerchantGatewayEncryptionKeyNotConfigured" xml:space="preserve">
+    <value>Merchant Gateway Encryption Key Not Configured</value>
+  </data>
+  <data name="PaymentIdempotencyKeyAlreadyUsedForDifferentCheckout" xml:space="preserve">
+    <value>Payment Idempotency Key Already Used For Different Checkout</value>
+  </data>
+  <data name="PaymentActiveOrSuccessfulPaymentAlreadyExistsForTarget" xml:space="preserve">
+    <value>Payment Active Or Successful Payment Already Exists For Target</value>
+  </data>
+  <data name="PaymentRefNumberAlreadyUsedForSuccessfulPayment" xml:space="preserve">
+    <value>Payment Ref Number Already Used For Successful Payment</value>
+  </data>
+  <data name="PaymentTypeNotConfiguredInSystem" xml:space="preserve">
+    <value>Payment Type Not Configured In System</value>
+  </data>
+  <data name="PaymentApplyResultToTargetFailed" xml:space="preserve">
+    <value>Payment Apply Result To Target Failed</value>
+  </data>
+  <data name="PaymentOrderAlreadyPaid" xml:space="preserve">
+    <value>Payment Order Already Paid</value>
+  </data>
+  <data name="PaymentReserveAlreadyPaid" xml:space="preserve">
+    <value>Payment Reserve Already Paid</value>
+  </data>
+  <data name="PaymentTripAlreadyPaid" xml:space="preserve">
+    <value>Payment Trip Already Paid</value>
+  </data>
+  <data name="PaymentCargoRequestAlreadyPaid" xml:space="preserve">
+    <value>Payment Cargo Request Already Paid</value>
+  </data>
+  <data name="PaymentInsuranceAlreadyPaid" xml:space="preserve">
+    <value>Payment Insurance Already Paid</value>
+  </data>
+  <data name="PaymentIdempotencyKeyHeaderMustBeValidUuid" xml:space="preserve">
+    <value>Payment Idempotency Key Header Must Be Valid Uuid</value>
+  </data>
+  <data name="PaymentPreviousCheckoutAttemptFailed" xml:space="preserve">
+    <value>Payment Previous Checkout Attempt Failed</value>
+  </data>
+  <data name="PaymentRequestBeingProcessedResubmitSame" xml:space="preserve">
+    <value>Payment Request Being Processed Resubmit Same</value>
+  </data>
+  <data name="PostNotFound" xml:space="preserve">
+    <value>Post Not Found</value>
+  </data>
+  <data name="PostMainPictureInvalidOrDeleted" xml:space="preserve">
+    <value>Post Main Picture Invalid Or Deleted</value>
+  </data>
+  <data name="PostAttachedPictureInvalidOrDeleted" xml:space="preserve">
+    <value>Post Attached Picture Invalid Or Deleted</value>
+  </data>
+  <data name="ContactUsFormItemsExceedLimit" xml:space="preserve">
+    <value>Contact Us Form Items Exceed Limit</value>
+  </data>
+  <data name="ContactUsDuplicateRecentSubmission" xml:space="preserve">
+    <value>Contact Us Duplicate Recent Submission</value>
+  </data>
+  <data name="ContactUsAttachmentInvalidOrExpired" xml:space="preserve">
+    <value>Contact Us Attachment Invalid Or Expired</value>
+  </data>
+  <data name="ContactUsFormFieldDuplicate" xml:space="preserve">
+    <value>Contact Us Form Field Duplicate</value>
+  </data>
+  <data name="ContactUsFormFieldNotValidForDepartment" xml:space="preserve">
+    <value>Contact Us Form Field Not Valid For Department</value>
+  </data>
+  <data name="ContactUsFormFieldRequired" xml:space="preserve">
+    <value>Contact Us Form Field Required</value>
+  </data>
+  <data name="ContactUsFormFieldValueExceedsLimit" xml:space="preserve">
+    <value>Contact Us Form Field Value Exceeds Limit</value>
+  </data>
+  <data name="ContactUsFormFieldSelectedValueInvalid" xml:space="preserve">
+    <value>Contact Us Form Field Selected Value Invalid</value>
+  </data>
+  <data name="ContactUsFormFieldMustBeValidNumber" xml:space="preserve">
+    <value>Contact Us Form Field Must Be Valid Number</value>
+  </data>
+  <data name="ContactUsFormFieldInvalidUrl" xml:space="preserve">
+    <value>Contact Us Form Field Invalid Url</value>
+  </data>
+  <data name="CargoPaymentStartedFinancialDataLocked" xml:space="preserve">
+    <value>Cargo Payment Started Financial Data Locked</value>
+  </data>
+  <data name="SearchQueryTooShort" xml:space="preserve">
+    <value>Search Query Too Short</value>
+  </data>
+  <data name="PushMessageDataNotProvided" xml:space="preserve">
+    <value>Push Message Data Not Provided</value>
+  </data>
+  <data name="PushMessageTitleMustBePersian" xml:space="preserve">
+    <value>Push Message Title Must Be Persian</value>
+  </data>
+  <data name="PushMessageBodyMustBePersian" xml:space="preserve">
+    <value>Push Message Body Must Be Persian</value>
+  </data>
+  <data name="PushBroadcastTitleAndBodyMustBePersian" xml:space="preserve">
+    <value>Push Broadcast Title And Body Must Be Persian</value>
+  </data>
+  <data name="UserExpertiseOnlyForCompanionOwnerOrApprovedMember" xml:space="preserve">
+    <value>User Expertise Only For Companion Owner Or Approved Member</value>
+  </data>
+  <data name="TicketSettingsIncomplete" xml:space="preserve">
+    <value>Ticket Settings Incomplete</value>
+  </data>
+  <data name="TicketPickedByAnotherAdmin" xml:space="preserve">
+    <value>Ticket Picked By Another Admin</value>
+  </data>
+  <data name="ScoreTransactionRewardGiftNamePrefix" xml:space="preserve">
+    <value>Score Transaction Reward Gift Name Prefix</value>
+  </data>
+  <data name="ScoreTransactionEarnedForDescriptionPrefix" xml:space="preserve">
+    <value>Score Transaction Earned For Description Prefix</value>
+  </data>
+  <data name="DriverRegistrationFailedCheckForm" xml:space="preserve">
+    <value>Driver Registration Failed Check Form</value>
+  </data>
+  <data name="DriverRequesterUserInvalid" xml:space="preserve">
+    <value>Driver Requester User Invalid</value>
+  </data>
+  <data name="DriverSelectedCityInvalid" xml:space="preserve">
+    <value>Driver Selected City Invalid</value>
+  </data>
+  <data name="DriverSelectedNeighborhoodNotInCity" xml:space="preserve">
+    <value>Driver Selected Neighborhood Not In City</value>
+  </data>
+  <data name="DriverCertificatePictureRequired" xml:space="preserve">
+    <value>Driver Certificate Picture Required</value>
+  </data>
+  <data name="DriverVehicleCardPictureRequired" xml:space="preserve">
+    <value>Driver Vehicle Card Picture Required</value>
+  </data>
+  <data name="DriverProfilePictureInvalid" xml:space="preserve">
+    <value>Driver Profile Picture Invalid</value>
+  </data>
+  <data name="DriverRequestIdInvalid" xml:space="preserve">
+    <value>Driver Request Id Invalid</value>
+  </data>
+  <data name="StoreRequestAlreadyExistsForUser" xml:space="preserve">
+    <value>Store Request Already Exists For User</value>
+  </data>
+  <data name="StoreDataConflictsWithExistingData" xml:space="preserve">
+    <value>Store Data Conflicts With Existing Data</value>
+  </data>
+  <data name="StoreRequestIdIsInvalid" xml:space="preserve">
+    <value>Store Request Id Is Invalid</value>
+  </data>
+  <data name="StoreRequestAlreadyApprovedCannotResubmit" xml:space="preserve">
+    <value>Store Request Already Approved Cannot Resubmit</value>
+  </data>
+  <data name="StorePhoneOrMobileRequired" xml:space="preserve">
+    <value>Store Phone Or Mobile Required</value>
+  </data>
+  <data name="StoreMobileIsInvalid" xml:space="preserve">
+    <value>Store Mobile Is Invalid</value>
+  </data>
+  <data name="StoreAddressRequired" xml:space="preserve">
+    <value>Store Address Required</value>
+  </data>
+  <data name="StoreTypeIsInvalid" xml:space="preserve">
+    <value>Store Type Is Invalid</value>
+  </data>
+  <data name="StoreCityIsInvalid" xml:space="preserve">
+    <value>Store City Is Invalid</value>
+  </data>
+  <data name="StorePictureIsInvalid" xml:space="preserve">
+    <value>Store Picture Is Invalid</value>
+  </data>
+  <data name="StoreIconIsInvalid" xml:space="preserve">
+    <value>Store Icon Is Invalid</value>
+  </data>
+  <data name="StoreMapCoordinatesAreInvalid" xml:space="preserve">
+    <value>Store Map Coordinates Are Invalid</value>
+  </data>
+  <data name="StoreOwnerNotSpecified" xml:space="preserve">
+    <value>Store Owner Not Specified</value>
+  </data>
+  <data name="ProductStockAlertProductIdIsInvalid" xml:space="preserve">
+    <value>Product Stock Alert Product Id Is Invalid</value>
+  </data>
+  <data name="ClubPointRuleAlreadyExistsForEvent" xml:space="preserve">
+    <value>Club Point Rule Already Exists For Event</value>
+  </data>
+  <data name="ClubPointOrderCompletedDescription" xml:space="preserve">
+    <value>Club Point Order Completed Description</value>
+  </data>
+  <data name="ClubPointOrderReversedDescription" xml:space="preserve">
+    <value>Club Point Order Reversed Description</value>
+  </data>
+  <data name="ClubPointCompanionReserveCompletedDescription" xml:space="preserve">
+    <value>Club Point Companion Reserve Completed Description</value>
+  </data>
+  <data name="ClubPointCompanionReserveReversedDescription" xml:space="preserve">
+    <value>Club Point Companion Reserve Reversed Description</value>
+  </data>
+  <data name="ClubPointPansionReserveCompletedDescription" xml:space="preserve">
+    <value>Club Point Pansion Reserve Completed Description</value>
+  </data>
+  <data name="ClubPointPansionReserveReversedDescription" xml:space="preserve">
+    <value>Club Point Pansion Reserve Reversed Description</value>
+  </data>
+  <data name="ClubPointPetProfileCompletedDescription" xml:space="preserve">
+    <value>Club Point Pet Profile Completed Description</value>
+  </data>
+  <data name="ClubPointMemoryCreatedDescription" xml:space="preserve">
+    <value>Club Point Memory Created Description</value>
+  </data>
+  <data name="ClubPointMemoryReversedDescription" xml:space="preserve">
+    <value>Club Point Memory Reversed Description</value>
+  </data>
+  <data name="ClubPointUserReferralDescription" xml:space="preserve">
+    <value>Club Point User Referral Description</value>
+  </data>
+  <data name="ClubPointBusinessReferralSignupDescription" xml:space="preserve">
+    <value>Club Point Business Referral Signup Description</value>
+  </data>
+  <data name="ClubPointUserReferralSignupDescription" xml:space="preserve">
+    <value>Club Point User Referral Signup Description</value>
+  </data>
+  <data name="TripCannotBeCanceledAfterPetPickup" xml:space="preserve">
+    <value>Trip Cannot Be Canceled After Pet Pickup</value>
+  </data>
+  <data name="TripFinancialDataLockedAfterPaymentStarted" xml:space="preserve">
+    <value>Trip Financial Data Locked After Payment Started</value>
+  </data>
+  <data name="TripCannotBeCanceledByDriverAfterPetPickup" xml:space="preserve">
+    <value>Trip Cannot Be Canceled By Driver After Pet Pickup</value>
+  </data>
+  <data name="TripNotInStatusToChangeStage" xml:space="preserve">
+    <value>Trip Not In Status To Change Stage</value>
+  </data>
+  <data name="TripRequestedStageNotInAllowedSequence" xml:space="preserve">
+    <value>Trip Requested Stage Not In Allowed Sequence</value>
+  </data>
+  <data name="TripIsNotCurrentlyActive" xml:space="preserve">
+    <value>Trip Is Not Currently Active</value>
+  </data>
+  <data name="TripDriverMovementIntervalMustBe60Or120" xml:space="preserve">
+    <value>Trip Driver Movement Interval Must Be60 Or120</value>
+  </data>
+  <data name="TripInsufficientTimeToAppointmentForInterval" xml:space="preserve">
+    <value>Trip Insufficient Time To Appointment For Interval</value>
+  </data>
+  <data name="TripPetDeliveryAlreadyExistsForReserve" xml:space="preserve">
+    <value>Trip Pet Delivery Already Exists For Reserve</value>
+  </data>
+  <data name="ReminderOneWeekAwayText" xml:space="preserve">
+    <value>Reminder One Week Away Text</value>
+  </data>
+  <data name="ReminderTomorrowText" xml:space="preserve">
+    <value>Reminder Tomorrow Text</value>
+  </data>
+  <data name="ReminderYesterdayText" xml:space="preserve">
+    <value>Reminder Yesterday Text</value>
+  </data>
+  <data name="MemoryNotFound" xml:space="preserve">
+    <value>Memory Not Found</value>
+  </data>
+  <data name="MemoryIdIsInvalid" xml:space="preserve">
+    <value>Memory Id Is Invalid</value>
+  </data>
+  <data name="MemoryTextRequired" xml:space="preserve">
+    <value>Memory Text Required</value>
+  </data>
+  <data name="MemoryTextMaxLength4000" xml:space="preserve">
+    <value>Memory Text Max Length4000</value>
+  </data>
+  <data name="MemoryDateTimeRequired" xml:space="preserve">
+    <value>Memory Date Time Required</value>
+  </data>
+  <data name="MemoryDateCannotBeInFuture" xml:space="preserve">
+    <value>Memory Date Cannot Be In Future</value>
+  </data>
+  <data name="MemorySelectedPetDoesNotBelongToUser" xml:space="preserve">
+    <value>Memory Selected Pet Does Not Belong To User</value>
+  </data>
+  <data name="MemorySelectedPictureNotFound" xml:space="preserve">
+    <value>Memory Selected Picture Not Found</value>
+  </data>
+  <data name="MemoryAlreadyExistsForDay" xml:space="preserve">
+    <value>Memory Already Exists For Day</value>
+  </data>
+    <data name="SearchResultTypeBrand" xml:space="preserve">
+    <value>Search Result Type Brand</value>
+  </data>
+  <data name="SearchResultTypeCategory" xml:space="preserve">
+    <value>Search Result Type Category</value>
+  </data>
+  <data name="SearchResultTypeFeature" xml:space="preserve">
+    <value>Search Result Type Feature</value>
+  </data>
+  <data name="SearchResultTypeCompanion" xml:space="preserve">
+    <value>Search Result Type Companion</value>
+  </data>
+  <data name="SearchResultTypeAssistance" xml:space="preserve">
+    <value>Search Result Type Assistance</value>
+  </data>
+  <data name="SearchResultTypeStore" xml:space="preserve">
+    <value>Search Result Type Store</value>
+  </data>
+  <data name="SearchResultTypePansion" xml:space="preserve">
+    <value>Search Result Type Pansion</value>
+  </data>
+  <data name="ShippingProviderServiceDisabled" xml:space="preserve">
+    <value>Shipping Provider Service Disabled</value>
+  </data>
+  <data name="ShippingProviderConnectionSettingsIncompleteFormat" xml:space="preserve">
+    <value>Shipping Provider Connection Settings Incomplete Format</value>
+  </data>
+  <data name="ShippingProviderApiContractNotImplementedFormat" xml:space="preserve">
+    <value>Shipping Provider Api Contract Not Implemented Format</value>
+  </data>
+  <data name="ShippingProviderApiContractNotConfiguredFormat" xml:space="preserve">
+    <value>Shipping Provider Api Contract Not Configured Format</value>
+  </data>
   <data name="PastilMatchProfileAlreadyExists" xml:space="preserve">
     <value>Pastil Match Profile Already Exists</value>
   </data>

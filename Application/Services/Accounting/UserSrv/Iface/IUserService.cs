@@ -30,5 +30,6 @@ namespace Application.Services.Accounting.UserSrv.Iface
         Task<BaseResultDto> ChangeEmailAsync(ChangeEmailDto dto);
         Task<UserDto> GetUserByReferralCodeAsync(string referralCode);
         BaseResultDto<User> GetUserByMobile(string mobile);
+        BaseResultDto<UserMinVDto> GetUserMinByMobile(string mobile);
     }
 }

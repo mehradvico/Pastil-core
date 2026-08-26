@@ -126,6 +126,15 @@
   <data name="DeliveryDays" xml:space="preserve">
     <value>ارسال تا {0} روز آینده</value>
   </data>
+  <data name="DeliveryFreeShippingAbovePriceAndCount" xml:space="preserve">
+    <value>رایگان برای خرید بیشتر از {0} و تعداد {1} قلم جنس و بیشتر</value>
+  </data>
+  <data name="DeliveryFreeShippingAbovePrice" xml:space="preserve">
+    <value>رایگان برای خرید بیشتر از {0}</value>
+  </data>
+  <data name="DeliveryFreeShippingAboveCount" xml:space="preserve">
+    <value>رایگان برای خرید بیشتر از {0} قلم جنس</value>
+  </data>
   <data name="NumberEnteredMustLeastNumber" xml:space="preserve">
     <value>{0} باید حداقل {1} عدد باشد</value>
   </data>

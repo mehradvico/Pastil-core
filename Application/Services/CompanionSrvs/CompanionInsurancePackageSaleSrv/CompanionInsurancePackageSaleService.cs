@@ -148,6 +148,10 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
                 item.EndDate = dto.StartDate.Date.AddDays(insurence.DayCount);
                 item.Price = insurence.Price;
                 var petType = await _context.UserPets.Include(s => s.Pet).FirstOrDefaultAsync(s => s.Id == dto.UserPetId);
+                if (petType == null || petType.UserId != _currentUser.CurrentUser.UserId)
+                {
+                    return new BaseResultDto<CompanionInsurancePackageSaleDto>(false, Resource.Notification.AccessDenied, dto);
+                }
                 if (petType.PetId != insurence.PetId)
                 {
                     return new BaseResultDto<CompanionInsurancePackageSaleDto>(false, Resource.Notification.ThisInsuranceIsNotForThisPet, dto);
@@ -163,9 +167,15 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
             }
         }
 
-        public async Task<BaseResultDto<CompanionInsurancePackageSaleManualPayDto>> CompanionInsurancePackageSaleManualPayAsync(CompanionInsurancePackageSaleManualPayDto dto)
+        public async Task<BaseResultDto<CompanionInsurancePackageSaleManualPayDto>> CompanionInsurancePackageSaleManualPayAsync(CompanionInsurancePackageSaleManualPayDto dto, long? companionId = null)
         {
-            var insurance = await _context.CompanionInsurancePackageSales.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
+            var insurance = await _context.CompanionInsurancePackageSales.Include(s => s.CompanionInsurancePackage).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
+
+            if (insurance == null)
+                return new BaseResultDto<CompanionInsurancePackageSaleManualPayDto>(false, Resource.Notification.NothingFound, dto);
+
+            if (companionId.HasValue && insurance.CompanionInsurancePackage?.CompanionId != companionId.Value)
+                return new BaseResultDto<CompanionInsurancePackageSaleManualPayDto>(false, Resource.Notification.AccessDenied, dto);
 
             insurance.PaymentPrice = insurance.Price;
             insurance.IsPaid = true;
@@ -215,7 +225,7 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
                 return new BaseResultDto<CompanionInsurancePackageSaleSetRebateCodeDto>(false, Resource.Notification.NothingFound, dto);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CompanionPaymentStartedFinancialDataLocked);
             if (item.Price == 0)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.FinalPriceIsNotAvailable);
@@ -249,7 +259,7 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CompanionPaymentStartedFinancialDataLocked);
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -270,7 +280,7 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
                 return new BaseResultDto<CompanionInsurancePackageSaleSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CompanionPaymentStartedFinancialDataLocked);
             if (dto.FromWallet)
             {
                 item.FromWallet = true;

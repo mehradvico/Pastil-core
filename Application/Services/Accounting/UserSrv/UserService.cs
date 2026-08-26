@@ -237,7 +237,7 @@ namespace Application.Services.UserSrv
                     {
                         return new BaseResultDto<UserDto>(
                             false,
-                            "عنوان شغلی فقط برای صاحب نمایندگی یا عضو فعال و تأییدشده نمایندگی قابل ثبت است.",
+                            Resource.Notification.UserExpertiseOnlyForCompanionOwnerOrApprovedMember,
                             nameof(dto.Expertise),
                             dto);
                     }
@@ -305,6 +305,17 @@ namespace Application.Services.UserSrv
             }
 
             return new BaseResultDto<User>(true, user);
+        }
+
+        public BaseResultDto<UserMinVDto> GetUserMinByMobile(string mobile)
+        {
+            var user = _context.Users.FirstOrDefault(x => x.Mobile == mobile && !x.Deleted);
+            if (user == null)
+            {
+                return new BaseResultDto<UserMinVDto>(false, Resource.Notification.NothingFound, null);
+            }
+
+            return new BaseResultDto<UserMinVDto>(true, mapper.Map<UserMinVDto>(user));
         }
         bool EmailIsUnique(string email)
         {
@@ -422,7 +433,9 @@ namespace Application.Services.UserSrv
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked);
             }
             var isPanelLogin = user.IsAdmin || user.IsSiteAdmin;
-            if (isPanelLogin && item.Role.Label == RoleEnum.Customer.ToString())
+            if (isPanelLogin &&
+                item.Role.Label != RoleEnum.Admin.ToString() &&
+                !item.Role.Permissions.Any(permission => !permission.Deleted && permission.Area == "Admin"))
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
             }
@@ -923,7 +936,7 @@ namespace Application.Services.UserSrv
         {
             mobile = await mobile.ToEnglishDigitsAsync();
 
-            var item = await _context.Users.Include(s => s.Role).FirstOrDefaultAsync(x => !x.Deleted &&(x.Mobile == mobile || x.Email == mobile));
+            var item = await _context.Users.Include(s => s.Role).ThenInclude(s => s.Permissions).FirstOrDefaultAsync(x => !x.Deleted &&(x.Mobile == mobile || x.Email == mobile));
 
             if (item == null)
             {
@@ -933,7 +946,8 @@ namespace Application.Services.UserSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked, code: 4);
             }
-            if (item.Role.Label == RoleEnum.Customer.ToString())
+            if (item.Role.Label != RoleEnum.Admin.ToString() &&
+                !item.Role.Permissions.Any(permission => !permission.Deleted && permission.Area == "Admin"))
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied, code: 1);
             }

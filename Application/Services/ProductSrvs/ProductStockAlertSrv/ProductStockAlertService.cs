@@ -45,7 +45,7 @@ namespace Application.Services.ProductSrvs.ProductStockAlertSrv
         public async Task<BaseResultDto<ProductStockAlertDto>> SubscribeAsync(ProductStockAlertDto dto)
         {
             if (dto.ProductId <= 0 || dto.UserId <= 0)
-                return new BaseResultDto<ProductStockAlertDto>(false, "شناسه محصول معتبر نیست.", dto);
+                return new BaseResultDto<ProductStockAlertDto>(false, Resource.Notification.ProductStockAlertProductIdIsInvalid, dto);
 
             var productExists = await _context.Products.AnyAsync(product =>
                 product.Id == dto.ProductId && product.Active && !product.Deleted);

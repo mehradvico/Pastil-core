@@ -38,6 +38,8 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var CompanionUser = await CompanionUserService.FindAsyncDto(id);
+            if (CompanionUser.IsSuccess && CompanionUser.Data?.CompanionId != CurrentUserDto.CompanionId)
+                return Ok(new BaseResultDto<CompanionUserDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(CompanionUser);
         }
         /// <summary>
@@ -92,8 +94,11 @@ namespace Api.Areas.Companion.Controllers
         /// 
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto<CompanionUserDto>), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await CompanionUserService.FindAsyncDto(id);
+            if (!existing.IsSuccess || existing.Data?.CompanionId != CurrentUserDto.CompanionId)
+                return Ok(new BaseResultDto<CompanionUserDto>(false, Resource.Notification.AccessDenied, default));
             var result = CompanionUserService.DeleteDto(id);
             return Ok(result);
         }

@@ -19,7 +19,7 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv.If
     {
         CompanionInsurancePackageSaleSearchDto Search(CompanionInsurancePackageSaleInputDto baseSearchDto);
         Task<BaseResultDto<CompanionInsurancePackageSaleVDto>> FindAsyncVDto(long id);
-        Task<BaseResultDto<CompanionInsurancePackageSaleManualPayDto>> CompanionInsurancePackageSaleManualPayAsync(CompanionInsurancePackageSaleManualPayDto dto);
+        Task<BaseResultDto<CompanionInsurancePackageSaleManualPayDto>> CompanionInsurancePackageSaleManualPayAsync(CompanionInsurancePackageSaleManualPayDto dto, long? companionId = null);
         Task<BaseResultDto> CompanionInsurancePackageSalePaymentCallback(long? insuranceId, bool fromWallet = false);
         Task<BaseResultDto> SetRebateCodeAsyncDto(CompanionInsurancePackageSaleSetRebateCodeDto dto);
         Task<BaseResultDto> ClearRebateCodeAsync(long id);

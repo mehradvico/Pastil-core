@@ -40,6 +40,8 @@ namespace Api.Areas.Seller.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var role = await _storeCommentService.FindAsyncDto(id);
+            if (role.IsSuccess && role.Data?.StoreId != _currentUser.CurrentUser.StoreId)
+                return Ok(new BaseResultDto<StoreCommentDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(role);
         }
         /// <summary>

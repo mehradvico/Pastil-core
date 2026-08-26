@@ -2,6 +2,7 @@
 using Application.Common.Interface;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Iface;
+using Application.Services.CompanionSrv.CompanionAssistanceSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,7 @@ namespace Api.Areas.Companion.Controllers
     /// <summary>
     /// مدیریت پکیج های خدماتی نمایندگان
     /// </summary>
-    /// 
+    ///
     [Area("Companion")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -18,10 +19,12 @@ namespace Api.Areas.Companion.Controllers
     public class CompanionAssistancePackageController : ControllerBase
     {
         private readonly ICompanionAssistancePackageService _companionAssistancePackageService;
+        private readonly ICompanionAssistanceService _companionAssistanceService;
         private readonly ICurrentUserHelper _currentUserHelper;
-        public CompanionAssistancePackageController(ICompanionAssistancePackageService companionAssistancePackageService, ICurrentUserHelper currentUserHelper)
+        public CompanionAssistancePackageController(ICompanionAssistancePackageService companionAssistancePackageService, ICompanionAssistanceService companionAssistanceService, ICurrentUserHelper currentUserHelper)
         {
             this._companionAssistancePackageService = companionAssistancePackageService;
+            this._companionAssistanceService = companionAssistanceService;
             this._currentUserHelper = currentUserHelper;
         }
 
@@ -63,13 +66,17 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionAssistancePackageDto>), 200)]
         public async Task<IActionResult> Post(CompanionAssistancePackageDto dto)
         {
+            var companionAssistance = await _companionAssistanceService.FindAsyncDto(dto.CompanionAssistanceId);
+            if (!companionAssistance.IsSuccess || companionAssistance.Data?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<CompanionAssistancePackageDto>(false, Resource.Notification.AccessDenied, dto));
+
             dto.Active = false;
             var result = await _companionAssistancePackageService.InsertAsyncDto(dto);
             return Ok(result);
         }
 
         /// <summary>
-        /// ویرایش آیتم 
+        /// ویرایش آیتم
         /// </summary>
         /// <returns>
         /// </returns>
@@ -77,18 +84,27 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(CompanionAssistancePackageDto dto)
         {
+            var existing = await _companionAssistancePackageService.FindAsyncVDto(dto.Id);
+            if (!existing.IsSuccess || existing.Data?.CompanionAssistance?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
+
             dto.Active = false;
+            dto.CompanionAssistanceId = existing.Data.CompanionAssistanceId;
             var agency = await _companionAssistancePackageService.UpdateAsyncDto(dto);
             return Ok(agency);
         }
 
         /// <summary>
-        /// حذف آیتم 
-        /// </summary>  
+        /// حذف آیتم
+        /// </summary>
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await _companionAssistancePackageService.FindAsyncVDto(id);
+            if (!existing.IsSuccess || existing.Data?.CompanionAssistance?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
+
             var dto = _companionAssistancePackageService.DeleteDto(id);
             return Ok(dto);
         }

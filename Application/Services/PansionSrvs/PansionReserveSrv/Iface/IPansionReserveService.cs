@@ -15,9 +15,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv.Iface
     {
         PansionReserveSearchDto Search(PansionReserveInputDto baseSearchDto);
         Task<BaseResultDto> PansionReservePaymentCallback(long? reserveId, bool fromWallet = false);
-        Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null);
+        Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null, long? companionId = null);
         Task<BaseResultDto> UpdatePansionReserveCancelDto(PansionReserveCancelDto dto);
-        Task<BaseResultDto> UpdatePansionReserveStatusDto(PansionReserveStatusDto dto);
+        Task<BaseResultDto> UpdatePansionReserveStatusDto(PansionReserveStatusDto dto, long? companionId = null);
         Task<BaseResultDto> SetRebateCodeAsyncDto(PansionReserveRebateCodeDto dto);
         Task<BaseResultDto> SetWalletAsyncDto(PansionReserveWalletDto dto);
         Task<BaseResultDto> ClearRebateCodeAsync(long id);

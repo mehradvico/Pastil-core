@@ -30,7 +30,7 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv
                 ClubPointSourceTypeEnum.ProductOrder,
                 ParseId(orderId),
                 orderId,
-                $"امتیاز تکمیل سفارش {orderId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointOrderCompletedDescription, orderId)), cancellationToken);
 
         public Task ProductOrderReversedAsync(long userId, string orderId, CancellationToken cancellationToken = default) =>
             ReverseSafeAsync(Create(
@@ -39,32 +39,32 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv
                 ClubPointSourceTypeEnum.ProductOrder,
                 ParseId(orderId),
                 orderId,
-                $"بازگشت امتیاز سفارش {orderId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointOrderReversedDescription, orderId)), cancellationToken);
 
         public Task CompanionReserveCompletedAsync(long userId, long reserveId, CancellationToken cancellationToken = default) =>
             AwardSafeAsync(Create(userId, ClubPointEventTypeEnum.CompanionReservationCompleted,
                 ClubPointSourceTypeEnum.CompanionReservation, reserveId, reserveId.ToString(),
-                $"امتیاز تکمیل رزرو خدمات {reserveId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointCompanionReserveCompletedDescription, reserveId)), cancellationToken);
 
         public Task CompanionReserveReversedAsync(long userId, long reserveId, CancellationToken cancellationToken = default) =>
             ReverseSafeAsync(Create(userId, ClubPointEventTypeEnum.CompanionReservationCompleted,
                 ClubPointSourceTypeEnum.CompanionReservation, reserveId, reserveId.ToString(),
-                $"بازگشت امتیاز رزرو خدمات {reserveId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointCompanionReserveReversedDescription, reserveId)), cancellationToken);
 
         public Task PansionReserveCompletedAsync(long userId, long reserveId, CancellationToken cancellationToken = default) =>
             AwardSafeAsync(Create(userId, ClubPointEventTypeEnum.PansionReservationCompleted,
                 ClubPointSourceTypeEnum.PansionReservation, reserveId, reserveId.ToString(),
-                $"امتیاز تکمیل رزرو پانسیون {reserveId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointPansionReserveCompletedDescription, reserveId)), cancellationToken);
 
         public Task PansionReserveReversedAsync(long userId, long reserveId, CancellationToken cancellationToken = default) =>
             ReverseSafeAsync(Create(userId, ClubPointEventTypeEnum.PansionReservationCompleted,
                 ClubPointSourceTypeEnum.PansionReservation, reserveId, reserveId.ToString(),
-                $"بازگشت امتیاز رزرو پانسیون {reserveId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointPansionReserveReversedDescription, reserveId)), cancellationToken);
 
         public Task PetProfileCompletedAsync(long userId, long userPetId, CancellationToken cancellationToken = default) =>
             AwardSafeAsync(Create(userId, ClubPointEventTypeEnum.PetProfileCompleted,
                 ClubPointSourceTypeEnum.PetProfile, userPetId, userPetId.ToString(),
-                $"امتیاز تکمیل پروفایل پت {userPetId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointPetProfileCompletedDescription, userPetId)), cancellationToken);
 
         public Task MemoryCreatedAsync(
             long userId,
@@ -73,7 +73,7 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv
             CancellationToken cancellationToken = default) =>
             AwardSafeAsync(Create(userId, ClubPointEventTypeEnum.MemoryCreated,
                 ClubPointSourceTypeEnum.Memory, memoryId, ClubPointEventKeyFactory.BuildMemorySourceKey(userId, memoryDate),
-                $"امتیاز ثبت خاطره روزانه {memoryId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointMemoryCreatedDescription, memoryId)), cancellationToken);
 
         public Task MemoryReversedAsync(
             long userId,
@@ -82,7 +82,7 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv
             CancellationToken cancellationToken = default) =>
             ReverseSafeAsync(Create(userId, ClubPointEventTypeEnum.MemoryCreated,
                 ClubPointSourceTypeEnum.Memory, memoryId, ClubPointEventKeyFactory.BuildMemorySourceKey(userId, memoryDate),
-                $"بازگشت امتیاز خاطره روزانه {memoryId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointMemoryReversedDescription, memoryId)), cancellationToken);
 
         public async Task RegistrationReferralCompletedAsync(
             long newUserId,
@@ -104,7 +104,7 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv
                 sourceType,
                 newUserId,
                 $"registration:{newUserId}:{referralKind}:referrer",
-                $"امتیاز معرفی کاربر {newUserId}"), cancellationToken);
+                string.Format(Resource.Notification.ClubPointUserReferralDescription, newUserId)), cancellationToken);
 
             await AwardSafeAsync(Create(
                 newUserId,
@@ -115,8 +115,8 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv
                 newUserId,
                 $"registration:{newUserId}:{referralKind}:referee",
                 isBusinessReferral
-                    ? "امتیاز ثبت‌نام با کد معرف کسب‌وکار"
-                    : $"امتیاز ثبت‌نام با کد معرف کاربر {referrerUserId}"), cancellationToken);
+                    ? Resource.Notification.ClubPointBusinessReferralSignupDescription
+                    : string.Format(Resource.Notification.ClubPointUserReferralSignupDescription, referrerUserId)), cancellationToken);
         }
 
         private async Task AwardSafeAsync(ClubPointEventDto dto, CancellationToken cancellationToken)

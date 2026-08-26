@@ -63,32 +63,44 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionInsurancePackageDto>), 200)]
         public async Task<IActionResult> Post(CompanionInsurancePackageDto dto)
         {
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             dto.Active = false;
+            dto.CompanionId = _currentUserHelper.CurrentUser.CompanionId.Value;
             var result = await _companionAssistanceUserService.InsertAsyncDto(dto);
             return Ok(result);
         }
 
         /// <summary>
-        /// ویرایش آیتم 
+        /// ویرایش آیتم
         /// </summary>
         /// <returns>
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(CompanionInsurancePackageDto dto)
+        public async Task<IActionResult> Put(CompanionInsurancePackageDto dto)
         {
+            var existing = await _companionAssistanceUserService.FindAsyncDto(dto.Id);
+            if (!existing.IsSuccess || existing.Data?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
+
             dto.Active = false;
+            dto.CompanionId = existing.Data.CompanionId;
             var agency = _companionAssistanceUserService.UpdateDto(dto);
             return Ok(agency);
         }
 
         /// <summary>
-        /// حذف آیتم 
-        /// </summary>  
+        /// حذف آیتم
+        /// </summary>
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await _companionAssistanceUserService.FindAsyncDto(id);
+            if (!existing.IsSuccess || existing.Data?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
+
             var dto = _companionAssistanceUserService.DeleteDto(id);
             return Ok(dto);
         }

@@ -22,7 +22,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Iface
         Task<BaseResultDto> CompanionReserveCompanionUpdateAsyncDto(CompanionReserveOperatorDto dto);
 
         Task<BaseResultDto> CompanionReserveUserResponseAsyncDto(CompanionReserveUserResponseDto dto);
-        Task<BaseResultDto> UpdateReserveStateDto(CompanionReserveChangeStateDto dto);
+        Task<BaseResultDto> UpdateReserveStateDto(CompanionReserveChangeStateDto dto, long? companionId = null);
         Task<BaseResultDto> SetRebateCodeAsyncDto(CompanionReserveSetRebateCodeDto dto);
         Task<BaseResultDto> SetWalletAsyncDto(CompanionReserveSetWalletDto dto);
         Task<BaseResultDto> ClearRebateCodeAsync(long id);

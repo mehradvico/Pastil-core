@@ -27,17 +27,17 @@ namespace Application.Services.Order.ShippingSrv.Provider
             cancellationToken.ThrowIfCancellationRequested();
             var providerOptions = GetProviderOptions();
             if (!providerOptions.Enabled)
-                return Task.FromResult(ShippingProviderQuoteResult.Failed("این سرویس ارسال غیرفعال است."));
+                return Task.FromResult(ShippingProviderQuoteResult.Failed(Resource.Notification.ShippingProviderServiceDisabled));
 
             if (!_options.TestMode)
             {
                 if (string.IsNullOrWhiteSpace(providerOptions.BaseUrl) ||
                     string.IsNullOrWhiteSpace(providerOptions.ApiKey))
                     return Task.FromResult(ShippingProviderQuoteResult.Failed(
-                        $"تنظیمات اتصال {Provider} تکمیل نشده است."));
+                        string.Format(Resource.Notification.ShippingProviderConnectionSettingsIncompleteFormat, Provider)));
 
                 return Task.FromResult(ShippingProviderQuoteResult.Failed(
-                    $"قرارداد API عملیاتی {Provider} باید پس از دریافت مستند رسمی Provider پیاده‌سازی شود."));
+                    string.Format(Resource.Notification.ShippingProviderApiContractNotImplementedFormat, Provider)));
             }
 
             var distance = CalculateDistanceKilometers(request);
@@ -63,7 +63,7 @@ namespace Application.Services.Order.ShippingSrv.Provider
                 return Task.FromResult(new ShippingProviderShipmentResult
                 {
                     IsSuccess = false,
-                    ErrorMessage = $"قرارداد API عملیاتی {Provider} هنوز تنظیم نشده است."
+                    ErrorMessage = string.Format(Resource.Notification.ShippingProviderApiContractNotConfiguredFormat, Provider)
                 });
 
             var id = $"TEST-{Provider}-{Guid.NewGuid():N}";

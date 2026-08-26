@@ -153,6 +153,12 @@ namespace Application.Services.Content.CargoSrv
                     return modelCheker;
                 }
 
+                var ownsPet = await _context.UserPets.AnyAsync(s => s.Id == dto.UserPetId && s.UserId == _currentUser.CurrentUser.UserId);
+                if (!ownsPet)
+                {
+                    return new BaseResultDto<CargoDto>(false, Resource.Notification.AccessDenied, dto);
+                }
+
                 var fromState = await _context.States.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.FromStateId);
                 var toState = await _context.States.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ToStateId);
 
@@ -272,7 +278,7 @@ namespace Application.Services.Content.CargoSrv
                 return new BaseResultDto<CargoSetRebateCodeDto>(false, Resource.Notification.NothingFound, dto);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CargoPaymentStartedFinancialDataLocked);
             if (item.Price == 0)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.FinalPriceIsNotAvailable);
@@ -305,7 +311,7 @@ namespace Application.Services.Content.CargoSrv
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CargoPaymentStartedFinancialDataLocked);
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -327,7 +333,7 @@ namespace Application.Services.Content.CargoSrv
                 return new BaseResultDto<CargoSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
             if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, "پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.");
+                return new BaseResultDto(false, Resource.Notification.CargoPaymentStartedFinancialDataLocked);
             if (dto.FromWallet)
             {
                 item.FromWallet = true;

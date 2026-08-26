@@ -33,13 +33,14 @@ namespace Api.Areas.Driver.Controllers
         [ProducesResponseType(typeof(TripSearchDto), 200)]
         public IActionResult Get([FromQuery] TripInputDto dto)
         {
+            dto.DriverId = _currentUserHelper.CurrentUser.DriverId;
             var search = _tripService.Search(dto);
             return Ok(search);
         }
 
 
         /// <summary>
-        ///  اطلاعات آیتم 
+        ///  اطلاعات آیتم
         /// </summary>
         /// <param name="id">شناسه سفر</param>
         /// <returns>
@@ -49,6 +50,8 @@ namespace Api.Areas.Driver.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var Trip = await _tripService.FindAsyncDto(id);
+            if (Trip.IsSuccess && Trip.Data?.DriverId != _currentUserHelper.CurrentUser.DriverId)
+                return Ok(new BaseResultDto<TripDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(Trip);
         }
     }

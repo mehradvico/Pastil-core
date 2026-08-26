@@ -421,7 +421,7 @@ namespace Application.Services.ProductSrvs.ProductSrv
         }
         public BaseResultDto GetSiteMap()
         {
-            string sqlQuery = $"SELECT p.Id, p.Name,p.UpdateDate, c.Label As CategoryName FROM Products p LEFT JOIN Categories c ON p.CategoryId = c.Id WHERE p.Active = 1 and p.Deleted=0";
+            string sqlQuery = "SELECT p.Id, p.Name, p.Slug, p.UpdateDate, c.Label As CategoryName FROM Products p LEFT JOIN Categories c ON p.CategoryId = c.Id WHERE p.Active = 1 and p.Deleted=0";
             //var list = _context.Posts.Include(s => s.Category).Where(s => s.Deleted == false && s.Active && s.AdminConfirm == true).Select(s => new PostSiteMapDto() { Id = s.Id, Name = s.Name, CategoryName = s.Category.Label,UpdateDate=s.PublishDate }).ToList();
             var connection = new SqlConnection(connectionString);
             var posts = connection.Query<ProductSiteMapDto>(sqlQuery).ToList();

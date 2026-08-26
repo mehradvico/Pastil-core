@@ -103,13 +103,20 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
 
         public async Task<PriceCalculationVDto> GetForNow()
         {
-            var hour = DateTime.Now.Hour;
+            return await GetForHour(DateTime.Now.Hour);
+        }
+        public async Task<PriceCalculationVDto> GetForHour(int hour)
+        {
             var item = await _context.PriceCalculations.FirstOrDefaultAsync(s => s.Deleted == false && s.FromTime <= hour && s.ToTime >= hour);
             return mapper.Map<PriceCalculationVDto>(item);
         }
         public async Task<double> CalculateTripPrice(TripDto tripDto)
         {
-            var priceCalculation = await GetForNow();
+            // برای سفرهای زمان‌بندی‌شده (رزرو پت‌رسان)، نرخ باید بر اساس ساعتِ حرکتِ واقعی سفر
+            // محاسبه بشه، نه ساعتِ لحظه‌ی ثبت درخواست — وگرنه یه رزرو نیمه‌شب برای فردا صبح با
+            // نرخ نیمه‌شب حساب می‌شه.
+            var referenceHour = (tripDto.TripStartDateTime ?? DateTime.Now).Hour;
+            var priceCalculation = await GetForHour(referenceHour);
             if (priceCalculation == null)
             {
                 return 0;

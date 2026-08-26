@@ -85,8 +85,11 @@ namespace Api.Areas.EndUser.Controllers
         /// 
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto<UserBankCardDto>), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await UserBankCardService.FindAsyncVDto(id);
+            if (!existing.IsSuccess || existing.Data?.UserId != _currentUser.CurrentUser.UserId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             var result = UserBankCardService.DeleteDto(id);
             return Ok(result);
         }

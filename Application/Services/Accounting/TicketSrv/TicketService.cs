@@ -119,7 +119,7 @@ namespace Application.Services.TicketSrv
 
             if (waitingStatus == null || normalImportance == null)
             {
-                return new BaseResultDto<TicketVDto>(false, "تنظیمات تیکت کامل نیست.", null);
+                return new BaseResultDto<TicketVDto>(false, Resource.Notification.TicketSettingsIncomplete, null);
             }
 
             var createDate = DateTime.Now;
@@ -343,7 +343,7 @@ namespace Application.Services.TicketSrv
                 return new BaseResultDto(true);
             }
 
-            return new BaseResultDto(false, "این تیکت توسط ادمین دیگری برداشته شده است.");
+            return new BaseResultDto(false, Resource.Notification.TicketPickedByAnotherAdmin);
         }
 
         public async Task<BaseResultDto> DeleteAsync(long id, CancellationToken cancellationToken = default)

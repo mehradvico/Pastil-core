@@ -147,7 +147,7 @@ namespace Application.Services.Accounting.DriverSrv
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Creating driver request for owner {OwnerId} failed.", dto?.OwnerId);
-                return new BaseResultDto<DriverDto>(false, "خطا در ثبت درخواست رانندگی. اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.", dto);
+                return new BaseResultDto<DriverDto>(false, Resource.Notification.DriverRegistrationFailedCheckForm, dto);
             }
         }
         public Task<BaseResultDto> InsertCheckerAsync(DriverDto dto) => ValidateDriverFieldsAsync(dto, excludeDriverId: null);
@@ -174,21 +174,21 @@ namespace Application.Services.Accounting.DriverSrv
                 errors.Add(new Tuple<string, string>(Resource.Notification.PleaseEnterTheLicensePlateNumber, nameof(dto.LicensePlateNumber)));
             }
             if (dto.OwnerId <= 0 || !await _context.Users.AnyAsync(s => s.Id == dto.OwnerId && !s.Deleted))
-                errors.Add(Tuple.Create("کاربر درخواست‌دهنده معتبر نیست.", nameof(dto.OwnerId)));
+                errors.Add(Tuple.Create(Resource.Notification.DriverRequesterUserInvalid, nameof(dto.OwnerId)));
             if (dto.CityId <= 0 || !await _context.Cities.AnyAsync(s => s.Id == dto.CityId))
-                errors.Add(Tuple.Create("شهر انتخاب‌شده معتبر نیست.", nameof(dto.CityId)));
+                errors.Add(Tuple.Create(Resource.Notification.DriverSelectedCityInvalid, nameof(dto.CityId)));
             if (dto.NeighborhoodId.HasValue &&
                 !await _context.Neighborhoods.AnyAsync(s => s.Id == dto.NeighborhoodId.Value && s.CityId == dto.CityId))
-                errors.Add(Tuple.Create("محله انتخاب‌شده متعلق به شهر انتخاب‌شده نیست.", nameof(dto.NeighborhoodId)));
+                errors.Add(Tuple.Create(Resource.Notification.DriverSelectedNeighborhoodNotInCity, nameof(dto.NeighborhoodId)));
             if (!dto.CertificatePictureId.HasValue || dto.CertificatePictureId.Value <= 0 ||
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.CertificatePictureId.Value))
-                errors.Add(Tuple.Create("تصویر گواهینامه معتبر را بارگذاری کنید.", nameof(dto.CertificatePictureId)));
+                errors.Add(Tuple.Create(Resource.Notification.DriverCertificatePictureRequired, nameof(dto.CertificatePictureId)));
             if (!dto.VehicleCardPictureId.HasValue || dto.VehicleCardPictureId.Value <= 0 ||
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.VehicleCardPictureId.Value))
-                errors.Add(Tuple.Create("تصویر کارت خودرو معتبر را بارگذاری کنید.", nameof(dto.VehicleCardPictureId)));
+                errors.Add(Tuple.Create(Resource.Notification.DriverVehicleCardPictureRequired, nameof(dto.VehicleCardPictureId)));
             if (dto.ProfilePictureId.HasValue && dto.ProfilePictureId.Value > 0 &&
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.ProfilePictureId.Value))
-                errors.Add(Tuple.Create("تصویر پروفایل معتبر نیست.", nameof(dto.ProfilePictureId)));
+                errors.Add(Tuple.Create(Resource.Notification.DriverProfilePictureInvalid, nameof(dto.ProfilePictureId)));
             if (dto.Rate != 0 && (dto.Rate > 5 || dto.Rate < 1))
                 errors.Add(Tuple.Create(Resource.Notification.TheRangeEnteredIsNotCorrect, nameof(dto.Rate)));
             if (dto.OwnerId > 0 && await _context.Drivers.AnyAsync(s => s.OwnerId == dto.OwnerId && !s.Deleted && s.Id != (excludeDriverId ?? 0)))
@@ -240,7 +240,7 @@ namespace Application.Services.Accounting.DriverSrv
         public async Task<BaseResultDto> ResubmitAsyncDto(DriverDto dto, long ownerId)
         {
             if (dto == null || dto.Id <= 0)
-                return new BaseResultDto(false, "شناسه درخواست رانندگی معتبر نیست.");
+                return new BaseResultDto(false, Resource.Notification.DriverRequestIdInvalid);
 
             dto.OwnerId = ownerId;
             var checker = await ValidateDriverFieldsAsync(dto, excludeDriverId: dto.Id);

@@ -624,6 +624,552 @@
   <data name="PansionCommentOnlyForYourCompletedReserve" xml:space="preserve">
     <value>ثبت نظر فقط برای رزرو تکمیل‌شده‌ی خودتان امکان‌پذیر است.</value>
   </data>
+    <data name="CompanionPaymentStartedFinancialDataLocked" xml:space="preserve">
+    <value>پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.</value>
+  </data>
+  <data name="CompanionExpertiseNameRequired" xml:space="preserve">
+    <value>عنوان تخصص الزامی است.</value>
+  </data>
+  <data name="CompanionExpertiseNameAlreadyRegistered" xml:space="preserve">
+    <value>این عنوان تخصص قبلاً ثبت شده است.</value>
+  </data>
+  <data name="CompanionExpertiseDataInvalid" xml:space="preserve">
+    <value>اطلاعات تخصص معتبر نیست.</value>
+  </data>
+  <data name="CompanionExpertiseInUseCannotDelete" xml:space="preserve">
+    <value>این تخصص به کاربر نمایندگی متصل است و قابل حذف نیست؛ آن را غیرفعال کنید.</value>
+  </data>
+  <data name="CompanionSelectActiveValidJobTitle" xml:space="preserve">
+    <value>لطفاً یک عنوان شغلی فعال و معتبر انتخاب کنید.</value>
+  </data>
+  <data name="CompanionDataConflictsWithExisting" xml:space="preserve">
+    <value>اطلاعات نماینده با داده‌های موجود سازگار نیست. شناسه‌های انتخاب‌شده را بررسی کنید.</value>
+  </data>
+  <data name="CompanionInsertErrorRetry" xml:space="preserve">
+    <value>خطا در ثبت نماینده. لطفاً اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.</value>
+  </data>
+  <data name="CompanionPhoneNotValid" xml:space="preserve">
+    <value>شماره تماس معتبر نیست.</value>
+  </data>
+  <data name="CompanionOwnerSelectionNotValid" xml:space="preserve">
+    <value>مالک یا مسئول انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="CompanionCitySelectionNotValid" xml:space="preserve">
+    <value>شهر انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="CompanionNeighborhoodNotInSelectedCity" xml:space="preserve">
+    <value>محله انتخاب‌شده متعلق به شهر انتخاب‌شده نیست.</value>
+  </data>
+  <data name="CompanionEnterAddress" xml:space="preserve">
+    <value>آدرس نماینده را وارد کنید.</value>
+  </data>
+  <data name="CompanionSelectedLocationCoordinatesNotValid" xml:space="preserve">
+    <value>مختصات انتخاب‌شده روی نقشه معتبر نیست.</value>
+  </data>
+  <data name="CompanionSelectedIdNotValidFormat" xml:space="preserve">
+    <value>شناسه {0} معتبر نیست.</value>
+  </data>
+  <data name="CompanionPictureTitleMain" xml:space="preserve">
+    <value>تصویر اصلی</value>
+  </data>
+  <data name="CompanionPictureTitleBackground" xml:space="preserve">
+    <value>تصویر پس‌زمینه</value>
+  </data>
+  <data name="CompanionPictureTitleIcon" xml:space="preserve">
+    <value>آیکن</value>
+  </data>
+  <data name="CompanionIdNotValid" xml:space="preserve">
+    <value>شناسه نماینده معتبر نیست.</value>
+  </data>
+  <data name="CompanionNotFound" xml:space="preserve">
+    <value>نماینده موردنظر یافت نشد.</value>
+  </data>
+  <data name="CompanionAlreadyRegisteredForOwner" xml:space="preserve">
+    <value>برای مالک انتخاب‌شده قبلاً نماینده ثبت شده است.</value>
+  </data>
+  <data name="CompanionUpdateErrorRetry" xml:space="preserve">
+    <value>خطا در ویرایش نماینده. لطفاً اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.</value>
+  </data>
+  <data name="CompanionRequestIdNotValid" xml:space="preserve">
+    <value>شناسه درخواست نمایندگی معتبر نیست.</value>
+  </data>
+  <data name="CompanionRequestAlreadyApprovedCannotResubmit" xml:space="preserve">
+    <value>درخواست نمایندگی تأیید شده است و از مسیر ارسال مجدد قابل تغییر نیست.</value>
+  </data>
+  <data name="CompanionReserveTypeAssistance" xml:space="preserve">
+    <value>خدمات همراه</value>
+  </data>
+  <data name="CompanionReserveOperatorNameClinicFallback" xml:space="preserve">
+    <value>کلینیک</value>
+  </data>
+  <data name="CompanionReserveTypePansionDaily" xml:space="preserve">
+    <value>پانسیون (روزانه)</value>
+  </data>
+  <data name="CompanionReserveTypePansionHourly" xml:space="preserve">
+    <value>پانسیون (ساعتی/مدرسه)</value>
+  </data>
+  <data name="CompanionReserveCommentOnlyForOwnCompletedReserve" xml:space="preserve">
+    <value>ثبت نظر فقط برای رزرو تکمیل‌شده‌ی خودتان امکان‌پذیر است.</value>
+  </data>
+  <data name="CompanionReserveAssistanceTypeNotBelongToService" xml:space="preserve">
+    <value>نوع ارائه انتخاب‌شده متعلق به این خدمت نیست.</value>
+  </data>
+  <data name="CompanionReserveCannotBookPastDate" xml:space="preserve">
+    <value>امکان رزرو خدمت در تاریخ گذشته وجود ندارد.</value>
+  </data>
+  <data name="CompanionReserveTimeNotBelongOrInactive" xml:space="preserve">
+    <value>زمان انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.</value>
+  </data>
+  <data name="CompanionReserveDayMismatchWithSelectedTime" xml:space="preserve">
+    <value>روز تاریخ رزرو با روز زمان انتخاب‌شده هماهنگ نیست.</value>
+  </data>
+  <data name="CompanionReserveServiceStartTimeNotValid" xml:space="preserve">
+    <value>ساعت شروع خدمت معتبر نیست.</value>
+  </data>
+  <data name="CompanionReserveCannotBookPastTime" xml:space="preserve">
+    <value>امکان رزرو خدمت در زمان گذشته وجود ندارد.</value>
+  </data>
+  <data name="CompanionReserveServiceTimeSelectionRequired" xml:space="preserve">
+    <value>انتخاب زمان خدمت الزامی است.</value>
+  </data>
+  <data name="CompanionReserveOperatorNotBelongOrInactive" xml:space="preserve">
+    <value>اپراتور انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.</value>
+  </data>
+  <data name="CompanionReserveOperatorMembershipNotActiveOrConfirmed" xml:space="preserve">
+    <value>عضویت اپراتور انتخاب‌شده در این نمایندگی فعال و تأییدشده نیست.</value>
+  </data>
+  <data name="CompanionReserveOperatorHasScheduleConflict" xml:space="preserve">
+    <value>اپراتور انتخاب‌شده در این بازه زمانی رزرو فعال دیگری دارد.</value>
+  </data>
+  <data name="CompanionReserveOnlyPaidActiveCanBeAssigned" xml:space="preserve">
+    <value>فقط رزرو پرداخت‌شده و فعال قابل تخصیص است.</value>
+  </data>
+  <data name="CompanionReserveNoSuccessfulPaymentRegistered" xml:space="preserve">
+    <value>برای این رزرو پرداخت موفقی ثبت نشده است.</value>
+  </data>
+  <data name="CompanionReservePaymentAmountMismatchCannotAutoAssign" xml:space="preserve">
+    <value>اطلاعات مبلغ پرداخت موفق با مبلغ رزرو مطابقت ندارد و امکان تخصیص خودکار نیست.</value>
+  </data>
+  <data name="CompanionReservePaymentSucceededButApplyFailed" xml:space="preserve">
+    <value>پرداخت موفق است اما اعمال آن روی رزرو ناموفق بود؛ گزارش Callback پرداخت را بررسی کنید.</value>
+  </data>
+  <data name="CompanionReserveCompletedCannotReassign" xml:space="preserve">
+    <value>رزرو انجام‌شده قابل تخصیص مجدد نیست.</value>
+  </data>
+  <data name="CompanionReserveUserNotBelongOrInactive" xml:space="preserve">
+    <value>کاربر انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.</value>
+  </data>
+  <data name="CompanionReserveUserMembershipNotActiveOrConfirmed" xml:space="preserve">
+    <value>عضویت کاربر انتخاب‌شده در این نمایندگی فعال و تأییدشده نیست.</value>
+  </data>
+  <data name="CompanionReserveUserHasScheduleConflict" xml:space="preserve">
+    <value>کاربر انتخاب‌شده در این بازه زمانی رزرو فعال دیگری دارد.</value>
+  </data>
+  <data name="CompanionReserveCannotSelectPastTime" xml:space="preserve">
+    <value>امکان انتخاب زمان گذشته وجود ندارد.</value>
+  </data>
+  <data name="CompanionReservePaidStateCodeNotConfigured" xml:space="preserve">
+    <value>وضعیت پرداخت‌شده رزرو در تنظیمات سیستم پیدا نشد.</value>
+  </data>
+  <data name="CompanionReservePaymentStartedFinancialDataLocked" xml:space="preserve">
+    <value>پرداخت این رزرو شروع شده و اطلاعات مالی آن قابل تغییر نیست.</value>
+  </data>
+  <data name="ShippingActiveCartNotFoundForStore" xml:space="preserve">
+    <value>سبد فعالی برای این فروشگاه یافت نشد.</value>
+  </data>
+  <data name="ShippingSelectDeliveryAddressFirst" xml:space="preserve">
+    <value>ابتدا آدرس دریافت سفارش را انتخاب کنید.</value>
+  </data>
+  <data name="ShippingNoActiveDeliveryMethodForStore" xml:space="preserve">
+    <value>روش ارسال فعالی برای این فروشگاه تعریف نشده است.</value>
+  </data>
+  <data name="ShippingQuoteCurrentlyUnavailable" xml:space="preserve">
+    <value>در حال حاضر امکان دریافت قیمت ارسال وجود ندارد.</value>
+  </data>
+  <data name="ShippingSelectedQuoteInvalid" xml:space="preserve">
+    <value>قیمت ارسال انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="ShippingQuoteExpiredRefetch" xml:space="preserve">
+    <value>اعتبار قیمت ارسال تمام شده است؛ قیمت را مجدداً دریافت کنید.</value>
+  </data>
+  <data name="ShippingCartAddressChangedRefetchQuote" xml:space="preserve">
+    <value>آدرس سبد پس از دریافت قیمت تغییر کرده است؛ قیمت را مجدداً دریافت کنید.</value>
+  </data>
+  <data name="ShippingMethodSelectedSuccessfully" xml:space="preserve">
+    <value>روش ارسال با موفقیت انتخاب شد.</value>
+  </data>
+  <data name="ShippingMethodNotSelected" xml:space="preserve">
+    <value>روش ارسال انتخاب نشده است.</value>
+  </data>
+  <data name="ShippingSelectedMethodNoLongerActive" xml:space="preserve">
+    <value>روش ارسال انتخاب‌شده دیگر فعال نیست.</value>
+  </data>
+  <data name="ShippingLiveQuoteRequiredForMethod" xml:space="preserve">
+    <value>برای این روش ارسال باید قیمت لحظه‌ای دریافت شود.</value>
+  </data>
+  <data name="ShippingQuoteExpiredFetchNew" xml:space="preserve">
+    <value>قیمت ارسال منقضی شده است؛ لطفاً قیمت جدید دریافت کنید.</value>
+  </data>
+  <data name="ShippingQuoteInfoInvalid" xml:space="preserve">
+    <value>اطلاعات قیمت ارسال معتبر نیست.</value>
+  </data>
+  <data name="ShippingCartContentsChangedFetchNewQuote" xml:space="preserve">
+    <value>محتویات سبد پس از دریافت قیمت ارسال تغییر کرده است؛ قیمت جدید دریافت کنید.</value>
+  </data>
+  <data name="ShippingCartAmountInvalid" xml:space="preserve">
+    <value>مبلغ ارسال سبد معتبر نیست.</value>
+  </data>
+  <data name="DeliveryNotFoundOrNotBelongToStore" xml:space="preserve">
+    <value>روش ارسال یافت نشد یا متعلق به این فروشگاه نیست.</value>
+  </data>
+  <data name="DeliveryNoActiveTypesConfigured" xml:space="preserve">
+    <value>هیچ نوع روش ارسال فعالی در تنظیمات سیستم یافت نشد.</value>
+  </data>
+  <data name="DeliveryNoActiveStoreForCurrentUser" xml:space="preserve">
+    <value>فروشگاه فعالی برای کاربر جاری یافت نشد.</value>
+  </data>
+  <data name="DeliveryTypeInvalid" xml:space="preserve">
+    <value>نوع روش ارسال معتبر نیست.</value>
+  </data>
+  <data name="DeliveryCostCountDaysCannotBeNegative" xml:space="preserve">
+    <value>مقادیر هزینه، تعداد و زمان تحویل نمی‌توانند منفی باشند.</value>
+  </data>
+  <data name="DeliveryShippingProviderInvalid" xml:space="preserve">
+    <value>ارائه‌دهنده ارسال معتبر نیست.</value>
+  </data>
+  <data name="DeliveryProviderRequiredForLivePricing" xml:space="preserve">
+    <value>برای قیمت‌گذاری لحظه‌ای باید ارائه‌دهنده ارسال انتخاب شود.</value>
+  </data>
+  <data name="DeliveryAtLeastOnePaymentModeRequired" xml:space="preserve">
+    <value>حداقل یکی از حالت‌های پرداخت کرایه باید فعال باشد.</value>
+  </data>
+  <data name="DeliverySelectedCityInvalid" xml:space="preserve">
+    <value>شهر انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="DeliverySelectedStateInvalid" xml:space="preserve">
+    <value>استان انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="DeliveryCityNotInSelectedState" xml:space="preserve">
+    <value>شهر انتخاب‌شده متعلق به استان انتخاب‌شده نیست.</value>
+  </data>
+  <data name="CartSelectedAddressNotOwnedByCurrentUser" xml:space="preserve">
+    <value>آدرس انتخاب‌شده متعلق به کاربر جاری نیست.</value>
+  </data>
+  <data name="MerchantGatewayEncryptionKeyNotConfigured" xml:space="preserve">
+    <value>کلید رمزنگاری اطلاعات درگاه تنظیم نشده است.</value>
+  </data>
+  <data name="PaymentIdempotencyKeyAlreadyUsedForDifferentCheckout" xml:space="preserve">
+    <value>این Idempotency-Key قبلاً برای Checkout دیگری استفاده شده است.</value>
+  </data>
+  <data name="PaymentActiveOrSuccessfulPaymentAlreadyExistsForTarget" xml:space="preserve">
+    <value>برای این مورد یک پرداخت فعال یا موفق وجود دارد.</value>
+  </data>
+  <data name="PaymentRefNumberAlreadyUsedForSuccessfulPayment" xml:space="preserve">
+    <value>شماره پیگیری قبلاً برای یک پرداخت موفق ثبت شده است.</value>
+  </data>
+  <data name="PaymentTypeNotConfiguredInSystem" xml:space="preserve">
+    <value>نوع پرداخت در تنظیمات سیستم ثبت نشده است.</value>
+  </data>
+  <data name="PaymentApplyResultToTargetFailed" xml:space="preserve">
+    <value>اعمال نتیجه پرداخت روی آیتم ناموفق بود.</value>
+  </data>
+  <data name="PaymentOrderAlreadyPaid" xml:space="preserve">
+    <value>این سفارش قبلاً پرداخت شده است.</value>
+  </data>
+  <data name="PaymentReserveAlreadyPaid" xml:space="preserve">
+    <value>این رزرو قبلاً پرداخت شده است.</value>
+  </data>
+  <data name="PaymentTripAlreadyPaid" xml:space="preserve">
+    <value>این سفر قبلاً پرداخت شده است.</value>
+  </data>
+  <data name="PaymentCargoRequestAlreadyPaid" xml:space="preserve">
+    <value>این درخواست کارگو قبلاً پرداخت شده است.</value>
+  </data>
+  <data name="PaymentInsuranceAlreadyPaid" xml:space="preserve">
+    <value>این بیمه قبلاً پرداخت شده است.</value>
+  </data>
+  <data name="PaymentIdempotencyKeyHeaderMustBeValidUuid" xml:space="preserve">
+    <value>هدر Idempotency-Key باید یک UUID معتبر باشد.</value>
+  </data>
+  <data name="PaymentPreviousCheckoutAttemptFailed" xml:space="preserve">
+    <value>تلاش قبلی این Checkout ناموفق بوده است.</value>
+  </data>
+  <data name="PaymentRequestBeingProcessedResubmitSame" xml:space="preserve">
+    <value>درخواست پرداخت در حال پردازش است؛ همین درخواست را دوباره ارسال کنید.</value>
+  </data>
+  <data name="PostNotFound" xml:space="preserve">
+    <value>پست موردنظر پیدا نشد.</value>
+  </data>
+  <data name="PostMainPictureInvalidOrDeleted" xml:space="preserve">
+    <value>تصویر اصلی پست معتبر نیست یا حذف شده است.</value>
+  </data>
+  <data name="PostAttachedPictureInvalidOrDeleted" xml:space="preserve">
+    <value>یک یا چند تصویر ضمیمه پست معتبر نیست یا حذف شده است.</value>
+  </data>
+  <data name="ContactUsFormItemsExceedLimit" xml:space="preserve">
+    <value>اطلاعات تکمیلی فرم بیش از حد مجاز است.</value>
+  </data>
+  <data name="ContactUsDuplicateRecentSubmission" xml:space="preserve">
+    <value>این درخواست به‌تازگی ثبت شده است و نیازی به ارسال مجدد نیست.</value>
+  </data>
+  <data name="ContactUsAttachmentInvalidOrExpired" xml:space="preserve">
+    <value>فایل پیوست معتبر نیست، قبلاً استفاده شده یا زمان آپلود آن گذشته است.</value>
+  </data>
+  <data name="ContactUsFormFieldDuplicate" xml:space="preserve">
+    <value>هر فیلد تکمیلی فقط یک‌بار قابل ارسال است.</value>
+  </data>
+  <data name="ContactUsFormFieldNotValidForDepartment" xml:space="preserve">
+    <value>یکی از فیلدهای تکمیلی برای دپارتمان انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="ContactUsFormFieldRequired" xml:space="preserve">
+    <value>فیلد «{0}» الزامی است.</value>
+  </data>
+  <data name="ContactUsFormFieldValueExceedsLimit" xml:space="preserve">
+    <value>مقدار فیلد «{0}» بیش از حد مجاز است.</value>
+  </data>
+  <data name="ContactUsFormFieldSelectedValueInvalid" xml:space="preserve">
+    <value>مقدار انتخاب‌شده برای «{0}» معتبر نیست.</value>
+  </data>
+  <data name="ContactUsFormFieldMustBeValidNumber" xml:space="preserve">
+    <value>مقدار «{0}» باید عدد معتبر باشد.</value>
+  </data>
+  <data name="ContactUsFormFieldInvalidUrl" xml:space="preserve">
+    <value>لینک واردشده برای «{0}» معتبر نیست.</value>
+  </data>
+  <data name="CargoPaymentStartedFinancialDataLocked" xml:space="preserve">
+    <value>پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.</value>
+  </data>
+  <data name="SearchQueryTooShort" xml:space="preserve">
+    <value>عبارت جستجو باید حداقل دو کاراکتر باشد.</value>
+  </data>
+  <data name="PushMessageDataNotProvided" xml:space="preserve">
+    <value>اطلاعات پوش نوتیفیکیشن وارد نشده است.</value>
+  </data>
+  <data name="PushMessageTitleMustBePersian" xml:space="preserve">
+    <value>عنوان پوش نوتیفیکیشن باید فارسی باشد.</value>
+  </data>
+  <data name="PushMessageBodyMustBePersian" xml:space="preserve">
+    <value>متن پوش نوتیفیکیشن باید فارسی باشد.</value>
+  </data>
+  <data name="PushBroadcastTitleAndBodyMustBePersian" xml:space="preserve">
+    <value>عنوان و متن پوش نوتیفیکیشن باید فارسی باشند.</value>
+  </data>
+  <data name="UserExpertiseOnlyForCompanionOwnerOrApprovedMember" xml:space="preserve">
+    <value>عنوان شغلی فقط برای صاحب نمایندگی یا عضو فعال و تأییدشده نمایندگی قابل ثبت است.</value>
+  </data>
+  <data name="TicketSettingsIncomplete" xml:space="preserve">
+    <value>تنظیمات تیکت کامل نیست.</value>
+  </data>
+  <data name="TicketPickedByAnotherAdmin" xml:space="preserve">
+    <value>این تیکت توسط ادمین دیگری برداشته شده است.</value>
+  </data>
+  <data name="ScoreTransactionRewardGiftNamePrefix" xml:space="preserve">
+    <value>هدیه پاستیل کلاب: {0}</value>
+  </data>
+  <data name="ScoreTransactionEarnedForDescriptionPrefix" xml:space="preserve">
+    <value>امتیاز دریافتی برای {0}</value>
+  </data>
+  <data name="DriverRegistrationFailedCheckForm" xml:space="preserve">
+    <value>خطا در ثبت درخواست رانندگی. اطلاعات فرم را بررسی کرده و دوباره تلاش کنید.</value>
+  </data>
+  <data name="DriverRequesterUserInvalid" xml:space="preserve">
+    <value>کاربر درخواست‌دهنده معتبر نیست.</value>
+  </data>
+  <data name="DriverSelectedCityInvalid" xml:space="preserve">
+    <value>شهر انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="DriverSelectedNeighborhoodNotInCity" xml:space="preserve">
+    <value>محله انتخاب‌شده متعلق به شهر انتخاب‌شده نیست.</value>
+  </data>
+  <data name="DriverCertificatePictureRequired" xml:space="preserve">
+    <value>تصویر گواهینامه معتبر را بارگذاری کنید.</value>
+  </data>
+  <data name="DriverVehicleCardPictureRequired" xml:space="preserve">
+    <value>تصویر کارت خودرو معتبر را بارگذاری کنید.</value>
+  </data>
+  <data name="DriverProfilePictureInvalid" xml:space="preserve">
+    <value>تصویر پروفایل معتبر نیست.</value>
+  </data>
+  <data name="DriverRequestIdInvalid" xml:space="preserve">
+    <value>شناسه درخواست رانندگی معتبر نیست.</value>
+  </data>
+  <data name="StoreRequestAlreadyExistsForUser" xml:space="preserve">
+    <value>برای این کاربر قبلاً درخواست فروشگاه ثبت شده است.</value>
+  </data>
+  <data name="StoreDataConflictsWithExistingData" xml:space="preserve">
+    <value>اطلاعات فروشگاه با داده‌های موجود سازگار نیست. شناسه‌های انتخاب‌شده را بررسی کنید.</value>
+  </data>
+  <data name="StoreRequestIdIsInvalid" xml:space="preserve">
+    <value>شناسه درخواست فروشگاه معتبر نیست.</value>
+  </data>
+  <data name="StoreRequestAlreadyApprovedCannotResubmit" xml:space="preserve">
+    <value>درخواست فروشگاه تأیید شده است و از مسیر ارسال مجدد قابل تغییر نیست.</value>
+  </data>
+  <data name="StorePhoneOrMobileRequired" xml:space="preserve">
+    <value>حداقل یکی از شماره تماس یا موبایل را وارد کنید.</value>
+  </data>
+  <data name="StoreMobileIsInvalid" xml:space="preserve">
+    <value>شماره موبایل معتبر نیست.</value>
+  </data>
+  <data name="StoreAddressRequired" xml:space="preserve">
+    <value>آدرس فروشگاه را وارد کنید.</value>
+  </data>
+  <data name="StoreTypeIsInvalid" xml:space="preserve">
+    <value>نوع فروشگاه معتبر نیست.</value>
+  </data>
+  <data name="StoreCityIsInvalid" xml:space="preserve">
+    <value>شهر انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="StorePictureIsInvalid" xml:space="preserve">
+    <value>تصویر فروشگاه معتبر نیست.</value>
+  </data>
+  <data name="StoreIconIsInvalid" xml:space="preserve">
+    <value>آیکن فروشگاه معتبر نیست.</value>
+  </data>
+  <data name="StoreMapCoordinatesAreInvalid" xml:space="preserve">
+    <value>مختصات انتخاب‌شده روی نقشه معتبر نیست.</value>
+  </data>
+  <data name="StoreOwnerNotSpecified" xml:space="preserve">
+    <value>کاربر مسئول فروشگاه مشخص نشده است.</value>
+  </data>
+  <data name="ProductStockAlertProductIdIsInvalid" xml:space="preserve">
+    <value>شناسه محصول معتبر نیست.</value>
+  </data>
+  <data name="ClubPointRuleAlreadyExistsForEvent" xml:space="preserve">
+    <value>برای این رویداد قبلاً قانون امتیاز تعریف شده است.</value>
+  </data>
+  <data name="ClubPointOrderCompletedDescription" xml:space="preserve">
+    <value>امتیاز تکمیل سفارش {0}</value>
+  </data>
+  <data name="ClubPointOrderReversedDescription" xml:space="preserve">
+    <value>بازگشت امتیاز سفارش {0}</value>
+  </data>
+  <data name="ClubPointCompanionReserveCompletedDescription" xml:space="preserve">
+    <value>امتیاز تکمیل رزرو خدمات {0}</value>
+  </data>
+  <data name="ClubPointCompanionReserveReversedDescription" xml:space="preserve">
+    <value>بازگشت امتیاز رزرو خدمات {0}</value>
+  </data>
+  <data name="ClubPointPansionReserveCompletedDescription" xml:space="preserve">
+    <value>امتیاز تکمیل رزرو پانسیون {0}</value>
+  </data>
+  <data name="ClubPointPansionReserveReversedDescription" xml:space="preserve">
+    <value>بازگشت امتیاز رزرو پانسیون {0}</value>
+  </data>
+  <data name="ClubPointPetProfileCompletedDescription" xml:space="preserve">
+    <value>امتیاز تکمیل پروفایل پت {0}</value>
+  </data>
+  <data name="ClubPointMemoryCreatedDescription" xml:space="preserve">
+    <value>امتیاز ثبت خاطره روزانه {0}</value>
+  </data>
+  <data name="ClubPointMemoryReversedDescription" xml:space="preserve">
+    <value>بازگشت امتیاز خاطره روزانه {0}</value>
+  </data>
+  <data name="ClubPointUserReferralDescription" xml:space="preserve">
+    <value>امتیاز معرفی کاربر {0}</value>
+  </data>
+  <data name="ClubPointBusinessReferralSignupDescription" xml:space="preserve">
+    <value>امتیاز ثبت‌نام با کد معرف کسب‌وکار</value>
+  </data>
+  <data name="ClubPointUserReferralSignupDescription" xml:space="preserve">
+    <value>امتیاز ثبت‌نام با کد معرف کاربر {0}</value>
+  </data>
+  <data name="TripCannotBeCanceledAfterPetPickup" xml:space="preserve">
+    <value>پت تحویل گرفته شده و سفر دیگر از این مسیر قابل لغو نیست.</value>
+  </data>
+  <data name="TripFinancialDataLockedAfterPaymentStarted" xml:space="preserve">
+    <value>پرداخت شروع شده و اطلاعات مالی قابل تغییر نیست.</value>
+  </data>
+  <data name="TripCannotBeCanceledByDriverAfterPetPickup" xml:space="preserve">
+    <value>پت تحویل گرفته شده و سفر دیگر توسط راننده قابل لغو نیست.</value>
+  </data>
+  <data name="TripNotInStatusToChangeStage" xml:space="preserve">
+    <value>این سفر در وضعیتی نیست که بتوان مرحله‌اش را تغییر داد.</value>
+  </data>
+  <data name="TripRequestedStageNotInAllowedSequence" xml:space="preserve">
+    <value>مرحله‌ی درخواستی با توالی مجاز سفر همخوانی ندارد.</value>
+  </data>
+  <data name="TripIsNotCurrentlyActive" xml:space="preserve">
+    <value>سفر در حال حاضر فعال نیست.</value>
+  </data>
+  <data name="TripDriverMovementIntervalMustBe60Or120" xml:space="preserve">
+    <value>فاصله‌ی زمانی حرکت راننده فقط می‌تواند ۶۰ یا ۱۲۰ دقیقه باشد.</value>
+  </data>
+  <data name="TripInsufficientTimeToAppointmentForInterval" xml:space="preserve">
+    <value>فاصله تا زمان نوبت برای این فاصله‌ی زمانی کافی نیست.</value>
+  </data>
+  <data name="TripPetDeliveryAlreadyExistsForReserve" xml:space="preserve">
+    <value>برای این رزرو قبلاً یک سفر پت‌رسان ثبت شده است.</value>
+  </data>
+  <data name="ReminderOneWeekAwayText" xml:space="preserve">
+    <value>یک هفته دیگر است.</value>
+  </data>
+  <data name="ReminderTomorrowText" xml:space="preserve">
+    <value>فردا است.</value>
+  </data>
+  <data name="ReminderYesterdayText" xml:space="preserve">
+    <value>دیروز بوده است.</value>
+  </data>
+  <data name="MemoryNotFound" xml:space="preserve">
+    <value>خاطره موردنظر پیدا نشد.</value>
+  </data>
+  <data name="MemoryIdIsInvalid" xml:space="preserve">
+    <value>شناسه خاطره معتبر نیست.</value>
+  </data>
+  <data name="MemoryTextRequired" xml:space="preserve">
+    <value>متن خاطره الزامی است.</value>
+  </data>
+  <data name="MemoryTextMaxLength4000" xml:space="preserve">
+    <value>متن خاطره حداکثر می‌تواند ۴۰۰۰ کاراکتر باشد.</value>
+  </data>
+  <data name="MemoryDateTimeRequired" xml:space="preserve">
+    <value>تاریخ و ساعت خاطره الزامی است.</value>
+  </data>
+  <data name="MemoryDateCannotBeInFuture" xml:space="preserve">
+    <value>تاریخ خاطره نمی‌تواند مربوط به آینده باشد.</value>
+  </data>
+  <data name="MemorySelectedPetDoesNotBelongToUser" xml:space="preserve">
+    <value>پت انتخاب‌شده متعلق به این کاربر نیست.</value>
+  </data>
+  <data name="MemorySelectedPictureNotFound" xml:space="preserve">
+    <value>تصویر انتخاب‌شده پیدا نشد.</value>
+  </data>
+  <data name="MemoryAlreadyExistsForDay" xml:space="preserve">
+    <value>برای این روز قبلاً خاطره ثبت شده است.</value>
+  </data>
+    <data name="SearchResultTypeBrand" xml:space="preserve">
+    <value>برند</value>
+  </data>
+  <data name="SearchResultTypeCategory" xml:space="preserve">
+    <value>دسته‌بندی</value>
+  </data>
+  <data name="SearchResultTypeFeature" xml:space="preserve">
+    <value>ویژگی</value>
+  </data>
+  <data name="SearchResultTypeCompanion" xml:space="preserve">
+    <value>همیار</value>
+  </data>
+  <data name="SearchResultTypeAssistance" xml:space="preserve">
+    <value>خدمت</value>
+  </data>
+  <data name="SearchResultTypeStore" xml:space="preserve">
+    <value>فروشگاه</value>
+  </data>
+  <data name="SearchResultTypePansion" xml:space="preserve">
+    <value>پانسیون</value>
+  </data>
+  <data name="ShippingProviderServiceDisabled" xml:space="preserve">
+    <value>این سرویس ارسال غیرفعال است.</value>
+  </data>
+  <data name="ShippingProviderConnectionSettingsIncompleteFormat" xml:space="preserve">
+    <value>تنظیمات اتصال {0} تکمیل نشده است.</value>
+  </data>
+  <data name="ShippingProviderApiContractNotImplementedFormat" xml:space="preserve">
+    <value>قرارداد API عملیاتی {0} باید پس از دریافت مستند رسمی Provider پیاده‌سازی شود.</value>
+  </data>
+  <data name="ShippingProviderApiContractNotConfiguredFormat" xml:space="preserve">
+    <value>قرارداد API عملیاتی {0} هنوز تنظیم نشده است.</value>
+  </data>
   <data name="PastilMatchProfileAlreadyExists" xml:space="preserve">
     <value>این پت از قبل پروفایل دارد</value>
   </data>

@@ -40,6 +40,8 @@ namespace Api.Areas.EndUser.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var role = await AddressService.FindAsyncDto(id);
+            if (role.IsSuccess && role.Data?.UserId != _currentUserHelper.CurrentUser.UserId)
+                return Ok(new BaseResultDto<AddressDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(role);
         }
         /// <summary>
@@ -84,8 +86,11 @@ namespace Api.Areas.EndUser.Controllers
         ///
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await AddressService.FindAsyncDto(id);
+            if (!existing.IsSuccess || existing.Data?.UserId != _currentUserHelper.CurrentUser.UserId)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             var dto = AddressService.DeleteDto(id);
             return Ok(dto);
         }

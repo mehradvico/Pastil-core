@@ -2,6 +2,7 @@
 using Application.Common.Interface;
 using Application.Services.PansionSrvs.PansionPictureSrv.Dto;
 using Application.Services.PansionSrvs.PansionPictureSrv.Iface;
+using Application.Services.PansionSrvs.PansionSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,7 @@ namespace Api.Areas.Companion.Controllers
     /// <summary>
     /// مدیریت تصویر پانسیون ها
     /// </summary>
-    /// 
+    ///
     [Area("Companion")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -18,11 +19,13 @@ namespace Api.Areas.Companion.Controllers
     public class PansionPictureController : ControllerBase
     {
         private readonly IPansionPictureService PansionPictureService;
+        private readonly IPansionService _PansionService;
         private readonly ICurrentUserHelper _currentUser;
 
-        public PansionPictureController(IPansionPictureService PansionPictureService, ICurrentUserHelper currentUser)
+        public PansionPictureController(IPansionPictureService PansionPictureService, IPansionService PansionService, ICurrentUserHelper currentUser)
         {
             this.PansionPictureService = PansionPictureService;
+            this._PansionService = PansionService;
             this._currentUser = currentUser;
         }
         /// <summary>
@@ -57,6 +60,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<PansionPictureDto>), 200)]
         public async Task<IActionResult> Pansion(PansionPictureDto PansionPictureDto)
         {
+            var pansion = await _PansionService.FindAsyncVDto(PansionPictureDto.PansionId);
+            if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, PansionPictureDto));
+
             var result = await PansionPictureService.InsertAsyncDto(PansionPictureDto);
             return Ok(result);
         }
@@ -64,11 +71,19 @@ namespace Api.Areas.Companion.Controllers
         /// ویرایش آیتم
         /// </summary>
         /// <returns></returns>
-        /// 
+        ///
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<PansionPictureDto>), 200)]
-        public IActionResult Put(PansionPictureDto PansionPictureDto)
+        public async Task<IActionResult> Put(PansionPictureDto PansionPictureDto)
         {
+            var existing = await PansionPictureService.FindAsyncVDto(PansionPictureDto.Id);
+            if (!existing.IsSuccess)
+                return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, PansionPictureDto));
+            var pansion = await _PansionService.FindAsyncVDto(existing.Data.PansionId);
+            if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, PansionPictureDto));
+
+            PansionPictureDto.PansionId = existing.Data.PansionId;
             var result = PansionPictureService.UpdateDto(PansionPictureDto);
             return Ok(result);
         }
@@ -77,11 +92,18 @@ namespace Api.Areas.Companion.Controllers
         /// حذف آیتم
         /// </summary>
         /// <returns></returns>
-        /// 
+        ///
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto<PansionPictureDto>), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await PansionPictureService.FindAsyncVDto(id);
+            if (!existing.IsSuccess)
+                return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, default));
+            var pansion = await _PansionService.FindAsyncVDto(existing.Data.PansionId);
+            if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, default));
+
             var result = PansionPictureService.DeleteDto(id);
             return Ok(result);
         }

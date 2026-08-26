@@ -79,12 +79,12 @@ namespace Application.Services.CompanionSrvs.CompanionReserveExcelSrv
 
                 var companionList = compQuery.Select(s => new CompanionReserveExcelVDto
                 {
-                    ReserveType = "خدمات همراه",
+                    ReserveType = Resource.Notification.CompanionReserveTypeAssistance,
                     Id = s.Id,
                     BookerName = string.Format("{0} {1}", s.Booker.FirstName, s.Booker.LastName),
                     CompanionName = s.CompanionAssistance.Companion.Name,
                     AssistanceName = s.CompanionAssistance.Assistance.Name,
-                    OperatorName = s.CompanionAssistanceUserId == null ? "کلینیک" : string.Format("{0} {1}", s.CompanionAssistanceUser.User.FirstName, s.CompanionAssistanceUser.User.LastName),
+                    OperatorName = s.CompanionAssistanceUserId == null ? Resource.Notification.CompanionReserveOperatorNameClinicFallback : string.Format("{0} {1}", s.CompanionAssistanceUser.User.FirstName, s.CompanionAssistanceUser.User.LastName),
                     PetType = s.UserPets.FirstOrDefault() != null ? s.UserPets.FirstOrDefault().Pet.Name : "-",
                     PrePaymentPrice = s.PrePaymentPrice,
                     PackagePrice = s.PackagePrice,
@@ -124,7 +124,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveExcelSrv
 
                 var pansionList = panQuery.Select(s => new CompanionReserveExcelVDto
                 {
-                    ReserveType = s.DayCount > 0 ? "پانسیون (روزانه)" : "پانسیون (ساعتی/مدرسه)",
+                    ReserveType = s.DayCount > 0 ? Resource.Notification.CompanionReserveTypePansionDaily : Resource.Notification.CompanionReserveTypePansionHourly,
 
                     Id = s.Id,
                     BookerName = string.Format("{0} {1}", s.Booker.FirstName, s.Booker.LastName),

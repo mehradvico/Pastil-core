@@ -89,8 +89,11 @@ namespace Api.Areas.Companion.Controllers
         /// 
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto<CompanionTypeDto>), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await CompanionTypeService.FindAsyncDto(id);
+            if (!existing.IsSuccess || existing.Data?.CompanionId != _current.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<CompanionTypeDto>(false, Resource.Notification.AccessDenied, default));
             var result = CompanionTypeService.DeleteDto(id);
             return Ok(result);
         }

@@ -33,7 +33,7 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<UserPetPictureVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var UserPetPicture = await UserPetPictureService.FindAsyncVDto(id);
+            var UserPetPicture = await UserPetPictureService.FindAsyncVDto(id, currentUserHelper.CurrentUser.UserId);
             return Ok(UserPetPicture);
         }
         /// <summary>
@@ -57,6 +57,9 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<UserPetPictureDto>), 200)]
         public async Task<IActionResult> UserPet(UserPetPictureDto UserPetPictureDto)
         {
+            var owned = await UserPetPictureService.IsUserPetOwnedByAsync(UserPetPictureDto.UserPetId, currentUserHelper.CurrentUser.UserId);
+            if (!owned)
+                return Ok(new BaseResultDto<UserPetPictureDto>(false, Resource.Notification.AccessDenied, default));
             var result = await UserPetPictureService.InsertAsyncDto(UserPetPictureDto);
             return Ok(result);
         }
@@ -64,11 +67,14 @@ namespace Api.Areas.EndUser.Controllers
         /// حذف آیتم
         /// </summary>
         /// <returns></returns>
-        /// 
+        ///
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto<UserPetPictureDto>), 200)]
-        public IActionResult Delete(long id)
+        public async Task<IActionResult> Delete(long id)
         {
+            var existing = await UserPetPictureService.FindAsyncVDto(id, currentUserHelper.CurrentUser.UserId);
+            if (!existing.IsSuccess)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             var result = UserPetPictureService.DeleteDto(id);
             return Ok(result);
         }

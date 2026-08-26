@@ -31,10 +31,12 @@ namespace Api.Areas.Companion.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<SettlementDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<SettlementVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var role = await SettlementService.FindAsyncDto(id);
+            var role = await SettlementService.FindAsyncVDto(id);
+            if (role.IsSuccess && role.Data?.CompanionId != _currentuser.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<SettlementVDto>(false, Resource.Notification.AccessDenied, default));
             return Ok(role);
         }
         /// <summary>
