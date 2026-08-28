@@ -75,6 +75,18 @@ namespace Application.Services.Order.ShippingSrv.Provider
             });
         }
 
+        public Task<ShippingProviderCancelResult> CancelShipmentAsync(
+            ShippingProviderCancelRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!_options.TestMode)
+                return Task.FromResult(ShippingProviderCancelResult.Failed(
+                    string.Format(Resource.Notification.ShippingProviderApiContractNotConfiguredFormat, Provider)));
+
+            return Task.FromResult(ShippingProviderCancelResult.Success());
+        }
+
         private ShippingProviderOptions GetProviderOptions() => Provider switch
         {
             ShippingProviderEnum.AloPeyk => _options.AloPeyk,

@@ -51,7 +51,7 @@ namespace Api.Areas.Companion.Controllers
         {
             var agency = await _companionInsurancePackageSaleService.FindAsyncDto(id);
             if (agency.IsSuccess && agency.Data?.CompanionInsurancePackage?.CompanionId != _currentUser.CurrentUser.CompanionId)
-                return Ok(new BaseResultDto<CompanionInsurancePackageSaleDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionInsurancePackageSaleDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(agency);
         }
     }

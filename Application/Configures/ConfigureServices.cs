@@ -228,6 +228,8 @@ using Application.Services.Order.ProductOrderStoreItemSrv;
 using Application.Services.Order.ProductOrderStoreSrv.Iface;
 using Application.Services.Order.RebateSrv;
 using Application.Services.Order.RebateSrv.Iface;
+using Application.Services.Accounting.PetTagSrv;
+using Application.Services.Accounting.PetTagSrv.Iface;
 using Application.Services.PansionSrvs.PansionCommentSrv;
 using Application.Services.PansionSrvs.PansionCommentSrv.Iface;
 using Application.Services.PansionSrvs.PansionPetSrv;
@@ -473,6 +475,7 @@ public static class ConfigureServices
         services.AddScoped<IShippingProvider, AloPeykShippingProvider>();
         services.AddScoped<IShippingProvider, TipaxShippingProvider>();
         services.AddScoped<IShippingProvider, SnappBoxShippingProvider>();
+        services.AddScoped<IShippingProvider, MiareShippingProvider>();
         services.AddScoped<IDetailService, DetailService>();
         services.AddScoped<IDiscountGroupService, DiscountGroupService>();
         services.AddScoped<IDiscountService, DiscountService>();
@@ -560,8 +563,10 @@ public static class ConfigureServices
         services.AddScoped<IPushBroadcastService, PushBroadcastService>();
         services.AddScoped<IPushMessageService, PushMessageService>();
         services.AddScoped<IPushNotificationService, PushNotificationService>();
+        services.AddScoped<IPushScheduleService, PushScheduleService>();
         services.AddScoped<IPushSubscriptionService, PushSubscriptionService>();
         services.AddScoped<IRebateService, RebateService>();
+        services.AddScoped<IPetTagService, PetTagService>();
         services.AddScoped<IRegixHelper, RegixHelper>();
         services.AddScoped<IReminderCycleService, ReminderCycleService>();
         services.AddScoped<IReminderService, ReminderService>();

@@ -11,6 +11,11 @@ namespace Application.Services.Content.PostSrv.Dto
 {
     public class PostDto : Seo_Full_FieldDto
     {
+        [Display(Name = nameof(Resource.Field.Label), ResourceType = typeof(Resource.Field))]
+        [Required(ErrorMessageResourceType = typeof(Resource.Pattern),
+          ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
+        public string Label { get; set; }
+        public string Slug { get; set; }
         public long? PictureId { get; set; }
         [Display(Name = nameof(Resource.Field.Active), ResourceType = typeof(Resource.Field))]
         [Required(ErrorMessageResourceType = typeof(Resource.Pattern),

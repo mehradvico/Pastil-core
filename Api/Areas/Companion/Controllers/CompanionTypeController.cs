@@ -93,7 +93,7 @@ namespace Api.Areas.Companion.Controllers
         {
             var existing = await CompanionTypeService.FindAsyncDto(id);
             if (!existing.IsSuccess || existing.Data?.CompanionId != _current.CurrentUser.CompanionId)
-                return Ok(new BaseResultDto<CompanionTypeDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionTypeDto>(false, Resource.Notification.AccessDenied, default!));
             var result = CompanionTypeService.DeleteDto(id);
             return Ok(result);
         }

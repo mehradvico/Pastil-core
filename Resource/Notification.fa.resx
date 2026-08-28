@@ -954,6 +954,12 @@
   <data name="PushBroadcastTitleAndBodyMustBePersian" xml:space="preserve">
     <value>عنوان و متن پوش نوتیفیکیشن باید فارسی باشند.</value>
   </data>
+  <data name="PushMessageAutoSendRequiresRecurrenceType" xml:space="preserve">
+    <value>برای ارسال خودکار باید نوع تکرار (روزانه/هفتگی/ماهانه/سالانه) را مشخص کنید.</value>
+  </data>
+  <data name="PushMessageAutoSendRequiresSendDate" xml:space="preserve">
+    <value>برای ارسال خودکار باید تاریخ و ساعت ارسال را مشخص کنید.</value>
+  </data>
   <data name="UserExpertiseOnlyForCompanionOwnerOrApprovedMember" xml:space="preserve">
     <value>عنوان شغلی فقط برای صاحب نمایندگی یا عضو فعال و تأییدشده نمایندگی قابل ثبت است.</value>
   </data>
@@ -1322,5 +1328,17 @@
   </data>
   <data name="PastilMatchSuggestionNotFound" xml:space="preserve">
     <value>برای پت شما یا متناسب با فیلترهای انتخاب‌شده دوستی پیدا نشد.</value>
+  </data>
+  <data name="PetTagCodeNotValid" xml:space="preserve">
+    <value>کد قلاده معتبر نیست.</value>
+  </data>
+  <data name="PetTagAlreadyClaimed" xml:space="preserve">
+    <value>این کد قلاده قبلاً به یک پت متصل شده است.</value>
+  </data>
+  <data name="PetTagGenerateCountInvalid" xml:space="preserve">
+    <value>تعداد درخواستی برای تولید کد معتبر نیست.</value>
+  </data>
+  <data name="PetTagPetAlreadyHasTag" xml:space="preserve">
+    <value>این پت قبلاً به یک کد قلاده متصل شده و امکان اتصال کد جدید به آن وجود ندارد.</value>
   </data>
 </root>

@@ -52,7 +52,7 @@ namespace Api.Areas.Companion.Controllers
         {
             var companion = await _companionReserveService.FindAsyncAdminVDto(id);
             if (companion.IsSuccess && companion.Data?.CompanionAssistance?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
-                return Ok(new BaseResultDto<CompanionReserveAdminVDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionReserveAdminVDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(companion);
         }
 

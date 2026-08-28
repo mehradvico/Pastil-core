@@ -528,7 +528,10 @@ namespace Application.Services.Order.ProductOrderSrv
 
                 var canceledState = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
                 if (productOrder.ProductOrderStateId == canceledState)
+                {
                     await _clubPointIntegrationService.ProductOrderReversedAsync(item.UserId, item.Id);
+                    await _shipmentService.CancelForOrderAsync(item.Id);
+                }
 
                 await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderCancelAnswer, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: productOrder.Id);
                 return new BaseResultDto(true);

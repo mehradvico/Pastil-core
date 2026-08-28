@@ -51,7 +51,7 @@ namespace Api.Areas.Driver.Controllers
         {
             var Trip = await _tripService.FindAsyncDto(id);
             if (Trip.IsSuccess && Trip.Data?.DriverId != _currentUserHelper.CurrentUser.DriverId)
-                return Ok(new BaseResultDto<TripDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<TripDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(Trip);
         }
     }

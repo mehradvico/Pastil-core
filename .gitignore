@@ -376,3 +376,6 @@ FodyWeavers.xsd
 **/.env
 **/.env.*
 !**/.env.example
+
+# DPAPI-encrypted SSH password stored by scripts/Deploy-Api.ps1 -SaveCredential.
+**/.deploy-credential.xml

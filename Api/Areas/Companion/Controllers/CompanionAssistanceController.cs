@@ -55,7 +55,7 @@ namespace Api.Areas.Companion.Controllers
 
             var companion = await _companionAssistanceService.FindAsyncDto(id);
             if (companion.IsSuccess && companion.Data?.CompanionId != _currentUserDto.CompanionId)
-                return Ok(new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(companion);
         }
 

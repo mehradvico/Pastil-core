@@ -14,12 +14,14 @@ using Application.Services.Content.PostSrv.Iface;
 using AutoMapper;
 using Dapper;
 using Entities.Entities;
+using Entities.Entities.CommonField;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -565,6 +567,27 @@ namespace Application.Services.Content.PostSrv
             var connection = new SqlConnection(connectionString);
             var posts = connection.Query<PostSiteMapDto>(sqlQuery).ToList();
             return new BaseResultDto<List<PostSiteMapDto>>(true, posts);
+        }
+
+        public async Task<BaseResultDto<bool>> CheckLabelAvailableAsync(string label, long? excludeId)
+        {
+            string slug;
+            try
+            {
+                slug = SlugNormalizer.Normalize(label);
+            }
+            catch (ValidationException ex)
+            {
+                return new BaseResultDto<bool>(false, ex.Message, false);
+            }
+
+            if (string.IsNullOrEmpty(slug))
+            {
+                return new BaseResultDto<bool>(false, "Label باید حداقل یک حرف انگلیسی یا عدد داشته باشد.", false);
+            }
+
+            var taken = await _context.Posts.AnyAsync(p => p.Slug == slug && (!excludeId.HasValue || p.Id != excludeId.Value));
+            return new BaseResultDto<bool>(true, !taken);
         }
     }
 

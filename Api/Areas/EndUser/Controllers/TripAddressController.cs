@@ -50,7 +50,7 @@ namespace Api.Areas.EndUser.Controllers
         {
             var agency = await _tripAddress.FindAsyncDto(id);
             if (agency.IsSuccess && agency.Data?.UserId != _currentUser.CurrentUser.UserId)
-                return Ok(new BaseResultDto<TripAddressDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<TripAddressDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(agency);
         }
 

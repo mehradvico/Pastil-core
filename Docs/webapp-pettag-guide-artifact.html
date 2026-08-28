@@ -1,0 +1,578 @@
+<title>راهنمای اسکن قلاده QR</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface-2: #f0eee9;
+    --border: #e3e0d8;
+    --text: #23211d;
+    --text-soft: #6b675c;
+    --text-faint: #a19c8d;
+    --primary: #2148c9;
+    --primary-soft: #e9edfb;
+    --primary-border: #c9d4f5;
+    --accent: #e05a2b;
+    --accent-soft: #fdece3;
+    --code-bg: #1c1a17;
+    --code-text: #eae6db;
+    --code-border: #33302a;
+    --good: #1c7c4d;
+    --good-soft: #e5f5ec;
+    --warn: #b3651a;
+    --warn-soft: #fbeadb;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16151a;
+      --surface: #1e1d23;
+      --surface-2: #26252c;
+      --border: #34333b;
+      --text: #ece9e2;
+      --text-soft: #a6a29a;
+      --text-faint: #726e67;
+      --primary: #7d95f2;
+      --primary-soft: #232a44;
+      --primary-border: #3a4574;
+      --accent: #ff9466;
+      --accent-soft: #3a2a22;
+      --code-bg: #0f0e0c;
+      --code-text: #eae6db;
+      --code-border: #322f28;
+      --good: #6bd39a;
+      --good-soft: #1d3327;
+      --warn: #f0aa5c;
+      --warn-soft: #3a2c18;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #16151a;
+    --surface: #1e1d23;
+    --surface-2: #26252c;
+    --border: #34333b;
+    --text: #ece9e2;
+    --text-soft: #a6a29a;
+    --text-faint: #726e67;
+    --primary: #7d95f2;
+    --primary-soft: #232a44;
+    --primary-border: #3a4574;
+    --accent: #ff9466;
+    --accent-soft: #3a2a22;
+    --code-bg: #0f0e0c;
+    --code-text: #eae6db;
+    --code-border: #322f28;
+    --good: #6bd39a;
+    --good-soft: #1d3327;
+    --warn: #f0aa5c;
+    --warn-soft: #3a2c18;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    direction: rtl;
+    line-height: 1.85;
+  }
+
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  .masthead {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+  }
+
+  .eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  h1 {
+    font-size: clamp(1.7rem, 4vw, 2.35rem);
+    font-weight: 800;
+    margin: 0.4rem 0 0.75rem;
+    text-wrap: balance;
+  }
+
+  .lede {
+    font-size: 1.05rem;
+    color: var(--text-soft);
+    max-width: 66ch;
+    margin: 0 0 2.5rem;
+  }
+
+  code.inline {
+    font-family: 'JetBrains Mono', monospace;
+    direction: ltr;
+    display: inline-block;
+    background: var(--surface-2);
+    padding: 0.05rem 0.4rem;
+    border-radius: 5px;
+    color: var(--primary);
+    font-size: 0.85em;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+  }
+
+  .card + .card { margin-top: 1rem; }
+
+  p { margin: 0 0 1rem; }
+  .card p:last-child { margin-bottom: 0; }
+
+  h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 1.1rem;
+  }
+
+  section { margin-bottom: 3rem; }
+
+  .anchor-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.5rem 1.6rem;
+    margin-bottom: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+  }
+
+  .anchor-hero .qr-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--primary-soft);
+    border: 1px solid var(--primary-border);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .anchor-hero .route {
+    font-family: 'JetBrains Mono', monospace;
+    direction: ltr;
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+  }
+
+  .anchor-hero .route strong {
+    color: var(--text);
+    display: block;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .fork {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1.2rem;
+  }
+
+  @media (max-width: 640px) {
+    .fork { grid-template-columns: 1fr; }
+  }
+
+  .fork-card {
+    border-radius: 16px;
+    padding: 1.3rem 1.4rem;
+    border: 1px solid;
+  }
+
+  .fork-card.unclaimed {
+    background: var(--warn-soft);
+    border-color: var(--warn);
+  }
+
+  .fork-card.claimed {
+    background: var(--good-soft);
+    border-color: var(--good);
+  }
+
+  .fork-card .fork-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 800;
+    font-size: 1.02rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .fork-card.unclaimed .fork-title { color: var(--warn); }
+  .fork-card.claimed .fork-title { color: var(--good); }
+
+  .fork-card p {
+    color: var(--text);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--code-border);
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.83rem;
+    line-height: 1.65;
+    margin: 0 0 1rem;
+  }
+
+  pre:last-child { margin-bottom: 0; }
+
+  .pre-label {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+
+  .method-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    direction: ltr;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .verb {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 7px;
+    font-weight: 700;
+    font-size: 0.78rem;
+  }
+
+  .verb-get { background: var(--primary-soft); color: var(--primary); }
+  .verb-post { background: var(--good-soft); color: var(--good); }
+
+  .route-text { color: var(--text); font-weight: 500; }
+
+  .callout {
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.92rem;
+    margin: 1rem 0 0;
+    border: 1px solid var(--warn);
+    background: var(--warn-soft);
+  }
+
+  .callout strong { color: var(--warn); }
+
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: 0.6rem;
+    flex-shrink: 0;
+  }
+
+  .step-row {
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 0.9rem;
+  }
+
+  .step-row:last-child { margin-bottom: 0; }
+
+  .table-wrap { overflow-x: auto; }
+
+  .field-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.88rem;
+  }
+
+  .field-table th {
+    text-align: right;
+    font-size: 0.74rem;
+    color: var(--text-faint);
+    font-weight: 700;
+    padding: 0 0.7rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .field-table td {
+    padding: 0.65rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .field-table tr:last-child td { border-bottom: none; }
+
+  .flow-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.6rem;
+    margin-bottom: 3rem;
+  }
+
+  .flow-node {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0.8rem 1.1rem;
+    font-size: 0.88rem;
+    text-align: center;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .flow-arrow {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 1.1rem;
+    margin: 0.4rem 0;
+  }
+
+  .flow-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin-top: 0.4rem;
+  }
+
+  @media (max-width: 640px) {
+    .flow-split { grid-template-columns: 1fr; }
+  }
+
+  .flow-branch-label {
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 0.35rem 0;
+    border-radius: 8px;
+    margin-bottom: 0.6rem;
+  }
+
+  .flow-branch-label.unclaimed { background: var(--warn-soft); color: var(--warn); }
+  .flow-branch-label.claimed { background: var(--good-soft); color: var(--good); }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 0.82rem;
+  }
+</style>
+
+<div class="page">
+  <div class="masthead">
+    <div class="mark">پ</div>
+    <div class="eyebrow">مستند فنی · Pastil API</div>
+  </div>
+  <h1>راهنمای اسکن قلاده‌ی هوشمند (PetTag QR)</h1>
+  <p class="lede">
+    این مستند برای پیاده‌سازی بخش اسکن QR قلاده در وب‌اپه — از لحظه‌ی اسکن تا اتصال کد به پت یا نمایش پروفایل پت گم‌شده.
+    آدرس پایه: <code class="inline">https://api.pastil.pet</code>
+  </p>
+
+  <div class="anchor-hero">
+    <div class="qr-icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM21 14v3M14 21h3M18 18h3v3"/></svg>
+    </div>
+    <div class="route">
+      <strong>نقطه‌ی شروع همیشگی</strong>
+      GET /api/PetTagPublic/{code} — عمومی، بدون نیاز به لاگین
+    </div>
+  </div>
+
+  <div class="flow-diagram">
+    <div class="flow-node">اسکن QR روی قلاده → صفحه‌ی <code class="inline">tag/{code}</code></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node">GET /api/PetTagPublic/{code}</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-split">
+      <div>
+        <div class="flow-branch-label unclaimed">claimed = false</div>
+        <div class="flow-node">فلوی اتصال کد به یکی از پت‌های کاربر</div>
+      </div>
+      <div>
+        <div class="flow-branch-label claimed">claimed = true</div>
+        <div class="flow-node">نمایش مستقیم پروفایل عمومی پت</div>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <h2>۱. استعلام وضعیت کد</h2>
+    <div class="card">
+      <div class="method-line">
+        <span class="verb verb-get">GET</span>
+        <span class="route-text">/api/PetTagPublic/{code}</span>
+      </div>
+      <span class="pre-label">حالت الف — هنوز اتصال نخورده</span>
+      <pre>{
+  "isSuccess": true,
+  "data": { "claimed": false, "pet": null }
+}</pre>
+      <span class="pre-label">حالت ب — قبلاً به یک پت وصل شده</span>
+      <pre>{
+  "isSuccess": true,
+  "data": {
+    "claimed": true,
+    "pet": {
+      "name": "لوکی",
+      "breedName": "پامرینین",
+      "isMale": true,
+      "pictureUrl": "https://file.pastil.pet/...",
+      "ownerFirstName": "علی",
+      "ownerLastName": "رضایی",
+      "ownerMobile": "09123456789"
+    }
+  }
+}</pre>
+    </div>
+  </section>
+
+  <section>
+    <h2>۲. فلوی اتصال (وقتی claimed = false)</h2>
+    <div class="fork">
+      <div class="fork-card unclaimed">
+        <div class="fork-title">کاربر لاگین نیست</div>
+        <p>ببرش صفحه‌ی ورود/ثبت‌نام. حتماً <code class="inline">code</code> رو نگه دار (query param یا sessionStorage) تا بعد از لاگین موفق، دوباره برگردونیش همین‌جا.</p>
+      </div>
+      <div class="fork-card claimed">
+        <div class="fork-title">کاربر لاگین است</div>
+        <p>باید ازش بپرسی این کد رو به کدوم پتش وصل کنه — سه قدم پایین رو دنبال کن.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.2rem">
+      <div class="step-row">
+        <span class="step-badge">۱</span>
+        <span>لیست پت‌های کاربر رو بگیر</span>
+      </div>
+      <div class="method-line">
+        <span class="verb verb-get">GET</span>
+        <span class="route-text">/api/EndUser/UserPet</span>
+      </div>
+      <p class="note" style="color:var(--text-soft);font-size:0.88rem">پاسخ توی <code class="inline">data.list</code> — هرکدوم حداقل <code class="inline">id</code> و <code class="inline">name</code> داره.</p>
+    </div>
+
+    <div class="card">
+      <div class="step-row">
+        <span class="step-badge">۲</span>
+        <span>لیست پت‌هایی که از قبل کد دارن رو بگیر</span>
+      </div>
+      <div class="method-line">
+        <span class="verb verb-get">GET</span>
+        <span class="route-text">/api/EndUser/PetTag/mine</span>
+      </div>
+      <pre>{
+  "isSuccess": true,
+  "data": [
+    { "userPetId": 41, "code": "B7K2...", "claimedDate": "2026-08-20T10:00:00" }
+  ]
+}</pre>
+      <div class="callout">
+        <strong>قانون مهم:</strong> هر پت فقط و فقط یک‌بار، برای همیشه می‌تونه به یک کد وصل بشه — دیگه هیچ‌وقت کد دومی قبول نمی‌شه، حتی اگه کد اولی گم شده باشه.
+        هر پتی که <code class="inline">id</code>ش توی این لیست باشه رو توی فرم انتخاب <strong>غیرفعال کن</strong> — بک‌اند هم مستقل همین قانون رو چک می‌کنه، ولی تجربه‌ی کاربری بهتره از همون اول جلوش گرفته بشه.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="step-row">
+        <span class="step-badge">۳</span>
+        <span>بعد از انتخاب پت، وصلش کن</span>
+      </div>
+      <div class="method-line">
+        <span class="verb verb-post">POST</span>
+        <span class="route-text">/api/EndUser/PetTag/claim</span>
+      </div>
+      <pre>{ "code": "A2K9XQZ7...", "userPetId": 41 }</pre>
+      <span class="pre-label">پاسخ موفق</span>
+      <pre>{ "isSuccess": true, "data": null }</pre>
+      <p class="note" style="color:var(--text-soft);font-size:0.88rem;margin-top:0.8rem">بعدش کاربر رو ببر به پروفایل پتش (بخش ۳).</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>۳. نمایش پروفایل عمومی پت (وقتی claimed = true)</h2>
+    <div class="card">
+      <p>همون داده‌ای که از بخش ۱ گرفتی رو مستقیم نشون بده — نیازی به درخواست یا لاگین دیگه‌ای نیست.</p>
+      <p><strong>این صفحه باید بدون لاگین برای همه باز بشه</strong> — کسی که قلاده رو پیدا کرده لزوماً کاربر پاستیل نیست.</p>
+      <p style="margin-bottom:0">پیشنهاد طراحی: عکس + اسم + نژاد + جنسیت پت، و یک باکس واضح «صاحب این پت» با نام و شماره‌ی مالک + دکمه‌ی تماس مستقیم (<code class="inline">tel:</code>). اگه اطلاعات مالک خالی بود، حالت جایگزین ملایم (فقط اسم پت) نشون بده.</p>
+    </div>
+  </section>
+
+  <section style="margin-bottom:0">
+    <h2>۴. خطاهای رایج</h2>
+    <div class="card">
+      <div class="table-wrap">
+        <table class="field-table">
+          <thead>
+            <tr><th>کجا</th><th>پیام</th><th>یعنی چی</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>هر سه endpoint</td><td>کد قلاده معتبر نیست.</td><td>کد وجود نداره یا غیرفعاله</td></tr>
+            <tr><td><code class="inline">claim</code></td><td>قبلاً به یک پت متصل شده است.</td><td>یکی دیگه (یا خود کاربر) زودتر همین کد رو claim کرده</td></tr>
+            <tr><td><code class="inline">claim</code></td><td>این پت قبلاً به یک کد قلاده متصل شده...</td><td>پت انتخاب‌شده از قبل کد داره — دقیقاً همون چک قدم ۲</td></tr>
+            <tr><td><code class="inline">claim</code></td><td>AccessDenied</td><td><code class="inline">userPetId</code> مال کاربر دیگه‌ست (فقط دفاعی)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    تیم پاستیل · مستند فنی برای پیاده‌سازی اسکن قلاده‌ی هوشمند در وب‌اپ
+  </footer>
+</div>

@@ -51,7 +51,7 @@ namespace Api.Areas.EndUser.Controllers
         {
             var Trip = await _tripService.FindAsyncDto(id);
             if (Trip.IsSuccess && Trip.Data?.UserId != _currentUserHelper.CurrentUser.UserId)
-                return Ok(new BaseResultDto<TripDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<TripDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(Trip);
         }
     }

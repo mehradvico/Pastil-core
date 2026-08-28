@@ -12,7 +12,10 @@ $patterns = [ordered]@{
     'Private-key material' = '-----BEGIN [A-Z ]*PRIVATE KEY-----'
     'Non-empty JSON ApiKey' = '(?i)"ApiKey"\s*:\s*"[^"\s]+"'
     'Non-empty JSON PrivateKey' = '(?i)"PrivateKey"\s*:\s*"[^"\s]+"'
-    'Non-empty JSON JWT key' = '(?i)"key"\s*:\s*"[^"\s]+"'
+    # Requires 16+ characters: real JWT signing keys are GUIDs or long random
+    # strings, while a bare '"key": "city"' is a field name in a JSON schema
+    # example (see Docs/*.md) and must not fail the scan.
+    'Non-empty JSON JWT key' = '(?i)"key"\s*:\s*"[^"\s]{16,}"'
     'Non-empty JSON connection' = '(?i)"connection"\s*:\s*"[^"\s]+"'
 }
 

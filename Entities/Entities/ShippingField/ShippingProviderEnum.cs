@@ -5,6 +5,7 @@ namespace Entities.Entities.ShippingField
         None = 0,
         AloPeyk = 1,
         Tipax = 2,
-        SnappBox = 3
+        SnappBox = 3,
+        Miare = 4
     }
 }

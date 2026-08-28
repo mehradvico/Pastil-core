@@ -69,6 +69,7 @@ namespace Utility.Reflection
             "Permission",
             "Pet",
             "PetBreed",
+            "PetTag",
             "Product",
             "ProductOrder",
             "PushMessage",
@@ -150,6 +151,8 @@ namespace Utility.Reflection
             [
                 "Pet",
                 "PetBreed",
+                "PetTag",
+                "PetTagExcel",
                 "UserPetPicture",
                 "UserPetRecord"
             ]);

@@ -85,7 +85,7 @@ namespace Api.Areas.Companion.Controllers
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
 
             dto.Active = false;
-            dto.CompanionId = existing.Data.CompanionId;
+            dto.CompanionId = existing.Data!.CompanionId;
             var agency = _companionAssistanceUserService.UpdateDto(dto);
             return Ok(agency);
         }

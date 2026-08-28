@@ -3124,6 +3124,41 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PetTagController">
+            <summary>
+            کیوآر کد
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetTagController.Get(System.Int64)">
+            <summary>
+            جزئیات یک کد
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetTagController.Get(Application.Services.Accounting.PetTagSrv.Dto.PetTagInputDto)">
+            <summary>
+            جستجو/لیست کدها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetTagController.Generate(Application.Services.Accounting.PetTagSrv.Dto.PetTagGenerateInputDto)">
+            <summary>
+            تولید دسته‌ای کد یکتا (۱ تا ۲۰۰۰ عدد)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetTagController.Delete(System.Int64)">
+            <summary>
+            غیرفعال‌کردن یک کد
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PetTagExcelController">
+            <summary>
+            خروجی اکسل کدهای قلاده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetTagExcelController.Get(Application.Services.Accounting.PetTagSrv.Dto.PetTagExportFilterDto)">
+            <summary>
+            دریافت اکسل
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PictureController">
              <summary>
              مدیا
@@ -7314,6 +7349,22 @@
              دریافت همه 
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PetTagController">
+            <summary>
+            اتصال کد قلاده به پت کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PetTagController.Claim(Application.Services.Accounting.PetTagSrv.Dto.PetTagClaimDto)">
+            <summary>
+            وصل‌کردن یک کد قلاده به یکی از پت‌های کاربر جاری
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PetTagController.Mine">
+            <summary>
+            لیست کدهای قلاده‌ی متصل به پت‌های کاربر جاری — برای غیرفعال‌کردن پت‌هایی
+            که از قبل کد دارند در فرم انتخاب پت هنگام اتصال کد جدید
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.PostCommentController">
             <summary>
             مرتبط با پست ها
@@ -9406,6 +9457,17 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Controllers.PetTagPublicController">
+            <summary>
+            استعلام عمومی کد قلاده (بدون نیاز به ورود)
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.PetTagPublicController.Get(System.String)">
+            <summary>
+            وضعیت یک کد قلاده: اگر متصل به پتی نباشد claimed=false برمی‌گردد،
+            اگر متصل باشد پروفایل عمومی پت و مالکش برمی‌گردد.
+            </summary>
         </member>
         <member name="T:Api.Controllers.PostCommentController">
             <summary>

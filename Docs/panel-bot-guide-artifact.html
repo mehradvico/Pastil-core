@@ -1,0 +1,743 @@
+<title>راهنمای ربات تولید محتوا</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface-2: #f0eee9;
+    --border: #e3e0d8;
+    --text: #23211d;
+    --text-soft: #6b675c;
+    --text-faint: #a19c8d;
+    --primary: #2148c9;
+    --primary-soft: #e9edfb;
+    --primary-border: #c9d4f5;
+    --accent: #e05a2b;
+    --accent-soft: #fdece3;
+    --code-bg: #1c1a17;
+    --code-text: #eae6db;
+    --code-border: #33302a;
+    --good: #1c7c4d;
+    --good-soft: #e5f5ec;
+    --warn: #b3651a;
+    --warn-soft: #fbeadb;
+    --shadow: 220 20% 10%;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16151a;
+      --surface: #1e1d23;
+      --surface-2: #26252c;
+      --border: #34333b;
+      --text: #ece9e2;
+      --text-soft: #a6a29a;
+      --text-faint: #726e67;
+      --primary: #7d95f2;
+      --primary-soft: #232a44;
+      --primary-border: #3a4574;
+      --accent: #ff9466;
+      --accent-soft: #3a2a22;
+      --code-bg: #0f0e0c;
+      --code-text: #eae6db;
+      --code-border: #322f28;
+      --good: #6bd39a;
+      --good-soft: #1d3327;
+      --warn: #f0aa5c;
+      --warn-soft: #3a2c18;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #16151a;
+    --surface: #1e1d23;
+    --surface-2: #26252c;
+    --border: #34333b;
+    --text: #ece9e2;
+    --text-soft: #a6a29a;
+    --text-faint: #726e67;
+    --primary: #7d95f2;
+    --primary-soft: #232a44;
+    --primary-border: #3a4574;
+    --accent: #ff9466;
+    --accent-soft: #3a2a22;
+    --code-bg: #0f0e0c;
+    --code-text: #eae6db;
+    --code-border: #322f28;
+    --good: #6bd39a;
+    --good-soft: #1d3327;
+    --warn: #f0aa5c;
+    --warn-soft: #3a2c18;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    direction: rtl;
+    line-height: 1.85;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  .masthead {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+  }
+
+  .eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-soft);
+    letter-spacing: 0.02em;
+  }
+
+  h1 {
+    font-size: clamp(1.7rem, 4vw, 2.35rem);
+    font-weight: 800;
+    margin: 0.4rem 0 0.75rem;
+    text-wrap: balance;
+  }
+
+  .lede {
+    font-size: 1.05rem;
+    color: var(--text-soft);
+    max-width: 64ch;
+    margin: 0 0 2.25rem;
+  }
+
+  .base-urls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 3rem;
+  }
+
+  .base-url-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.9rem 1.1rem;
+  }
+
+  .base-url-card .label {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .base-url-card code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    direction: ltr;
+    display: inline-block;
+    color: var(--primary);
+    font-weight: 500;
+  }
+
+  .envelope {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 3rem;
+  }
+
+  .envelope p {
+    margin: 0 0 0.85rem;
+    color: var(--text-soft);
+    font-size: 0.94rem;
+  }
+
+  section.step {
+    margin-bottom: 3.25rem;
+    scroll-margin-top: 1.5rem;
+  }
+
+  .step-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .step-num {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--primary-soft);
+    border: 1px solid var(--primary-border);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  .step-head h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .prereq .step-num { background: var(--surface-2); border-color: var(--border); color: var(--text-soft); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.4rem 1.5rem;
+  }
+
+  .card + .card { margin-top: 1rem; }
+
+  p { margin: 0 0 1rem; }
+  .card p:last-child { margin-bottom: 0; }
+
+  ol.plain, ul.plain {
+    margin: 0;
+    padding-inline-start: 1.3rem;
+  }
+
+  ol.plain li, ul.plain li {
+    margin-bottom: 0.6rem;
+  }
+
+  .method-line {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88rem;
+    direction: ltr;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .verb {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 7px;
+    font-weight: 700;
+    font-size: 0.78rem;
+  }
+
+  .verb-post { background: var(--good-soft); color: var(--good); }
+  .verb-put { background: var(--warn-soft); color: var(--warn); }
+
+  .route {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border: 1px solid var(--code-border);
+    border-radius: 12px;
+    padding: 1.1rem 1.25rem;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.83rem;
+    line-height: 1.65;
+    margin: 0 0 1rem;
+  }
+
+  pre:last-child { margin-bottom: 0; }
+
+  .pre-label {
+    font-size: 0.72rem;
+    color: var(--text-faint);
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    display: block;
+  }
+
+  .callout {
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    font-size: 0.92rem;
+    margin: 1rem 0;
+    border: 1px solid;
+  }
+
+  .callout-warn {
+    background: var(--warn-soft);
+    border-color: var(--warn);
+    color: var(--text);
+  }
+
+  .callout strong { color: var(--warn); }
+
+  .note {
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    margin-top: 0.75rem;
+  }
+
+  .field-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.88rem;
+    margin: 0;
+  }
+
+  .field-table th {
+    text-align: right;
+    font-size: 0.74rem;
+    color: var(--text-faint);
+    font-weight: 700;
+    padding: 0 0.7rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .field-table td {
+    padding: 0.65rem 0.7rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .field-table tr:last-child td { border-bottom: none; }
+
+  .field-table code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    direction: ltr;
+    display: inline-block;
+    background: var(--surface-2);
+    padding: 0.05rem 0.4rem;
+    border-radius: 5px;
+    color: var(--primary);
+  }
+
+  .req-yes { color: var(--good); font-weight: 700; font-size: 0.82rem; }
+  .req-no { color: var(--text-faint); font-size: 0.82rem; }
+
+  .table-wrap { overflow-x: auto; }
+
+  .form-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface-2);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-field code {
+    font-family: 'JetBrains Mono', monospace;
+    direction: ltr;
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  .form-field span {
+    color: var(--text-soft);
+    font-size: 0.85rem;
+  }
+
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    counter-reset: flowstep;
+  }
+
+  .flow-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    font-size: 0.95rem;
+  }
+
+  .flow-item::before {
+    counter-increment: flowstep;
+    content: counter(flowstep);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .flow-item code {
+    font-family: 'JetBrains Mono', monospace;
+    direction: ltr;
+    display: inline-block;
+    background: var(--surface-2);
+    padding: 0.1rem 0.45rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--primary);
+  }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    font-size: 0.82rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    section.step { animation: rise 0.4s ease both; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  }
+</style>
+
+<div class="page">
+  <div class="masthead">
+    <div class="mark">پ</div>
+    <div class="eyebrow">مستند فنی · Pastil API</div>
+  </div>
+  <h1>راهنمای ورود ربات تولید محتوا و ثبت مقاله</h1>
+  <p class="lede">
+    این مستند برای رباتی نوشته شده که قراره خودکار وارد پنل بشه، عکس کاور آپلود کنه و مقاله (Post) ثبت کنه.
+    هر قدم با آدرس دقیق، بدنه‌ی درخواست و نمونه‌ی پاسخ واقعی نوشته شده.
+  </p>
+
+  <div class="base-urls">
+    <div class="base-url-card">
+      <div class="label">سرویس اصلی API</div>
+      <code>https://api.pastil.pet</code>
+    </div>
+    <div class="base-url-card">
+      <div class="label">سرویس فایل (آپلود عکس)</div>
+      <code>https://file.pastil.pet</code>
+    </div>
+  </div>
+
+  <div class="envelope">
+    <p>همه‌ی پاسخ‌های API با همین ساختار برمی‌گردن — همیشه HTTP 200، موفقیت واقعی رو از <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px;color:var(--primary)">isSuccess</code> بخون، نه status code:</p>
+    <pre>{
+  "isSuccess": true,
+  "code": 0,
+  "messages": [],
+  "data": { ... }
+}</pre>
+  </div>
+
+  <section class="step prereq">
+    <div class="step-head">
+      <div class="step-num">•</div>
+      <h2>پیش‌نیاز — ساخت اکانت ربات</h2>
+    </div>
+    <div class="card">
+      <p>قبل از هرچیز، یک نفر از تیم بک‌اند این مراحل رو یک‌بار انجام می‌ده (کار خود ربات نیست، فقط برای اطلاعت):</p>
+      <ol class="plain">
+        <li>یک نقش (Role) جدید مثلاً «تولیدکننده محتوا» ساخته می‌شه — نه نقش Admin، دسترسی محدود می‌مونه.</li>
+        <li>به این نقش فقط دسترسی «ثبت مقاله» و «ویرایش مقاله» داده می‌شه.</li>
+        <li>یک کاربر با موبایل و رمز عبور مشخص، با این نقش ساخته می‌شه و کد یک‌بارمصرف (OTP) روی اکانتش <strong>غیرفعال</strong> می‌مونه — یعنی ربات فقط با موبایل و رمز عبور وارد می‌شه.</li>
+      </ol>
+      <p class="note">بعد از این مرحله، موبایل و رمز عبور همین اکانت رو بهت می‌دن.</p>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="step-num">۱</div>
+      <h2>ورود و گرفتن توکن</h2>
+    </div>
+    <div class="card">
+      <div class="method-line">
+        <span class="verb verb-post">POST</span>
+        <span class="route">/api/Account/signin</span>
+      </div>
+      <span class="pre-label">بدنه‌ی درخواست</span>
+      <pre>{
+  "mobile": "09120000000",
+  "password": "رمز عبور اکانت ربات",
+  "isAdmin": true,
+  "rememberMe": true
+}</pre>
+      <div class="callout callout-warn">
+        <strong>مهم:</strong> فیلد <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface);padding:0.05rem 0.4rem;border-radius:5px">isAdmin</code> حتماً باید <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface);padding:0.05rem 0.4rem;border-radius:5px">true</code> باشه، وگرنه ورود به پنل رد می‌شه.
+      </div>
+      <span class="pre-label">پاسخ موفق</span>
+      <pre>{
+  "isSuccess": true,
+  "code": 0,
+  "messages": [],
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIs...",
+    "refreshToken": "b3f1b0a2-....",
+    "tokenExp": "2026-08-28T10:00:00",
+    "refreshTokenExp": "2026-09-04T10:00:00",
+    "userId": 123
+  }
+}</pre>
+      <p>مقدار <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px;color:var(--primary)">data.token</code> همون توکنیه که باید توی همه‌ی درخواست‌های بعدی بفرستی. اسمش دقیقاً <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px;color:var(--primary)">token</code> هست، نه <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px;color:var(--primary)">accessToken</code>.</p>
+    </div>
+
+    <div class="card">
+      <p style="margin-bottom:0.5rem"><strong>فرستادن توکن در درخواست‌های بعدی</strong> — توی هدر هر درخواست (چه به api چه به file) این هدر رو اضافه کن:</p>
+      <pre>Authorization: Bearer eyJhbGciOiJIUzI1NiIs...</pre>
+    </div>
+
+    <div class="card">
+      <p style="margin-bottom:0.5rem"><strong>وقتی توکن منقضی شد</strong> — به‌جای لاگین دوباره از این استفاده کن:</p>
+      <div class="method-line">
+        <span class="verb verb-post">POST</span>
+        <span class="route">/api/Account/refreshtoken</span>
+      </div>
+      <pre>{ "refreshToken": "b3f1b0a2-...." }</pre>
+      <p class="note">پاسخش دقیقاً همون ساختار توکن جدیده.</p>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="step-num">۲</div>
+      <h2>آپلود عکس و ویدیو <span style="color:var(--text-faint);font-weight:500;font-size:0.85rem">(اختیاری)</span></h2>
+    </div>
+    <div class="card">
+      <p>قبل از ثبت مقاله، اگه می‌خوای عکس کاور (یا هر عکس/ویدیوی دیگه‌ای داخل متن) داشته باشه، اول باید فایل رو آپلود کنی و شناسه‌اش رو بگیری. <strong>آپلود عکس و ویدیو دقیقاً از یک endpoint یکسان انجام می‌شه.</strong></p>
+      <div class="method-line">
+        <span class="verb verb-post">POST</span>
+        <span class="route" style="direction:ltr">https://file.pastil.pet/api/PictureUpload</span>
+      </div>
+      <p class="note" style="margin-bottom:1rem">بدنه از نوع <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px;color:var(--primary)">multipart/form-data</code></p>
+      <div class="form-field">
+        <code>PictureFile</code>
+        <span>فایل عکس یا ویدیو — حداکثر ۵ مگابایت</span>
+      </div>
+      <div class="table-wrap" style="margin-top:1rem">
+        <table class="field-table">
+          <thead>
+            <tr><th></th><th>عکس</th><th>ویدیو</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>پسوندهای مجاز</td><td><code>jpg / jpeg / png / webp</code></td><td><code>mp4 / webm / ogg</code></td></tr>
+            <tr><td>تبدیل فرمت</td><td>همیشه به <code>webp</code> تبدیل می‌شه</td><td>فرمت اصلی حفظ می‌شه</td></tr>
+            <tr><td>سایزهای مختلف</td><td>۳ نسخه‌ی <code>sm/md/lg</code> خودکار ساخته می‌شه</td><td>فقط یک نسخه (بدون تغییر سایز)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <span class="pre-label" style="margin-top:1.1rem">پاسخ موفق (برای هر دو نوع یکسانه)</span>
+      <pre>{
+  "isSuccess": true,
+  "data": {
+    "id": 4521,
+    "guidName": "a1b2c3d4e5f6...",
+    "extension": ".webp"
+  }
+}</pre>
+      <p>مقدار <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px;color:var(--primary)">data.id</code> رو نگه دار — همین رو به‌عنوان <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px;color:var(--primary)">pictureId</code> توی قدم ثبت مقاله می‌فرستی.</p>
+      <p class="note">اگه مقاله عکس کاور نداشته باشه، فیلد <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px">pictureId</code> رو خالی بذار یا اصلاً نفرست. برای عکس/ویدیوی اضافه (غیر از کاور) از فیلد <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px">postPicturesList</code> استفاده کن، یا برای نمایش ویدیو داخل متن، تگ <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px">&lt;video&gt;</code> رو مستقیم توی HTML فیلد <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px">description</code> بنویس.</p>
+      <span class="pre-label" style="margin-top:1.1rem">فرمول آدرس نهایی فایل</span>
+      <pre>{baseUrl}/{guidName}-{size}{extension}   # عکس (size ∈ sm/md/lg)
+{baseUrl}/{guidName}{extension}          # ویدیو (بدون size)</pre>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="step-num">۳</div>
+      <h2>پیدا کردن شناسه‌ی دسته‌بندی <span style="color:var(--text-faint);font-weight:500;font-size:0.85rem">(اختیاری)</span></h2>
+    </div>
+    <div class="card">
+      <p>مقاله‌ها می‌تونن به یک یا چند دسته‌بندی وصل بشن. برای پیدا کردن شناسه‌ی هر دسته‌بندی:</p>
+      <div class="method-line">
+        <span class="verb verb-post" style="background:var(--primary-soft);color:var(--primary)">GET</span>
+        <span class="route" style="direction:ltr">https://api.pastil.pet/api/Admin/Category?ParentId=31&amp;PageSize=50</span>
+      </div>
+      <p class="note" style="margin-bottom:1rem"><code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px">ParentId=31</code> یعنی «فقط زیردسته‌های دسته‌بندی مادرِ مقالات (شناسه‌ی ۳۱)» — همیشه این پارامتر رو بفرست، وگرنه همه‌ی دسته‌بندی‌های سایت (نه فقط مقاله) برمی‌گرده.</p>
+      <span class="pre-label">پاسخ موفق</span>
+      <pre>{
+  "isSuccess": true,
+  "data": {
+    "list": [
+      { "id": 45, "name": "سگ", "parentId": 31 },
+      { "id": 46, "name": "گربه", "parentId": 31 }
+    ],
+    "totalCount": 8
+  }
+}</pre>
+      <p class="note">برای رفتن به عمق بعدی (مثلاً زیردسته‌های «سگ» مثل «تغذیه»، «سلامت و بیماری»)، همین درخواست رو با <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface);padding:0.05rem 0.4rem;border-radius:5px">ParentId=45</code> دوباره بزن. از هر آیتم فقط <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface);padding:0.05rem 0.4rem;border-radius:5px">id</code> لازمه — همون رو توی <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface);padding:0.05rem 0.4rem;border-radius:5px">categoryId</code>/<code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface);padding:0.05rem 0.4rem;border-radius:5px">categoryIds</code> بفرست.</p>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="step-num">۴</div>
+      <h2>ثبت مقاله</h2>
+    </div>
+    <div class="card">
+      <div class="method-line">
+        <span class="verb verb-post">POST</span>
+        <span class="route" style="direction:ltr">https://api.pastil.pet/api/Admin/Post</span>
+      </div>
+      <span class="pre-label">نمونه‌ی کامل بدنه‌ی درخواست</span>
+      <pre>{
+  "name": "۱۰ نکته برای نگهداری از سگ در آپارتمان",
+  "label": "10-tips-for-dog-apartment",
+  "description": "&lt;p&gt;متن کامل مقاله اینجا، به‌صورت HTML...&lt;/p&gt;",
+  "summary": "خلاصه‌ی کوتاه مقاله برای نمایش در لیست",
+  "subNews": "زیرعنوان کوتاه برای کارت‌های لیست بلاگ",
+  "pictureId": 4521,
+  "active": true,
+  "publishDate": "2026-08-28T10:00:00",
+  "categoryId": 45,
+  "categoryIds": [45],
+  "hashTagList": ["سگ", "نگهداری از حیوانات"],
+  "seoH1": "نگهداری از سگ در آپارتمان",
+  "seoTitle": "۱۰ نکته برای نگهداری از سگ در آپارتمان | پاستیل",
+  "seoMinDescription": "خلاصه‌ی کوتاه برای نتیجه‌ی گوگل، حداکثر ۱۶۰ کاراکتر",
+  "seoDescription": "توضیحات کامل‌تر سئو، محدودیت طول ندارد",
+  "seoPictureAlt": "سگ نژاد پاگ در حال بازی در آپارتمان",
+  "seoUrlText": "10-tips-for-dog-apartment",
+  "seoNoIndex": false,
+  "seoNoFollow": false
+}</pre>
+    </div>
+
+    <div class="card">
+      <p style="margin-bottom:0.9rem"><strong>توضیح فیلدها</strong></p>
+      <div class="table-wrap">
+        <table class="field-table">
+          <thead>
+            <tr><th>فیلد</th><th>اجباری؟</th><th>توضیح</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>name</code></td><td><span class="req-yes">بله</span></td><td>عنوان مقاله (فارسی)</td></tr>
+            <tr><td><code>label</code></td><td><span class="req-yes">بله</span></td><td>فقط حروف/عدد انگلیسی، فاصله، <code>-</code> و <code>_</code>. سرور از روی همین، <code>slug</code> نهایی رو خودکار می‌سازه (کوچک، خط‌تیره‌جدا) — خودت <code>slug</code> نفرست</td></tr>
+            <tr><td><code>description</code></td><td><span class="req-no">عملاً همیشه لازم</span></td><td>متن کامل مقاله، به‌صورت <strong>HTML</strong> (نه Markdown، نه متن ساده)</td></tr>
+            <tr><td><code>summary</code></td><td><span class="req-no">خیر</span></td><td>خلاصه‌ی مقاله</td></tr>
+            <tr><td><code>subNews</code></td><td><span class="req-no">خیر</span></td><td>زیرعنوان کوتاه برای کارت‌های لیست بلاگ</td></tr>
+            <tr><td><code>pictureId</code></td><td><span class="req-no">خیر</span></td><td>شناسه‌ی عکس کاور (از قدم ۲)</td></tr>
+            <tr><td><code>postPicturesList</code></td><td><span class="req-no">خیر</span></td><td>آرایه‌ای از <code>{"pictureId": شناسه}</code> برای عکس/ویدیوی اضافه (غیر از کاور)</td></tr>
+            <tr><td><code>active</code></td><td><span class="req-yes">بله</span></td><td>اگه <code>true</code> باشه مقاله منتشر می‌شه، اگه <code>false</code> باشه پیش‌نویس می‌مونه</td></tr>
+            <tr><td><code>publishDate</code></td><td><span class="req-yes">بله</span></td><td>تاریخ انتشار — اگه گذشته بفرستی، سرور با همین لحظه جایگزینش می‌کنه</td></tr>
+            <tr><td><code>categoryId</code></td><td><span class="req-no">خیر</span></td><td>شناسه‌ی دسته‌بندی اصلی (از قدم ۳)</td></tr>
+            <tr><td><code>categoryIds</code></td><td><span class="req-no">خیر</span></td><td>لیست همه‌ی دسته‌بندی‌ها (می‌تونه چند دسته باشه)</td></tr>
+            <tr><td><code>hashTagList</code></td><td><span class="req-no">خیر</span></td><td>لیست هشتگ‌ها (رشته‌ی متنی)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:1.1rem">چیزهایی که نباید نگرانشون باشی: <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px">id</code> رو نفرست (برای مقاله‌ی جدید سرور خودش می‌سازه)، نویسنده خودکار همون اکانت ربات ثبت می‌شه.</p>
+    </div>
+
+    <div class="card">
+      <p style="margin-bottom:0.9rem"><strong>فیلدهای سئو</strong> <span style="color:var(--text-faint);font-weight:500;font-size:0.85rem">(همه اختیاری، ولی پیشنهاد می‌شه پر بشن)</span></p>
+      <div class="table-wrap">
+        <table class="field-table">
+          <thead>
+            <tr><th>فیلد</th><th>محدودیت</th><th>توضیح</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>seoH1</code></td><td>—</td><td>تگ H1 صفحه‌ی مقاله (می‌تونه با <code>name</code> فرق داشته باشه)</td></tr>
+            <tr><td><code>seoTitle</code></td><td>~۶۰ کاراکتر</td><td>عنوانی که توی نتیجه‌ی گوگل نمایش داده می‌شه</td></tr>
+            <tr><td><code>seoMinDescription</code></td><td>~۱۶۰ کاراکتر</td><td>خلاصه‌ی کوتاه زیر عنوان توی نتیجه‌ی گوگل</td></tr>
+            <tr><td><code>seoDescription</code></td><td>—</td><td>توضیحات کامل‌تر سئو (متا توضیحات)</td></tr>
+            <tr><td><code>seoPictureAlt</code></td><td>—</td><td>متن جایگزین (alt) عکس کاور</td></tr>
+            <tr><td><code>seoUrlText</code></td><td>—</td><td>معمولاً همون مقدار <code>label</code>/<code>slug</code> رو بفرست</td></tr>
+            <tr><td><code>seoCanonical</code></td><td>—</td><td>فقط وقتی لازمه که همین محتوا جای دیگه هم منتشر شده — معمولاً خالی بذار</td></tr>
+            <tr><td><code>seoNoIndex</code></td><td><code>true</code>/<code>false</code></td><td>اگه <code>true</code>، به گوگل می‌گه این صفحه ایندکس نشه</td></tr>
+            <tr><td><code>seoNoFollow</code></td><td><code>true</code>/<code>false</code></td><td>اگه <code>true</code>، لینک‌های داخل صفحه دنبال نشن</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:1.1rem">محدودیت‌های طول (۶۰ و ۱۶۰) توی خودِ API اجباری نیستن، فقط توصیه‌ی استاندارد سئوی گوگلن — همون‌هایی که توی پنل مدیریت هم نشون داده می‌شن.</p>
+    </div>
+
+    <div class="card">
+      <p style="margin-bottom:0.6rem"><strong>ویرایش یک مقاله‌ی موجود</strong></p>
+      <div class="method-line">
+        <span class="verb verb-put">PUT</span>
+        <span class="route" style="direction:ltr">https://api.pastil.pet/api/Admin/Post</span>
+      </div>
+      <p class="note">دقیقاً همون endpoint، فقط این‌بار باید <code style="font-family:'JetBrains Mono',monospace;direction:ltr;display:inline-block;background:var(--surface-2);padding:0.05rem 0.4rem;border-radius:5px">id</code> مقاله‌ی موجود رو هم توی بدنه بفرستی.</p>
+      <span class="pre-label">پاسخ موفق (هر دو حالت)</span>
+      <pre>{
+  "isSuccess": true,
+  "data": { "id": 1032, "name": "..." }
+}</pre>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <div class="step-num">۵</div>
+      <h2>خطاهای رایج</h2>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table class="field-table">
+          <thead>
+            <tr><th>پیام خطا</th><th>یعنی چی</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>AccessDenied</code></td><td>اکانت ربات دسترسی پنل نداره — نقش/دسترسیش رو چک کن (پیش‌نیاز)</td></tr>
+            <tr><td><code>YouHaveNotPermission</code></td><td>اکانت لاگین کرده ولی دسترسی «ثبت مقاله» بهش داده نشده</td></tr>
+            <tr><td><code>PostMainPictureInvalidOrDeleted</code></td><td>شناسه‌ی <code>pictureId</code> وجود نداره — اول قدم ۲ رو انجام بده</td></tr>
+            <tr><td>خطای HTTP 500 با متن «Slug تکراری...»</td><td><code>label</code> که فرستادی وقتی اسلاگ بشه با یک مقاله‌ی دیگه یکی می‌شه — <code>label</code> رو یکتاتر کن. ⚠️ این خطا داخل envelope عادی نمیاد، یک خطای خام HTTP 500 با متن ساده‌ست — پس status code رو هم چک کن، نه فقط <code>isSuccess</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="step" style="margin-bottom:0">
+    <div class="step-head">
+      <div class="step-num">✓</div>
+      <h2>خلاصه‌ی کل مسیر</h2>
+    </div>
+    <div class="card">
+      <div class="flow">
+        <div class="flow-item"><code>POST /api/Account/signin</code> با موبایل و رمز → گرفتن <code>token</code></div>
+        <div class="flow-item">(اختیاری) <code>POST /api/PictureUpload</code> روی file.pastil.pet (عکس یا ویدیو) → گرفتن <code>pictureId</code></div>
+        <div class="flow-item">(اختیاری) <code>GET /api/Admin/Category?ParentId=31</code> روی api.pastil.pet → گرفتن <code>categoryId</code></div>
+        <div class="flow-item"><code>POST /api/Admin/Post</code> روی api.pastil.pet با توکن در هدر → ثبت مقاله</div>
+        <div class="flow-item">هر جا توکن منقضی شد → <code>POST /api/Account/refreshtoken</code></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    تیم پاستیل · مستند فنی برای یکپارچه‌سازی ربات تولید محتوا
+  </footer>
+</div>

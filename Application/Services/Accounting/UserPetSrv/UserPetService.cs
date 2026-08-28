@@ -1,13 +1,16 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Enumerable.Code;
 using Application.Common.Service;
 using Application.Services.Accounting.UserPetSrv.Dto;
 using Application.Services.Accounting.UserPetSrv.Iface;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.PastilClubSrvs.PetProfileSrv.Iface;
 using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,21 +19,27 @@ namespace Application.Services.Accounting.UserPetSrv
 {
     public class UserPetService : CommonSrv<UserPet, UserPetDto>, IUserPetService
     {
+        private static readonly TimeZoneInfo TehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
+            OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
+
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly IClubPetProfileCompletionService _profileCompletionService;
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
+        private readonly IPushNotificationService _pushNotificationService;
 
         public UserPetService(
             IDataBaseContext _context,
             IMapper mapper,
             IClubPetProfileCompletionService profileCompletionService,
-            IClubPointIntegrationService clubPointIntegrationService) : base(_context, mapper)
+            IClubPointIntegrationService clubPointIntegrationService,
+            IPushNotificationService pushNotificationService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             _profileCompletionService = profileCompletionService;
             _clubPointIntegrationService = clubPointIntegrationService;
+            _pushNotificationService = pushNotificationService;
         }
 
         public override async Task<BaseResultDto<UserPetDto>> InsertAsyncDto(UserPetDto dto)
@@ -116,6 +125,67 @@ namespace Application.Services.Accounting.UserPetSrv
                     break;
             }
             return new UserPetSearchDto(baseSearchDto, model, mapper);
+        }
+
+        public async Task SendBirthdayPushesAsync(CancellationToken cancellationToken = default)
+        {
+            var tehranToday = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TehranTimeZone).Date;
+
+            await SendBirthdayPushForDateAsync(PushTypeEnum.PushPetBirthday, tehranToday, cancellationToken);
+            await SendBirthdayPushForDateAsync(PushTypeEnum.PushPetBirthdayUpcoming, tehranToday.AddDays(3), cancellationToken);
+        }
+
+        private async Task SendBirthdayPushForDateAsync(
+            PushTypeEnum pushType,
+            DateTime targetDate,
+            CancellationToken cancellationToken)
+        {
+            var tehranToday = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TehranTimeZone).Date;
+            var todayStart = TehranStartOfDay(tehranToday);
+            var todayEnd = TehranStartOfDay(tehranToday.AddDays(1));
+            var pushTypeId = (long)pushType;
+
+            var alreadyNotifiedPetIds = await _context.PushNotifications
+                .AsNoTracking()
+                .Where(item =>
+                    item.PushPattern.PushTypeId == pushTypeId &&
+                    item.CreateDate >= todayStart &&
+                    item.CreateDate < todayEnd)
+                .Select(item => item.Token2)
+                .ToListAsync(cancellationToken);
+
+            var pets = await _context.UserPets
+                .AsNoTracking()
+                .Where(item =>
+                    item.Active &&
+                    !item.Deleted &&
+                    !item.User.Deleted &&
+                    !item.User.Locked &&
+                    item.Birthday.Month == targetDate.Month &&
+                    item.Birthday.Day == targetDate.Day)
+                .Select(item => new { item.Id, item.UserId, item.Name })
+                .ToListAsync(cancellationToken);
+
+            foreach (var pet in pets)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var petKey = pet.Id.ToString();
+                if (alreadyNotifiedPetIds.Contains(petKey))
+                    continue;
+
+                await _pushNotificationService.SendPushAsync(
+                    pushType,
+                    pet.UserId,
+                    pet.Name,
+                    petKey);
+            }
+        }
+
+        private static DateTimeOffset TehranStartOfDay(DateTime value)
+        {
+            var date = DateTime.SpecifyKind(value.Date, DateTimeKind.Unspecified);
+            return new DateTimeOffset(date, TehranTimeZone.GetUtcOffset(date));
         }
     }
 }

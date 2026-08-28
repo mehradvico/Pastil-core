@@ -252,6 +252,7 @@ namespace Persistence.Context
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<Pet> Pets { get; set; }
         public DbSet<PetBreed> PetBreeds { get; set; }
+        public DbSet<PetTag> PetTags { get; set; }
         public DbSet<Picture> Pictures { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<PostComment> PostComments { get; set; }
@@ -1441,11 +1442,42 @@ namespace Persistence.Context
                     .Property<string>(nameof(ISlugEntity.Slug))
                     .HasMaxLength(200);
 
+                // Category is hierarchical: sibling categories under different
+                // parents are allowed to share the same Label/Slug (e.g. a
+                // "دامپزشکی" sub-category under both "سگ" and "گربه"). It gets
+                // its own parent-scoped unique index below instead of the
+                // table-wide one every other ISlugEntity uses.
+                if (entityType.ClrType == typeof(Category))
+                    continue;
+
                 modelBuilder.Entity(entityType.ClrType)
                     .HasIndex(nameof(ISlugEntity.Slug))
                     .IsUnique()
                     .HasFilter("[Slug] IS NOT NULL");
             }
+
+            // SQL Server unique indexes never treat two NULLs as equal, so a
+            // plain (ParentId, Slug) unique index would silently allow
+            // duplicate Slugs among root categories (ParentId IS NULL).
+            // A persisted computed column normalizes NULL to 0 so root
+            // categories are scoped just like any other sibling group.
+            modelBuilder.Entity<Category>()
+                .Property<long>("SlugScopeParentId")
+                .HasComputedColumnSql("ISNULL([ParentId], 0)", stored: true);
+
+            modelBuilder.Entity<Category>()
+                .HasIndex("SlugScopeParentId", nameof(ISlugEntity.Slug))
+                .IsUnique()
+                .HasFilter("[Slug] IS NOT NULL")
+                .HasDatabaseName("IX_Categories_SlugScopeParentId_Slug");
+
+            modelBuilder.Entity<PetTag>()
+                .Property(x => x.Code)
+                .HasMaxLength(64);
+
+            modelBuilder.Entity<PetTag>()
+                .HasIndex(x => x.Code)
+                .IsUnique();
 
             modelBuilder.Entity<PushSubscription>(e =>
             {

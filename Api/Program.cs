@@ -269,6 +269,16 @@ recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITrip
     "DispatchScheduledTrips",
     service => service.DispatchScheduledTripsAsync(),
     "* * * * *");
+recurringJobManager.AddOrUpdate<Application.Services.Accounting.UserPetSrv.Iface.IUserPetService>(
+    "PetBirthdayPush",
+    service => service.SendBirthdayPushesAsync(CancellationToken.None),
+    "0 0 * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
+recurringJobManager.AddOrUpdate<Application.Services.CommonSrv.PushBroadcastSrv.Iface.IPushScheduleService>(
+    "PushMessageScheduleDispatch",
+    service => service.DispatchDueAsync(CancellationToken.None),
+    "*/5 * * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
 
 app.UseRequestLocalization();
 app.UseHangfireDashboard();

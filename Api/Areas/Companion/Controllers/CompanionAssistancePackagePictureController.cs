@@ -102,10 +102,10 @@ namespace Api.Areas.Companion.Controllers
         {
             var existing = await companionassistancepackagePictureService.FindAsyncDto(id);
             if (!existing.IsSuccess)
-                return Ok(new BaseResultDto<CompanionAssistancePackagePictureDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionAssistancePackagePictureDto>(false, Resource.Notification.AccessDenied, default!));
             var package = await _companionAssistancePackageService.FindAsyncVDto(existing.Data.CompanionAssistancePackageId);
             if (!package.IsSuccess || package.Data?.CompanionAssistance?.CompanionId != _currentUser.CurrentUser.CompanionId)
-                return Ok(new BaseResultDto<CompanionAssistancePackagePictureDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionAssistancePackagePictureDto>(false, Resource.Notification.AccessDenied, default!));
 
             var result = companionassistancepackagePictureService.DeleteDto(id);
             return Ok(result);

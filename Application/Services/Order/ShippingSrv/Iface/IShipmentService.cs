@@ -9,5 +9,9 @@ namespace Application.Services.Order.ShippingSrv.Iface
         Task CreateForPaidOrderAsync(
             ProductOrder productOrder,
             CancellationToken cancellationToken = default);
+
+        Task CancelForOrderAsync(
+            string productOrderId,
+            CancellationToken cancellationToken = default);
     }
 }

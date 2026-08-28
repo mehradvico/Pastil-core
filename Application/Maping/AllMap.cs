@@ -13,6 +13,7 @@ using Application.Services.Accounting.TicketSrv.Dto;
 using Application.Services.Accounting.UserPerRecordSrv.Dto;
 using Application.Services.Accounting.UserPetPictureSrv.Dto;
 using Application.Services.Accounting.UserPetSrv.Dto;
+using Application.Services.Accounting.PetTagSrv.Dto;
 using Application.Services.Accounting.UserProductSrv.Dto;
 using Application.Services.Accounting.UserTokenSrv.Dto;
 using Application.Services.CategorySrv.Dto;
@@ -635,6 +636,13 @@ namespace Application.Maping
             CreateMap<UserPet, UserPetDto>();
             CreateMap<UserPetDto, UserPet>().ForMember(x => x.UserPetRecords, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore());
             CreateMap<UserPet, UserPetVDto>();
+            CreateMap<PetTag, PetTagDto>();
+            CreateMap<PetTagDto, PetTag>().ForMember(x => x.UserPet, y => y.Ignore());
+            CreateMap<PetTag, PetTagVDto>()
+                .ForMember(x => x.Claimed, o => o.MapFrom(m => m.UserPetId != null))
+                .ForMember(x => x.PetName, o => o.MapFrom(m => m.UserPet != null ? m.UserPet.Name : null))
+                .ForMember(x => x.OwnerFullName, o => o.MapFrom(m => m.UserPet != null && m.UserPet.User != null ? string.Format("{0} {1}", m.UserPet.User.FirstName, m.UserPet.User.LastName) : null))
+                .ForMember(x => x.OwnerMobile, o => o.MapFrom(m => m.UserPet != null && m.UserPet.User != null ? m.UserPet.User.Mobile : null));
             CreateMap<UserPetRecord, UserPetRecordMinVDto>();
             CreateMap<UserPetRecord, UserPetRecordDto>();
             CreateMap<UserPetRecordDto, UserPetRecord>().ForMember(x => x.UserPet, y => y.Ignore()).ForMember(x => x.Operator, y => y.Ignore());

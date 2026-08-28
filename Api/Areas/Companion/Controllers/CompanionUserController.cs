@@ -39,7 +39,7 @@ namespace Api.Areas.Companion.Controllers
         {
             var CompanionUser = await CompanionUserService.FindAsyncDto(id);
             if (CompanionUser.IsSuccess && CompanionUser.Data?.CompanionId != CurrentUserDto.CompanionId)
-                return Ok(new BaseResultDto<CompanionUserDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionUserDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(CompanionUser);
         }
         /// <summary>
@@ -98,7 +98,7 @@ namespace Api.Areas.Companion.Controllers
         {
             var existing = await CompanionUserService.FindAsyncDto(id);
             if (!existing.IsSuccess || existing.Data?.CompanionId != CurrentUserDto.CompanionId)
-                return Ok(new BaseResultDto<CompanionUserDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionUserDto>(false, Resource.Notification.AccessDenied, default!));
             var result = CompanionUserService.DeleteDto(id);
             return Ok(result);
         }

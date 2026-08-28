@@ -52,7 +52,7 @@ namespace Api.Areas.Companion.Controllers
         {
             var agency = await _companionAssistanceUserService.FindAsyncVDto(id);
             if (agency.IsSuccess && agency.Data?.CompanionAssistance?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
-                return Ok(new BaseResultDto<CompanionAssistanceUserVDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionAssistanceUserVDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(agency);
         }
 
@@ -84,7 +84,7 @@ namespace Api.Areas.Companion.Controllers
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
 
             dto.Active = false;
-            dto.CompanionAssistanceId = existing.Data.CompanionAssistanceId;
+            dto.CompanionAssistanceId = existing.Data!.CompanionAssistanceId;
             var agency = _companionAssistanceUserService.UpdateDto(dto);
             return Ok(agency);
         }

@@ -51,7 +51,7 @@ namespace Api.Areas.Driver.Controllers
         {
             var Driver = await _DriverService.FindAsyncVDto(id);
             if (!Driver.IsSuccess || Driver.Data?.OwnerId != _currentUser.CurrentUser.UserId)
-                return Ok(new BaseResultDto<DriverDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<DriverDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(Driver);
         }
 

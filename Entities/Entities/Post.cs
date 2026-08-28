@@ -5,8 +5,10 @@ using System.Collections.Generic;
 
 namespace Entities.Entities
 {
-    public class Post : Seo_Full_Field
+    public class Post : Seo_Full_Field, ISlugEntity
     {
+        public string Label { get; set; }
+        public string Slug { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime PublishDate { get; set; }
         public DateTime UpdateDate { get; set; }
@@ -40,5 +42,6 @@ namespace Entities.Entities
         public Post Parent { get; set; }
         public ICollection<Product> Products { get; set; }
 
+        public string GetSlugSource() => Label;
     }
 }

@@ -36,7 +36,7 @@ namespace Api.Areas.Seller.Controllers
         {
             var role = await SettlementService.FindAsyncDto(id);
             if (role.IsSuccess && role.Data?.StoreId != _currentuser.CurrentUser.StoreId)
-                return Ok(new BaseResultDto<SettlementDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<SettlementDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(role);
         }
         /// <summary>

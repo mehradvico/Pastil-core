@@ -89,7 +89,7 @@ namespace Api.Areas.Companion.Controllers
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
 
             dto.Active = false;
-            dto.CompanionAssistanceId = existing.Data.CompanionAssistanceId;
+            dto.CompanionAssistanceId = existing.Data!.CompanionAssistanceId;
             var agency = await _companionAssistancePackageService.UpdateAsyncDto(dto);
             return Ok(agency);
         }

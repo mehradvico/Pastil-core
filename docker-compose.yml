@@ -5,6 +5,8 @@ services:
       dockerfile: Api/Dockerfile
     ports:
       - "5000:8080"
+    env_file:
+      - .env
     depends_on:
       - pastil-file
       - pastil-payment

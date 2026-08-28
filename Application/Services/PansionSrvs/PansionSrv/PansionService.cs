@@ -290,9 +290,6 @@ namespace Application.Services.PansionSrvs.PansionSrv
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
-            if (item.Approve)
-                return new BaseResultDto(false, Resource.Notification.PansionRequestAlreadyApprovedCannotResubmit);
-
             dto.CompanionId = companionId;
             dto.Active = false;
             dto.Approve = false;

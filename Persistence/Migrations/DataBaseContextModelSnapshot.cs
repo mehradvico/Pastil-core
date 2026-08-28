@@ -889,6 +889,11 @@ namespace Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<long>("SlugScopeParentId")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("ISNULL([ParentId], 0)", true);
+
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
@@ -903,8 +908,9 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
-                    b.HasIndex("Slug")
+                    b.HasIndex("SlugScopeParentId", "Slug")
                         .IsUnique()
+                        .HasDatabaseName("IX_Categories_SlugScopeParentId_Slug")
                         .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Categories");
@@ -5438,6 +5444,44 @@ namespace Persistence.Migrations
                     b.ToTable("PetBreeds");
                 });
 
+            modelBuilder.Entity("Entities.Entities.PetTag", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ClaimedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("UserPetId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL");
+
+                    b.HasIndex("UserPetId");
+
+                    b.ToTable("PetTags");
+                });
+
             modelBuilder.Entity("Entities.Entities.Picture", b =>
                 {
                     b.Property<long>("Id")
@@ -5516,6 +5560,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("IsOld")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -5558,6 +5605,10 @@ namespace Persistence.Migrations
                     b.Property<string>("SeoUrlText")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Slug")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("SubNews")
                         .HasColumnType("nvarchar(max)");
 
@@ -5585,6 +5636,10 @@ namespace Persistence.Migrations
                     b.HasIndex("ParentId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.HasIndex("UserId");
 
@@ -6384,17 +6439,29 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<bool>("AutoSend")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Body")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("LastSentDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("PictureId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("PushMessageTypeId")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("RecurrenceType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SendDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Tag")
                         .HasColumnType("nvarchar(max)");
@@ -6405,11 +6472,16 @@ namespace Persistence.Migrations
                     b.Property<string>("Url")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PictureId");
 
                     b.HasIndex("PushMessageTypeId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("PushMessages");
                 });
@@ -11095,6 +11167,15 @@ namespace Persistence.Migrations
                     b.Navigation("Picture");
                 });
 
+            modelBuilder.Entity("Entities.Entities.PetTag", b =>
+                {
+                    b.HasOne("Entities.Entities.UserPet", "UserPet")
+                        .WithMany()
+                        .HasForeignKey("UserPetId");
+
+                    b.Navigation("UserPet");
+                });
+
             modelBuilder.Entity("Entities.Entities.Post", b =>
                 {
                     b.HasOne("Entities.Entities.Security.User", "Admin")
@@ -11547,9 +11628,15 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Picture");
 
                     b.Navigation("PushMessageType");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Entities.Entities.PushNotification", b =>

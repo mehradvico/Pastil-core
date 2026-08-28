@@ -99,10 +99,10 @@ namespace Api.Areas.Companion.Controllers
         {
             var existing = await PansionPictureService.FindAsyncVDto(id);
             if (!existing.IsSuccess)
-                return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, default!));
             var pansion = await _PansionService.FindAsyncVDto(existing.Data.PansionId);
             if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
-                return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, default!));
 
             var result = PansionPictureService.DeleteDto(id);
             return Ok(result);

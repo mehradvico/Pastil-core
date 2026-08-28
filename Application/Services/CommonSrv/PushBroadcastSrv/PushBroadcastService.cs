@@ -51,7 +51,9 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
 
             var subsQuery = _context.Set<Entities.Entities.PushSubscription>().Include(x => x.User).Where(x => x.IsActive);
 
-            subsQuery = ApplyTypeFilter(subsQuery, (PushMessageTypeEnum)msg.PushMessageTypeId);
+            subsQuery = msg.UserId.HasValue
+                ? subsQuery.Where(x => x.UserId == msg.UserId.Value)
+                : ApplyTypeFilter(subsQuery, (PushMessageTypeEnum)msg.PushMessageTypeId);
 
             var subs = await subsQuery.ToListAsync();
 

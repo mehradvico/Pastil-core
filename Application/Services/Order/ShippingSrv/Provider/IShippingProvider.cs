@@ -13,5 +13,8 @@ namespace Application.Services.Order.ShippingSrv.Provider
         Task<ShippingProviderShipmentResult> CreateShipmentAsync(
             ShippingProviderShipmentRequest request,
             CancellationToken cancellationToken = default);
+        Task<ShippingProviderCancelResult> CancelShipmentAsync(
+            ShippingProviderCancelRequest request,
+            CancellationToken cancellationToken = default);
     }
 }

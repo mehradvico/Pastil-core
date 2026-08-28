@@ -60,6 +60,54 @@ public class ShippingProviderTests
         Assert.True(heavyResult.Price > lightResult.Price);
     }
 
+    [Fact]
+    public async Task Miare_CreateShipment_WithoutCredentials_FailsClosed()
+    {
+        var provider = new MiareShippingProvider(Options.Create(new ShippingOptions
+        {
+            TestMode = false,
+            Miare = new ShippingProviderOptions { Enabled = true }
+        }));
+
+        var result = await provider.CreateShipmentAsync(new ShippingProviderShipmentRequest
+        {
+            OrderId = "ORD-1",
+            StoreId = 1,
+            Provider = ShippingProviderEnum.Miare,
+            RecipientName = "علی علوی",
+            RecipientMobile = "09123456789",
+            RecipientAddress = "تهران",
+            PickupName = "فروشگاه تست",
+            PickupPhone = "09120000000",
+            OriginLatitude = 35.7219,
+            OriginLongitude = 51.3347,
+            DestinationLatitude = 35.6892,
+            DestinationLongitude = 51.3890
+        });
+
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task Miare_Disabled_FailsClosed()
+    {
+        var provider = new MiareShippingProvider(Options.Create(new ShippingOptions
+        {
+            TestMode = true,
+            Miare = new ShippingProviderOptions { Enabled = false }
+        }));
+
+        var result = await provider.CreateShipmentAsync(new ShippingProviderShipmentRequest
+        {
+            OrderId = "ORD-1",
+            StoreId = 1,
+            Provider = ShippingProviderEnum.Miare
+        });
+
+        Assert.False(result.IsSuccess);
+    }
+
     private static ShippingProviderQuoteRequest CreateRequest(ShippingProviderEnum provider) => new()
     {
         Provider = provider,

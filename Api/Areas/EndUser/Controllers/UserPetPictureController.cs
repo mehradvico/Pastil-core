@@ -59,7 +59,7 @@ namespace Api.Areas.EndUser.Controllers
         {
             var owned = await UserPetPictureService.IsUserPetOwnedByAsync(UserPetPictureDto.UserPetId, currentUserHelper.CurrentUser.UserId);
             if (!owned)
-                return Ok(new BaseResultDto<UserPetPictureDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<UserPetPictureDto>(false, Resource.Notification.AccessDenied, default!));
             var result = await UserPetPictureService.InsertAsyncDto(UserPetPictureDto);
             return Ok(result);
         }

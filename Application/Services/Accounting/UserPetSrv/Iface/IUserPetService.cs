@@ -2,6 +2,7 @@
 using Application.Common.Interface;
 using Application.Services.Accounting.UserPetSrv.Dto;
 using Entities.Entities;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application.Services.Accounting.UserPetSrv.Iface
@@ -11,6 +12,7 @@ namespace Application.Services.Accounting.UserPetSrv.Iface
         UserPetSearchDto Search(UserPetInputDto baseSearchDto);
         Task<BaseResultDto<UserPetVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto<UserPetDto>> UpdateAsyncDto(UserPetDto dto);
+        Task SendBirthdayPushesAsync(CancellationToken cancellationToken = default);
 
     }
 }

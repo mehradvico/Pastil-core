@@ -549,9 +549,6 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
-            if (item.Approved)
-                return new BaseResultDto(false, Resource.Notification.CompanionRequestAlreadyApprovedCannotResubmit);
-
             dto.OwnerId = ownerId;
             var checker = await InsertCheckerAsync(dto);
             if (!checker.IsSuccess)

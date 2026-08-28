@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Field;
+using Application.Common.Enumerable.Code;
 using Entities.Entities;
 using System;
 using System.Collections.Generic;
@@ -17,5 +18,13 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv.Dto
         public string Tag { get; set; }
 
         public long PushMessageTypeId { get; set; }
+        public long? UserId { get; set; }
+
+        /// <summary>
+        /// تاریخ/ساعت ارسال یک‌باره (AutoSend=false)، یا لنگر زمان‌بندی برای ارسال خودکار (AutoSend=true)
+        /// </summary>
+        public DateTime? SendDate { get; set; }
+        public bool AutoSend { get; set; }
+        public PushRecurrenceEnum RecurrenceType { get; set; }
     }
 }

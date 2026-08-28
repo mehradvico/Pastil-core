@@ -954,6 +954,12 @@
   <data name="PushBroadcastTitleAndBodyMustBePersian" xml:space="preserve">
     <value>Push Broadcast Title And Body Must Be Persian</value>
   </data>
+  <data name="PushMessageAutoSendRequiresRecurrenceType" xml:space="preserve">
+    <value>Auto-send requires a recurrence type (daily/weekly/monthly/yearly).</value>
+  </data>
+  <data name="PushMessageAutoSendRequiresSendDate" xml:space="preserve">
+    <value>Auto-send requires a send date and time.</value>
+  </data>
   <data name="UserExpertiseOnlyForCompanionOwnerOrApprovedMember" xml:space="preserve">
     <value>User Expertise Only For Companion Owner Or Approved Member</value>
   </data>
@@ -1322,5 +1328,17 @@
   </data>
   <data name="PastilMatchSuggestionNotFound" xml:space="preserve">
     <value>No suitable friend was found for your pet or selected filters.</value>
+  </data>
+  <data name="PetTagCodeNotValid" xml:space="preserve">
+    <value>Pet Tag Code Not Valid</value>
+  </data>
+  <data name="PetTagAlreadyClaimed" xml:space="preserve">
+    <value>Pet Tag Already Claimed</value>
+  </data>
+  <data name="PetTagGenerateCountInvalid" xml:space="preserve">
+    <value>Pet Tag Generate Count Invalid</value>
+  </data>
+  <data name="PetTagPetAlreadyHasTag" xml:space="preserve">
+    <value>Pet Tag Pet Already Has Tag</value>
   </data>
 </root>

@@ -140,6 +140,7 @@ namespace Persistence.Interface
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<Pet> Pets { get; set; }
         public DbSet<PetBreed> PetBreeds { get; set; }
+        public DbSet<PetTag> PetTags { get; set; }
         public DbSet<Picture> Pictures { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<PostComment> PostComments { get; set; }

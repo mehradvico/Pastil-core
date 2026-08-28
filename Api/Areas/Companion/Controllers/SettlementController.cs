@@ -36,7 +36,7 @@ namespace Api.Areas.Companion.Controllers
         {
             var role = await SettlementService.FindAsyncVDto(id);
             if (role.IsSuccess && role.Data?.CompanionId != _currentuser.CurrentUser.CompanionId)
-                return Ok(new BaseResultDto<SettlementVDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<SettlementVDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(role);
         }
         /// <summary>

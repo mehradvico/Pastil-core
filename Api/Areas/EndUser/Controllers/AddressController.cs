@@ -41,7 +41,7 @@ namespace Api.Areas.EndUser.Controllers
         {
             var role = await AddressService.FindAsyncDto(id);
             if (role.IsSuccess && role.Data?.UserId != _currentUserHelper.CurrentUser.UserId)
-                return Ok(new BaseResultDto<AddressDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<AddressDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(role);
         }
         /// <summary>

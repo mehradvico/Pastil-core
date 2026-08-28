@@ -1720,6 +1720,24 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Auto-send requires a recurrence type (daily/weekly/monthly/yearly)..
+        /// </summary>
+        public static string PushMessageAutoSendRequiresRecurrenceType {
+            get {
+                return ResourceManager.GetString("PushMessageAutoSendRequiresRecurrenceType", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Auto-send requires a send date and time..
+        /// </summary>
+        public static string PushMessageAutoSendRequiresSendDate {
+            get {
+                return ResourceManager.GetString("PushMessageAutoSendRequiresSendDate", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to User Expertise Only For Companion Owner Or Approved Member.
         /// </summary>
         public static string UserExpertiseOnlyForCompanionOwnerOrApprovedMember {
@@ -2642,7 +2660,43 @@ namespace Resource {
                 return ResourceManager.GetString("PastilMatchSuggestionNotFound", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pet Tag Code Not Valid.
+        /// </summary>
+        public static string PetTagCodeNotValid {
+            get {
+                return ResourceManager.GetString("PetTagCodeNotValid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pet Tag Already Claimed.
+        /// </summary>
+        public static string PetTagAlreadyClaimed {
+            get {
+                return ResourceManager.GetString("PetTagAlreadyClaimed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pet Tag Generate Count Invalid.
+        /// </summary>
+        public static string PetTagGenerateCountInvalid {
+            get {
+                return ResourceManager.GetString("PetTagGenerateCountInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pet Tag Pet Already Has Tag.
+        /// </summary>
+        public static string PetTagPetAlreadyHasTag {
+            get {
+                return ResourceManager.GetString("PetTagPetAlreadyHasTag", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to PastilMatchVoiceAttachmentAlreadyExists.
         /// </summary>

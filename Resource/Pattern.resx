@@ -210,6 +210,12 @@
   <data name="PushMemoryReminder" xml:space="preserve">
     <value>{0}, save today's memory with your pet in Pastil.</value>
   </data>
+  <data name="PushPetBirthday" xml:space="preserve">
+    <value>Today is {0}'s birthday. Pastil wishes them a happy birthday! 🎂❤️</value>
+  </data>
+  <data name="PushPetBirthdayUpcoming" xml:space="preserve">
+    <value>{0}'s birthday is in 3 days. If you haven't bought a gift yet, now's the time to shop on Pastil!</value>
+  </data>
   <data name="PushPetReminder" xml:space="preserve">
     <value>{1} reminder for {0}: it is due {2}.</value>
   </data>

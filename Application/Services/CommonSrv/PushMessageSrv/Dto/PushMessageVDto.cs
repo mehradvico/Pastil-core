@@ -1,4 +1,6 @@
 ﻿using Application.Common.Dto.Field;
+using Application.Common.Enumerable.Code;
+using Application.Services.Dto;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.Setting.CodeSrv.Dto;
 using Entities.Entities;
@@ -19,9 +21,16 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv.Dto
         public string Tag { get; set; }
 
         public long PushMessageTypeId { get; set; }
+        public long? UserId { get; set; }
         public bool Deleted { get; set; }
+
+        public DateTime? SendDate { get; set; }
+        public bool AutoSend { get; set; }
+        public PushRecurrenceEnum RecurrenceType { get; set; }
+        public DateTime? LastSentDate { get; set; }
 
         public PictureVDto Picture { get; set; }
         public CodeVDto PushMessageType { get; set; }
+        public UserMinVDto User { get; set; }
     }
 }

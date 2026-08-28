@@ -13,6 +13,7 @@ namespace Application.Services.Order.ShippingSrv
         public ShippingProviderOptions AloPeyk { get; set; } = new();
         public ShippingProviderOptions Tipax { get; set; } = new();
         public ShippingProviderOptions SnappBox { get; set; } = new();
+        public ShippingProviderOptions Miare { get; set; } = new();
     }
 
     public class ShippingProviderOptions

@@ -1,0 +1,1218 @@
+<title>راهنمای API نوشته‌های پاستیل</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+  :root {
+    --ground:      #F6F4F1;
+    --surface:     #FFFFFF;
+    --surface-2:   #EFEBE6;
+    --line:        #DDD6CE;
+    --line-soft:   #E8E3DC;
+    --ink:         #1F1C19;
+    --ink-2:       #4A443E;
+    --ink-3:       #7A736B;
+    --accent:      #C2410C;
+    --accent-soft: #FBEAE0;
+    --get:         #0F6E4F;
+    --get-bg:      #E2F1EB;
+    --post:        #1D4E89;
+    --post-bg:     #E2ECF7;
+    --put:         #8A5A00;
+    --put-bg:      #F8EEDA;
+    --del:         #A32219;
+    --del-bg:      #F9E4E2;
+    --warn-bg:     #FDF3E3;
+    --warn-line:   #E0B26A;
+    --danger-bg:   #FBE9E7;
+    --danger-line: #D98A80;
+    --code-bg:     #1C1A17;
+    --code-ink:    #E9E3DA;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #16150F;
+      --surface:     #1E1C17;
+      --surface-2:   #262319;
+      --line:        #38342A;
+      --line-soft:   #2C291F;
+      --ink:         #EFEADF;
+      --ink-2:       #C0B8A9;
+      --ink-3:       #8B8377;
+      --accent:      #F0864F;
+      --accent-soft: #3A2317;
+      --get:         #63C79E;
+      --get-bg:      #17321F;
+      --post:        #7FB2E8;
+      --post-bg:     #17263A;
+      --put:         #E0B45F;
+      --put-bg:      #33290F;
+      --del:         #EE8F84;
+      --del-bg:      #38191A;
+      --warn-bg:     #2E2415;
+      --warn-line:   #7C6031;
+      --danger-bg:   #331A18;
+      --danger-line: #7A3A35;
+      --code-bg:     #100F0C;
+      --code-ink:    #E4DDD1;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:      #16150F;
+    --surface:     #1E1C17;
+    --surface-2:   #262319;
+    --line:        #38342A;
+    --line-soft:   #2C291F;
+    --ink:         #EFEADF;
+    --ink-2:       #C0B8A9;
+    --ink-3:       #8B8377;
+    --accent:      #F0864F;
+    --accent-soft: #3A2317;
+    --get:         #63C79E;
+    --get-bg:      #17321F;
+    --post:        #7FB2E8;
+    --post-bg:     #17263A;
+    --put:         #E0B45F;
+    --put-bg:      #33290F;
+    --del:         #EE8F84;
+    --del-bg:      #38191A;
+    --warn-bg:     #2E2415;
+    --warn-line:   #7C6031;
+    --danger-bg:   #331A18;
+    --danger-line: #7A3A35;
+    --code-bg:     #100F0C;
+    --code-ink:    #E4DDD1;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: Vazirmatn, "Segoe UI", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.85;
+    direction: rtl;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, pre, .mono { font-family: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace; }
+
+  .shell { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 0; max-width: 1240px; margin: 0 auto; }
+
+  /* ---------- sidebar ---------- */
+  .toc {
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow-y: auto;
+    padding: 32px 22px 48px;
+    border-inline-start: 1px solid var(--line);
+    background: var(--ground);
+  }
+  .toc-brand { font-size: 12px; font-weight: 900; letter-spacing: .16em; color: var(--accent); margin-bottom: 4px; }
+  .toc-sub { font-size: 11px; color: var(--ink-3); margin-bottom: 22px; line-height: 1.6; }
+  .toc a {
+    display: block; padding: 5px 10px; margin-inline-start: -10px;
+    color: var(--ink-2); text-decoration: none; font-size: 13px;
+    border-radius: 6px; transition: background .15s, color .15s;
+  }
+  .toc a:hover { background: var(--surface-2); color: var(--ink); }
+  .toc a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .toc .grp { font-size: 10px; font-weight: 900; letter-spacing: .14em; color: var(--ink-3); margin: 20px 0 6px; text-transform: uppercase; }
+
+  /* ---------- main ---------- */
+  main { padding: 40px 40px 120px; min-width: 0; }
+
+  .masthead { border-bottom: 2px solid var(--ink); padding-bottom: 26px; margin-bottom: 14px; }
+  .eyebrow { font-size: 11px; font-weight: 900; letter-spacing: .18em; color: var(--accent); }
+  h1 { font-size: 38px; font-weight: 900; line-height: 1.3; margin: 10px 0 12px; text-wrap: balance; letter-spacing: -.01em; }
+  .lede { font-size: 16px; color: var(--ink-2); max-width: 62ch; margin: 0; }
+  .stamp { margin-top: 18px; font-size: 12px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .stamp b { color: var(--ink-2); font-weight: 700; }
+
+  h2 {
+    font-size: 24px; font-weight: 900; margin: 56px 0 4px;
+    padding-top: 22px; border-top: 1px solid var(--line); text-wrap: balance;
+  }
+  h2:first-of-type { border-top: none; }
+  h2 .num { color: var(--accent); font-size: 15px; margin-inline-end: 8px; font-family: "JetBrains Mono", monospace; }
+  h3 { font-size: 17px; font-weight: 700; margin: 32px 0 8px; }
+  h4 { font-size: 14px; font-weight: 700; margin: 22px 0 6px; color: var(--ink-2); }
+  p  { max-width: 68ch; margin: 10px 0; }
+  ul, ol { max-width: 68ch; padding-inline-start: 22px; margin: 10px 0; }
+  li { margin: 5px 0; }
+  a { color: var(--accent); }
+
+  /* ---------- endpoint ---------- */
+  .ep {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px 18px; margin: 18px 0;
+  }
+  .ep-head { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+  .verb {
+    font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 600;
+    padding: 3px 9px; border-radius: 5px; letter-spacing: .04em; flex-shrink: 0;
+  }
+  .verb.get    { background: var(--get-bg);  color: var(--get); }
+  .verb.post   { background: var(--post-bg); color: var(--post); }
+  .verb.put    { background: var(--put-bg);  color: var(--put); }
+  .verb.delete { background: var(--del-bg);  color: var(--del); }
+  .path { font-family: "JetBrains Mono", monospace; font-size: 13.5px; font-weight: 600; direction: ltr; unicode-bidi: embed; word-break: break-all; }
+  .tag {
+    font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+    border: 1px solid var(--line); color: var(--ink-3); background: var(--ground); flex-shrink: 0;
+  }
+  .tag.open { border-color: var(--get); color: var(--get); background: var(--get-bg); }
+  .tag.auth { border-color: var(--put); color: var(--put); background: var(--put-bg); }
+  .tag.new  { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .ep p { margin: 9px 0 0; font-size: 14px; }
+
+  /* ---------- code ---------- */
+  .code-wrap { overflow-x: auto; border-radius: 9px; margin: 12px 0; background: var(--code-bg); }
+  pre {
+    margin: 0; padding: 15px 17px; direction: ltr; text-align: left;
+    color: var(--code-ink); font-size: 12.5px; line-height: 1.75; white-space: pre;
+  }
+  p code, li code, td code {
+    background: var(--surface-2); color: var(--ink);
+    padding: 1px 6px; border-radius: 4px; font-size: 12.5px;
+    direction: ltr; unicode-bidi: embed; display: inline-block;
+  }
+
+  /* ---------- table ---------- */
+  .tbl-wrap { overflow-x: auto; margin: 14px 0; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 520px; }
+  th {
+    text-align: right; font-weight: 700; font-size: 11px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-3);
+    padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--surface-2);
+    white-space: nowrap;
+  }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.f { font-family: "JetBrains Mono", monospace; font-size: 12.5px; direction: ltr; text-align: left; white-space: nowrap; font-weight: 600; }
+  td.t { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--ink-3); direction: ltr; text-align: left; white-space: nowrap; }
+
+  /* ---------- callout ---------- */
+  .note {
+    border-inline-start: 3px solid var(--warn-line); background: var(--warn-bg);
+    padding: 13px 16px; border-radius: 0 8px 8px 0; margin: 16px 0;
+  }
+  .note.bad { border-inline-start-color: var(--danger-line); background: var(--danger-bg); }
+  .note.tip { border-inline-start-color: var(--accent); background: var(--accent-soft); }
+  .note p { margin: 5px 0; font-size: 14px; }
+  .note p:first-child { margin-top: 0; }
+  .note p:last-child { margin-bottom: 0; }
+  .note b { font-weight: 900; }
+
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0; font-size: 13px; }
+  .flow .box { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 13px; font-weight: 700; }
+  .flow .arw { color: var(--ink-3); font-family: "JetBrains Mono", monospace; }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc { position: static; height: auto; border-inline-start: none; border-bottom: 1px solid var(--line); padding: 24px 20px; }
+    main { padding: 28px 20px 80px; }
+    h1 { font-size: 29px; }
+  }
+</style>
+
+<div class="shell">
+  <nav class="toc">
+    <div class="toc-brand">PASTIL · POSTS API</div>
+    <div class="toc-sub">راهنمای کامل برای توسعه‌دهنده‌ی فرانت‌اند</div>
+
+    <div class="grp">پایه</div>
+    <a href="#start">۱. شروع سریع</a>
+    <a href="#envelope">۲. قرارداد پاسخ</a>
+    <a href="#auth">۳. احراز هویت</a>
+
+    <div class="grp">مدل داده</div>
+    <a href="#model">۴. مدل نوشته</a>
+    <a href="#visibility">۵. وضعیت انتشار</a>
+    <a href="#label">۶. Label و Slug</a>
+    <a href="#seo">۷. فیلدهای SEO</a>
+
+    <div class="grp">اندپوینت‌ها</div>
+    <a href="#public">۸. عمومی</a>
+    <a href="#admin">۹. پنل ادمین</a>
+    <a href="#filters">۱۰. فیلتر و مرتب‌سازی</a>
+
+    <div class="grp">وابسته‌ها</div>
+    <a href="#media">۱۱. تصاویر و فایل‌ها</a>
+    <a href="#taxonomy">۱۲. دسته‌بندی و هشتگ</a>
+    <a href="#comments">۱۳. نظرات</a>
+    <a href="#versioning">۱۴. نسخه‌بندی ویرایش</a>
+
+    <div class="grp">عملی</div>
+    <a href="#recipes">۱۵. نمونه‌های کامل</a>
+    <a href="#gotchas">۱۶. تله‌های رایج</a>
+  </nav>
+
+  <main>
+    <header class="masthead">
+      <div class="eyebrow">مستندات فنی · بک‌اند پاستیل</div>
+      <h1>راهنمای API نوشته‌ها</h1>
+      <p class="lede">
+        هر چیزی که برای ساختن صفحه‌ی لیست، جزئیات، فرم ساخت/ویرایش و بخش نظرات نوشته‌ها لازم دارید —
+        بدون نیاز به هیچ دانش قبلی از پروژه.
+      </p>
+      <div class="stamp">
+        <span><b>سرویس:</b> Api (‎.NET 9‎)</span>
+        <span><b>نسخه‌ی مستند:</b> ۱۴۰۵/۰۶/۰۶</span>
+        <span><b>مبنا:</b> کد سورس، نه اسپک تولیدشده</span>
+      </div>
+    </header>
+
+    <!-- ================= 1 ================= -->
+    <h2 id="start"><span class="num">۰۱</span>شروع سریع</h2>
+
+    <p>سه سرویس مستقل در کارند. برای نوشته‌ها فقط با دوتای اول کار دارید:</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>سرویس</th><th>Base URL</th><th>کارش</th></tr></thead>
+        <tbody>
+          <tr><td>Api</td><td class="t">https://api.pastil.pet/api</td><td>همه‌ی داده‌ها: نوشته، دسته، نظر، احراز هویت</td></tr>
+          <tr><td>File</td><td class="t">https://file.pastil.pet/api</td><td>فقط آپلود تصویر و فایل</td></tr>
+          <tr><td>File (استاتیک)</td><td class="t">https://file.pastil.pet</td><td>سرو کردن خود فایل‌ها</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>ساده‌ترین درخواست ممکن — گرفتن ۱۰ نوشته‌ی منتشرشده:</p>
+
+    <div class="code-wrap"><pre>const res  = await fetch("https://api.pastil.pet/api/Post?pageIndex=1&amp;pageSize=10");
+const data = await res.json();
+
+console.log(data.totalCount);   // 137
+console.log(data.list);         // [{ id, name, slug, publishDate, ... }, ...]</pre></div>
+
+    <div class="note tip">
+      <p><b>نکته‌ی اول و مهم‌ترین:</b> این اندپوینت هیچ توکنی نمی‌خواهد و فقط نوشته‌های واقعاً منتشرشده را برمی‌گرداند.
+      سرور خودش فیلتر انتشار را اعمال می‌کند و کلاینت نمی‌تواند دورش بزند.</p>
+    </div>
+
+    <!-- ================= 2 ================= -->
+    <h2 id="envelope"><span class="num">۰۲</span>قرارداد پاسخ</h2>
+
+    <p>
+      بک‌اند تقریباً همیشه <b>HTTP 200</b> برمی‌گرداند — حتی وقتی عملیات شکست خورده.
+      وضعیت واقعی داخل بدنه است. اگر فقط <code>res.ok</code> را چک کنید، خطاها را بی‌صدا از دست می‌دهید.
+    </p>
+
+    <p>اما دو شکل پاسخ متفاوت وجود دارد و تفکیکشان حیاتی است:</p>
+
+    <h3>الف) پاسخ تکی — با پوشش <span class="mono">BaseResultDto</span></h3>
+    <p>هر اندپوینتی که <b>یک آیتم</b> برمی‌گرداند یا یک <b>عملیات نوشتن</b> است:</p>
+
+    <div class="code-wrap"><pre>{
+  "isSuccess": true,
+  "code": 0,
+  "messages": [],
+  "data": { "id": 42, "name": "...", ... }
+}
+
+// حالت خطا — باز هم HTTP 200
+{
+  "isSuccess": false,
+  "code": 0,
+  "messages": [ { "item1": "برچسب تکراری است", "item2": "Label" } ],
+  "data": null
+}</pre></div>
+
+    <p>
+      <code>messages</code> آرایه‌ای از تاپل است: <code>item1</code> متن پیام (فارسی، آماده‌ی نمایش)
+      و <code>item2</code> نام فیلد مقصر (ممکن است رشته‌ی خالی باشد). برای اتصال خطا به فیلد فرم از <code>item2</code> استفاده کنید.
+    </p>
+
+    <h3>ب) پاسخ لیستی — <b>بدون</b> پوشش</h3>
+    <p>
+      اندپوینت‌های جستجو مستقیماً آبجکت صفحه‌بندی را برمی‌گردانند. اینجا <b>هیچ</b> <code>isSuccess</code> یا <code>data</code>ای وجود ندارد:
+    </p>
+
+    <div class="code-wrap"><pre>{
+  "pageIndex": 1,
+  "pageSize": 20,
+  "q": null,
+  "sortBy": 1,
+  "totalCount": 137,
+  "list": [ { ... }, { ... } ]
+}</pre></div>
+
+    <div class="note bad">
+      <p><b>تله:</b> اگر روی نتیجه‌ی <code>GET /api/Post</code> دنبال <code>response.data.list</code> بگردید، همیشه <code>undefined</code> می‌گیرید.
+      مسیر درست <code>response.list</code> است. برعکسش هم صادق است: <code>GET /api/Post/{id}</code> حتماً <code>response.data</code> می‌خواهد.</p>
+    </div>
+
+    <p>یک هلپر که هر دو حالت را پوشش می‌دهد:</p>
+
+    <div class="code-wrap"><pre>async function call(path, options) {
+  const res  = await fetch(`https://api.pastil.pet/api${path}`, options);
+  const body = await res.json();
+
+  // شکل «لیست»: خودش نتیجه است
+  if (Array.isArray(body?.list)) return body;
+
+  // شکل «پوشش‌دار»: باید isSuccess چک شود
+  if (body?.isSuccess === false) {
+    const msg = body.messages?.[0]?.item1 ?? "عملیات ناموفق بود.";
+    throw new Error(msg);
+  }
+  return body.data ?? body;
+}</pre></div>
+
+    <div class="note">
+      <p><b>حساسیت حروف:</b> سریالایزر پیش‌فرض <code>camelCase</code> می‌دهد (<code>isSuccess</code>، <code>publishDate</code>).
+      اما در بعضی مسیرها ممکن است <code>PascalCase</code> ببینید. اگر می‌خواهید مقاوم باشید،
+      هر دو را چک کنید: <code>body.data ?? body.Data</code>.</p>
+    </div>
+
+    <!-- ================= 3 ================= -->
+    <h2 id="auth"><span class="num">۰۳</span>احراز هویت</h2>
+
+    <p>
+      JWT با هدر <code>Authorization: Bearer &lt;token&gt;</code>. خواندن نوشته‌ها توکن نمی‌خواهد؛
+      ساخت/ویرایش/حذف و آپلود می‌خواهد.
+    </p>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb post">POST</span>
+        <span class="path">/api/Account/signin</span>
+        <span class="tag open">بدون توکن</span>
+      </div>
+      <p>ورود با موبایل + رمز، یا موبایل + کد یک‌بارمصرف.</p>
+    </div>
+
+    <div class="code-wrap"><pre>// بدنه‌ی درخواست
+{
+  "mobile":     "09120000000",
+  "password":   "...",     // یا خالی بگذارید و از code استفاده کنید
+  "code":       "",        // کد OTP
+  "isAdmin":    false,     // برای ورود به پنل ادمین true
+  "rememberMe": true
+}</pre></div>
+
+    <p>جریان ورود با کد یک‌بارمصرف:</p>
+
+    <div class="flow">
+      <span class="box">POST /Account/userdetail</span>
+      <span class="arw">←</span>
+      <span class="box">POST /Account/otp</span>
+      <span class="arw">←</span>
+      <span class="box">POST /Account/CheckOtp</span>
+      <span class="arw">←</span>
+      <span class="box">POST /Account/signin</span>
+    </div>
+
+    <p>
+      <code>userdetail</code> می‌گوید کاربر در چه وضعیتی است:
+      <code>SignUp=1</code> (باید ثبت‌نام کند)، <code>OneFactor=2</code>، <code>TwoFactor=3</code>، <code>Locked=4</code>.
+    </p>
+
+    <div class="note">
+      <p>
+        <b>درباره‌ی دسترسی ادمین:</b> فقط اندپوینت‌های زیر مسیر <code>/api/Admin/…</code> با سیستم مجوز نقش‌محور محافظت می‌شوند.
+        بقیه‌ی ناحیه‌ها صرفاً «کاربر لاگین‌کرده» می‌خواهند. اگر با نقش غیرادمین به <code>/api/Admin/Post</code> بزنید، خطای دسترسی می‌گیرید.
+      </p>
+    </div>
+
+    <!-- ================= 4 ================= -->
+    <h2 id="model"><span class="num">۰۴</span>مدل نوشته</h2>
+
+    <p>
+      دو شکل متفاوت وجود دارد و اشتباه‌گرفتنشان شایع‌ترین خطاست:
+      <b>PostVDto</b> چیزی است که <b>می‌خوانید</b>، و <b>PostDto</b> چیزی است که <b>می‌نویسید</b>.
+    </p>
+
+    <h3>PostVDto — پاسخ خواندن</h3>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>فیلد</th><th>نوع</th><th>توضیح</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">long</td><td>شناسه</td></tr>
+          <tr><td class="f">name</td><td class="t">string</td><td>عنوان نوشته (تنها فیلدی که <code>q</code> رویش جستجو می‌کند)</td></tr>
+          <tr><td class="f">label</td><td class="t">string</td><td>شناسه‌ی لاتین؛ مبنای ساخت slug</td></tr>
+          <tr><td class="f">slug</td><td class="t">string</td><td>تولید سرور. برای URL از این استفاده کنید</td></tr>
+          <tr><td class="f">subject</td><td class="t">string</td><td>تیتر نمایشی (ممکن است با <code>name</code> فرق کند)</td></tr>
+          <tr><td class="f">subNews</td><td class="t">string</td><td>زیرتیتر</td></tr>
+          <tr><td class="f">summary</td><td class="t">string</td><td>خلاصه — مناسب کارت لیست</td></tr>
+          <tr><td class="f">description</td><td class="t">string</td><td>متن کامل، HTML</td></tr>
+          <tr><td class="f">pictureId</td><td class="t">long?</td><td>شناسه‌ی تصویر شاخص</td></tr>
+          <tr><td class="f">picture</td><td class="t">PictureVDto</td><td>آبجکت کامل تصویر (بخش ۱۱)</td></tr>
+          <tr><td class="f">pictureUrl</td><td class="t">string</td><td>مسیر متنی جایگزین؛ ممکن است خالی باشد</td></tr>
+          <tr><td class="f">publishDate</td><td class="t">DateTime</td><td>زمان انتشار؛ آینده = هنوز منتشر نشده</td></tr>
+          <tr><td class="f">createDate</td><td class="t">DateTime</td><td>زمان ساخت</td></tr>
+          <tr><td class="f">active</td><td class="t">bool</td><td>فعال بودن</td></tr>
+          <tr><td class="f">adminConfirm</td><td class="t">bool</td><td>تایید ادمین</td></tr>
+          <tr><td class="f">visitCount</td><td class="t">int</td><td>تعداد بازدید</td></tr>
+          <tr><td class="f">commentCount</td><td class="t">int</td><td>فقط نظرات <b>تاییدشده</b></td></tr>
+          <tr><td class="f">isOld</td><td class="t">bool</td><td>پرچم «آرشیوی»</td></tr>
+          <tr><td class="f">edited</td><td class="t">bool</td><td>نسخه‌ی ویرایشی تاییدنشده دارد (بخش ۱۴)</td></tr>
+          <tr><td class="f">categoryId</td><td class="t">long?</td><td>دسته‌ی اصلی</td></tr>
+          <tr><td class="f">category</td><td class="t">CategoryParentVDto</td><td>دسته با زنجیره‌ی والدها</td></tr>
+          <tr><td class="f">user</td><td class="t">UserVDto</td><td>نویسنده</td></tr>
+          <tr><td class="f">admin</td><td class="t">UserVDto</td><td>ادمین تاییدکننده</td></tr>
+          <tr><td class="f">hashtags</td><td class="t">[{id,name}]</td><td>هشتگ‌ها</td></tr>
+          <tr><td class="f">postPictures</td><td class="t">PostPictureVDto[]</td><td>گالری</td></tr>
+          <tr><td class="f">postFiles</td><td class="t">PostFileVDto[]</td><td>پیوست‌ها</td></tr>
+          <tr><td class="f">children</td><td class="t">PostVDto[]</td><td>فقط در حالت ادمین پر می‌شود</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note bad">
+      <p>
+        <b>دقت:</b> در پاسخ خواندن، گالری و پیوست‌ها <code>postPictures</code> و <code>postFiles</code> نام دارند،
+        ولی هنگام <b>نوشتن</b> باید <code>postPicturesList</code> و <code>postFilesList</code> بفرستید.
+        نام‌ها یکی نیستند.
+      </p>
+    </div>
+
+    <h3>PostDto — بدنه‌ی ساخت و ویرایش</h3>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>فیلد</th><th>نوع</th><th>الزامی</th><th>توضیح</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">long</td><td>در ویرایش</td><td>در ساخت نفرستید یا صفر بگذارید</td></tr>
+          <tr><td class="f">name</td><td class="t">string</td><td>بله</td><td>عنوان</td></tr>
+          <tr><td class="f">label</td><td class="t">string</td><td>بله</td><td>فقط <code>A-Z a-z 0-9</code> و <code>-</code> <code>_</code> و فاصله (بخش ۶)</td></tr>
+          <tr><td class="f">publishDate</td><td class="t">DateTime</td><td>بله</td><td>ISO-8601. گذشته = فوری منتشر شود</td></tr>
+          <tr><td class="f">active</td><td class="t">bool</td><td>بله</td><td></td></tr>
+          <tr><td class="f">summary</td><td class="t">string</td><td>خیر</td><td></td></tr>
+          <tr><td class="f">description</td><td class="t">string</td><td>خیر</td><td>HTML بدنه</td></tr>
+          <tr><td class="f">subject / subNews</td><td class="t">string</td><td>خیر</td><td></td></tr>
+          <tr><td class="f">pictureId</td><td class="t">long?</td><td>خیر</td><td>از آپلود می‌آید</td></tr>
+          <tr><td class="f">categoryId</td><td class="t">long?</td><td>خیر</td><td>دسته‌ی اصلی</td></tr>
+          <tr><td class="f">categoryIds</td><td class="t">long[]</td><td>خیر</td><td>دسته‌های تکمیلی</td></tr>
+          <tr><td class="f">hashTagList</td><td class="t">string[]</td><td>خیر</td><td>متن هشتگ‌ها، نه شناسه</td></tr>
+          <tr><td class="f">postPicturesList</td><td class="t">object[]</td><td>خیر</td><td><code>{id, postId, pictureId, name, label}</code></td></tr>
+          <tr><td class="f">postFilesList</td><td class="t">object[]</td><td>خیر</td><td><code>{id, postId, fileId, name, label}</code></td></tr>
+          <tr><td class="f">adminConfirm</td><td class="t">bool</td><td>خیر</td><td>عملاً از مسیر <code>confirm</code> ست می‌شود</td></tr>
+          <tr><td class="f">isOld</td><td class="t">bool</td><td>خیر</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>رفتار مهم <code>categoryId</code>:</b> وقتی مقدار می‌دهید، سرور خودش تمام دسته‌های <b>والد</b> آن را
+        هم به <code>categoryIds</code> اضافه می‌کند. یعنی نوشته‌ای در «غذای سگ» خودکار زیر «سگ» هم پیدا می‌شود.
+        لازم نیست والدها را دستی بفرستید.
+      </p>
+    </div>
+
+    <!-- ================= 5 ================= -->
+    <h2 id="visibility"><span class="num">۰۵</span>وضعیت انتشار</h2>
+
+    <p>یک نوشته وقتی <b>عمومی دیده می‌شود</b> که هر سه شرط برقرار باشد:</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>شرط</th><th>یعنی</th></tr></thead>
+        <tbody>
+          <tr><td class="f">active == true</td><td>نویسنده فعالش کرده</td></tr>
+          <tr><td class="f">adminConfirm == true</td><td>ادمین تاییدش کرده</td></tr>
+          <tr><td class="f">publishDate &lt; now</td><td>زمان انتشار رسیده</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      پارامتر <code>available=true</code> همین سه شرط را با هم اعمال می‌کند.
+      اندپوینت‌های عمومی (<code>/api/Post</code> و <code>/api/Site/Post</code>) آن را
+      <b>اجباراً</b> روی <code>true</code> می‌گذارند — مقداری که کلاینت بفرستد نادیده گرفته می‌شود.
+    </p>
+
+    <p><code>adminConfirm</code> در دیتابیس سه‌حالته است و این تفاوت در پنل مهم است:</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>مقدار</th><th>معنی</th><th>چطور فیلتر کنیم</th></tr></thead>
+        <tbody>
+          <tr><td class="f">null</td><td>در انتظار بررسی</td><td><code>allAdminConfirm=false</code> بدون <code>adminConfirm</code></td></tr>
+          <tr><td class="f">true</td><td>تاییدشده</td><td><code>allAdminConfirm=false&amp;adminConfirm=true</code></td></tr>
+          <tr><td class="f">false</td><td>ردشده</td><td><code>allAdminConfirm=false&amp;adminConfirm=false</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note bad">
+      <p>
+        <b>رفتار غیرمنتظره‌ای که باید بدانید:</b> کوئری پایه‌ی جستجو <b>همیشه</b> شرط
+        <code>active == true</code> را دارد — حتی در حالت ادمین. بنابراین
+        <code>?active=false</code> همیشه لیست خالی برمی‌گرداند و «نوشته‌های غیرفعال» را از راه جستجو
+        نمی‌شود دید. برای رسیدن به یک نوشته‌ی غیرفعال باید مستقیم با شناسه‌اش صدایش بزنید.
+      </p>
+    </div>
+
+    <!-- ================= 6 ================= -->
+    <h2 id="label"><span class="num">۰۶</span>Label و Slug</h2>
+
+    <p>
+      <code>label</code> را کاربر می‌نویسد؛ <code>slug</code> را سرور از رویش می‌سازد و در URL استفاده می‌شود.
+      قوانین نرمال‌سازی:
+    </p>
+
+    <ul>
+      <li>حروف انگلیسی به کوچک تبدیل می‌شوند.</li>
+      <li>فاصله، <code>_</code>، <code>-</code> و علائم پشت‌سرهم به یک <code>-</code> تبدیل می‌شوند.</li>
+      <li>علائم اضافی حذف می‌شوند.</li>
+      <li><b>حروف فارسی پذیرفته نمی‌شود</b> و باعث خطا می‌شود.</li>
+      <li>اگر بعد از پاک‌سازی چیزی نماند، درخواست رد می‌شود.</li>
+      <li>slug باید بین نوشته‌ها <b>یکتا</b> باشد.</li>
+    </ul>
+
+    <div class="code-wrap"><pre>"How To Care  For Dogs!"  →  "how-to-care-for-dogs"
+"راهنمای نگهداری"          →  خطا: فقط حروف انگلیسی و اعداد مجاز است</pre></div>
+
+    <p>همین منطق را سمت فرانت هم اعمال کنید تا کاربر اصلاً نتواند فارسی تایپ کند:</p>
+
+    <div class="code-wrap"><pre>const sanitizeLabel = (v) =&gt; String(v ?? "").replace(/[^A-Za-z0-9 _-]/g, "");
+
+const previewSlug = (v) =&gt;
+  sanitizeLabel(v).trim().toLowerCase()
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");</pre></div>
+
+    <h3>بررسی زنده‌ی تکراری‌نبودن</h3>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb get">GET</span>
+        <span class="path">/api/Admin/SitePost/CheckLabel?label=...&amp;excludeId=...</span>
+        <span class="tag auth">توکن ادمین</span>
+        <span class="tag new">جدید</span>
+      </div>
+      <p>
+        قبل از ثبت، آزاد بودن label را چک می‌کند — مثل یوزرنیم تلگرام.
+        در حالت ویرایش، <code>excludeId</code> را شناسه‌ی همان نوشته بگذارید تا label خودش تکراری حساب نشود.
+      </p>
+    </div>
+
+    <div class="code-wrap"><pre>// آزاد است
+{ "isSuccess": true,  "data": true,  "messages": [] }
+
+// قبلاً استفاده شده
+{ "isSuccess": true,  "data": false, "messages": [] }
+
+// label نامعتبر (مثلاً فارسی)
+{ "isSuccess": false, "data": false,
+  "messages": [ { "item1": "Label فقط می‌تواند شامل حروف انگلیسی و اعداد باشد.", "item2": "" } ] }</pre></div>
+
+    <div class="note tip">
+      <p>
+        <b>الگوی پیشنهادی:</b> با ۵۰۰ms تاخیر (debounce) بعد از تایپ صدا بزنید،
+        و درخواست‌های قدیمی‌تر را با یک شمارنده باطل کنید تا پاسخ‌های دیررس وضعیت جدید را خراب نکنند.
+      </p>
+    </div>
+
+    <!-- ================= 7 ================= -->
+    <h2 id="seo"><span class="num">۰۷</span>فیلدهای SEO</h2>
+
+    <p>روی هر نوشته موجودند، هم در خواندن و هم در نوشتن. هیچ‌کدام الزامی نیستند:</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>فیلد</th><th>کاربرد</th></tr></thead>
+        <tbody>
+          <tr><td class="f">seoTitle</td><td>تگ <code>&lt;title&gt;</code></td></tr>
+          <tr><td class="f">seoMinDescription</td><td>متا دیسکریپشن</td></tr>
+          <tr><td class="f">seoDescription</td><td>توضیح بلند</td></tr>
+          <tr><td class="f">seoH1</td><td>تیتر <code>H1</code> صفحه</td></tr>
+          <tr><td class="f">seoPictureAlt</td><td>متن جایگزین تصویر شاخص</td></tr>
+          <tr><td class="f">seoUrlText</td><td>متن دلخواه URL</td></tr>
+          <tr><td class="f">seoCanonical</td><td>لینک کانونیکال</td></tr>
+          <tr><td class="f">seoNoIndex</td><td><code>bool</code> — در نتایج ثبت نشود</td></tr>
+          <tr><td class="f">seoNoFollow</td><td><code>bool</code> — لینک‌ها دنبال نشوند</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p>
+        <b>محدودیت طول ندارند.</b> نه سرور و نه پنل دیگر تعداد کاراکتر را محدود نمی‌کنند.
+        اگر می‌خواهید راهنمای بصری بدهید (مثلاً ۶۰ کاراکتر برای عنوان)، صرفاً نمایشی باشد و جلوی ثبت را نگیرد.
+      </p>
+    </div>
+
+    <!-- ================= 8 ================= -->
+    <h2 id="public"><span class="num">۰۸</span>اندپوینت‌های عمومی</h2>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb get">GET</span><span class="path">/api/Post</span><span class="tag open">بدون توکن</span>
+      </div>
+      <p>لیست نوشته‌های منتشرشده. پاسخ: شکل «لیست» (بخش ۲-ب). پارامترها در بخش ۱۰.</p>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb get">GET</span><span class="path">/api/Post/{id}</span><span class="tag open">بدون توکن</span>
+      </div>
+      <p>
+        یک نوشته با تمام روابط. پاسخ: <code>BaseResultDto&lt;PostVDto&gt;</code>.
+        <b>هر فراخوانی <code>visitCount</code> را یک واحد زیاد می‌کند</b> — پس در حالت
+        StrictMode یا رندر دوباره، بی‌دلیل صدایش نزنید.
+      </p>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb get">GET</span><span class="path">/api/Site/Post</span><span class="tag open">بدون توکن</span>
+      </div>
+      <p>دقیقاً همان رفتار <code>/api/Post</code>. برای سایت معرفی جدا شده است.</p>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb get">GET</span><span class="path">/api/Site/Post/{id}</span><span class="tag open">بدون توکن</span>
+      </div>
+      <p>معادل <code>/api/Post/{id}</code>، با همان افزایش بازدید.</p>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb get">GET</span><span class="path">/api/PostSiteMap</span><span class="tag open">بدون توکن</span>
+      </div>
+      <p>
+        فهرست سبک برای ساخت sitemap: <code>{ id, name, categoryName, updateDate }</code>.
+        پاسخ پوشش‌دار است.
+      </p>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb get">GET</span><span class="path">/api/PostProduct/{id}</span><span class="tag open">بدون توکن</span>
+      </div>
+      <p>محصولات فروشگاهی مرتبط با یک نوشته. <code>{id}</code> شناسه‌ی نوشته است.</p>
+    </div>
+
+    <!-- ================= 9 ================= -->
+    <h2 id="admin"><span class="num">۰۹</span>اندپوینت‌های پنل ادمین</h2>
+
+    <p>
+      دو خانواده‌ی موازی وجود دارد که <b>روی یک داده</b> کار می‌کنند:
+      <code>/api/Admin/SitePost</code> ساده و CRUD خالص است،
+      <code>/api/Admin/Post</code> همان است به‌علاوه‌ی گردش‌کار تایید.
+      برای فرم ساخت/ویرایش، <code>SitePost</code> کافی است.
+    </p>
+
+    <h3>SitePost</h3>
+
+    <div class="ep">
+      <div class="ep-head"><span class="verb get">GET</span><span class="path">/api/Admin/SitePost</span><span class="tag auth">توکن ادمین</span></div>
+      <p>جستجو با تمام فیلترهای بخش ۱۰. پاسخ: شکل «لیست».</p>
+    </div>
+    <div class="ep">
+      <div class="ep-head"><span class="verb get">GET</span><span class="path">/api/Admin/SitePost/{id}</span><span class="tag auth">توکن ادمین</span></div>
+      <p>پاسخ <code>PostDto</code> است (نه <code>PostVDto</code>) — یعنی همان شکلی که برای ویرایش می‌فرستید.</p>
+    </div>
+    <div class="ep">
+      <div class="ep-head"><span class="verb post">POST</span><span class="path">/api/Admin/SitePost</span><span class="tag auth">توکن ادمین</span></div>
+      <p>ساخت. بدنه: <code>PostDto</code>. <code>id</code> نفرستید.</p>
+    </div>
+    <div class="ep">
+      <div class="ep-head"><span class="verb put">PUT</span><span class="path">/api/Admin/SitePost</span><span class="tag auth">توکن ادمین</span></div>
+      <p>ویرایش. بدنه: <code>PostDto</code> کامل به‌همراه <code>id</code>.</p>
+    </div>
+    <div class="ep">
+      <div class="ep-head"><span class="verb delete">DELETE</span><span class="path">/api/Admin/SitePost?id={id}</span><span class="tag auth">توکن ادمین</span></div>
+      <p>حذف نرم است — رکورد می‌ماند و فقط <code>deleted</code> می‌شود.</p>
+    </div>
+
+    <h3>Post — گردش‌کار تایید</h3>
+
+    <div class="ep">
+      <div class="ep-head"><span class="verb put">PUT</span><span class="path">/api/Admin/Post/confirm</span><span class="tag auth">توکن ادمین</span></div>
+      <p>تایید یا رد. بدنه: <code>{ "id": 42, "adminConfirm": true, "publishDate": "2026-09-01T08:00:00" }</code></p>
+    </div>
+    <div class="ep">
+      <div class="ep-head"><span class="verb put">PUT</span><span class="path">/api/Admin/Post/changeuser</span><span class="tag auth">توکن ادمین</span></div>
+      <p>تغییر نویسنده. بدنه: <code>{ "id": 42, "userId": 7 }</code></p>
+    </div>
+
+    <p>
+      <code>GET</code> / <code>POST</code> / <code>PUT</code> / <code>DELETE</code> روی
+      <code>/api/Admin/Post</code> هم موجودند و رفتارشان با <code>SitePost</code> یکسان است.
+    </p>
+
+    <h3>گالری و پیوست به‌صورت جداگانه</h3>
+
+    <p>
+      معمولاً کافی است تصاویر و فایل‌ها را داخل <code>postPicturesList</code> / <code>postFilesList</code>
+      همراه خود نوشته بفرستید. اما اگر می‌خواهید بدون ذخیره‌ی کل نوشته یک آیتم را مدیریت کنید:
+    </p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>متد</th><th>مسیر</th><th>کار</th></tr></thead>
+        <tbody>
+          <tr><td class="t">GET</td><td class="t">/api/Admin/PostPicture?postId={id}</td><td>گالری یک نوشته</td></tr>
+          <tr><td class="t">POST</td><td class="t">/api/Admin/PostPicture</td><td>افزودن تصویر</td></tr>
+          <tr><td class="t">PUT</td><td class="t">/api/Admin/PostPicture</td><td>ویرایش عنوان/برچسب</td></tr>
+          <tr><td class="t">DELETE</td><td class="t">/api/Admin/PostPicture?id={id}</td><td>حذف از گالری</td></tr>
+          <tr><td class="t">GET/POST/PUT/DELETE</td><td class="t">/api/Admin/PostFile</td><td>همان الگو برای پیوست‌ها</td></tr>
+          <tr><td class="t">POST</td><td class="t">/api/Admin/PostProduct</td><td>اتصال محصول به نوشته</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ================= 10 ================= -->
+    <h2 id="filters"><span class="num">۱۰</span>فیلتر و مرتب‌سازی</h2>
+
+    <p>همه به‌صورت query string. روی <code>/api/Post</code>، <code>/api/Site/Post</code> و <code>/api/Admin/SitePost</code> یکسان کار می‌کنند.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>پارامتر</th><th>نوع</th><th>پیش‌فرض</th><th>رفتار</th></tr></thead>
+        <tbody>
+          <tr><td class="f">pageIndex</td><td class="t">int</td><td class="t">1</td><td>شماره‌ی صفحه، از ۱</td></tr>
+          <tr><td class="f">pageSize</td><td class="t">int</td><td class="t">20</td><td>تعداد در صفحه</td></tr>
+          <tr><td class="f">q</td><td class="t">string</td><td class="t">null</td><td><b>فقط داخل <code>name</code></b> می‌گردد؛ متن و خلاصه را نمی‌گردد</td></tr>
+          <tr><td class="f">sortBy</td><td class="t">int</td><td class="t">1</td><td>جدول پایین</td></tr>
+          <tr><td class="f">categoryIds</td><td class="t">long[]</td><td class="t">—</td><td>تکرار کلید: <code>categoryIds=3&amp;categoryIds=8</code></td></tr>
+          <tr><td class="f">categoryLabels</td><td class="t">string[]</td><td class="t">—</td><td><b>فقط وقتی <code>categoryIds</code> خالی باشد</b> اعمال می‌شود</td></tr>
+          <tr><td class="f">isAndCategories</td><td class="t">bool</td><td class="t">false</td><td><code>false</code> = هر کدام، <code>true</code> = همه‌ی دسته‌ها</td></tr>
+          <tr><td class="f">hashtags</td><td class="t">string</td><td class="t">—</td><td>با <code>-</code> جدا شود؛ منطق <b>AND</b>: <code>سگ-تغذیه</code></td></tr>
+          <tr><td class="f">publish</td><td class="t">bool</td><td class="t">—</td><td><code>true</code> = گذشته، <code>false</code> = زمان‌بندی‌شده</td></tr>
+          <tr><td class="f">adminConfirm</td><td class="t">bool</td><td class="t">—</td><td>با <code>allAdminConfirm=false</code> معنا پیدا می‌کند</td></tr>
+          <tr><td class="f">allAdminConfirm</td><td class="t">bool</td><td class="t">—</td><td><code>false</code> فیلتر تایید را روشن می‌کند</td></tr>
+          <tr><td class="f">edited</td><td class="t">bool</td><td class="t">—</td><td>فقط نوشته‌های دارای نسخه‌ی ویرایشی</td></tr>
+          <tr><td class="f">notId</td><td class="t">long</td><td class="t">—</td><td>حذف یک شناسه — مناسب «مطالب مرتبط»</td></tr>
+          <tr><td class="f">active</td><td class="t">bool</td><td class="t">—</td><td>عملاً بی‌اثر (بخش ۵)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>مقادیر <span class="mono">sortBy</span></h4>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>مقدار</th><th>نام</th><th>ترتیب</th></tr></thead>
+        <tbody>
+          <tr><td class="f">0</td><td>Default</td><td>جدیدترین بر اساس شناسه</td></tr>
+          <tr><td class="f">1</td><td>New</td><td>جدیدترین بر اساس شناسه</td></tr>
+          <tr><td class="f">2</td><td>Old</td><td>قدیمی‌ترین</td></tr>
+          <tr><td class="f">3</td><td>Name</td><td>نام، نزولی</td></tr>
+          <tr><td class="f">4</td><td>MoreVisit</td><td>پربازدیدترین</td></tr>
+          <tr><td class="f">5</td><td>LessVisit</td><td>کم‌بازدیدترین</td></tr>
+          <tr><td class="f">6</td><td>MorePriority</td><td>تاریخ انتشار، نزولی</td></tr>
+          <tr><td class="f">7</td><td>LessPriority</td><td>تاریخ انتشار، صعودی</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <p>
+        بقیه‌ی مقادیر enum (‎8 تا 11، مربوط به قیمت و فروش) برای نوشته‌ها بی‌اثرند و ترتیب دیتابیس را می‌دهند.
+      </p>
+    </div>
+
+    <!-- ================= 11 ================= -->
+    <h2 id="media"><span class="num">۱۱</span>تصاویر و فایل‌ها</h2>
+
+    <p>
+      آپلود روی <b>سرویس File</b> انجام می‌شود، نه Api. جریان همیشه دو مرحله است:
+    </p>
+
+    <div class="flow">
+      <span class="box">آپلود روی File → گرفتن id</span>
+      <span class="arw">←</span>
+      <span class="box">فرستادن id همراه نوشته به Api</span>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb post">POST</span>
+        <span class="path">https://file.pastil.pet/api/PictureUpload</span>
+        <span class="tag auth">توکن</span>
+      </div>
+      <p>
+        <code>multipart/form-data</code> با نام فیلد <b><code>PictureFile</code></b>.
+        حداکثر <b>۵ مگابایت</b>. فرمت‌ها: <code>jpg jpeg png webp</code> و ویدیو <code>mp4 webm ogg</code>.
+      </p>
+    </div>
+
+    <p>
+      تصاویر خودکار به <b>WebP</b> تبدیل و در سه اندازه‌ی <code>lg</code> (۹۰۰px)،
+      <code>md</code> (۵۰۰px) و <code>sm</code> (۳۰۰px) ذخیره می‌شوند.
+      ویدیوها دست‌نخورده می‌مانند.
+    </p>
+
+    <div class="ep">
+      <div class="ep-head">
+        <span class="verb post">POST</span>
+        <span class="path">https://file.pastil.pet/api/FileUpload</span>
+        <span class="tag auth">توکن</span>
+      </div>
+      <p>
+        نام فیلد <b><code>file</code></b>. حداکثر <b>۲۰ مگابایت</b>.
+        فرمت‌ها: <code>jpg jpeg png webp gif mp4 webm mov pdf</code>.
+      </p>
+    </div>
+
+    <div class="code-wrap"><pre>async function uploadPicture(file, token) {
+  const fd = new FormData();
+  fd.append("PictureFile", file);          // نام فیلد دقیقاً همین است
+
+  const res  = await fetch("https://file.pastil.pet/api/PictureUpload", {
+    method:  "POST",
+    headers: { Authorization: `Bearer ${token}` },   // Content-Type را ست نکنید
+    body:    fd,
+  });
+  const body = await res.json();
+  if (!body.isSuccess) throw new Error(body.messages?.[0]?.item1 ?? "آپلود ناموفق");
+
+  return body.data;   // { id, url, baseUrl, guidName, extension, orginalName }
+}</pre></div>
+
+    <h3>ساختن URL نمایش</h3>
+
+    <p>آبجکت <code>PictureVDto</code> این فیلدها را دارد:</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>فیلد</th><th>نمونه</th><th>یعنی</th></tr></thead>
+        <tbody>
+          <tr><td class="f">url</td><td class="t">/Media/2026/8/28/a1b2.webp</td><td>مسیر کامل تصویر اصلی</td></tr>
+          <tr><td class="f">baseUrl</td><td class="t">/Media/2026/8/28</td><td>فقط پوشه</td></tr>
+          <tr><td class="f">guidName</td><td class="t">a1b2</td><td>نام بدون پسوند</td></tr>
+          <tr><td class="f">extension</td><td class="t">.webp</td><td>پسوند</td></tr>
+          <tr><td class="f">orginalName</td><td class="t">dog.jpg</td><td>نام اصلی کاربر (املا با یک <code>i</code>)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-wrap"><pre>const FILE_HOST = "https://file.pastil.pet";
+
+// تصویر اصلی
+const full = (p) =&gt; (p?.url ? FILE_HOST + p.url : "");
+
+// بندانگشتی: "lg" | "md" | "sm"
+const thumb = (p, size) =&gt;
+  p?.baseUrl &amp;&amp; p?.guidName
+    ? `${FILE_HOST}${p.baseUrl}/${p.guidName}-${size}${p.extension}`
+    : full(p);
+
+// &lt;img src={thumb(post.picture, "md")} alt={post.seoPictureAlt || post.name} /&gt;</pre></div>
+
+    <div class="note">
+      <p>
+        بندانگشتی‌ها فقط برای تصاویر ساخته می‌شوند. برای ویدیو
+        <code>guidName-lg.webp</code> وجود ندارد؛ روی <code>url</code> برگردید.
+        همچنین اگر تصویر اصلی از ۹۰۰px کوچک‌تر بوده، اندازه‌ها با هم برابرند ولی فایل‌ها موجودند.
+      </p>
+    </div>
+
+    <!-- ================= 12 ================= -->
+    <h2 id="taxonomy"><span class="num">۱۲</span>دسته‌بندی و هشتگ</h2>
+
+    <p>دسته‌ها درختی‌اند و هر نوشته یک دسته‌ی اصلی و چند دسته‌ی تکمیلی دارد.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>متد</th><th>مسیر</th><th>کار</th></tr></thead>
+        <tbody>
+          <tr><td class="t">GET</td><td class="t">/api/Category</td><td>جستجوی دسته‌ها (بدون توکن)</td></tr>
+          <tr><td class="t">GET</td><td class="t">/api/Category/{id}</td><td>یک دسته</td></tr>
+          <tr><td class="t">GET</td><td class="t">/api/Category/label/{label}</td><td>دسته با برچسب لاتین</td></tr>
+          <tr><td class="t">GET</td><td class="t">/api/CategoryParent/{id}</td><td>دسته به‌همراه زنجیره‌ی والدها</td></tr>
+          <tr><td class="t">GET</td><td class="t">/api/Admin/Category</td><td>مدیریت دسته‌ها (توکن ادمین)</td></tr>
+          <tr><td class="t">GET</td><td class="t">/api/Admin/Hashtag</td><td>فهرست هشتگ‌ها برای autocomplete</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>فیلدهای مهم دسته: <code>id</code>، <code>name</code>، <code>label</code>، <code>slug</code>، <code>parentId</code>، <code>priority</code>، <code>picture</code>، <code>icon</code>.</p>
+
+    <div class="note tip">
+      <p>
+        <b>نکته‌ی مهم درباره‌ی برچسب دسته‌ها:</b> برچسب دسته فقط <b>زیر یک والد مشترک</b> باید یکتا باشد.
+        یعنی «دامپزشکی» می‌تواند هم‌زمان زیر «سگ» و زیر «گربه» وجود داشته باشد.
+        پس برای شناسایی قطعی یک دسته همیشه از <code>id</code> استفاده کنید، نه <code>label</code>.
+      </p>
+    </div>
+
+    <p>هشتگ‌ها موقع ذخیره‌ی نوشته به‌صورت آرایه‌ی متنی می‌روند و سرور خودش می‌سازدشان:</p>
+
+    <div class="code-wrap"><pre>{ "hashTagList": ["سگ", "تغذیه", "توله"] }
+
+// و در فیلتر با - جدا می‌شوند (منطق AND)
+GET /api/Post?hashtags=سگ-تغذیه</pre></div>
+
+    <!-- ================= 13 ================= -->
+    <h2 id="comments"><span class="num">۱۳</span>نظرات</h2>
+
+    <div class="ep">
+      <div class="ep-head"><span class="verb get">GET</span><span class="path">/api/PostComment?postId={id}</span><span class="tag open">بدون توکن</span></div>
+      <p>نظرات یک نوشته. پاسخ: شکل «لیست».</p>
+    </div>
+    <div class="ep">
+      <div class="ep-head"><span class="verb post">POST</span><span class="path">/api/PostComment</span><span class="tag open">بدون توکن</span></div>
+      <p>ثبت نظر مهمان. بدنه: <code>{ postId, name, text, rate }</code></p>
+    </div>
+    <div class="ep">
+      <div class="ep-head"><span class="verb post">POST</span><span class="path">/api/EndUser/PostComment</span><span class="tag auth">توکن</span></div>
+      <p>ثبت نظر با حساب کاربری — نظر به کاربر نسبت داده می‌شود.</p>
+    </div>
+    <div class="ep">
+      <div class="ep-head"><span class="verb put">PUT</span><span class="path">/api/Admin/PostComment</span><span class="tag auth">توکن ادمین</span></div>
+      <p>تایید/رد و ثبت پاسخ. بدنه: <code>{ id, statusId, answer }</code></p>
+    </div>
+
+    <p>وضعیت‌ها:</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Label</th><th>یعنی</th></tr></thead>
+        <tbody>
+          <tr><td class="f">Comment_NotChecked</td><td>در انتظار بررسی — وضعیت هر نظر تازه</td></tr>
+          <tr><td class="f">Comment_Accept</td><td>تاییدشده — فقط این‌ها باید نمایش داده شوند</td></tr>
+          <tr><td class="f">Comment_Reject</td><td>ردشده</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note bad">
+      <p>
+        <b>این مورد را جدی بگیرید:</b> اندپوینت عمومی نظرات <b>هیچ فیلتری روی وضعیت اعمال نمی‌کند</b>.
+        یعنی <code>GET /api/PostComment?postId=5</code> نظرات بررسی‌نشده و حتی <b>ردشده</b> را هم برمی‌گرداند.
+      </p>
+      <p>
+        اگر خودتان فیلتر نکنید، محتوای تاییدنشده روی سایت منتشر می‌شود. حتماً سمت کلاینت فیلتر کنید:
+      </p>
+    </div>
+
+    <div class="code-wrap"><pre>const visible = (data.list ?? []).filter(
+  (c) =&gt; c.status?.label === "Comment_Accept"
+);</pre></div>
+
+    <p>
+      دقت کنید <code>commentCount</code> روی خود نوشته فقط نظرات <b>تاییدشده</b> را می‌شمارد،
+      پس ممکن است با طول لیست فیلترنشده نخواند — و این طبیعی است.
+    </p>
+
+    <p>ساختار هر نظر: <code>id</code>، <code>name</code>، <code>text</code>، <code>rate</code>، <code>createDate</code>، <code>answer</code>، <code>likeCount</code>، <code>disLikeCount</code>، <code>user</code>، <code>status</code> (<code>{id, name, label}</code>).</p>
+
+    <div class="note">
+      <p>
+        متن نظر سمت سرور از HTML خطرناک پاک‌سازی می‌شود، و <code>statusId</code>ای که کلاینت بفرستد
+        هنگام ثبت <b>نادیده گرفته می‌شود</b> — همیشه «بررسی‌نشده» ذخیره می‌شود.
+      </p>
+    </div>
+
+    <!-- ================= 14 ================= -->
+    <h2 id="versioning"><span class="num">۱۴</span>نسخه‌بندی ویرایش</h2>
+
+    <p>
+      رفتاری هست که اگر ندانید گیج‌کننده می‌شود: یک نوشته می‌تواند یک <b>نسخه‌ی فرزند</b> داشته باشد
+      که ویرایشِ در انتظارِ تایید است.
+    </p>
+
+    <ul>
+      <li><code>parentId</code> پر باشد یعنی این رکورد خودش یک <b>پیش‌نویس ویرایش</b> است، نه نوشته‌ی اصلی.</li>
+      <li><code>edited: true</code> روی نوشته‌ی اصلی یعنی نسخه‌ی ویرایشی تاییدنشده دارد.</li>
+      <li>وقتی ادمین آن نسخه را تایید می‌کند، محتوایش روی نوشته‌ی اصلی می‌نشیند و فرزند حذف نرم می‌شود.</li>
+    </ul>
+
+    <div class="note tip">
+      <p>
+        <b>برای فرانت چه اهمیتی دارد؟</b> جستجو همیشه شرط <code>parentId == null</code> دارد،
+        پس پیش‌نویس‌ها هرگز در لیست‌ها ظاهر نمی‌شوند و نیازی نیست کاری کنید.
+        فقط اگر پنل می‌سازید، می‌توانید با <code>edited=true</code> فیلتر کنید و نشان «ویرایش در انتظار تایید» بگذارید.
+      </p>
+    </div>
+
+    <!-- ================= 15 ================= -->
+    <h2 id="recipes"><span class="num">۱۵</span>نمونه‌های کامل</h2>
+
+    <h3>صفحه‌ی لیست با صفحه‌بندی و فیلتر دسته</h3>
+
+    <div class="code-wrap"><pre>async function fetchPosts({ page = 1, size = 12, categoryId, search } = {}) {
+  const qs = new URLSearchParams({
+    pageIndex: String(page),
+    pageSize:  String(size),
+    sortBy:    "1",              // جدیدترین
+  });
+  if (categoryId) qs.append("categoryIds", String(categoryId));
+  if (search)     qs.set("q", search);
+
+  const res  = await fetch(`https://api.pastil.pet/api/Post?${qs}`);
+  const data = await res.json();
+
+  return {
+    items: data.list ?? [],
+    total: data.totalCount ?? 0,
+    pages: Math.ceil((data.totalCount ?? 0) / size),
+  };
+}</pre></div>
+
+    <h3>صفحه‌ی جزئیات + مطالب مرتبط</h3>
+
+    <div class="code-wrap"><pre>async function fetchPostPage(id) {
+  const res  = await fetch(`https://api.pastil.pet/api/Post/${id}`);
+  const body = await res.json();
+
+  if (!body.isSuccess || !body.data) throw new Error("نوشته پیدا نشد.");
+  const post = body.data;
+
+  // مرتبط: هم‌دسته، با حذف خود نوشته
+  const qs = new URLSearchParams({ pageSize: "4", notId: String(id) });
+  if (post.categoryId) qs.append("categoryIds", String(post.categoryId));
+
+  const rel = await (await fetch(`https://api.pastil.pet/api/Post?${qs}`)).json();
+
+  return { post, related: rel.list ?? [] };
+}</pre></div>
+
+    <h3>ساخت نوشته با تصویر شاخص</h3>
+
+    <div class="code-wrap"><pre>async function createPost({ token, file, form }) {
+  // ۱) آپلود تصویر روی سرویس File
+  let pictureId = null;
+  if (file) {
+    const fd = new FormData();
+    fd.append("PictureFile", file);
+    const up = await (await fetch("https://file.pastil.pet/api/PictureUpload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    })).json();
+    if (!up.isSuccess) throw new Error(up.messages?.[0]?.item1 ?? "آپلود ناموفق");
+    pictureId = up.data.id;
+  }
+
+  // ۲) بررسی آزاد بودن label
+  const chk = await (await fetch(
+    `https://api.pastil.pet/api/Admin/SitePost/CheckLabel?label=${encodeURIComponent(form.label)}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  )).json();
+  if (chk.isSuccess &amp;&amp; chk.data === false) throw new Error("این Label قبلاً استفاده شده است.");
+
+  // ۳) ثبت نوشته
+  const res = await fetch("https://api.pastil.pet/api/Admin/SitePost", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization:  `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      name:        form.name,
+      label:       form.label,
+      summary:     form.summary,
+      description: form.description,
+      publishDate: new Date(form.publishDate).toISOString(),
+      active:      true,
+      pictureId,
+      categoryId:  form.categoryId,
+      categoryIds: form.categoryIds ?? [],
+      hashTagList: form.hashtags ?? [],
+      seoTitle:           form.seoTitle ?? "",
+      seoMinDescription:  form.seoMinDescription ?? "",
+      seoNoIndex:  false,
+      seoNoFollow: false,
+      postPicturesList: [],
+      postFilesList:    [],
+    }),
+  });
+
+  const body = await res.json();
+  if (!body.isSuccess) throw new Error(body.messages?.[0]?.item1 ?? "ثبت ناموفق");
+  return body.data;
+}</pre></div>
+
+    <h3>ویرایش</h3>
+
+    <div class="code-wrap"><pre>// ۱) شکل قابل‌ویرایش را بگیرید (PostDto، نه PostVDto)
+const cur = (await (await fetch(`https://api.pastil.pet/api/Admin/SitePost/${id}`, {
+  headers: { Authorization: `Bearer ${token}` },
+})).json()).data;
+
+// ۲) تغییرات را روی همان بریزید و کامل برگردانید — PUT جزئی نیست
+await fetch("https://api.pastil.pet/api/Admin/SitePost", {
+  method: "PUT",
+  headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+  body: JSON.stringify({ ...cur, name: "عنوان تازه" }),
+});</pre></div>
+
+    <div class="note bad">
+      <p>
+        <b><code>PUT</code> جایگزینی کامل است، نه patch.</b> اگر فقط چند فیلد بفرستید،
+        بقیه با مقدار پیش‌فرض بازنویسی می‌شوند و مثلاً دسته‌ها و هشتگ‌ها پاک می‌شوند.
+        همیشه اول رکورد فعلی را بگیرید، رویش تغییر بدهید و کامل برگردانید.
+      </p>
+    </div>
+
+    <!-- ================= 16 ================= -->
+    <h2 id="gotchas"><span class="num">۱۶</span>تله‌های رایج</h2>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>نشانه</th><th>علت و راه‌حل</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>لیست همیشه <code>undefined</code></td>
+            <td>روی پاسخ جستجو دنبال <code>data.list</code> گشته‌اید. جستجو پوشش ندارد → <code>response.list</code></td>
+          </tr>
+          <tr>
+            <td>خطا رخ می‌دهد ولی کد ادامه می‌دهد</td>
+            <td>فقط <code>res.ok</code> چک شده. همیشه <code>body.isSuccess</code> را ببینید</td>
+          </tr>
+          <tr>
+            <td>«Slug ساخته‌شده تکراری است»</td>
+            <td>label تکراری است. با <code>CheckLabel</code> قبل از ثبت بررسی کنید</td>
+          </tr>
+          <tr>
+            <td>«Label فقط می‌تواند شامل حروف انگلیسی…»</td>
+            <td>فارسی در label. ورودی را حین تایپ پاک‌سازی کنید</td>
+          </tr>
+          <tr>
+            <td>دسته‌ها بعد از ویرایش پاک شدند</td>
+            <td><code>PUT</code> ناقص فرستاده‌اید. رکورد کامل بفرستید</td>
+          </tr>
+          <tr>
+            <td>گالری بعد از ذخیره خالی است</td>
+            <td><code>postPictures</code> فرستاده‌اید؛ نام درست <code>postPicturesList</code> است</td>
+          </tr>
+          <tr>
+            <td>نظرات تاییدنشده نمایش داده می‌شوند</td>
+            <td>سرور فیلتر نمی‌کند. روی <code>status.label === "Comment_Accept"</code> فیلتر کنید</td>
+          </tr>
+          <tr>
+            <td>نوشته‌ی تازه در لیست عمومی نیست</td>
+            <td>یکی از سه شرط بخش ۵ برقرار نیست — معمولاً <code>adminConfirm</code></td>
+          </tr>
+          <tr>
+            <td>بازدید بی‌دلیل بالا می‌رود</td>
+            <td>‏<code>GET /api/Post/{id}</code> شمارنده را زیاد می‌کند. در افکت‌های تکراری صدایش نزنید</td>
+          </tr>
+          <tr>
+            <td><code>?active=false</code> خالی برمی‌گرداند</td>
+            <td>رفتار شناخته‌شده‌ی کوئری پایه (بخش ۵)</td>
+          </tr>
+          <tr>
+            <td>آپلود ۴۱۵ یا خطای فرمت می‌دهد</td>
+            <td>‏<code>Content-Type</code> را دستی ست کرده‌اید. با <code>FormData</code> نگذاریدش تا مرورگر خودش boundary بسازد</td>
+          </tr>
+          <tr>
+            <td>نام فیلد آپلود کار نمی‌کند</td>
+            <td>تصویر <code>PictureFile</code> و فایل <code>file</code> — دقیقاً با همین حروف</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note tip">
+      <p>
+        <b>در یک جمله:</b> جستجو بدون پوشه، تکی با پوشه؛ <code>isSuccess</code> را همیشه چک کنید؛
+        <code>PUT</code> را کامل بفرستید؛ و نظرات را خودتان فیلتر کنید.
+      </p>
+    </div>
+
+  </main>
+</div>

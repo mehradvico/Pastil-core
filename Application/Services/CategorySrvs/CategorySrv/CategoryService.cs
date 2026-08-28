@@ -46,7 +46,7 @@ namespace Application.Services.CategorySrv
             {
                 var errors = new List<Tuple<string, string>>();
                 dto.Label = dto.Label.ToStandardUrl();
-                if (!LabelIsUnique(dto.Label))
+                if (!LabelIsUnique(dto.Label, dto.ParentId))
                 {
                     errors.Add(new Tuple<string, string>(Resource.Notification.TheLabelIsDuplicate, nameof(dto.Label)));
                 }
@@ -69,7 +69,7 @@ namespace Application.Services.CategorySrv
             {
                 var errors = new List<Tuple<string, string>>();
                 dto.Label = dto.Label.ToStandardUrl();
-                if (!LabelIsUnique(dto.Label, dto.Id))
+                if (!LabelIsUnique(dto.Label, dto.ParentId, dto.Id))
                 {
                     errors.Add(new Tuple<string, string>(Resource.Notification.TheLabelIsDuplicate, nameof(dto.Label)));
                 }
@@ -169,9 +169,9 @@ namespace Application.Services.CategorySrv
             }
             return new BaseResultDto<CategoryCompleteVDto>(false, mapper.Map<CategoryCompleteVDto>(item));
         }
-        bool LabelIsUnique(string label, long? categoryId = null)
+        bool LabelIsUnique(string label, long? parentId, long? categoryId = null)
         {
-            var item = GetCategoryByLabel(label);
+            var item = GetCategoryByLabel(label, parentId);
             if (item != null && item.Id == categoryId)
                 return true;
             else if (item == null)
@@ -179,9 +179,9 @@ namespace Application.Services.CategorySrv
             else
                 return false;
         }
-        Category GetCategoryByLabel(string label, bool? active = null)
+        Category GetCategoryByLabel(string label, long? parentId, bool? active = null)
         {
-            return _baseQuery.FirstOrDefault(s => s.Label == label && (active.HasValue ? s.Active == active : true) && s.Deleted == false);
+            return _baseQuery.FirstOrDefault(s => s.Label == label && s.ParentId == parentId && (active.HasValue ? s.Active == active : true) && s.Deleted == false);
         }
         internal virtual IQueryable<Category> Sorting(IQueryable<Category> query, SortEnum sortBy)
         {

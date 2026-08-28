@@ -37,7 +37,7 @@ namespace Api.Areas.Seller.Controllers
         {
             var Store = await StoreService.FindAsyncDto(id);
             if (Store.IsSuccess && Store.Data?.Id != _currentUser.CurrentUser.StoreId)
-                return Ok(new BaseResultDto<StoreDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<StoreDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(Store);
         }
         /// <summary>
@@ -51,7 +51,7 @@ namespace Api.Areas.Seller.Controllers
             var currentStoreId = _currentUser.CurrentUser.StoreId;
             var existing = await StoreService.FindAsyncDto(currentStoreId);
             if (!existing.IsSuccess || existing.Data == null)
-                return Ok(new BaseResultDto<StoreDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<StoreDto>(false, Resource.Notification.AccessDenied, default!));
 
             StoreDto.Id = currentStoreId;
             StoreDto.ReferralCode = existing.Data.ReferralCode;

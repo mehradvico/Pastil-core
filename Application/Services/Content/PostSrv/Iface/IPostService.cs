@@ -16,5 +16,6 @@ namespace Application.Services.Content.PostSrv.Iface
         void UpdatePostCommentCount(long postId);
         BaseResultDto ChangeUser(ChangePostUserDto dto);
         BaseResultDto GetSiteMap();
+        Task<BaseResultDto<bool>> CheckLabelAvailableAsync(string label, long? excludeId);
     }
 }

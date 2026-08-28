@@ -79,7 +79,7 @@ namespace Api.Areas.Companion.Controllers
                 return Forbid();
             var existing = await CompanionPetService.FindAsyncDto(CompanionPetDto.Id);
             if (!existing.IsSuccess || existing.Data?.CompanionId != _current.CurrentUser.CompanionId.Value)
-                return Ok(new BaseResultDto<CompanionPetDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionPetDto>(false, Resource.Notification.AccessDenied, default!));
             CompanionPetDto.CompanionId = _current.CurrentUser.CompanionId.Value;
             var result = CompanionPetService.UpdateDto(CompanionPetDto);
             return Ok(result);
@@ -96,7 +96,7 @@ namespace Api.Areas.Companion.Controllers
         {
             var existing = await CompanionPetService.FindAsyncDto(id);
             if (!existing.IsSuccess || existing.Data?.CompanionId != _current.CurrentUser.CompanionId)
-                return Ok(new BaseResultDto<CompanionPetDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<CompanionPetDto>(false, Resource.Notification.AccessDenied, default!));
             var result = CompanionPetService.DeleteDto(id);
             return Ok(result);
         }

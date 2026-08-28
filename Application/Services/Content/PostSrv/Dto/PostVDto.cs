@@ -12,6 +12,8 @@ namespace Application.Services.Content.PostSrv.Dto
 {
     public class PostVDto : Seo_Full_FieldDto
     {
+        public string Label { get; set; }
+        public string Slug { get; set; }
         public string Subject { get; set; }
         public string SubNews { get; set; }
         public long? PictureId { get; set; }

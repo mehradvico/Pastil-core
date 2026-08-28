@@ -44,7 +44,7 @@ namespace Api.Areas.Seller.Controllers
             var productOrder = await productOrderService.FindAsyncVDto(id);
             if (productOrder is BaseResultDto<ProductOrderVDto> typed && typed.IsSuccess &&
                 (typed.Data?.ProductOrderStores == null || !typed.Data.ProductOrderStores.Any(s => s.StoreId == _currentUser.CurrentUser.StoreId)))
-                return Ok(new BaseResultDto<ProductOrderVDto>(false, Resource.Notification.AccessDenied, default));
+                return Ok(new BaseResultDto<ProductOrderVDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(productOrder);
         }
         /// <summary>

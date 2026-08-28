@@ -23,6 +23,9 @@ namespace Api.Areas.Admin.Controllers
         [HttpGet("{id:long}")]
         public async Task<IActionResult> Get(long id) => Ok(await _service.FindAsyncDto(id));
 
+        [HttpGet("CheckLabel")]
+        public async Task<IActionResult> CheckLabel([FromQuery] string label, [FromQuery] long? excludeId) => Ok(await _service.CheckLabelAvailableAsync(label, excludeId));
+
         [HttpPost]
         public async Task<IActionResult> Post(PostDto dto) => Ok(await _service.InsertAsyncDto(dto));
 
