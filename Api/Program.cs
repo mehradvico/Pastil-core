@@ -251,11 +251,9 @@ var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>(
 recurringJobManager.AddOrUpdate<INoticeService>("ArchiveNotices", x => x.ArchiveExpiredAsync(), Cron.Hourly);
 var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
     OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
-recurringJobManager.AddOrUpdate<IMemoryService>(
-    "MemoryDailyReminder",
-    service => service.SendDailyReminderAsync(CancellationToken.None),
-    Cron.Hourly,
-    new RecurringJobOptions { TimeZone = tehranTimeZone });
+// Removed: memory-reminder push is now sent from the panel's own push
+// message flow instead of this backend job — see PushMessage/PushBroadcastSrv.
+recurringJobManager.RemoveIfExists("MemoryDailyReminder");
 recurringJobManager.AddOrUpdate<IReminderService>(
     "Reminder",
     service => service.SyncReminderAsync(),

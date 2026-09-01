@@ -2,6 +2,7 @@
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Enumerable.Message;
+using Application.Common.Geography.Iface;
 using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Interface;
@@ -48,8 +49,9 @@ namespace Application.Services.TripSrv.TripSrv
         private readonly IWalletService _walletService;
         private readonly ICurrentUserHelper _currentUser;
         private readonly IPushNotificationService _pushNotificationService;
+        private readonly IGeographyService _geographyService;
         private readonly ILogger<TripService> _logger;
-        public TripService(IDataBaseContext _context, IMapper mapper, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, IPriceCalculationService priceCalculationService, ITripOptionService tripOptionService, ICodeService codeService, IMessageSenderService messageSender, INoticeService noticeService, ICurrentUserHelper currentUser, IPushNotificationService pushNotificationService, ILogger<TripService> logger) : base(_context, mapper)
+        public TripService(IDataBaseContext _context, IMapper mapper, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, IPriceCalculationService priceCalculationService, ITripOptionService tripOptionService, ICodeService codeService, IMessageSenderService messageSender, INoticeService noticeService, ICurrentUserHelper currentUser, IPushNotificationService pushNotificationService, IGeographyService geographyService, ILogger<TripService> logger) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -63,6 +65,7 @@ namespace Application.Services.TripSrv.TripSrv
             this._walletService = walletService;
             _currentUser = currentUser;
             _pushNotificationService = pushNotificationService;
+            _geographyService = geographyService;
             _logger = logger;
         }
         //public async Task<BaseResultDto<TripVDto>> UpdateVDtoAsync(TripVDto vDto)
@@ -104,7 +107,7 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task<BaseResultDto<TripVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).ThenInclude(tp => tp.UserPet).ThenInclude(up => up.Pet).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.CancelReasonCode).Include(s => s.Driver).Include(s => s.TripPets).ThenInclude(tp => tp.UserPet).ThenInclude(up => up.Pet).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(item));
@@ -114,7 +117,7 @@ namespace Application.Services.TripSrv.TripSrv
 
         public override async Task<BaseResultDto<TripDto>> FindAsyncDto(long id)
         {
-            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.CancelReasonCode).Include(s => s.Driver).Include(s => s.TripPets).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(item));
@@ -375,6 +378,11 @@ namespace Application.Services.TripSrv.TripSrv
 
             if (!isUpdate && trip.IsOnline)
             {
+                if (dto.PreviousTripId.HasValue)
+                {
+                    await CarryForwardDriverExclusionsAsync(dto.PreviousTripId.Value, trip.Id, trip.UserId);
+                }
+
                 await BroadcastTripAvailableAsync(trip.Id);
 
                 await _noticeService.CreateAsync(new NoticeCreateDto
@@ -482,10 +490,12 @@ namespace Application.Services.TripSrv.TripSrv
             {
                 // آپدیت اتمیک با شرط DriverId == null در همون UPDATE — جلوگیری از race condition
                 // وقتی چند راننده هم‌زمان می‌زنن قبول؛ فقط اولی که واقعاً commit بشه برنده‌ست.
+                // راننده‌ای که قبلاً این سفر (یا نسخه‌ی قبلی‌اش) را رد/لغو کرده، دیگر نمی‌تواند آن را بپذیرد.
                 var claimedRows = await _context.Trips
                     .Where(t => t.Id == dto.Id
                         && t.DriverId == null
-                        && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested)
+                        && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
+                        && !_context.TripDriverExclusions.Any(e => e.TripId == t.Id && e.DriverId == dto.DriverId))
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(t => t.DriverId, dto.DriverId)
                         .SetProperty(t => t.DriverStatusId, dto.DriverStatusId)
@@ -497,18 +507,44 @@ namespace Application.Services.TripSrv.TripSrv
                 {
                     return new BaseResultDto<TripDriverChangeStatusDto>(false, Resource.Notification.ThisTripHasBeenReservedForAnotherDriver, dto);
                 }
+
+                await _messageSender.SendMessageAsync(
+                    messageType: MessageTypeEnum.DriverAccepted,
+                    mobileReceptor: userPet.User.Mobile,
+                    emailReceptor: null,
+                    token1: driver.Name,
+                    token2: userPet.Name,
+                    sendDate: DateTime.Now
+                    );
             }
             else if (dto.DriverStatusId == (long)DriverStatusEnum.DriverStatus_Rejected)
             {
-                var rejectedRows = await _context.Trips
-                    .Where(t => t.Id == dto.Id
-                        && (t.DriverId == null || t.DriverId == dto.DriverId)
-                        && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested)
-                    .ExecuteUpdateAsync(s => s.SetProperty(t => t.DriverStatusId, dto.DriverStatusId));
+                // این سفر همچنان بدون‌راننده باقی می‌ماند و برای بقیه‌ی راننده‌ها نمایش داده می‌شود — فقط
+                // برای همین راننده (به‌صورت جداگانه، نه یک فیلد مشترک روی خود سفر) دیگر نمایش داده نمی‌شود.
+                var stillOpen = await _context.Trips.AnyAsync(t => t.Id == dto.Id
+                    && t.DriverId == null
+                    && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested);
 
-                if (rejectedRows > 0)
+                if (!stillOpen)
                 {
-                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverSelectionRequired, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripDriverSelectionRequired}:{trip.Id}" });
+                    return new BaseResultDto<TripDriverChangeStatusDto>(false, Resource.Notification.ThisTripHasBeenReservedForAnotherDriver, dto);
+                }
+
+                var alreadyExcluded = await _context.TripDriverExclusions
+                    .AnyAsync(e => e.TripId == dto.Id && e.DriverId == dto.DriverId);
+
+                if (!alreadyExcluded)
+                {
+                    await _context.TripDriverExclusions.AddAsync(new TripDriverExclusion
+                    {
+                        TripId = dto.Id,
+                        DriverId = dto.DriverId,
+                        ReasonId = (int)TripDriverExclusionReasonEnum.Rejected,
+                        CreateDate = DateTime.Now
+                    });
+                    await _context.SaveChangesAsync();
+
+                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverSelectionRequired, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripDriverSelectionRequired}:{trip.Id}:{dto.DriverId}" });
                 }
             }
             else
@@ -516,14 +552,6 @@ namespace Application.Services.TripSrv.TripSrv
                 return new BaseResultDto<TripDriverChangeStatusDto>(false, Resource.Notification.PleaseChangeTheStatus, dto);
             }
 
-            await _messageSender.SendMessageAsync(
-                messageType: MessageTypeEnum.DriverAccepted,
-                mobileReceptor: userPet.User.Mobile,
-                emailReceptor: null,
-                token1: driver.Name,
-                token2: userPet.Name,
-                sendDate: DateTime.Now
-                );
             return new BaseResultDto<TripDriverChangeStatusDto>(true, Resource.Notification.Success, dto);
         }
 
@@ -544,12 +572,9 @@ namespace Application.Services.TripSrv.TripSrv
             }
             else if (dto.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled)
             {
-                if (trip.ProgressStageId >= (int)TripProgressStageEnum.PetPickedUp)
-                {
-                    return new BaseResultDto<TripUserChangeStatusDto>(false, Resource.Notification.TripCannotBeCanceledAfterPetPickup, dto);
-                }
-
-                await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripCancelledByUser, ActorUserId = trip.UserId, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripCancelledByUser}:{trip.Id}" });
+                // لغو سفر دیگر از این endpoint عمومی ممکن نیست — باید دلیل لغو ثبت شود (از UpdateTripUserStatusController.Put
+                // به CancelByUserAsync/EndUser/TripUserCancel منتقل شده).
+                return new BaseResultDto<TripUserChangeStatusDto>(false, Resource.Notification.PleaseChangeTheStatus, dto);
             }
             else
             {
@@ -588,15 +613,53 @@ namespace Application.Services.TripSrv.TripSrv
             return new BaseResultDto<TripUserChangeStatusDto>(true, Resource.Notification.Success, dto);
         }
 
+        /// <summary>
+        /// انتخاب دستی راننده توسط ادمین — فقط برای سفرهایی که هنوز هیچ راننده‌ای قبول نکرده (معمولاً
+        /// سفرهای رزرویی که تا نزدیکی موعد، کسی از راننده‌ها Broadcast رو قبول نکرده). دقیقاً همون اثر
+        /// «راننده قبول کرد» رو داره — سفر مستقیم می‌ره روی Accepted، نه یک وضعیت میانی جدید.
+        /// </summary>
         public async Task<BaseResultDto<TripAdminChooseDriverDto>> ChooseDriverAsync(TripAdminChooseDriverDto dto)
         {
             var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
-            trip.DriverId = dto.DriverId;
-            var driver = await _context.Drivers.FindAsync(trip.DriverId);
+            if (trip == null)
+                return new BaseResultDto<TripAdminChooseDriverDto>(false, Resource.Notification.NothingFound, dto);
+
+            if (trip.DriverId.HasValue || trip.TripStatusId != (long)TripStatusEnum.TripStatus_Requested)
+                return new BaseResultDto<TripAdminChooseDriverDto>(false, Resource.Notification.ThisTripHasBeenReservedForAnotherDriver, dto);
+
+            var driver = await _context.Drivers.FirstOrDefaultAsync(s => s.Id == dto.DriverId && !s.Deleted);
+            if (driver == null || !driver.Active || driver.StatusId != (long)DriverRequestStatusEnum.DriverRequestStatus_Accepted)
+                return new BaseResultDto<TripAdminChooseDriverDto>(false, Resource.Notification.DriverRequesterUserInvalid, dto);
+
             var userPet = await _context.UserPets.Include(s => s.Pet).FirstOrDefaultAsync(s => s.Id == trip.UserPetId);
-            await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.UserChooseDriver, mobileReceptor: driver.Phone, emailReceptor: null, token1: userPet.Pet.Name);
+
+            trip.DriverId = dto.DriverId;
+            trip.DriverStatusId = (long)DriverStatusEnum.DriverStatus_Accepted;
+            trip.TripStatusId = (long)TripStatusEnum.TripStatus_Accepted;
+            trip.ProgressStageId = (int)TripProgressStageEnum.EnRouteOrigin;
+            trip.ProgressUpdateDate = DateTime.Now;
+
             _context.Trips.Update(trip);
             await _context.SaveChangesAsync();
+
+            try
+            {
+                await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.UserChooseDriver, mobileReceptor: driver.Phone, emailReceptor: null, token1: userPet?.Pet?.Name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Notifying driver {DriverId} for admin-assigned trip {TripId} failed.", driver.Id, trip.Id);
+            }
+
+            try
+            {
+                await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripRequestAvailable, driver.OwnerId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Sending admin-assignment push for trip {TripId} failed.", trip.Id);
+            }
+
             return new BaseResultDto<TripAdminChooseDriverDto>(true, Resource.Notification.Success, dto);
         }
 
@@ -789,14 +852,61 @@ namespace Application.Services.TripSrv.TripSrv
         }
 
         /// <summary>
+        /// وقتی کاربر بعد از لغوشدن یک سفر توسط راننده، از صفحه‌ی درخواست دوباره ثبت می‌کند (با همان یا اطلاعات
+        /// ویرایش‌شده)، راننده‌ای که سفر قبلی را رد یا لغو کرده بود باید در سفر جدید هم مستثنا بماند.
+        /// </summary>
+        private async Task CarryForwardDriverExclusionsAsync(long previousTripId, long newTripId, long userId)
+        {
+            var previousTrip = await _context.Trips.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == previousTripId
+                    && p.UserId == userId
+                    && p.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled);
+
+            if (previousTrip == null)
+                return;
+
+            var carriedDriverIds = await _context.TripDriverExclusions
+                .Where(e => e.TripId == previousTripId)
+                .Select(e => e.DriverId)
+                .ToListAsync();
+
+            if (previousTrip.CancelInitiatorId == (int)TripCancelInitiatorEnum.Driver && previousTrip.DriverId.HasValue)
+            {
+                carriedDriverIds.Add(previousTrip.DriverId.Value);
+            }
+
+            carriedDriverIds = carriedDriverIds.Distinct().ToList();
+            if (!carriedDriverIds.Any())
+                return;
+
+            foreach (var driverId in carriedDriverIds)
+            {
+                _context.TripDriverExclusions.Add(new TripDriverExclusion
+                {
+                    TripId = newTripId,
+                    DriverId = driverId,
+                    ReasonId = (int)TripDriverExclusionReasonEnum.CarriedFromPreviousTrip,
+                    CreateDate = DateTime.Now
+                });
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        /// <summary>
         /// اعلام یک سفرِ بدون‌راننده به همه‌ی راننده‌های فعال و تاییدشده — پوش broadcast.
         /// </summary>
         private async Task BroadcastTripAvailableAsync(long tripId)
         {
             try
             {
+                var excludedDriverIds = await _context.TripDriverExclusions
+                    .Where(e => e.TripId == tripId)
+                    .Select(e => e.DriverId)
+                    .ToListAsync();
+
                 var activeDriverOwnerIds = await _context.Drivers
-                    .Where(d => d.Deleted == false && d.Active && d.Approved)
+                    .Where(d => d.Deleted == false && d.Active && d.Approved && !excludedDriverIds.Contains(d.Id))
                     .Select(d => d.OwnerId)
                     .ToListAsync();
 
@@ -813,11 +923,15 @@ namespace Application.Services.TripSrv.TripSrv
 
         /// <summary>
         /// همه‌ی سفرهای لحظه‌ایِ بدون‌راننده — برای مرور و پذیرفتن توسط هر راننده‌ای (اولین پذیرنده برنده است).
+        /// سفرهایی که همین راننده قبلاً رد کرده یا (در نسخه‌ی قبلی‌شان) لغو کرده، نمایش داده نمی‌شوند.
         /// </summary>
-        public async Task<BaseResultDto<List<TripVDto>>> GetAvailableTripsForDriverAsync()
+        public async Task<BaseResultDto<List<TripVDto>>> GetAvailableTripsForDriverAsync(long driverId)
         {
             var trips = await _context.Trips
-                .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested && t.DriverId == null && t.IsOnline)
+                .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
+                    && t.DriverId == null
+                    && t.IsOnline
+                    && !_context.TripDriverExclusions.Any(e => e.TripId == t.Id && e.DriverId == driverId))
                 .Include(s => s.TripStop)
                 .Include(s => s.TripOptions)
                 .Include(s => s.UserPet).ThenInclude(s => s.User)
@@ -831,12 +945,13 @@ namespace Application.Services.TripSrv.TripSrv
         }
 
         /// <summary>
-        /// لغو یک سفرِ پذیرفته‌شده توسط همون راننده — سفر به حالت «بدون‌راننده» برمی‌گرده و دوباره
-        /// به همه‌ی راننده‌ها Broadcast می‌شه. بعد از تحویل‌گرفتن پت دیگه قابل لغو نیست.
+        /// لغو یک سفرِ پذیرفته‌شده توسط همون راننده — سفر «مختومه» می‌شود (دیگر بازنشانی/Broadcast مجدد نمی‌شود)
+        /// و دلیل لغو ثبت می‌شود. کاربر باید از صفحه‌ی درخواست سفر، درخواست جدیدی ثبت کند؛ آن درخواست جدید
+        /// دیگر برای همین راننده نمایش داده نخواهد شد. بعد از تحویل‌گرفتن پت دیگر قابل لغو نیست.
         /// </summary>
-        public async Task<BaseResultDto<TripVDto>> CancelByDriverAsync(long tripId, long driverId)
+        public async Task<BaseResultDto<TripVDto>> CancelByDriverAsync(TripDriverCancelDto dto, long driverId)
         {
-            var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == tripId && s.DriverId == driverId);
+            var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && s.DriverId == driverId);
 
             if (trip == null)
                 return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
@@ -847,13 +962,34 @@ namespace Application.Services.TripSrv.TripSrv
             if (trip.ProgressStageId >= (int)TripProgressStageEnum.PetPickedUp)
                 return new BaseResultDto<TripVDto>(false, Resource.Notification.TripCannotBeCanceledByDriverAfterPetPickup, null);
 
-            trip.DriverId = null;
-            trip.DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested;
-            trip.TripStatusId = (long)TripStatusEnum.TripStatus_Requested;
-            trip.ProgressStageId = (int)TripProgressStageEnum.None;
-            trip.ProgressUpdateDate = null;
+            var reasonValid = await _context.Codes.Include(c => c.CodeGroup)
+                .AnyAsync(c => c.Id == dto.CancelReasonCodeId && c.Active && c.CodeGroup.Label == TripCancelReasonCodeGroups.Driver);
+
+            if (!reasonValid)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.PleaseChangeTheStatus, null);
+
+            trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
+            trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.Driver;
+            trip.CancelReasonCodeId = dto.CancelReasonCodeId;
+            trip.CancelReasonDetail = dto.CancelDetail;
+            trip.ProgressUpdateDate = DateTime.Now;
 
             _context.Trips.Update(trip);
+
+            var alreadyExcluded = await _context.TripDriverExclusions
+                .AnyAsync(e => e.TripId == trip.Id && e.DriverId == driverId);
+
+            if (!alreadyExcluded)
+            {
+                await _context.TripDriverExclusions.AddAsync(new TripDriverExclusion
+                {
+                    TripId = trip.Id,
+                    DriverId = driverId,
+                    ReasonId = (int)TripDriverExclusionReasonEnum.DriverCanceled,
+                    CreateDate = DateTime.Now
+                });
+            }
+
             await _context.SaveChangesAsync();
 
             try
@@ -874,7 +1010,65 @@ namespace Application.Services.TripSrv.TripSrv
                 DeduplicationKey = $"{NoticeTypeLabels.TripDriverCanceled}:{trip.Id}"
             });
 
-            await BroadcastTripAvailableAsync(trip.Id);
+            return await FindAsyncVDto(trip.Id);
+        }
+
+        /// <summary>
+        /// لغو یک سفر توسط کاربر — سفر «مختومه» می‌شود و دلیل لغو ثبت می‌شود. اگر راننده‌ای پذیرفته بود،
+        /// به او اطلاع داده می‌شود. بعد از تحویل‌گرفتن پت دیگر قابل لغو نیست.
+        /// </summary>
+        public async Task<BaseResultDto<TripVDto>> CancelByUserAsync(TripUserCancelDto dto, long userId)
+        {
+            var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && s.UserId == userId);
+
+            if (trip == null)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
+
+            if (trip.TripStatusId == (long)TripStatusEnum.TripStatus_Compeleted || trip.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.PleaseChangeTheStatus, null);
+
+            if (trip.ProgressStageId >= (int)TripProgressStageEnum.PetPickedUp)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.TripCannotBeCanceledAfterPetPickup, null);
+
+            var reasonValid = await _context.Codes.Include(c => c.CodeGroup)
+                .AnyAsync(c => c.Id == dto.CancelReasonCodeId && c.Active && c.CodeGroup.Label == TripCancelReasonCodeGroups.User);
+
+            if (!reasonValid)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.PleaseChangeTheStatus, null);
+
+            var previousDriverId = trip.DriverId;
+
+            trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
+            trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.User;
+            trip.CancelReasonCodeId = dto.CancelReasonCodeId;
+            trip.CancelReasonDetail = dto.CancelDetail;
+            trip.ProgressUpdateDate = DateTime.Now;
+
+            _context.Trips.Update(trip);
+            await _context.SaveChangesAsync();
+
+            if (previousDriverId.HasValue)
+            {
+                try
+                {
+                    var driver = await _context.Drivers.FindAsync(previousDriverId.Value);
+                    if (driver != null)
+                        await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripUserCanceled, driver.OwnerId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Sending user-cancel push for trip {TripId} failed.", trip.Id);
+                }
+            }
+
+            await _noticeService.CreateAsync(new NoticeCreateDto
+            {
+                Label = NoticeTypeLabels.TripCancelledByUser,
+                ActorUserId = trip.UserId,
+                ReferenceType = "Trip",
+                ReferenceId = trip.Id,
+                DeduplicationKey = $"{NoticeTypeLabels.TripCancelledByUser}:{trip.Id}"
+            });
 
             return await FindAsyncVDto(trip.Id);
         }
@@ -1056,6 +1250,21 @@ namespace Application.Services.TripSrv.TripSrv
                 };
             }).ToList();
 
+            foreach (var trip in result)
+            {
+                if (trip.Origin == null || trip.Destination == null)
+                    continue;
+
+                try
+                {
+                    trip.RouteCoordinates = await _geographyService.GetDrivingRouteAsync(trip.Origin, trip.Destination);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Fetching driving route for trip {TripId} failed.", trip.Id);
+                }
+            }
+
             return new BaseResultDto<List<TripAdminLiveDto>>(true, result);
         }
 
@@ -1131,8 +1340,11 @@ namespace Application.Services.TripSrv.TripSrv
 
             if (trip.Price <= 0)
             {
-                _logger.LogError("Calculated price for reservation-linked trip (reserve {ReserveId}) was {Price} — refusing to create a free trip.", dto.CompanionReserveId, trip.Price);
-                return new BaseResultDto<TripDto>(false, Resource.Notification.Unsuccess, null);
+                // دلیل شایع‌ترین صفرشدن قیمت: هیچ ردیف PriceCalculation ساعتِ حرکتِ این سفر (نه ساعتِ ثبت
+                // درخواست) رو پوشش نمی‌ده — چون سفر رزرویی برخلاف حالت لحظه‌ای می‌تونه به هر ساعتی از شبانه‌روز
+                // بیفته. پیام مشخص بده تا به‌جای شکست خاموش، قابل تشخیص و رفع باشه.
+                _logger.LogError("Calculated price for reservation-linked trip (reserve {ReserveId}) was {Price} at scheduled hour {Hour} — refusing to create a free trip. Check PriceCalculation coverage for this hour.", dto.CompanionReserveId, trip.Price, scheduledDepartureAt.Hour);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.FinalPriceIsNotAvailable, null);
             }
 
             trip.PaymentPrice = trip.Price;
@@ -1142,12 +1354,146 @@ namespace Application.Services.TripSrv.TripSrv
             await _context.Trips.AddAsync(trip);
             await _context.SaveChangesAsync();
 
+            // برخلاف حالتِ قبلی (اختصاصِ خودکارِ نزدیک‌ترین راننده در لحظه‌ی حرکت)، همون لحظه‌ی ثبت درخواست
+            // به همه‌ی راننده‌های فعال Broadcast می‌شه — دقیقاً مثل سفر لحظه‌ای — تا راننده‌ها زودتر (نه فقط
+            // دقیقه‌ی آخر) بتونن قبول کنن. ثبتِ خودِ رزرو معطلِ این نمی‌مونه (این متد فوراً برمی‌گرده).
+            await BroadcastTripAvailableAsync(trip.Id);
+
+            await _noticeService.CreateAsync(new NoticeCreateDto
+            {
+                Label = NoticeTypeLabels.TripDriverRequested,
+                ActorUserId = trip.UserId,
+                ReferenceType = "Trip",
+                ReferenceId = trip.Id,
+                DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}"
+            });
+
             return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(trip));
         }
 
         /// <summary>
-        /// Job زمان‌بندی‌شده (Hangfire): سفرهای رزرویی که زمان حرکتشان رسیده را به نزدیک‌ترین راننده‌ی
-        /// فعال اختصاص می‌دهد. سفرهایی که راننده‌ی فعال نزدیکی برایشان پیدا نشود، برای اجرای بعدی باقی می‌مانند.
+        /// حالت سه — سفرِ پت‌رسانِ «تاریخ‌دار»: نه سفر لحظه‌ای (حالت یک)، نه متصل به رزرو کلینیک (حالت دو).
+        /// کاربر خودش یک تاریخ/ساعت دلخواه انتخاب می‌کنه؛ درست مثل سفر لحظه‌ای به همه‌ی راننده‌ها Broadcast
+        /// می‌شه و ثبتش معطل تاییدِ هیچ راننده‌ای نمی‌مونه — فقط راننده‌ی پذیرنده باید سرِ همون زمانِ مشخص‌شده
+        /// در مبدا حاضر بشه. پرداخت (طبق قرارداد مشترکِ همه‌ی حالت‌ها) فقط بعد از پذیرشِ راننده امکان‌پذیره.
+        /// </summary>
+        public async Task<BaseResultDto<TripDto>> CreateScheduledTripAsync(TripScheduledCreateDto dto, long userId)
+        {
+            if (dto.Origin == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetOrigin, null);
+
+            if (dto.Destination == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetDestination, null);
+
+            if (dto.ScheduledDepartureAt <= DateTime.Now)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.CompanionReserveCannotSelectPastTime, null);
+
+            var priceInput = new TripDto
+            {
+                Origin = dto.Origin,
+                Destination = dto.Destination,
+                FromAddress = dto.FromAddress,
+                ToAddress = dto.ToAddress,
+                TripStartDateTime = dto.ScheduledDepartureAt,
+                RoundTrip = dto.RoundTrip,
+                TripOptionIds = dto.TripOptionIds
+            };
+
+            var trip = new Trip
+            {
+                Origin = new Point(dto.Origin.x, dto.Origin.y) { SRID = 4326 },
+                Destination = new Point(dto.Destination.x, dto.Destination.y) { SRID = 4326 },
+                FromAddress = dto.FromAddress,
+                ToAddress = dto.ToAddress,
+                UserId = userId,
+                IsOnline = true,
+                RoundTrip = dto.RoundTrip,
+                CreateDate = DateTime.Now,
+                TripStartDateTime = dto.ScheduledDepartureAt,
+                DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
+                TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
+                CompanionReserveId = null,
+                ScheduledDepartureAt = dto.ScheduledDepartureAt,
+                OwnerRidesAlong = dto.OwnerRidesAlong,
+                ScheduledDispatched = false
+            };
+
+            try
+            {
+                trip.Price = await _priceCalculationService.CalculateTripPrice(priceInput);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Calculating price for scheduled trip (user {UserId}) failed.", userId);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.Unsuccess, null);
+            }
+
+            if (trip.Price <= 0)
+            {
+                _logger.LogError("Calculated price for scheduled trip (user {UserId}) was {Price} at scheduled hour {Hour} — refusing to create a free trip. Check PriceCalculation coverage for this hour.", userId, trip.Price, dto.ScheduledDepartureAt.Hour);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.FinalPriceIsNotAvailable, null);
+            }
+
+            trip.PaymentPrice = trip.Price;
+
+            if (dto.TripOptionIds != null && dto.TripOptionIds.Any())
+            {
+                trip.TripOptions = dto.TripOptionIds
+                    .Select(id => new TripOption { Id = id })
+                    .ToList();
+
+                foreach (var option in trip.TripOptions)
+                {
+                    _context.Entry(option).State = EntityState.Unchanged;
+                }
+            }
+
+            ApplyTripPets(trip, dto.UserPetIds, null);
+
+            await _context.Trips.AddAsync(trip);
+            await _context.SaveChangesAsync();
+
+            await BroadcastTripAvailableAsync(trip.Id);
+
+            await _noticeService.CreateAsync(new NoticeCreateDto
+            {
+                Label = NoticeTypeLabels.TripDriverRequested,
+                ActorUserId = trip.UserId,
+                ReferenceType = "Trip",
+                ReferenceId = trip.Id,
+                DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}"
+            });
+
+            return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(trip));
+        }
+
+        /// <summary>
+        /// سفرِ پت‌رسانِ متصل به یک رزرو مشخص (اگه وجود داشته باشه) — برای نمایش «فلان راننده تایید کرد»
+        /// یا «هنوز کسی قبول نکرده» به کاربر توی صفحه‌ی همون رزرو.
+        /// </summary>
+        public async Task<BaseResultDto<TripVDto>> GetTripForReservationAsync(long companionReserveId, long userId)
+        {
+            var trip = await _context.Trips
+                .Include(s => s.Driver)
+                .Include(s => s.DriverStatus)
+                .Include(s => s.TripStatus)
+                .AsNoTracking()
+                .Where(s => s.CompanionReserveId == companionReserveId && s.UserId == userId)
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (trip == null)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
+
+            return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(trip));
+        }
+
+        /// <summary>
+        /// Job زمان‌بندی‌شده (Hangfire): دیگه خودکار نزدیک‌ترین راننده رو اختصاص نمی‌ده — چون سفرهای
+        /// رزرویی از همون لحظه‌ی ثبت (نه فقط لحظه‌ی حرکت) Broadcast می‌شن و راننده‌ها می‌تونن زودتر قبول
+        /// کنن (بخش CreateReservationLinkedTripAsync). این Job فقط برای سفرهایی که موعد حرکتشون رسیده
+        /// ولی هنوز *هیچ* راننده‌ای قبولشون نکرده، یک یادآوری به ادمین می‌ده تا از پنل (TripChooseDriver)
+        /// خودش یکی رو دستی انتخاب کنه.
         /// </summary>
         public async Task DispatchScheduledTripsAsync()
         {
@@ -1156,52 +1502,28 @@ namespace Application.Services.TripSrv.TripSrv
                     t.ScheduledDepartureAt.HasValue &&
                     !t.ScheduledDispatched &&
                     t.ScheduledDepartureAt <= DateTime.Now &&
-                    t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested)
+                    t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested &&
+                    t.DriverId == null)
                 .AsTracking()
                 .ToListAsync();
 
             if (due.Count == 0)
                 return;
 
-            var activeDrivers = await _context.Drivers
-                .Where(d => !d.Deleted && d.Active)
-                .Select(d => new { d.Id, d.OwnerId, d.Phone, d.Name })
-                .ToListAsync();
-
-            if (activeDrivers.Count == 0)
-                return;
-
-            var driverLocations = await _context.UserCurrentLocations
-                .Where(l => activeDrivers.Select(d => d.OwnerId).Contains(l.UserId))
-                .ToListAsync();
+            var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
 
             foreach (var trip in due)
             {
-                var nearest = activeDrivers
-                    .Select(d => new
-                    {
-                        Driver = d,
-                        Location = driverLocations.FirstOrDefault(l => l.UserId == d.OwnerId)
-                    })
-                    .Where(x => x.Location?.Location != null)
-                    .Select(x => new { x.Driver, Distance = trip.Origin.Distance(x.Location.Location) })
-                    .OrderBy(x => x.Distance)
-                    .FirstOrDefault();
-
-                if (nearest == null)
-                    continue;
-
-                trip.DriverId = nearest.Driver.Id;
                 trip.ScheduledDispatched = true;
 
                 try
                 {
-                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.DriverRequest, mobileReceptor: nearest.Driver.Phone, emailReceptor: null, token1: nearest.Driver.Name);
-                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverRequested, ActorUserId = trip.UserId, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"ScheduledDispatch:{trip.Id}" });
+                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.DriverNotAcceptedYet, mobileReceptor: adminMobile, emailReceptor: null, token1: "-", token2: "-", token3: trip.Id.ToString());
+                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverSelectionRequired, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"ScheduledDispatchReminder:{trip.Id}" });
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Notifying driver {DriverId} for scheduled trip {TripId} failed.", nearest.Driver.Id, trip.Id);
+                    _logger.LogError(ex, "Notifying admin about unaccepted scheduled trip {TripId} failed.", trip.Id);
                 }
             }
 

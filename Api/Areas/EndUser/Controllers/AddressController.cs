@@ -94,5 +94,16 @@ namespace Api.Areas.EndUser.Controllers
             var dto = AddressService.DeleteDto(id);
             return Ok(dto);
         }
+
+        /// <summary>
+        /// انتخاب این آدرس به‌عنوان آدرس منتخب کاربر (بقیه‌ی آدرس‌های همون کاربر خودکار از حالت منتخب خارج می‌شن)
+        /// </summary>
+        [HttpPut("Select/{id}")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Select(long id)
+        {
+            var result = await AddressService.SelectAsync(id, _currentUserHelper.CurrentUser.UserId);
+            return Ok(result);
+        }
     }
 }

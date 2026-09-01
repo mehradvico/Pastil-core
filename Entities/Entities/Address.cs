@@ -18,6 +18,7 @@ namespace Entities.Entities
         public string PostalCode { get; set; }
         public string NationalCode { get; set; }
         public bool Deleted { get; set; }
+        public bool IsSelected { get; set; }
         public User User { get; set; }
         public City City { get; set; }
     }

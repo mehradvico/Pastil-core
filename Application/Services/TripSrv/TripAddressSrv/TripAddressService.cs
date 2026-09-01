@@ -34,6 +34,46 @@ namespace Application.Services.TripSrv.TripAddressSrv
             return new BaseResultDto<TripAddressVDto>(false, mapper.Map<TripAddressVDto>(item));
         }
 
+        public override async Task<BaseResultDto<TripAddressDto>> InsertAsyncDto(TripAddressDto dto)
+        {
+            // اولین آدرسِ ذخیره‌شده‌ی هر کاربر خودکار منتخب می‌شه — بقیه باید صریحاً از SelectAsync استفاده کنن.
+            var hasAnyAddress = await _context.TripAddresses.AnyAsync(s => s.UserId == dto.UserId && !s.Deleted);
+
+            var result = await base.InsertAsyncDto(dto);
+
+            if (!hasAnyAddress && result.IsSuccess && result.Data != null)
+            {
+                await _context.TripAddresses
+                    .Where(s => s.Id == result.Data.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.IsSelected, true));
+                result.Data.IsSelected = true;
+            }
+
+            return result;
+        }
+
+        public async Task<BaseResultDto> SelectAsync(long id, long userId)
+        {
+            var address = await _context.TripAddresses.AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+
+            if (address == null || address.UserId != userId)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+            if (!address.IsSelected)
+            {
+                await _context.TripAddresses
+                    .Where(s => s.UserId == userId && s.Id != id && s.IsSelected && !s.Deleted)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.IsSelected, false));
+
+                address.IsSelected = true;
+                _context.TripAddresses.Update(address);
+                await _context.SaveChangesAsync();
+            }
+
+            return new BaseResultDto(true, Resource.Notification.Success);
+        }
+
         public TripAddressSearchDto Search(TripAddressInputDto baseSearchDto)
         {
             var model = _context.TripAddresses.Include(s => s.User).AsQueryable().Where(s => !s.Deleted);

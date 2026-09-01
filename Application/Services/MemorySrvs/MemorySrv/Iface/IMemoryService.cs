@@ -12,6 +12,5 @@ namespace Application.Services.MemorySrvs.MemorySrv.Iface
         Task<BaseResultDto<MemoryVDto>> InsertAsync(long userId, MemoryDto dto, CancellationToken cancellationToken = default);
         Task<BaseResultDto<MemoryVDto>> UpdateAsync(long userId, MemoryDto dto, CancellationToken cancellationToken = default);
         Task<BaseResultDto> DeleteAsync(long userId, long id, CancellationToken cancellationToken = default);
-        Task SendDailyReminderAsync(CancellationToken cancellationToken = default);
     }
 }

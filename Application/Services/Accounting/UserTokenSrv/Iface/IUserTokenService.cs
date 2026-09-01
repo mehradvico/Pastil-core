@@ -12,7 +12,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Iface
             User user,
             bool isAdmin = false,
             bool rememberMe = false,
-            DateTime? refreshTokenExpiresAt = null);
+            DateTime? refreshTokenExpiresAt = null,
+            long? rotatedFromTokenId = null);
         Task<BaseResultDto> RefreshTokenAsync(RefreshTokenDto refreshToken);
         Task<BaseResultDto> SignOut(string token);
         Task<BaseResultDto> ResetTokenAsync(

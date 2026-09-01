@@ -63,6 +63,7 @@ namespace Application.Common.Enumerable.Code
         PushTripRequestAvailable = 54,
         PushTripDriverCanceled = 55,
         PushPetBirthday = 56,
-        PushPetBirthdayUpcoming = 57
+        PushPetBirthdayUpcoming = 57,
+        PushTripUserCanceled = 58
     }
 }

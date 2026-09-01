@@ -47,7 +47,11 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
             var vapid = new VapidDetails("mailto:admin@pastil.pet", _vapid.PublicKey, _vapid.PrivateKey);
 
             var payloadDto = _mapper.Map<PushPayloadDto>(msg);
-            var payload = JsonSerializer.Serialize(payloadDto);
+            // Must match PushNotificationService's camelCase policy: the browser-side
+            // service worker reads payload.url/icon/tag (lowercase) — without this,
+            // Url/Icon/Tag serialize PascalCase and the SW's lookup silently misses
+            // them, so every notification click falls back to the home route.
+            var payload = JsonSerializer.Serialize(payloadDto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
             var subsQuery = _context.Set<Entities.Entities.PushSubscription>().Include(x => x.User).Where(x => x.IsActive);
 

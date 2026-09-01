@@ -14,5 +14,6 @@ namespace Application.Services.TripSrv.TripAddressSrv.Iface
     {
         TripAddressSearchDto Search(TripAddressInputDto baseSearchDto);
         Task<BaseResultDto<TripAddressVDto>> FindAsyncVDto(long id);
+        Task<BaseResultDto> SelectAsync(long id, long userId);
     }
 }

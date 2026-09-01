@@ -1,5 +1,6 @@
 using Application.Common.Dto.LocationPoint;
 using System;
+using System.Collections.Generic;
 
 namespace Application.Services.TripSrv.TripSrv.Dto
 {
@@ -16,6 +17,8 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public string ToAddress { get; set; }
         public PointDto Origin { get; set; }
         public PointDto Destination { get; set; }
+        // مسیر رانندگی از مبدا تا مقصد، روی خیابان‌ها (از map.ir) — برای رسم خط مسیر روی نقشه.
+        public List<PointDto> RouteCoordinates { get; set; }
 
         public long? DriverId { get; set; }
         public string DriverName { get; set; }

@@ -60,8 +60,13 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public int? ScheduledLeadMinutes { get; set; }
         public DateTime? ScheduledDepartureAt { get; set; }
         public bool OwnerRidesAlong { get; set; }
+        public int? CancelInitiatorId { get; set; }
+        public long? CancelReasonCodeId { get; set; }
+        public string CancelReasonDetail { get; set; }
+        public long? PreviousTripId { get; set; }
         public CodeVDto DriverStatus { get; set; }
         public CodeVDto TripStatus { get; set; }
+        public CodeVDto CancelReasonCode { get; set; }
         public UserPetVDto UserPet { get; set; }
         public List<UserPetVDto> UserPets { get; set; } = new List<UserPetVDto>();
         public DriverVDto Driver { get; set; }

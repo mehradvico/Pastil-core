@@ -5910,6 +5910,16 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.Driver.Controllers.CodeController">
+            <summary>
+            دیکشنری کد/گروه‌کد — فقط خواندنی، برای پرکردن لیست‌های ثابت (مثل دلایل لغو سفر) در اپ راننده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Driver.Controllers.CodeController.Get(Application.Services.CategorySrv.Dto.CodeInputDto)">
+            <summary>
+            جستجو — با CodeGroupLabel فیلتر کن (مثلاً TripCancelReason_Driver)
+            </summary>
+        </member>
         <member name="T:Api.Areas.Driver.Controllers.DriverController">
              <summary>
              مدیریت رانندگان
@@ -6024,7 +6034,7 @@
         </member>
         <member name="T:Api.Areas.Driver.Controllers.TripDriverCancelController">
             <summary>
-            لغو سفرِ پذیرفته‌شده توسط راننده — سفر به حالت بدون‌راننده برمی‌گردد و دوباره Broadcast می‌شود (پت‌رسان)
+            لغو سفرِ پذیرفته‌شده توسط راننده، همراه با دلیل لغو — سفر «مختومه» می‌شود (پت‌رسان)
             </summary>
         </member>
         <member name="T:Api.Areas.Driver.Controllers.TripLiveController">
@@ -6134,6 +6144,11 @@
              حذف آیتم
              </summary>
             
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.AddressController.Select(System.Int64)">
+            <summary>
+            انتخاب این آدرس به‌عنوان آدرس منتخب کاربر (بقیه‌ی آدرس‌های همون کاربر خودکار از حالت منتخب خارج می‌شن)
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.AssistanceController">
             <summary>
@@ -6316,6 +6331,16 @@
         <member name="M:Api.Areas.EndUser.Controllers.ClubRewardController.Get(Application.Services.Accounting.ClubRewardSrv.Dto.ClubRewardInputDto)">
             <summary>
             جستجو
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CodeController">
+            <summary>
+            دیکشنری کد/گروه‌کد — فقط خواندنی، برای پرکردن لیست‌های ثابت (مثل دلایل لغو سفر) در اپ کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CodeController.Get(Application.Services.CategorySrv.Dto.CodeInputDto)">
+            <summary>
+            جستجو — با CodeGroupLabel فیلتر کن (مثلاً TripCancelReason_User)
             </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CommentLikeController">
@@ -7726,8 +7751,13 @@
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.TripAddressController.Delete(System.Int64)">
             <summary>
-             حذف آیتم 
-            </summary>  
+             حذف آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripAddressController.Select(System.Int64)">
+            <summary>
+            انتخاب این آدرس به‌عنوان آدرس منتخب کاربر (بقیه‌ی آدرس‌های ذخیره‌شده‌ی همون کاربر خودکار از حالت منتخب خارج می‌شن)
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripController">
             <summary>
@@ -7828,6 +7858,21 @@
             آیتم جدید
             </summary>
         </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripReservationController.Get(System.Int64)">
+            <summary>
+            سفرِ پت‌رسانِ متصل به یک رزرو مشخص — برای نمایش وضعیت («فلان راننده تایید کرد» / «هنوز کسی قبول نکرده»)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.TripScheduledController">
+            <summary>
+            ساخت سفر پت‌رسانِ تاریخ‌دار (حالت سه — نه لحظه‌ای، نه متصل به رزرو کلینیک)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripScheduledController.Post(Application.Services.TripSrv.TripSrv.Dto.TripScheduledCreateDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripSetRebateController">
             <summary>
             مدیریت افزودن تخفیف سفر
@@ -7873,6 +7918,11 @@
             <param name="id">شناسه خدمات</param>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.TripUserCancelController">
+            <summary>
+            لغو سفر توسط کاربر، همراه با دلیل لغو — سفر «مختومه» می‌شود (پت‌رسان)
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.UpdateTripUserStatusController">
              <summary>

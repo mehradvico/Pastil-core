@@ -348,6 +348,9 @@
   <data name="TokenExpired" xml:space="preserve">
     <value>Token expired</value>
   </data>
+  <data name="SessionRevokedTokenReuseDetected" xml:space="preserve">
+    <value>Session revoked: this refresh token was already used, which means it was copied or shared. Please sign in again.</value>
+  </data>
   <data name="ToTimeMustBeBiggerThanFromTime" xml:space="preserve">
     <value>To time must be bigger than from time</value>
   </data>

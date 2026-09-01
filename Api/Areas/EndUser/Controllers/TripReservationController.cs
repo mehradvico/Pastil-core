@@ -34,5 +34,16 @@ namespace Api.Areas.EndUser.Controllers
             var result = await _tripService.CreateReservationLinkedTripAsync(dto, _currentUser.CurrentUser.UserId);
             return Ok(result);
         }
+
+        /// <summary>
+        /// سفرِ پت‌رسانِ متصل به یک رزرو مشخص — برای نمایش وضعیت («فلان راننده تایید کرد» / «هنوز کسی قبول نکرده»)
+        /// </summary>
+        [HttpGet("{companionReserveId}")]
+        [ProducesResponseType(typeof(BaseResultDto<TripVDto>), 200)]
+        public async Task<IActionResult> Get(long companionReserveId)
+        {
+            var result = await _tripService.GetTripForReservationAsync(companionReserveId, _currentUser.CurrentUser.UserId);
+            return Ok(result);
+        }
     }
 }

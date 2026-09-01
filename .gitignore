@@ -14,6 +14,9 @@
 *.tar
 *.tar.gz
 
+# Accidental full-folder backup archives (exceed GitHub's 100MB file limit)
+*.zip
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

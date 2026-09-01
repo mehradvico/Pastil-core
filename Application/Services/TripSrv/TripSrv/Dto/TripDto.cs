@@ -56,9 +56,14 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public DateTime? ScheduledDepartureAt { get; set; }
         public bool OwnerRidesAlong { get; set; }
         public List<long> UserPetIds { get; set; } = new List<long>();
+        public int? CancelInitiatorId { get; set; }
+        public long? CancelReasonCodeId { get; set; }
+        public string CancelReasonDetail { get; set; }
+        public long? PreviousTripId { get; set; }
         public CodeVDto DriverStatus { get; set; }
         public UserVDto User { get; set; }
         public CodeVDto TripStatus { get; set; }
+        public CodeVDto CancelReasonCode { get; set; }
         public UserPetVDto UserPet { get; set; }
         public DriverVDto Driver { get; set; }
         public CityVDto FromCity { get; set; }

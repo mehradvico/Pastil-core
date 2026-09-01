@@ -32,6 +32,9 @@ namespace Api.Areas.Driver.Controllers
         public async Task<IActionResult> Put(TripDriverChangeStatusDto dto)
         {
             dto.DriverId = _currentUser.CurrentUser.DriverId;
+            if (dto.DriverId <= 0)
+                return Ok(new BaseResultDto<TripDriverChangeStatusDto>(false, Resource.Notification.AccessDenied, dto));
+
             var result = await _tripService.UpdateTripDriverStatusAsync(dto);
             return Ok(result);
         }

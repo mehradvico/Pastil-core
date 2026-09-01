@@ -31,11 +31,18 @@ builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlSe
 builder.Services.AddApplicationServices();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
+    // Persian text formatting, but invariant (dot-separator, Western digit)
+    // number parsing/formatting - see Application/Configures/ConfigureServices.cs
+    // for why: fa's own NumberFormat breaks parsing of hardcoded invariant
+    // numeric strings, e.g. [Range(typeof(decimal), "0.01", ...)].
+    var faCulture = new CultureInfo("fa");
+    faCulture.NumberFormat = CultureInfo.InvariantCulture.NumberFormat;
+
     var supportedCultures = new List<CultureInfo>
                     {
-                        new CultureInfo("fa"),
+                        faCulture,
                     };
-    options.DefaultRequestCulture = new RequestCulture("fa", "fa");
+    options.DefaultRequestCulture = new RequestCulture(faCulture, faCulture);
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
     options.ApplyCurrentCultureToResponseHeaders = true;

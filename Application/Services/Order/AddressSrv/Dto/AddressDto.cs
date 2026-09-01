@@ -31,6 +31,7 @@ ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
         public PointDto Location { get; set; }
         public string PostalCode { get; set; }
         public string NationalCode { get; set; }
+        public bool IsSelected { get; set; }
         [IgnoreDataMember]
         public long UserId { get; set; }
 

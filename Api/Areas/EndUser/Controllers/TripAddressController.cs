@@ -69,8 +69,8 @@ namespace Api.Areas.EndUser.Controllers
         }
 
         /// <summary>
-        ///  حذف آیتم 
-        /// </summary>  
+        ///  حذف آیتم
+        /// </summary>
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Delete(long id)
@@ -80,6 +80,17 @@ namespace Api.Areas.EndUser.Controllers
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             var dto = _tripAddress.DeleteDto(id);
             return Ok(dto);
+        }
+
+        /// <summary>
+        /// انتخاب این آدرس به‌عنوان آدرس منتخب کاربر (بقیه‌ی آدرس‌های ذخیره‌شده‌ی همون کاربر خودکار از حالت منتخب خارج می‌شن)
+        /// </summary>
+        [HttpPut("Select/{id}")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Select(long id)
+        {
+            var result = await _tripAddress.SelectAsync(id, _currentUser.CurrentUser.UserId);
+            return Ok(result);
         }
     }
 }

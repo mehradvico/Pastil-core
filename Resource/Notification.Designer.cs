@@ -3578,7 +3578,16 @@ namespace Resource {
                 return ResourceManager.GetString("TokenExpired", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Session revoked: this refresh token was already used, which means it was copied or shared. Please sign in again..
+        /// </summary>
+        public static string SessionRevokedTokenReuseDetected {
+            get {
+                return ResourceManager.GetString("SessionRevokedTokenReuseDetected", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to To time must be bigger than from time.
         /// </summary>

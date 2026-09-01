@@ -8,6 +8,7 @@ namespace Application.Services.TripSrv.PriceCalculationSrv.Dto
     {
         public PointDto Address { get; set; }
         public long UserId { get; set; }
+        public bool IsSelected { get; set; }
 
         public UserMinVDto User { get; set; }
 

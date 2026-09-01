@@ -15,6 +15,7 @@ namespace Application.Services.Order.AddressSrv.Dto
         public PointDto Location { get; set; }
         public string PostalCode { get; set; }
         public string NationalCode { get; set; }
+        public bool IsSelected { get; set; }
         public CityVDto City { get; set; }
     }
 }

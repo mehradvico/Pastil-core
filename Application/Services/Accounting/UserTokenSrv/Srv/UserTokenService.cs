@@ -36,7 +36,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             User user,
             bool isAdmin = false,
             bool rememberMe = false,
-            DateTime? refreshTokenExpiresAt = null)
+            DateTime? refreshTokenExpiresAt = null,
+            long? rotatedFromTokenId = null)
         {
             var userToken = CreateUserTokenDto(user, isAdmin);
             var now = DateTime.UtcNow;
@@ -75,6 +76,7 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             item.Deleted = false;
             item.RefreshTokenHash = refreshToken.Tosha256Hash();
             item.TokenHash = jwtToken.Tosha256Hash();
+            item.RotatedFromTokenId = rotatedFromTokenId;
             _context.UserTokens.Add(item);
             _context.SaveChanges();
             var result = new UserTokenDto()
@@ -109,9 +111,30 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 var createdDto = CreateToken(
                     userToken.User,
                     refreshToken.IsAdmin,
-                    rememberMe: true);
+                    rememberMe: true,
+                    rotatedFromTokenId: userToken.Id);
                 await transaction.CommitAsync();
                 return new BaseResultDto<UserTokenDto>(true, createdDto);
+            }
+
+            // No live match — figure out whether this refresh token is simply
+            // expired/unknown, or was already rotated away by an earlier,
+            // legitimate refresh. The latter means this exact refresh token
+            // got used twice, which only happens if it was copied/shared:
+            // the real client already moved on to the token that replaced
+            // it. Kill every active session for that user so the theft
+            // can't be ridden any further, and the legitimate owner is
+            // forced to notice and re-authenticate.
+            var rotatedAway = await _context.UserTokens
+                .FirstOrDefaultAsync(s => s.RefreshTokenHash == hashedRefreshToken && s.Deleted == true);
+            if (rotatedAway != null)
+            {
+                await _context.UserTokens
+                    .Where(x => x.UserId == rotatedAway.UserId && !x.Deleted)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(token => token.Deleted, true));
+                await transaction.CommitAsync();
+                return new BaseResultDto(false, val: Resource.Notification.SessionRevokedTokenReuseDetected);
             }
 
             await transaction.RollbackAsync();

@@ -14,6 +14,7 @@ namespace Entities.Entities
         public Point Address { get; set; }
         public long UserId { get; set; }
         public bool Deleted { get; set; }
+        public bool IsSelected { get; set; }
 
         public User User { get; set; }
     }

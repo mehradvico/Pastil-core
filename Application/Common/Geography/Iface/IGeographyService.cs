@@ -10,5 +10,6 @@ namespace Application.Common.Geography.Iface
     {
         Task<double> GetDrivingDistanceAsync(PointDto start, PointDto end, bool kmResult = true, bool roundResult = true);
         Task<BaseResultDto<List<MapIrResultDto>>> SearchAsync(string q);
+        Task<List<PointDto>> GetDrivingRouteAsync(PointDto start, PointDto end);
     }
 }

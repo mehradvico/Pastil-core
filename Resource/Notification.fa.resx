@@ -348,6 +348,9 @@
   <data name="TokenExpired" xml:space="preserve">
     <value>توکن منقضی شده است</value>
   </data>
+  <data name="SessionRevokedTokenReuseDetected" xml:space="preserve">
+    <value>نشست شما به‌دلیل استفاده مجدد از یک توکن قبلی باطل شد؛ این یعنی توکن شما احتمالاً جایی کپی یا به‌اشتراک گذاشته شده. لطفاً دوباره وارد شوید.</value>
+  </data>
   <data name="ToTimeMustBeBiggerThanFromTime" xml:space="preserve">
     <value>تا ساعت باد بزرگتر از از ساعت باشد</value>
   </data>

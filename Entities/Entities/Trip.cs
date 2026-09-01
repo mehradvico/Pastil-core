@@ -57,8 +57,19 @@ namespace Entities.Entities
         public bool OwnerRidesAlong { get; set; }
         public bool ScheduledDispatched { get; set; }
 
+        // لغو سفر — چه کسی لغو کرد (TripCancelInitiatorEnum، Code-backed نیست، مثل ProgressStageId)، دلیل (Code-backed، قابل مدیریت در پنل) و توضیح آزاد.
+        public int? CancelInitiatorId { get; set; }
+        public long? CancelReasonCodeId { get; set; }
+        public string CancelReasonDetail { get; set; }
+
+        // وقتی کاربر بعد از لغوشدن سفر توسط راننده دوباره درخواست می‌دهد، سفر جدید به سفر لغوشده‌ی قبلی وصل می‌شود
+        // تا راننده‌ای که قبلاً آن را رد/لغو کرده دوباره در لیستش نبیندش.
+        public long? PreviousTripId { get; set; }
+
         public Code DriverStatus { get; set; }
         public Code TripStatus { get; set; }
+        public Code CancelReasonCode { get; set; }
+        public Trip PreviousTrip { get; set; }
         public UserPet UserPet { get; set; }
         public Driver Driver { get; set; }
         public City FromCity { get; set; }

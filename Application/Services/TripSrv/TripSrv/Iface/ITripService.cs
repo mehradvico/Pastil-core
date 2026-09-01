@@ -36,13 +36,18 @@ namespace Application.Services.TripSrv.TripSrv.Iface
 
         // پت‌رسان — حالت دو: سفر متصل به رزرو
         Task<BaseResultDto<TripDto>> CreateReservationLinkedTripAsync(TripReservationCreateDto dto, long userId);
+        Task<BaseResultDto<TripVDto>> GetTripForReservationAsync(long companionReserveId, long userId);
         Task DispatchScheduledTripsAsync();
+
+        // پت‌رسان — حالت سه: سفر تاریخ‌دار (نه لحظه‌ای، نه متصل به رزرو)
+        Task<BaseResultDto<TripDto>> CreateScheduledTripAsync(TripScheduledCreateDto dto, long userId);
 
         // پت‌رسان — نقشه‌ی زنده‌ی ادمین
         Task<BaseResultDto<List<TripAdminLiveDto>>> GetActiveTripsForAdminAsync();
 
         // پت‌رسان — Broadcast سفر لحظه‌ای به همه‌ی راننده‌ها
-        Task<BaseResultDto<List<TripVDto>>> GetAvailableTripsForDriverAsync();
-        Task<BaseResultDto<TripVDto>> CancelByDriverAsync(long tripId, long driverId);
+        Task<BaseResultDto<List<TripVDto>>> GetAvailableTripsForDriverAsync(long driverId);
+        Task<BaseResultDto<TripVDto>> CancelByDriverAsync(TripDriverCancelDto dto, long driverId);
+        Task<BaseResultDto<TripVDto>> CancelByUserAsync(TripUserCancelDto dto, long userId);
     }
 }

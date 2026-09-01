@@ -152,6 +152,9 @@ namespace Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsSelected")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
@@ -7219,6 +7222,9 @@ namespace Persistence.Migrations
                     b.Property<string>("RefreshTokenHash")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("RotatedFromTokenId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("TokenExp")
                         .HasColumnType("datetime2");
 
@@ -8058,6 +8064,15 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<int?>("CancelInitiatorId")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("CancelReasonCodeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CancelReasonDetail")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<long?>("CompanionReserveId")
                         .HasColumnType("bigint");
 
@@ -8111,6 +8126,9 @@ namespace Persistence.Migrations
 
                     b.Property<double>("PaymentPrice")
                         .HasColumnType("float");
+
+                    b.Property<long?>("PreviousTripId")
+                        .HasColumnType("bigint");
 
                     b.Property<double>("Price")
                         .HasColumnType("float");
@@ -8183,6 +8201,8 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CancelReasonCodeId");
+
                     b.HasIndex("CompanionReserveId");
 
                     b.HasIndex("DriverId");
@@ -8190,6 +8210,8 @@ namespace Persistence.Migrations
                     b.HasIndex("DriverStatusId");
 
                     b.HasIndex("FromCityId");
+
+                    b.HasIndex("PreviousTripId");
 
                     b.HasIndex("RebateId");
 
@@ -8218,6 +8240,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsSelected")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -8229,6 +8254,35 @@ namespace Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("TripAddresses");
+                });
+
+            modelBuilder.Entity("Entities.Entities.TripDriverExclusion", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("DriverId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ReasonId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("TripId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DriverId");
+
+                    b.HasIndex("TripId");
+
+                    b.ToTable("TripDriverExclusions");
                 });
 
             modelBuilder.Entity("Entities.Entities.TripOption", b =>
@@ -12188,6 +12242,11 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.Trip", b =>
                 {
+                    b.HasOne("Entities.Entities.Code", "CancelReasonCode")
+                        .WithMany()
+                        .HasForeignKey("CancelReasonCodeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.CompanionReserve", "CompanionReserve")
                         .WithMany()
                         .HasForeignKey("CompanionReserveId")
@@ -12207,6 +12266,11 @@ namespace Persistence.Migrations
                     b.HasOne("Entities.Entities.LocationField.City", "FromCity")
                         .WithMany()
                         .HasForeignKey("FromCityId");
+
+                    b.HasOne("Entities.Entities.Trip", "PreviousTrip")
+                        .WithMany()
+                        .HasForeignKey("PreviousTripId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Entities.Entities.Rebate", "Rebate")
                         .WithMany()
@@ -12232,6 +12296,8 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("UserPetId");
 
+                    b.Navigation("CancelReasonCode");
+
                     b.Navigation("CompanionReserve");
 
                     b.Navigation("Driver");
@@ -12239,6 +12305,8 @@ namespace Persistence.Migrations
                     b.Navigation("DriverStatus");
 
                     b.Navigation("FromCity");
+
+                    b.Navigation("PreviousTrip");
 
                     b.Navigation("Rebate");
 
@@ -12260,6 +12328,25 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.TripDriverExclusion", b =>
+                {
+                    b.HasOne("Entities.Entities.Driver", "Driver")
+                        .WithMany()
+                        .HasForeignKey("DriverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Trip", "Trip")
+                        .WithMany()
+                        .HasForeignKey("TripId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Driver");
+
+                    b.Navigation("Trip");
                 });
 
             modelBuilder.Entity("Entities.Entities.TripPet", b =>

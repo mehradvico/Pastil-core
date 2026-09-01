@@ -49,6 +49,34 @@ namespace Application.Common.Geography.Services
 
         }
 
+        public async Task<List<PointDto>> GetDrivingRouteAsync(PointDto start, PointDto end)
+        {
+            if (string.IsNullOrWhiteSpace(_apiKey))
+                throw new InvalidOperationException("MapIr:ApiKey is not configured.");
+
+            var options = new RestClientOptions("https://map.ir")
+            {
+                Timeout = System.Threading.Timeout.InfiniteTimeSpan,
+            };
+            var client = new RestClient(options);
+            var request1 = $"/routes/route/v1/driving/{(start.x).ToString().Replace("٫", ".")},{start.y.ToString().Replace("٫", ".")};{end.x.ToString().Replace("٫", ".")},{end.y.ToString().Replace("٫", ".")}?alternatives=false&steps=false&geometries=geojson&overview=full";
+            var request = new RestRequest(request1, Method.Get);
+            request.AddHeader("x-api-key", _apiKey);
+            RestResponse response = await client.ExecuteAsync(request);
+            using JsonDocument doc = JsonDocument.Parse(response.Content);
+
+            if (!doc.RootElement.TryGetProperty("routes", out var routes) || routes.GetArrayLength() == 0)
+                throw new InvalidOperationException($"map.ir driving route request failed: {response.Content}");
+
+            var coordinates = routes[0].GetProperty("geometry").GetProperty("coordinates");
+            var result = new List<PointDto>();
+            foreach (var coordinate in coordinates.EnumerateArray())
+            {
+                result.Add(new PointDto(coordinate[0].GetDouble(), coordinate[1].GetDouble()));
+            }
+            return result;
+        }
+
         public async Task<BaseResultDto<List<MapIrResultDto>>> SearchAsync(string q)
         {
             if (string.IsNullOrEmpty(q))

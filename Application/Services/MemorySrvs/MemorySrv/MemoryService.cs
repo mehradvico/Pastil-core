@@ -1,7 +1,5 @@
 using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
-using Application.Common.Enumerable.Code;
-using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.MemorySrvs.MemorySrv.Dto;
 using Application.Services.MemorySrvs.MemorySrv.Iface;
@@ -10,7 +8,6 @@ using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,16 +20,13 @@ namespace Application.Services.MemorySrvs.MemorySrv
             OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
 
         private readonly IDataBaseContext _context;
-        private readonly IPushNotificationService _pushNotificationService;
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
 
         public MemoryService(
             IDataBaseContext context,
-            IPushNotificationService pushNotificationService,
             IClubPointIntegrationService clubPointIntegrationService)
         {
             _context = context;
-            _pushNotificationService = pushNotificationService;
             _clubPointIntegrationService = clubPointIntegrationService;
         }
 
@@ -241,76 +235,6 @@ namespace Application.Services.MemorySrvs.MemorySrv
                 cancellationToken);
 
             return new BaseResultDto(true);
-        }
-
-        public async Task SendDailyReminderAsync(CancellationToken cancellationToken = default)
-        {
-            var tehranNow = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TehranTimeZone);
-            if (tehranNow.Hour < 22)
-                return;
-
-            var tehranToday = tehranNow.Date;
-            var today = TehranStartOfDay(tehranToday);
-            var tomorrow = TehranStartOfDay(tehranToday.AddDays(1));
-            var notificationToday = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TehranTimeZone).Date;
-            var notificationTomorrow = notificationToday.AddDays(1);
-            var pushTypeId = (long)PushTypeEnum.PushMemoryReminder;
-
-            var alreadyNotifiedUserIds = _context.PushNotifications
-                .AsNoTracking()
-                .Where(item =>
-                    item.PushPattern.PushTypeId == pushTypeId &&
-                    item.CreateDate >= notificationToday &&
-                    item.CreateDate < notificationTomorrow)
-                .Select(item => item.UserId);
-
-            var usersWithMemoryToday = _context.UserMemories
-                .AsNoTracking()
-                .Where(item =>
-                    !item.Deleted &&
-                    !item.Memory.Deleted &&
-                    item.Memory.MemoryDate >= today &&
-                    item.Memory.MemoryDate < tomorrow)
-                .Select(item => item.UserId);
-
-            var users = await _context.UserPets
-                .AsNoTracking()
-                .Where(item =>
-                    item.Active &&
-                    !item.Deleted &&
-                    !item.User.Deleted &&
-                    !item.User.Locked &&
-                    !alreadyNotifiedUserIds.Contains(item.UserId) &&
-                    !usersWithMemoryToday.Contains(item.UserId))
-                .Select(item => new
-                {
-                    item.UserId,
-                    item.User.FirstName
-                })
-                .Distinct()
-                .ToListAsync(cancellationToken);
-
-            var previousCulture = CultureInfo.CurrentCulture;
-            var previousUiCulture = CultureInfo.CurrentUICulture;
-            try
-            {
-                CultureInfo.CurrentCulture = new CultureInfo("fa-IR");
-                CultureInfo.CurrentUICulture = new CultureInfo("fa-IR");
-
-                foreach (var user in users)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    await _pushNotificationService.SendPushAsync(
-                        PushTypeEnum.PushMemoryReminder,
-                        user.UserId,
-                        user.FirstName);
-                }
-            }
-            finally
-            {
-                CultureInfo.CurrentCulture = previousCulture;
-                CultureInfo.CurrentUICulture = previousUiCulture;
-            }
         }
 
         private async Task<BaseResultDto<MemoryVDto>> ValidateAsync(

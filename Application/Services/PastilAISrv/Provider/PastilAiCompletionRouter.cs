@@ -206,8 +206,11 @@ namespace Application.Services.PastilAISrv.Provider
                 ["messages"] = messages
             };
 
+            // 0.2 read as flat/robotic in practice; 0.55 keeps JSON-structured
+            // answers reliable while giving them a more natural, less
+            // canned voice.
             if (provider.UseTemperature)
-                payload["temperature"] = 0.2;
+                payload["temperature"] = 0.55;
 
             if (provider.UseJsonResponseFormat)
             {
@@ -305,7 +308,7 @@ namespace Application.Services.PastilAISrv.Provider
                 ["contents"] = contents,
                 ["generationConfig"] = new JsonObject
                 {
-                    ["temperature"] = 0.2,
+                    ["temperature"] = 0.55,
                     ["responseMimeType"] = "application/json"
                 }
             };

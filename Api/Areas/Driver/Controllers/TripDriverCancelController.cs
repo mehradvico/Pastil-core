@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Driver.Controllers
 {
     /// <summary>
-    /// لغو سفرِ پذیرفته‌شده توسط راننده — سفر به حالت بدون‌راننده برمی‌گردد و دوباره Broadcast می‌شود (پت‌رسان)
+    /// لغو سفرِ پذیرفته‌شده توسط راننده، همراه با دلیل لغو — سفر «مختومه» می‌شود (پت‌رسان)
     /// </summary>
     [Area("Driver")]
     [Route("api/[area]/[controller]")]
@@ -24,11 +24,15 @@ namespace Api.Areas.Driver.Controllers
             _currentUser = currentUser;
         }
 
-        [HttpPut("{id}")]
+        [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<TripVDto>), 200)]
-        public async Task<IActionResult> Put(long id)
+        public async Task<IActionResult> Put(TripDriverCancelDto dto)
         {
-            var result = await _tripService.CancelByDriverAsync(id, _currentUser.CurrentUser.DriverId);
+            var driverId = _currentUser.CurrentUser.DriverId;
+            if (driverId <= 0)
+                return Ok(new BaseResultDto<TripVDto>(false, Resource.Notification.AccessDenied, default!));
+
+            var result = await _tripService.CancelByDriverAsync(dto, driverId);
             return Ok(result);
         }
     }

@@ -384,17 +384,28 @@ public static class ConfigureServices
 
         services.Configure<RequestLocalizationOptions>(options =>
         {
+            // Persian text formatting, but invariant (dot-separator, Western
+            // digit) number parsing/formatting. Without this, CultureInfo("fa")'s
+            // own NumberFormat is used for every request thread, which breaks
+            // any code that parses a hardcoded invariant numeric string against
+            // the current culture - e.g. [Range(typeof(decimal), "0.01", ...)]
+            // throws FormatException on "0.01" because "." isn't fa's decimal
+            // separator. JSON payloads and hardcoded validation bounds are
+            // always invariant-formatted, so numbers must parse that way too.
+            var faCulture = new CultureInfo("fa");
+            faCulture.NumberFormat = CultureInfo.InvariantCulture.NumberFormat;
+
             var supportedCultures = new List<CultureInfo>
                     {
-                        new CultureInfo("fa"),
+                        faCulture,
                     };
-            options.DefaultRequestCulture = new RequestCulture("fa", "fa");
+            options.DefaultRequestCulture = new RequestCulture(faCulture, faCulture);
             options.SupportedCultures = supportedCultures;
             options.SupportedUICultures = supportedCultures;
             options.ApplyCurrentCultureToResponseHeaders = true;
             options.RequestCultureProviders.Insert(0, new CustomRequestCultureProvider(async context =>
             {
-                return await Task.FromResult(new ProviderCultureResult("fa", "fa"));
+                return await Task.FromResult(new ProviderCultureResult(faCulture.Name, faCulture.Name));
             }));
         });
         services.AddControllers().AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix).AddDataAnnotationsLocalization();

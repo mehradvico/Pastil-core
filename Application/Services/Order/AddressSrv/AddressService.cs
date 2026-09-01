@@ -25,10 +25,49 @@ namespace Application.Services.Content.AddressSrv
             this.mapper = mapper;
             this._currentUserHelper = currentUserHelper;
         }
-        public override Task<BaseResultDto<AddressDto>> InsertAsyncDto(AddressDto dto)
+        public override async Task<BaseResultDto<AddressDto>> InsertAsyncDto(AddressDto dto)
         {
             dto.UserId = _currentUserHelper.CurrentUser.UserId;
-            return base.InsertAsyncDto(dto);
+
+            // اولین آدرسِ هر کاربر خودکار منتخب می‌شه — بقیه باید صریحاً از SelectAsync استفاده کنن.
+            // عمداً روی خودِ dto ورودی چیزی ست نمی‌کنیم (UpdateDto این متد رو داخلی و روی یک شیء موقت هم
+            // صدا می‌زنه؛ اگه اینجا dto.IsSelected رو تغییر بدیم، همون تغییر روی شیء اصلیِ ویرایش هم اثر
+            // می‌ذاره چون هردو یک reference هستن) — به‌جاش بعد از ساخته‌شدن، مستقیم روی ردیف تازه‌ساخته‌شده اعمال می‌کنیم.
+            var hasAnyAddress = await _context.Addresses.AnyAsync(s => s.UserId == dto.UserId && !s.Deleted);
+
+            var result = await base.InsertAsyncDto(dto);
+
+            if (!hasAnyAddress && result.IsSuccess && result.Data != null)
+            {
+                await _context.Addresses
+                    .Where(s => s.Id == result.Data.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.IsSelected, true));
+                result.Data.IsSelected = true;
+            }
+
+            return result;
+        }
+
+        public async Task<BaseResultDto> SelectAsync(long id, long userId)
+        {
+            var address = await _context.Addresses.AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+
+            if (address == null || address.UserId != userId)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+            if (!address.IsSelected)
+            {
+                await _context.Addresses
+                    .Where(s => s.UserId == userId && s.Id != id && s.IsSelected && !s.Deleted)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.IsSelected, false));
+
+                address.IsSelected = true;
+                _context.Addresses.Update(address);
+                await _context.SaveChangesAsync();
+            }
+
+            return new BaseResultDto(true, Resource.Notification.Success);
         }
 
         public override BaseResultDto UpdateDto(AddressDto dto)
