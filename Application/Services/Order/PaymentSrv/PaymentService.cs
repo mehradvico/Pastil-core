@@ -794,13 +794,13 @@ namespace Application.Services.Order.PaymentSrv
 
         public async Task<BaseResultDto> InsertTripPaymentAsyncDto(PaymentStartDto dto)
         {
-            var tripdetail = await _context.Trips.Include(s => s.UserPet).Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == dto.TripId);
-            if (tripdetail == null || tripdetail.UserPet?.UserId != dto.UserId)
+            var tripdetail = await _context.Trips.Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == dto.TripId);
+            if (tripdetail == null || tripdetail.UserId != dto.UserId)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (tripdetail.IsPaid)
                 return new BaseResultDto(false, Resource.Notification.InvalidData);
             var tripRebateValidation = ValidateAppliedRebate(
-                tripdetail.Rebate, tripdetail.Price, tripdetail.UserPet.UserId, RebateTypeLabels.Trip, tripdetail.RebatePrice);
+                tripdetail.Rebate, tripdetail.Price, tripdetail.UserId, RebateTypeLabels.Trip, tripdetail.RebatePrice);
             if (!tripRebateValidation.IsSuccess)
                 return tripRebateValidation;
             dto.Amount = tripdetail.PaymentPrice;
@@ -825,7 +825,7 @@ namespace Application.Services.Order.PaymentSrv
             }
             if (tripdetail.FromWallet)
             {
-                var walletAmount = await _walletService.GetAmountValueAsync(tripdetail.UserPet.UserId);
+                var walletAmount = await _walletService.GetAmountValueAsync(tripdetail.UserId);
                 tripdetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, tripdetail.PaymentPrice);
                 dto.WalletAmount = tripdetail.WalletPrice;
                 await _context.SaveChangesAsync();
