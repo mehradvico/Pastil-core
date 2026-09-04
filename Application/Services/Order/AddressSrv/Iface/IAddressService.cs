@@ -10,6 +10,7 @@ namespace Application.Services.Order.AddressSrv.iface
     {
         AddressSearchDto Search(AddressInputDto baseSearchDto);
         AdminAddressSearchDto SearchAdmin(AdminAddressInputDto searchDto);
+        Task<BaseResultDto<AdminAddressVDto>> FindAdminAsyncDto(long id);
         Task<BaseResultDto> SelectAsync(long id, long userId);
     }
 }

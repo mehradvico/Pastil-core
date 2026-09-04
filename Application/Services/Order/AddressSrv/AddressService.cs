@@ -48,6 +48,21 @@ namespace Application.Services.Content.AddressSrv
             return result;
         }
 
+        public async Task<BaseResultDto<AdminAddressVDto>> FindAdminAsyncDto(long id)
+        {
+            var address = await _context.Addresses
+                .AsNoTracking()
+                .Include(a => a.User)
+                .Include(a => a.City)
+                    .ThenInclude(city => city.State)
+                .FirstOrDefaultAsync(a => a.Id == id && !a.Deleted);
+
+            if (address == null)
+                return new BaseResultDto<AdminAddressVDto>(false, mapper.Map<AdminAddressVDto>(address));
+
+            return new BaseResultDto<AdminAddressVDto>(true, mapper.Map<AdminAddressVDto>(address));
+        }
+
         public async Task<BaseResultDto> SelectAsync(long id, long userId)
         {
             var address = await _context.Addresses.AsTracking()

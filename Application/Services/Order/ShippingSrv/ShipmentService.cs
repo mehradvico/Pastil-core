@@ -3,10 +3,12 @@ using Application.Services.Order.ShippingSrv.Provider;
 using Entities.Entities;
 using Entities.Entities.ShippingField;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,11 +18,16 @@ namespace Application.Services.Order.ShippingSrv
     {
         private readonly IDataBaseContext _context;
         private readonly IReadOnlyDictionary<ShippingProviderEnum, IShippingProvider> _providers;
+        private readonly ILogger<ShipmentService> _logger;
 
-        public ShipmentService(IDataBaseContext context, IEnumerable<IShippingProvider> providers)
+        public ShipmentService(
+            IDataBaseContext context,
+            IEnumerable<IShippingProvider> providers,
+            ILogger<ShipmentService> logger)
         {
             _context = context;
             _providers = providers.ToDictionary(item => item.Provider);
+            _logger = logger;
         }
 
         public async Task CreateForPaidOrderAsync(
@@ -154,5 +161,72 @@ namespace Application.Services.Order.ShippingSrv
             if (shipments.Count > 0)
                 await _context.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task HandleMiareWebhookAsync(
+            string payload,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(payload))
+                return;
+
+            JsonDocument doc;
+            try
+            {
+                doc = JsonDocument.Parse(payload);
+            }
+            catch (JsonException exception)
+            {
+                _logger.LogWarning(exception, "Miare webhook payload was not valid JSON.");
+                return;
+            }
+
+            using (doc)
+            {
+                var root = doc.RootElement;
+                var tripId = root.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
+                if (string.IsNullOrWhiteSpace(tripId))
+                    return;
+
+                var shipment = await _context.Shipments.AsTracking().FirstOrDefaultAsync(
+                    item => item.ExternalShipmentId == tripId && item.Provider == ShippingProviderEnum.Miare,
+                    cancellationToken);
+                if (shipment == null)
+                {
+                    _logger.LogWarning("Miare webhook received for unknown trip {TripId}.", tripId);
+                    return;
+                }
+
+                var state = root.TryGetProperty("state", out var stateProp) ? stateProp.GetString() : null;
+                var newStatus = MapMiareState(state, shipment.Status);
+                shipment.Status = newStatus;
+
+                if (newStatus is ShipmentStatusEnum.Cancelled or ShipmentStatusEnum.Failed)
+                    shipment.FailureReason = $"Miare state: {state}";
+
+                if (string.Equals(state, "delivered", StringComparison.OrdinalIgnoreCase))
+                {
+                    shipment.DeliveredAtUtc = DateTime.UtcNow;
+
+                    // میاره «delivery_cost» را به تومان می‌فرستد؛ این هزینه‌ی واقعی سفر نزد میاره است
+                    // (نه مبلغِ دریافتی از مشتری که در ChargedPrice/QuotedPrice است)، برای ریال‌سازی
+                    // مثل GetQuoteAsync ضرب‌در‌ده می‌شود.
+                    if (root.TryGetProperty("delivery_cost", out var costProp) && costProp.ValueKind == JsonValueKind.Number)
+                        shipment.ProviderCost = costProp.GetDouble() * 10;
+                }
+
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+        }
+
+        private static ShipmentStatusEnum MapMiareState(string state, ShipmentStatusEnum current) => state switch
+        {
+            "assign_queue" => ShipmentStatusEnum.Requested,
+            "pickup" => ShipmentStatusEnum.Accepted,
+            "dropoff" => ShipmentStatusEnum.PickedUp,
+            "delivered" => ShipmentStatusEnum.Delivered,
+            "canceled_by_miare" or "canceled_by_delay" or "canceled_by_client" => ShipmentStatusEnum.Cancelled,
+            "returning" => ShipmentStatusEnum.Failed,
+            _ => current
+        };
     }
 }

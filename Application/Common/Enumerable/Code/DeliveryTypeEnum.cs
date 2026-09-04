@@ -8,6 +8,7 @@
         DeliveryType_InStore = 91,
         DeliveryType_AloPeyk = 92,
         DeliveryType_SnappBox = 93,
+        DeliveryType_Miare = 94,
 
     }
 }

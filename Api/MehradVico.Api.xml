@@ -9363,6 +9363,13 @@
             جستجو
             </summary>
         </member>
+        <member name="T:Api.Controllers.MiareWebhookController">
+            <summary>
+            دریافت رویدادهای Webhook میاره (added, state_changed, courier_assigned, arrived,
+            picked_up, departed, delivered, batched). میاره تا ۵ بار با فاصله‌ی ۵ ثانیه روی پاسخ
+            غیر ۲XX دوباره تلاش می‌کند، پس این Endpoint همیشه سریع ۲۰۰ برمی‌گرداند و خطاها را فقط لاگ می‌کند.
+            </summary>
+        </member>
         <member name="T:Api.Controllers.NeighborhoodController">
              <summary>
              مدیریت محله ها

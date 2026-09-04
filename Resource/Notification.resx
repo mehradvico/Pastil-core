@@ -1179,6 +1179,9 @@
   <data name="ShippingProviderApiContractNotConfiguredFormat" xml:space="preserve">
     <value>Shipping Provider Api Contract Not Configured Format</value>
   </data>
+  <data name="ShippingProviderAreaNotCoveredFormat" xml:space="preserve">
+    <value>Shipping Provider Area Not Covered Format</value>
+  </data>
   <data name="PastilMatchProfileAlreadyExists" xml:space="preserve">
     <value>Pastil Match Profile Already Exists</value>
   </data>

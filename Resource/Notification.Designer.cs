@@ -2385,6 +2385,15 @@ namespace Resource {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to Shipping Provider Area Not Covered Format.
+        /// </summary>
+        public static string ShippingProviderAreaNotCoveredFormat {
+            get {
+                return ResourceManager.GetString("ShippingProviderAreaNotCoveredFormat", resourceCulture);
+            }
+        }
+
         public static string PastilMatchAdminDescriptionRequired {
             get {
                 return ResourceManager.GetString("PastilMatchAdminDescriptionRequired", resourceCulture);

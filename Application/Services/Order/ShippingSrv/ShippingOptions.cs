@@ -21,5 +21,9 @@ namespace Application.Services.Order.ShippingSrv
         public bool Enabled { get; set; } = true;
         public string BaseUrl { get; set; }
         public string ApiKey { get; set; }
+
+        // فقط میاره از این استفاده می‌کند: سرویس استعلام قیمت روی Base URL جدای «Accounting» است،
+        // نه Base URL بالا که مخصوص Trip Management (ساخت/لغو سفر) است.
+        public string AccountingBaseUrl { get; set; }
     }
 }

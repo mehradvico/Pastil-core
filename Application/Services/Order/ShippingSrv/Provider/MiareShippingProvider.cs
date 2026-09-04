@@ -11,8 +11,9 @@ namespace Application.Services.Order.ShippingSrv.Provider
 {
     // میاره (Miare) سرویس واقعی پیک/ارسال است — برخلاف سایر ارائه‌دهنده‌ها (AloPeyk/Tipax/SnappBox)
     // که هنوز فقط حالت تست دارند، این کلاس مستقیماً با API واقعی میاره صحبت می‌کند.
-    // میاره برخلاف انتزاع فعلی، endpoint استعلام قیمت جداگانه ندارد؛ قیمت واقعی («delivery_cost»)
-    // فقط بعد از تحویل نهایی مشخص می‌شود، پس GetQuoteAsync یک برآورد محلی برمی‌گرداند، نه استعلام واقعی.
+    // GetQuoteAsync از endpoint استعلام قیمت میاره (روی Base URL جدای Accounting) استفاده می‌کند؛
+    // این فقط یک برآورد است، نه مبلغ نهایی. مبلغ نهایی واقعی («delivery_cost») بعد از تحویل
+    // از طریق Webhook میاره (MiareWebhookController) دریافت می‌شود.
     public class MiareShippingProvider : IShippingProvider
     {
         private readonly ShippingOptions _options;
@@ -24,25 +25,59 @@ namespace Application.Services.Order.ShippingSrv.Provider
 
         public ShippingProviderEnum Provider => ShippingProviderEnum.Miare;
 
-        public Task<ShippingProviderQuoteResult> GetQuoteAsync(
+        public async Task<ShippingProviderQuoteResult> GetQuoteAsync(
             ShippingProviderQuoteRequest request,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!_options.Miare.Enabled)
-                return Task.FromResult(ShippingProviderQuoteResult.Failed(Resource.Notification.ShippingProviderServiceDisabled));
+            var providerOptions = _options.Miare;
+            if (!providerOptions.Enabled)
+                return ShippingProviderQuoteResult.Failed(Resource.Notification.ShippingProviderServiceDisabled);
 
-            // میاره قیمت واقعی سفر را فقط بعد از تحویل اعلام می‌کند، نه در زمان استعلام.
-            // اینجا فقط یک شناسه‌ی موقت برمی‌گردانیم تا جریان استعلام/انتخاب ارائه‌دهنده مثل بقیه کار کند؛
-            // مبلغ نهایی واقعی را باید بعداً (مثلاً از طریق وب‌هوک یا استعلام وضعیت سفر) به‌روزرسانی کرد.
-            return Task.FromResult(new ShippingProviderQuoteResult
+            if (string.IsNullOrWhiteSpace(providerOptions.AccountingBaseUrl) || string.IsNullOrWhiteSpace(providerOptions.ApiKey))
+                return ShippingProviderQuoteResult.Failed(
+                    string.Format(Resource.Notification.ShippingProviderConnectionSettingsIncompleteFormat, Provider));
+
+            try
             {
-                IsSuccess = true,
-                Price = 0,
-                Currency = "IRR",
-                ExternalQuoteId = $"MIARE-PENDING-{Guid.NewGuid():N}"
-            });
+                var client = new RestClient(new RestClientOptions(providerOptions.AccountingBaseUrl.TrimEnd('/')));
+                var restRequest = new RestRequest("/estimate/price/", Method.Get);
+                restRequest.AddHeader("Authorization", $"Token {providerOptions.ApiKey}");
+                restRequest.AddQueryParameter("source", $"{request.OriginLatitude},{request.OriginLongitude}");
+                restRequest.AddQueryParameter("destination", $"{request.DestinationLatitude},{request.DestinationLongitude}");
+
+                var response = await client.ExecuteAsync(restRequest, cancellationToken);
+                if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
+                    return ShippingProviderQuoteResult.Failed(
+                        ExtractMiareError(response.Content) ?? response.ErrorMessage ?? "Miare estimate request failed.");
+
+                using var doc = JsonDocument.Parse(response.Content);
+                var root = doc.RootElement;
+
+                var areaCovered = !root.TryGetProperty("area_coverage", out var coverageProp) ||
+                    coverageProp.ValueKind != JsonValueKind.False;
+                if (!areaCovered)
+                    return ShippingProviderQuoteResult.Failed(
+                        string.Format(Resource.Notification.ShippingProviderAreaNotCoveredFormat, Provider));
+
+                if (!root.TryGetProperty("price", out var priceProp) || priceProp.ValueKind != JsonValueKind.Number)
+                    return ShippingProviderQuoteResult.Failed("Miare estimate response did not include a price.");
+
+                // میاره قیمت را به تومان برمی‌گرداند؛ بقیه‌ی سیستم (شامل ذخیره‌ی Quote) بر مبنای ریال کار می‌کند.
+                var priceToman = priceProp.GetDouble();
+                return new ShippingProviderQuoteResult
+                {
+                    IsSuccess = true,
+                    Price = priceToman * 10,
+                    Currency = "IRR",
+                    ExternalQuoteId = $"MIARE-EST-{Guid.NewGuid():N}"
+                };
+            }
+            catch (Exception exception)
+            {
+                return ShippingProviderQuoteResult.Failed(exception.Message);
+            }
         }
 
         public async Task<ShippingProviderShipmentResult> CreateShipmentAsync(

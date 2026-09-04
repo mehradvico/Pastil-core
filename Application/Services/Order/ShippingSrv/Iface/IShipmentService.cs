@@ -13,5 +13,9 @@ namespace Application.Services.Order.ShippingSrv.Iface
         Task CancelForOrderAsync(
             string productOrderId,
             CancellationToken cancellationToken = default);
+
+        Task HandleMiareWebhookAsync(
+            string payload,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -34,10 +34,10 @@ namespace Api.Areas.Admin.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<AddressDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<AdminAddressVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var role = await AddressService.FindAsyncDto(id);
+            var role = await AddressService.FindAdminAsyncDto(id);
             return Ok(role);
         }
         /// <summary>

@@ -3,6 +3,7 @@ using Application.Services.Content.ContactUsGroupSrv.Dto;
 using Application.Services.Content.ContactUsItemSrv.Dto;
 using Application.Services.Dto;
 using Application.Services.Filing.FileSrv.Dto;
+using System;
 using System.Collections.Generic;
 
 namespace Application.Services.Content.ContactUsSrv.Dto
@@ -22,6 +23,7 @@ namespace Application.Services.Content.ContactUsSrv.Dto
         public FileVDto File { get; set; }
         public ContactUsGroupDto ContactUsGroup { get; set; }
         public List<ContactUsItemDto> ContactUsItems { get; set; }
+        public DateTime CreateDate { get; set; }
 
     }
 }

@@ -26,6 +26,9 @@ namespace Application.Common.Configuration
             Override(configuration, "Shipping:Tipax:ApiKey", "PASTIL_SHIPPING_TIPAX_API_KEY");
             Override(configuration, "Shipping:SnappBox:BaseUrl", "PASTIL_SHIPPING_SNAPPBOX_BASE_URL");
             Override(configuration, "Shipping:SnappBox:ApiKey", "PASTIL_SHIPPING_SNAPPBOX_API_KEY");
+            Override(configuration, "Shipping:Miare:BaseUrl", "PASTIL_SHIPPING_MIARE_BASE_URL");
+            Override(configuration, "Shipping:Miare:ApiKey", "PASTIL_SHIPPING_MIARE_API_KEY");
+            Override(configuration, "Shipping:Miare:AccountingBaseUrl", "PASTIL_SHIPPING_MIARE_ACCOUNTING_BASE_URL");
 
             if (includeVapidKeys)
             {

@@ -1179,6 +1179,9 @@
   <data name="ShippingProviderApiContractNotConfiguredFormat" xml:space="preserve">
     <value>قرارداد API عملیاتی {0} هنوز تنظیم نشده است.</value>
   </data>
+  <data name="ShippingProviderAreaNotCoveredFormat" xml:space="preserve">
+    <value>{0} در این منطقه سرویس‌دهی نمی‌کند.</value>
+  </data>
   <data name="PastilMatchProfileAlreadyExists" xml:space="preserve">
     <value>این پت از قبل پروفایل دارد</value>
   </data>

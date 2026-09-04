@@ -12,6 +12,7 @@ namespace Entities.Entities.ShippingField
         public ShipmentStatusEnum Status { get; set; }
         public double QuotedPrice { get; set; }
         public double ChargedPrice { get; set; }
+        public double? ProviderCost { get; set; }
         public string ExternalShipmentId { get; set; }
         public string TrackingCode { get; set; }
         public string FailureReason { get; set; }
