@@ -12,5 +12,6 @@ namespace Application.Services.Accounting.DriverSrv.Dto
         public long? NeighborhoodId { get; set; }
         public long? StatusId { get; set; }
         public bool? Approved { get; set; }
+        public long? VehicleTypeId { get; set; }
     }
 }

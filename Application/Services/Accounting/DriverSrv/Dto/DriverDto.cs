@@ -37,5 +37,6 @@ namespace Application.Services.Accounting.DriverSrv.Dto
         public long StatusId { get; set; }
         public string AdminDetail { get; set; }
         public bool Approved { get; set; }
+        public long? VehicleTypeId { get; set; }
     }
 }

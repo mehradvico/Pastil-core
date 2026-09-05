@@ -17,6 +17,7 @@ namespace Application.Services.Accounting.DriverSrv.Dto
             this.NeighborhoodId = dto.NeighborhoodId;
             this.StatusId = dto.StatusId;
             this.Approved = dto.Approved;
+            this.VehicleTypeId = dto.VehicleTypeId;
         }
         public long? OwnerId { get; set; }
         public string Vehicle { get; set; }
@@ -25,5 +26,6 @@ namespace Application.Services.Accounting.DriverSrv.Dto
         public long? NeighborhoodId { get; set; }
         public long? StatusId { get; set; }
         public bool? Approved { get; set; }
+        public long? VehicleTypeId { get; set; }
     }
 }

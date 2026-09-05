@@ -47,7 +47,7 @@ namespace Application.Services.Accounting.DriverSrv
 
         public async Task<BaseResultDto<DriverVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Drivers.Include(s => s.CertificatePicture).Include(s => s.ProfilePicture).Include(s => s.VehicleCardPicture).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.Status).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+            var item = await _context.Drivers.Include(s => s.CertificatePicture).Include(s => s.ProfilePicture).Include(s => s.VehicleCardPicture).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.Status).Include(s => s.VehicleType).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
                 return new BaseResultDto<DriverVDto>(true, mapper.Map<DriverVDto>(item));
@@ -57,7 +57,7 @@ namespace Application.Services.Accounting.DriverSrv
 
         public DriverSearchDto Search(DriverInputDto baseSearchDto)
         {
-            var model = _context.Drivers.Include(s => s.CertificatePicture).Include(s => s.ProfilePicture).Include(s => s.VehicleCardPicture).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.Status).AsQueryable().Where(s => !s.Deleted);
+            var model = _context.Drivers.Include(s => s.CertificatePicture).Include(s => s.ProfilePicture).Include(s => s.VehicleCardPicture).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.Status).Include(s => s.VehicleType).AsQueryable().Where(s => !s.Deleted);
 
             if (baseSearchDto.Available.HasValue)
             {
@@ -74,6 +74,10 @@ namespace Application.Services.Accounting.DriverSrv
             if (baseSearchDto.StatusId.HasValue)
             {
                 model = model.Where(s => s.StatusId == baseSearchDto.StatusId.Value);
+            }
+            if (baseSearchDto.VehicleTypeId.HasValue)
+            {
+                model = model.Where(s => s.VehicleTypeId == baseSearchDto.VehicleTypeId.Value);
             }
             if (baseSearchDto.Approved.HasValue)
             {

@@ -24,6 +24,7 @@ namespace Application.Services.Accounting.DriverSrv.Dto
         public long StatusId { get; set; }
         public string AdminDetail { get; set; }
         public bool Approved { get; set; }
+        public long? VehicleTypeId { get; set; }
         public CityVDto City { get; set; }
         public NeighborhoodVDto Neighborhood { get; set; }
         public PictureVDto ProfilePicture { get; set; }
@@ -31,5 +32,6 @@ namespace Application.Services.Accounting.DriverSrv.Dto
         public PictureVDto VehicleCardPicture { get; set; }
         public UserMinVDto Owner { get; set; }
         public CodeVDto Status { get; set; }
+        public CodeVDto VehicleType { get; set; }
     }
 }

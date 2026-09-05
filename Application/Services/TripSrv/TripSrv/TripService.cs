@@ -127,7 +127,7 @@ namespace Application.Services.TripSrv.TripSrv
 
         public TripSearchDto Search(TripInputDto baseSearchDto)
         {
-            var model = _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).AsQueryable();
+            var model = _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).Include(s => s.VehicleType).AsQueryable();
 
             if (baseSearchDto.FromCityId.HasValue)
             {
@@ -164,6 +164,10 @@ namespace Application.Services.TripSrv.TripSrv
             if (baseSearchDto.TripStatusId.HasValue)
             {
                 model = model.Where(s => s.TripStatusId == baseSearchDto.TripStatusId);
+            }
+            if (baseSearchDto.VehicleTypeId.HasValue)
+            {
+                model = model.Where(s => s.VehicleTypeId == baseSearchDto.VehicleTypeId);
             }
             if (baseSearchDto.Point != null)
             {
@@ -905,8 +909,17 @@ namespace Application.Services.TripSrv.TripSrv
                     .Select(e => e.DriverId)
                     .ToListAsync();
 
+                // اگر کاربر نوع خودرو مشخص نکرده باشد (VehicleTypeId == null)، همه‌ی راننده‌ها
+                // (سواری و وانت) سفر را می‌بینند - جدا کردن سواری/وانت فقط وقتی که کاربر
+                // صریحاً یک نوع را درخواست کرده باشد اعمال می‌شود.
+                var vehicleTypeId = await _context.Trips
+                    .Where(t => t.Id == tripId)
+                    .Select(t => t.VehicleTypeId)
+                    .FirstOrDefaultAsync();
+
                 var activeDriverOwnerIds = await _context.Drivers
-                    .Where(d => d.Deleted == false && d.Active && d.Approved && !excludedDriverIds.Contains(d.Id))
+                    .Where(d => d.Deleted == false && d.Active && d.Approved && !excludedDriverIds.Contains(d.Id)
+                        && (vehicleTypeId == null || d.VehicleTypeId == vehicleTypeId))
                     .Select(d => d.OwnerId)
                     .ToListAsync();
 
@@ -927,10 +940,19 @@ namespace Application.Services.TripSrv.TripSrv
         /// </summary>
         public async Task<BaseResultDto<List<TripVDto>>> GetAvailableTripsForDriverAsync(long driverId)
         {
+            // نوع خودروی همین راننده - برای فیلتر سفرهایی که کاربر صریحاً یک نوع خودرو
+            // (سواری/وانت) درخواست کرده؛ سفرهای بدون نوع مشخص (VehicleTypeId == null)
+            // برای همه‌ی راننده‌ها نمایش داده می‌شوند.
+            var driverVehicleTypeId = await _context.Drivers
+                .Where(d => d.Id == driverId)
+                .Select(d => d.VehicleTypeId)
+                .FirstOrDefaultAsync();
+
             var trips = await _context.Trips
                 .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
                     && t.DriverId == null
                     && t.IsOnline
+                    && (t.VehicleTypeId == null || t.VehicleTypeId == driverVehicleTypeId)
                     && !_context.TripDriverExclusions.Any(e => e.TripId == t.Id && e.DriverId == driverId))
                 .Include(s => s.TripStop)
                 .Include(s => s.TripOptions)
@@ -938,6 +960,7 @@ namespace Application.Services.TripSrv.TripSrv
                 .Include(s => s.TripPets).ThenInclude(s => s.UserPet)
                 .Include(s => s.DriverStatus)
                 .Include(s => s.TripStatus)
+                .Include(s => s.VehicleType)
                 .OrderBy(t => t.CreateDate)
                 .ToListAsync();
 

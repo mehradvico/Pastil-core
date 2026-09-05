@@ -1,4 +1,5 @@
 using Entities.Entities.ShippingField;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RestSharp;
 using System;
@@ -17,10 +18,12 @@ namespace Application.Services.Order.ShippingSrv.Provider
     public class MiareShippingProvider : IShippingProvider
     {
         private readonly ShippingOptions _options;
+        private readonly ILogger<MiareShippingProvider> _logger;
 
-        public MiareShippingProvider(IOptions<ShippingOptions> options)
+        public MiareShippingProvider(IOptions<ShippingOptions> options, ILogger<MiareShippingProvider> logger)
         {
             _options = options.Value;
+            _logger = logger;
         }
 
         public ShippingProviderEnum Provider => ShippingProviderEnum.Miare;
@@ -33,11 +36,20 @@ namespace Application.Services.Order.ShippingSrv.Provider
 
             var providerOptions = _options.Miare;
             if (!providerOptions.Enabled)
+            {
+                _logger.LogWarning("Miare GetQuoteAsync: provider disabled (Shipping:Miare:Enabled=false).");
                 return ShippingProviderQuoteResult.Failed(Resource.Notification.ShippingProviderServiceDisabled);
+            }
 
             if (string.IsNullOrWhiteSpace(providerOptions.AccountingBaseUrl) || string.IsNullOrWhiteSpace(providerOptions.ApiKey))
+            {
+                _logger.LogWarning(
+                    "Miare GetQuoteAsync: connection settings incomplete (AccountingBaseUrl empty: {AccountingUrlEmpty}, ApiKey empty: {ApiKeyEmpty}).",
+                    string.IsNullOrWhiteSpace(providerOptions.AccountingBaseUrl),
+                    string.IsNullOrWhiteSpace(providerOptions.ApiKey));
                 return ShippingProviderQuoteResult.Failed(
                     string.Format(Resource.Notification.ShippingProviderConnectionSettingsIncompleteFormat, Provider));
+            }
 
             try
             {
@@ -48,9 +60,18 @@ namespace Application.Services.Order.ShippingSrv.Provider
                 restRequest.AddQueryParameter("destination", $"{request.DestinationLatitude},{request.DestinationLongitude}");
 
                 var response = await client.ExecuteAsync(restRequest, cancellationToken);
+                _logger.LogInformation(
+                    "Miare GetQuoteAsync: GET {Url} -> {StatusCode}, body: {Body}",
+                    $"{providerOptions.AccountingBaseUrl.TrimEnd('/')}/estimate/price/?source={request.OriginLatitude},{request.OriginLongitude}&destination={request.DestinationLatitude},{request.DestinationLongitude}",
+                    (int)response.StatusCode,
+                    response.Content);
+
                 if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
-                    return ShippingProviderQuoteResult.Failed(
-                        ExtractMiareError(response.Content) ?? response.ErrorMessage ?? "Miare estimate request failed.");
+                {
+                    var error = ExtractMiareError(response.Content) ?? response.ErrorMessage ?? "Miare estimate request failed.";
+                    _logger.LogWarning(response.ErrorException, "Miare GetQuoteAsync: request failed - {Error}", error);
+                    return ShippingProviderQuoteResult.Failed(error);
+                }
 
                 using var doc = JsonDocument.Parse(response.Content);
                 var root = doc.RootElement;
@@ -58,11 +79,17 @@ namespace Application.Services.Order.ShippingSrv.Provider
                 var areaCovered = !root.TryGetProperty("area_coverage", out var coverageProp) ||
                     coverageProp.ValueKind != JsonValueKind.False;
                 if (!areaCovered)
+                {
+                    _logger.LogWarning("Miare GetQuoteAsync: area_coverage=false for this address.");
                     return ShippingProviderQuoteResult.Failed(
                         string.Format(Resource.Notification.ShippingProviderAreaNotCoveredFormat, Provider));
+                }
 
                 if (!root.TryGetProperty("price", out var priceProp) || priceProp.ValueKind != JsonValueKind.Number)
+                {
+                    _logger.LogWarning("Miare GetQuoteAsync: response did not include a numeric price.");
                     return ShippingProviderQuoteResult.Failed("Miare estimate response did not include a price.");
+                }
 
                 // میاره قیمت را به تومان برمی‌گرداند؛ بقیه‌ی سیستم (شامل ذخیره‌ی Quote) بر مبنای ریال کار می‌کند.
                 var priceToman = priceProp.GetDouble();
@@ -76,6 +103,7 @@ namespace Application.Services.Order.ShippingSrv.Provider
             }
             catch (Exception exception)
             {
+                _logger.LogError(exception, "Miare GetQuoteAsync: unhandled exception.");
                 return ShippingProviderQuoteResult.Failed(exception.Message);
             }
         }

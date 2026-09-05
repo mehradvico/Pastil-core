@@ -17,6 +17,7 @@ namespace Application.Services.TripSrv.TripSrv.Dto
             DriverId = dto.DriverId;
             DriverStatusId = dto.DriverStatusId;
             TripStatusId = dto.TripStatusId;
+            VehicleTypeId = dto.VehicleTypeId;
             Point = dto.Point;
             FromDate = dto.FromDate;
             ToDate = dto.ToDate;
@@ -30,6 +31,7 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public long? DriverId { get; set; }
         public long? DriverStatusId { get; set; }
         public long? TripStatusId { get; set; }
+        public long? VehicleTypeId { get; set; }
         public bool? ManualPay { get; set; }
         public bool? IsPaid { get; set; }
         public PointDto Point { get; set; }

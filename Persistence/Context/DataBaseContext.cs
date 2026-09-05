@@ -1193,6 +1193,18 @@ namespace Persistence.Context
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Trip>()
+                .HasOne(t => t.VehicleType)
+                .WithMany()
+                .HasForeignKey(t => t.VehicleTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Driver>()
+                .HasOne(d => d.VehicleType)
+                .WithMany()
+                .HasForeignKey(d => d.VehicleTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Trip>()
                 .HasOne(t => t.PreviousTrip)
                 .WithMany()
                 .HasForeignKey(t => t.PreviousTripId)

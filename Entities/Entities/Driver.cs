@@ -23,6 +23,11 @@ namespace Entities.Entities
         public long StatusId { get; set; }
         public string AdminDetail { get; set; }
         public bool Approved { get; set; }
+
+        // نوع خودروی راننده (سواری/وانت) - Code از CodeGroup «نوع خودرو»، برای
+        // جدا کردن راننده‌های سواری و وانت در Broadcast سفرها.
+        public long? VehicleTypeId { get; set; }
+        public Code VehicleType { get; set; }
         public City City { get; set; }
         public Neighborhood Neighborhood { get; set; }
         public Picture ProfilePicture { get; set; }

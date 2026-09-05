@@ -6,6 +6,7 @@ using Application.Services.Order.ShippingSrv.Provider;
 using Entities.Entities;
 using Entities.Entities.ShippingField;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Persistence.Interface;
 using System;
@@ -24,17 +25,20 @@ namespace Application.Services.Order.ShippingSrv
         private readonly IDeliveryService _deliveryService;
         private readonly IReadOnlyDictionary<ShippingProviderEnum, IShippingProvider> _providers;
         private readonly ShippingOptions _options;
+        private readonly ILogger<ShippingQuoteService> _logger;
 
         public ShippingQuoteService(
             IDataBaseContext context,
             IDeliveryService deliveryService,
             IEnumerable<IShippingProvider> providers,
-            IOptions<ShippingOptions> options)
+            IOptions<ShippingOptions> options,
+            ILogger<ShippingQuoteService> logger)
         {
             _context = context;
             _deliveryService = deliveryService;
             _providers = providers.ToDictionary(item => item.Provider);
             _options = options.Value;
+            _logger = logger;
         }
 
         public async Task<BaseResultDto<List<ShippingQuoteVDto>>> CreateQuotesAsync(
@@ -86,14 +90,30 @@ namespace Application.Services.Order.ShippingSrv
                 }
 
                 if (cartStore.Store?.Location == null || cart.Address.Location == null)
+                {
+                    _logger.LogWarning(
+                        "ShippingQuote: skipping live-priced Delivery {DeliveryId} ({Provider}) for Store {StoreId} - missing Location (Store.Location null: {StoreLocationNull}, Address.Location null: {AddressLocationNull}).",
+                        delivery.Id, delivery.ShippingProvider, storeId,
+                        cartStore.Store?.Location == null, cart.Address.Location == null);
                     continue;
+                }
                 if (!_providers.TryGetValue(delivery.ShippingProvider, out var provider))
+                {
+                    _logger.LogWarning(
+                        "ShippingQuote: skipping live-priced Delivery {DeliveryId} - no IShippingProvider registered for {Provider}.",
+                        delivery.Id, delivery.ShippingProvider);
                     continue;
+                }
 
                 var request = CreateProviderRequest(cart, cartStore, delivery.ShippingProvider);
                 var providerResult = await provider.GetQuoteAsync(request, cancellationToken);
                 if (!providerResult.IsSuccess)
+                {
+                    _logger.LogWarning(
+                        "ShippingQuote: {Provider} quote failed for Delivery {DeliveryId}, Store {StoreId} - {Error}",
+                        delivery.ShippingProvider, delivery.Id, storeId, providerResult.ErrorMessage);
                     continue;
+                }
 
                 if (delivery.AllowPrepaid)
                     results.Add(await SaveQuoteAsync(cart, cartStore, delivery,

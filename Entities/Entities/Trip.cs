@@ -62,6 +62,11 @@ namespace Entities.Entities
         public long? CancelReasonCodeId { get; set; }
         public string CancelReasonDetail { get; set; }
 
+        // نوع خودروی درخواستی کاربر (سواری/وانت) - Code از همون CodeGroup «نوع
+        // خودرو»ی Driver.VehicleTypeId؛ Broadcast و لیست سفرهای در دسترس راننده
+        // فقط با این مقدار مچ می‌شن (null یعنی فرقی نداره، هر دو نوع می‌بینن).
+        public long? VehicleTypeId { get; set; }
+
         // وقتی کاربر بعد از لغوشدن سفر توسط راننده دوباره درخواست می‌دهد، سفر جدید به سفر لغوشده‌ی قبلی وصل می‌شود
         // تا راننده‌ای که قبلاً آن را رد/لغو کرده دوباره در لیستش نبیندش.
         public long? PreviousTripId { get; set; }
@@ -69,6 +74,7 @@ namespace Entities.Entities
         public Code DriverStatus { get; set; }
         public Code TripStatus { get; set; }
         public Code CancelReasonCode { get; set; }
+        public Code VehicleType { get; set; }
         public Trip PreviousTrip { get; set; }
         public UserPet UserPet { get; set; }
         public Driver Driver { get; set; }
