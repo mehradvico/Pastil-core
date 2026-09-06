@@ -1,3 +1,5 @@
+using Application.Common.Enumerable.Code;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -18,12 +20,14 @@ namespace Api.Hubs
     {
         private readonly IDataBaseContext _context;
         private readonly CallSessionTracker _tracker;
+        private readonly IPushNotificationService _pushNotificationService;
         private readonly ILogger<CallHub> _logger;
 
-        public CallHub(IDataBaseContext context, CallSessionTracker tracker, ILogger<CallHub> logger)
+        public CallHub(IDataBaseContext context, CallSessionTracker tracker, IPushNotificationService pushNotificationService, ILogger<CallHub> logger)
         {
             _context = context;
             _tracker = tracker;
+            _pushNotificationService = pushNotificationService;
             _logger = logger;
         }
 
@@ -48,8 +52,9 @@ namespace Api.Hubs
             }
 
             var reserve = await _context.CompanionReserves
+                .Include(r => r.Booker)
                 .Include(r => r.CompanionAssistance).ThenInclude(a => a.Companion)
-                .FirstOrDefaultAsync(r => r.Id == reserveId && r.IsReserved && !r.IsCancel);
+                .FirstOrDefaultAsync(r => r.Id == reserveId && !r.IsCancel);
 
             if (reserve == null)
             {
@@ -80,6 +85,24 @@ namespace Api.Hubs
             if (participantCount <= 1)
             {
                 await Clients.Caller.SendAsync("waitingForPeer");
+
+                // اگر نماینده تماس را شروع کرده (اولین نفری که وصل شده)، برای کاربر رزروکننده پوش
+                // فوری ارسال می‌شود تا او هم وارد صفحه‌ی تماس شود - نماینده تماس را «می‌گیرد»، نه کاربر.
+                if (!isBooker)
+                {
+                    try
+                    {
+                        await _pushNotificationService.SendPushAsync(
+                            PushTypeEnum.PushInAppCallStarted,
+                            reserve.BookerId,
+                            token1: reserve.CompanionAssistance.Companion.Name,
+                            token2: reserveId.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send in-app call start push for reserve {ReserveId}.", reserveId);
+                    }
+                }
                 return;
             }
 
