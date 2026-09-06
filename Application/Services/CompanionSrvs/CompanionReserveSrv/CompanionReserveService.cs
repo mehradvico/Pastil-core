@@ -418,6 +418,22 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidData, dto);
                     }
 
+                    // اگر کاربر روش ارتباط آنلاین (چت/تماس/ویدیو کال) انتخاب کرده، باید متعلق به یکی از
+                    // همین پکیج‌های انتخابی و تأییدشده توسط ادمین (Active) باشد.
+                    if (dto.CompanionAssistancePackageOnlineSelectionId.HasValue)
+                    {
+                        var onlineSelectionValid = await _context.CompanionAssistancePackageOnlineSelections.AnyAsync(s =>
+                            s.Id == dto.CompanionAssistancePackageOnlineSelectionId.Value &&
+                            dto.CompanionAssistancePackagesIds.Contains(s.CompanionAssistancePackageId) &&
+                            s.Active &&
+                            !s.Deleted);
+
+                        if (!onlineSelectionValid)
+                        {
+                            return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidData, dto);
+                        }
+                    }
+
                     var unPaidStatus = await _codeService.GetIdByLabelAsync(CompanionReserveStateEnum.CompanianReserveState_Registered.ToString());
                     item.StateId = unPaidStatus;
 
@@ -472,6 +488,10 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     .ThenInclude(s => s.Owner)
                     .Include(s => s.CompanionAssistanceUser)
                     .ThenInclude(s => s.User)
+                    .Include(s => s.CompanionAssistancePackageOnlineSelection)
+                    .ThenInclude(s => s.CompanionAssistancePackageOnline)
+                    .Include(s => s.CompanionAssistancePackageOnlineSelection)
+                    .ThenInclude(s => s.CompanionAssistancePackage)
                     .FirstOrDefaultAsync(s => s.Id == reserveId);
 
                 if (reserve?.Booker == null ||
@@ -547,6 +567,49 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         reserveId,
                         "operator SMS");
 
+                }
+
+                // اگر کاربر برای این رزرو روش ارتباط آنلاین (چت/تماس/ویدیو کال) انتخاب کرده باشد،
+                // یک پیام تأیید فوری برای کاربر و دو یادآور Push زمان‌بندی‌شده (۱۰ دقیقه قبل و سر ساعت DoDate)
+                // برای نماینده/CompanionUser ارسال می‌شود. زمان‌بندی توسط همان دیسپچر دوره‌ای Push انجام می‌شود.
+                if (reserve.CompanionAssistancePackageOnlineSelection != null)
+                {
+                    var onlineTypeName = reserve.CompanionAssistancePackageOnlineSelection.CompanionAssistancePackageOnline?.Name ?? "";
+                    var packageName = reserve.CompanionAssistancePackageOnlineSelection.CompanionAssistancePackage?.Name ?? assistance.Name;
+                    var doDateText = reserve.DoDate.ToString("yyyy/MM/dd HH:mm");
+                    var reminderTargetUserId = reserve.CompanionAssistanceUser?.User?.Id ?? companion.Owner.Id;
+
+                    await RunPostCommitActionAsync(
+                        () => _pushNotificationService.SendPushAsync(
+                            PushTypeEnum.PushOnlineReserveConfirmedUser,
+                            booker.Id,
+                            token1: packageName,
+                            token2: onlineTypeName,
+                            token3: doDateText),
+                        reserveId,
+                        "user online reserve confirmation push");
+
+                    await RunPostCommitActionAsync(
+                        () => _pushNotificationService.SendPushAsync(
+                            PushTypeEnum.PushOnlineReserveReminderBeforeCompanion,
+                            reminderTargetUserId,
+                            token1: nameText,
+                            token2: packageName,
+                            token3: onlineTypeName,
+                            sendDate: reserve.DoDate.AddMinutes(-10)),
+                        reserveId,
+                        "companion online reserve reminder (before) push");
+
+                    await RunPostCommitActionAsync(
+                        () => _pushNotificationService.SendPushAsync(
+                            PushTypeEnum.PushOnlineReserveReminderAtTimeCompanion,
+                            reminderTargetUserId,
+                            token1: nameText,
+                            token2: packageName,
+                            token3: onlineTypeName,
+                            sendDate: reserve.DoDate),
+                        reserveId,
+                        "companion online reserve reminder (at time) push");
                 }
 
                 await RunPostCommitActionAsync(

@@ -22,6 +22,9 @@ namespace Entities.Entities
         public long CompanionAssistanceTypeId { get; set; }
         public long? CompanionAssistanceTimeId { get; set; }
         public long? CompanionAssistanceUserId { get; set; }
+        // روش ارتباط آنلاین انتخابی کاربر برای این رزرو (چت/تماس/ویدیو کال) - نال یعنی این رزرو آنلاین نیست.
+        // یادآورهای Push (۱۰ دقیقه قبل و سر زمان DoDate) بر اساس همین فیلد به نماینده ارسال می‌شوند.
+        public long? CompanionAssistancePackageOnlineSelectionId { get; set; }
         public bool? IsFemale { get; set; }
         public string BookerDetail { get; set; }
         public string AssistanceDetail { get; set; }
@@ -54,6 +57,7 @@ namespace Entities.Entities
         public CompanionAssistance CompanionAssistance { get; set; }
         public CompanionAssistanceTime CompanionAssistanceTime { get; set; }
         public CompanionAssistanceUser CompanionAssistanceUser { get; set; }
+        public CompanionAssistancePackageOnlineSelection CompanionAssistancePackageOnlineSelection { get; set; }
         public Code State { get; set; }
         public Code OperatorState { get; set; }
         public Address Address { get; set; }

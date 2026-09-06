@@ -1170,6 +1170,9 @@
   <data name="ShippingProviderServiceDisabled" xml:space="preserve">
     <value>Shipping Provider Service Disabled</value>
   </data>
+  <data name="TripPriceCalculationFailed" xml:space="preserve">
+    <value>Trip Price Calculation Failed</value>
+  </data>
   <data name="ShippingProviderConnectionSettingsIncompleteFormat" xml:space="preserve">
     <value>Shipping Provider Connection Settings Incomplete Format</value>
   </data>

@@ -749,6 +749,95 @@
             حذف آیتم 
             </summary>  
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineController">
+             <summary>
+             خدمات آنلاین نماینده
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineController.Get(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv.Dto.CompanionAssistancePackageOnlineInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم
+            </summary>
+            <param name="id">شناسه پکیج خدمات آنلاین</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineController.Post(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv.Dto.CompanionAssistancePackageOnlineDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineController.Put(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv.Dto.CompanionAssistancePackageOnlineDto)">
+            <summary>
+             ویرایش آیتم
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineController.Delete(System.Int64)">
+            <summary>
+             حذف آیتم
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineSelectionActivationController">
+             <summary>
+             فعال سازی انتخاب خدمت آنلاین نماینده
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineSelectionActivationController.Put(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto.CompanionAssistancePackageOnlineSelectionActivationDto)">
+            <summary>
+             فعال سازی آیتم
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineSelectionController">
+             <summary>
+             انتخاب گزینه‌های خدمات آنلاین برای پکیج نماینده
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineSelectionController.Get(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto.CompanionAssistancePackageOnlineSelectionInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineSelectionController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم
+            </summary>
+            <param name="id">شناسه انتخاب خدمت آنلاین</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineSelectionController.Post(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto.CompanionAssistancePackageOnlineSelectionDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineSelectionController.Put(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto.CompanionAssistancePackageOnlineSelectionDto)">
+            <summary>
+             ویرایش آیتم
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionAssistancePackageOnlineSelectionController.Delete(System.Int64)">
+            <summary>
+             حذف آیتم
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionAssistancePackagePictureController">
             <summary>
             تصویر پکیج های خدمات نمایندگان
@@ -5162,6 +5251,64 @@
             حذف آیتم
             </summary>
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistancePackageOnlineController">
+             <summary>
+             فهرست خدمات آنلاین نماینده
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageOnlineController.Get(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv.Dto.CompanionAssistancePackageOnlineInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageOnlineController.Get(System.Int64)">
+            <summary>
+             اطلاعات آیتم
+            </summary>
+            <param name="id">شناسه پکیج خدمات آنلاین</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionAssistancePackageOnlineSelectionController">
+             <summary>
+             مدیریت انتخاب گزینه‌های خدمات آنلاین برای پکیج‌های نماینده
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageOnlineSelectionController.Get(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto.CompanionAssistancePackageOnlineSelectionInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageOnlineSelectionController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+            <param name="id">شناسه انتخاب خدمت آنلاین</param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageOnlineSelectionController.Post(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto.CompanionAssistancePackageOnlineSelectionDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageOnlineSelectionController.Put(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto.CompanionAssistancePackageOnlineSelectionDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionAssistancePackageOnlineSelectionController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionAssistancePackagePictureController">
              <summary>
              مدیریت تصویر پکیج ها
@@ -6384,6 +6531,30 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CompanionAssistancePackageOnlineController">
+             <summary>
+             فهرست خدمات آنلاین نماینده
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CompanionAssistancePackageOnlineController.Get(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv.Dto.CompanionAssistancePackageOnlineInputDto)">
+            <summary>
+             جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CompanionAssistancePackageOnlineSelectionController">
+             <summary>
+             فهرست گزینه‌های خدمات آنلاین تأییدشده‌ی یک پکیج (برای انتخاب کاربر موقع رزرو)
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CompanionAssistancePackageOnlineSelectionController.Get(Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto.CompanionAssistancePackageOnlineSelectionInputDto)">
+            <summary>
+             جستجو - فقط گزینه‌های تأییدشده (Active) این کنترلر برمی‌گردد
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionAssistanceReportController">
             <summary>
             مدیریت گزارشات تخلف خدمات نمایندگان
@@ -7412,16 +7583,16 @@
             </summary>  
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PriceCalculationController">
-            <summary>
-            مدیریت  سفر ها
-            </summary>
+             <summary>
+             مدیریت  سفر ها
+             </summary>
             
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.PriceCalculationController.Post(Application.Services.TripSrv.TripSrv.Dto.TripDto)">
             <summary>
              محاسبه قیمت سفر
             </summary>
-            <returns></returns> 
+            <returns></returns>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.ProductCommentController">
             <summary>

@@ -330,6 +330,9 @@
   <data name="WrongVrifyCodeCount" xml:space="preserve">
     <value>به دلیل ورود بیش از سه بار کد اشتباه امکان ارسال مجدد تا  {0} دقیقه بعد فراهم نیست</value>
   </data>
+  <data name="TooManyOtpRequests" xml:space="preserve">
+    <value>به دلیل درخواست بیش از حد کد، تا {0} دقیقه دیگر امکان دریافت کد جدید وجود ندارد</value>
+  </data>
   <data name="YouCanBuyUpToT1Product" xml:space="preserve">
     <value>شما می توانید حداکثر {0} عدد از این محصول را خریداری کنید</value>
   </data>

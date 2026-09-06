@@ -1312,6 +1312,66 @@ namespace Persistence.Migrations
                     b.ToTable("CompanionAssistancePackages");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionAssistancePackageOnline", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CompanionAssistancePackageOnlines");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionAssistancePackageOnlineSelection", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("CompanionAssistancePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CompanionAssistancePackageOnlineId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionAssistancePackageId");
+
+                    b.HasIndex("CompanionAssistancePackageOnlineId");
+
+                    b.ToTable("CompanionAssistancePackageOnlineSelections");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionAssistanceTime", b =>
                 {
                     b.Property<long>("Id")
@@ -1733,6 +1793,35 @@ namespace Persistence.Migrations
                     b.ToTable("Expertises");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionInstantCallRequest", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BookerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CompanionAssistancePackageOnlineSelectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookerId");
+
+                    b.HasIndex("CompanionAssistancePackageOnlineSelectionId");
+
+                    b.ToTable("CompanionInstantCallRequests");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionReserve", b =>
                 {
                     b.Property<long>("Id")
@@ -1760,6 +1849,9 @@ namespace Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<long>("CompanionAssistanceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CompanionAssistancePackageOnlineSelectionId")
                         .HasColumnType("bigint");
 
                     b.Property<long?>("CompanionAssistanceTimeId")
@@ -1857,6 +1949,8 @@ namespace Persistence.Migrations
                     b.HasIndex("BookerId");
 
                     b.HasIndex("CompanionAssistanceId");
+
+                    b.HasIndex("CompanionAssistancePackageOnlineSelectionId");
 
                     b.HasIndex("CompanionAssistanceTimeId");
 
@@ -8174,6 +8268,9 @@ namespace Persistence.Migrations
                     b.Property<double>("SiteShare")
                         .HasColumnType("float");
 
+                    b.Property<int?>("StopMinutes")
+                        .HasColumnType("int");
+
                     b.Property<string>("ToAddress")
                         .HasColumnType("nvarchar(max)");
 
@@ -9525,6 +9622,25 @@ namespace Persistence.Migrations
                     b.Navigation("Picture");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionAssistancePackageOnlineSelection", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionAssistancePackage", "CompanionAssistancePackage")
+                        .WithMany()
+                        .HasForeignKey("CompanionAssistancePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionAssistancePackageOnline", "CompanionAssistancePackageOnline")
+                        .WithMany()
+                        .HasForeignKey("CompanionAssistancePackageOnlineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CompanionAssistancePackage");
+
+                    b.Navigation("CompanionAssistancePackageOnline");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionAssistanceTime", b =>
                 {
                     b.HasOne("Entities.Entities.CompanionAssistance", "CompanionAssistance")
@@ -9769,6 +9885,25 @@ namespace Persistence.Migrations
                     b.Navigation("State");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionInstantCallRequest", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "Booker")
+                        .WithMany()
+                        .HasForeignKey("BookerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionAssistancePackageOnlineSelection", "CompanionAssistancePackageOnlineSelection")
+                        .WithMany()
+                        .HasForeignKey("CompanionAssistancePackageOnlineSelectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Booker");
+
+                    b.Navigation("CompanionAssistancePackageOnlineSelection");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionReserve", b =>
                 {
                     b.HasOne("Entities.Entities.Address", "Address")
@@ -9786,6 +9921,10 @@ namespace Persistence.Migrations
                         .HasForeignKey("CompanionAssistanceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionAssistancePackageOnlineSelection", "CompanionAssistancePackageOnlineSelection")
+                        .WithMany()
+                        .HasForeignKey("CompanionAssistancePackageOnlineSelectionId");
 
                     b.HasOne("Entities.Entities.CompanionAssistanceTime", "CompanionAssistanceTime")
                         .WithMany()
@@ -9822,6 +9961,8 @@ namespace Persistence.Migrations
                     b.Navigation("Booker");
 
                     b.Navigation("CompanionAssistance");
+
+                    b.Navigation("CompanionAssistancePackageOnlineSelection");
 
                     b.Navigation("CompanionAssistanceTime");
 

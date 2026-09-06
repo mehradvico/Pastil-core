@@ -195,7 +195,7 @@ namespace Application.Services.Accounting.DriverSrv
                 errors.Add(Tuple.Create(Resource.Notification.DriverProfilePictureInvalid, nameof(dto.ProfilePictureId)));
             if (dto.Rate != 0 && (dto.Rate > 5 || dto.Rate < 1))
                 errors.Add(Tuple.Create(Resource.Notification.TheRangeEnteredIsNotCorrect, nameof(dto.Rate)));
-            if (dto.OwnerId > 0 && await _context.Drivers.AnyAsync(s => s.OwnerId == dto.OwnerId && !s.Deleted && s.Id != (excludeDriverId ?? 0)))
+            if (dto.OwnerId > 0 && await _context.Drivers.AnyAsync(s => s.OwnerId == dto.OwnerId && !s.Deleted && (!excludeDriverId.HasValue || s.Id != excludeDriverId.Value)))
                 errors.Add(Tuple.Create(Resource.Notification.AlreadyIsDriver, nameof(dto.OwnerId)));
             if (errors.Any())
             {

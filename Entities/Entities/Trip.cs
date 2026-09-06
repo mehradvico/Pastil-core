@@ -34,6 +34,9 @@ namespace Entities.Entities
         public long? UserPetId { get; set; }
         public long UserId { get; set; }
         public long? TripStopId { get; set; }
+        // مدت توقف در مسیر به دقیقه - قیمتش با نرخ هر دقیقه‌ی PriceCalculation.StopPrice
+        // (بر اساس ساعت شروع سفر) ضرب و به قیمت کل اضافه می‌شه.
+        public int? StopMinutes { get; set; }
         public double DriverShare { get; set; }
         public double SiteShare { get; set; }
         public long? RebateId { get; set; }

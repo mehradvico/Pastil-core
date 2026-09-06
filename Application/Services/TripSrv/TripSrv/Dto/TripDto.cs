@@ -39,6 +39,7 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public long? UserPetId { get; set; }
         public long UserId { get; set; }
         public long? TripStopId { get; set; }
+        public int? StopMinutes { get; set; }
         public List<long> TripOptionIds { get; set; } = new List<long>();
         public double DriverShare { get; set; }
         public double SiteShare { get; set; }

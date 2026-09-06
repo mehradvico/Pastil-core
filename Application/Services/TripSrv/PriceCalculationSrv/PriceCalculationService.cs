@@ -136,6 +136,12 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
                     price += tripStop.Price;
                 }
             }
+            // توقف در مسیر به ازای هر دقیقه - نرخش (PriceCalculation.StopPrice) هم بر اساس
+            // ساعت شروع سفر انتخاب می‌شه، دقیقاً مثل نرخ فاصله.
+            if (tripDto.StopMinutes.HasValue && tripDto.StopMinutes.Value > 0)
+            {
+                price += tripDto.StopMinutes.Value * priceCalculation.StopPrice;
+            }
             if (tripDto.TripOptionIds != null && tripDto.TripOptionIds.Any())
             {
                 var optionList = await _tripOptionService.GetListAsync(tripDto.TripOptionIds);

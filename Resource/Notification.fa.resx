@@ -1170,6 +1170,9 @@
   <data name="ShippingProviderServiceDisabled" xml:space="preserve">
     <value>این سرویس ارسال غیرفعال است.</value>
   </data>
+  <data name="TripPriceCalculationFailed" xml:space="preserve">
+    <value>محاسبه هزینه سفر در حال حاضر ممکن نیست. لطفاً کمی بعد دوباره تلاش کنید.</value>
+  </data>
   <data name="ShippingProviderConnectionSettingsIncompleteFormat" xml:space="preserve">
     <value>تنظیمات اتصال {0} تکمیل نشده است.</value>
   </data>

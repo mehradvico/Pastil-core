@@ -311,7 +311,16 @@ namespace Resource {
                 return ResourceManager.GetString("WrongVrifyCodeCount", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to به دلیل درخواست بیش از حد کد، تا {0} دقیقه دیگر امکان دریافت کد جدید وجود ندارد.
+        /// </summary>
+        public static string TooManyOtpRequests {
+            get {
+                return ResourceManager.GetString("TooManyOtpRequests", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to شما می توانید حداکثر {0} عدد از این محصول را خریداری کنید.
         /// </summary>

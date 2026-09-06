@@ -65,6 +65,7 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public string CancelReasonDetail { get; set; }
         public long? PreviousTripId { get; set; }
         public long? VehicleTypeId { get; set; }
+        public int? StopMinutes { get; set; }
         public CodeVDto DriverStatus { get; set; }
         public CodeVDto TripStatus { get; set; }
         public CodeVDto CancelReasonCode { get; set; }

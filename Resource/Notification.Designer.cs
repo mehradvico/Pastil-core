@@ -2359,6 +2359,15 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Trip Price Calculation Failed.
+        /// </summary>
+        public static string TripPriceCalculationFailed {
+            get {
+                return ResourceManager.GetString("TripPriceCalculationFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Shipping Provider Connection Settings Incomplete Format.
         /// </summary>
         public static string ShippingProviderConnectionSettingsIncompleteFormat {

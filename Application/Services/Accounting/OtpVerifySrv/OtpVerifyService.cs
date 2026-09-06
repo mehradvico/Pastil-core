@@ -66,11 +66,14 @@ namespace Application.Services.Accounting.OtpVerifySrv
 
                     if (item != null)
                     {
-                        if (item.TryCount > 3 && item.UpdateDate.AddMinutes(10) > DateTime.Now)
+                        // بعد از ۳ بار درخواست کد (TryCount از ۰ شروع می‌شه، پس ۲ یعنی این چهارمین درخواسته)
+                        // بدون ورود موفق، تا ۱۰ دقیقه اجازه‌ی درخواست کد جدید نداره - جلوگیری از تموم شدن
+                        // شارژ پیامک با درخواست‌های پشت‌سرهم. زمان همون ۱۰ دقیقه‌ی از قبل موجوده.
+                        if (item.TryCount > 1 && item.UpdateDate.AddMinutes(10) > DateTime.Now)
                         {
                             var timeSpan = (item.UpdateDate.AddMinutes(10) - DateTime.Now).Minutes;
                             if (timeSpan < 1) { timeSpan = 1; }
-                            errors.Add(new Tuple<string, string>(string.Format(Resource.Pattern.WrongVrifyCodeCount, timeSpan), nameof(dto.Code)));
+                            errors.Add(new Tuple<string, string>(string.Format(Resource.Pattern.TooManyOtpRequests, timeSpan), nameof(dto.Code)));
                             return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, messages: errors, dto);
                         }
                         else if (item.UpdateDate.AddMinutes(10) < DateTime.Now)

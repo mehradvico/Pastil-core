@@ -171,8 +171,11 @@ namespace Persistence.Context
         public DbSet<Companion> Companions { get; set; }
         public DbSet<CompanionAssistance> CompanionAssistances { get; set; }
         public DbSet<CompanionAssistancePackage> CompanionAssistancePackages { get; set; }
+        public DbSet<CompanionAssistancePackageOnline> CompanionAssistancePackageOnlines { get; set; }
+        public DbSet<CompanionAssistancePackageOnlineSelection> CompanionAssistancePackageOnlineSelections { get; set; }
         public DbSet<CompanionAssistancePackagePicture> CompanionAssistancePackagePictures { get; set; }
         public DbSet<CompanionAssistanceReport> CompanionAssistanceReports { get; set; }
+        public DbSet<CompanionInstantCallRequest> CompanionInstantCallRequests { get; set; }
         public DbSet<CompanionAssistanceTime> CompanionAssistanceTimes { get; set; }
         public DbSet<CompanionAssistanceUser> CompanionAssistanceUsers { get; set; }
         public DbSet<CompanionComment> CompanionComments { get; set; }

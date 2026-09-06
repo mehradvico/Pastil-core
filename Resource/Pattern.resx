@@ -288,6 +288,9 @@
   <data name="WrongVrifyCodeCount" xml:space="preserve">
     <value>Due to entering the wrong code more than three times, resending is not possible until {0} minutes later</value>
   </data>
+  <data name="TooManyOtpRequests" xml:space="preserve">
+    <value>Too many code requests - you can request a new code again in {0} minutes</value>
+  </data>
   <data name="YouCanBuyUpToT1Product" xml:space="preserve">
     <value>شما می توانید حداکثر {0} عدد از این محصول را خریداری کنید</value>
   </data>

@@ -33,5 +33,6 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
         public string RebateCode { get; set; }
 
         public List<long> CompanionAssistancePackagesIds { get; set; }
+        public long? CompanionAssistancePackageOnlineSelectionId { get; set; }
     }
 }

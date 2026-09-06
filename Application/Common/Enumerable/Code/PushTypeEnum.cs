@@ -64,6 +64,10 @@ namespace Application.Common.Enumerable.Code
         PushTripDriverCanceled = 55,
         PushPetBirthday = 56,
         PushPetBirthdayUpcoming = 57,
-        PushTripUserCanceled = 58
+        PushTripUserCanceled = 58,
+        PushOnlineReserveConfirmedUser = 59,
+        PushOnlineReserveReminderBeforeCompanion = 60,
+        PushOnlineReserveReminderAtTimeCompanion = 61,
+        PushInstantCallRequestCompanion = 62
     }
 }

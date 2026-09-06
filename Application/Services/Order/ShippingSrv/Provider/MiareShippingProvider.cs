@@ -91,12 +91,14 @@ namespace Application.Services.Order.ShippingSrv.Provider
                     return ShippingProviderQuoteResult.Failed("Miare estimate response did not include a price.");
                 }
 
-                // میاره قیمت را به تومان برمی‌گرداند؛ بقیه‌ی سیستم (شامل ذخیره‌ی Quote) بر مبنای ریال کار می‌کند.
+                // میاره قیمت را به تومان برمی‌گرداند؛ بقیه‌ی سیستم (سایر پرووایدرها، ShippingQuoteService،
+                // نمایش در وب‌اپ) هم همون عدد تومان رو بدون تبدیل به عنوان Price نگه می‌داره و نشون می‌ده،
+                // پس اینجا هم نباید ضربدر ۱۰ بشه.
                 var priceToman = priceProp.GetDouble();
                 return new ShippingProviderQuoteResult
                 {
                     IsSuccess = true,
-                    Price = priceToman * 10,
+                    Price = priceToman,
                     Currency = "IRR",
                     ExternalQuoteId = $"MIARE-EST-{Guid.NewGuid():N}"
                 };
