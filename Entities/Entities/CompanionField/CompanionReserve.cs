@@ -25,6 +25,9 @@ namespace Entities.Entities
         // روش ارتباط آنلاین انتخابی کاربر برای این رزرو (چت/تماس/ویدیو کال) - نال یعنی این رزرو آنلاین نیست.
         // یادآورهای Push (۱۰ دقیقه قبل و سر زمان DoDate) بر اساس همین فیلد به نماینده ارسال می‌شوند.
         public long? CompanionAssistancePackageOnlineSelectionId { get; set; }
+        // زمان شروع و پایان تماس درون‌برنامه‌ای (وقتی روش ارتباط، تماس فوری داخل برنامه باشد) - برای نمایش به ادمین.
+        public DateTime? CallStartDate { get; set; }
+        public DateTime? CallEndDate { get; set; }
         public bool? IsFemale { get; set; }
         public string BookerDetail { get; set; }
         public string AssistanceDetail { get; set; }

@@ -10144,6 +10144,18 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Hubs.CallHub">
+            <summary>
+            سیگنالینگ WebRTC برای تماس فوری درون‌برنامه‌ای بین کاربر و نماینده - جریان صوت مستقیم و نظیر-به-نظیر
+            برقرار می‌شود، این هاب فقط پیام‌های SDP/ICE را بین دو طرف رله می‌کند.
+            </summary>
+        </member>
+        <member name="T:Api.Hubs.CallSessionTracker">
+            <summary>
+            نگه‌داری وضعیت درون‌حافظه‌ای شرکت‌کنندگان هر تماس درون‌برنامه‌ای (برای هر نمونه از سرویس API - در صورت
+            افزایش تعداد نمونه‌ها در آینده باید به یک بک‌اند مشترک مثل Redis منتقل شود).
+            </summary>
+        </member>
         <member name="T:Api.Middleware.SwaggerAccessMiddleware">
             <summary>
             Gates /swagger (UI + swagger.json) behind HTTP Basic Auth, with an optional

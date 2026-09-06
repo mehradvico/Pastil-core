@@ -29,6 +29,8 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
         public long CompanionAssistanceTimeId { get; set; }
         public long? CompanionAssistanceUserId { get; set; }
         public long? CompanionAssistancePackageOnlineSelectionId { get; set; }
+        public DateTime? CallStartDate { get; set; }
+        public DateTime? CallEndDate { get; set; }
         public bool? IsFemale { get; set; }
         public string BookerDetail { get; set; }
         public string AssistanceDetail { get; set; }

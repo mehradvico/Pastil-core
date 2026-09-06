@@ -96,6 +96,7 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<CallSessionTracker>();
 builder.Services.AddAuthorization(options => options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireClaim("RoleId", ((long)RoleEnum.Admin).ToString())));
 builder.Services
     .AddControllersWithViews()
@@ -211,7 +212,9 @@ builder.Services.AddAuthentication(Options =>
                  OnMessageReceived = context =>
                  {
                      var accessToken = context.Request.Query["access_token"];
-                     if (!string.IsNullOrWhiteSpace(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs/notices"))
+                     if (!string.IsNullOrWhiteSpace(accessToken) &&
+                         (context.HttpContext.Request.Path.StartsWithSegments("/hubs/notices") ||
+                          context.HttpContext.Request.Path.StartsWithSegments("/hubs/call")))
                          context.Token = accessToken;
                      return Task.CompletedTask;
 
@@ -295,6 +298,7 @@ app.UseRateLimiter();
 app.UseOutputCache();
 app.MapControllers();
 app.MapHub<NoticeHub>("/hubs/notices");
+app.MapHub<CallHub>("/hubs/call");
 app.UseSwaggerAccessControl();
 app.UseSwagger();
 app.UseSwaggerUI(options =>

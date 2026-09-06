@@ -1,0 +1,145 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Persistence.Interface;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Api.Hubs
+{
+    /// <summary>
+    /// سیگنالینگ WebRTC برای تماس فوری درون‌برنامه‌ای بین کاربر و نماینده - جریان صوت مستقیم و نظیر-به-نظیر
+    /// برقرار می‌شود، این هاب فقط پیام‌های SDP/ICE را بین دو طرف رله می‌کند.
+    /// </summary>
+    [Authorize]
+    public class CallHub : Hub
+    {
+        private readonly IDataBaseContext _context;
+        private readonly CallSessionTracker _tracker;
+        private readonly ILogger<CallHub> _logger;
+
+        public CallHub(IDataBaseContext context, CallSessionTracker tracker, ILogger<CallHub> logger)
+        {
+            _context = context;
+            _tracker = tracker;
+            _logger = logger;
+        }
+
+        private static string GroupName(long reserveId) => $"call-{reserveId}";
+
+        private long? CurrentUserId
+        {
+            get
+            {
+                var claim = Context.User?.FindFirst("UserId")?.Value;
+                return long.TryParse(claim, out var id) ? id : null;
+            }
+        }
+
+        public async Task JoinCall(long reserveId)
+        {
+            var userId = CurrentUserId;
+            if (!userId.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "احراز هویت نامعتبر است.");
+                return;
+            }
+
+            var reserve = await _context.CompanionReserves
+                .Include(r => r.CompanionAssistance).ThenInclude(a => a.Companion)
+                .FirstOrDefaultAsync(r => r.Id == reserveId && r.IsReserved && !r.IsCancel);
+
+            if (reserve == null)
+            {
+                await Clients.Caller.SendAsync("callError", "رزرو یافت نشد.");
+                return;
+            }
+
+            var isBooker = reserve.BookerId == userId.Value;
+            var isCompanionOwner = reserve.CompanionAssistance.Companion.OwnerId == userId.Value;
+            var isAssignedStaff = reserve.CompanionAssistanceUserId.HasValue &&
+                await _context.CompanionAssistanceUsers.AnyAsync(u => u.Id == reserve.CompanionAssistanceUserId.Value && u.UserId == userId.Value);
+
+            if (!isBooker && !isCompanionOwner && !isAssignedStaff)
+            {
+                await Clients.Caller.SendAsync("callError", "شما دسترسی به این تماس ندارید.");
+                return;
+            }
+
+            if (reserve.CallEndDate.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "این تماس قبلاً پایان یافته است.");
+                return;
+            }
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(reserveId));
+            var participantCount = _tracker.Join(reserveId, Context.ConnectionId, userId.Value);
+
+            if (participantCount <= 1)
+            {
+                await Clients.Caller.SendAsync("waitingForPeer");
+                return;
+            }
+
+            if (!reserve.CallStartDate.HasValue)
+            {
+                reserve.CallStartDate = DateTime.Now;
+                _context.CompanionReserves.Update(reserve);
+                await _context.SaveChangesAsync();
+            }
+
+            // نفری که دومین بوده باید offer بسازد؛ طرف دیگر منتظر بوده و باید answer بدهد.
+            await Clients.Caller.SendAsync("callConnected", true);
+            await Clients.OthersInGroup(GroupName(reserveId)).SendAsync("callConnected", false);
+        }
+
+        public async Task SendSignal(long reserveId, string type, string payload)
+        {
+            await Clients.OthersInGroup(GroupName(reserveId)).SendAsync("signal", type, payload);
+        }
+
+        public async Task EndCall()
+        {
+            var result = _tracker.Leave(Context.ConnectionId);
+            if (!result.HasValue)
+            {
+                return;
+            }
+
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(result.Value.ReserveId));
+            await Clients.OthersInGroup(GroupName(result.Value.ReserveId)).SendAsync("callEnded");
+            await FinalizeCallAsync(result.Value.ReserveId);
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            var result = _tracker.Leave(Context.ConnectionId);
+            if (result.HasValue)
+            {
+                await Clients.OthersInGroup(GroupName(result.Value.ReserveId)).SendAsync("callEnded");
+                await FinalizeCallAsync(result.Value.ReserveId);
+            }
+            await base.OnDisconnectedAsync(exception);
+        }
+
+        private async Task FinalizeCallAsync(long reserveId)
+        {
+            try
+            {
+                var reserve = await _context.CompanionReserves.FirstOrDefaultAsync(r => r.Id == reserveId);
+                if (reserve != null && !reserve.CallEndDate.HasValue)
+                {
+                    reserve.CallEndDate = DateTime.Now;
+                    _context.CompanionReserves.Update(reserve);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to finalize call end time for reserve {ReserveId}.", reserveId);
+            }
+        }
+    }
+}
