@@ -94,8 +94,6 @@ using Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv;
 using Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv;
 using Application.Services.CompanionSrvs.CompanionAssistancePackagePictureSrv.Iface;
-using Application.Services.CompanionSrvs.CompanionInstantCallRequestSrv;
-using Application.Services.CompanionSrvs.CompanionInstantCallRequestSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionAssistanceReportSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionCommentSrv;
 using Application.Services.CompanionSrvs.CompanionCommentSrv.Iface;
@@ -459,7 +457,6 @@ public static class ConfigureServices
         services.AddScoped<ICommentLikeService, CommentLikeService>();
         services.AddScoped<ICompanionAssistancePackageOnlineService, CompanionAssistancePackageOnlineService>();
         services.AddScoped<ICompanionAssistancePackageOnlineSelectionService, CompanionAssistancePackageOnlineSelectionService>();
-        services.AddScoped<ICompanionInstantCallRequestService, CompanionInstantCallRequestService>();
         services.AddScoped<ICompanionAssistancePackagePictureService, CompanionAssistancePackagePictureService>();
         services.AddScoped<ICompanionAssistancePackageService, CompanionAssistancePackageService>();
         services.AddScoped<ICompanionAssistanceReportService, CompanionAssistanceReportService>();

@@ -67,7 +67,6 @@ namespace Application.Common.Enumerable.Code
         PushTripUserCanceled = 58,
         PushOnlineReserveConfirmedUser = 59,
         PushOnlineReserveReminderBeforeCompanion = 60,
-        PushOnlineReserveReminderAtTimeCompanion = 61,
-        PushInstantCallRequestCompanion = 62
+        PushOnlineReserveReminderAtTimeCompanion = 61
     }
 }

@@ -6,5 +6,6 @@ namespace Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv
     {
         public double Price { get; set; }
         public bool Active { get; set; }
+        public bool IsInstant { get; set; }
     }
 }

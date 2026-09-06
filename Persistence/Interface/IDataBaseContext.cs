@@ -63,7 +63,6 @@ namespace Persistence.Interface
         public DbSet<CompanionAssistancePackageOnlineSelection> CompanionAssistancePackageOnlineSelections { get; set; }
         public DbSet<CompanionAssistancePackagePicture> CompanionAssistancePackagePictures { get; set; }
         public DbSet<CompanionAssistanceReport> CompanionAssistanceReports { get; set; }
-        public DbSet<CompanionInstantCallRequest> CompanionInstantCallRequests { get; set; }
         public DbSet<CompanionAssistanceTime> CompanionAssistanceTimes { get; set; }
         public DbSet<CompanionAssistanceUser> CompanionAssistanceUsers { get; set; }
         public DbSet<CompanionComment> CompanionComments { get; set; }

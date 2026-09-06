@@ -271,6 +271,32 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                             dto);
                     }
 
+                    // اگر کاربر روش ارتباط آنلاین (چت/تماس/ویدیو کال) انتخاب کرده، باید متعلق به یکی از
+                    // همین پکیج‌های انتخابی و تأییدشده توسط ادمین (Active) باشد. گزینه‌های «فوری» نیاز به
+                    // انتخاب زمان از قبل ندارند و DoDate روی همین الان تنظیم می‌شود.
+                    CompanionAssistancePackageOnlineSelection onlineSelection = null;
+                    if (dto.CompanionAssistancePackageOnlineSelectionId.HasValue)
+                    {
+                        onlineSelection = await _context.CompanionAssistancePackageOnlineSelections
+                            .Include(s => s.CompanionAssistancePackageOnline)
+                            .FirstOrDefaultAsync(s =>
+                                s.Id == dto.CompanionAssistancePackageOnlineSelectionId.Value &&
+                                dto.CompanionAssistancePackagesIds.Contains(s.CompanionAssistancePackageId) &&
+                                s.Active &&
+                                !s.Deleted);
+
+                        if (onlineSelection == null)
+                        {
+                            return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidData, dto);
+                        }
+
+                        if (onlineSelection.CompanionAssistancePackageOnline.IsInstant)
+                        {
+                            dto.DoDate = DateTime.Now;
+                            item.DoDate = dto.DoDate;
+                        }
+                    }
+
                     if (ReservationScheduleValidator.IsDateInPast(dto.DoDate, DateTime.Now))
                     {
                         return new BaseResultDto<CompanionReserveDto>(
@@ -326,7 +352,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                                 dto);
                         }
                     }
-                    else if (await _context.CompanionAssistanceTimes.AnyAsync(s =>
+                    else if (onlineSelection?.CompanionAssistancePackageOnline.IsInstant != true &&
+                             await _context.CompanionAssistanceTimes.AnyAsync(s =>
                                  s.CompanionAssistanceId == dto.CompanionAssistanceId &&
                                  s.Active &&
                                  !s.Deleted))
@@ -418,22 +445,6 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidData, dto);
                     }
 
-                    // اگر کاربر روش ارتباط آنلاین (چت/تماس/ویدیو کال) انتخاب کرده، باید متعلق به یکی از
-                    // همین پکیج‌های انتخابی و تأییدشده توسط ادمین (Active) باشد.
-                    if (dto.CompanionAssistancePackageOnlineSelectionId.HasValue)
-                    {
-                        var onlineSelectionValid = await _context.CompanionAssistancePackageOnlineSelections.AnyAsync(s =>
-                            s.Id == dto.CompanionAssistancePackageOnlineSelectionId.Value &&
-                            dto.CompanionAssistancePackagesIds.Contains(s.CompanionAssistancePackageId) &&
-                            s.Active &&
-                            !s.Deleted);
-
-                        if (!onlineSelectionValid)
-                        {
-                            return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidData, dto);
-                        }
-                    }
-
                     var unPaidStatus = await _codeService.GetIdByLabelAsync(CompanionReserveStateEnum.CompanianReserveState_Registered.ToString());
                     item.StateId = unPaidStatus;
 
@@ -457,6 +468,11 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                     item.PackagePrice = packages.Sum(p => p.Price) * petCount;
                     item.PrePaymentPrice = packages.Sum(p => p.PrePaymentPrice) * petCount;
+                    if (onlineSelection != null)
+                    {
+                        item.PackagePrice += onlineSelection.Price;
+                        item.PrePaymentPrice += onlineSelection.Price;
+                    }
                     item.PaymentPrice = item.PrePaymentPrice;
                     _context.CompanionReserves.Update(item);
                     await _context.SaveChangesAsync();
@@ -576,6 +592,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 {
                     var onlineTypeName = reserve.CompanionAssistancePackageOnlineSelection.CompanionAssistancePackageOnline?.Name ?? "";
                     var packageName = reserve.CompanionAssistancePackageOnlineSelection.CompanionAssistancePackage?.Name ?? assistance.Name;
+                    var isInstant = reserve.CompanionAssistancePackageOnlineSelection.CompanionAssistancePackageOnline?.IsInstant == true;
                     var doDateText = reserve.DoDate.ToString("yyyy/MM/dd HH:mm");
                     var reminderTargetUserId = reserve.CompanionAssistanceUser?.User?.Id ?? companion.Owner.Id;
 
@@ -589,27 +606,46 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                         reserveId,
                         "user online reserve confirmation push");
 
-                    await RunPostCommitActionAsync(
-                        () => _pushNotificationService.SendPushAsync(
-                            PushTypeEnum.PushOnlineReserveReminderBeforeCompanion,
-                            reminderTargetUserId,
-                            token1: nameText,
-                            token2: packageName,
-                            token3: onlineTypeName,
-                            sendDate: reserve.DoDate.AddMinutes(-10)),
-                        reserveId,
-                        "companion online reserve reminder (before) push");
+                    if (isInstant)
+                    {
+                        // گزینه‌های «فوری» زمان از پیش تعیین‌شده‌ای ندارند؛ فقط همین الان یک یادآور برای نماینده کافی است.
+                        await RunPostCommitActionAsync(
+                            () => _pushNotificationService.SendPushAsync(
+                                PushTypeEnum.PushOnlineReserveReminderAtTimeCompanion,
+                                reminderTargetUserId,
+                                token1: nameText,
+                                token2: packageName,
+                                token3: onlineTypeName,
+                                token4: reserveId.ToString()),
+                            reserveId,
+                            "companion instant online reserve push");
+                    }
+                    else
+                    {
+                        await RunPostCommitActionAsync(
+                            () => _pushNotificationService.SendPushAsync(
+                                PushTypeEnum.PushOnlineReserveReminderBeforeCompanion,
+                                reminderTargetUserId,
+                                token1: nameText,
+                                token2: packageName,
+                                token3: onlineTypeName,
+                                token4: reserveId.ToString(),
+                                sendDate: reserve.DoDate.AddMinutes(-10)),
+                            reserveId,
+                            "companion online reserve reminder (before) push");
 
-                    await RunPostCommitActionAsync(
-                        () => _pushNotificationService.SendPushAsync(
-                            PushTypeEnum.PushOnlineReserveReminderAtTimeCompanion,
-                            reminderTargetUserId,
-                            token1: nameText,
-                            token2: packageName,
-                            token3: onlineTypeName,
-                            sendDate: reserve.DoDate),
-                        reserveId,
-                        "companion online reserve reminder (at time) push");
+                        await RunPostCommitActionAsync(
+                            () => _pushNotificationService.SendPushAsync(
+                                PushTypeEnum.PushOnlineReserveReminderAtTimeCompanion,
+                                reminderTargetUserId,
+                                token1: nameText,
+                                token2: packageName,
+                                token3: onlineTypeName,
+                                token4: reserveId.ToString(),
+                                sendDate: reserve.DoDate),
+                            reserveId,
+                            "companion online reserve reminder (at time) push");
+                    }
                 }
 
                 await RunPostCommitActionAsync(
@@ -1106,6 +1142,15 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                 item.PackagePrice = packages.Sum(p => p.Price) * petCount;
                 item.PrePaymentPrice = packages.Sum(p => p.PrePaymentPrice) * petCount;
+                if (item.CompanionAssistancePackageOnlineSelectionId.HasValue)
+                {
+                    var onlineSelectionPrice = await _context.CompanionAssistancePackageOnlineSelections
+                        .Where(s => s.Id == item.CompanionAssistancePackageOnlineSelectionId.Value)
+                        .Select(s => s.Price)
+                        .FirstOrDefaultAsync();
+                    item.PackagePrice += onlineSelectionPrice;
+                    item.PrePaymentPrice += onlineSelectionPrice;
+                }
                 item.PaymentPrice = item.PrePaymentPrice;
 
                 if (oldPaymentPrice != item.PaymentPrice)

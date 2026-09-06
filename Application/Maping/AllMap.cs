@@ -24,7 +24,6 @@ using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv.Dto;
-using Application.Services.CompanionSrvs.CompanionInstantCallRequestSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto;
 using Application.Services.CompanionSrv.CompanionReserveSrv.Dto;
@@ -331,10 +330,6 @@ namespace Application.Maping
             CreateMap<CompanionAssistancePackageOnlineSelectionDto, CompanionAssistancePackageOnlineSelection>();
             CreateMap<CompanionAssistancePackageOnlineSelection, CompanionAssistancePackageOnlineSelectionVDto>();
             CreateMap<CompanionAssistancePackageOnlineSelection, CompanionAssistancePackageOnlineSelectionActivationDto>().ReverseMap();
-            CreateMap<CompanionInstantCallRequestDto, CompanionInstantCallRequest>()
-                .ForMember(x => x.CompanionAssistancePackageOnlineSelection, y => y.Ignore()).ForMember(x => x.Booker, y => y.Ignore());
-            CreateMap<CompanionInstantCallRequest, CompanionInstantCallRequestDto>();
-            CreateMap<CompanionInstantCallRequest, CompanionInstantCallRequestVDto>();
             CreateMap<CompanionAssistancePackagePicture, CompanionAssistancePackagePictureDto>().ReverseMap();
             CreateMap<CompanionAssistancePackagePicture, CompanionAssistancePackagePictureVDto>();
             CreateMap<CompanionAssistanceTime, CompanionAssistanceTimeDto>().ReverseMap();
