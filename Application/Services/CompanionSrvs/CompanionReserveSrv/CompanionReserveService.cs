@@ -103,7 +103,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 .Include(s => s.CompanionAssistanceUser).ThenInclude(s => s.User).Include(s => s.Booker).Include(s => s.UserPets)
                 .Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion)
                 .Include(s => s.CompanionAssistancePackages).ThenInclude(s => s.Picture).Include(s => s.CompanionAssistanceTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionAssistanceType)
-                .Include(s => s.OperatorState).Include(s => s.Rebate).Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).ThenInclude(s => s.Picture).Where(s => s.Id == id);
+                .Include(s => s.OperatorState).Include(s => s.Rebate).Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).ThenInclude(s => s.Picture)
+                .Include(s => s.CompanionAssistancePackageOnlineSelection).ThenInclude(s => s.CompanionAssistancePackageOnline).Where(s => s.Id == id);
             if (bookerId.HasValue)
                 query = query.Where(s => s.BookerId == bookerId.Value);
             var item = await query.FirstOrDefaultAsync();
@@ -159,14 +160,17 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 var operatorUserId = baseSearchDto.CompanionAssistanceUserId.Value;
                 model = model.Where(s =>
-                    s.CompanionAssistanceUser.UserId == operatorUserId &&
                     s.IsReserved &&
-                    _context.CompanionUsers.Any(companionUser =>
-                        companionUser.CompanionId == s.CompanionAssistance.CompanionId &&
-                        companionUser.UserId == operatorUserId &&
-                        !companionUser.Deleted &&
-                        companionUser.Active &&
-                        companionUser.UserAccept == true));
+                    (
+                        (s.CompanionAssistanceUser.UserId == operatorUserId &&
+                            _context.CompanionUsers.Any(companionUser =>
+                                companionUser.CompanionId == s.CompanionAssistance.CompanionId &&
+                                companionUser.UserId == operatorUserId &&
+                                !companionUser.Deleted &&
+                                companionUser.Active &&
+                                companionUser.UserAccept == true))
+                        || s.CompanionAssistance.Companion.OwnerId == operatorUserId
+                    ));
             }
 
             if (baseSearchDto.ReserveState.HasValue)
@@ -997,16 +1001,23 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 .Include(s => s.CompanionAssistanceType)
                 .Include(s => s.OperatorState)
                 .Include(s => s.Rebate)
+                .Include(s => s.CompanionAssistancePackageOnlineSelection)
+                    .ThenInclude(s => s.CompanionAssistancePackageOnline)
                 .FirstOrDefaultAsync(s =>
                     s.Id == id &&
                     s.IsReserved &&
-                    s.CompanionAssistanceUser.UserId == operatorUserId &&
-                    _context.CompanionUsers.Any(companionUser =>
-                        companionUser.CompanionId == s.CompanionAssistance.CompanionId &&
-                        companionUser.UserId == operatorUserId &&
-                        !companionUser.Deleted &&
-                        companionUser.Active &&
-                        companionUser.UserAccept == true));
+                    (
+                        // نماینده‌ی تخصیص‌یافته (کارشناسی که برای این رزرو مشخص شده و عضویتش فعال است)
+                        (s.CompanionAssistanceUser.UserId == operatorUserId &&
+                            _context.CompanionUsers.Any(companionUser =>
+                                companionUser.CompanionId == s.CompanionAssistance.CompanionId &&
+                                companionUser.UserId == operatorUserId &&
+                                !companionUser.Deleted &&
+                                companionUser.Active &&
+                                companionUser.UserAccept == true))
+                        // یا مالک نمایندگی - مثلاً رزروهای فوری که هیچ کارشناس مشخصی ندارند
+                        || s.CompanionAssistance.Companion.OwnerId == operatorUserId
+                    ));
 
             if (item == null)
             {

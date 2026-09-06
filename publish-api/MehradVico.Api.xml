@@ -5454,19 +5454,6 @@
             ویرایش نظرات
             </summary>
         </member>
-        <member name="T:Api.Areas.Companion.Controllers.CompanionInstantCallRequestController">
-             <summary>
-             مشاهده‌ی درخواست‌های تماس فوری برای نماینده
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionInstantCallRequestController.Get(System.Int64)">
-            <summary>
-            اطلاعات یک درخواست تماس فوری (برای صفحه‌ای که با کلیک روی پوش باز می‌شود)
-            </summary>
-            <param name="id">شناسه درخواست</param>
-            <returns></returns>
-        </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionInsuranceManualPayController">
              <summary>
               پرداخت دستی بیمه ها
@@ -6636,18 +6623,6 @@
             <summary>
             ویرایش و ارسال مجدد درخواست نمایندگی
             </summary>
-        </member>
-        <member name="T:Api.Areas.EndUser.Controllers.CompanionInstantCallRequestController">
-             <summary>
-             درخواست تماس فوری کاربر با نماینده (خارج از برنامه)
-             </summary>
-            
-        </member>
-        <member name="M:Api.Areas.EndUser.Controllers.CompanionInstantCallRequestController.Post(Application.Services.CompanionSrvs.CompanionInstantCallRequestSrv.Dto.CompanionInstantCallRequestDto)">
-            <summary>
-            ثبت درخواست تماس فوری - بلافاصله برای نماینده پوش ارسال می‌شود
-            </summary>
-            <returns></returns>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionInsurancePackageSaleController">
             <summary>

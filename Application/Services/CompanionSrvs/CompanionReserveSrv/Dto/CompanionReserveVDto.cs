@@ -4,6 +4,7 @@ using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto;
+using Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto;
 using Application.Services.Dto;
 using Application.Services.Order.AddressSrv.Dto;
 using Application.Services.Order.RebateSrv.Dto;
@@ -30,6 +31,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
         public long CompanionAssistanceId { get; set; }
         public long CompanionAssistanceTimeId { get; set; }
         public long? CompanionAssistanceUserId { get; set; }
+        public long? CompanionAssistancePackageOnlineSelectionId { get; set; }
         public bool? IsFemale { get; set; }
         public string BookerDetail { get; set; }
         public string AssistanceDetail { get; set; }
@@ -55,6 +57,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
         public CompanionAssistanceVDto CompanionAssistance { get; set; }
         public CompanionAssistanceTimeVDto CompanionAssistanceTime { get; set; }
         public CompanionAssistanceUserVDto CompanionAssistanceUser { get; set; }
+        public CompanionAssistancePackageOnlineSelectionVDto CompanionAssistancePackageOnlineSelection { get; set; }
         public CodeVDto State { get; set; }
         public CodeVDto OperatorState { get; set; }
         public CodeVDto CompanionAssistanceType { get; set; }
