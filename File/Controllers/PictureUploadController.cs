@@ -27,8 +27,8 @@ namespace File.Controllers
         }
 
         [HttpPost]
-        [RequestSizeLimit(5 * 1024 * 1024)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 5 * 1024 * 1024)]
+        [RequestSizeLimit(15 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 15 * 1024 * 1024)]
         public async Task<IActionResult> Post(IFormFile PictureFile)
         {
             const int maxWidth = 8000;

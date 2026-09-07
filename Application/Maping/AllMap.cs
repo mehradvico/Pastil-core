@@ -4,6 +4,7 @@ using Application.Common.Helpers;
 using Application.Services.Accounting.ClubRewardSrv.Dto;
 using Application.Services.Accounting.DriverSrv.Dto;
 using Application.Services.Accounting.PermissionSrv.Dto;
+using Application.Services.Accounting.PetBreedCharacteristicSrv.Dto;
 using Application.Services.Accounting.PetBreedSrv.Dto;
 using Application.Services.Accounting.PetSrv.Dto;
 using Application.Services.Accounting.RolePermission.Dto;
@@ -660,6 +661,8 @@ namespace Application.Maping
             CreateMap<UserPetPicture, UserPetPictureVDto>();
             CreateMap<PetBreed, PetBreedDto>().ReverseMap();
             CreateMap<PetBreed, PetBreedVDto>();
+            CreateMap<PetBreedCharacteristic, PetBreedCharacteristicDto>().ReverseMap();
+            CreateMap<PetBreedCharacteristic, PetBreedCharacteristicVDto>();
             //Pet End ----------------------------------------------
 
 

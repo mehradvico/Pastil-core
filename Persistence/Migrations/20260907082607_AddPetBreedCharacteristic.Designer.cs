@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Persistence.Context;
@@ -12,9 +13,11 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260907082607_AddPetBreedCharacteristic")]
+    partial class AddPetBreedCharacteristic
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -428,7 +431,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique()
-                        .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0");
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Banners");
                 });
@@ -559,7 +562,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique()
-                        .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0");
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Brands");
                 });
@@ -914,7 +917,7 @@ namespace Persistence.Migrations
                     b.HasIndex("SlugScopeParentId", "Slug")
                         .IsUnique()
                         .HasDatabaseName("IX_Categories_SlugScopeParentId_Slug")
-                        .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0");
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Categories");
                 });
@@ -2719,7 +2722,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique()
-                        .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0");
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.HasIndex("TypeId");
 
@@ -2867,7 +2870,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique()
-                        .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0");
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Galleries");
                 });
@@ -5478,7 +5481,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique()
-                        .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0");
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("Pets");
                 });
@@ -5521,7 +5524,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique()
-                        .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0");
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("PetBreeds");
                 });
@@ -5751,7 +5754,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique()
-                        .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0");
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.HasIndex("UserId");
 
@@ -6003,7 +6006,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("Slug")
                         .IsUnique()
-                        .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0");
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.HasIndex("StatusId");
 

@@ -3129,6 +3129,37 @@
             همگام سازی دسترسی های پنل مدیریت با کنترلرها
             </summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PetBreedCharacteristicController">
+             <summary>
+             خصوصیات نژاد پت
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedCharacteristicController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedCharacteristicController.Get(Application.Services.Accounting.PetBreedCharacteristicSrv.Dto.PetBreedCharacteristicInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedCharacteristicController.Post(Application.Services.Accounting.PetBreedCharacteristicSrv.Dto.PetBreedCharacteristicDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedCharacteristicController.Put(Application.Services.Accounting.PetBreedCharacteristicSrv.Dto.PetBreedCharacteristicDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetBreedCharacteristicController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PetBreedController">
              <summary>
              نژادهای پت

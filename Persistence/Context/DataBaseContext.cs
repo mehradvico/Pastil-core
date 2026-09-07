@@ -254,6 +254,7 @@ namespace Persistence.Context
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<Pet> Pets { get; set; }
         public DbSet<PetBreed> PetBreeds { get; set; }
+        public DbSet<PetBreedCharacteristic> PetBreedCharacteristics { get; set; }
         public DbSet<PetTag> PetTags { get; set; }
         public DbSet<Picture> Pictures { get; set; }
         public DbSet<Post> Posts { get; set; }
@@ -1489,10 +1490,24 @@ namespace Persistence.Context
                 if (entityType.ClrType == typeof(Category))
                     continue;
 
+                // یک رکورد soft-delete شده (Deleted=1) هنوز توی این ایندکس
+                // یکتا حساب می‌شه چون فیلتر قبلی فقط IS NOT NULL بود - یعنی
+                // Slug یه پست/برند/... حذف‌شده برای همیشه "رزرو" می‌مونه، در
+                // حالی که چک "آیا این Slug آزاده؟" سمت اپلیکیشن (که از
+                // HasQueryFilter تبعیت می‌کنه و رکوردهای حذف‌شده رو نمی‌بینه)
+                // می‌گفت آزاده - نتیجه: خطای "Slug تکراری" حتی روی مقدار
+                // جدید و واقعاً غیرتکراری. راه‌حل: فیلتر ایندکس هم رکوردهای
+                // حذف‌شده رو کنار بذاره - فقط برای موجودیت‌هایی که واقعاً
+                // ستون Deleted دارن (Role نداره).
+                var hasDeletedColumn = entityType.ClrType.GetProperty("Deleted") != null;
+                var slugIndexFilter = hasDeletedColumn
+                    ? "[Slug] IS NOT NULL AND [Deleted] = 0"
+                    : "[Slug] IS NOT NULL";
+
                 modelBuilder.Entity(entityType.ClrType)
                     .HasIndex(nameof(ISlugEntity.Slug))
                     .IsUnique()
-                    .HasFilter("[Slug] IS NOT NULL");
+                    .HasFilter(slugIndexFilter);
             }
 
             // SQL Server unique indexes never treat two NULLs as equal, so a
@@ -1507,7 +1522,7 @@ namespace Persistence.Context
             modelBuilder.Entity<Category>()
                 .HasIndex("SlugScopeParentId", nameof(ISlugEntity.Slug))
                 .IsUnique()
-                .HasFilter("[Slug] IS NOT NULL")
+                .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0")
                 .HasDatabaseName("IX_Categories_SlugScopeParentId_Slug");
 
             modelBuilder.Entity<PetTag>()

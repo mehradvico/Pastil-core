@@ -32,6 +32,8 @@ using Application.Services.Accounting.OtpVerifySrv.Iface;
 using Application.Services.Accounting.PermissionSrv.Iface;
 using Application.Services.Accounting.PetBreedBreedSrv;
 using Application.Services.Accounting.PetBreedBreedSrv.Iface;
+using Application.Services.Accounting.PetBreedCharacteristicSrv;
+using Application.Services.Accounting.PetBreedCharacteristicSrv.Iface;
 using Application.Services.Accounting.PetSrv;
 using Application.Services.Accounting.PetSrv.Iface;
 using Application.Services.Accounting.RolePermission;
@@ -552,6 +554,7 @@ public static class ConfigureServices
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IPetBreedService, PetBreedService>();
+        services.AddScoped<IPetBreedCharacteristicService, PetBreedCharacteristicService>();
         services.AddScoped<IPetService, PetService>();
         services.AddScoped<IPictureService, PictureService>();
         services.AddScoped<IPostCategoryService, PostCategoryService>();

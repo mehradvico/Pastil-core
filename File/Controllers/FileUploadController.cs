@@ -29,8 +29,8 @@ namespace File.Controllers
         }
 
         [HttpPost]
-        [RequestSizeLimit(20 * 1024 * 1024)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 20 * 1024 * 1024)]
+        [RequestSizeLimit(80 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 80 * 1024 * 1024)]
         public async Task<IActionResult> Post(IFormFile file)
         {
             if (file == null || file.Length <= 0)
