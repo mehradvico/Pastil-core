@@ -105,6 +105,9 @@ using Application.Services.PansionSrvs.PansionPetSrv.Dto;
 using Application.Services.PansionSrvs.PansionPictureSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
+using Application.Services.SchoolSrvs.SchoolCourseSrv.Dto;
+using Application.Services.SchoolSrvs.SchoolReserveSrv.Dto;
+using Application.Services.SchoolSrvs.SchoolSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchBlockSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto;
@@ -154,6 +157,7 @@ using Entities.Entities;
 using Entities.Entities.CompanionField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
+using Entities.Entities.SchoolField;
 using Entities.Entities.PastilMatchField;
 using Entities.Entities.Security;
 using NetTopologySuite.Geometries;
@@ -570,6 +574,23 @@ namespace Application.Maping
             CreateMap<PansionReserve, PansionUpdateCommissionDto>();
             CreateMap<Pansion, SearchPansionDto>().ForMember(d => d.Picture, o => o.MapFrom(s => s.Picture));
             //Pansion ----------------------------------------------
+
+            //School
+            CreateMap<School, SchoolDto>().ReverseMap();
+            CreateMap<School, SchoolVDto>();
+            CreateMap<School, SchoolActiveDto>().ReverseMap();
+            CreateMap<School, SchoolApproveDto>().ReverseMap();
+
+            CreateMap<SchoolCourse, SchoolCourseDto>().ReverseMap();
+            CreateMap<SchoolCourse, SchoolCourseVDto>();
+            CreateMap<SchoolCourseSession, SchoolCourseSessionDto>().ReverseMap();
+            CreateMap<SchoolCourseVideo, SchoolCourseVideoDto>().ReverseMap();
+
+            CreateMap<SchoolReserve, SchoolReserveDto>().ReverseMap();
+            CreateMap<SchoolReserve, SchoolReserveVDto>();
+            CreateMap<SchoolReserve, SchoolReserveCancelDto>().ReverseMap();
+            CreateMap<SchoolReserve, SchoolReserveStatusDto>().ReverseMap();
+            //School ----------------------------------------------
 
 
             //Park

@@ -280,6 +280,11 @@ recurringJobManager.AddOrUpdate<Application.Services.CommonSrv.PushBroadcastSrv.
     service => service.DispatchDueAsync(CancellationToken.None),
     "*/5 * * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
+recurringJobManager.AddOrUpdate<Application.Services.SchoolSrvs.SchoolReserveSrv.Iface.ISchoolReserveService>(
+    "SchoolClassStartingPush",
+    service => service.SendClassStartingPushesAsync(CancellationToken.None),
+    "*/5 * * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
 
 app.UseRequestLocalization();
 app.UseHangfireDashboard();

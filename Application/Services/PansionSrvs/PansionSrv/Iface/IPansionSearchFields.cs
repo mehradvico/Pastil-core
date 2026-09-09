@@ -8,7 +8,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Iface
 {
     public interface IPansionSearchFields
     {
-        public bool? IsSchool { get; set; }
+        public bool? IsDaycare { get; set; }
         public long? CompanionId { get; set; }
         public bool? Approve { get; set; }
         public long? StateId { get; set; }

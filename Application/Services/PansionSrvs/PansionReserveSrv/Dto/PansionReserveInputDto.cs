@@ -16,7 +16,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv.Dto
         public long? PansionId { get; set; }
         public long? CompanionId { get; set; }
         public long? StatusId { get; set; }
-        public bool? IsSchool { get; set; }
+        public bool? IsDaycare { get; set; }
 
     }
 }

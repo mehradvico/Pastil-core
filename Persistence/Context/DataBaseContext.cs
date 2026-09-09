@@ -3,6 +3,7 @@ using Entities.Entities.CompanionField;
 using Entities.Entities.CommonField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
+using Entities.Entities.SchoolField;
 using Entities.Entities.PastilMatchField;
 using Entities.Entities.PastilAIField;
 using Entities.Entities.PastilClubField;
@@ -116,8 +117,15 @@ namespace Persistence.Context
 
         private void NormalizeSlugs()
         {
+            // فقط موجودیت‌هایی که واقعاً در همین SaveChanges درج/ویرایش می‌شن رو نرمال‌سازی کن.
+            // قبلاً همه‌ی ISlugEntity های ردیابی‌شده (حتی Unchanged) رو شامل می‌شد؛ این یعنی
+            // وقتی مثلاً ذخیره‌ی یک Post باعث می‌شد دسته‌بندی‌های اجدادش (برای Many-to-Many)
+            // دوباره به Context متصل بشن، همون دسته‌بندی‌های دست‌نخورده هم Slug‌شون از روی
+            // Label دوباره محاسبه و در دیتابیس نوشته می‌شد - و اگه یه Label قدیمی/باگ‌دار
+            // (مثل مقدار placeholder تکراری) داشت، ذخیره‌ی یک پست کاملاً بی‌ربط با خطای
+            // "Slug تکراری" شکست می‌خورد.
             foreach (var entry in ChangeTracker.Entries<ISlugEntity>()
-                         .Where(x => x.State is not EntityState.Deleted and not EntityState.Detached))
+                         .Where(x => x.State is EntityState.Added or EntityState.Modified))
             {
                 var normalizedSlug = SlugNormalizer.Normalize(entry.Entity.GetSlugSource());
 
@@ -237,6 +245,13 @@ namespace Persistence.Context
         public DbSet<PansionPet> PansionPets { get; set; }
         public DbSet<PansionPicture> PansionPictures { get; set; }
         public DbSet<PansionReserve> PansionReserves { get; set; }
+        public DbSet<School> Schools { get; set; }
+        public DbSet<SchoolComment> SchoolComments { get; set; }
+        public DbSet<SchoolCourse> SchoolCourses { get; set; }
+        public DbSet<SchoolCourseSession> SchoolCourseSessions { get; set; }
+        public DbSet<SchoolCourseVideo> SchoolCourseVideos { get; set; }
+        public DbSet<SchoolPicture> SchoolPictures { get; set; }
+        public DbSet<SchoolReserve> SchoolReserves { get; set; }
         public DbSet<Park> Parks { get; set; }
         public DbSet<ParkPicture> ParkPictures { get; set; }
         public DbSet<PastilMatch> PastilMatches { get; set; }

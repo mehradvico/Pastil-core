@@ -66,7 +66,8 @@ namespace Entities.Entities.PastilClubField
         Pansion = 8,
         PastilAI = 9,
         PastilAIPlan = 10,
-        City = 11
+        City = 11,
+        School = 12
     }
 
     public enum ClubRewardExpirationTypeEnum

@@ -15,7 +15,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
     {
         public PansionSearchDto(PansionInputDto dto, IQueryable<Pansion> list, IMapper mapper) : base(dto, list, mapper)
         {
-            this.IsSchool = dto.IsSchool;
+            this.IsDaycare = dto.IsDaycare;
             this.Approve = dto.Approve;
             this.CompanionId = dto.CompanionId;
             this.NeighborhoodIds = dto.NeighborhoodIds;
@@ -25,7 +25,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
             this.Suggested = dto.Suggested;
             this.ShowToSite = dto.ShowToSite;
         }
-        public bool? IsSchool { get; set; }
+        public bool? IsDaycare { get; set; }
         public long? CompanionId { get; set; }
         public bool? Approve { get; set; }
         public List<long> NeighborhoodIds { get; set; }

@@ -4140,6 +4140,51 @@
             اضافه و ویرایش دسترسی های نقش
             </summary>  
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolActiveController">
+            <summary>
+            فعال‌سازی مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolApproveController">
+            <summary>
+            تایید درخواست مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolController">
+            <summary>
+            مدرسه ها
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolCourseController">
+            <summary>
+            دوره‌های مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolCourseSessionController">
+            <summary>
+            جلسات زنده‌ی دوره‌ی مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolCourseVideoController">
+            <summary>
+            ویدیوهای دوره‌ی مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolReserveCancelController">
+            <summary>
+            لغو ثبت‌نام دوره‌ی مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolReserveChangeStatusController">
+            <summary>
+            تغییر وضعیت ثبت‌نام دوره‌ی مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolReserveController">
+            <summary>
+            ثبت‌نام‌های دوره‌های مدرسه
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.SearchAnalyticsController">
             <summary>
             آمار عبارت‌های جستجو شده و جستجوهای بدون نتیجه
@@ -5981,6 +6026,36 @@
              <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolActiveController">
+            <summary>
+            فعال/غیرفعال کردن مدرسه‌ی خودِ نماینده
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolController">
+            <summary>
+            مدیریت مدرسه‌ی خودِ نماینده (مربی)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolCourseController">
+            <summary>
+            مدیریت دوره‌های مدرسه‌ی خودِ نماینده
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolCourseSessionController">
+            <summary>
+            جلسات زنده‌ی دوره‌ی مدرسه‌ی خودِ نماینده
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolCourseVideoController">
+            <summary>
+            ویدیوهای دوره‌ی مدرسه‌ی خودِ نماینده
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolReserveController">
+            <summary>
+            ثبت‌نام‌های دوره‌های مدرسه‌ی خودِ نماینده
+            </summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.SettlementController">
              <summary>
              مدیریت تسویه حساب ها
@@ -6351,6 +6426,12 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CallPendingController">
+            <summary>
+            تماس درون‌برنامه‌ای در انتظار پاسخ کاربر جاری - برای وقتی که پوش لحظه‌ای زنگ به کاربر نرسیده
+            (اپ بسته بوده یا پوش تحویل داده نشده) اما با باز کردن اپ باید همچنان بتواند وارد تماس شود.
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CargoController">
             <summary>
@@ -7788,6 +7869,41 @@
              حذف آیتم
              </summary>
             
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.SchoolReserveCancelController">
+            <summary>
+            لغو ثبت‌نام کاربر در یک دوره‌ی مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.SchoolReserveController">
+            <summary>
+            ثبت‌نام کاربر در دوره‌های مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.SchoolReservePaymentController">
+            <summary>
+            مدیریت پرداخت رزرو دوره مدرسه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.SchoolReservePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
+            <summary>
+            آیتم جدید پرداختی
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.SchoolReserveRemoveRebateController">
+            <summary>
+            مدیریت حذف تخفیف رزرو دوره مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.SchoolReserveSetRebateController">
+            <summary>
+            مدیریت افزودن تخفیف رزرو دوره مدرسه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.SchoolReserveSetWalletController">
+            <summary>
+            مدیریت تغییر وضعیت کیف پول رزرو دوره مدرسه
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.ShippingQuoteController">
             <summary>
@@ -9990,6 +10106,16 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Controllers.SchoolController">
+            <summary>
+            مشاهده‌ی عمومی مدرسه‌ها
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.SchoolCourseController">
+            <summary>
+            مشاهده‌ی عمومی دوره‌های مدرسه (شامل ظرفیت باقی‌مانده)
+            </summary>
         </member>
         <member name="T:Api.Controllers.SearchController">
             <summary>

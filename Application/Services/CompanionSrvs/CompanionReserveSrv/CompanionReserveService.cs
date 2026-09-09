@@ -1309,12 +1309,20 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
             if (model == null)
             {
-                return new BaseResultDto<CompanionReserveCancelDto>(false, null);
+                return new BaseResultDto<CompanionReserveCancelDto>(false, Resource.Notification.InvalidData, dto);
             }
 
-            if (_currentUser.CurrentUser.RoleEnum != RoleEnum.Admin.ToString())
+            // برخی نقش‌های سفارشی (مثل مدیر اصلی) به‌جای Label دقیق "Admin"، از طریق پرمیشن‌های
+            // ناحیه‌ی Admin تعریف می‌شوند - همان الگویی که در ورود ادمین (UserService) استفاده می‌شود.
+            var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString() ||
+                await _context.Roles
+                    .Where(r => r.Id == _currentUser.CurrentUser.RoleId)
+                    .SelectMany(r => r.Permissions)
+                    .AnyAsync(p => !p.Deleted && p.Area == "Admin");
+
+            if (!isAdmin)
             {
-                return new BaseResultDto<CompanionReserveCancelDto>(false, null);
+                return new BaseResultDto<CompanionReserveCancelDto>(false, Resource.Notification.AccessDenied, dto);
             }
 
             if ((model.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Paid || model.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Complete)
@@ -1383,10 +1391,16 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 return new BaseResultDto<CompanionReserveOperatorDto>(false, Resource.Notification.NothingFound, dto);
             }
 
-            if (item.CompanionAssistanceUser == null ||
-                !item.CompanionAssistanceUser.Active ||
-                item.CompanionAssistanceUser.Deleted ||
-                item.CompanionAssistanceUser.UserId != _currentUser.CurrentUser.UserId)
+            var isAssignedStaff = item.CompanionAssistanceUser != null &&
+                item.CompanionAssistanceUser.Active &&
+                !item.CompanionAssistanceUser.Deleted &&
+                item.CompanionAssistanceUser.UserId == _currentUser.CurrentUser.UserId;
+
+            // اگر رزرو هنوز به یک نیروی مشخص تخصیص داده نشده باشد (مثل رزروهای فوری/آنلاین)، خودِ
+            // صاحب مرکز هم باید بتواند نتیجه را ثبت کند - نه فقط نیروی صراحتاً تخصیص‌یافته.
+            var isCompanionOwner = item.CompanionAssistance.Companion.OwnerId == _currentUser.CurrentUser.UserId;
+
+            if (!isAssignedStaff && !isCompanionOwner)
             {
                 return new BaseResultDto<CompanionReserveOperatorDto>(false, Resource.Notification.ThisReserveIsNotBlongToYou, dto);
             }

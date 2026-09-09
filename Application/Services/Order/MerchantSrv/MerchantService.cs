@@ -112,7 +112,7 @@ namespace Application.Services.Order.MerchantSrv
             {
                 return new BaseResultDto<PaymentStartDto>(
                     false,
-                    Resource.Notification.Unsuccess,
+                    Resource.Notification.PleaseSelectTheMerchant,
                     dto);
             }
 
@@ -123,6 +123,13 @@ namespace Application.Services.Order.MerchantSrv
                 _paymentTestModeService.ConfigureStartResult(dto);
                 return new BaseResultDto<PaymentStartDto>(true, dto);
             }
+
+            // پیام مشخص - قبلاً همین شرط با پیام عمومی Unsuccess برمی‌گشت و علت واقعی
+            // (کلید رمزنگاری Security:MerchantEncryptionKey تنظیم نشده) کاملاً پنهان می‌ماند؛
+            // این دقیقاً همون پیامیه که InsertAsyncDto/UpdateSecureAsyncDto از قبل برای همین
+            // شرط استفاده می‌کنن، فقط اینجا (مسیر واقعی پرداخت مشتری) استفاده نشده بود.
+            if (_encryptionKey == null)
+                return new BaseResultDto(false, Resource.Notification.MerchantGatewayEncryptionKeyNotConfigured);
 
             var gateway = _gatewayResolver.Resolve((MerchantEnum)merchant.BankId);
             var gatewayMerchant = TryCreateGatewayMerchant(merchant);
@@ -176,6 +183,9 @@ namespace Application.Services.Order.MerchantSrv
             }
 
             await ProtectLegacySecretsAsync(merchant);
+
+            if (_encryptionKey == null)
+                return new BaseResultDto(false, Resource.Notification.MerchantGatewayEncryptionKeyNotConfigured);
 
             var gateway = _gatewayResolver.Resolve((MerchantEnum)merchant.BankId);
             var gatewayMerchant = TryCreateGatewayMerchant(merchant);

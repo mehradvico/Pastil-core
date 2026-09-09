@@ -90,6 +90,7 @@ namespace Application.Services.Order.PaymentSrv
             PaymentCallbackTypeEnum.Trip => "TRP",
             PaymentCallbackTypeEnum.Cargo => "CRG",
             PaymentCallbackTypeEnum.Insurance => "INS",
+            PaymentCallbackTypeEnum.SchoolReserve => "SCL",
             _ => throw new ArgumentOutOfRangeException(nameof(targetType))
         };
     }

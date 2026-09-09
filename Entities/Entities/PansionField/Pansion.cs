@@ -12,7 +12,9 @@ namespace Entities.Entities.PansionField
 {
     public class Pansion : Name_Field
     {
-        public bool? IsSchool { get; set; }
+        // نام قبلی: IsSchool - برای جلوگیری از تداخل با موجودیت جدید «مدرسه‌ی تربیت» تغییر نام یافت.
+        // true = حالت «مهد پت» (نگهداری ساعتی/روزانه)، false/null = حالت پانسیون شبانه.
+        public bool? IsDaycare { get; set; }
         public long CompanionId { get; set; }
         public bool Active {  get; set; }
         public bool ShowToSite { get; set; }
@@ -27,6 +29,9 @@ namespace Entities.Entities.PansionField
         public int RateCount { get; set; }
         public long? PictureId { get; set; }
         public bool Suggested { get; set; }
+        // true = این پانسیون مخصوص پذیرش پت‌های بیمار/عفونی است (و فقط همین پت‌ها را می‌پذیرد).
+        // false = پانسیون عادی، فقط پت‌های سالم (بدون بیماری خاص ثبت‌شده) را می‌پذیرد.
+        public bool IsInfectious { get; set; }
         public double PansionPrice { get; set; }
         public double SchoolPrice { get; set; }
         public string Regulations { get; set; }

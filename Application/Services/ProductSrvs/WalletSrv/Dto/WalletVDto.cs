@@ -29,6 +29,7 @@ namespace Application.Services.ProductSrvs.WalletSrv.Dto
         public long? CargoId { get; set; }
         public long? CompanionInsurancePackageSaleId { get; set; }
         public long? PastilAiSubscriptionId { get; set; }
+        public long? SchoolReserveId { get; set; }
         public bool Painding { get; set; }
 
         public UserVDto User { get; set; }

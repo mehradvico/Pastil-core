@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using WebPush;
 
@@ -205,14 +206,36 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 notif.Icon = pattern.Icon;
                 notif.Tag = pattern.Tag;
 
-                var payload = JsonSerializer.Serialize(new PushPayloadDto
+                var payloadDto = new PushPayloadDto
                 {
                     Title = notif.Title,
                     Body = notif.Body,
                     Url = notif.Url,
                     Icon = notif.Icon,
                     Tag = notif.Tag
-                }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                };
+
+                // پوش «شروع تماس درون‌برنامه‌ای» علاوه بر متن عادی، باید مثل زنگ تلفن واقعی رفتار کند:
+                // دکمه‌های پاسخ/رد روی خود نوتیفیکیشن (اندروید/دسکتاپ - iOS از اکشن نوتیفیکیشن پشتیبانی نمی‌کند)
+                // و requireInteraction تا با ورود پیام دیگری بلافاصله از صفحه ناپدید نشود.
+                if (pattern.PushTypeId == (long)PushTypeEnum.PushInAppCallStarted)
+                {
+                    payloadDto.Type = "call";
+                    payloadDto.RequireInteraction = true;
+                    payloadDto.ReserveId = notif.Token2;
+                    payloadDto.CallerName = notif.Token1;
+                    payloadDto.Actions = new List<PushActionDto>
+                    {
+                        new PushActionDto { Action = "answer", Title = "پاسخ" },
+                        new PushActionDto { Action = "decline", Title = "رد تماس" }
+                    };
+                }
+
+                var payload = JsonSerializer.Serialize(payloadDto, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                });
 
                 var subs = await _context.PushSubscriptions
                     .Where(x => x.IsActive && x.UserId == notif.UserId)
@@ -369,6 +392,17 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             public string Url { get; set; }
             public string Icon { get; set; }
             public string Tag { get; set; }
+            public string Type { get; set; }
+            public bool? RequireInteraction { get; set; }
+            public string ReserveId { get; set; }
+            public string CallerName { get; set; }
+            public List<PushActionDto> Actions { get; set; }
+        }
+
+        private class PushActionDto
+        {
+            public string Action { get; set; }
+            public string Title { get; set; }
         }
 
         private enum PushSendResult

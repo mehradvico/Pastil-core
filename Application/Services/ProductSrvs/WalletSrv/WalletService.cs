@@ -158,6 +158,10 @@ namespace Application.Services.ProductSrvs.WalletSrv
         {
             return await InsertUpdateReferenceAsync(dto, complete);
         }
+        public async Task<BaseResultDto<WalletDto>> InsertUpdateSchoolReserveAsync(WalletDto dto, bool complete)
+        {
+            return await InsertUpdateReferenceAsync(dto, complete);
+        }
         public async Task<BaseResultDto<WalletDto>> InsertUpdateInsuranceAsync(WalletDto dto, bool complete)
         {
             return await InsertUpdateReferenceAsync(dto, complete);
@@ -199,6 +203,8 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 query = query.Where(s => s.CompanionInsurancePackageSaleId == dto.CompanionInsurancePackageSaleId);
             else if (dto.PastilAiSubscriptionId.HasValue)
                 query = query.Where(s => s.PastilAiSubscriptionId == dto.PastilAiSubscriptionId);
+            else if (dto.SchoolReserveId.HasValue)
+                query = query.Where(s => s.SchoolReserveId == dto.SchoolReserveId);
             else
                 return new BaseResultDto<WalletDto>(false, Resource.Notification.InvalidData, dto);
 

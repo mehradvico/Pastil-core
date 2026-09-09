@@ -9,6 +9,7 @@
         Insurance,
         PansionReserve,
         PastilAI,
-        Wallet
+        Wallet,
+        SchoolReserve
     }
 }

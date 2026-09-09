@@ -141,6 +141,9 @@
   <data name="CartIsEmpty" xml:space="preserve">
     <value>Cart is Empty</value>
   </data>
+  <data name="InsufficientWalletBalanceForThisStore" xml:space="preserve">
+    <value>Insufficient wallet balance for this store</value>
+  </data>
   <data name="DuplicateValue" xml:space="preserve">
     <value>Duplicate value</value>
   </data>
@@ -482,6 +485,15 @@
   </data>
   <data name="HaveBeenReserved" xml:space="preserve">
     <value>Have Been Reserved</value>
+  </data>
+  <data name="SchoolCourseCapacityFull" xml:space="preserve">
+    <value>School Course Capacity Full</value>
+  </data>
+  <data name="PansionRequiresInfectiousForSickPet" xml:space="preserve">
+    <value>This pet has a registered illness and can only be booked into an infectious pansion</value>
+  </data>
+  <data name="InfectiousPansionOnlyAcceptsSickPets" xml:space="preserve">
+    <value>This pansion is infectious-only and only accepts pets with a registered illness</value>
   </data>
   <data name="InvalidDeviceKey" xml:space="preserve">
     <value>Invalid Device Key</value>

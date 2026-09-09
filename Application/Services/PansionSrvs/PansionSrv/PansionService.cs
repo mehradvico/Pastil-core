@@ -89,14 +89,18 @@ namespace Application.Services.PansionSrvs.PansionSrv
             {
                 model = model.Where(s => s.ShowToSite == baseSearchDto.ShowToSite.Value);
             }
-            if (baseSearchDto.IsSchool.HasValue)
+            if (baseSearchDto.IsDaycare.HasValue)
             {
-                var isSchool = baseSearchDto.IsSchool.Value;
-                model = model.Where(s => s.IsSchool == null || s.IsSchool == isSchool);
+                var IsDaycare = baseSearchDto.IsDaycare.Value;
+                model = model.Where(s => s.IsDaycare == null || s.IsDaycare == IsDaycare);
             }
             if (baseSearchDto.CompanionId.HasValue)
             {
                 model = model.Where(s => s.CompanionId == baseSearchDto.CompanionId.Value);
+            }
+            if (baseSearchDto.IsInfectious.HasValue)
+            {
+                model = model.Where(s => s.IsInfectious == baseSearchDto.IsInfectious.Value);
             }
             if (baseSearchDto.Approve.HasValue)
             {
@@ -150,7 +154,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 case Common.Enumerable.SortEnum.Expensive:
                     {
                         model = model.OrderByDescending(s =>
-                            s.IsSchool == true
+                            s.IsDaycare == true
                                 ? s.SchoolPrice
                                 : s.PansionPrice
                         );
@@ -159,7 +163,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 case Common.Enumerable.SortEnum.Inexpensive:
                     {
                         model = model.OrderBy(s =>
-                            s.IsSchool == true
+                            s.IsDaycare == true
                                 ? s.SchoolPrice
                                 : s.PansionPrice
                         );
@@ -228,8 +232,8 @@ namespace Application.Services.PansionSrvs.PansionSrv
             {
                 errors.Add(new Tuple<string, string>(Resource.Notification.PleaseEnterTheName, nameof(dto.Name)));
             }
-            if (!dto.IsSchool.HasValue)
-                errors.Add(Tuple.Create(Resource.Notification.PansionPleaseSelectCenterType, nameof(dto.IsSchool)));
+            if (!dto.IsDaycare.HasValue)
+                errors.Add(Tuple.Create(Resource.Notification.PansionPleaseSelectCenterType, nameof(dto.IsDaycare)));
             if (dto.StateId <= 0 || !await _context.States.AnyAsync(s => s.Id == dto.StateId))
                 errors.Add(Tuple.Create(Resource.Notification.PansionSelectedStateInvalid, nameof(dto.StateId)));
             if (dto.CityId <= 0 || !await _context.Cities.AnyAsync(s => s.Id == dto.CityId && s.StateId == dto.StateId))
@@ -240,9 +244,9 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 errors.Add(Tuple.Create(Resource.Notification.PansionPleaseEnterOpenHour, nameof(dto.OpenHour)));
             if (string.IsNullOrWhiteSpace(dto.CloseHour))
                 errors.Add(Tuple.Create(Resource.Notification.PansionPleaseEnterCloseHour, nameof(dto.CloseHour)));
-            if (dto.IsSchool == true && dto.SchoolPrice <= 0)
+            if (dto.IsDaycare == true && dto.SchoolPrice <= 0)
                 errors.Add(Tuple.Create(Resource.Notification.PansionSchoolPriceMustBeGreaterThanZero, nameof(dto.SchoolPrice)));
-            if (dto.IsSchool == false && dto.PansionPrice <= 0)
+            if (dto.IsDaycare == false && dto.PansionPrice <= 0)
                 errors.Add(Tuple.Create(Resource.Notification.PansionPriceMustBeGreaterThanZero, nameof(dto.PansionPrice)));
             if (dto.PictureId.HasValue && dto.PictureId.Value > 0 &&
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.PictureId.Value))

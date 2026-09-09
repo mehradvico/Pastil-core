@@ -3412,7 +3412,10 @@ namespace Persistence.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<bool?>("IsSchool")
+                    b.Property<bool?>("IsDaycare")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsInfectious")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
@@ -6988,6 +6991,317 @@ namespace Persistence.Migrations
                     b.ToTable("ReminderTypes");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SchoolField.School", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("AddressValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ApprovalValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Approve")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("CommentCount")
+                        .HasColumnType("int");
+
+                    b.Property<long>("CompanionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Discription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RateAvg")
+                        .HasColumnType("float");
+
+                    b.Property<int>("RateCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Regulations")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ShowToSite")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("StateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Suggested")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("CompanionId");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("StateId");
+
+                    b.ToTable("Schools");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourse", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("CourseTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Discription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("PetBreedId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("PetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<long>("SchoolId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SessionCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SessionDurationMinutes")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetBreedId");
+
+                    b.HasIndex("PetId");
+
+                    b.HasIndex("SchoolId");
+
+                    b.ToTable("SchoolCourses");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseSession", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("EndTime")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MeetingUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("SchoolCourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("SessionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StartTime")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartingPushSentDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolCourseId");
+
+                    b.ToTable("SchoolCourseSessions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseVideo", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("DurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<long>("FileId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("SchoolCourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileId");
+
+                    b.HasIndex("SchoolCourseId");
+
+                    b.ToTable("SchoolCourseVideos");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolPicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SchoolId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("SchoolId");
+
+                    b.ToTable("SchoolPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolReserve", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("BookerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CancelDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CancelDetail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("CompanionShare")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("Discount")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("FromWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCancel")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReserved")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("PaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("RebateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RebatePrice")
+                        .HasColumnType("float");
+
+                    b.Property<string>("ReserveCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("SchoolCourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("SiteShare")
+                        .HasColumnType("float");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserPetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("WalletPrice")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookerId");
+
+                    b.HasIndex("RebateId");
+
+                    b.HasIndex("SchoolCourseId");
+
+                    b.HasIndex("UserPetId");
+
+                    b.ToTable("SchoolReserves");
+                });
+
             modelBuilder.Entity("Entities.Entities.ScoreTransaction", b =>
                 {
                     b.Property<long>("Id")
@@ -8899,6 +9213,9 @@ namespace Persistence.Migrations
                     b.Property<string>("ProductOrderId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<long?>("SchoolReserveId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("TripId")
                         .HasColumnType("bigint");
 
@@ -8934,6 +9251,8 @@ namespace Persistence.Migrations
                     b.HasIndex("ProductOrderId")
                         .IsUnique()
                         .HasFilter("[ProductOrderId] IS NOT NULL");
+
+                    b.HasIndex("SchoolReserveId");
 
                     b.HasIndex("TripId")
                         .IsUnique()
@@ -9112,6 +9431,26 @@ namespace Persistence.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("ProductComments", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolComment", b =>
+                {
+                    b.HasBaseType("Entities.Entities.Comment");
+
+                    b.Property<bool>("IsReserved")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("SchoolId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SchoolReserveId")
+                        .HasColumnType("bigint");
+
+                    b.HasIndex("SchoolId");
+
+                    b.HasIndex("SchoolReserveId");
+
+                    b.ToTable("SchoolComments");
                 });
 
             modelBuilder.Entity("Entities.Entities.StoreComment", b =>
@@ -11956,6 +12295,144 @@ namespace Persistence.Migrations
                     b.Navigation("UserPet");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SchoolField.School", b =>
+                {
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Companion", "Companion")
+                        .WithMany()
+                        .HasForeignKey("CompanionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId");
+
+                    b.HasOne("Entities.Entities.State", "State")
+                        .WithMany()
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("Companion");
+
+                    b.Navigation("Picture");
+
+                    b.Navigation("State");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourse", b =>
+                {
+                    b.HasOne("Entities.Entities.PetBreed", "PetBreed")
+                        .WithMany()
+                        .HasForeignKey("PetBreedId");
+
+                    b.HasOne("Entities.Entities.Pet", "Pet")
+                        .WithMany()
+                        .HasForeignKey("PetId");
+
+                    b.HasOne("Entities.Entities.SchoolField.School", "School")
+                        .WithMany("SchoolCourses")
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pet");
+
+                    b.Navigation("PetBreed");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseSession", b =>
+                {
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourse", "SchoolCourse")
+                        .WithMany("SchoolCourseSessions")
+                        .HasForeignKey("SchoolCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SchoolCourse");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseVideo", b =>
+                {
+                    b.HasOne("Entities.Entities.File", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourse", "SchoolCourse")
+                        .WithMany("SchoolCourseVideos")
+                        .HasForeignKey("SchoolCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("File");
+
+                    b.Navigation("SchoolCourse");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolPicture", b =>
+                {
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.SchoolField.School", "School")
+                        .WithMany("SchoolPictures")
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Picture");
+
+                    b.Navigation("School");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolReserve", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "Booker")
+                        .WithMany()
+                        .HasForeignKey("BookerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Rebate", "Rebate")
+                        .WithMany()
+                        .HasForeignKey("RebateId");
+
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourse", "SchoolCourse")
+                        .WithMany("SchoolReserves")
+                        .HasForeignKey("SchoolCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.UserPet", "UserPet")
+                        .WithMany()
+                        .HasForeignKey("UserPetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Booker");
+
+                    b.Navigation("Rebate");
+
+                    b.Navigation("SchoolCourse");
+
+                    b.Navigation("UserPet");
+                });
+
             modelBuilder.Entity("Entities.Entities.ScoreTransaction", b =>
                 {
                     b.HasOne("Entities.Entities.Code", "TransactionType")
@@ -12767,6 +13244,10 @@ namespace Persistence.Migrations
                         .WithOne("Wallet")
                         .HasForeignKey("Entities.Entities.Wallet", "ProductOrderId");
 
+                    b.HasOne("Entities.Entities.SchoolField.SchoolReserve", "SchoolReserve")
+                        .WithMany()
+                        .HasForeignKey("SchoolReserveId");
+
                     b.HasOne("Entities.Entities.Trip", "Trip")
                         .WithOne("Wallet")
                         .HasForeignKey("Entities.Entities.Wallet", "TripId");
@@ -12790,6 +13271,8 @@ namespace Persistence.Migrations
                     b.Navigation("Payment");
 
                     b.Navigation("ProductOrder");
+
+                    b.Navigation("SchoolReserve");
 
                     b.Navigation("Trip");
 
@@ -12955,6 +13438,29 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolComment", b =>
+                {
+                    b.HasOne("Entities.Entities.Comment", null)
+                        .WithOne()
+                        .HasForeignKey("Entities.Entities.SchoolField.SchoolComment", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.SchoolField.School", "School")
+                        .WithMany("SchoolComments")
+                        .HasForeignKey("SchoolId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.SchoolField.SchoolReserve", "SchoolReserve")
+                        .WithMany()
+                        .HasForeignKey("SchoolReserveId");
+
+                    b.Navigation("School");
+
+                    b.Navigation("SchoolReserve");
                 });
 
             modelBuilder.Entity("Entities.Entities.StoreComment", b =>
@@ -13301,6 +13807,24 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.Rebate", b =>
                 {
                     b.Navigation("ClubCoupon");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.School", b =>
+                {
+                    b.Navigation("SchoolComments");
+
+                    b.Navigation("SchoolCourses");
+
+                    b.Navigation("SchoolPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourse", b =>
+                {
+                    b.Navigation("SchoolCourseSessions");
+
+                    b.Navigation("SchoolCourseVideos");
+
+                    b.Navigation("SchoolReserves");
                 });
 
             modelBuilder.Entity("Entities.Entities.Security.Permission", b =>

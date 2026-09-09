@@ -61,6 +61,8 @@ namespace Utility.Reflection
             "Neighborhood",
             "Pansion",
             "PansionReserve",
+            "School",
+            "SchoolReserve",
             "Park",
             "PastilMatch",
             "PastilMatchBlock",
@@ -152,6 +154,7 @@ namespace Utility.Reflection
             [
                 "Pet",
                 "PetBreed",
+                "PetBreedCharacteristic",
                 "PetTag",
                 "PetTagExcel",
                 "UserPetPicture",
@@ -200,7 +203,13 @@ namespace Utility.Reflection
                 "CompanionAssistancePackagePicture",
                 "CompanionComment",
                 "CompanionPet",
-                "CompanionType"
+                "CompanionType",
+                "School",
+                "SchoolActive",
+                "SchoolApprove",
+                "SchoolCourse",
+                "SchoolCourseSession",
+                "SchoolCourseVideo"
             ]);
 
             AddGroup(result, "ShopManagement",
@@ -292,6 +301,9 @@ namespace Utility.Reflection
                 "ProductOrderChangeStatus",
                 "PansionReserve",
                 "PansionReserveCancel",
+                "SchoolReserve",
+                "SchoolReserveCancel",
+                "SchoolReserveChangeStatus",
                 "ProductOrderTrackingCode",
                 "Merchant",
                 "ProductOrderItem",

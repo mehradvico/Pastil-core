@@ -14,6 +14,7 @@ using Application.Services.Order.ProductOrderSrv.Dto;
 using Application.Services.Order.ProductOrderSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
+using Application.Services.SchoolSrvs.SchoolReserveSrv.Iface;
 using Application.Services.PastilAISrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
@@ -49,6 +50,7 @@ namespace Application.Services.Order.PaymentSrv
         private readonly ICargoService _cargoService;
         private readonly ICompanionInsurancePackageSaleService _companionInsurance;
         private readonly IPansionReserveService _pansionReserve;
+        private readonly ISchoolReserveService _schoolReserve;
         private readonly IPastilAiSubscriptionActivator _pastilAiSubscriptionActivator;
         private readonly IRebateService _rebateService;
         private readonly IConfiguration _configuration;
@@ -64,6 +66,7 @@ namespace Application.Services.Order.PaymentSrv
             IWalletService walletService,
             IMerchantService merchantService,
             IPansionReserveService pansionReserve,
+            ISchoolReserveService schoolReserve,
             IProductOrderService productOrderService,
             ICompanionReserveService companionReserveService,
             ITripService tripService,
@@ -89,6 +92,7 @@ namespace Application.Services.Order.PaymentSrv
             _cargoService = cargoService;
             _companionInsurance = companionInsurance;
             _pansionReserve = pansionReserve;
+            _schoolReserve = schoolReserve;
             _pastilAiSubscriptionActivator = pastilAiSubscriptionActivator;
             _rebateService = rebateService;
             _paymentTestModeService = paymentTestModeService;
@@ -571,6 +575,11 @@ namespace Application.Services.Order.PaymentSrv
                         .Where(item => item.Id == pansionReserveId)
                         .Select(item => item.ReserveCode)
                         .FirstOrDefaultAsync(),
+                nameof(PaymentCallbackTypeEnum.SchoolReserve) when long.TryParse(payment.CallBackId, out var schoolReserveId) =>
+                    await _context.SchoolReserves.AsNoTracking()
+                        .Where(item => item.Id == schoolReserveId)
+                        .Select(item => item.ReserveCode)
+                        .FirstOrDefaultAsync(),
                 _ => null
             };
             return dto;
@@ -788,6 +797,74 @@ namespace Application.Services.Order.PaymentSrv
             dto.ProductOrderId = null;
             dto.TypeId = PaymentType_AgencyReserve;
             dto.CallBackTypeLabel = PaymentCallbackTypeEnum.PansionReserve.ToString();
+            dto.CallBackId = reservedetail.Id.ToString();
+            return await StartPayment(dto);
+        }
+
+        public async Task<BaseResultDto> InsertSchoolReservePaymentAsyncDto(PaymentStartDto dto)
+        {
+            var reservedetail = await _context.SchoolReserves.Include(s => s.Rebate).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.SchoolReserveId);
+            if (reservedetail == null || reservedetail.BookerId != dto.UserId)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (reservedetail.IsReserved || reservedetail.IsCancel)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var schoolRebateValidation = ValidateAppliedRebate(
+                reservedetail.Rebate,
+                reservedetail.PaymentPrice + reservedetail.RebatePrice,
+                reservedetail.BookerId,
+                RebateTypeLabels.SchoolReserve,
+                reservedetail.RebatePrice);
+            if (!schoolRebateValidation.IsSuccess)
+                return schoolRebateValidation;
+
+            dto.Amount = reservedetail.PaymentPrice;
+            dto.GrossAmount = reservedetail.PaymentPrice + reservedetail.RebatePrice;
+            dto.RebateAmount = reservedetail.RebatePrice;
+            dto.RebateId = reservedetail.RebateId;
+            dto.WalletAmount = 0;
+
+            if (dto.Amount < 0)
+            {
+                return new BaseResultDto(false, Resource.Notification.AmountNotCorrect);
+            }
+            else if (dto.Amount > 0 && dto.MerchantId == null && !reservedetail.FromWallet)
+            {
+                return new BaseResultDto(false, Resource.Notification.PleaseSelectTheMerchant);
+            }
+            if (reservedetail.FromWallet)
+            {
+                var walletAmount = await _walletService.GetSpendableAmountValueAsync(
+                    reservedetail.BookerId,
+                    Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.School,
+                    reservedetail.SchoolCourseId);
+                reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PaymentPrice);
+                dto.WalletAmount = reservedetail.WalletPrice;
+                await _context.SaveChangesAsync();
+
+                if (walletAmount >= reservedetail.PaymentPrice)
+                {
+                    dto.Amount = 0;
+                    dto.ProductOrderId = null;
+                    dto.CallBackTypeLabel = PaymentCallbackTypeEnum.SchoolReserve.ToString();
+                    dto.CallBackId = reservedetail.Id.ToString();
+                    dto.TypeId = await _codeService.GetIdByLabelAsync(PaymentTypeEnum.PaymentType_SchoolReserve.ToString());
+                    return await StartPayment(dto);
+                }
+                else
+                {
+                    dto.Amount = reservedetail.PaymentPrice - reservedetail.WalletPrice;
+                    dto.ProductOrderId = null;
+                    dto.CallBackTypeLabel = PaymentCallbackTypeEnum.SchoolReserve.ToString();
+                    dto.CallBackId = reservedetail.Id.ToString();
+                    dto.TypeId = await _codeService.GetIdByLabelAsync(PaymentTypeEnum.PaymentType_SchoolReserve.ToString());
+                    return await StartPayment(dto);
+                }
+            }
+
+            dto.IsOnline = true;
+            dto.ProductOrderId = null;
+            dto.TypeId = await _codeService.GetIdByLabelAsync(PaymentTypeEnum.PaymentType_SchoolReserve.ToString());
+            dto.CallBackTypeLabel = PaymentCallbackTypeEnum.SchoolReserve.ToString();
             dto.CallBackId = reservedetail.Id.ToString();
             return await StartPayment(dto);
         }
@@ -1090,6 +1167,22 @@ namespace Application.Services.Order.PaymentSrv
                     : new BaseResultDto(false, Resource.Notification.InvalidData);
             }
 
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.SchoolReserve.ToString())
+            {
+                var item = await _context.SchoolReserves.AsNoTracking()
+                    .Where(s => s.Id == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
+                    .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
+                    .FirstOrDefaultAsync();
+                return item != null && SnapshotMatches(
+                    payment,
+                    item.PaymentPrice + item.RebatePrice,
+                    item.RebatePrice,
+                    item.WalletPrice,
+                    item.PaymentPrice - item.WalletPrice)
+                    ? new BaseResultDto(true)
+                    : new BaseResultDto(false, Resource.Notification.InvalidData);
+            }
+
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.PastilAI.ToString())
             {
                 var item = await _context.PastilAiSubscriptions.AsNoTracking()
@@ -1203,6 +1296,11 @@ namespace Application.Services.Order.PaymentSrv
                 return await _pansionReserve.PansionReservePaymentCallback(referenceId, useWallet);
             }
 
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.SchoolReserve.ToString())
+            {
+                return await _schoolReserve.SchoolReservePaymentCallback(referenceId, useWallet);
+            }
+
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.Trip.ToString())
             {
                 return await _tripService.TripPaymentCallback(referenceId, useWallet);
@@ -1281,6 +1379,23 @@ namespace Application.Services.Order.PaymentSrv
             if (dto.TargetType == PaymentCallbackTypeEnum.PansionReserve)
             {
                 var item = await _context.PansionReserves.AsNoTracking()
+                    .Where(s => s.Id == referenceId)
+                    .Select(s => new { s.BookerId, s.PaymentPrice, s.IsReserved })
+                    .FirstOrDefaultAsync();
+                if (item == null)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.NothingFound);
+                }
+                if (item.IsReserved)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentReserveAlreadyPaid);
+                }
+                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
+            }
+
+            if (dto.TargetType == PaymentCallbackTypeEnum.SchoolReserve)
+            {
+                var item = await _context.SchoolReserves.AsNoTracking()
                     .Where(s => s.Id == referenceId)
                     .Select(s => new { s.BookerId, s.PaymentPrice, s.IsReserved })
                     .FirstOrDefaultAsync();
@@ -1374,6 +1489,7 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentCallbackTypeEnum.ProductOrder => PaymentTypeEnum.PaymentType_ProductOrder.ToString(),
                 PaymentCallbackTypeEnum.CompanionReserve => PaymentTypeEnum.PaymentType_CompanionReserve.ToString(),
                 PaymentCallbackTypeEnum.PansionReserve => PaymentTypeEnum.PaymentType_PansionReserve.ToString(),
+                PaymentCallbackTypeEnum.SchoolReserve => PaymentTypeEnum.PaymentType_SchoolReserve.ToString(),
                 PaymentCallbackTypeEnum.Trip => PaymentTypeEnum.PaymentType_Trip.ToString(),
                 PaymentCallbackTypeEnum.Cargo => PaymentTypeEnum.PaymentType_Cargo.ToString(),
                 PaymentCallbackTypeEnum.Insurance => PaymentTypeEnum.PaymentType_Insurance.ToString(),

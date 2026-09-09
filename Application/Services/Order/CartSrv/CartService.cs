@@ -609,7 +609,7 @@ namespace Application.Services.Order.CartSrv
                             cartStore.StoreId);
                         if (walletAmount < 1)
                         {
-                            return new BaseResultDto(isSuccess: false);
+                            return new BaseResultDto(isSuccess: false, val: Resource.Notification.InsufficientWalletBalanceForThisStore);
                         }
                         if (walletAmount < productOrderDto.PaymentPrice && cart.MerchantId == null)
                         {

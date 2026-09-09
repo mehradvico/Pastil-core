@@ -140,7 +140,16 @@ namespace Resource {
                 return ResourceManager.GetString("CartIsEmpty", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insufficient wallet balance for this store.
+        /// </summary>
+        public static string InsufficientWalletBalanceForThisStore {
+            get {
+                return ResourceManager.GetString("InsufficientWalletBalanceForThisStore", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Cart Number Must Be 16 Digit.
         /// </summary>
@@ -266,7 +275,34 @@ namespace Resource {
                 return ResourceManager.GetString("HaveBeenReserved", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to School Course Capacity Full.
+        /// </summary>
+        public static string SchoolCourseCapacityFull {
+            get {
+                return ResourceManager.GetString("SchoolCourseCapacityFull", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This pet has a registered illness and can only be booked into an infectious pansion.
+        /// </summary>
+        public static string PansionRequiresInfectiousForSickPet {
+            get {
+                return ResourceManager.GetString("PansionRequiresInfectiousForSickPet", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This pansion is infectious-only and only accepts pets with a registered illness.
+        /// </summary>
+        public static string InfectiousPansionOnlyAcceptsSickPets {
+            get {
+                return ResourceManager.GetString("InfectiousPansionOnlyAcceptsSickPets", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Insufficient funds.
         /// </summary>

@@ -14,7 +14,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
         public long StateId { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
-        public bool? IsSchool { get; set; }
+        public bool? IsDaycare { get; set; }
         public PictureVDto Picture { get; set; }
     }
 }

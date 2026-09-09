@@ -118,9 +118,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             {
                 model = model.Where(s => s.StatusId == baseSearchDto.StatusId.Value);
             }
-            if (baseSearchDto.IsSchool.HasValue)
+            if (baseSearchDto.IsDaycare.HasValue)
             {
-                model = model.Where(s => s.Pansion.IsSchool == baseSearchDto.IsSchool.Value);
+                model = model.Where(s => s.Pansion.IsDaycare == baseSearchDto.IsDaycare.Value);
             }
             switch (baseSearchDto.SortBy)
             {
@@ -168,24 +168,37 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     }
                     var pansion = await _context.Pansions.FirstOrDefaultAsync(s =>
                         s.Id == dto.PansionId && s.Active && s.Approve);
-                    if (pansion == null || !await _context.UserPets.AnyAsync(s =>
-                            s.Id == dto.UserPetId && s.UserId == dto.BookerId))
+                    var userPet = await _context.UserPets.FirstOrDefaultAsync(s =>
+                        s.Id == dto.UserPetId && s.UserId == dto.BookerId);
+                    if (pansion == null || userPet == null)
                     {
                         return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.InvalidData, dto);
+                    }
+
+                    // پت‌های دارای بیماری خاص فقط باید در پانسیون عفونی رزرو شوند و پانسیون عفونی
+                    // هم فقط همین پت‌ها را می‌پذیرد - جداسازی کامل برای جلوگیری از سرایت بیماری.
+                    var petHasSpecificDisease = !string.IsNullOrWhiteSpace(userPet.SpecificDisease);
+                    if (petHasSpecificDisease && !pansion.IsInfectious)
+                    {
+                        return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.PansionRequiresInfectiousForSickPet, dto);
+                    }
+                    if (!petHasSpecificDisease && pansion.IsInfectious)
+                    {
+                        return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.InfectiousPansionOnlyAcceptsSickPets, dto);
                     }
                     var hasSchoolInputs = !string.IsNullOrWhiteSpace(dto.StartTime) && !string.IsNullOrWhiteSpace(dto.EndTime) && dto.SchoolCreateDate.HasValue;
                     var hasPansionInputs = dto.FromDate.HasValue && dto.ToDate.HasValue;
 
                     if (!ReservationScheduleValidator.IsPansionModeValid(
-                            pansion.IsSchool,
+                            pansion.IsDaycare,
                             hasSchoolInputs,
                             hasPansionInputs))
                     {
                         return new BaseResultDto<PansionReserveDto>(
                             false,
-                            pansion.IsSchool == true
+                            pansion.IsDaycare == true
                                 ? Resource.Notification.PansionSchoolModeRequiresFullTimeRange
-                                : pansion.IsSchool == false
+                                : pansion.IsDaycare == false
                                     ? Resource.Notification.PansionDailyModeRequiresFullDateRange
                                     : Resource.Notification.PansionActivityTypeNotSpecified,
                             dto);
@@ -400,18 +413,35 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             }
         }
 
+        // این متد همیشه از داخل PaymentService.ApplyAndMapPaymentAsync صدا زده می‌شود که خودش از
+        // قبل یک تراکنش Serializable باز کرده - باز کردن یک تراکنش تو در تو روی همان DbContext
+        // در حالت تست (پرداخت آنی درون همان درخواست) خطا می‌داد، پس فقط وقتی تراکنش فعالی از
+        // بیرون نیامده، خودمان یکی باز می‌کنیم.
         public async Task<BaseResultDto> PansionReservePaymentCallback(long? reserveId, bool fromWallet = false)
+        {
+            if (_context.CurrentTransaction != null)
+                return await PansionReservePaymentCallbackCoreAsync(reserveId, fromWallet);
+
+            await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
+            var result = await PansionReservePaymentCallbackCoreAsync(reserveId, fromWallet);
+            if (result.IsSuccess)
+                await transaction.CommitAsync();
+            else
+                await transaction.RollbackAsync();
+            return result;
+        }
+
+        private async Task<BaseResultDto> PansionReservePaymentCallbackCoreAsync(long? reserveId, bool fromWallet)
         {
             try
             {
-                await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
                 var reserve = await _context.PansionReserves.Include(s => s.Booker).Include(s => s.Pansion).Include(s => s.Rebate).AsTracking().FirstOrDefaultAsync(s => s.Id == reserveId);
                 if (reserve == null)
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
                 if (reserve.IsReserved)
                     return new BaseResultDto(true);
 
-                var hasOverlap = reserve.Pansion?.IsSchool == true
+                var hasOverlap = reserve.Pansion?.IsDaycare == true
                     ? await _context.PansionReserves.AsNoTracking().AnyAsync(s =>
                         s.Id != reserve.Id &&
                         s.PansionId == reserve.PansionId &&
@@ -473,7 +503,6 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 }
 
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
 
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
@@ -522,12 +551,20 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
             if (model == null)
             {
-                return new BaseResultDto<PansionReserveCancelDto>(false, null);
+                return new BaseResultDto<PansionReserveCancelDto>(false, Resource.Notification.InvalidData, dto);
             }
 
-            if (_currentUser.CurrentUser.RoleEnum != RoleEnum.Admin.ToString())
+            // برخی نقش‌های سفارشی (مثل مدیر اصلی) به‌جای Label دقیق "Admin"، از طریق پرمیشن‌های
+            // ناحیه‌ی Admin تعریف می‌شوند - همان الگویی که در CompanionReserveService.UpdateCancelDto اصلاح شد.
+            var isAdmin = _currentUser.CurrentUser.RoleEnum == RoleEnum.Admin.ToString() ||
+                await _context.Roles
+                    .Where(r => r.Id == _currentUser.CurrentUser.RoleId)
+                    .SelectMany(r => r.Permissions)
+                    .AnyAsync(p => !p.Deleted && p.Area == "Admin");
+
+            if (!isAdmin)
             {
-                return new BaseResultDto<PansionReserveCancelDto>(false, null);
+                return new BaseResultDto<PansionReserveCancelDto>(false, Resource.Notification.AccessDenied, dto);
             }
 
             if ((model.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Paid || model.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete)

@@ -80,7 +80,12 @@ namespace Api.Hubs
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(reserveId));
-            var participantCount = _tracker.Join(reserveId, Context.ConnectionId, userId.Value);
+            var participantCount = _tracker.Join(
+                reserveId,
+                Context.ConnectionId,
+                userId.Value,
+                reserve.BookerId,
+                reserve.CompanionAssistance.Companion.Name);
 
             if (participantCount <= 1)
             {

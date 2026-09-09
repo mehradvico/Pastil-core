@@ -10,7 +10,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
 {
     public class PansionFinanceVDto : Name_FieldDto
     {
-        public bool? IsSchool { get; set; }
+        public bool? IsDaycare { get; set; }
         public long CompanionId { get; set; }
 
         public decimal DailyCommissionPercent { get; set; }

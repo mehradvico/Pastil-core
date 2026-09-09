@@ -2,6 +2,7 @@
 using Entities.Entities.CompanionField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
+using Entities.Entities.SchoolField;
 using Entities.Entities.PastilMatchField;
 using Entities.Entities.PastilAIField;
 using Entities.Entities.PastilClubField;
@@ -125,6 +126,13 @@ namespace Persistence.Interface
         public DbSet<PansionPet> PansionPets { get; set; }
         public DbSet<PansionPicture> PansionPictures { get; set; }
         public DbSet<PansionReserve> PansionReserves { get; set; }
+        public DbSet<School> Schools { get; set; }
+        public DbSet<SchoolComment> SchoolComments { get; set; }
+        public DbSet<SchoolCourse> SchoolCourses { get; set; }
+        public DbSet<SchoolCourseSession> SchoolCourseSessions { get; set; }
+        public DbSet<SchoolCourseVideo> SchoolCourseVideos { get; set; }
+        public DbSet<SchoolPicture> SchoolPictures { get; set; }
+        public DbSet<SchoolReserve> SchoolReserves { get; set; }
         public DbSet<Park> Parks { get; set; }
         public DbSet<ParkPicture> ParkPictures { get; set; }
         public DbSet<PastilMatch> PastilMatches { get; set; }

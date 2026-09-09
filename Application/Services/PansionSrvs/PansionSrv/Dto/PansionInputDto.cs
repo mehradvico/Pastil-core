@@ -10,7 +10,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
 {
     public class PansionInputDto : BaseInputDto, IPansionSearchFields
     {
-        public bool? IsSchool { get; set; }
+        public bool? IsDaycare { get; set; }
         public long? CompanionId { get; set; }
         public bool? Approve { get; set; }
         public List<long> NeighborhoodIds { get; set; }
@@ -19,5 +19,6 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
         public bool? Suggested { get; set; }
         public bool? ShowToSite { get; set; }
         public long? PetId { get; set; }
+        public bool? IsInfectious { get; set; }
     }
 }
