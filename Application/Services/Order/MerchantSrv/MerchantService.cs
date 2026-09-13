@@ -12,6 +12,7 @@ using Entities.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Persistence.Interface;
 using System;
 using System.Linq;
@@ -28,6 +29,7 @@ namespace Application.Services.Order.MerchantSrv
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPaymentGatewayResolver _gatewayResolver;
         private readonly IPaymentTestModeService _paymentTestModeService;
+        private readonly ILogger<MerchantService> _logger;
         private readonly byte[] _encryptionKey;
         private const string EncryptedPrefix = "enc:v1:";
 
@@ -37,7 +39,8 @@ namespace Application.Services.Order.MerchantSrv
             IHttpContextAccessor httpContextAccessor,
             IPaymentGatewayResolver gatewayResolver,
             IPaymentTestModeService paymentTestModeService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<MerchantService> logger)
             : base(context, mapper)
         {
             _context = context;
@@ -45,6 +48,7 @@ namespace Application.Services.Order.MerchantSrv
             _httpContextAccessor = httpContextAccessor;
             _gatewayResolver = gatewayResolver;
             _paymentTestModeService = paymentTestModeService;
+            _logger = logger;
             _encryptionKey = ParseEncryptionKey(configuration["Security:MerchantEncryptionKey"]);
         }
 
@@ -134,7 +138,7 @@ namespace Application.Services.Order.MerchantSrv
             var gateway = _gatewayResolver.Resolve((MerchantEnum)merchant.BankId);
             var gatewayMerchant = TryCreateGatewayMerchant(merchant);
             if (gatewayMerchant == null)
-                return new BaseResultDto(false, Resource.Notification.Unsuccess);
+                return new BaseResultDto(false, Resource.Notification.MerchantGatewayCredentialsDecryptionFailed);
             var gatewayResult = await gateway.StartAsync(dto, gatewayMerchant);
 
             if (!gatewayResult.IsSuccess)
@@ -190,7 +194,7 @@ namespace Application.Services.Order.MerchantSrv
             var gateway = _gatewayResolver.Resolve((MerchantEnum)merchant.BankId);
             var gatewayMerchant = TryCreateGatewayMerchant(merchant);
             if (gatewayMerchant == null)
-                return new BaseResultDto(false, Resource.Notification.Unsuccess);
+                return new BaseResultDto(false, Resource.Notification.MerchantGatewayCredentialsDecryptionFailed);
             var gatewayResult = await gateway.CallbackAsync(payment, gatewayMerchant, request);
 
             return await SaveCallbackResultAsync(payment, gatewayResult, false);
@@ -319,8 +323,9 @@ namespace Application.Services.Order.MerchantSrv
                     MerchantNo = Unprotect(source.MerchantNo)
                 };
             }
-            catch (CryptographicException)
+            catch (CryptographicException ex)
             {
+                _logger.LogError(ex, "Failed to decrypt gateway credentials for merchant {MerchantId}. The stored ciphertext may not match Security:MerchantEncryptionKey.", source.Id);
                 return null;
             }
         }

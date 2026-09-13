@@ -879,6 +879,9 @@
   <data name="MerchantGatewayEncryptionKeyNotConfigured" xml:space="preserve">
     <value>Merchant Gateway Encryption Key Not Configured</value>
   </data>
+  <data name="MerchantGatewayCredentialsDecryptionFailed" xml:space="preserve">
+    <value>Merchant Gateway Credentials Decryption Failed</value>
+  </data>
   <data name="PaymentIdempotencyKeyAlreadyUsedForDifferentCheckout" xml:space="preserve">
     <value>Payment Idempotency Key Already Used For Different Checkout</value>
   </data>

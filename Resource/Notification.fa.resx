@@ -879,6 +879,9 @@
   <data name="MerchantGatewayEncryptionKeyNotConfigured" xml:space="preserve">
     <value>کلید رمزنگاری اطلاعات درگاه تنظیم نشده است.</value>
   </data>
+  <data name="MerchantGatewayCredentialsDecryptionFailed" xml:space="preserve">
+    <value>رمزگشایی اطلاعات درگاه پرداخت این مرکز ناموفق بود؛ ممکن است کلید رمزنگاری تغییر کرده باشد.</value>
+  </data>
   <data name="PaymentIdempotencyKeyAlreadyUsedForDifferentCheckout" xml:space="preserve">
     <value>این Idempotency-Key قبلاً برای Checkout دیگری استفاده شده است.</value>
   </data>

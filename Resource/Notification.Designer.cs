@@ -1486,6 +1486,15 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Merchant Gateway Credentials Decryption Failed.
+        /// </summary>
+        public static string MerchantGatewayCredentialsDecryptionFailed {
+            get {
+                return ResourceManager.GetString("MerchantGatewayCredentialsDecryptionFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Payment Idempotency Key Already Used For Different Checkout.
         /// </summary>
         public static string PaymentIdempotencyKeyAlreadyUsedForDifferentCheckout {

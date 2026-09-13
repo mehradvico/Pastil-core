@@ -310,7 +310,8 @@ namespace Application.Services.Order.PaymentSrv
                     await _context.SaveChangesAsync();
                 }
 
-                return new BaseResultDto(false, Resource.Notification.Unsuccess);
+                var detail = exception.InnerException?.Message ?? exception.Message;
+                return new BaseResultDto(false, Resource.Notification.Unsuccess, detail);
             }
         }
 
