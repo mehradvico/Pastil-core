@@ -735,6 +735,9 @@
   <data name="CompanionReserveTimeNotBelongOrInactive" xml:space="preserve">
     <value>Companion Reserve Time Not Belong Or Inactive</value>
   </data>
+  <data name="CompanionTimeNotBelongOrInactive" xml:space="preserve">
+    <value>Companion Time Not Belong Or Inactive</value>
+  </data>
   <data name="CompanionReserveDayMismatchWithSelectedTime" xml:space="preserve">
     <value>Companion Reserve Day Mismatch With Selected Time</value>
   </data>
@@ -746,6 +749,9 @@
   </data>
   <data name="CompanionReserveServiceTimeSelectionRequired" xml:space="preserve">
     <value>Companion Reserve Service Time Selection Required</value>
+  </data>
+  <data name="CompanionTimeSelectionRequired" xml:space="preserve">
+    <value>Companion Time Selection Required</value>
   </data>
   <data name="CompanionReserveOperatorNotBelongOrInactive" xml:space="preserve">
     <value>Companion Reserve Operator Not Belong Or Inactive</value>
@@ -1121,6 +1127,15 @@
   </data>
   <data name="TripPetDeliveryAlreadyExistsForReserve" xml:space="preserve">
     <value>Trip Pet Delivery Already Exists For Reserve</value>
+  </data>
+  <data name="TripAutoCanceledNoDriverAccepted" xml:space="preserve">
+    <value>No driver accepted this trip within the allotted time, so it was automatically canceled.</value>
+  </data>
+  <data name="TripAdminDriverSelectionRequestSubmitted" xml:space="preserve">
+    <value>Your request has been sent to Pastil admins to select a driver for you.</value>
+  </data>
+  <data name="TripCanBeRequestedOnlyForAutoCanceledTrip" xml:space="preserve">
+    <value>Admin driver selection can only be requested for a trip that was automatically canceled.</value>
   </data>
   <data name="ReminderOneWeekAwayText" xml:space="preserve">
     <value>Reminder One Week Away Text</value>

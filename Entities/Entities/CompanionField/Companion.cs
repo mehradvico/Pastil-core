@@ -49,6 +49,7 @@ namespace Entities.Entities
         public ICollection<CompanionComment> CompanionComments { get; set; }
         public ICollection<Pansion> Pansions { get; set; }
         public ICollection<CompanionZone> CompanionZones { get; set; }
+        public ICollection<CompanionTime> CompanionTimes { get; set; }
 
 
     }

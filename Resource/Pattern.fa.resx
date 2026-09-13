@@ -144,6 +144,9 @@
   <data name="PleaseInsertT1" xml:space="preserve">
     <value>لطفا {0} را وارد نمایید</value>
   </data>
+  <data name="T1MustContainOnlyLetters" xml:space="preserve">
+    <value>{0} فقط می‌تواند شامل حروف فارسی و فاصله باشد</value>
+  </data>
   <data name="PleaseSelectT1" xml:space="preserve">
     <value>لطفا {0} را انتخاب نمایید</value>
   </data>

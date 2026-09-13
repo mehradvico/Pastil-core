@@ -19,10 +19,16 @@ namespace Application.Services.Dto
         [Display(Name = nameof(Resource.Field.FirstName), ResourceType = typeof(Resource.Field))]
         [Required(ErrorMessageResourceType = typeof(Resource.Pattern),
           ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
+        [RegularExpression(@"^[؀-ۿ‌\s]{2,50}$",
+          ErrorMessageResourceType = typeof(Resource.Pattern),
+          ErrorMessageResourceName = nameof(Resource.Pattern.T1MustContainOnlyLetters))]
         public string FirstName { get; set; }
         [Display(Name = nameof(Resource.Field.LastName), ResourceType = typeof(Resource.Field))]
         [Required(ErrorMessageResourceType = typeof(Resource.Pattern),
        ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
+        [RegularExpression(@"^[؀-ۿ‌\s]{2,50}$",
+          ErrorMessageResourceType = typeof(Resource.Pattern),
+          ErrorMessageResourceName = nameof(Resource.Pattern.T1MustContainOnlyLetters))]
 
         public string LastName { get; set; }
         [Display(Name = nameof(Resource.Field.ReferralCode), ResourceType = typeof(Resource.Field))]

@@ -735,6 +735,9 @@
   <data name="CompanionReserveTimeNotBelongOrInactive" xml:space="preserve">
     <value>زمان انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.</value>
   </data>
+  <data name="CompanionTimeNotBelongOrInactive" xml:space="preserve">
+    <value>زمان انتخاب‌شده متعلق به این مرکز نیست یا فعال نیست.</value>
+  </data>
   <data name="CompanionReserveDayMismatchWithSelectedTime" xml:space="preserve">
     <value>روز تاریخ رزرو با روز زمان انتخاب‌شده هماهنگ نیست.</value>
   </data>
@@ -746,6 +749,9 @@
   </data>
   <data name="CompanionReserveServiceTimeSelectionRequired" xml:space="preserve">
     <value>انتخاب زمان خدمت الزامی است.</value>
+  </data>
+  <data name="CompanionTimeSelectionRequired" xml:space="preserve">
+    <value>انتخاب زمان الزامی است.</value>
   </data>
   <data name="CompanionReserveOperatorNotBelongOrInactive" xml:space="preserve">
     <value>اپراتور انتخاب‌شده متعلق به این خدمت نیست یا فعال نیست.</value>
@@ -1121,6 +1127,15 @@
   </data>
   <data name="TripPetDeliveryAlreadyExistsForReserve" xml:space="preserve">
     <value>برای این رزرو قبلاً یک سفر پت‌رسان ثبت شده است.</value>
+  </data>
+  <data name="TripAutoCanceledNoDriverAccepted" xml:space="preserve">
+    <value>هیچ راننده‌ای ظرف مدت مقرر این سفر را نپذیرفت، به همین دلیل درخواست به‌صورت خودکار لغو شد.</value>
+  </data>
+  <data name="TripAdminDriverSelectionRequestSubmitted" xml:space="preserve">
+    <value>درخواست شما برای ادمین‌های پاستیل ارسال شد تا برای شما راننده انتخاب کنند.</value>
+  </data>
+  <data name="TripCanBeRequestedOnlyForAutoCanceledTrip" xml:space="preserve">
+    <value>درخواست انتخاب راننده توسط ادمین فقط برای سفری که به‌صورت خودکار لغو شده ممکن است.</value>
   </data>
   <data name="ReminderOneWeekAwayText" xml:space="preserve">
     <value>یک هفته دیگر است.</value>

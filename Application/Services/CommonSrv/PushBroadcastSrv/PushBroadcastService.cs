@@ -8,6 +8,7 @@ using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Persistence.Interface;
 using System;
@@ -24,12 +25,14 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
         private readonly IDataBaseContext _context;
         private readonly VapidKeysOption _vapid;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
-        public PushBroadcastService(IDataBaseContext context, IOptions<VapidKeysOption> vapid, IMapper mapper)
+        public PushBroadcastService(IDataBaseContext context, IOptions<VapidKeysOption> vapid, IMapper mapper, IConfiguration configuration)
         {
             _context = context;
             _vapid = vapid.Value;
             _mapper = mapper;
+            _configuration = configuration;
         }
 
         public async Task<BaseResultDto> BroadcastAsync(PushBroadcastDto req)
@@ -47,6 +50,13 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
             var vapid = new VapidDetails("mailto:admin@pastil.pet", _vapid.PublicKey, _vapid.PrivateKey);
 
             var payloadDto = _mapper.Map<PushPayloadDto>(msg);
+            // Icon مپ‌شده از AutoMapper همون Picture.Url خامه - یه مسیر نسبی روی فایل‌سرور
+            // (مثلاً "/Media/2026/8/27")، بدون GuidName/Extension و بدون دامنه‌ی file.pastil.pet.
+            // هر فرانت (پنل/وب‌اپ/سایت) قبل از نمایش این مسیر رو با showImageBaseUrl کامل می‌کنه،
+            // ولی نوتیفیکیشن مستقیم توسط مرورگر/اندروید fetch میشه و کسی این کار رو براش
+            // انجام نمی‌ده؛ در نتیجه آیکون‌های سفارشی آپلودشده از پنل همیشه ۴۰۴ می‌خوردن و
+            // اندروید یه آواتار حرف اول دامنه ("A" از app.pastil.pet) نشون می‌داد.
+            payloadDto.Icon = BuildAbsolutePictureUrl(msg.Picture);
             // Must match PushNotificationService's camelCase policy: the browser-side
             // service worker reads payload.url/icon/tag (lowercase) — without this,
             // Url/Icon/Tag serialize PascalCase and the SW's lookup silently misses
@@ -85,6 +95,18 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
 
             await _context.SaveChangesAsync();
             return new BaseResultDto<PushBroadcastVDto>(true, new PushBroadcastVDto { Sent = sent, Failed = failed });
+        }
+
+        // دقیقاً همون ترکیب‌بندی که webapp/panel/website توی getPicUrl انجام می‌دن:
+        // {FileBaseUrl}{Url}/{GuidName}{Extension} - بدون این یعنی مسیر نسبی خام به Notification API داده میشه.
+        private string BuildAbsolutePictureUrl(Picture picture)
+        {
+            if (picture == null || string.IsNullOrWhiteSpace(picture.GuidName))
+                return null;
+
+            var fileBaseUrl = _configuration["Urls:FileBaseUrl"]?.TrimEnd('/') ?? "";
+            var path = $"{picture.Url}/{picture.GuidName}{picture.Extension}".Replace("//", "/");
+            return $"{fileBaseUrl}{(path.StartsWith("/") ? path : "/" + path)}";
         }
 
         private static IQueryable<Entities.Entities.PushSubscription> ApplyTypeFilter(IQueryable<Entities.Entities.PushSubscription> query, PushMessageTypeEnum type)

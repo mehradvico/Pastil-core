@@ -12,5 +12,6 @@ namespace Application.Services.SchoolSrvs.SchoolSrv.Iface
         Task<BaseResultDto<SchoolVDto>> FindAsyncVDto(long id);
         BaseResultDto UpdateSchoolActiveDto(SchoolActiveDto dto, long? companionId = null);
         Task<BaseResultDto> UpdateSchoolApproveAsyncDto(SchoolApproveDto dto);
+        Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
     }
 }

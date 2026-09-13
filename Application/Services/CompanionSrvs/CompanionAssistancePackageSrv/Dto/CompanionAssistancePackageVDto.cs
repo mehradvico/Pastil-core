@@ -17,6 +17,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto
         public string ActivationValue { get; set; }
         public long CompanionAssistanceId { get; set; }
         public string Discription { get; set; }
+        public string PetSize { get; set; }
         public CompanionAssistanceVDto CompanionAssistance { get; set; }
         public PictureVDto Picture { get; set; }
         public List<CompanionAssistancePackagePictureVDto> CompanionAssistancePackagePictures { get; set; }

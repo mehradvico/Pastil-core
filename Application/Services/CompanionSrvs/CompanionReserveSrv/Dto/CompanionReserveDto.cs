@@ -8,6 +8,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
     {
         public string ReserveCode { get; set; }
         public long BookerId { get; set; }
+        public long? BatchId { get; set; }
         public List<long> UserPetIds { get; set; }
         public DateTime DoDate { get; set; }
         public DateTime? DoneDate { get; set; }
@@ -20,6 +21,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
         public long? AddressId { get; set; }
         public long CompanionAssistanceId { get; set; }
         public long? CompanionAssistanceTimeId { get; set; }
+        public long? CompanionTimeId { get; set; }
         public long? CompanionAssistanceUserId { get; set; }
         public bool? IsFemale { get; set; }
         public string BookerDetail { get; set; }

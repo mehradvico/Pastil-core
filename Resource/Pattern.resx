@@ -147,6 +147,9 @@
   <data name="PleaseSelectT1" xml:space="preserve">
     <value>Please select the {0}</value>
   </data>
+  <data name="T1MustContainOnlyLetters" xml:space="preserve">
+    <value>The {0} may only contain Persian letters and spaces</value>
+  </data>
   <data name="ProductOrderTrakingCode" xml:space="preserve">
     <value>{0} با شماره پیگیری {1}</value>
   </data>

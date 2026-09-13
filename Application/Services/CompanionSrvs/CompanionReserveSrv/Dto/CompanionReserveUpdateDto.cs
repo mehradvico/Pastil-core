@@ -10,6 +10,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
     public class CompanionReserveUpdateDto : Id_FieldDto
     {
         public long? CompanionAssistanceTimeId { get; set; }
+        public long? CompanionTimeId { get; set; }
         public bool? IsFemale { get; set; }
         public List<long> UserPetIds { get; set; }
     }

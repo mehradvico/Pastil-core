@@ -26,6 +26,12 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
         private readonly VapidKeysOption _vapid;
         private readonly ILogger<PushNotificationService> _logger;
         private const int MaxAttemptCount = 3;
+        // برخی الگوهای Push (مثل PushMemoryReminder) هیچ‌وقت مقدار Icon نداشتن (NULL در دیتابیس)
+        // و صرفاً به fallback سمت service worker وب‌اپ متکی بودن؛ اگه یه نسخه‌ی قدیمی‌تر sw.js
+        // (که هنوز آپدیت نشده روی گوشی کاربر) اون fallback رو نداشته باشه، آیکون واقعی پاستیل
+        // اصلاً نمایش داده نمی‌شه و اندروید یه آواتار حرف اول دامنه می‌سازه. برای دفاع در عمق،
+        // همیشه یه مقدار پیش‌فرض معتبر از همینجا هم می‌فرستیم.
+        private const string DefaultPushIcon = "/icon-192x192.png";
 
         public PushNotificationService(
             IDataBaseContext context,
@@ -203,7 +209,7 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 notif.Title = title;
                 notif.Body = body;
                 notif.Url = FormatTokens(pattern.Url, notif.Token1, notif.Token2, notif.Token3, notif.Token4, notif.Token5);
-                notif.Icon = pattern.Icon;
+                notif.Icon = string.IsNullOrWhiteSpace(pattern.Icon) ? DefaultPushIcon : pattern.Icon;
                 notif.Tag = pattern.Tag;
 
                 var payloadDto = new PushPayloadDto

@@ -630,7 +630,10 @@ namespace Application.Services.Order.CartSrv
 
                 if (!insertedProductOrder.IsSuccess)
                 {
-                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
+                    // 👈 قبلاً اینجا یک BaseResultDto عمومی و تازه ساخته می‌شد که پیام واقعی
+                    // insertedProductOrder (شامل جزئیات Exception در Item2 برای عیب‌یابی) رو
+                    // کامل دور می‌ریخت. الان همون نتیجه‌ی واقعی برگردونده می‌شه.
+                    return insertedProductOrder;
                 }
 
                 var paymentDto = new PaymentStartDto()

@@ -26,6 +26,7 @@ using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto;
+using Application.Services.CompanionSrv.CompanionTimeSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto;
 using Application.Services.CompanionSrv.CompanionReserveSrv.Dto;
 using Application.Services.CompanionSrvs.AssistanceQuestionnaireSrv.Dto;
@@ -341,6 +342,10 @@ namespace Application.Maping
             CreateMap<CompanionAssistanceTime, CompanionAssistanceTimeVDto>();
             CreateMap<IGrouping<WeekDay, CompanionAssistanceTime>, CompanionAssistanceTimeUpdateDto>()
                 .ForMember(s => s.WeekDay, y => y.MapFrom(m => m.Key)).ForMember(s => s.CompanionAssistanceTimes, y => y.MapFrom(m => m.ToList()));
+            CreateMap<CompanionTime, CompanionTimeDto>().ReverseMap();
+            CreateMap<CompanionTime, CompanionTimeVDto>();
+            CreateMap<IGrouping<WeekDay, CompanionTime>, CompanionTimeUpdateDto>()
+                .ForMember(s => s.WeekDay, y => y.MapFrom(m => m.Key)).ForMember(s => s.CompanionTimes, y => y.MapFrom(m => m.ToList()));
             CreateMap<CompanionAssistanceUserDto, CompanionAssistanceUser>()
                 .ForMember(x => x.ActivationValue, y => y.Ignore()).ForMember(x => x.CompanionAssistance, y => y.Ignore()).ForMember(x => x.User, y => y.Ignore());
             CreateMap<CompanionAssistanceUser, CompanionAssistanceUserDto>();
@@ -352,7 +357,7 @@ namespace Application.Maping
                 .ForMember(x => x.ReserveCode, y => y.Ignore())
                 .ForMember(x => x.FromWallet, y => y.Ignore()).ForMember(x => x.WalletPrice, y => y.Ignore()).ForMember(x => x.Wallet, y => y.Ignore())
                 .ForMember(x => x.Address, y => y.Ignore()).ForMember(x => x.Booker, y => y.Ignore()).ForMember(x => x.CompanionAssistance, y => y.Ignore())
-                .ForMember(x => x.CompanionAssistanceTime, y => y.Ignore()).ForMember(x => x.CompanionAssistanceUser, y => y.Ignore())
+                .ForMember(x => x.CompanionAssistanceTime, y => y.Ignore()).ForMember(x => x.CompanionTime, y => y.Ignore()).ForMember(x => x.CompanionAssistanceUser, y => y.Ignore())
                 .ForMember(x => x.UserPets, y => y.Ignore()).ForMember(x => x.State, y => y.Ignore()).ForMember(x => x.CompanionAssistanceType, y => y.Ignore())
                 .ForMember(x => x.OperatorStateId, y => y.Ignore()).ForMember(x => x.CompanionAssistancePackages, y => y.Ignore());
             CreateMap<CompanionReserveSetRebateCodeDto, CompanionReserve>();
@@ -793,7 +798,10 @@ namespace Application.Maping
             //Push
             CreateMap<PushMessage, PushMessageDto>().ReverseMap();
             CreateMap<PushMessage, PushMessageVDto>();
-            CreateMap<PushMessage, PushPayloadDto>().ForMember(d => d.Icon, o => o.MapFrom(s => s.Picture.Url));
+            // Icon عمداً اینجا مپ نمی‌شه: Picture.Url یه مسیر نسبی خامه (بدون GuidName/Extension/دامنه‌ی
+            // فایل‌سرور) و برای Notification API قابل استفاده نیست؛ PushBroadcastService بعد از این
+            // Map، Icon رو خودش با BuildAbsolutePictureUrl می‌سازه.
+            CreateMap<PushMessage, PushPayloadDto>();
             CreateMap<PushSubscribeDto, PushSubscription>().ForMember(d => d.P256dh, o => o.MapFrom(s => s.Keys.P256dh)).ForMember(d => d.Auth, o => o.MapFrom(s => s.Keys.Auth))
                      .ForMember(d => d.Endpoint, o => o.MapFrom(s => s.Endpoint)).ForMember(d => d.UserAgent, o => o.MapFrom(s => s.UserAgent))
                      .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.UserId, o => o.Ignore()).ForMember(d => d.DeviceKey, o => o.Ignore())

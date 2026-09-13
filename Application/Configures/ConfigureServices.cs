@@ -76,6 +76,8 @@ using Application.Services.CompanionSrv.CompanionAssistanceSrv;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Iface;
 using Application.Services.CompanionSrv.CompanionAssistanceTimeSrv;
 using Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Iface;
+using Application.Services.CompanionSrv.CompanionTimeSrv;
+using Application.Services.CompanionSrv.CompanionTimeSrv.Iface;
 using Application.Services.CompanionSrv.CompanionAssistanceTypeSrv;
 using Application.Services.CompanionSrv.CompanionAssistanceTypeSrv.Iface;
 using Application.Services.CompanionSrv.CompanionAssistanceUserSrv;
@@ -484,6 +486,7 @@ public static class ConfigureServices
         services.AddScoped<ICompanionReserveService, CompanionReserveService>();
         services.AddScoped<ICompanionReserveUserPetService, CompanionReserveUserPetService>();
         services.AddScoped<ICompanionService, CompanionService>();
+        services.AddScoped<ICompanionTimeService, CompanionTimeService>();
         services.AddScoped<ICompanionTypeService, CompanionTypeService>();
         services.AddScoped<ICompanionUserService, CompanionUserService>();
         services.AddScoped<ICompanionZoneService, CompanionZoneService>();

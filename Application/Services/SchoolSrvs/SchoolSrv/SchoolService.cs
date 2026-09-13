@@ -137,5 +137,22 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
 
             return new BaseResultDto(true);
         }
+
+        // نمایش/عدم‌نمایش مدرسه توی سایت - تا قبل از این متد هیچ راهی برای true شدن
+        // ShowToSite وجود نداشت (نه در Insert، نه در Approve)، یعنی مدرسه‌ها حتی بعد از
+        // تأیید ادمین هم هیچ‌وقت توی صفحه‌ی اصلی/عمومی سایت نمایش داده نمی‌شدن. الگوی
+        // این متد دقیقاً همون چیزیه که Companion/Pansion/Store/Assistance از قبل دارن.
+        public async Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite)
+        {
+            var affectedRows = await _context.Schools
+                .Where(x => x.Id == id)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.ShowToSite, showToSite));
+
+            if (affectedRows == 0)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+            return new BaseResultDto(true);
+        }
     }
 }

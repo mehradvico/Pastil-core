@@ -28,6 +28,7 @@ using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using PersianDate.Standard;
 using Persistence.Interface;
 using System;
@@ -55,13 +56,15 @@ namespace Application.Services.Order.ProductOrderSrv
         private readonly IScoreTransactionService _scoreService;
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
         private readonly IShipmentService _shipmentService;
+        private readonly ILogger<ProductOrderService> _logger;
 
         public ProductOrderService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserProductService userProductService,
             INoticeService notificationService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IWalletService walletService,
             IUserService userService, IProductService productService, IRebateService rebateService, IScoreTransactionService scoreService,
             IMessageSenderService messageSenderService,
             IClubPointIntegrationService clubPointIntegrationService,
-            IShipmentService shipmentService) : base(_context, mapper)
+            IShipmentService shipmentService,
+            ILogger<ProductOrderService> logger) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -78,6 +81,7 @@ namespace Application.Services.Order.ProductOrderSrv
             this._scoreService = scoreService;
             this._clubPointIntegrationService = clubPointIntegrationService;
             this._shipmentService = shipmentService;
+            this._logger = logger;
         }
         public async Task<BaseResultDto> FindAsyncVDto(string id, long? userId = null)
         {
@@ -121,9 +125,14 @@ namespace Application.Services.Order.ProductOrderSrv
                 }
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new BaseResultDto<ProductOrderDto>(isSuccess: false, val: Resource.Notification.Unsuccess, data: dto);
+                _logger.LogError(ex, "ProductOrder insert failed for userId {UserId}, paymentPrice {PaymentPrice}, storeCount {StoreCount}", dto.UserId, dto.PaymentPrice, dto.ProductOrderStores?.Count ?? 0);
+                // 👈 موقت جهت عیب‌یابی: پیام واقعی Exception (val2) رو هم برمی‌گردونیم تا بدون
+                // نیاز به لاگ سرور علت واقعی شکست insert سفارش رو ببینیم. فرانت‌اند فقط
+                // item1 (پیام عمومی فعلی) رو توی toast نشون می‌ده، پس رفتار کاربر عوض نمی‌شه.
+                var detail = ex.InnerException?.Message ?? ex.Message;
+                return new BaseResultDto<ProductOrderDto>(isSuccess: false, val1: Resource.Notification.Unsuccess, val2: detail, data: dto);
             }
         }
 

@@ -1552,5 +1552,87 @@ namespace Application.Services.TripSrv.TripSrv
 
             await _context.SaveChangesAsync();
         }
+
+        // Job زمان‌بندی‌شده (Hangfire): برخلاف DispatchScheduledTripsAsync (که فقط سفرهای
+        // تاریخ‌دار رو پوشش می‌ده)، این Job سفرهای «لحظه‌ای» (بدون ScheduledDepartureAt) رو
+        // بررسی می‌کنه — اگه ۵ دقیقه از ثبت درخواست گذشته و هنوز هیچ راننده‌ای قبول نکرده،
+        // درخواست به‌صورت خودکار لغو می‌شه تا کاربر توی صفحه‌ی انتظار برای همیشه گیر نکنه؛
+        // کاربر می‌تونه دوباره درخواست بزنه یا از ادمین بخواد خودش راننده انتخاب کنه.
+        private const int InstantTripDriverSearchTimeoutMinutes = 5;
+
+        public async Task AutoCancelUnansweredInstantTripsAsync()
+        {
+            var cutoff = DateTime.Now.AddMinutes(-InstantTripDriverSearchTimeoutMinutes);
+
+            var due = await _context.Trips
+                .Where(t =>
+                    !t.ScheduledDepartureAt.HasValue &&
+                    t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested &&
+                    t.DriverId == null &&
+                    t.CreateDate <= cutoff)
+                .AsTracking()
+                .ToListAsync();
+
+            if (due.Count == 0)
+                return;
+
+            foreach (var trip in due)
+            {
+                trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
+                trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.System;
+                trip.CancelReasonDetail = Resource.Notification.TripAutoCanceledNoDriverAccepted;
+                trip.ProgressUpdateDate = DateTime.Now;
+                _context.Trips.Update(trip);
+            }
+
+            await _context.SaveChangesAsync();
+
+            foreach (var trip in due)
+            {
+                try
+                {
+                    await _noticeService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.TripDriverSelectionRequired,
+                        ActorUserId = trip.UserId,
+                        ReferenceType = "Trip",
+                        ReferenceId = trip.Id,
+                        DeduplicationKey = $"AutoCancelNoDriver:{trip.Id}"
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Creating admin notice for auto-canceled trip {TripId} failed.", trip.Id);
+                }
+            }
+        }
+
+        /// <summary>
+        /// دکمه‌ی «ثبت درخواست» که کاربر بعد از دیدن پیام «راننده‌ای پیدا نشد» می‌زنه —
+        /// از ادمین‌های پاستیل می‌خواد که خودشون دستی یک راننده برای این سفر انتخاب کنن
+        /// (همون مکانیزم Notice که ChooseDriverAsync/پنل TripChooseDriver ازش استفاده می‌کنن).
+        /// </summary>
+        public async Task<BaseResultDto<TripVDto>> RequestAdminDriverSelectionAsync(long tripId, long userId)
+        {
+            var trip = await _context.Trips.FirstOrDefaultAsync(s => s.Id == tripId && s.UserId == userId);
+
+            if (trip == null)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
+
+            if (trip.TripStatusId != (long)TripStatusEnum.TripStatus_Canceled ||
+                trip.CancelInitiatorId != (int)TripCancelInitiatorEnum.System)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.TripCanBeRequestedOnlyForAutoCanceledTrip, null);
+
+            await _noticeService.CreateAsync(new NoticeCreateDto
+            {
+                Label = NoticeTypeLabels.TripDriverSelectionRequired,
+                ActorUserId = trip.UserId,
+                ReferenceType = "Trip",
+                ReferenceId = trip.Id,
+                DeduplicationKey = $"UserRequestedAdminHelp:{trip.Id}"
+            });
+
+            return await FindAsyncVDto(trip.Id);
+        }
     }
 }

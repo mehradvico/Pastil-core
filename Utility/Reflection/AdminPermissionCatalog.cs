@@ -186,6 +186,7 @@ namespace Utility.Reflection
                 "CompanionUpdateGoldAccount",
                 "CompanionInsurancePackageSale",
                 "CompanionAssistanceTime",
+                "CompanionTime",
                 "CompanionUpdateSilverAccount",
                 "Pansion",
                 "CompanionAssistancePackage",
@@ -358,7 +359,8 @@ namespace Utility.Reflection
                 "SiteCompanion",
                 "SiteAssistance",
                 "SitePansion",
-                "SiteStore"
+                "SiteStore",
+                "SiteSchool"
             ]);
 
             AddGroup(result, "PastilClubManagement",

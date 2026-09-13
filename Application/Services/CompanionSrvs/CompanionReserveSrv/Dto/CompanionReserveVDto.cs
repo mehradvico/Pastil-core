@@ -3,6 +3,7 @@ using Application.Services.Accounting.UserPetSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Dto;
+using Application.Services.CompanionSrv.CompanionTimeSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSelectionSrv.Dto;
 using Application.Services.Dto;
@@ -18,6 +19,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
     {
         public string ReserveCode { get; set; }
         public long BookerId { get; set; }
+        public long? BatchId { get; set; }
         public int PetCount { get; set; }
         public double PrePaymentPrice { get; set; } 
         public double OperatorFinalPrice { get; set; }
@@ -30,6 +32,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
         public long? AddressId { get; set; }
         public long CompanionAssistanceId { get; set; }
         public long CompanionAssistanceTimeId { get; set; }
+        public long? CompanionTimeId { get; set; }
         public long? CompanionAssistanceUserId { get; set; }
         public long? CompanionAssistancePackageOnlineSelectionId { get; set; }
         public DateTime? CallStartDate { get; set; }
@@ -58,6 +61,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
         public UserMinVDto Booker { get; set; }
         public CompanionAssistanceVDto CompanionAssistance { get; set; }
         public CompanionAssistanceTimeVDto CompanionAssistanceTime { get; set; }
+        public CompanionTimeVDto CompanionTime { get; set; }
         public CompanionAssistanceUserVDto CompanionAssistanceUser { get; set; }
         public CompanionAssistancePackageOnlineSelectionVDto CompanionAssistancePackageOnlineSelection { get; set; }
         public CodeVDto State { get; set; }

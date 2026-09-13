@@ -1054,6 +1054,15 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Companion Time Not Belong Or Inactive.
+        /// </summary>
+        public static string CompanionTimeNotBelongOrInactive {
+            get {
+                return ResourceManager.GetString("CompanionTimeNotBelongOrInactive", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Companion Reserve Day Mismatch With Selected Time.
         /// </summary>
         public static string CompanionReserveDayMismatchWithSelectedTime {
@@ -1086,6 +1095,15 @@ namespace Resource {
         public static string CompanionReserveServiceTimeSelectionRequired {
             get {
                 return ResourceManager.GetString("CompanionReserveServiceTimeSelectionRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Companion Time Selection Required.
+        /// </summary>
+        public static string CompanionTimeSelectionRequired {
+            get {
+                return ResourceManager.GetString("CompanionTimeSelectionRequired", resourceCulture);
             }
         }
 
@@ -2211,6 +2229,33 @@ namespace Resource {
         public static string TripPetDeliveryAlreadyExistsForReserve {
             get {
                 return ResourceManager.GetString("TripPetDeliveryAlreadyExistsForReserve", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No driver accepted this trip within the allotted time, so it was automatically canceled..
+        /// </summary>
+        public static string TripAutoCanceledNoDriverAccepted {
+            get {
+                return ResourceManager.GetString("TripAutoCanceledNoDriverAccepted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your request has been sent to Pastil admins to select a driver for you..
+        /// </summary>
+        public static string TripAdminDriverSelectionRequestSubmitted {
+            get {
+                return ResourceManager.GetString("TripAdminDriverSelectionRequestSubmitted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Admin driver selection can only be requested for a trip that was automatically canceled..
+        /// </summary>
+        public static string TripCanBeRequestedOnlyForAutoCanceledTrip {
+            get {
+                return ResourceManager.GetString("TripCanBeRequestedOnlyForAutoCanceledTrip", resourceCulture);
             }
         }
 

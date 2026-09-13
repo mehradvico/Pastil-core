@@ -18,6 +18,7 @@ namespace Application.Services.Order.PaymentSrv.Iface
         Task<BaseResultDto> InsertCompanionInsurancePackageSalePaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto> InsertPansionReservePaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto> InsertSchoolReservePaymentAsyncDto(PaymentStartDto dto);
+        Task<BaseResultDto> InsertCompanionReserveBatchPaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto<ManualPaymentVDto>> InsertManualPaymentAsync(ManualPaymentDto dto);
         Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId, string callbackToken);
     }

@@ -38,6 +38,8 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto<TripDto>> CreateReservationLinkedTripAsync(TripReservationCreateDto dto, long userId);
         Task<BaseResultDto<TripVDto>> GetTripForReservationAsync(long companionReserveId, long userId);
         Task DispatchScheduledTripsAsync();
+        Task AutoCancelUnansweredInstantTripsAsync();
+        Task<BaseResultDto<TripVDto>> RequestAdminDriverSelectionAsync(long tripId, long userId);
 
         // پت‌رسان — حالت سه: سفر تاریخ‌دار (نه لحظه‌ای، نه متصل به رزرو)
         Task<BaseResultDto<TripDto>> CreateScheduledTripAsync(TripScheduledCreateDto dto, long userId);

@@ -14,6 +14,10 @@ namespace Entities.Entities
         public string ActivationValue { get; set; }
         public long CompanionAssistanceId { get; set; }
         public string Discription { get; set; }
+        // سایز پتی که این پکیج مخصوص اونه (Small/Medium/Large - دقیقاً هم‌ارز UserPet.Size)؛
+        // خالی/نال یعنی این پکیج مخصوص هیچ سایز خاصی نیست و برای همه‌ی سایزها نمایش داده می‌شود
+        // (رفتار پیش‌فرض پکیج‌های قدیمی که قبل از این ویژگی ثبت شده‌اند).
+        public string PetSize { get; set; }
         public bool Deleted { get; set; }
         public CompanionAssistance CompanionAssistance { get; set; }
         public Picture Picture { get; set; }

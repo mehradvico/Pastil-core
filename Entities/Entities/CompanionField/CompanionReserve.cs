@@ -9,6 +9,9 @@ namespace Entities.Entities
     {
         public string ReserveCode { get; set; }
         public long BookerId { get; set; }
+        // اگر این رزرو بخشی از یک سبد رزرو چندخدمتی (همان کلینیک) باشد که با یک پرداخت مشترک
+        // تسویه می‌شود؛ نال یعنی رزرو مستقل و تک‌خدمتی همیشگی است (بدون تغییر در رفتار قبلی).
+        public long? BatchId { get; set; }
         public double PrePaymentPrice { get; set; }
         public double OperatorFinalPrice { get; set; }
         public double OperatorStuffPrice { get; set; }
@@ -21,6 +24,9 @@ namespace Entities.Entities
         public long CompanionAssistanceId { get; set; }
         public long CompanionAssistanceTypeId { get; set; }
         public long? CompanionAssistanceTimeId { get; set; }
+        // زمان نوبت بر اساس ساعت کاری مرکز (جایگزین CompanionAssistanceTimeId برای رزروهای جدید؛
+        // آن فیلد فقط برای نمایش تاریخچه‌ی رزروهای قدیمی‌تر که بر اساس زمان‌بندی هر خدمت ثبت شده‌اند نگه داشته شده).
+        public long? CompanionTimeId { get; set; }
         public long? CompanionAssistanceUserId { get; set; }
         // روش ارتباط آنلاین انتخابی کاربر برای این رزرو (چت/تماس/ویدیو کال) - نال یعنی این رزرو آنلاین نیست.
         // یادآورهای Push (۱۰ دقیقه قبل و سر زمان DoDate) بر اساس همین فیلد به نماینده ارسال می‌شوند.
@@ -56,9 +62,11 @@ namespace Entities.Entities
         public bool Permitted { get; set; }
 
         public User Booker { get; set; }
+        public CompanionReserveBatch Batch { get; set; }
         public Code CompanionAssistanceType { get; set; }
         public CompanionAssistance CompanionAssistance { get; set; }
         public CompanionAssistanceTime CompanionAssistanceTime { get; set; }
+        public CompanionTime CompanionTime { get; set; }
         public CompanionAssistanceUser CompanionAssistanceUser { get; set; }
         public CompanionAssistancePackageOnlineSelection CompanionAssistancePackageOnlineSelection { get; set; }
         public Code State { get; set; }

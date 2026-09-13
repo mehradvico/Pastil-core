@@ -77,6 +77,12 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
             {
                 model = model.Where(s => s.Active == baseSearchDto.Available.Value);
             }
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.PetSize))
+            {
+                // پکیج بدون سایز (PetSize خالی) یعنی مخصوص هیچ سایز خاصی نیست، پس برای همه‌ی
+                // سایزها هم نمایش داده می‌شود؛ فقط پکیج‌هایی که برای یک سایز دیگه تعریف شدن حذف می‌شن.
+                model = model.Where(s => s.PetSize == null || s.PetSize == baseSearchDto.PetSize);
+            }
             switch (baseSearchDto.SortBy)
             {
                 case Common.Enumerable.SortEnum.New:

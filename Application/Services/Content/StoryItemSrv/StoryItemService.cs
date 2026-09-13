@@ -65,7 +65,9 @@ namespace Application.Services.Content.StoryItemSrv
         public BaseSearchDto<StoryItemVDto> Search(StoryItemInputDto searchDto)
         {
             var now = DateTime.Now;
-            var query = _context.StoryItems.Include(s => s.Companion).Include(s => s.Pansion).Include(s => s.Store).Include(s => s.StoryGroup).AsQueryable().Where(s => !s.Deleted);
+            // Picture/File قبلاً اینجا Include نمی‌شدن؛ یعنی حتی با PictureId/FileId معتبر،
+            // نویگیشن‌شون توی نتیجه‌ی لیست همیشه null برمی‌گشت و پنل هیچ تصویری نداشت نشون بده.
+            var query = _context.StoryItems.Include(s => s.Companion).Include(s => s.Pansion).Include(s => s.Store).Include(s => s.StoryGroup).Include(s => s.Picture).Include(s => s.File).AsQueryable().Where(s => !s.Deleted);
 
             if (searchDto.Available.HasValue)
                 query = query.Where(s => s.Active == searchDto.Available);
@@ -116,6 +118,36 @@ namespace Application.Services.Content.StoryItemSrv
             return new BaseSearchDto<StoryItem, StoryItemVDto>(searchDto, query, mapper);
         }
 
+
+        // تمدید استوری منقضی‌شده: چون UpdateDto عمومی هیچ‌جا ExpireDate/CreateDate رو
+        // دوباره از روی DayCount محاسبه نمی‌کنه (فقط InsertAsyncDto این کارو موقع ساخت
+        // انجام می‌ده)، ادمین قبلاً هیچ راهی برای زنده‌کردن یه استوری منقضی‌شده نداشت.
+        public async Task<BaseResultDto<StoryItemDto>> RenewAsyncDto(StoryItemRenewDto dto)
+        {
+            try
+            {
+                var item = await _context.StoryItems.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
+                if (item == null)
+                    return new BaseResultDto<StoryItemDto>(isSuccess: false, val: Resource.Notification.NothingFound, data: null);
+
+                var dayCount = dto.DayCount ?? item.DayCount;
+                if (dayCount <= 0)
+                    return new BaseResultDto<StoryItemDto>(isSuccess: false, val: Resource.Notification.PleaseEnterDayCount, data: null);
+
+                item.DayCount = dayCount;
+                item.CreateDate = DateTime.Now;
+                item.ExpireDate = item.CreateDate.AddDays(dayCount);
+
+                _context.StoryItems.Update(item);
+                await _context.SaveChangesAsync();
+
+                return new BaseResultDto<StoryItemDto>(true, mapper.Map<StoryItemDto>(item));
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<StoryItemDto>(isSuccess: false, val: ex.Message, data: null);
+            }
+        }
 
         public override async Task<BaseResultDto<StoryItemDto>> InsertAsyncDto(StoryItemDto dto)
         {

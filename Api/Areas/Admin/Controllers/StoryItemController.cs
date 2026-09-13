@@ -69,6 +69,16 @@ namespace Api.Areas.Admin.Controllers
             return Ok(dto);
         }
         /// <summary>
+        /// تمدید استوری منقضی‌شده (تاریخ ایجاد و انقضا از همین لحظه دوباره محاسبه می‌شود)
+        /// </summary>
+        [HttpPut("Renew")]
+        [ProducesResponseType(typeof(BaseResultDto<StoryItemDto>), 200)]
+        public async Task<IActionResult> Renew(StoryItemRenewDto dto)
+        {
+            var result = await StoryItemService.RenewAsyncDto(dto);
+            return Ok(result);
+        }
+        /// <summary>
         /// حذف آیتم
         /// </summary>
         ///

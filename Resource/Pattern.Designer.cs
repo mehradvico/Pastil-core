@@ -149,7 +149,16 @@ namespace Resource {
                 return ResourceManager.GetString("PleaseSelectT1", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The {0} may only contain Persian letters and spaces.
+        /// </summary>
+        public static string T1MustContainOnlyLetters {
+            get {
+                return ResourceManager.GetString("T1MustContainOnlyLetters", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to {0} با شماره پیگیری {1}.
         /// </summary>

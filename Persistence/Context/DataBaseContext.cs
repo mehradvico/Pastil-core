@@ -184,6 +184,7 @@ namespace Persistence.Context
         public DbSet<CompanionAssistancePackagePicture> CompanionAssistancePackagePictures { get; set; }
         public DbSet<CompanionAssistanceReport> CompanionAssistanceReports { get; set; }
         public DbSet<CompanionAssistanceTime> CompanionAssistanceTimes { get; set; }
+        public DbSet<CompanionTime> CompanionTimes { get; set; }
         public DbSet<CompanionAssistanceUser> CompanionAssistanceUsers { get; set; }
         public DbSet<CompanionComment> CompanionComments { get; set; }
         public DbSet<CompanionInsurancePackage> CompanionInsurancePackages { get; set; }
@@ -191,6 +192,7 @@ namespace Persistence.Context
         public DbSet<CompanionPet> CompanionPets { get; set; }
         public DbSet<CompanionReport> CompanionReports { get; set; }
         public DbSet<CompanionReserve> CompanionReserves { get; set; }
+        public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
         public DbSet<CompanionReserveComment> CompanionReserveComments { get; set; }
         public DbSet<CompanionReserveCommentRate> CompanionReserveCommentRates { get; set; }
         public DbSet<CompanionType> CompanionTypes { get; set; }

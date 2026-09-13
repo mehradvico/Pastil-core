@@ -15,5 +15,6 @@ namespace Application.Services.Content.StoryItemSrv.Iface
         Task<BaseResultDto<StoryItemVDto>> FindAsyncVDto(long id, bool view = true);
         Task<BaseResultDto<StoryItemVDto>> FindAsyncAdminVDto(long id);
         BaseSearchDto<StoryItemVDto> Search(StoryItemInputDto searchDto);
+        Task<BaseResultDto<StoryItemDto>> RenewAsyncDto(StoryItemRenewDto dto);
     }
 }

@@ -5,6 +5,7 @@ namespace Application.Common.Enumerable
     public enum TripCancelInitiatorEnum
     {
         Driver = 1,
-        User = 2
+        User = 2,
+        System = 3
     }
 }

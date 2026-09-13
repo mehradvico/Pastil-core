@@ -10,6 +10,7 @@
         PansionReserve,
         PastilAI,
         Wallet,
-        SchoolReserve
+        SchoolReserve,
+        CompanionReserveBatch
     }
 }

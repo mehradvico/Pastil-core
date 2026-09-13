@@ -869,6 +869,81 @@ namespace Application.Services.Order.PaymentSrv
             return await StartPayment(dto);
         }
 
+        // پرداخت «سبد رزرو»: یک پرداخت واحد برای مجموع چند رزرو مستقل (هر کدام برای یک خدمت متفاوت اما
+        // همگی متعلق به یک نمایندگی) که با هم در یک سبد ثبت شده‌اند. مبلغ کیف پول یک‌بار و روی مجموع کل
+        // سبد محاسبه می‌شود (نه جداگانه برای هر عضو) تا از over-commitment جمع کیف‌پول جلوگیری شود، سپس
+        // بین اعضا (بر اساس Id صعودی) توزیع می‌شود. نسخه اول: بدون پشتیبانی از کد تخفیف مشترک روی سبد.
+        public async Task<BaseResultDto> InsertCompanionReserveBatchPaymentAsyncDto(PaymentStartDto dto)
+        {
+            var members = await _context.CompanionReserves
+                .Include(s => s.CompanionAssistance)
+                .Where(s => s.BatchId == dto.CompanionReserveBatchId)
+                .OrderBy(s => s.Id)
+                .AsTracking()
+                .ToListAsync();
+
+            if (!members.Any() || members.Any(s => s.BookerId != dto.UserId))
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (members.Any(s => s.IsReserved || s.IsCancel))
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            var totalPrePayment = members.Sum(s => s.PrePaymentPrice);
+            var totalRebate = members.Sum(s => s.RebatePrice);
+
+            dto.Amount = totalPrePayment;
+            dto.GrossAmount = totalPrePayment + totalRebate;
+            dto.RebateAmount = totalRebate;
+            dto.RebateId = null;
+            dto.WalletAmount = 0;
+
+            if (dto.Amount < 0)
+            {
+                return new BaseResultDto(false, Resource.Notification.AmountNotCorrect);
+            }
+
+            var useWallet = members.Any(s => s.FromWallet);
+            if (dto.Amount > 0 && dto.MerchantId == null && !useWallet)
+            {
+                return new BaseResultDto(false, Resource.Notification.PleaseSelectTheMerchant);
+            }
+
+            if (useWallet)
+            {
+                var companionId = members.First().CompanionAssistance.CompanionId;
+                var walletAmount = await _walletService.GetSpendableAmountValueAsync(
+                    dto.UserId.Value,
+                    Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Companion,
+                    companionId);
+                var batchWalletContribution = PaymentAmountHelper.GetWalletContribution(walletAmount, totalPrePayment);
+
+                var remaining = batchWalletContribution;
+                foreach (var member in members)
+                {
+                    var contribution = remaining > 0 ? Math.Min(remaining, member.PrePaymentPrice) : 0;
+                    member.FromWallet = contribution > 0;
+                    member.WalletPrice = contribution;
+                    remaining -= contribution;
+                }
+                await _context.SaveChangesAsync();
+
+                dto.WalletAmount = batchWalletContribution;
+                dto.Amount = totalPrePayment - batchWalletContribution;
+            }
+
+            dto.ProductOrderId = null;
+            dto.CallBackTypeLabel = PaymentCallbackTypeEnum.CompanionReserveBatch.ToString();
+            dto.CallBackId = dto.CompanionReserveBatchId.ToString();
+            dto.TypeId = await _codeService.GetIdByLabelAsync(PaymentTypeEnum.PaymentType_CompanionReserveBatch.ToString());
+
+            if (dto.Amount <= 0)
+            {
+                return await StartPayment(dto);
+            }
+
+            dto.IsOnline = true;
+            return await StartPayment(dto);
+        }
+
         public async Task<BaseResultDto> InsertTripPaymentAsyncDto(PaymentStartDto dto)
         {
             var tripdetail = await _context.Trips.Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == dto.TripId);
@@ -1167,6 +1242,27 @@ namespace Application.Services.Order.PaymentSrv
                     : new BaseResultDto(false, Resource.Notification.InvalidData);
             }
 
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserveBatch.ToString())
+            {
+                var members = await _context.CompanionReserves.AsNoTracking()
+                    .Where(s => s.BatchId == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
+                    .Select(s => new { s.PrePaymentPrice, s.RebatePrice, s.WalletPrice })
+                    .ToListAsync();
+                if (!members.Any())
+                    return new BaseResultDto(false, Resource.Notification.InvalidData);
+                var totalPrePayment = members.Sum(s => s.PrePaymentPrice);
+                var totalRebate = members.Sum(s => s.RebatePrice);
+                var totalWallet = members.Sum(s => s.WalletPrice);
+                return SnapshotMatches(
+                    payment,
+                    totalPrePayment + totalRebate,
+                    totalRebate,
+                    totalWallet,
+                    totalPrePayment - totalWallet)
+                    ? new BaseResultDto(true)
+                    : new BaseResultDto(false, Resource.Notification.InvalidData);
+            }
+
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.SchoolReserve.ToString())
             {
                 var item = await _context.SchoolReserves.AsNoTracking()
@@ -1294,6 +1390,11 @@ namespace Application.Services.Order.PaymentSrv
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.PansionReserve.ToString())
             {
                 return await _pansionReserve.PansionReservePaymentCallback(referenceId, useWallet);
+            }
+
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserveBatch.ToString())
+            {
+                return await _companionReserveService.CompanionReserveBatchPaymentCallback(referenceId, useWallet);
             }
 
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.SchoolReserve.ToString())

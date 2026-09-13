@@ -270,6 +270,10 @@ recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITrip
     "DispatchScheduledTrips",
     service => service.DispatchScheduledTripsAsync(),
     "* * * * *");
+recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
+    "AutoCancelUnansweredInstantTrips",
+    service => service.AutoCancelUnansweredInstantTripsAsync(),
+    "* * * * *");
 recurringJobManager.AddOrUpdate<Application.Services.Accounting.UserPetSrv.Iface.IUserPetService>(
     "PetBirthdayPush",
     service => service.SendBirthdayPushesAsync(CancellationToken.None),

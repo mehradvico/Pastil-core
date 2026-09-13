@@ -12,8 +12,10 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto
         {
 
             this.CompanionAssistanceId = dto.CompanionAssistanceId;
+            this.PetSize = dto.PetSize;
         }
         public long? CompanionAssistanceId { get; set; }
+        public string PetSize { get; set; }
 
     }
 }

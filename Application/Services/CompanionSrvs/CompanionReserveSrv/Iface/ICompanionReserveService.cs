@@ -31,6 +31,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Iface
         Task<BaseResultDto<List<CompanionReserveAssigneeVDto>>> GetCompanionReserveAssigneesAsync(long reserveId, bool adminAccess = false);
         Task<BaseResultDto<CompanionReserveAdminVDto>> AssignCompanionReserveAsync(CompanionReserveAssignDto dto, bool adminAccess = false);
         Task<BaseResultDto<CompanionReserveVDto>> FindAsyncOperatorVDto(long id);
+        Task<BaseResultDto<CompanionReserveBatchVDto>> InsertBatchAsyncDto(CompanionReserveBatchInsertDto dto);
+        Task<BaseResultDto<CompanionReserveBatchVDto>> FindBatchAsyncVDto(long id, long? bookerId = null);
+        Task<BaseResultDto> CompanionReserveBatchPaymentCallback(long? batchId, bool fromWallet = false);
 
     }
 }

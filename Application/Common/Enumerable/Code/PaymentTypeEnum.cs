@@ -10,6 +10,7 @@
         PaymentType_PansionReserve = 27,
         PaymentType_Wallet = 28,
         PaymentType_PastilAI = 29,
-        PaymentType_SchoolReserve = 30
+        PaymentType_SchoolReserve = 30,
+        PaymentType_CompanionReserveBatch = 31
     }
 }
