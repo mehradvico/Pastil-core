@@ -18,7 +18,7 @@ namespace Entities.Entities
         // همه Migration را با همین مقدار می‌گیرند تا رفتار وب‌اپ فعلی دست‌نخورده بماند.
         public long Provider { get; set; }
 
-        // فقط برای Provider=WebPush
+        // فقط برای Provider=WebPush — برای ردیف‌های Fcm مقدار ندارند
         public string Endpoint { get; set; }
         public string P256dh { get; set; }
         public string Auth { get; set; }

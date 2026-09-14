@@ -1554,10 +1554,7 @@ namespace Persistence.Context
             {
                 e.ToTable("PushSubscriptions");
 
-                e.Property(x => x.Endpoint).IsRequired();
-                e.Property(x => x.P256dh).IsRequired();
-                e.Property(x => x.Auth).IsRequired();
-
+                // Endpoint/P256dh/Auth فقط برای Provider=WebPush پر می‌شوند؛ ردیف‌های Fcm این‌ها را ندارند.
                 e.HasIndex(x => x.Endpoint).IsUnique();
 
                 e.HasOne(x => x.User)
