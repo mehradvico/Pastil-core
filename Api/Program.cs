@@ -221,7 +221,8 @@ builder.Services.AddAuthentication(Options =>
                      var accessToken = context.Request.Query["access_token"];
                      if (!string.IsNullOrWhiteSpace(accessToken) &&
                          (context.HttpContext.Request.Path.StartsWithSegments("/hubs/notices") ||
-                          context.HttpContext.Request.Path.StartsWithSegments("/hubs/call")))
+                          context.HttpContext.Request.Path.StartsWithSegments("/hubs/call") ||
+                          context.HttpContext.Request.Path.StartsWithSegments("/hubs/push")))
                          context.Token = accessToken;
                      return Task.CompletedTask;
 
