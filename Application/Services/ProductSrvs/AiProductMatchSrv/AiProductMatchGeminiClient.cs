@@ -1,5 +1,6 @@
 using Application.Services.PastilAISrv.Provider;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Iface;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -21,15 +22,18 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly PastilAiProviderOptions _providerOptions;
         private readonly AiProductMatchOptions _options;
+        private readonly ILogger<AiProductMatchGeminiClient> _logger;
 
         public AiProductMatchGeminiClient(
             IHttpClientFactory httpClientFactory,
             IOptions<PastilAiProviderOptions> providerOptions,
-            IOptions<AiProductMatchOptions> options)
+            IOptions<AiProductMatchOptions> options,
+            ILogger<AiProductMatchGeminiClient> logger)
         {
             _httpClientFactory = httpClientFactory;
             _providerOptions = providerOptions.Value;
             _options = options.Value;
+            _logger = logger;
         }
 
         public bool IsAvailable(out string providerName)
@@ -113,21 +117,29 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
                 var body = await response.Content.ReadAsStringAsync(cancellationToken);
                 if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("AiProductMatch Gemini call returned {StatusCode}: {Body}", (int)response.StatusCode, body);
                     return AiProductMatchGeminiCallResult.Failure($"http_{(int)response.StatusCode}");
+                }
 
                 var root = JsonNode.Parse(body);
                 var text = root?["candidates"]?[0]?["content"]?["parts"]?[0]?["text"]?.GetValue<string>();
                 if (string.IsNullOrWhiteSpace(text))
+                {
+                    _logger.LogWarning("AiProductMatch Gemini call returned no usable text. Raw body: {Body}", body);
                     return AiProductMatchGeminiCallResult.Failure("empty_response");
+                }
 
                 return AiProductMatchGeminiCallResult.Success(text);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
+                _logger.LogWarning("AiProductMatch Gemini call timed out after {Timeout}s.", _options.RequestTimeoutSeconds);
                 return AiProductMatchGeminiCallResult.Failure("timeout");
             }
             catch (Exception ex)
             {
+                _logger.LogWarning(ex, "AiProductMatch Gemini call threw {ExceptionType}.", ex.GetType().Name);
                 return AiProductMatchGeminiCallResult.Failure("exception:" + ex.GetType().Name);
             }
         }
