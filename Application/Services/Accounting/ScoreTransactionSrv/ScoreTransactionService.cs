@@ -148,8 +148,13 @@ namespace Application.Services.Accounting.ScoreTransactionSrv
 
             user.CurrentScore += amount;
 
+            // «user» از یک Query معمولی (بدون AsNoTracking) بارگذاری شده، پس همین الان
+            // توسط EF Core Track می‌شود و تغییر بالا با SaveChangesAsync خودکار ذخیره
+            // خواهد شد. فراخوانی صریح Update اضافی بود و اگر همین کاربر از مسیر دیگری
+            // (مثلاً Payment.User) از قبل در همین Context Track شده باشد، دقیقاً همین
+            // فراخوانی باعث خطای EF Core «instance ... cannot be tracked because another
+            // instance ... is already being tracked» می‌شود.
             await _context.ScoreTransactions.AddAsync(transaction);
-            _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
             return new BaseResultDto<bool>(isSuccess: true, val: Resource.Notification.Success, data: true);
