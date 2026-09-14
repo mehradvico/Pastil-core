@@ -3848,5 +3848,59 @@ namespace Resource {
                 return ResourceManager.GetString("YourReportHasBeenSubmitedForThisProductBefore", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AI Product Match Invalid Input.
+        /// </summary>
+        public static string AiProductMatchInvalidInput {
+            get {
+                return ResourceManager.GetString("AiProductMatchInvalidInput", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AI Product Match Invalid Source Type.
+        /// </summary>
+        public static string AiProductMatchInvalidSourceType {
+            get {
+                return ResourceManager.GetString("AiProductMatchInvalidSourceType", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AI Product Match Store Not Allowed.
+        /// </summary>
+        public static string AiProductMatchStoreNotAllowed {
+            get {
+                return ResourceManager.GetString("AiProductMatchStoreNotAllowed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AI Product Match Unanalyzable.
+        /// </summary>
+        public static string AiProductMatchUnanalyzable {
+            get {
+                return ResourceManager.GetString("AiProductMatchUnanalyzable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AI Product Match Gateway Error.
+        /// </summary>
+        public static string AiProductMatchGatewayError {
+            get {
+                return ResourceManager.GetString("AiProductMatchGatewayError", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AI Product Match Service Unavailable.
+        /// </summary>
+        public static string AiProductMatchServiceUnavailable {
+            get {
+                return ResourceManager.GetString("AiProductMatchServiceUnavailable", resourceCulture);
+            }
+        }
     }
 }

@@ -8659,6 +8659,21 @@
             آیتم جدید
             </summary>  
         </member>
+        <member name="T:Api.Areas.Seller.Controllers.AiProductMatchController">
+            <summary>
+            تطبیق هوشمند محصولات با کمک هوش مصنوعی (Gemini) برای درج سریع موجودی فروشگاه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.AiProductMatchController.Status">
+            <summary>
+            وضعیت در دسترس بودن سرویس هوش مصنوعی — بدون افشای هیچ بخشی از کلید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.AiProductMatchController.Analyze(Application.Services.ProductSrvs.AiProductMatchSrv.Dto.AiProductMatchAnalyzeInputDto)">
+            <summary>
+            تحلیل تصویر قفسه یا داده‌ی جدول (Excel/سپیدار/دامپزشکیار) و تطبیق با کاتالوگ پاستیل
+            </summary>
+        </member>
         <member name="T:Api.Areas.Seller.Controllers.BrandController">
              <summary>
              مدیریت برندها

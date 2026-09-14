@@ -280,6 +280,8 @@ using Application.Services.PastilMatchSrvs.PastilMatchSrv;
 using Application.Services.PastilMatchSrvs.PastilMatchSrv.Iface;
 using Application.Services.PermissionSrv;
 using Application.Services.ProductSrv.ProductCategorySrv;
+using Application.Services.ProductSrvs.AiProductMatchSrv;
+using Application.Services.ProductSrvs.AiProductMatchSrv.Iface;
 using Application.Services.ProductSrvs.BrandCategorySrv;
 using Application.Services.ProductSrvs.BrandCategorySrv.Iface;
 using Application.Services.ProductSrvs.BrandSrv;
@@ -622,6 +624,9 @@ public static class ConfigureServices
         services.AddScoped<IPastilAiSubscriptionActivator, PastilAiSubscriptionActivator>();
         services.AddScoped<IPastilAiChatService, PastilAiChatService>();
         services.AddScoped<IPastilAiCompletionRouter, PastilAiCompletionRouter>();
+        services.AddScoped<IAiProductMatchGeminiClient, AiProductMatchGeminiClient>();
+        services.AddScoped<IAiProductMatchService, AiProductMatchService>();
+        services.AddHttpClient<IAiProductMatchFileClient, AiProductMatchFileClient>();
         services.AddScoped<IStoryGroupService, StoryGroupService>();
         services.AddScoped<IStoryItemService, StoryItemService>();
         services.AddScoped<IStoryUserLikeService, StoryUserLikeService>();

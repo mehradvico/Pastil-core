@@ -1380,4 +1380,22 @@
   <data name="PetTagPetAlreadyHasTag" xml:space="preserve">
     <value>این پت قبلاً به یک کد قلاده متصل شده و امکان اتصال کد جدید به آن وجود ندارد.</value>
   </data>
+  <data name="AiProductMatchInvalidInput" xml:space="preserve">
+    <value>حداقل یکی از تصاویر یا داده جدول باید ارسال شود.</value>
+  </data>
+  <data name="AiProductMatchInvalidSourceType" xml:space="preserve">
+    <value>نوع منبع نامعتبر است.</value>
+  </data>
+  <data name="AiProductMatchStoreNotAllowed" xml:space="preserve">
+    <value>فروشگاه شما غیرفعال یا فاقد دسترسی به این قابلیت است.</value>
+  </data>
+  <data name="AiProductMatchUnanalyzable" xml:space="preserve">
+    <value>امکان تحلیل تصویر یا جدول ارسالی وجود نداشت.</value>
+  </data>
+  <data name="AiProductMatchGatewayError" xml:space="preserve">
+    <value>سرویس هوش مصنوعی موقتاً پاسخ نداد.</value>
+  </data>
+  <data name="AiProductMatchServiceUnavailable" xml:space="preserve">
+    <value>قابلیت تطبیق هوشمند محصول در حال حاضر در دسترس نیست.</value>
+  </data>
 </root>

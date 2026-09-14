@@ -27,6 +27,7 @@ using Utility.Reflection;
 using Utility.Reflection.Iface;
 using NetTopologySuite.IO.Converters;
 using Application.Services.PastilAISrv.Provider;
+using Application.Services.ProductSrvs.AiProductMatchSrv;
 using Application.Services.MemorySrvs.MemorySrv.Iface;
 using Application.Services.ReminderSrvs.ReminderSrv.Iface;
 using System.Threading.RateLimiting;
@@ -131,6 +132,8 @@ builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlSe
 builder.Services.AddApplicationServices();
 builder.Services.Configure<PastilAiProviderOptions>(
     builder.Configuration.GetSection(PastilAiProviderOptions.SectionName));
+builder.Services.Configure<AiProductMatchOptions>(
+    builder.Configuration.GetSection(AiProductMatchOptions.SectionName));
 builder.Services.Configure<Application.Services.CommonSrv.SearchSrv.SearchHybridOptions>(
     builder.Configuration.GetSection(Application.Services.CommonSrv.SearchSrv.SearchHybridOptions.SectionName));
 builder.Services.AddScoped<INoticeRealtimePublisher, NoticeRealtimePublisher>();

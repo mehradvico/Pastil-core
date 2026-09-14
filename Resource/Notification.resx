@@ -1380,4 +1380,22 @@
   <data name="PetTagPetAlreadyHasTag" xml:space="preserve">
     <value>Pet Tag Pet Already Has Tag</value>
   </data>
+  <data name="AiProductMatchInvalidInput" xml:space="preserve">
+    <value>AI Product Match Invalid Input</value>
+  </data>
+  <data name="AiProductMatchInvalidSourceType" xml:space="preserve">
+    <value>AI Product Match Invalid Source Type</value>
+  </data>
+  <data name="AiProductMatchStoreNotAllowed" xml:space="preserve">
+    <value>AI Product Match Store Not Allowed</value>
+  </data>
+  <data name="AiProductMatchUnanalyzable" xml:space="preserve">
+    <value>AI Product Match Unanalyzable</value>
+  </data>
+  <data name="AiProductMatchGatewayError" xml:space="preserve">
+    <value>AI Product Match Gateway Error</value>
+  </data>
+  <data name="AiProductMatchServiceUnavailable" xml:space="preserve">
+    <value>AI Product Match Service Unavailable</value>
+  </data>
 </root>

@@ -119,16 +119,43 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
 
             // No live match — figure out whether this refresh token is simply
             // expired/unknown, or was already rotated away by an earlier,
-            // legitimate refresh. The latter means this exact refresh token
-            // got used twice, which only happens if it was copied/shared:
-            // the real client already moved on to the token that replaced
-            // it. Kill every active session for that user so the theft
-            // can't be ridden any further, and the legitimate owner is
-            // forced to notice and re-authenticate.
+            // legitimate refresh. The latter usually means this exact refresh
+            // token got used twice, which only happens if it was copied/shared:
+            // the real client already moved on to the token that replaced it.
             var rotatedAway = await _context.UserTokens
                 .FirstOrDefaultAsync(s => s.RefreshTokenHash == hashedRefreshToken && s.Deleted == true);
             if (rotatedAway != null)
             {
+                // اما همین رفتار می‌تواند کاملاً بی‌گناه هم باشد: چند تب باز، یا تلاش
+                // هم‌زمان چند درخواست از همان کلاینت واقعی (مثلاً بازیابی خودکار سشن در
+                // فرانت) می‌توانند هر دو دقیقاً همین یک رفرش‌توکن را با هم بفرستند. آن که
+                // اول می‌رسد Rotate را انجام می‌دهد؛ دومی همان توکنِ لحظه‌ای‌پیش رفرش‌شده را
+                // می‌فرستد و بدون این بررسی، به‌غلط «سرقت» تشخیص داده می‌شد و کل سشن کاربر
+                // (شامل همان توکن تازه‌ی معتبر) نابود می‌شد. اگر جایگزینِ همین توکن ظرف چند
+                // ثانیه‌ی اخیر ساخته شده، این را یک رقابت بی‌ضرر در نظر می‌گیریم، نه سرقت
+                // واقعی — و به‌جای نابودی سشن، یک توکن تازه‌ی دیگر (هم‌زنجیره) صادر می‌کنیم.
+                var wasRotatedWithinGracePeriod = await _context.UserTokens
+                    .AnyAsync(s => s.RotatedFromTokenId == rotatedAway.Id &&
+                                   s.CreateDate >= DateTime.UtcNow - RefreshRotationRaceGracePeriod);
+                if (wasRotatedWithinGracePeriod)
+                {
+                    var owner = await _context.Users
+                        .Include(s => s.Role)
+                        .FirstOrDefaultAsync(s => s.Id == rotatedAway.UserId);
+                    if (owner != null)
+                    {
+                        var reissuedDto = CreateToken(
+                            owner,
+                            refreshToken.IsAdmin,
+                            rememberMe: true,
+                            rotatedFromTokenId: rotatedAway.Id);
+                        await transaction.CommitAsync();
+                        return new BaseResultDto<UserTokenDto>(true, reissuedDto);
+                    }
+                }
+
+                // بیرون از بازه‌ی Grace Period — همان رفتار قبلی: احتمال سرقت واقعی جدی
+                // گرفته می‌شود، پس تمام سشن‌های فعال کاربر نابود می‌شوند.
                 await _context.UserTokens
                     .Where(x => x.UserId == rotatedAway.UserId && !x.Deleted)
                     .ExecuteUpdateAsync(setters => setters
@@ -140,6 +167,11 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             await transaction.RollbackAsync();
             return new BaseResultDto(false, val: Resource.Notification.TokenExpired);
         }
+
+        // بازه‌ای که در آن، استفاده‌ی مجدد از یک رفرش‌توکنِ همین‌الان Rotate‌شده، سرقت
+        // واقعی در نظر گرفته نمی‌شود بلکه یک رقابت (race) بی‌ضرر بین درخواست‌های هم‌زمانِ
+        // همان کلاینت واقعی فرض می‌شود — نگاه کنید به استفاده‌اش در RefreshTokenAsync بالا.
+        private static readonly TimeSpan RefreshRotationRaceGracePeriod = TimeSpan.FromSeconds(15);
         private CreateUserTokenDto CreateUserTokenDto(User user, bool isAdmin = false)
         {
             var createToken = new CreateUserTokenDto()
