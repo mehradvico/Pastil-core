@@ -45,6 +45,24 @@ namespace Api.Areas.EndUser.Controllers
             return Ok(res);
         }
 
+        /// <summary>
+        /// ثبت FCM Token اپ فلاتر (اندروید/iOS) — معادل subscribe برای وب‌اپ
+        /// </summary>
+        [HttpPost("subscribe-fcm")]
+        [AllowAnonymous]
+        public async Task<IActionResult> SubscribeFcm([FromBody] PushSubscribeFcmDto dto)
+        {
+            long? userId = null;
+            if (User.Identity?.IsAuthenticated == true &&
+                long.TryParse(User.FindFirst("UserId")?.Value, out var authenticatedUserId))
+            {
+                userId = authenticatedUserId;
+            }
+
+            var res = await _pushSubscriptionService.SubscribeFcmAsync(userId, dto);
+            return Ok(res);
+        }
+
         [HttpPost("attach")]
         [Authorize]
         public async Task<IActionResult> Attach([FromBody] PushAttachDto dto)

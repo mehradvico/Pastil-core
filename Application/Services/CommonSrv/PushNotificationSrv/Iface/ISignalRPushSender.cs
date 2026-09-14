@@ -1,0 +1,19 @@
+using System.Threading.Tasks;
+
+namespace Application.Services.CommonSrv.PushNotificationSrv.Iface
+{
+    // کانال زنده‌ی مکمل (نه جایگزین) برای WebPush/Fcm — مخصوص اپ فلاتر ویندوز که در آن Push واقعی
+    // سیستم‌عامل (WNS) پیاده‌سازی نشده؛ وقتی اپ باز و به SignalR متصل است، پیام بلافاصله دریافت می‌شود.
+    // چون بر پایه‌ی اتصال زنده است نه توکن ذخیره‌شده، «موفقیت» ارسال به این کانال هرگز شمارش/شکست
+    // Push اصلی (WebPush/Fcm) را تحت تاثیر قرار نمی‌دهد — صرفاً یک تلاش «در صورت اتصال» است.
+    public interface ISignalRPushSender
+    {
+        Task SendAsync(
+            long userId,
+            string title,
+            string body,
+            string url,
+            string icon,
+            string tag);
+    }
+}

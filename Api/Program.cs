@@ -28,6 +28,7 @@ using Utility.Reflection.Iface;
 using NetTopologySuite.IO.Converters;
 using Application.Services.PastilAISrv.Provider;
 using Application.Services.ProductSrvs.AiProductMatchSrv;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.MemorySrvs.MemorySrv.Iface;
 using Application.Services.ReminderSrvs.ReminderSrv.Iface;
 using System.Threading.RateLimiting;
@@ -137,12 +138,15 @@ builder.Services.Configure<AiProductMatchOptions>(
 builder.Services.Configure<Application.Services.CommonSrv.SearchSrv.SearchHybridOptions>(
     builder.Configuration.GetSection(Application.Services.CommonSrv.SearchSrv.SearchHybridOptions.SectionName));
 builder.Services.AddScoped<INoticeRealtimePublisher, NoticeRealtimePublisher>();
+builder.Services.AddScoped<ISignalRPushSender, SignalRPushSender>();
 builder.Services.AddScoped<IRestSharpApi, RestSharpApi>();
 builder.Services.AddScoped<IBackgroundTask, HangFireSchedule>();
 builder.Services.AddScoped<IControllerActionDiscoveryService, ControllerActionDiscoveryService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.Configure<VapidKeysOption>(
 builder.Configuration.GetSection("VapidKeys"));
+builder.Services.Configure<Application.Services.CommonSrv.PushNotificationSrv.FcmOptions>(
+    builder.Configuration.GetSection(Application.Services.CommonSrv.PushNotificationSrv.FcmOptions.SectionName));
 builder.Services.AddSwaggerGen(c =>
 {
     c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "MehradVico.Api.xml"), true);
@@ -311,6 +315,7 @@ app.UseOutputCache();
 app.MapControllers();
 app.MapHub<NoticeHub>("/hubs/notices");
 app.MapHub<CallHub>("/hubs/call");
+app.MapHub<PushHub>("/hubs/push");
 app.UseSwaggerAccessControl();
 app.UseSwagger();
 app.UseSwaggerUI(options =>

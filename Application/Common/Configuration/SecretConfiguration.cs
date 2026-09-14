@@ -17,6 +17,7 @@ namespace Application.Common.Configuration
             Override(configuration, "Search:Hybrid:ApiKey", "PASTIL_SEARCH_HYBRID_API_KEY");
             Override(configuration, "Search:Hybrid:SemanticWeight", "PASTIL_SEARCH_HYBRID_WEIGHT");
             Override(configuration, "Security:MerchantEncryptionKey", "PASTIL_MERCHANT_ENCRYPTION_KEY");
+            Override(configuration, "Fcm:ServiceAccountJson", "PASTIL_FCM_SERVICE_ACCOUNT_JSON");
             Override(configuration, "Security:PasswordPepper", "PASTIL_PASSWORD_PEPPER");
             Override(configuration, "MapIr:ApiKey", "PASTIL_MAPIR_API_KEY");
             Override(configuration, "Shipping:TestMode", "PASTIL_SHIPPING_TEST_MODE");

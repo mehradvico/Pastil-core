@@ -14,9 +14,19 @@ namespace Entities.Entities
 
         public Guid? DeviceKey { get; set; }
 
+        // پیش‌فرض WebPush (Application.Common.Enumerable.PushProviderEnum) — ردیف‌های قدیمی
+        // همه Migration را با همین مقدار می‌گیرند تا رفتار وب‌اپ فعلی دست‌نخورده بماند.
+        public long Provider { get; set; }
+
+        // فقط برای Provider=WebPush
         public string Endpoint { get; set; }
         public string P256dh { get; set; }
         public string Auth { get; set; }
+
+        // فقط برای Provider=Fcm (اپ فلاتر اندروید/iOS)
+        public string FcmToken { get; set; }
+        // "android" | "ios" | "windows" | "web" — فقط جهت گزارش‌گیری/عیب‌یابی، در تصمیم ارسال استفاده نمی‌شود
+        public string Platform { get; set; }
 
         public string UserAgent { get; set; }
         public DateTime CreateDate { get; set; }

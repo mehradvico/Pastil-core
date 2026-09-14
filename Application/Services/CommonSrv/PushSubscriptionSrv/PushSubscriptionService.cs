@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Enumerable;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Iface;
 using AutoMapper;
@@ -35,6 +36,54 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
 
                 sub.UserId = userId;
                 sub.DeviceKey = userId.HasValue ? null : dto.DeviceKey;
+                sub.Provider = (long)PushProviderEnum.WebPush;
+                sub.IsActive = true;
+                sub.CreateDate = DateTime.UtcNow;
+                sub.LastSeen = DateTime.UtcNow;
+
+                _context.PushSubscriptions.Add(sub);
+            }
+            else
+            {
+                _mapper.Map(dto, sub);
+
+                sub.IsActive = true;
+                sub.LastSeen = DateTime.UtcNow;
+
+                if (userId.HasValue)
+                {
+                    sub.UserId = userId.Value;
+                    sub.DeviceKey = null;
+                }
+                else
+                {
+                    sub.DeviceKey = dto.DeviceKey;
+                    sub.UserId = null;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
+        // معادل SubscribeAsync، فقط برای اپ فلاتر (اندروید/iOS) — به‌جای Endpoint/P256dh/Auth
+        // مرورگر، یک FcmToken از Firebase Cloud Messaging ثبت می‌شود. منطق Upsert/Device-Key/Attach
+        // عمداً کپی شده نه به اشتراک‌گذاشته، چون شکل ورودی (Endpoint در برابر FcmToken به‌عنوان کلید
+        // یکتای هر ردیف) کاملاً متفاوت است.
+        public async Task<BaseResultDto> SubscribeFcmAsync(long? userId, PushSubscribeFcmDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.FcmToken))
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            var sub = await _context.PushSubscriptions.FirstOrDefaultAsync(x => x.FcmToken == dto.FcmToken);
+
+            if (sub == null)
+            {
+                sub = _mapper.Map<PushSubscription>(dto);
+
+                sub.UserId = userId;
+                sub.DeviceKey = userId.HasValue ? null : dto.DeviceKey;
+                sub.Provider = (long)PushProviderEnum.Fcm;
                 sub.IsActive = true;
                 sub.CreateDate = DateTime.UtcNow;
                 sub.LastSeen = DateTime.UtcNow;

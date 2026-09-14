@@ -29,6 +29,8 @@ builder.Services.AddRateLimiter(options =>
 });
 builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(builder.Configuration["connection"], x => x.UseNetTopologySuite()));
 builder.Services.AddApplicationServices();
+builder.Services.Configure<Application.Services.CommonSrv.PushNotificationSrv.FcmOptions>(
+    builder.Configuration.GetSection(Application.Services.CommonSrv.PushNotificationSrv.FcmOptions.SectionName));
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
     // Persian text formatting, but invariant (dot-separator, Western digit)

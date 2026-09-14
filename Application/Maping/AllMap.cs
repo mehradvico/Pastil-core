@@ -805,7 +805,12 @@ namespace Application.Maping
             CreateMap<PushSubscribeDto, PushSubscription>().ForMember(d => d.P256dh, o => o.MapFrom(s => s.Keys.P256dh)).ForMember(d => d.Auth, o => o.MapFrom(s => s.Keys.Auth))
                      .ForMember(d => d.Endpoint, o => o.MapFrom(s => s.Endpoint)).ForMember(d => d.UserAgent, o => o.MapFrom(s => s.UserAgent))
                      .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.UserId, o => o.Ignore()).ForMember(d => d.DeviceKey, o => o.Ignore())
-                     .ForMember(d => d.CreateDate, o => o.Ignore()).ForMember(d => d.LastSeen, o => o.Ignore()).ForMember(d => d.IsActive, o => o.Ignore());
+                     .ForMember(d => d.CreateDate, o => o.Ignore()).ForMember(d => d.LastSeen, o => o.Ignore()).ForMember(d => d.IsActive, o => o.Ignore())
+                     .ForMember(d => d.Provider, o => o.Ignore()).ForMember(d => d.FcmToken, o => o.Ignore()).ForMember(d => d.Platform, o => o.Ignore());
+            CreateMap<PushSubscribeFcmDto, PushSubscription>()
+                     .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.UserId, o => o.Ignore()).ForMember(d => d.DeviceKey, o => o.Ignore())
+                     .ForMember(d => d.CreateDate, o => o.Ignore()).ForMember(d => d.LastSeen, o => o.Ignore()).ForMember(d => d.IsActive, o => o.Ignore())
+                     .ForMember(d => d.Provider, o => o.Ignore()).ForMember(d => d.Endpoint, o => o.Ignore()).ForMember(d => d.P256dh, o => o.Ignore()).ForMember(d => d.Auth, o => o.Ignore());
             //Push End ----------------------------------------------
 
 

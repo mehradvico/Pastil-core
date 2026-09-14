@@ -26,7 +26,8 @@ $secretProperties = @(
     'key',
     'PublicKey',
     'PrivateKey',
-    'ApiKey'
+    'ApiKey',
+    'ServiceAccountJson'
 )
 
 $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)

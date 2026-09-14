@@ -7921,6 +7921,11 @@
             اعلان موجودشدن محصولات مورد انتظار کاربر
             </summary>
         </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PushController.SubscribeFcm(Application.Services.CommonSrv.PushSubscriptionSrv.Dto.PushSubscribeFcmDto)">
+            <summary>
+            ثبت FCM Token اپ فلاتر (اندروید/iOS) — معادل subscribe برای وب‌اپ
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.ReminderController">
              <summary>
              مدیریت یادآوری ها
@@ -10440,6 +10445,12 @@
             <summary>
             نگه‌داری وضعیت درون‌حافظه‌ای شرکت‌کنندگان هر تماس درون‌برنامه‌ای (برای هر نمونه از سرویس API - در صورت
             افزایش تعداد نمونه‌ها در آینده باید به یک بک‌اند مشترک مثل Redis منتقل شود).
+            </summary>
+        </member>
+        <member name="T:Api.Hubs.PushHub">
+            <summary>
+            کانال زنده‌ی پوش برای اپ فلاتر ویندوز — هر کاربر لاگین‌کرده به گروه اختصاصی خودش اضافه می‌شود
+            تا PushNotificationService بتواند مستقیم برایش پیام بفرستد، بدون نیاز به توکن ذخیره‌شده.
             </summary>
         </member>
         <member name="T:Api.Middleware.SwaggerAccessMiddleware">

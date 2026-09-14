@@ -599,6 +599,8 @@ public static class ConfigureServices
         services.AddScoped<IPushNotificationService, PushNotificationService>();
         services.AddScoped<IPushScheduleService, PushScheduleService>();
         services.AddScoped<IPushSubscriptionService, PushSubscriptionService>();
+        services.AddScoped<IFcmSender, FcmSender>();
+        services.AddScoped<ISignalRPushSender, NullSignalRPushSender>();
         services.AddScoped<IRebateService, RebateService>();
         services.AddScoped<IPetTagService, PetTagService>();
         services.AddScoped<IRegixHelper, RegixHelper>();

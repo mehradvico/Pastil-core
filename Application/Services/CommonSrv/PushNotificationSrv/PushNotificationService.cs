@@ -24,6 +24,8 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
     {
         private readonly IDataBaseContext _context;
         private readonly VapidKeysOption _vapid;
+        private readonly IFcmSender _fcmSender;
+        private readonly ISignalRPushSender _signalRPushSender;
         private readonly ILogger<PushNotificationService> _logger;
         private const int MaxAttemptCount = 3;
         // برخی الگوهای Push (مثل PushMemoryReminder) هیچ‌وقت مقدار Icon نداشتن (NULL در دیتابیس)
@@ -36,10 +38,14 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
         public PushNotificationService(
             IDataBaseContext context,
             IOptions<VapidKeysOption> vapid,
+            IFcmSender fcmSender,
+            ISignalRPushSender signalRPushSender,
             ILogger<PushNotificationService> logger)
         {
             _context = context;
             _vapid = vapid.Value;
+            _fcmSender = fcmSender;
+            _signalRPushSender = signalRPushSender;
             _logger = logger;
         }
 
@@ -243,11 +249,22 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 });
 
+                // کانال ویندوز مستقل از وجود Subscription ذخیره‌شده است (فقط به اتصال زنده‌ی
+                // SignalR نیاز دارد)، پس همیشه تلاش می‌شود و در شمارش موفقیت/شکست زیر شرکت نمی‌کند.
+                try
+                {
+                    await _signalRPushSender.SendAsync(notif.UserId, notif.Title, notif.Body, notif.Url, notif.Icon, notif.Tag);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "SignalR live push delivery failed for user {UserId}.", notif.UserId);
+                }
+
                 var subs = await _context.PushSubscriptions
                     .Where(x => x.IsActive && x.UserId == notif.UserId)
                     .AsTracking()
                     .ToListAsync();
-                    
+
                 if (subs.Count == 0)
                 {
                     await MarkFailedAsync(notif, Resource.Notification.NothingFound);
@@ -263,7 +280,10 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
 
                 foreach (var s in subs)
                 {
-                    var result = await TrySendAsync(client, vapid, payload, s);
+                    var result = s.Provider == (long)PushProviderEnum.Fcm
+                        ? await _fcmSender.SendAsync(s.FcmToken, notif.Title, notif.Body, notif.Url, notif.Icon, notif.Tag)
+                        : await TrySendAsync(client, vapid, payload, s);
+
                     if (result == PushSendResult.Success)
                     {
                         sent++;
@@ -409,13 +429,6 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
         {
             public string Action { get; set; }
             public string Title { get; set; }
-        }
-
-        private enum PushSendResult
-        {
-            Success = 1,
-            Expired = 2,
-            TransientFailure = 3
         }
     }
 }
