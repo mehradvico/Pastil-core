@@ -28,7 +28,11 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
             if (dto == null || string.IsNullOrWhiteSpace(dto.Endpoint) || dto.Keys == null)
                 return new BaseResultDto(false, Resource.Notification.InvalidData);
 
-            var sub = await _context.PushSubscriptions.FirstOrDefaultAsync(x => x.Endpoint == dto.Endpoint);
+            // AsTracking اجباری است: DataBaseContext به‌صورت سراسری NoTracking است، پس
+            // بدون آن، شاخه‌ی آپدیت پایین (از جمله ست‌کردن UserId) بی‌صدا دور ریخته می‌شود و
+            // SaveChanges هیچ‌چیز نمی‌نویسد؛ ردیف برای همیشه UserId=null می‌ماند و پوشِ
+            // «کاربر خاص» هرگز به آن دستگاه نمی‌رسد.
+            var sub = await _context.PushSubscriptions.AsTracking().FirstOrDefaultAsync(x => x.Endpoint == dto.Endpoint);
 
             if (sub == null)
             {
@@ -75,7 +79,8 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
             if (dto == null || string.IsNullOrWhiteSpace(dto.FcmToken))
                 return new BaseResultDto(false, Resource.Notification.InvalidData);
 
-            var sub = await _context.PushSubscriptions.FirstOrDefaultAsync(x => x.FcmToken == dto.FcmToken);
+            // AsTracking اجباری است - همان دلیل SubscribeAsync بالا.
+            var sub = await _context.PushSubscriptions.AsTracking().FirstOrDefaultAsync(x => x.FcmToken == dto.FcmToken);
 
             if (sub == null)
             {
@@ -121,7 +126,7 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
             if (deviceKey == Guid.Empty)
                 return new BaseResultDto(false, Resource.Notification.InvalidDeviceKey);
 
-            var subs = await _context.PushSubscriptions.Where(x => x.UserId == null && x.DeviceKey == deviceKey).ToListAsync();
+            var subs = await _context.PushSubscriptions.AsTracking().Where(x => x.UserId == null && x.DeviceKey == deviceKey).ToListAsync();
 
             if (subs.Count == 0)
                 return new BaseResultDto(true);

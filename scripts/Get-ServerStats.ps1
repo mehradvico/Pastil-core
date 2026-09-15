@@ -22,6 +22,14 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Prefer Windows PowerShell's inbox modules when this script is launched
+# from a developer shell that also exposes incompatible PowerShell 7 modules.
+$env:PSModulePath = @(
+    (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'WindowsPowerShell\Modules')
+    (Join-Path $env:ProgramFiles 'WindowsPowerShell\Modules')
+    (Join-Path $PSHOME 'Modules')
+) -join ';'
+
 $ScriptsDir = $PSScriptRoot
 $ConfigPath = Join-Path $ScriptsDir '.env.deploy'
 $CredPath   = Join-Path $ScriptsDir '.deploy-credential.xml'

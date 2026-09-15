@@ -1783,6 +1783,15 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to No active device was found for this audience, so nothing was sent.
+        /// </summary>
+        public static string PushBroadcastNoActiveSubscription {
+            get {
+                return ResourceManager.GetString("PushBroadcastNoActiveSubscription", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Auto-send requires a recurrence type (daily/weekly/monthly/yearly)..
         /// </summary>
         public static string PushMessageAutoSendRequiresRecurrenceType {

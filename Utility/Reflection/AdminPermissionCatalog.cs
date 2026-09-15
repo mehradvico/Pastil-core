@@ -128,6 +128,7 @@ namespace Utility.Reflection
                 "Ticket",
                 "PushMessage",
                 "PushBroadcast",
+                "PushDiagnostics",
                 "RolePermission",
                 "CodeGroup",
                 "Code",

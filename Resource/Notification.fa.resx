@@ -978,6 +978,9 @@
   <data name="PushBroadcastTitleAndBodyMustBePersian" xml:space="preserve">
     <value>عنوان و متن پوش نوتیفیکیشن باید فارسی باشند.</value>
   </data>
+  <data name="PushBroadcastNoActiveSubscription" xml:space="preserve">
+    <value>هیچ دستگاه فعالی برای این مخاطب پیدا نشد، پس پوشی ارسال نشد. کاربر باید یک‌بار اپ را باز کند و اعلان‌ها را فعال کند.</value>
+  </data>
   <data name="PushMessageAutoSendRequiresRecurrenceType" xml:space="preserve">
     <value>برای ارسال خودکار باید نوع تکرار (روزانه/هفتگی/ماهانه/سالانه) را مشخص کنید.</value>
   </data>

@@ -978,6 +978,9 @@
   <data name="PushBroadcastTitleAndBodyMustBePersian" xml:space="preserve">
     <value>Push Broadcast Title And Body Must Be Persian</value>
   </data>
+  <data name="PushBroadcastNoActiveSubscription" xml:space="preserve">
+    <value>No active device was found for this audience, so nothing was sent.</value>
+  </data>
   <data name="PushMessageAutoSendRequiresRecurrenceType" xml:space="preserve">
     <value>Auto-send requires a recurrence type (daily/weekly/monthly/yearly).</value>
   </data>

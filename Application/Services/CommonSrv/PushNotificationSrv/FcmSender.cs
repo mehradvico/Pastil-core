@@ -12,6 +12,9 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
 {
     public class FcmSender : IFcmSender
     {
+        // شناسه‌ی کانال نوتیفیکیشن اندروید - اپ فلاتر باید دقیقاً همین کانال را بسازد.
+        public const string AndroidChannelId = "pastil_default";
+
         private static readonly object InitLock = new();
         private static FirebaseApp _app;
         private static bool _initAttempted;
@@ -85,26 +88,64 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 ["tag"] = tag ?? string.Empty
             };
 
+            // تصویر فقط وقتی به FCM داده می‌شود که یک URL مطلق http/https معتبر باشد.
+            // URL نامعتبر باعث InvalidArgument از سمت FCM می‌شود و آن هم در این کلاس
+            // به‌عنوان Expired تفسیر شده و توکن سالم کاربر را حذف می‌کند.
+            var hasImageUrl = Uri.TryCreate(icon, UriKind.Absolute, out var iconUri) &&
+                (iconUri.Scheme == Uri.UriSchemeHttp || iconUri.Scheme == Uri.UriSchemeHttps);
+
+            var apns = new ApnsConfig
+            {
+                Aps = new Aps
+                {
+                    // ContentAvailable در کنار alert نگه داشته می‌شود تا هندلر داده‌ای اپ هم بیدار شود.
+                    ContentAvailable = true,
+                    Sound = "default",
+                    MutableContent = true
+                }
+            };
+
+            if (!string.IsNullOrWhiteSpace(tag))
+            {
+                // معادل iOS برای رفتار tag در وب‌پوش: نوتیفیکیشن تکراری جایگزین قبلی می‌شود.
+                apns.Headers = new Dictionary<string, string>
+                {
+                    ["apns-collapse-id"] = tag.Length > 64 ? tag.Substring(0, 64) : tag
+                };
+            }
+
             var message = new Message
             {
                 Token = fcmToken,
-                // فقط Data می‌فرستیم (نه Notification payload) تا اپ فلاتر خودش، حتی وقتی
-                // در پیش‌زمینه است، تصمیم بگیرد نوتیفیکیشن را چطور نمایش دهد؛ روی iOS این یعنی
-                // اپ باید یک Background Notification Handler ثبت کند وگرنه در پس‌زمینه نمایش داده نمی‌شود
-                // (نگاه کنید به یادداشت‌های پیاده‌سازی فلاتر برای APNs content-available).
+                // هم Notification و هم Data فرستاده می‌شود:
+                //  • Notification باعث می‌شود سیستم‌عامل وقتی اپ در پس‌زمینه یا بسته است
+                //    خودش نوتیفیکیشن را نمایش دهد. قبلاً فقط Data فرستاده می‌شد و نتیجه‌اش
+                //    این بود که روی iOS هیچ‌وقت چیزی نمایش داده نمی‌شد (پیام data-only یک
+                //    silent notification است) و روی اندروید هم فقط اگر خودِ اپ نوتیفیکیشن
+                //    محلی می‌ساخت دیده می‌شد - یعنی «نوتیف توی اپ نمیاد».
+                //  • Data برای deep-link (url) و نمایش سفارشی داخل اپ در پیش‌زمینه باقی می‌ماند.
+                Notification = new Notification
+                {
+                    Title = title,
+                    Body = body,
+                    ImageUrl = hasImageUrl ? icon : null
+                },
                 Data = data,
                 Android = new AndroidConfig
                 {
-                    Priority = Priority.High
-                },
-                Apns = new ApnsConfig
-                {
-                    Aps = new Aps
+                    Priority = Priority.High,
+                    Notification = new AndroidNotification
                     {
-                        ContentAvailable = true,
-                        Sound = "default"
+                        // این کانال باید در خود اپ فلاتر با همین شناسه ساخته شده باشد؛
+                        // در غیر این صورت روی اندروید ۸+ نوتیفیکیشن با تنظیمات پیش‌فرض
+                        // (یا بی‌صدا) نمایش داده می‌شود. نگاه کنید به docs/ai/PUSH_MOBILE_SETUP.md
+                        ChannelId = AndroidChannelId,
+                        Sound = "default",
+                        Tag = string.IsNullOrWhiteSpace(tag) ? null : tag,
+                        ImageUrl = hasImageUrl ? icon : null
                     }
-                }
+                },
+                Apns = apns
             };
 
             try

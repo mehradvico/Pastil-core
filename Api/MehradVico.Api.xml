@@ -3943,6 +3943,17 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PushDiagnosticsController">
+            <summary>
+            عیب‌یابی پوش نوتیفیکیشن
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PushDiagnosticsController.Get(System.Nullable{System.Int64})">
+            <summary>
+            وضعیت آمادگی سرور برای ارسال پوش + آمار دستگاه‌های ثبت‌شده.
+            برای عیب‌یابی سریع «چرا پوش نمی‌رسد» بدون نیاز به دسترسی به دیتابیس.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PushMessageController">
             <summary>
             پیام های پوش
