@@ -35,6 +35,11 @@ namespace Entities.Entities
         public DateTime CreateDate { get; set; }
         public DateTime? SendDate { get; set; }
         public DateTime? SentDate { get; set; }
+
+        // وضعیت خوانده‌شدن در Inbox اپ/وب. null = خوانده‌نشده.
+        // مستقل از وضعیت تحویل Push است: پیام ممکن است هرگز تحویل نشده باشد ولی
+        // کاربر آن را در Inbox ببیند و بخواند (و برعکس).
+        public DateTime? ReadDateUtc { get; set; }
         public int AttemptCount { get; set; }
         public DateTime? NextAttemptDate { get; set; }
 

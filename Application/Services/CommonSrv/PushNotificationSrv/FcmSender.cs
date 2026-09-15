@@ -73,19 +73,24 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             string body,
             string url,
             string icon,
-            string tag)
+            string tag,
+            string notificationId = null,
+            string type = null)
         {
             var app = ResolveApp();
             if (app == null || string.IsNullOrWhiteSpace(fcmToken))
                 return PushSendResult.TransientFailure;
 
+            // تمام مقدارهای data باید string باشند (الزام FCM).
             var data = new Dictionary<string, string>
             {
                 ["title"] = title ?? string.Empty,
                 ["body"] = body ?? string.Empty,
                 ["url"] = url ?? string.Empty,
                 ["icon"] = icon ?? string.Empty,
-                ["tag"] = tag ?? string.Empty
+                ["tag"] = tag ?? string.Empty,
+                ["notificationId"] = notificationId ?? string.Empty,
+                ["type"] = type ?? string.Empty
             };
 
             // تصویر فقط وقتی به FCM داده می‌شود که یک URL مطلق http/https معتبر باشد.

@@ -61,6 +61,8 @@ using Application.Services.CommonSrv.CommentLikeSrv;
 using Application.Services.CommonSrv.CommentLikeSrv.Iface;
 using Application.Services.CommonSrv.PushBroadcastSrv;
 using Application.Services.CommonSrv.PushBroadcastSrv.Iface;
+using Application.Services.CommonSrv.PushInboxSrv;
+using Application.Services.CommonSrv.PushInboxSrv.Iface;
 using Application.Services.CommonSrv.PushNotificationSrv;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv;
@@ -595,6 +597,7 @@ public static class ConfigureServices
         services.AddScoped<IProductReportService, ProductReportService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IPushBroadcastService, PushBroadcastService>();
+        services.AddScoped<IPushInboxService, PushInboxService>();
         services.AddScoped<IPushMessageService, PushMessageService>();
         services.AddScoped<IPushNotificationService, PushNotificationService>();
         services.AddScoped<IPushScheduleService, PushScheduleService>();

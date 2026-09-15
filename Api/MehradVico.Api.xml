@@ -7238,6 +7238,32 @@
             حذف خاطره متعلق به کاربر
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.NotificationsController">
+            <summary>
+            Inbox اعلان‌های کاربر — منبع حقیقت مستقل از تحویل Push.
+            اگر FCM یا Web Push نرسد، کاربر با بازکردن اپ اعلان‌ها را از همین‌جا می‌بیند.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.NotificationsController.Get(Application.Services.CommonSrv.PushInboxSrv.Dto.NotificationInboxInputDto)">
+            <summary>
+            لیست اعلان‌های کاربر جاری با صفحه‌بندی. پاسخ شامل UnreadCount کل هم هست.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.NotificationsController.GetUnreadCount">
+            <summary>
+            تعداد اعلان‌های خوانده‌نشده (برای بِج).
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.NotificationsController.Read(System.Int64)">
+            <summary>
+            خوانده‌شدن یک اعلان. Idempotent است.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.NotificationsController.ReadAll">
+            <summary>
+            خوانده‌شدن همه‌ی اعلان‌ها. Idempotent است.
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.PansionCommentController">
             <summary>
             مدیریت نظرات پانسیون ها
@@ -7935,6 +7961,12 @@
         <member name="M:Api.Areas.EndUser.Controllers.PushController.SubscribeFcm(Application.Services.CommonSrv.PushSubscriptionSrv.Dto.PushSubscribeFcmDto)">
             <summary>
             ثبت FCM Token اپ فلاتر (اندروید/iOS) — معادل subscribe برای وب‌اپ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PushController.UnsubscribeFcm(Application.Services.CommonSrv.PushSubscriptionSrv.Dto.PushAttachDto)">
+            <summary>
+            جداکردن دستگاه از کاربر هنگام logout اپ (تا اعلان شخصی کاربر قبلی روی
+            دستگاه مشترک دیده نشود). Idempotent است.
             </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.ReminderController">

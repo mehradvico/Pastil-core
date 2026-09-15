@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Text;
 
 namespace Application.Common.Configuration
 {
@@ -17,7 +18,7 @@ namespace Application.Common.Configuration
             Override(configuration, "Search:Hybrid:ApiKey", "PASTIL_SEARCH_HYBRID_API_KEY");
             Override(configuration, "Search:Hybrid:SemanticWeight", "PASTIL_SEARCH_HYBRID_WEIGHT");
             Override(configuration, "Security:MerchantEncryptionKey", "PASTIL_MERCHANT_ENCRYPTION_KEY");
-            Override(configuration, "Fcm:ServiceAccountJson", "PASTIL_FCM_SERVICE_ACCOUNT_JSON");
+            OverrideFcmServiceAccountJson(configuration);
             Override(configuration, "Security:PasswordPepper", "PASTIL_PASSWORD_PEPPER");
             Override(configuration, "MapIr:ApiKey", "PASTIL_MAPIR_API_KEY");
             Override(configuration, "Shipping:TestMode", "PASTIL_SHIPPING_TEST_MODE");
@@ -48,6 +49,35 @@ namespace Application.Common.Configuration
             {
                 configuration[configurationKey] = value.Trim();
             }
+        }
+
+        private static void OverrideFcmServiceAccountJson(IConfiguration configuration)
+        {
+            const string configurationKey = "Fcm:ServiceAccountJson";
+            var encodedValue = Environment.GetEnvironmentVariable("PASTIL_FCM_SERVICE_ACCOUNT_JSON_BASE64");
+
+            // Base64 is the dependable option for Docker/.env: the JSON private_key field itself
+            // contains escaped line breaks, which some dotenv parsers can transform on the way
+            // into a container. Keep the original variable as a backwards-compatible fallback.
+            if (!string.IsNullOrWhiteSpace(encodedValue))
+            {
+                try
+                {
+                    var value = Encoding.UTF8.GetString(Convert.FromBase64String(encodedValue.Trim()));
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        configuration[configurationKey] = value;
+                        return;
+                    }
+                }
+                catch (FormatException)
+                {
+                    // Fall back to the legacy JSON environment variable. FcmSender emits the
+                    // user-facing configuration failure if neither value is usable.
+                }
+            }
+
+            Override(configuration, configurationKey, "PASTIL_FCM_SERVICE_ACCOUNT_JSON");
         }
     }
 }

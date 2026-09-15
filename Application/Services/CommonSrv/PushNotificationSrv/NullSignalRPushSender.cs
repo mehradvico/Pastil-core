@@ -8,7 +8,7 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
     // برای همین الگوی دقیق).
     public class NullSignalRPushSender : ISignalRPushSender
     {
-        public Task SendAsync(long userId, string title, string body, string url, string icon, string tag)
+        public Task SendAsync(long userId, string title, string body, string url, string icon, string tag, string notificationId = null, string type = null)
             => Task.CompletedTask;
     }
 }

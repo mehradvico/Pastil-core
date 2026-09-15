@@ -8,12 +8,17 @@ namespace Application.Services.CommonSrv.PushNotificationSrv.Iface
     // Push اصلی (WebPush/Fcm) را تحت تاثیر قرار نمی‌دهد — صرفاً یک تلاش «در صورت اتصال» است.
     public interface ISignalRPushSender
     {
+        // notificationId و type دقیقاً معادل همان مقادیر در payload پوش FCM و فیلد id در
+        // Inbox هستند؛ با آن‌ها اپ ویندوز می‌تواند پیام زنده را با آیتم Inbox تطبیق/دی‌دوپ
+        // کند و آن را «خوانده‌شده» علامت بزند.
         Task SendAsync(
             long userId,
             string title,
             string body,
             string url,
             string icon,
-            string tag);
+            string tag,
+            string notificationId = null,
+            string type = null);
     }
 }

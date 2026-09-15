@@ -20,6 +20,7 @@ using Application.Services.Accounting.UserTokenSrv.Dto;
 using Application.Services.CategorySrv.Dto;
 using Application.Services.CommonSrv.CommentLikeSrv.Dto;
 using Application.Services.CommonSrv.PushBroadcastSrv.Dto;
+using Application.Services.CommonSrv.PushInboxSrv.Dto;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
@@ -811,6 +812,11 @@ namespace Application.Maping
                      .ForMember(d => d.Id, o => o.Ignore()).ForMember(d => d.UserId, o => o.Ignore()).ForMember(d => d.DeviceKey, o => o.Ignore())
                      .ForMember(d => d.CreateDate, o => o.Ignore()).ForMember(d => d.LastSeen, o => o.Ignore()).ForMember(d => d.IsActive, o => o.Ignore())
                      .ForMember(d => d.Provider, o => o.Ignore()).ForMember(d => d.Endpoint, o => o.Ignore()).ForMember(d => d.P256dh, o => o.Ignore()).ForMember(d => d.Auth, o => o.Ignore());
+            // Inbox اعلان‌های کاربر. Type از PushType.Label می‌آید (همان مقدار data.type در payload پوش)
+            // و IsRead از وجود ReadDateUtc مشتق می‌شود.
+            CreateMap<PushNotification, NotificationInboxVDto>()
+                     .ForMember(d => d.Type, o => o.MapFrom(s => s.PushPattern != null && s.PushPattern.PushType != null ? s.PushPattern.PushType.Label : null))
+                     .ForMember(d => d.IsRead, o => o.MapFrom(s => s.ReadDateUtc != null));
             //Push End ----------------------------------------------
 
 

@@ -253,7 +253,10 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 // SignalR نیاز دارد)، پس همیشه تلاش می‌شود و در شمارش موفقیت/شکست زیر شرکت نمی‌کند.
                 try
                 {
-                    await _signalRPushSender.SendAsync(notif.UserId, notif.Title, notif.Body, notif.Url, notif.Icon, notif.Tag);
+                    await _signalRPushSender.SendAsync(
+                        notif.UserId, notif.Title, notif.Body, notif.Url, notif.Icon, notif.Tag,
+                        notificationId: notif.Id.ToString(),
+                        type: pattern.PushType?.Label);
                 }
                 catch (Exception ex)
                 {
@@ -281,7 +284,10 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 foreach (var s in subs)
                 {
                     var result = s.Provider == (long)PushProviderEnum.Fcm
-                        ? await _fcmSender.SendAsync(s.FcmToken, notif.Title, notif.Body, notif.Url, notif.Icon, notif.Tag)
+                        ? await _fcmSender.SendAsync(
+                            s.FcmToken, notif.Title, notif.Body, notif.Url, notif.Icon, notif.Tag,
+                            notificationId: notif.Id.ToString(),
+                            type: pattern.PushType?.Label)
                         : await TrySendAsync(client, vapid, payload, s);
 
                     if (result == PushSendResult.Success)

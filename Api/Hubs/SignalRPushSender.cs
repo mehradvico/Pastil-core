@@ -18,17 +18,24 @@ namespace Api.Hubs
             string body,
             string url,
             string icon,
-            string tag)
+            string tag,
+            string notificationId = null,
+            string type = null)
         {
             // اگر کلاینتی متصل نباشد، SendAsync روی یک گروه خالی بی‌خطا و بی‌اثر برمی‌گردد —
             // نیازی به چک‌کردن اتصال نیست.
+            //
+            // شکل payload عمداً با data پوش FCM یکسان نگه داشته شده تا اپ فلاتر برای هر دو
+            // کانال یک مسیر پردازش داشته باشد و بتواند با notificationId دی‌دوپ کند.
             return _hubContext.Clients.Group(PushHub.GroupName(userId)).SendAsync("push", new
             {
                 title,
                 body,
                 url,
                 icon,
-                tag
+                tag,
+                notificationId,
+                type
             });
         }
     }

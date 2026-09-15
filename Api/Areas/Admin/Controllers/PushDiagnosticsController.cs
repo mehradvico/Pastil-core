@@ -39,11 +39,14 @@ namespace Api.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] long? userId)
         {
-            var subs = _context.PushSubscriptions.AsNoTracking().Where(x => x.IsActive);
+            var all = _context.PushSubscriptions.AsNoTracking();
+            var subs = all.Where(x => x.IsActive);
 
             var webPushCount = await subs.CountAsync(x => x.Provider != (long)PushProviderEnum.Fcm);
             var fcmCount = await subs.CountAsync(x => x.Provider == (long)PushProviderEnum.Fcm);
             var unlinkedCount = await subs.CountAsync(x => x.UserId == null);
+            // ردیف‌های غیرفعال‌شده: توکن باطل‌شده توسط Provider یا logout صریح اپ.
+            var inactiveCount = await all.CountAsync(x => !x.IsActive);
 
             object? forUser = null;
             if (userId.HasValue && userId.Value > 0)
@@ -58,7 +61,9 @@ namespace Api.Areas.Admin.Controllers
                     platforms = await userSubs
                         .GroupBy(x => x.Platform)
                         .Select(g => new { platform = g.Key ?? "web", count = g.Count() })
-                        .ToListAsync()
+                        .ToListAsync(),
+                    // آخرین sync موفق توکن از سمت اپ/مرورگر
+                    lastTokenSyncAtUtc = await userSubs.MaxAsync(x => (DateTime?)x.LastSeen)
                 };
             }
 
@@ -73,6 +78,7 @@ namespace Api.Areas.Admin.Controllers
                 {
                     webPush = webPushCount,
                     fcm = fcmCount,
+                    inactive = inactiveCount,
                     // ردیف‌هایی که به هیچ کاربری وصل نیستند؛ پوشِ «کاربر خاص» به این‌ها نمی‌رسد.
                     notLinkedToAnyUser = unlinkedCount
                 },

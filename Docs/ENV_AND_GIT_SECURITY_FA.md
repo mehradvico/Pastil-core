@@ -23,7 +23,13 @@ PASTIL_AI_AVALAI_API_KEY=
 PASTIL_AI_GAPGPT_API_KEY=
 PASTIL_MERCHANT_ENCRYPTION_KEY=
 PASTIL_FCM_SERVICE_ACCOUNT_JSON=
+PASTIL_FCM_SERVICE_ACCOUNT_JSON_BASE64=
 ```
+
+برای FCM در Docker، `PASTIL_FCM_SERVICE_ACCOUNT_JSON_BASE64` روش پیشنهادی است.
+این مقدار، کل فایل JSON اکانت سرویس Firebase است که به Base64 تک‌خطی تبدیل شده؛
+بنابراین `\\n` داخل `private_key` در عبور از dotenv تغییر نمی‌کند. متغیر قدیمی
+`PASTIL_FCM_SERVICE_ACCOUNT_JSON` فقط برای سازگاری باقی مانده است.
 
 ## امنیت رمز عبور کاربران
 

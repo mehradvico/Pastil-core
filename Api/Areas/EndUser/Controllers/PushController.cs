@@ -71,5 +71,18 @@ namespace Api.Areas.EndUser.Controllers
             var res = await _pushSubscriptionService.AttachAsync(userId, dto.DeviceKey);
             return Ok(res);
         }
+
+        /// <summary>
+        /// جداکردن دستگاه از کاربر هنگام logout اپ (تا اعلان شخصی کاربر قبلی روی
+        /// دستگاه مشترک دیده نشود). Idempotent است.
+        /// </summary>
+        [HttpPost("unsubscribe-fcm")]
+        [Authorize]
+        public async Task<IActionResult> UnsubscribeFcm([FromBody] PushAttachDto dto)
+        {
+            var userId = _currentUser.CurrentUser.UserId;
+            var res = await _pushSubscriptionService.UnsubscribeFcmAsync(userId, dto.DeviceKey);
+            return Ok(res);
+        }
     }
 }

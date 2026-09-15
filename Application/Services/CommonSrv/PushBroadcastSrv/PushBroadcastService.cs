@@ -97,7 +97,10 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
             foreach (var s in subs)
             {
                 var result = s.Provider == (long)PushProviderEnum.Fcm
-                    ? await _fcmSender.SendAsync(s.FcmToken, payloadDto.Title, payloadDto.Body, payloadDto.Url, payloadDto.Icon, payloadDto.Tag)
+                    ? await _fcmSender.SendAsync(
+                        s.FcmToken, payloadDto.Title, payloadDto.Body, payloadDto.Url, payloadDto.Icon, payloadDto.Tag,
+                        notificationId: msg.Id.ToString(),
+                        type: "admin-broadcast")
                     : await TrySendAsync(client, vapid, payload, s);
 
                 if (result == PushSendResult.Success)

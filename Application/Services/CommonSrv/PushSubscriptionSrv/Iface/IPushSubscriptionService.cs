@@ -13,5 +13,6 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv.Iface
         Task<BaseResultDto> SubscribeAsync(long? userId, PushSubscribeDto dto);
         Task<BaseResultDto> SubscribeFcmAsync(long? userId, PushSubscribeFcmDto dto);
         Task<BaseResultDto> AttachAsync(long userId, Guid deviceKey);
+        Task<BaseResultDto> UnsubscribeFcmAsync(long userId, Guid deviceKey);
     }
 }
