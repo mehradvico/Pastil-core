@@ -559,7 +559,73 @@ ORDER BY p.StatusId DESC, MatchScore DESC;";
             return result.ToList();
         }
 
+        // برای AiProductMatch: بر خلاف SearchMinAsync (که برای جستجوی مشتری طراحی شده و طبق CROSS APPLY
+        // فقط محصولاتی با حداقل یک ProductItem موجود/فعال در یک فروشگاه فعال را برمی‌گرداند)، این متد
+        // هیچ پیش‌شرط موجودی/فروشگاهی ندارد — چون هدف دقیقاً پیدا کردن محصولات کاتالوگیه که فروشنده
+        // فعلی (یا هیچ فروشگاهی) هنوز موجودی‌ای برایشان ثبت نکرده، تا بتواند آیتم جدید برایشان بسازد.
+        public async Task<List<long>> SearchCatalogProductIdsAsync(SearchRequestDto request, CancellationToken cancellationToken = default)
+        {
+            using var connection = new SqlConnection(connectionString);
 
+            var parameters = new
+            {
+                ProductCount = SearchQueryHelper.CandidateCount(request.ProductCount),
+                ProductNotId = request.ProductNotId,
+                Query = request.Q,
+                SearchTerms = string.Join(" ", request.SearchTerms)
+            };
+
+            var query = @"
+DECLARE @Keywords TABLE (Keyword NVARCHAR(255));
+
+INSERT INTO @Keywords (Keyword)
+SELECT value
+FROM STRING_SPLIT(@SearchTerms, ' ')
+WHERE LEN(value) >= 2;
+
+SELECT TOP(@ProductCount)
+    p.Id,
+    (
+        SELECT COUNT(*)
+        FROM @Keywords k
+        WHERE p.Name COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(c.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+           OR ISNULL(p.ProductLabel, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+    ) AS MatchScore
+FROM Products p
+LEFT JOIN Categories c ON p.CategoryId = c.Id
+LEFT JOIN Brands br ON p.BrandId = br.Id
+WHERE
+    p.Active = 1
+    AND p.Deleted = 0
+    AND (p.Id != @ProductNotId OR @ProductNotId IS NULL)
+    AND (
+        p.Name COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(c.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR ISNULL(p.ProductLabel, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
+        OR EXISTS (
+            SELECT 1
+            FROM @Keywords k
+            WHERE p.Name COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(c.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(p.ProductLabel, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+        )
+    )
+ORDER BY p.StatusId DESC, MatchScore DESC;";
+
+            var command = new CommandDefinition(query, parameters, commandTimeout: 8, cancellationToken: cancellationToken);
+            var result = await connection.QueryAsync<long>(command);
+            return result.ToList();
+        }
 
         public async Task<BaseResultDto<ProductDto>> DuplicateAsyncDto(ProductDuplicateDto productDuplicateDto)
         {

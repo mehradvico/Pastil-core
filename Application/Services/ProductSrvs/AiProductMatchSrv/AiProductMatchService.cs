@@ -299,10 +299,14 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             if (string.IsNullOrWhiteSpace(request.Q) || request.Q.Length < 2)
                 return result;
 
-            List<Application.Services.ProductSrvs.ProductSrv.Dto.SearchProductDto> found;
+            List<long> found;
             try
             {
-                found = await _productService.SearchMinAsync(request, cancellationToken);
+                // عمداً SearchMinAsync نیست: اون متد برای جستجوی مشتری طراحی شده و فقط محصولاتی که
+                // حداقل یک فروشگاه فعال با موجودی>۰ دارند برمی‌گردونه. اینجا دقیقاً برعکسش لازمه —
+                // محصولاتی که فروشنده‌ی فعلی (یا هیچ فروشگاهی) هنوز براشون موجودی ثبت نکرده، چون
+                // کل هدف این فیچر همینه: پیدا کردن محصول کاتالوگ برای ساختن اولین ProductItem آن.
+                found = await _productService.SearchCatalogProductIdsAsync(request, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -313,7 +317,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             if (found == null || found.Count == 0)
                 return result;
 
-            var productIds = found.Select(f => f.Id).Distinct().ToList();
+            var productIds = found.Distinct().ToList();
 
             var products = await _context.Products
                 .Include(p => p.Brand)
@@ -331,9 +335,9 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 .Where(pi => productIds.Contains(pi.ProductId) && !pi.Deleted)
                 .ToListAsync(cancellationToken);
 
-            foreach (var match in found)
+            foreach (var productId in productIds)
             {
-                if (!productById.TryGetValue(match.Id, out var product))
+                if (!productById.TryGetValue(productId, out var product))
                     continue;
 
                 var itemsForProduct = allItems.Where(pi => pi.ProductId == product.Id).ToList();
