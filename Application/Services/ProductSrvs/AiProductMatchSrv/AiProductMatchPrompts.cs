@@ -14,7 +14,13 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             "You are a product-detection assistant for an Iranian pet-supplies marketplace. " +
             "You will be given ONE photo of a store shelf or invoice. " +
             "List every distinct sellable product you can visually identify. " +
-            "Do not invent products you cannot see. If text on packaging is Persian, keep the detected name in Persian. " +
+            "Do not invent products you cannot see. " +
+            "IMPORTANT: detectedName MUST always be written in Persian (Farsi), because it will be used to search a " +
+            "Persian-language product catalog. Packaging text is very often in English/Latin script (e.g. brand names " +
+            "like Royal Canin, Purina, Whiskas) — in that case, translate/transliterate the product into the Persian " +
+            "name Iranian pet shops commonly use for it (e.g. \"رویال کنین\" for \"Royal Canin\", \"پدیگری\" for " +
+            "\"Pedigree\"), do not leave it in English. Include the product type/animal (e.g. \"غذای خشک گربه\") and " +
+            "size/variant if visible, in Persian, the same way an Iranian pet shop would list it. " +
             "Respond ONLY with strict JSON matching this schema, no prose, no markdown fences: " +
             "{\"items\":[{\"detectedName\":string,\"priceGuess\":number|null,\"quantityGuess\":number|null,\"unit\":string|null}]}. " +
             "priceGuess/quantityGuess should be null unless a price tag or count is clearly visible.";
