@@ -46,15 +46,23 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         }
 
         // اولویت با همان Provider تنظیم‌شده در AiProductMatchOptions.ProviderName (پیش‌فرض Gemini)؛
-        // بعد از آن بقیه‌ی Providerهای فعال و کلیددار PastilAI به ترتیب Order به‌عنوان Fallback.
+        // بعد از آن فقط Providerهای صراحتاً لیست‌شده در FallbackProviderNames (به همان ترتیب) —
+        // نه کل فهرست PastilAI:Providers — تا یک زنجیره‌ی طولانی از Providerهای احتمالاً معیوب/
+        // Rate-Limit‌شده‌ی چت باعث Timeout سمت کلاینت نشود.
         private List<PastilAiProviderDefinition> GetCandidateProviders(bool hasImages)
-            => _providerOptions.Providers
-                .Where(p => p.Enabled && !string.IsNullOrWhiteSpace(p.ResolveApiKey()))
+        {
+            var orderedNames = new List<string> { _options.ProviderName }
+                .Concat(_options.FallbackProviderNames ?? new List<string>())
+                .ToList();
+
+            return orderedNames
+                .Select(name => _providerOptions.Providers.FirstOrDefault(p =>
+                    string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase)))
+                .Where(p => p != null && p.Enabled && !string.IsNullOrWhiteSpace(p.ResolveApiKey()))
                 .Where(p => !hasImages || p.SupportsImage)
                 .Where(p => hasImages ? !string.IsNullOrWhiteSpace(p.VisionModel) : !string.IsNullOrWhiteSpace(p.TextModel))
-                .OrderBy(p => string.Equals(p.Name, _options.ProviderName, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-                .ThenBy(p => p.Order)
                 .ToList();
+        }
 
         public async Task<AiProductMatchGeminiCallResult> GenerateJsonAsync(
             string systemInstruction,
