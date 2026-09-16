@@ -7782,6 +7782,36 @@
              دریافت همه 
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PetResanServiceController">
+            <summary>
+            سرویس پت‌رسان تکرارشونده‌ی هفتگی (رفت‌وبرگشت خودکار، تخصیص راننده با ادمین)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PetResanServiceController.PreviewPrice(Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceCreateDto)">
+            <summary>
+            پیش‌نمایش قیمت هر رفت‌وبرگشت، قبل از ثبت نهایی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PetResanServiceController.Post(Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceCreateDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PetResanServiceController.Get">
+            <summary>
+            لیست سرویس‌های خودم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PetResanServiceController.Get(System.Int64)">
+            <summary>
+            جزئیات یک سرویس
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PetResanServiceController.Cancel(System.Int64)">
+            <summary>
+            لغو سرویس
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.PetTagController">
             <summary>
             اتصال کد قلاده به پت کاربر
@@ -8277,6 +8307,21 @@
             <param name="id">شناسه خدمات</param>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.TripPansionReservationController">
+            <summary>
+            ساخت سفر پت‌رسانِ متصل به یک رزرو پانسیون (تحویل پت هنگام ورود به هتل/مهد)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripPansionReservationController.Post(Application.Services.TripSrv.TripSrv.Dto.TripPansionReservationCreateDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripPansionReservationController.Get(System.Int64)">
+            <summary>
+            سفرِ پت‌رسانِ متصل به یک رزرو پانسیون مشخص — برای نمایش وضعیت («فلان راننده تایید کرد» / «هنوز کسی قبول نکرده»)
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripPaymentController">
             <summary>
@@ -10477,6 +10522,11 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Controllers.WeekDayController">
+            <summary>
+            فهرست ثابت روزهای هفته — برای کاربر نهایی (مثلاً انتخاب برنامه‌ی هفتگی سرویس پت‌رسان)
+            </summary>
         </member>
         <member name="T:Api.Hubs.CallHub">
             <summary>
