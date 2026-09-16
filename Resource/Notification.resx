@@ -1134,6 +1134,15 @@
   <data name="TripPetDeliveryAlreadyExistsForReserve" xml:space="preserve">
     <value>Trip Pet Delivery Already Exists For Reserve</value>
   </data>
+  <data name="PansionDropOffTimeRequired" xml:space="preserve">
+    <value>Pansion Drop Off Time Required</value>
+  </data>
+  <data name="PetResanServiceAtLeastOneScheduleRequired" xml:space="preserve">
+    <value>Pet Resan Service At Least One Schedule Required</value>
+  </data>
+  <data name="PetResanServiceInvalidTotalWeeks" xml:space="preserve">
+    <value>Pet Resan Service Invalid Total Weeks</value>
+  </data>
   <data name="TripAutoCanceledNoDriverAccepted" xml:space="preserve">
     <value>No driver accepted this trip within the allotted time, so it was automatically canceled.</value>
   </data>

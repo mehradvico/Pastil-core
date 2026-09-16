@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
 using Persistence.Context;
@@ -12,9 +13,11 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    partial class DataBaseContextModelSnapshot : ModelSnapshot
+    [Migration("20260916070616_AddPansionReserveIdToTrip")]
+    partial class AddPansionReserveIdToTrip
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -5634,91 +5637,6 @@ namespace Persistence.Migrations
                     b.ToTable("PetBreedCharacteristics");
                 });
 
-            modelBuilder.Entity("Entities.Entities.PetResanServiceField.PetResanService", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<bool>("Active")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("CancelDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreateDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<Point>("Destination")
-                        .HasColumnType("geography");
-
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FromAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Point>("Origin")
-                        .HasColumnType("geography");
-
-                    b.Property<double>("PricePerOccurrence")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ToAddress")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("TotalWeeks")
-                        .HasColumnType("int");
-
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UserPetId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserPetId");
-
-                    b.ToTable("PetResanServices");
-                });
-
-            modelBuilder.Entity("Entities.Entities.PetResanServiceField.PetResanServiceSchedule", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<bool>("Active")
-                        .HasColumnType("bit");
-
-                    b.Property<long>("PetResanServiceId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Time")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("WeekDayId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PetResanServiceId");
-
-                    b.HasIndex("WeekDayId");
-
-                    b.ToTable("PetResanServiceSchedules");
-                });
-
             modelBuilder.Entity("Entities.Entities.PetTag", b =>
                 {
                     b.Property<long>("Id")
@@ -8726,9 +8644,6 @@ namespace Persistence.Migrations
                     b.Property<double>("PaymentPrice")
                         .HasColumnType("float");
 
-                    b.Property<long?>("PetResanServiceScheduleId")
-                        .HasColumnType("bigint");
-
                     b.Property<long?>("PreviousTripId")
                         .HasColumnType("bigint");
 
@@ -8820,8 +8735,6 @@ namespace Persistence.Migrations
                     b.HasIndex("FromCityId");
 
                     b.HasIndex("PansionReserveId");
-
-                    b.HasIndex("PetResanServiceScheduleId");
 
                     b.HasIndex("PreviousTripId");
 
@@ -11945,44 +11858,6 @@ namespace Persistence.Migrations
                     b.Navigation("PetBreed");
                 });
 
-            modelBuilder.Entity("Entities.Entities.PetResanServiceField.PetResanService", b =>
-                {
-                    b.HasOne("Entities.Entities.Security.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.UserPet", "UserPet")
-                        .WithMany()
-                        .HasForeignKey("UserPetId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
-
-                    b.Navigation("UserPet");
-                });
-
-            modelBuilder.Entity("Entities.Entities.PetResanServiceField.PetResanServiceSchedule", b =>
-                {
-                    b.HasOne("Entities.Entities.PetResanServiceField.PetResanService", "PetResanService")
-                        .WithMany("Schedules")
-                        .HasForeignKey("PetResanServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Entities.WeekDay", "WeekDay")
-                        .WithMany()
-                        .HasForeignKey("WeekDayId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("PetResanService");
-
-                    b.Navigation("WeekDay");
-                });
-
             modelBuilder.Entity("Entities.Entities.PetTag", b =>
                 {
                     b.HasOne("Entities.Entities.UserPet", "UserPet")
@@ -13172,11 +13047,6 @@ namespace Persistence.Migrations
                         .HasForeignKey("PansionReserveId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Entities.Entities.PetResanServiceField.PetResanServiceSchedule", "PetResanServiceSchedule")
-                        .WithMany()
-                        .HasForeignKey("PetResanServiceScheduleId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Entities.Entities.Trip", "PreviousTrip")
                         .WithMany()
                         .HasForeignKey("PreviousTripId")
@@ -13222,8 +13092,6 @@ namespace Persistence.Migrations
                     b.Navigation("FromCity");
 
                     b.Navigation("PansionReserve");
-
-                    b.Navigation("PetResanServiceSchedule");
 
                     b.Navigation("PreviousTrip");
 
@@ -14034,11 +13902,6 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.Pet", b =>
                 {
                     b.Navigation("Companions");
-                });
-
-            modelBuilder.Entity("Entities.Entities.PetResanServiceField.PetResanService", b =>
-                {
-                    b.Navigation("Schedules");
                 });
 
             modelBuilder.Entity("Entities.Entities.Post", b =>

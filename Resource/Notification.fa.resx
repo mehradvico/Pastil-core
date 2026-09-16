@@ -1134,6 +1134,15 @@
   <data name="TripPetDeliveryAlreadyExistsForReserve" xml:space="preserve">
     <value>برای این رزرو قبلاً یک سفر پت‌رسان ثبت شده است.</value>
   </data>
+  <data name="PansionDropOffTimeRequired" xml:space="preserve">
+    <value>برای رزرو شبانه/اقامتی، ساعت تحویل پت باید مشخص شود.</value>
+  </data>
+  <data name="PetResanServiceAtLeastOneScheduleRequired" xml:space="preserve">
+    <value>حداقل یک روز و ساعت برای سرویس پت‌رسان باید انتخاب شود.</value>
+  </data>
+  <data name="PetResanServiceInvalidTotalWeeks" xml:space="preserve">
+    <value>تعداد هفته باید یک عدد مثبت باشد (یا برای مدت باز خالی بماند).</value>
+  </data>
   <data name="TripAutoCanceledNoDriverAccepted" xml:space="preserve">
     <value>هیچ راننده‌ای ظرف مدت مقرر این سفر را نپذیرفت، به همین دلیل درخواست به‌صورت خودکار لغو شد.</value>
   </data>

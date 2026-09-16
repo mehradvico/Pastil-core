@@ -3,6 +3,7 @@ using Entities.Entities.CompanionField;
 using Entities.Entities.CommonField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
+using Entities.Entities.PetResanServiceField;
 using Entities.Entities.SchoolField;
 using Entities.Entities.PastilMatchField;
 using Entities.Entities.PastilAIField;
@@ -247,6 +248,8 @@ namespace Persistence.Context
         public DbSet<PansionPet> PansionPets { get; set; }
         public DbSet<PansionPicture> PansionPictures { get; set; }
         public DbSet<PansionReserve> PansionReserves { get; set; }
+        public DbSet<PetResanService> PetResanServices { get; set; }
+        public DbSet<PetResanServiceSchedule> PetResanServiceSchedules { get; set; }
         public DbSet<School> Schools { get; set; }
         public DbSet<SchoolComment> SchoolComments { get; set; }
         public DbSet<SchoolCourse> SchoolCourses { get; set; }
@@ -1205,6 +1208,30 @@ namespace Persistence.Context
                 .WithMany()
                 .HasForeignKey(t => t.CompanionReserveId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.PansionReserve)
+                .WithMany()
+                .HasForeignKey(t => t.PansionReserveId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.PetResanServiceSchedule)
+                .WithMany()
+                .HasForeignKey(t => t.PetResanServiceScheduleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PetResanService>(e =>
+            {
+                e.HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(s => s.UserPet).WithMany().HasForeignKey(s => s.UserPetId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<PetResanServiceSchedule>(e =>
+            {
+                e.HasOne(s => s.PetResanService).WithMany(s => s.Schedules).HasForeignKey(s => s.PetResanServiceId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(s => s.WeekDay).WithMany().HasForeignKey(s => s.WeekDayId).OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<Trip>()
                 .HasOne(t => t.CancelReasonCode)

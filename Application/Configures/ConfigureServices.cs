@@ -640,6 +640,7 @@ public static class ConfigureServices
         services.AddScoped<ITripAddressService, TripAddressService>();
         services.AddScoped<ITripOptionService, TripOptionService>();
         services.AddScoped<ITripService, TripService>();
+        services.AddScoped<Application.Services.TripSrv.PetResanServiceSrv.Iface.IPetResanServiceService, Application.Services.TripSrv.PetResanServiceSrv.PetResanServiceService>();
         services.AddScoped<ITripStopService, TripStopService>();
         services.AddScoped<IUserBankCardService, UserBankCardService>();
         services.AddScoped<IUserPetPictureService, UserPetPictureService>();

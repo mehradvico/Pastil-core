@@ -297,6 +297,13 @@ recurringJobManager.AddOrUpdate<Application.Services.SchoolSrvs.SchoolReserveSrv
     service => service.SendClassStartingPushesAsync(CancellationToken.None),
     "*/5 * * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
+// هر شب ساعت ۲۰، سفرهای «فردا»ی سرویس‌های پت‌رسان هفتگی رو می‌سازه — تا صبح فردا ادمین وقت
+// تخصیص راننده داشته باشه (TripChooseDriver در پنل).
+recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
+    "GeneratePetResanServiceTrips",
+    service => service.GeneratePetResanServiceTripsAsync(),
+    "0 20 * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
 
 app.UseRequestLocalization();
 app.UseHangfireDashboard();

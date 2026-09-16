@@ -2251,6 +2251,33 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Pansion Drop Off Time Required.
+        /// </summary>
+        public static string PansionDropOffTimeRequired {
+            get {
+                return ResourceManager.GetString("PansionDropOffTimeRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pet Resan Service At Least One Schedule Required.
+        /// </summary>
+        public static string PetResanServiceAtLeastOneScheduleRequired {
+            get {
+                return ResourceManager.GetString("PetResanServiceAtLeastOneScheduleRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pet Resan Service Invalid Total Weeks.
+        /// </summary>
+        public static string PetResanServiceInvalidTotalWeeks {
+            get {
+                return ResourceManager.GetString("PetResanServiceInvalidTotalWeeks", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to No driver accepted this trip within the allotted time, so it was automatically canceled..
         /// </summary>
         public static string TripAutoCanceledNoDriverAccepted {

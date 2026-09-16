@@ -37,6 +37,9 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         // پت‌رسان — حالت دو: سفر متصل به رزرو
         Task<BaseResultDto<TripDto>> CreateReservationLinkedTripAsync(TripReservationCreateDto dto, long userId);
         Task<BaseResultDto<TripVDto>> GetTripForReservationAsync(long companionReserveId, long userId);
+        Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForPansionAsync(TripPansionReservationCreateDto dto, long userId);
+        Task<BaseResultDto<TripVDto>> GetTripForPansionReservationAsync(long pansionReserveId, long userId);
+        Task GeneratePetResanServiceTripsAsync();
         Task DispatchScheduledTripsAsync();
         Task AutoCancelUnansweredInstantTripsAsync();
         Task<BaseResultDto<TripVDto>> RequestAdminDriverSelectionAsync(long tripId, long userId);

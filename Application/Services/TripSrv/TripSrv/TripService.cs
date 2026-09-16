@@ -23,6 +23,7 @@ using Application.Services.TripSrv.TripSrv.Iface;
 using AutoMapper;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using Entities.Entities;
+using Entities.Entities.PansionField;
 using Entities.Entities.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -50,8 +51,9 @@ namespace Application.Services.TripSrv.TripSrv
         private readonly ICurrentUserHelper _currentUser;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly IGeographyService _geographyService;
+        private readonly Application.Common.DayToDate.Iface.IDayToDateService _dayToDateService;
         private readonly ILogger<TripService> _logger;
-        public TripService(IDataBaseContext _context, IMapper mapper, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, IPriceCalculationService priceCalculationService, ITripOptionService tripOptionService, ICodeService codeService, IMessageSenderService messageSender, INoticeService noticeService, ICurrentUserHelper currentUser, IPushNotificationService pushNotificationService, IGeographyService geographyService, ILogger<TripService> logger) : base(_context, mapper)
+        public TripService(IDataBaseContext _context, IMapper mapper, IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, IPriceCalculationService priceCalculationService, ITripOptionService tripOptionService, ICodeService codeService, IMessageSenderService messageSender, INoticeService noticeService, ICurrentUserHelper currentUser, IPushNotificationService pushNotificationService, IGeographyService geographyService, Application.Common.DayToDate.Iface.IDayToDateService dayToDateService, ILogger<TripService> logger) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -66,6 +68,7 @@ namespace Application.Services.TripSrv.TripSrv
             _currentUser = currentUser;
             _pushNotificationService = pushNotificationService;
             _geographyService = geographyService;
+            _dayToDateService = dayToDateService;
             _logger = logger;
         }
         //public async Task<BaseResultDto<TripVDto>> UpdateVDtoAsync(TripVDto vDto)
@@ -1395,6 +1398,146 @@ namespace Application.Services.TripSrv.TripSrv
         }
 
         /// <summary>
+        /// حالت دو — نسخه‌ی پانسیون: سفرِ پت‌رسانِ متصل به یک رزرو پانسیون، برای تحویل پت هنگام ورود
+        /// به هتل/مهد. دقیقاً همون منطق CreateReservationLinkedTripAsync، فقط لنگرِ زمانی متفاوته چون
+        /// PansionReserve به‌جای یک DoDate واحد، یا StartTime واقعی داره (حالت روزانه/مهدی) یا فقط
+        /// FromDate بدون ساعت (حالت شبانه/اقامتی — این‌جا ساعت تحویل باید از کاربر گرفته بشه).
+        /// </summary>
+        public async Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForPansionAsync(TripPansionReservationCreateDto dto, long userId)
+        {
+            if (dto.ScheduledLeadMinutes != 60 && dto.ScheduledLeadMinutes != 120)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripDriverMovementIntervalMustBe60Or120, null);
+
+            if (dto.Origin == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetOrigin, null);
+
+            if (dto.Destination == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetDestination, null);
+
+            var reserve = await _context.PansionReserves.AsNoTracking()
+                .Include(s => s.Pansion)
+                .FirstOrDefaultAsync(s => s.Id == dto.PansionReserveId && s.BookerId == userId);
+
+            if (reserve == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
+
+            if (!TryGetPansionDropOffMoment(reserve, dto.DropOffTime, out var dropOffAt, out var dropOffError))
+                return new BaseResultDto<TripDto>(false, dropOffError, null);
+
+            var scheduledDepartureAt = dropOffAt.AddMinutes(-dto.ScheduledLeadMinutes);
+            if (scheduledDepartureAt <= DateTime.Now)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripInsufficientTimeToAppointmentForInterval, null);
+
+            var alreadyLinked = await _context.Trips.AnyAsync(s =>
+                s.PansionReserveId == dto.PansionReserveId &&
+                s.TripStatusId != (long)TripStatusEnum.TripStatus_Canceled);
+
+            if (alreadyLinked)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripPetDeliveryAlreadyExistsForReserve, null);
+
+            var priceInput = new TripDto
+            {
+                Origin = dto.Origin,
+                Destination = dto.Destination,
+                FromAddress = dto.FromAddress,
+                ToAddress = dto.ToAddress,
+                TripStartDateTime = scheduledDepartureAt
+            };
+
+            var trip = new Trip
+            {
+                Origin = new Point(dto.Origin.x, dto.Origin.y) { SRID = 4326 },
+                Destination = new Point(dto.Destination.x, dto.Destination.y) { SRID = 4326 },
+                FromAddress = dto.FromAddress,
+                ToAddress = dto.ToAddress,
+                UserId = userId,
+                IsOnline = true,
+                CreateDate = DateTime.Now,
+                TripStartDateTime = scheduledDepartureAt,
+                DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
+                TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
+                PansionReserveId = dto.PansionReserveId,
+                ScheduledLeadMinutes = dto.ScheduledLeadMinutes,
+                ScheduledDepartureAt = scheduledDepartureAt,
+                OwnerRidesAlong = dto.OwnerRidesAlong,
+                ScheduledDispatched = false
+            };
+
+            try
+            {
+                trip.Price = await _priceCalculationService.CalculateTripPrice(priceInput);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Calculating price for Pansion reservation-linked trip (reserve {ReserveId}) failed.", dto.PansionReserveId);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.Unsuccess, null);
+            }
+
+            if (trip.Price <= 0)
+            {
+                _logger.LogError("Calculated price for Pansion reservation-linked trip (reserve {ReserveId}) was {Price} at scheduled hour {Hour} — refusing to create a free trip. Check PriceCalculation coverage for this hour.", dto.PansionReserveId, trip.Price, scheduledDepartureAt.Hour);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.FinalPriceIsNotAvailable, null);
+            }
+
+            trip.PaymentPrice = trip.Price;
+
+            ApplyTripPets(trip, dto.UserPetIds, null);
+
+            await _context.Trips.AddAsync(trip);
+            await _context.SaveChangesAsync();
+
+            await BroadcastTripAvailableAsync(trip.Id);
+
+            await _noticeService.CreateAsync(new NoticeCreateDto
+            {
+                Label = NoticeTypeLabels.TripDriverRequested,
+                ActorUserId = trip.UserId,
+                ReferenceType = "Trip",
+                ReferenceId = trip.Id,
+                DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}"
+            });
+
+            return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(trip));
+        }
+
+        /// <summary>
+        /// لحظه‌ی تحویل پت به پانسیون: برای حالت روزانه/مهدی (IsDaycare) از StartTime واقعیِ رزرو
+        /// (به‌همراه SchoolCreateDate) استفاده می‌کنیم؛ برای حالت شبانه/اقامتی، FromDate فقط تاریخ داره
+        /// (همیشه با ساعت ۰۰:۰۰ ذخیره می‌شه)، پس ساعت تحویل باید از خودِ کاربر (dropOffTime, "HH:mm") گرفته بشه.
+        /// </summary>
+        private static bool TryGetPansionDropOffMoment(PansionReserve reserve, string dropOffTime, out DateTime dropOffAt, out string errorMessage)
+        {
+            dropOffAt = default;
+            errorMessage = null;
+
+            if (reserve.Pansion?.IsDaycare == true)
+            {
+                if (reserve.SchoolCreateDate.HasValue &&
+                    ReservationScheduleValidator.TryGetServiceStartDateTime(reserve.SchoolCreateDate.Value, reserve.StartTime, out dropOffAt))
+                    return true;
+
+                errorMessage = Resource.Notification.NothingFound;
+                return false;
+            }
+
+            if (!reserve.FromDate.HasValue)
+            {
+                errorMessage = Resource.Notification.NothingFound;
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(dropOffTime) ||
+                !TimeSpan.TryParseExact(dropOffTime, "hh\\:mm", System.Globalization.CultureInfo.InvariantCulture, out var parsedDropOffTime))
+            {
+                errorMessage = Resource.Notification.PansionDropOffTimeRequired;
+                return false;
+            }
+
+            dropOffAt = reserve.FromDate.Value.Date.Add(parsedDropOffTime);
+            return true;
+        }
+
+        /// <summary>
         /// حالت سه — سفرِ پت‌رسانِ «تاریخ‌دار»: نه سفر لحظه‌ای (حالت یک)، نه متصل به رزرو کلینیک (حالت دو).
         /// کاربر خودش یک تاریخ/ساعت دلخواه انتخاب می‌کنه؛ درست مثل سفر لحظه‌ای به همه‌ی راننده‌ها Broadcast
         /// می‌شه و ثبتش معطل تاییدِ هیچ راننده‌ای نمی‌مونه — فقط راننده‌ی پذیرنده باید سرِ همون زمانِ مشخص‌شده
@@ -1512,12 +1655,175 @@ namespace Application.Services.TripSrv.TripSrv
         }
 
         /// <summary>
+        /// سفرِ پت‌رسانِ متصل به یک رزرو پانسیون مشخص (اگه وجود داشته باشه) — نسخه‌ی پانسیونِ
+        /// GetTripForReservationAsync.
+        /// </summary>
+        public async Task<BaseResultDto<TripVDto>> GetTripForPansionReservationAsync(long pansionReserveId, long userId)
+        {
+            var trip = await _context.Trips
+                .Include(s => s.Driver)
+                .Include(s => s.DriverStatus)
+                .Include(s => s.TripStatus)
+                .AsNoTracking()
+                .Where(s => s.PansionReserveId == pansionReserveId && s.UserId == userId)
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (trip == null)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
+
+            return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(trip));
+        }
+
+        /// <summary>
         /// Job زمان‌بندی‌شده (Hangfire): دیگه خودکار نزدیک‌ترین راننده رو اختصاص نمی‌ده — چون سفرهای
         /// رزرویی از همون لحظه‌ی ثبت (نه فقط لحظه‌ی حرکت) Broadcast می‌شن و راننده‌ها می‌تونن زودتر قبول
         /// کنن (بخش CreateReservationLinkedTripAsync). این Job فقط برای سفرهایی که موعد حرکتشون رسیده
         /// ولی هنوز *هیچ* راننده‌ای قبولشون نکرده، یک یادآوری به ادمین می‌ده تا از پنل (TripChooseDriver)
         /// خودش یکی رو دستی انتخاب کنه.
         /// </summary>
+        // Job زمان‌بندی‌شده (Hangfire، روزی یک‌بار): برنامه‌های هفتگیِ فعالِ «سرویس پت‌رسان» رو می‌خونه
+        // و برای «فردا» (نه امروز — یک روز فاصله تا ادمین وقت تخصیص راننده داشته باشه) یک Trip واقعی
+        // می‌سازه، اگه از قبل برای همون تاریخ ساخته نشده باشه. برخلاف بقیه‌ی حالت‌های پت‌رسان، اصلاً
+        // Broadcast نمی‌زنه — فقط Notice برای ادمین می‌سازه، چون تخصیص راننده اینجا دستیِ پاستیله.
+        // هزینه هم بلافاصله و خودکار از کیف‌پول کسر می‌شه؛ اگه موجودی کافی نبود، همون occurrence
+        // کنسل می‌شه و به کاربر اطلاع داده می‌شه، بدون این‌که به بقیه‌ی سرویس آسیبی بزنه.
+        private static readonly Dictionary<DayOfWeek, int> PetResanServiceWeekDayNumbers = new()
+        {
+            [DayOfWeek.Saturday] = 1,
+            [DayOfWeek.Sunday] = 2,
+            [DayOfWeek.Monday] = 3,
+            [DayOfWeek.Tuesday] = 4,
+            [DayOfWeek.Wednesday] = 5,
+            [DayOfWeek.Thursday] = 6,
+            [DayOfWeek.Friday] = 7
+        };
+
+        public async Task GeneratePetResanServiceTripsAsync()
+        {
+            var tomorrow = DateTime.Today.AddDays(1);
+            var tomorrowDayNumber = PetResanServiceWeekDayNumbers[tomorrow.DayOfWeek];
+
+            var schedules = await _context.PetResanServiceSchedules
+                .Include(s => s.WeekDay)
+                .Include(s => s.PetResanService)
+                .Where(s => s.Active
+                    && s.WeekDay.Number == tomorrowDayNumber
+                    && s.PetResanService.Active
+                    && (s.PetResanService.EndDate == null || s.PetResanService.EndDate >= tomorrow))
+                .AsNoTracking()
+                .ToListAsync();
+
+            foreach (var schedule in schedules)
+            {
+                if (!ReservationScheduleValidator.TryGetServiceStartDateTime(tomorrow, schedule.Time, out var occurrenceAt))
+                    continue;
+
+                var alreadyGenerated = await _context.Trips.AnyAsync(t =>
+                    t.PetResanServiceScheduleId == schedule.Id &&
+                    t.TripStartDateTime.HasValue &&
+                    t.TripStartDateTime.Value.Date == tomorrow);
+                if (alreadyGenerated)
+                    continue;
+
+                var service = schedule.PetResanService;
+
+                var priceInput = new TripDto
+                {
+                    Origin = new Application.Common.Dto.LocationPoint.PointDto(service.Origin.X, service.Origin.Y),
+                    Destination = new Application.Common.Dto.LocationPoint.PointDto(service.Destination.X, service.Destination.Y),
+                    FromAddress = service.FromAddress,
+                    ToAddress = service.ToAddress,
+                    TripStartDateTime = occurrenceAt,
+                    RoundTrip = true
+                };
+
+                var trip = new Trip
+                {
+                    Origin = new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 },
+                    Destination = new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 },
+                    FromAddress = service.FromAddress,
+                    ToAddress = service.ToAddress,
+                    UserId = service.UserId,
+                    IsOnline = true,
+                    RoundTrip = true,
+                    OwnerRidesAlong = false,
+                    CreateDate = DateTime.Now,
+                    TripStartDateTime = occurrenceAt,
+                    DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
+                    TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
+                    PetResanServiceScheduleId = schedule.Id
+                };
+
+                try
+                {
+                    trip.Price = await _priceCalculationService.CalculateTripPrice(priceInput);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Calculating price for PetResanService occurrence (schedule {ScheduleId}) failed.", schedule.Id);
+                    continue;
+                }
+
+                if (trip.Price <= 0)
+                {
+                    _logger.LogError("Calculated price for PetResanService occurrence (schedule {ScheduleId}) was {Price} — skipping.", schedule.Id, trip.Price);
+                    continue;
+                }
+
+                ApplyTripPets(trip, new List<long> { service.UserPetId }, null);
+
+                await _context.Trips.AddAsync(trip);
+                await _context.SaveChangesAsync();
+
+                trip.FromWallet = true;
+                trip.WalletPrice = trip.Price;
+
+                BaseResultDto<Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto> walletResult;
+                try
+                {
+                    walletResult = await _walletService.InsertUpdateTripAsync(
+                        new Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto { Painding = false, Amount = trip.WalletPrice, UserId = service.UserId, TripId = trip.Id },
+                        true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Charging wallet for PetResanService occurrence (trip {TripId}) failed.", trip.Id);
+                    walletResult = new BaseResultDto<Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto>(false, null);
+                }
+
+                if (walletResult.IsSuccess)
+                {
+                    trip.IsPaid = true;
+                    await _context.SaveChangesAsync();
+
+                    await _noticeService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.TripDriverSelectionRequired,
+                        ReferenceType = "Trip",
+                        ReferenceId = trip.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.TripDriverSelectionRequired}:{trip.Id}"
+                    });
+                }
+                else
+                {
+                    trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
+                    trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.System;
+                    trip.CancelReasonDetail = "موجودی کیف پول برای سرویس پت‌رسان هفتگی کافی نبود.";
+                    await _context.SaveChangesAsync();
+
+                    await _noticeService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.PetResanServiceInsufficientWallet,
+                        ActorUserId = service.UserId,
+                        ReferenceType = "PetResanService",
+                        ReferenceId = service.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.PetResanServiceInsufficientWallet}:{schedule.Id}:{tomorrow:yyyyMMdd}"
+                    });
+                }
+            }
+        }
+
         public async Task DispatchScheduledTripsAsync()
         {
             var due = await _context.Trips
