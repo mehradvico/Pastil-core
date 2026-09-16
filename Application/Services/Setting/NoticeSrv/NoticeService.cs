@@ -62,7 +62,10 @@ namespace Application.Services.Setting.NoticeSrv
             if (dto.ToDateUtc.HasValue)
                 model = model.Where(x => x.CreateDateUtc <= dto.ToDateUtc.Value);
             model = dto.SortBy == SortEnum.Old ? model.OrderBy(x => x.CreateDateUtc).ThenBy(x => x.Id) : model.OrderByDescending(x => x.CreateDateUtc).ThenByDescending(x => x.Id);
-            return new NoticeSearchDto(dto, model, _mapper);
+            var result = new NoticeSearchDto(dto, model, _mapper);
+            foreach (var notice in result.List)
+                ApplyNavigation(notice);
+            return result;
         }
 
         public override async Task<BaseResultDto<NoticeDto>> FindAsyncDto(long id)
@@ -71,7 +74,7 @@ namespace Application.Services.Setting.NoticeSrv
             var item = await NoticeQuery().FirstOrDefaultAsync(x => x.Id == id);
             if (item == null)
                 return new BaseResultDto<NoticeDto>(false, null);
-            return new BaseResultDto<NoticeDto>(true, _mapper.Map<NoticeDto>(item));
+            return new BaseResultDto<NoticeDto>(true, MapNotice(item));
         }
 
         public async Task<BaseResultDto<NoticeDto>> ReadAsync(long id)
@@ -85,7 +88,7 @@ namespace Application.Services.Setting.NoticeSrv
                 await SaveReadsAsync(new List<long> { id }, NoticeReadMode.Single);
                 item = await NoticeQuery().FirstOrDefaultAsync(x => x.Id == id);
             }
-            return new BaseResultDto<NoticeDto>(true, _mapper.Map<NoticeDto>(item));
+            return new BaseResultDto<NoticeDto>(true, MapNotice(item));
         }
 
         public Task<BaseResultDto<NoticeDto>> CreateAsync(NoticeCreateDto dto)
@@ -180,6 +183,56 @@ namespace Application.Services.Setting.NoticeSrv
         private IQueryable<Notice> NoticeQuery()
         {
             return _context.Notices.Include(x => x.NoticeType).Include(x => x.ActorUser).Include(x => x.Read).ThenInclude(x => x.Admin);
+        }
+
+        private NoticeDto MapNotice(Notice item)
+        {
+            var notice = _mapper.Map<NoticeDto>(item);
+            ApplyNavigation(notice);
+            return notice;
+        }
+
+        private static void ApplyNavigation(NoticeDto notice)
+        {
+            if (notice == null)
+                return;
+            notice.NavigationUrl = ResolveNavigation(
+                notice.NavigationUrl,
+                notice.NoticeType,
+                notice.ReferenceType,
+                notice.ReferenceId,
+                notice.Metadata,
+                notice.ActorUserId);
+        }
+
+        private static void ApplyNavigation(NoticeVDto notice)
+        {
+            if (notice == null)
+                return;
+            notice.NavigationUrl = ResolveNavigation(
+                notice.NavigationUrl,
+                notice.NoticeType,
+                notice.ReferenceType,
+                notice.ReferenceId,
+                notice.Metadata,
+                notice.ActorUserId);
+        }
+
+        private static string ResolveNavigation(
+            string navigationUrl,
+            NoticeTypeVDto noticeType,
+            string referenceType,
+            long? referenceId,
+            Dictionary<string, string> metadata,
+            long? actorUserId)
+        {
+            return NoticeNavigationResolver.Resolve(
+                navigationUrl,
+                noticeType?.Label,
+                referenceType,
+                referenceId,
+                metadata,
+                actorUserId);
         }
 
         private string GetAdminName()

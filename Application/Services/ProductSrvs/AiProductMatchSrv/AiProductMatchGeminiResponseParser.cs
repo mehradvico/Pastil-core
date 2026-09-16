@@ -15,6 +15,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
     public class AiProductMatchRankedCandidate
     {
         public int Index { get; set; }
+        public int? PackageIndex { get; set; }
         public double Confidence { get; set; }
     }
 
@@ -80,6 +81,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                         rowResult.Ranked.Add(new AiProductMatchRankedCandidate
                         {
                             Index = index.Value,
+                            PackageIndex = TryGetInt(entry?["packageIndex"]),
                             Confidence = TryGetDouble(entry?["confidence"]) ?? 0
                         });
                     }

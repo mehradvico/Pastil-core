@@ -27,6 +27,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
         // حداقل امتیاز اطمینان برای انتخاب خودکار یک محصول به‌عنوان بهترین تطبیق؛
         // پایین‌تر از این فقط در matches[] پیشنهاد می‌شود، productId اصلی خالی می‌ماند.
-        public double AutoSelectConfidenceThreshold { get; set; } = 0.55;
+        public double AutoSelectConfidenceThreshold { get; set; } = 0.80;
     }
 }

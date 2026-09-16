@@ -11,7 +11,9 @@ using Application.Services.ProductSrvs.VarietySrv.Dto;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Persistence.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,12 +27,14 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
         private readonly IMapper mapper;
         private readonly IProductService _productService;
         private readonly IProductStockAlertService _productStockAlertService;
-        public ProductItemService(IDataBaseContext _context, IMapper mapper, IProductService productService, IProductStockAlertService productStockAlertService) : base(_context, mapper)
+        private readonly ILogger<ProductItemService> _logger;
+        public ProductItemService(IDataBaseContext _context, IMapper mapper, IProductService productService, IProductStockAlertService productStockAlertService, ILogger<ProductItemService> logger) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             this._productService = productService;
             this._productStockAlertService = productStockAlertService;
+            this._logger = logger;
         }
 
         public ProductItemSearchDto SearchDto(ProductItemInputDto dto)
@@ -80,6 +84,9 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
         }
         public async Task<BaseResultDto> InsertOrUpdateAsync(ProductItemListUpdateDto productItemListUpdate)
         {
+            if (productItemListUpdate == null || productItemListUpdate.ProductId <= 0 || productItemListUpdate.StoreId <= 0 || productItemListUpdate.ProductItems == null || !productItemListUpdate.ProductItems.Any())
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
             try
             {
                 productItemListUpdate.ProductItems.ForEach(s => s.StoreId = productItemListUpdate.StoreId);
@@ -95,32 +102,50 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
 
                 InsertOrUpdate(productItemListUpdate.ProductItems);
 
-                var currentItems = await _context.ProductItems
-                    .AsNoTracking()
-                    .Include(item => item.Store)
-                    .Where(item => item.ProductId == productItemListUpdate.ProductId && item.StoreId == productItemListUpdate.StoreId && !item.Deleted)
-                    .ToListAsync();
-                var previousByKey = previousItems
-                    .GroupBy(item => BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id))
-                    .ToDictionary(group => group.Key, group => group.First());
-                var restockedItems = currentItems
-                    .Where(item => submittedKeys.Contains(BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id)) &&
-                                   item.Quantity > 0 && item.Active && item.SystemActive && item.Store != null && item.Store.Active &&
-                                   (!previousByKey.TryGetValue(BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id), out var previous) || previous.Quantity <= 0))
-                    .GroupBy(item => new { item.ProductId, item.StoreId })
-                    .Select(group => group.Key)
-                    .ToList();
+                // ثبت موجودی در بالا انجام شده است. اعلان و بازسازی قیمت کارهای جانبی‌اند؛
+                // خرابی آن‌ها نباید باعث شود پاسخ ثبت کاتالوگ به اشتباه ناموفق برگردد.
+                try
+                {
+                    var currentItems = await _context.ProductItems
+                        .AsNoTracking()
+                        .Include(item => item.Store)
+                        .Where(item => item.ProductId == productItemListUpdate.ProductId && item.StoreId == productItemListUpdate.StoreId && !item.Deleted)
+                        .ToListAsync();
+                    var previousByKey = previousItems
+                        .GroupBy(item => BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id))
+                        .ToDictionary(group => group.Key, group => group.First());
+                    var restockedItems = currentItems
+                        .Where(item => submittedKeys.Contains(BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id)) &&
+                                       item.Quantity > 0 && item.Active && item.SystemActive && item.Store != null && item.Store.Active &&
+                                       (!previousByKey.TryGetValue(BuildInventoryKey(item.VarietyItemId, item.VarietyItem2Id), out var previous) || previous.Quantity <= 0))
+                        .GroupBy(item => new { item.ProductId, item.StoreId })
+                        .Select(group => group.Key)
+                        .ToList();
 
-                foreach (var restockedItem in restockedItems)
-                    await _productStockAlertService.NotifyRestockedAsync(restockedItem.ProductId, restockedItem.StoreId);
+                    foreach (var restockedItem in restockedItems)
+                        await _productStockAlertService.NotifyRestockedAsync(restockedItem.ProductId, restockedItem.StoreId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Product items were saved for store {StoreId} and product {ProductId}, but restock notifications could not be sent.", productItemListUpdate.StoreId, productItemListUpdate.ProductId);
+                }
 
-                await _productService.UpdateProductPriceAsync(ProductUpdateTypeEnum.Product, Id: productItemListUpdate.ProductId.ToString());
+                try
+                {
+                    await _productService.UpdateProductPriceAsync(ProductUpdateTypeEnum.Product, Id: productItemListUpdate.ProductId.ToString());
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Product items were saved for store {StoreId} and product {ProductId}, but the product-price recalculation failed.", productItemListUpdate.StoreId, productItemListUpdate.ProductId);
+                }
+
                 return new BaseResultDto(true);
 
             }
-            catch
+            catch (Exception ex)
             {
-                return new BaseResultDto(false);
+                _logger.LogError(ex, "Failed to save product items for store {StoreId} and product {ProductId}.", productItemListUpdate.StoreId, productItemListUpdate.ProductId);
+                return new BaseResultDto(false, Resource.Notification.Unsuccess);
             }
         }
 

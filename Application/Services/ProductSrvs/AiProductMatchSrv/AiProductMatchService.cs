@@ -23,6 +23,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
     {
         private const string IssueNotFoundInCatalog = "در کاتالوگ پاستیل پیدا نشد";
         private const string IssueNoAutoMatch = "امکان تطبیق خودکار وجود نداشت؛ لطفاً به‌صورت دستی انتخاب کنید";
+        private const double MinimumSuggestedMatchConfidence = 0.60;
 
         private static readonly JsonSerializerOptions RowsJsonOptions = new()
         {
@@ -101,26 +102,32 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             }
 
             // آپلود تصاویر (اگر وجود دارد) به سرویس File — طبق تصمیم ۰.۶، برای نگهداری دائمی جهت بازبینی بعدی
+            // موازی: هر آپلود یک HTTP Call مستقل به File Service است؛ با چند عکس، این توالی خودش چند ثانیه از
+            // بودجه‌ی زمانی کلاینت را می‌بلعید (طبق لاگ واقعی: ~۳-۴ ثانیه به‌ازای هر عکس، پشت‌سرهم).
             var uploadedImages = new List<(IFormFile Image, long? PictureId)>();
             if (hasImages)
             {
-                foreach (var image in dto.Images)
+                var uploadTasks = dto.Images.Select(async image =>
                 {
                     var (ok, pictureId, error) = await _fileClient.UploadAsync(image, authorizationHeaderValue, cancellationToken);
                     if (!ok)
                         _logger.LogWarning("AiProductMatch failed to persist an uploaded image for store {StoreId}: {Error}", storeId, error);
-                    uploadedImages.Add((image, ok ? pictureId : null));
-                }
+                    return (Image: image, PictureId: ok ? pictureId : (long?)null);
+                });
+                uploadedImages.AddRange(await Task.WhenAll(uploadTasks));
             }
 
             var workingRows = new List<AiProductMatchWorkingRow>();
 
             if (sourceType == "shelf")
             {
-                var imageIndex = 0;
-                foreach (var (image, pictureId) in uploadedImages)
+                // موازی: هر عکس یک Call مستقل به Gemini/GapGPT/AvalAI است (تا ~RequestTimeoutSeconds هرکدام)؛
+                // اجرای پشت‌سرهم برای چند عکس، بودجه‌ی زمانی کلاینت را چند برابر می‌کند بدون هیچ اشتراک state.
+                var extractionTasks = uploadedImages.Select(async (uploaded, index) =>
                 {
-                    imageIndex++;
+                    var imageIndex = index + 1;
+                    var (image, pictureId) = uploaded;
+
                     byte[] bytes;
                     await using (var stream = image.OpenReadStream())
                     await using (var memory = new System.IO.MemoryStream())
@@ -135,10 +142,11 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                         new List<(string, byte[])> { (string.IsNullOrWhiteSpace(image.ContentType) ? "image/jpeg" : image.ContentType, bytes) },
                         cancellationToken);
 
+                    var rowsForImage = new List<AiProductMatchWorkingRow>();
                     if (!extraction.IsSuccess)
                     {
                         _logger.LogWarning("AiProductMatch shelf extraction failed for image {ImageIndex}, store {StoreId}: {Error}", imageIndex, storeId, extraction.ErrorCode);
-                        continue;
+                        return rowsForImage;
                     }
 
                     var extractedRows = AiProductMatchGeminiResponseParser.ParseShelfExtraction(extraction.RawJson);
@@ -146,7 +154,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     foreach (var extracted in extractedRows)
                     {
                         itemIndex++;
-                        workingRows.Add(new AiProductMatchWorkingRow
+                        rowsForImage.Add(new AiProductMatchWorkingRow
                         {
                             RowId = $"shelf-{imageIndex}-{itemIndex}",
                             Name = extracted.DetectedName,
@@ -156,7 +164,11 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                             SourcePictureId = pictureId
                         });
                     }
-                }
+                    return rowsForImage;
+                });
+
+                foreach (var rowsForImage in await Task.WhenAll(extractionTasks))
+                    workingRows.AddRange(rowsForImage);
 
                 if (workingRows.Count == 0)
                     return Fail(Resource.Notification.AiProductMatchUnanalyzable, 3);
@@ -185,9 +197,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     return Fail(Resource.Notification.AiProductMatchInvalidInput, 1);
             }
 
-            var candidatesByRow = new Dictionary<string, List<AiProductMatchCandidateProduct>>();
-            foreach (var row in workingRows)
-                candidatesByRow[row.RowId] = await FindCandidatesAsync(row.Name, storeId, cancellationToken);
+            var candidatesByRow = await FindCandidatesForAllRowsAsync(workingRows, storeId, cancellationToken);
 
             var ranked = new List<AiProductMatchRankedRowResult>();
             if (candidatesByRow.Values.Any(list => list.Count > 0))
@@ -223,6 +233,11 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     SourcePictureId = row.SourcePictureId
                 };
 
+                // PackageIndex فقط یک اشاره‌ی داخلی به packageهای واقعی همین کاندید است؛ هیچ شناسه‌ای از
+                // مدل گرفته نمی‌شود. اگر مدل درباره‌ی تنوع مطمئن نباشد، ProductItemId خالی می‌ماند تا
+                // فروشنده از فهرست packages انتخاب کند، نه این‌که اولین/موجودترین تنوع اشتباه انتخاب شود.
+                var suggestedPackagesByProductId = new Dictionary<long, AiProductMatchPackageDto>();
+
                 if (candidates.Count == 0)
                 {
                     item.Issues.Add(IssueNotFoundInCatalog);
@@ -233,10 +248,16 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 var rowRanked = ranked.FirstOrDefault(r => r.RowId == row.RowId);
                 if (rowRanked != null)
                 {
+                    var usedCandidateIndexes = new HashSet<int>();
                     foreach (var rankedCandidate in rowRanked.Ranked)
                     {
                         // محافظت در برابر Hallucination: هر اندیسی خارج از بازه‌ی واقعی کاندیدها نادیده گرفته می‌شود
-                        if (rankedCandidate.Index < 0 || rankedCandidate.Index >= candidates.Count)
+                        if (rankedCandidate.Index < 0 || rankedCandidate.Index >= candidates.Count ||
+                            !usedCandidateIndexes.Add(rankedCandidate.Index))
+                            continue;
+
+                        var confidence = rankedCandidate.Confidence;
+                        if (!double.IsFinite(confidence) || confidence < MinimumSuggestedMatchConfidence)
                             continue;
 
                         var candidate = candidates[rankedCandidate.Index];
@@ -244,9 +265,16 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                         {
                             ProductId = candidate.ProductId,
                             Name = candidate.Name,
-                            Confidence = rankedCandidate.Confidence,
+                            Confidence = Math.Clamp(confidence, 0, 1),
                             ProductItems = candidate.Packages
                         });
+
+                        var suggestedPackage = FindSuggestedPackage(candidate.Packages, rankedCandidate.PackageIndex);
+                        if (suggestedPackage != null)
+                            suggestedPackagesByProductId[candidate.ProductId] = suggestedPackage;
+
+                        if (item.Matches.Count == 3)
+                            break;
                     }
                 }
 
@@ -256,7 +284,9 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     item.ProductId = best.ProductId;
                     item.ProductName = best.Name;
                     item.Confidence = best.Confidence;
-                    var bestPackage = best.ProductItems.FirstOrDefault(p => p.ExistsForCurrentStore) ?? best.ProductItems.FirstOrDefault();
+                    suggestedPackagesByProductId.TryGetValue(best.ProductId, out var bestPackage);
+                    // تک-تنوعی بودن تنها حالت امن برای انتخاب خودکار بدون شواهد تنوع از مدل است.
+                    bestPackage ??= best.ProductItems.Count == 1 ? best.ProductItems[0] : null;
                     item.ProductItemId = bestPackage?.ProductItemId;
                 }
                 else
@@ -270,11 +300,39 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             return new BaseResultDto<AiProductMatchAnalyzeResultDto>(true, new AiProductMatchAnalyzeResultDto { Items = items });
         }
 
-        private async Task<List<AiProductMatchCandidateProduct>> FindCandidatesAsync(string rawName, long storeId, CancellationToken cancellationToken)
+        // موازی‌سازی جست‌وجوی کاندید برای همه‌ی ردیف‌ها هم‌زمان، در دو فاز:
+        // فاز ۱) هر ردیف یک Query مستقل روی Dapper/SqlConnection خودش می‌زند (Thread-safe، چون هرکدام
+        //        Connection جدای خودش را باز می‌کند) — قبلاً این حلقه پشت‌سرهم (Sequential) اجرا می‌شد و با
+        //        چند ردیف (مثلاً ۷ آیتم تشخیص‌داده‌شده از عکس)، مجموع Timeout ها به‌سرعت جمع می‌شد.
+        // فاز ۲) هیدریت (Products/ProductItems) روی _context یک‌بار و برای اجتماع همه‌ی شناسه‌ها انجام
+        //        می‌شود — چون DbContext را نمی‌توان هم‌زمان از چند Task صدا زد (Thread-unsafe)، و این کار
+        //        تعداد Round-trip های EF را هم از ۲×تعداد‌ردیف به فقط ۲ کاهش می‌دهد.
+        private async Task<Dictionary<string, List<AiProductMatchCandidateProduct>>> FindCandidatesForAllRowsAsync(
+            List<AiProductMatchWorkingRow> rows,
+            long storeId,
+            CancellationToken cancellationToken)
         {
-            var result = new List<AiProductMatchCandidateProduct>();
+            var searchTasks = rows.Select(async row => new
+            {
+                row.RowId,
+                ProductIds = await SearchProductIdsAsync(row.Name, cancellationToken)
+            });
+            var searchResults = await Task.WhenAll(searchTasks);
+
+            var allProductIds = searchResults.SelectMany(r => r.ProductIds).Distinct().ToList();
+            var (productById, itemsByProductId) = await LoadCandidateProductsAsync(allProductIds, cancellationToken);
+
+            var candidatesByRow = new Dictionary<string, List<AiProductMatchCandidateProduct>>();
+            foreach (var searchResult in searchResults)
+                candidatesByRow[searchResult.RowId] = BuildCandidates(searchResult.ProductIds, productById, itemsByProductId, storeId);
+
+            return candidatesByRow;
+        }
+
+        private async Task<List<long>> SearchProductIdsAsync(string rawName, CancellationToken cancellationToken)
+        {
             if (string.IsNullOrWhiteSpace(rawName))
-                return result;
+                return new List<long>();
 
             var request = new SearchRequestDto
             {
@@ -297,35 +355,35 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             request.SearchTerms = SearchNormalizeHelper.BuildTerms(request.Q, request.EnableFuzzy);
 
             if (string.IsNullOrWhiteSpace(request.Q) || request.Q.Length < 2)
-                return result;
+                return new List<long>();
 
-            List<long> found;
             try
             {
                 // عمداً SearchMinAsync نیست: اون متد برای جستجوی مشتری طراحی شده و فقط محصولاتی که
                 // حداقل یک فروشگاه فعال با موجودی>۰ دارند برمی‌گردونه. اینجا دقیقاً برعکسش لازمه —
                 // محصولاتی که فروشنده‌ی فعلی (یا هیچ فروشگاهی) هنوز براشون موجودی ثبت نکرده، چون
                 // کل هدف این فیچر همینه: پیدا کردن محصول کاتالوگ برای ساختن اولین ProductItem آن.
-                found = await _productService.SearchCatalogProductIdsAsync(request, cancellationToken);
+                var found = await _productService.SearchCatalogProductIdsAsync(request, cancellationToken);
+                return found == null ? new List<long>() : found.Distinct().ToList();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "AiProductMatch candidate search failed for raw name '{RawName}'.", rawName);
-                return result;
+                return new List<long>();
             }
+        }
 
-            if (found == null || found.Count == 0)
-                return result;
-
-            var productIds = found.Distinct().ToList();
+        private async Task<(Dictionary<long, Product> ProductById, Dictionary<long, List<ProductItem>> ItemsByProductId)> LoadCandidateProductsAsync(
+            List<long> productIds,
+            CancellationToken cancellationToken)
+        {
+            if (productIds.Count == 0)
+                return (new Dictionary<long, Product>(), new Dictionary<long, List<ProductItem>>());
 
             var products = await _context.Products
                 .Include(p => p.Brand)
                 .Where(p => productIds.Contains(p.Id) && p.Active && !p.Deleted)
                 .ToListAsync(cancellationToken);
-
-            if (products.Count == 0)
-                return result;
 
             var productById = products.ToDictionary(p => p.Id);
 
@@ -335,23 +393,45 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 .Where(pi => productIds.Contains(pi.ProductId) && !pi.Deleted)
                 .ToListAsync(cancellationToken);
 
+            var itemsByProductId = allItems.GroupBy(pi => pi.ProductId).ToDictionary(g => g.Key, g => g.ToList());
+
+            return (productById, itemsByProductId);
+        }
+
+        private static List<AiProductMatchCandidateProduct> BuildCandidates(
+            List<long> productIds,
+            Dictionary<long, Product> productById,
+            Dictionary<long, List<ProductItem>> itemsByProductId,
+            long storeId)
+        {
+            var result = new List<AiProductMatchCandidateProduct>();
             foreach (var productId in productIds)
             {
                 if (!productById.TryGetValue(productId, out var product))
                     continue;
 
-                var itemsForProduct = allItems.Where(pi => pi.ProductId == product.Id).ToList();
+                itemsByProductId.TryGetValue(productId, out var itemsForProduct);
                 result.Add(new AiProductMatchCandidateProduct
                 {
                     ProductId = product.Id,
                     Name = product.Name,
                     BrandName = product.Brand?.Name,
                     CodeValue = product.CodeValue,
-                    Packages = BuildPackages(itemsForProduct, storeId)
+                    Packages = BuildPackages(itemsForProduct ?? new List<ProductItem>(), storeId)
                 });
             }
 
             return result;
+        }
+
+        private static AiProductMatchPackageDto FindSuggestedPackage(
+            List<AiProductMatchPackageDto> packages,
+            int? packageIndex)
+        {
+            if (!packageIndex.HasValue || packageIndex.Value < 0 || packageIndex.Value >= packages.Count)
+                return null;
+
+            return packages[packageIndex.Value];
         }
 
         private static List<AiProductMatchPackageDto> BuildPackages(List<ProductItem> productItems, long storeId)
