@@ -79,12 +79,22 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             if (string.IsNullOrWhiteSpace(sourceType) || !validSourceTypes.Contains(sourceType))
                 return Fail(Resource.Notification.AiProductMatchInvalidSourceType, 1);
 
+            // veterinary/sepidar دو مسیر ورودی دارند: rowsJson (وقتی Bridge توانسته جدول را متنی بخواند،
+            // مسیر قبلی و بدون تغییر) یا images (وقتی نتوانسته و به‌جایش از جدول اسکرین‌شات گرفته).
+            var isTableCaptureSource = sourceType == "veterinary" || sourceType == "sepidar";
+
             var hasImages = dto.Images != null && dto.Images.Count > 0;
             var hasRowsJson = !string.IsNullOrWhiteSpace(dto.RowsJson);
             if (!hasImages && !hasRowsJson)
                 return Fail(Resource.Notification.AiProductMatchInvalidInput, 1);
 
-            if (hasImages && dto.Images.Count > _options.MaxImagesPerRequest)
+            if (isTableCaptureSource && hasImages && hasRowsJson)
+                return Fail(Resource.Notification.AiProductMatchInvalidInput, 1);
+
+            var isImageTableCapture = isTableCaptureSource && hasImages;
+            var maxImages = isImageTableCapture ? _options.MaxTableImagesPerRequest : _options.MaxImagesPerRequest;
+
+            if (hasImages && dto.Images.Count > maxImages)
                 return Fail(Resource.Notification.AiProductMatchInvalidInput, 1);
 
             if (hasImages && dto.Images.Any(image => image == null || image.Length <= 0 || image.Length > _options.MaxImageSizeBytes))
@@ -178,7 +188,17 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     workingRows.AddRange(rowsForImage);
 
                 // چند عکس هم‌پوشان از یک قفسه می‌توانند همان SKU را دوباره برگردانند؛ این یک محصول است، نه چند ردیف.
-                workingRows = AiProductMatchMatchingHelper.DeduplicateByName(workingRows);
+                workingRows = AiProductMatchMatchingHelper.DeduplicateRows(workingRows);
+
+                if (workingRows.Count == 0)
+                    return Fail(Resource.Notification.AiProductMatchUnanalyzable, 3);
+            }
+            else if (isImageTableCapture)
+            {
+                workingRows = await ExtractTableCaptureRowsAsync(uploadedImages, storeId, cancellationToken);
+
+                // اسکرول صفحه‌به‌صفحه یعنی یک ردیف می‌تواند در دو اسکرین‌شات پشت‌سرهم دیده شود.
+                workingRows = AiProductMatchMatchingHelper.DeduplicateRows(workingRows);
 
                 if (workingRows.Count == 0)
                     return Fail(Resource.Notification.AiProductMatchUnanalyzable, 3);
@@ -242,6 +262,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     Quantity = row.Quantity,
                     SourcePictureId = row.SourcePictureId
                 };
+
+                // سلول ناخوانا (قیمت/تعداد/...) هنگام استخراج از عکس — نه رد کل ردیف، فقط هشدار به فروشنده.
+                if (!string.IsNullOrWhiteSpace(row.ExtractionIssue))
+                    item.Issues.Add(row.ExtractionIssue);
 
                 // PackageIndex فقط یک اشاره‌ی داخلی به packageهای واقعی همین کاندید است؛ هیچ شناسه‌ای از
                 // مدل گرفته نمی‌شود. اگر مدل درباره‌ی تنوع مطمئن نباشد، ProductItemId خالی می‌ماند تا
@@ -321,6 +345,79 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             }
 
             return new BaseResultDto<AiProductMatchAnalyzeResultDto>(true, new AiProductMatchAnalyzeResultDto { Items = items });
+        }
+
+        // اسکرین‌شات‌های جدول نرم‌افزار انبار را در دسته‌های چندتایی (نه یکی‌یکی مثل قفسه) به مدل
+        // می‌فرستد: با تا ۴۰ صفحه، ۴۰ فراخوانی موازی جدا هم هزینه‌ی تکرار system prompt را ۴۰ برابر
+        // می‌کند و هم ریسک Rate-Limit سمت Provider را بالا می‌برد. SourcePictureId عمداً خالی می‌ماند
+        // چون هر دسته چند تصویر دارد و نمی‌شود یک ردیف را با قطعیت به یکی از آن‌ها نسبت داد — مستند
+        // فرانت هم این فیلد را برای veterinary/sepidar لازم نداشت.
+        private async Task<List<AiProductMatchWorkingRow>> ExtractTableCaptureRowsAsync(
+            List<(IFormFile Image, long? PictureId)> uploadedImages,
+            long storeId,
+            CancellationToken cancellationToken)
+        {
+            var batchSize = Math.Max(1, _options.TableImagesPerVisionCall);
+            var batches = uploadedImages
+                .Select((uploaded, index) => (uploaded, index))
+                .GroupBy(x => x.index / batchSize)
+                .Select(g => g.Select(x => x.uploaded).ToList())
+                .ToList();
+
+            var extractionTasks = batches.Select(async (batch, batchIndex) =>
+            {
+                var images = new List<(string MimeType, byte[] Bytes)>();
+                foreach (var (image, _) in batch)
+                {
+                    byte[] bytes;
+                    await using (var stream = image.OpenReadStream())
+                    await using (var memory = new System.IO.MemoryStream())
+                    {
+                        await stream.CopyToAsync(memory, cancellationToken);
+                        bytes = memory.ToArray();
+                    }
+                    images.Add((string.IsNullOrWhiteSpace(image.ContentType) ? "image/png" : image.ContentType, bytes));
+                }
+
+                var extraction = await _geminiClient.GenerateJsonAsync(
+                    AiProductMatchPrompts.TableCaptureExtractionSystemInstruction,
+                    AiProductMatchPrompts.TableCaptureExtractionUserText,
+                    images,
+                    cancellationToken);
+
+                var rowsForBatch = new List<AiProductMatchWorkingRow>();
+                if (!extraction.IsSuccess)
+                {
+                    _logger.LogWarning("AiProductMatch table-capture extraction failed for batch {BatchIndex}, store {StoreId}: {Error}", batchIndex + 1, storeId, extraction.ErrorCode);
+                    return rowsForBatch;
+                }
+
+                var extractedRows = AiProductMatchGeminiResponseParser.ParseTableCaptureExtraction(extraction.RawJson);
+                var itemIndex = 0;
+                foreach (var extracted in extractedRows)
+                {
+                    itemIndex++;
+                    rowsForBatch.Add(new AiProductMatchWorkingRow
+                    {
+                        RowId = $"table-{batchIndex + 1}-{itemIndex}",
+                        Name = extracted.DetectedName,
+                        Brand = extracted.Brand,
+                        AnimalType = extracted.AnimalType,
+                        PackageSizeValue = extracted.PackageSizeValue,
+                        PackageSizeUnit = extracted.PackageSizeUnit,
+                        Price = extracted.Price,
+                        Quantity = extracted.Quantity,
+                        ExternalCode = extracted.ExternalCode,
+                        ExtractionIssue = extracted.ExtractionIssue
+                    });
+                }
+                return rowsForBatch;
+            });
+
+            var result = new List<AiProductMatchWorkingRow>();
+            foreach (var rowsForBatch in await Task.WhenAll(extractionTasks))
+                result.AddRange(rowsForBatch);
+            return result;
         }
 
         // موازی‌سازی جست‌وجوی کاندید برای همه‌ی ردیف‌ها هم‌زمان، در دو فاز:

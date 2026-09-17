@@ -22,6 +22,17 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
         public int MaxImagesPerRequest { get; set; } = 8;
         public int MaxImageSizeBytes { get; set; } = 8 * 1024 * 1024;
+
+        // برای veterinary/sepidar وقتی جدول نرم‌افزار انبار به‌صورت متن قابل‌خواندن نبود و Bridge
+        // به‌جای آن، صفحه‌به‌صفحه از جدول اسکرین‌شات می‌گیرد (تا ۴۰ صفحه، نه ۸ مثل عکس قفسه).
+        public int MaxTableImagesPerRequest { get; set; } = 40;
+
+        // چند اسکرین‌شات جدول با هم در یک فراخوانی مدل فرستاده شوند، نه یکی‌یکی مثل قفسه — وگرنه
+        // ۴۰ تصویر یعنی ۴۰ فراخوانی موازی جدا به GapGPT/Gemini که ریسک Rate-Limit و هزینه‌ی تکراری
+        // system prompt را چند برابر می‌کند. عدد کم نگه داشته می‌شود چون هر اسکرین‌شات جدول معمولاً
+        // چند ده ردیف دارد و فشردن تصاویر بیشتر در یک تماس، دقت خواندن مدل را کم می‌کند.
+        public int TableImagesPerVisionCall { get; set; } = 4;
+
         public int CandidateShortlistSize { get; set; } = 25;
         public int RequestTimeoutSeconds { get; set; } = 15;
 
