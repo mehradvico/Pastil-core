@@ -14,6 +14,13 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         public int? Quantity { get; set; }
         public string Unit { get; set; }
         public long? SourcePictureId { get; set; }
+
+        // فقط برای ردیف‌های استخراج‌شده از عکس قفسه پر می‌شوند؛ سیگنال ساختاریافته‌ی مرحله‌ی تطبیق،
+        // به‌جای اتکای صرف به شباهت متنی روی detectedName.
+        public string Brand { get; set; }
+        public string AnimalType { get; set; }
+        public double? PackageSizeValue { get; set; }
+        public string PackageSizeUnit { get; set; }
     }
 
     public class AiProductMatchCandidateProduct

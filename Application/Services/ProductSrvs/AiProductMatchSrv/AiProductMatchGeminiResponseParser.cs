@@ -7,6 +7,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
     public class AiProductMatchShelfExtractedRow
     {
         public string DetectedName { get; set; }
+        public string Brand { get; set; }
+        public string AnimalType { get; set; }
+        public double? PackageSizeValue { get; set; }
+        public string PackageSizeUnit { get; set; }
         public double? PriceGuess { get; set; }
         public int? QuantityGuess { get; set; }
         public string Unit { get; set; }
@@ -46,6 +50,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 result.Add(new AiProductMatchShelfExtractedRow
                 {
                     DetectedName = name.Trim(),
+                    Brand = item?["brand"]?.GetValue<string>(),
+                    AnimalType = item?["animalType"]?.GetValue<string>(),
+                    PackageSizeValue = TryGetDouble(item?["packageSizeValue"]),
+                    PackageSizeUnit = item?["packageSizeUnit"]?.GetValue<string>(),
                     PriceGuess = TryGetDouble(item?["priceGuess"]),
                     QuantityGuess = TryGetInt(item?["quantityGuess"]),
                     Unit = item?["unit"]?.GetValue<string>()
