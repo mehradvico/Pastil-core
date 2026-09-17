@@ -110,6 +110,9 @@ using Application.Services.PansionSrvs.PansionSrv.Dto;
 using Application.Services.SchoolSrvs.SchoolCourseSrv.Dto;
 using Application.Services.SchoolSrvs.SchoolReserveSrv.Dto;
 using Application.Services.SchoolSrvs.SchoolSrv.Dto;
+using Application.Services.CompanionSrvs.CompanionReserveMessageAttachmentSrv.Dto;
+using Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv.Dto;
+using Application.Services.CompanionSrvs.CompanionReserveMessageSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchBlockSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv.Dto;
 using Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv.Dto;
@@ -663,6 +666,26 @@ namespace Application.Maping
                 .ForMember(x => x.PastilMatchMessage, x => x.Ignore()).ForMember(x => x.ReactorProfile, x => x.Ignore());
             CreateMap<PastilMatchMessageReaction, PastilMatchMessageReactionVDto>();
             CreateMap<PastilMatchMessageReaction, PastilMatchMessageReactionItemVDto>();
+            CreateMap<CompanionReserveMessage, CompanionReserveMessageDto>();
+            CreateMap<CompanionReserveMessageDto, CompanionReserveMessage>()
+                .ForMember(x => x.DeliveredDate, x => x.Ignore()).ForMember(x => x.ReadDate, x => x.Ignore())
+                .ForMember(x => x.Deleted, x => x.Ignore()).ForMember(x => x.CreateDate, x => x.Ignore()).ForMember(x => x.CompanionReserve, x => x.Ignore())
+                .ForMember(x => x.SenderUser, x => x.Ignore()).ForMember(x => x.CompanionReserveMessageType, x => x.Ignore()).ForMember(x => x.ReplyToMessage, x => x.Ignore())
+                .ForMember(x => x.Attachments, x => x.Ignore()).ForMember(x => x.Reactions, x => x.Ignore());
+            CreateMap<CompanionReserveMessage, CompanionReserveMessageVDto>()
+                .ForMember(x => x.Attachments, x => x.MapFrom(s => s.Attachments.Where(a => !a.Deleted).OrderBy(a => a.Order)))
+                .ForMember(x => x.Reactions, x => x.MapFrom(s => s.Reactions.Where(r => !r.Deleted)));
+            CreateMap<CompanionReserveMessage, CompanionReserveMessageReplyVDto>().ForMember(x => x.Content, x => x.MapFrom(s => s.Deleted ? null : s.Content));
+            CreateMap<CompanionReserveMessageAttachment, CompanionReserveMessageAttachmentItemVDto>();
+            CreateMap<CompanionReserveMessageReaction, CompanionReserveMessageReactionItemVDto>();
+            CreateMap<CompanionReserveMessageAttachment, CompanionReserveMessageAttachmentDto>();
+            CreateMap<CompanionReserveMessageAttachmentDto, CompanionReserveMessageAttachment>().ForMember(x => x.Deleted, x => x.Ignore()).ForMember(x => x.CompanionReserveMessage, x => x.Ignore());
+            CreateMap<CompanionReserveMessageAttachment, CompanionReserveMessageAttachmentVDto>();
+            CreateMap<CompanionReserveMessageReaction, CompanionReserveMessageReactionDto>();
+            CreateMap<CompanionReserveMessageReactionDto, CompanionReserveMessageReaction>()
+                .ForMember(x => x.ReactorUserId, x => x.Ignore()).ForMember(x => x.Deleted, x => x.Ignore())
+                .ForMember(x => x.CompanionReserveMessage, x => x.Ignore()).ForMember(x => x.ReactorUser, x => x.Ignore());
+            CreateMap<CompanionReserveMessageReaction, CompanionReserveMessageReactionVDto>();
             //PastilMatch End ----------------------------------------------
 
 

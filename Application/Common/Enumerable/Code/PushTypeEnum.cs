@@ -69,6 +69,7 @@ namespace Application.Common.Enumerable.Code
         PushOnlineReserveReminderBeforeCompanion = 60,
         PushOnlineReserveReminderAtTimeCompanion = 61,
         PushInAppCallStarted = 63,
-        PushSchoolClassStarting = 64
+        PushSchoolClassStarting = 64,
+        PushCompanionReserveNewMessage = 65
     }
 }

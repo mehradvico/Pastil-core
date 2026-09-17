@@ -1305,6 +1305,51 @@
   <data name="InvalidPastilMatchReplyMessage" xml:space="preserve">
     <value>InvalidPastilMatchReplyMessage</value>
   </data>
+  <data name="CompanionReserveMessageContentRequired" xml:space="preserve">
+    <value>CompanionReserveMessageContentRequired</value>
+  </data>
+  <data name="InvalidCompanionReserveMessageType" xml:space="preserve">
+    <value>InvalidCompanionReserveMessageType</value>
+  </data>
+  <data name="CompanionReserveChatNotAvailable" xml:space="preserve">
+    <value>CompanionReserveChatNotAvailable</value>
+  </data>
+  <data name="InvalidCompanionReserveReplyMessage" xml:space="preserve">
+    <value>InvalidCompanionReserveReplyMessage</value>
+  </data>
+  <data name="CompanionReserveMessagePreviewImage" xml:space="preserve">
+    <value>CompanionReserveMessagePreviewImage</value>
+  </data>
+  <data name="CompanionReserveMessagePreviewNewMessage" xml:space="preserve">
+    <value>CompanionReserveMessagePreviewNewMessage</value>
+  </data>
+  <data name="CompanionReserveAttachmentUrlRequired" xml:space="preserve">
+    <value>CompanionReserveAttachmentUrlRequired</value>
+  </data>
+  <data name="CompanionReserveAttachmentContentTypeRequired" xml:space="preserve">
+    <value>CompanionReserveAttachmentContentTypeRequired</value>
+  </data>
+  <data name="CompanionReserveAttachmentFileSizeInvalid" xml:space="preserve">
+    <value>CompanionReserveAttachmentFileSizeInvalid</value>
+  </data>
+  <data name="CompanionReserveAttachmentOrderInvalid" xml:space="preserve">
+    <value>CompanionReserveAttachmentOrderInvalid</value>
+  </data>
+  <data name="CompanionReserveAttachmentAlreadyExists" xml:space="preserve">
+    <value>CompanionReserveAttachmentAlreadyExists</value>
+  </data>
+  <data name="InvalidCompanionReserveImageContentType" xml:space="preserve">
+    <value>InvalidCompanionReserveImageContentType</value>
+  </data>
+  <data name="CompanionReserveMessageAttachmentNotAvailable" xml:space="preserve">
+    <value>CompanionReserveMessageAttachmentNotAvailable</value>
+  </data>
+  <data name="CompanionReserveMessageReactionRequired" xml:space="preserve">
+    <value>CompanionReserveMessageReactionRequired</value>
+  </data>
+  <data name="CompanionReserveMessageReactionTooLong" xml:space="preserve">
+    <value>CompanionReserveMessageReactionTooLong</value>
+  </data>
   <data name="PastilMatchMessageEditNotAvailable" xml:space="preserve">
     <value>PastilMatchMessageEditNotAvailable</value>
   </data>

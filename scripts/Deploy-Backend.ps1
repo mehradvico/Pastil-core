@@ -1,6 +1,8 @@
 <#
 .SYNOPSIS
     One-command deploy of the Pastil backend services (api / file / payment).
+    Deploying api also refreshes the private monitor-agent sidecar required
+    for the authenticated server-monitoring endpoint.
 
 .DESCRIPTION
     For each requested service, automates the full manual pipeline:
@@ -80,6 +82,15 @@ $CredPath    = Join-Path $ScriptsDir '.deploy-credential.xml'
 # Per-service build and deploy metadata. Keys match the docker compose
 # service names in /root/pastil_app/docker-compose.yml.
 $ServiceMap = [ordered]@{
+    'monitor-agent' = @{
+        Project    = 'MonitorAgent/MonitorAgent.csproj'
+        PublishDir = 'publish-monitor-agent'
+        Dockerfile = 'MonitorAgent/Dockerfile.runtime'
+        Image      = 'pastil-monitor-agent:latest'
+        Tar        = 'pastil-monitor-agent.tar'
+        RemoteSub  = 'monitor-agent'
+        Container  = 'pastil-monitor-agent'
+    }
     'api' = @{
         Project    = 'Api/Api.csproj'
         PublishDir = 'publish-api'
@@ -133,6 +144,13 @@ if ($unknown.Count -gt 0) {
 
 # Preserve canonical order (api, file, payment) and drop duplicates.
 $targets = @($ServiceMap.Keys | Where-Object { $requested -contains $_ })
+
+# The API proxies host metrics from the private monitor agent. Always refresh
+# the agent first when API is deployed so the public endpoint is functional as
+# soon as the new API container starts.
+if ($targets -contains 'api' -and $targets -notcontains 'monitor-agent') {
+    $targets = @('monitor-agent') + @($targets | Where-Object { $_ -ne 'monitor-agent' })
+}
 
 if ($targets.Count -eq 0) {
     Write-Host ''
@@ -399,6 +417,35 @@ try {
     Write-Ok "Connected to $ServerUser@$ServerHost"
 
     # -----------------------------------------------------------------------
+    # Private monitoring-agent bootstrap
+    # -----------------------------------------------------------------------
+
+    if ($targets -contains 'monitor-agent') {
+        $monitoringComposePath = Join-Path $BackendRoot 'MonitorAgent\docker-compose.monitoring.yml'
+        $remoteMonitoringCompose = "{0}@{1}:{2}/pastil-monitoring.compose.yml" -f $ServerUser, $ServerHost, $RemoteDir
+
+        Write-Step 'Preparing secure monitoring agent'
+        $code = Invoke-NativeStreaming -Exe $pscpExe -Arguments @(
+            '-batch', '-pwfile', $pwFile, $monitoringComposePath, $remoteMonitoringCompose)
+        if ($code -ne 0) { Stop-WithError 'Uploading the monitoring compose override failed.' }
+
+        # The token is generated remotely once, stored mode 600, and shared
+        # only by the API container and the internal-only monitor agent. It
+        # never passes through the desktop app, logs, or a mobile client.
+        $remoteMonitoringSetup = @(
+            'set -e',
+            "mkdir -p '$RemoteDir/monitor-agent'",
+            "cd '$RemoteDir'",
+            "if [ ! -s monitor-agent.env ]; then umask 077; token=`$(openssl rand -hex 32 2>/dev/null || head -c 32 /dev/urandom | od -An -tx1 | tr -d ' ' | tr -d '\n'); printf 'PASTIL_MONITOR_AGENT_TOKEN=%s\n' `"`$token`" > monitor-agent.env; fi",
+            'chmod 600 monitor-agent.env'
+        ) -join ' && '
+        $code = Invoke-NativeStreaming -Exe $plinkExe -Arguments @(
+            '-batch', '-ssh', '-l', $ServerUser, '-pwfile', $pwFile, $ServerHost, $remoteMonitoringSetup)
+        if ($code -ne 0) { Stop-WithError 'Preparing the monitoring agent on the server failed.' }
+        Write-Ok 'Private monitoring token is ready on the server'
+    }
+
+    # -----------------------------------------------------------------------
     # Pre-flight: tracked secrets
     # -----------------------------------------------------------------------
 
@@ -488,11 +535,17 @@ try {
 
         Write-Step "$name : loading image and recreating container"
 
+        $composeCommand = if ($name -eq 'monitor-agent' -or $name -eq 'api') {
+            'docker compose -f docker-compose.yml -f pastil-monitoring.compose.yml'
+        } else {
+            'docker compose'
+        }
+
         $remoteCommand = @(
             "set -e",
             "cd '$RemoteDir'",
             ("docker load -i {0}/{1}" -f $meta.RemoteSub, $meta.Tar),
-            ("docker compose up -d --no-deps --force-recreate {0}" -f $name)
+            ("{0} up -d --no-deps --force-recreate {1}" -f $composeCommand, $name)
         ) -join ' && '
 
         $code = Invoke-NativeStreaming -Exe $plinkExe -Arguments @(

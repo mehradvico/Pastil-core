@@ -1305,6 +1305,51 @@
   <data name="InvalidPastilMatchReplyMessage" xml:space="preserve">
     <value>خطا در ارسال پاسخ</value>
   </data>
+  <data name="CompanionReserveMessageContentRequired" xml:space="preserve">
+    <value>نمی‌توانید پیام خالی ارسال کنید</value>
+  </data>
+  <data name="InvalidCompanionReserveMessageType" xml:space="preserve">
+    <value>نوع پیام ارسالی پیدا نشد</value>
+  </data>
+  <data name="CompanionReserveChatNotAvailable" xml:space="preserve">
+    <value>روش ارتباط انتخابی این رزرو چت نیست</value>
+  </data>
+  <data name="InvalidCompanionReserveReplyMessage" xml:space="preserve">
+    <value>خطا در ارسال پاسخ</value>
+  </data>
+  <data name="CompanionReserveMessagePreviewImage" xml:space="preserve">
+    <value>تصویر</value>
+  </data>
+  <data name="CompanionReserveMessagePreviewNewMessage" xml:space="preserve">
+    <value>پیام جدید</value>
+  </data>
+  <data name="CompanionReserveAttachmentUrlRequired" xml:space="preserve">
+    <value>آدرس فایل ضمیمه مشخص نیست</value>
+  </data>
+  <data name="CompanionReserveAttachmentContentTypeRequired" xml:space="preserve">
+    <value>نوع فایل ضمیمه مشخص نیست</value>
+  </data>
+  <data name="CompanionReserveAttachmentFileSizeInvalid" xml:space="preserve">
+    <value>حجم فایل ضمیمه نامعتبر است</value>
+  </data>
+  <data name="CompanionReserveAttachmentOrderInvalid" xml:space="preserve">
+    <value>ترتیب فایل ضمیمه نامعتبر است</value>
+  </data>
+  <data name="CompanionReserveAttachmentAlreadyExists" xml:space="preserve">
+    <value>این فایل قبلاً به پیام اضافه شده است</value>
+  </data>
+  <data name="InvalidCompanionReserveImageContentType" xml:space="preserve">
+    <value>فرمت تصویر پشتیبانی نمی‌شود</value>
+  </data>
+  <data name="CompanionReserveMessageAttachmentNotAvailable" xml:space="preserve">
+    <value>این نوع پیام امکان ضمیمه کردن فایل ندارد</value>
+  </data>
+  <data name="CompanionReserveMessageReactionRequired" xml:space="preserve">
+    <value>ری‌اکشن مشخص نشده است</value>
+  </data>
+  <data name="CompanionReserveMessageReactionTooLong" xml:space="preserve">
+    <value>ری‌اکشن انتخابی نامعتبر است</value>
+  </data>
   <data name="PastilMatchMessageEditNotAvailable" xml:space="preserve">
     <value>این پیام قابل ادیت نمی باشد</value>
   </data>

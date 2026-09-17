@@ -2014,6 +2014,131 @@ namespace Persistence.Migrations
                     b.ToTable("CompanionReserveCommentRates");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionReserveMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CompanionReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CompanionReserveMessageTypeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DeliveredDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ReplyToMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SenderUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionReserveId");
+
+                    b.HasIndex("CompanionReserveMessageTypeId");
+
+                    b.HasIndex("ReplyToMessageId");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.ToTable("CompanionReserveMessages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionReserveMessageAttachment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CompanionReserveMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionReserveMessageId");
+
+                    b.ToTable("CompanionReserveMessageAttachments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionReserveMessageReaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CompanionReserveMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Reaction")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ReactorUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionReserveMessageId");
+
+                    b.HasIndex("ReactorUserId");
+
+                    b.ToTable("CompanionReserveMessageReactions");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionTime", b =>
                 {
                     b.Property<long>("Id")
@@ -10529,6 +10654,67 @@ namespace Persistence.Migrations
                     b.Navigation("CompanionReserveComment");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionReserveMessage", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionReserve", "CompanionReserve")
+                        .WithMany()
+                        .HasForeignKey("CompanionReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Code", "CompanionReserveMessageType")
+                        .WithMany()
+                        .HasForeignKey("CompanionReserveMessageTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionReserveMessage", "ReplyToMessage")
+                        .WithMany()
+                        .HasForeignKey("ReplyToMessageId");
+
+                    b.HasOne("Entities.Entities.Security.User", "SenderUser")
+                        .WithMany()
+                        .HasForeignKey("SenderUserId");
+
+                    b.Navigation("CompanionReserve");
+
+                    b.Navigation("CompanionReserveMessageType");
+
+                    b.Navigation("ReplyToMessage");
+
+                    b.Navigation("SenderUser");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionReserveMessageAttachment", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionReserveMessage", "CompanionReserveMessage")
+                        .WithMany("Attachments")
+                        .HasForeignKey("CompanionReserveMessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CompanionReserveMessage");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionReserveMessageReaction", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionReserveMessage", "CompanionReserveMessage")
+                        .WithMany("Reactions")
+                        .HasForeignKey("CompanionReserveMessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "ReactorUser")
+                        .WithMany()
+                        .HasForeignKey("ReactorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CompanionReserveMessage");
+
+                    b.Navigation("ReactorUser");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionTime", b =>
                 {
                     b.HasOne("Entities.Entities.Companion", "Companion")
@@ -13865,6 +14051,13 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.CompanionReserveBatch", b =>
                 {
                     b.Navigation("CompanionReserves");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionReserveMessage", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Reactions");
                 });
 
             modelBuilder.Entity("Entities.Entities.ContactUs", b =>
