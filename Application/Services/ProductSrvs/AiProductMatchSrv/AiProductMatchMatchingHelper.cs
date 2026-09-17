@@ -59,14 +59,18 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                && secondConfidence.Value >= minimumConfidence
                && (bestConfidence - secondConfidence.Value) < marginThreshold;
 
-        // چند بسته از یک محصول در چند عکس هم‌پوشان نباید چند ردیف نتیجه‌ی جدا بشوند.
-        public static List<AiProductMatchWorkingRow> DeduplicateByName(List<AiProductMatchWorkingRow> rows)
+        // چند بسته از یک محصول در چند عکس هم‌پوشان (قفسه) یا چند اسکرین‌شات هم‌پوشان (جدول نرم‌افزار
+        // انبار، از اسکرول صفحه‌به‌صفحه) نباید چند ردیف نتیجه‌ی جدا بشوند. اولویت با کد/بارکد دقیقاً
+        // یکسان است (وقتی هر دو ردیف externalCode دارند)؛ در غیر این صورت نام نرمال‌شده کلید تشخیص است.
+        public static List<AiProductMatchWorkingRow> DeduplicateRows(List<AiProductMatchWorkingRow> rows)
         {
             var seen = new HashSet<string>();
             var result = new List<AiProductMatchWorkingRow>();
             foreach (var row in rows)
             {
-                var key = SearchNormalizeHelper.NormalizeNoSpace(row.Name);
+                var key = !string.IsNullOrWhiteSpace(row.ExternalCode)
+                    ? "code:" + SearchNormalizeHelper.NormalizeNoSpace(row.ExternalCode)
+                    : "name:" + SearchNormalizeHelper.NormalizeNoSpace(row.Name);
                 if (seen.Add(key))
                     result.Add(row);
             }

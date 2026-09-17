@@ -16,6 +16,21 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         public string Unit { get; set; }
     }
 
+    // بر خلاف قفسه (که فقط از روی بسته‌بندی فیزیکی حدس می‌زند)، این ردیف‌ها از اسکرین‌شات جدول یک
+    // نرم‌افزار انبار می‌آیند؛ متن دیجیتال تمیز است، پس price/quantity/externalCode واقعی‌اند نه حدس.
+    public class AiProductMatchTableExtractedRow
+    {
+        public string DetectedName { get; set; }
+        public string Brand { get; set; }
+        public string AnimalType { get; set; }
+        public double? PackageSizeValue { get; set; }
+        public string PackageSizeUnit { get; set; }
+        public double? Price { get; set; }
+        public int? Quantity { get; set; }
+        public string ExternalCode { get; set; }
+        public string ExtractionIssue { get; set; }
+    }
+
     public class AiProductMatchRankedCandidate
     {
         public int Index { get; set; }
@@ -57,6 +72,37 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     PriceGuess = TryGetDouble(item?["priceGuess"]),
                     QuantityGuess = TryGetInt(item?["quantityGuess"]),
                     Unit = item?["unit"]?.GetValue<string>()
+                });
+            }
+
+            return result;
+        }
+
+        public static List<AiProductMatchTableExtractedRow> ParseTableCaptureExtraction(string rawJson)
+        {
+            var result = new List<AiProductMatchTableExtractedRow>();
+            var node = TryParse(rawJson);
+            var items = node?["items"] as JsonArray;
+            if (items == null)
+                return result;
+
+            foreach (var item in items)
+            {
+                var name = item?["detectedName"]?.GetValue<string>();
+                if (string.IsNullOrWhiteSpace(name))
+                    continue;
+
+                result.Add(new AiProductMatchTableExtractedRow
+                {
+                    DetectedName = name.Trim(),
+                    Brand = item?["brand"]?.GetValue<string>(),
+                    AnimalType = item?["animalType"]?.GetValue<string>(),
+                    PackageSizeValue = TryGetDouble(item?["packageSizeValue"]),
+                    PackageSizeUnit = item?["packageSizeUnit"]?.GetValue<string>(),
+                    Price = TryGetDouble(item?["price"]),
+                    Quantity = TryGetInt(item?["quantity"]),
+                    ExternalCode = item?["externalCode"]?.GetValue<string>(),
+                    ExtractionIssue = item?["extractionIssue"]?.GetValue<string>()
                 });
             }
 

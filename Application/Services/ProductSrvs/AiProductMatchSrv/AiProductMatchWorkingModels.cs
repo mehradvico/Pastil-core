@@ -15,12 +15,16 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         public string Unit { get; set; }
         public long? SourcePictureId { get; set; }
 
-        // فقط برای ردیف‌های استخراج‌شده از عکس قفسه پر می‌شوند؛ سیگنال ساختاریافته‌ی مرحله‌ی تطبیق،
-        // به‌جای اتکای صرف به شباهت متنی روی detectedName.
+        // فقط برای ردیف‌های استخراج‌شده از عکس (قفسه یا اسکرین‌شات جدول) پر می‌شوند؛ سیگنال ساختاریافته‌ی
+        // مرحله‌ی تطبیق، به‌جای اتکای صرف به شباهت متنی روی detectedName.
         public string Brand { get; set; }
         public string AnimalType { get; set; }
         public double? PackageSizeValue { get; set; }
         public string PackageSizeUnit { get; set; }
+
+        // وقتی مدل هنگام استخراج از عکس (نه مرحله‌ی تطبیق) به یک سلول/جزئیات ناخوانا برخورده — مستقیم
+        // به‌عنوان issue همان ردیف در پاسخ نهایی ظاهر می‌شود.
+        public string ExtractionIssue { get; set; }
     }
 
     public class AiProductMatchCandidateProduct

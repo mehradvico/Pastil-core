@@ -95,10 +95,42 @@ public class AiProductMatchMatchingHelperTests
             new() { RowId = "shelf-2-2", Name = "تشویقی سگ پدیگری مرغ ۸۰ گرم" }
         };
 
-        var result = AiProductMatchMatchingHelper.DeduplicateByName(rows);
+        var result = AiProductMatchMatchingHelper.DeduplicateRows(rows);
 
         Assert.Equal(2, result.Count);
         Assert.Equal("shelf-1-1", result[0].RowId);
         Assert.Equal("shelf-2-2", result[1].RowId);
+    }
+
+    [Fact]
+    public void Duplicate_rows_from_overlapping_table_screenshots_collapse_by_matching_external_code_even_if_the_name_text_differs_slightly()
+    {
+        var rows = new List<AiProductMatchWorkingRow>
+        {
+            new() { RowId = "table-1-1", Name = "کنسرو گربه شایر مرغ و بوقلمون 400 گرم", ExternalCode = "SPD-7788" },
+            new() { RowId = "table-2-1", Name = "کنسرو شایر مرغ/بوقلمون 400گرم", ExternalCode = "SPD-7788" },
+            new() { RowId = "table-2-2", Name = "کنسرو گربه شایر مرغ و بوقلمون 400 گرم", ExternalCode = "SPD-9911" }
+        };
+
+        var result = AiProductMatchMatchingHelper.DeduplicateRows(rows);
+
+        Assert.Equal(2, result.Count);
+        Assert.Equal("table-1-1", result[0].RowId);
+        Assert.Equal("table-2-2", result[1].RowId);
+    }
+
+    [Fact]
+    public void A_row_without_external_code_still_dedupes_by_name_even_when_other_rows_have_codes()
+    {
+        var rows = new List<AiProductMatchWorkingRow>
+        {
+            new() { RowId = "table-1-1", Name = "کنسرو گربه شایر مرغ و بوقلمون 400 گرم", ExternalCode = null },
+            new() { RowId = "table-2-1", Name = "کنسرو گربه شایر مرغ و بوقلمون 400 گرم", ExternalCode = null }
+        };
+
+        var result = AiProductMatchMatchingHelper.DeduplicateRows(rows);
+
+        Assert.Single(result);
+        Assert.Equal("table-1-1", result[0].RowId);
     }
 }

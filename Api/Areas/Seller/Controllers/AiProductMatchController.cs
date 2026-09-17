@@ -37,11 +37,13 @@ namespace Api.Areas.Seller.Controllers
         }
 
         /// <summary>
-        /// تحلیل تصویر قفسه یا داده‌ی جدول (Excel/سپیدار/دامپزشکیار) و تطبیق با کاتالوگ پاستیل
+        /// تحلیل تصویر قفسه، اسکرین‌شات جدول نرم‌افزار انبار (سپیدار/دامپزشکیار)، یا داده‌ی جدول (Excel/سپیدار/دامپزشکیار) و تطبیق با کاتالوگ پاستیل
         /// </summary>
         [HttpPost("analyze")]
-        [RequestSizeLimit(64 * 1024 * 1024)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 64 * 1024 * 1024)]
+        // تا ۴۰ اسکرین‌شات جدول (سپیدار/دامپزشکیار) پوشش داده می‌شود، نه فقط ۸ عکس قفسه؛ سقف واقعی هر
+        // تصویر همچنان با AiProductMatchOptions.MaxImageSizeBytes کنترل می‌شود.
+        [RequestSizeLimit(128 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 128 * 1024 * 1024)]
         [ProducesResponseType(typeof(BaseResultDto<AiProductMatchAnalyzeResultDto>), 200)]
         public async Task<IActionResult> Analyze([FromForm] AiProductMatchAnalyzeInputDto dto)
         {
