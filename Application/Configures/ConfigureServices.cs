@@ -397,6 +397,7 @@ public static class ConfigureServices
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
+        services.AddMemoryCache(options => options.SizeLimit = 10_000);
         services.AddLocalization(options => options.ResourcesPath = "Resource");
         services.Configure<PasswordHasherOptions>(options =>
         {
@@ -530,6 +531,7 @@ public static class ConfigureServices
         services.AddScoped<IFinanceStoreService, FinanceStoreService>();
         services.AddScoped<IGalleryItemService, GalleryItemService>();
         services.AddScoped<IGalleryService, GalleryService>();
+        services.AddSingleton<OsrmRequestCoordinator>();
         services.AddScoped<IGeographyService, OsrmPhotonGeographyService>();
         services.AddScoped<IHashtagService, HashtagService>();
         services.AddScoped<IMapKeyService, MapKeyService>();

@@ -7,7 +7,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv.Iface
 {
     public interface IPetResanServiceService
     {
-        Task<BaseResultDto<PetResanServiceVDto>> InsertAsyncDto(PetResanServiceCreateDto dto, long userId);
+        Task<BaseResultDto<PetResanServiceVDto>> InsertAsyncDto(PetResanServiceCreateDto dto, long userId, string idempotencyKey);
         Task<BaseResultDto<List<PetResanServiceVDto>>> GetMyListAsync(long userId);
         Task<BaseResultDto<PetResanServiceVDto>> FindAsyncVDto(long id, long userId);
         Task<BaseResultDto> CancelAsync(long id, long userId);

@@ -31,6 +31,10 @@ namespace Entities.Entities.PetResanServiceField
         public DateTime CreateDate { get; set; }
         public DateTime? CancelDate { get; set; }
 
+        // UUID supplied by the client for a create request. It lets a retry return this
+        // service instead of creating another weekly plan.
+        public string IdempotencyKey { get; set; }
+
         // فقط برای پیش‌نمایش قیمت به کاربر؛ قیمت واقعیِ هر occurrence دوباره در لحظه‌ی
         // ساخت Trip با نرخ همان ساعت محاسبه می‌شود (مثل بقیه‌ی سفرهای پت‌رسان).
         public double PricePerOccurrence { get; set; }

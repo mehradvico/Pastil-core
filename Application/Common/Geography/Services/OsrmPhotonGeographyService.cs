@@ -2,9 +2,11 @@ using Application.Common.Dto.LocationPoint;
 using Application.Common.Dto.Result;
 using Application.Common.Geography.Dto;
 using Application.Common.Geography.Iface;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using RestSharp;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -17,13 +19,22 @@ namespace Application.Common.Geography.Services
     // خودمیزبان می‌خواند - هر دو روی iran.osm.pbf ساخته شده‌اند (به جای map.ir که هر ماه توکنش تمام می‌شد).
     public class OsrmPhotonGeographyService : IGeographyService
     {
-        private readonly string _osrmBaseUrl;
+        private const string DistanceCachePrefix = "osrm-distance:";
+        private static readonly ConcurrentDictionary<string, Task<double>> InFlightDistances = new();
         private readonly string _photonBaseUrl;
+        private readonly IMemoryCache _cache;
+        private readonly OsrmRequestCoordinator _requestCoordinator;
+        private readonly TimeSpan _distanceCacheDuration;
 
-        public OsrmPhotonGeographyService(IConfiguration configuration)
+        public OsrmPhotonGeographyService(
+            IConfiguration configuration,
+            IMemoryCache cache,
+            OsrmRequestCoordinator requestCoordinator)
         {
-            _osrmBaseUrl = configuration["Osrm:BaseUrl"] ?? "http://osrm:5000";
             _photonBaseUrl = configuration["Photon:BaseUrl"] ?? "http://photon:2322";
+            _cache = cache;
+            _requestCoordinator = requestCoordinator;
+            _distanceCacheDuration = TimeSpan.FromSeconds(Math.Clamp(configuration.GetValue<int?>("Osrm:DistanceCacheSeconds") ?? 600, 30, 3600));
         }
 
         private static string FormatCoord(double value) =>
@@ -31,20 +42,32 @@ namespace Application.Common.Geography.Services
 
         public async Task<double> GetDrivingDistanceAsync(PointDto start, PointDto end, bool kmResult = true, bool roundResult = true)
         {
-            var options = new RestClientOptions(_osrmBaseUrl)
+            ValidatePoint(start);
+            ValidatePoint(end);
+
+            var cacheKey = BuildDistanceCacheKey(start, end);
+            if (!_cache.TryGetValue(cacheKey, out double distance))
             {
-                Timeout = System.Threading.Timeout.InfiniteTimeSpan,
-            };
-            var client = new RestClient(options);
-            var path = $"/route/v1/driving/{FormatCoord(start.x)},{FormatCoord(start.y)};{FormatCoord(end.x)},{FormatCoord(end.y)}?alternatives=false&steps=false";
-            var request = new RestRequest(path, Method.Get);
-            RestResponse response = await client.ExecuteAsync(request);
-            using JsonDocument doc = JsonDocument.Parse(response.Content);
+                var inFlight = InFlightDistances.GetOrAdd(cacheKey, _ => GetDrivingDistanceInMetersAsync(start, end));
+                try
+                {
+                    distance = await inFlight;
+                    _cache.Set(cacheKey, distance, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = _distanceCacheDuration,
+                        Size = 1
+                    });
+                }
+                finally
+                {
+                    if (inFlight.IsCompleted)
+                    {
+                        ((ICollection<KeyValuePair<string, Task<double>>>)InFlightDistances)
+                            .Remove(new KeyValuePair<string, Task<double>>(cacheKey, inFlight));
+                    }
+                }
+            }
 
-            if (!doc.RootElement.TryGetProperty("routes", out var routes) || routes.GetArrayLength() == 0)
-                throw new InvalidOperationException($"OSRM driving route request failed: {response.Content}");
-
-            double distance = routes[0].GetProperty("distance").GetDouble();
             if (kmResult)
                 distance /= 1000;
             if (roundResult)
@@ -54,18 +77,13 @@ namespace Application.Common.Geography.Services
 
         public async Task<List<PointDto>> GetDrivingRouteAsync(PointDto start, PointDto end)
         {
-            var options = new RestClientOptions(_osrmBaseUrl)
-            {
-                Timeout = System.Threading.Timeout.InfiniteTimeSpan,
-            };
-            var client = new RestClient(options);
+            ValidatePoint(start);
+            ValidatePoint(end);
             var path = $"/route/v1/driving/{FormatCoord(start.x)},{FormatCoord(start.y)};{FormatCoord(end.x)},{FormatCoord(end.y)}?alternatives=false&steps=false&geometries=geojson&overview=full";
-            var request = new RestRequest(path, Method.Get);
-            RestResponse response = await client.ExecuteAsync(request);
-            using JsonDocument doc = JsonDocument.Parse(response.Content);
+            using JsonDocument doc = await ExecuteOsrmAsync(path);
 
             if (!doc.RootElement.TryGetProperty("routes", out var routes) || routes.GetArrayLength() == 0)
-                throw new InvalidOperationException($"OSRM driving route request failed: {response.Content}");
+                throw new GeographyDependencyUnavailableException("OSRM did not return a driving route.");
 
             var coordinates = routes[0].GetProperty("geometry").GetProperty("coordinates");
             var result = new List<PointDto>();
@@ -75,6 +93,45 @@ namespace Application.Common.Geography.Services
             }
             return result;
         }
+
+        private async Task<double> GetDrivingDistanceInMetersAsync(PointDto start, PointDto end)
+        {
+            var path = $"/route/v1/driving/{FormatCoord(start.x)},{FormatCoord(start.y)};{FormatCoord(end.x)},{FormatCoord(end.y)}?alternatives=false&steps=false";
+            using JsonDocument doc = await ExecuteOsrmAsync(path);
+            if (!doc.RootElement.TryGetProperty("routes", out var routes) || routes.GetArrayLength() == 0)
+                throw new GeographyDependencyUnavailableException("OSRM did not return a driving route.");
+
+            return routes[0].GetProperty("distance").GetDouble();
+        }
+
+        private async Task<JsonDocument> ExecuteOsrmAsync(string path)
+        {
+            var response = await _requestCoordinator.ExecuteOsrmAsync(new RestRequest(path, Method.Get));
+            if (response.ResponseStatus != ResponseStatus.Completed || !response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
+            {
+                throw new GeographyDependencyUnavailableException("OSRM returned an unsuccessful response.");
+            }
+
+            try
+            {
+                return JsonDocument.Parse(response.Content);
+            }
+            catch (JsonException exception)
+            {
+                throw new GeographyDependencyUnavailableException("OSRM returned an invalid response.", exception);
+            }
+        }
+
+        private static void ValidatePoint(PointDto point)
+        {
+            if (point == null || !double.IsFinite(point.x) || !double.IsFinite(point.y) || point.x is < -180 or > 180 || point.y is < -90 or > 90)
+            {
+                throw new ArgumentException("A valid longitude and latitude are required for routing.");
+            }
+        }
+
+        private static string BuildDistanceCacheKey(PointDto start, PointDto end) =>
+            $"{DistanceCachePrefix}{start.x:F6},{start.y:F6}:{end.x:F6},{end.y:F6}";
 
         public async Task<BaseResultDto<List<MapIrResultDto>>> SearchAsync(string q)
         {

@@ -4,6 +4,7 @@ using Application.Services.TripSrv.PetResanServiceSrv.Dto;
 using Application.Services.TripSrv.PetResanServiceSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Areas.EndUser.Controllers
 {
@@ -29,6 +30,7 @@ namespace Api.Areas.EndUser.Controllers
         /// پیش‌نمایش قیمت هر رفت‌وبرگشت، قبل از ثبت نهایی
         /// </summary>
         [HttpPost("preview-price")]
+        [EnableRateLimiting("TripPrice")]
         [ProducesResponseType(typeof(BaseResultDto<double>), 200)]
         public async Task<IActionResult> PreviewPrice(PetResanServiceCreateDto dto)
         {
@@ -41,9 +43,11 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(BaseResultDto<PetResanServiceVDto>), 200)]
-        public async Task<IActionResult> Post(PetResanServiceCreateDto dto)
+        public async Task<IActionResult> Post(
+            PetResanServiceCreateDto dto,
+            [FromHeader(Name = "Idempotency-Key")] string idempotencyKey)
         {
-            var result = await _service.InsertAsyncDto(dto, _currentUser.CurrentUser.UserId);
+            var result = await _service.InsertAsyncDto(dto, _currentUser.CurrentUser.UserId, idempotencyKey);
             return Ok(result);
         }
 

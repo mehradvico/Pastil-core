@@ -447,6 +447,9 @@ namespace Persistence.Context
             modelBuilder.Entity<Store>()
                 .Property(item => item.CommissionPercent)
                 .HasPrecision(5, 2);
+            modelBuilder.Entity<SchoolCourse>()
+                .Property(item => item.CommissionPercent)
+                .HasPrecision(18, 2);
             modelBuilder.Entity<Companion>(entity =>
             {
                 entity.Property(item => item.ReferralCode)
@@ -1224,10 +1227,27 @@ namespace Persistence.Context
                 .HasForeignKey(t => t.PetResanServiceScheduleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Keep the FK lookup index as well as the filtered uniqueness index below.
+            // The latter excludes manual trips, so it cannot serve every schedule lookup.
+            modelBuilder.Entity<Trip>()
+                .HasIndex(t => t.PetResanServiceScheduleId);
+
+            // Only scheduled PetResan trips participate. A filtered unique index makes the
+            // "check then insert" in the recurring job safe across concurrent workers.
+            modelBuilder.Entity<Trip>()
+                .HasIndex(t => new { t.PetResanServiceScheduleId, t.TripStartDateTime })
+                .IsUnique()
+                .HasFilter("[PetResanServiceScheduleId] IS NOT NULL AND [TripStartDateTime] IS NOT NULL");
+
             modelBuilder.Entity<PetResanService>(e =>
             {
                 e.HasOne(s => s.User).WithMany().HasForeignKey(s => s.UserId).OnDelete(DeleteBehavior.Restrict);
                 e.HasOne(s => s.UserPet).WithMany().HasForeignKey(s => s.UserPetId).OnDelete(DeleteBehavior.Restrict);
+                e.Property(s => s.IdempotencyKey).HasMaxLength(36).IsUnicode(false);
+                e.HasIndex(s => s.UserId);
+                e.HasIndex(s => new { s.UserId, s.IdempotencyKey })
+                    .IsUnique()
+                    .HasFilter("[IdempotencyKey] IS NOT NULL");
             });
 
             modelBuilder.Entity<PetResanServiceSchedule>(e =>

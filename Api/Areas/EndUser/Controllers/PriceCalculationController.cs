@@ -3,6 +3,7 @@ using Application.Services.TripSrv.PriceCalculationSrv.Iface;
 using Application.Services.TripSrv.TripSrv.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Logging;
 using System;
 
@@ -31,6 +32,7 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
+        [EnableRateLimiting("TripPrice")]
         [ProducesResponseType(typeof(BaseResultDto<double>), 200)]
         public async Task<IActionResult> Post(TripDto dto)
         {

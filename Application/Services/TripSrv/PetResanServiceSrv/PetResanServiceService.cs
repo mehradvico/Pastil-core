@@ -6,7 +6,9 @@ using Application.Services.TripSrv.PriceCalculationSrv.Iface;
 using Application.Services.TripSrv.TripSrv.Dto;
 using Application.Services.WeekDaySrv.WeekDaySrv.Iface;
 using Entities.Entities.PetResanServiceField;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using NetTopologySuite.Geometries;
 using Persistence.Interface;
 using System;
@@ -21,15 +23,18 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
         private readonly IDataBaseContext _context;
         private readonly IPriceCalculationService _priceCalculationService;
         private readonly IWeekDayService _weekDayService;
+        private readonly ILogger<PetResanServiceService> _logger;
 
         public PetResanServiceService(
             IDataBaseContext context,
             IPriceCalculationService priceCalculationService,
-            IWeekDayService weekDayService)
+            IWeekDayService weekDayService,
+            ILogger<PetResanServiceService> logger)
         {
             _context = context;
             _priceCalculationService = priceCalculationService;
             _weekDayService = weekDayService;
+            _logger = logger;
         }
 
         public async Task<BaseResultDto<double>> PreviewPriceAsync(PetResanServiceCreateDto dto)
@@ -39,8 +44,16 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             if (dto.Destination == null)
                 return new BaseResultDto<double>(false, Resource.Notification.PleaseSetDestination, 0);
 
-            var price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now);
-            return new BaseResultDto<double>(true, price);
+            try
+            {
+                var price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now);
+                return new BaseResultDto<double>(true, price);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogWarning(exception, "PetResan price preview could not be calculated.");
+                return new BaseResultDto<double>(false, Resource.Notification.TripPriceCalculationFailed, 0);
+            }
         }
 
         private async Task<double> CalculateOccurrencePriceAsync(
@@ -62,8 +75,26 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             return await _priceCalculationService.CalculateTripPrice(priceInput);
         }
 
-        public async Task<BaseResultDto<PetResanServiceVDto>> InsertAsyncDto(PetResanServiceCreateDto dto, long userId)
+        public async Task<BaseResultDto<PetResanServiceVDto>> InsertAsyncDto(PetResanServiceCreateDto dto, long userId, string idempotencyKey)
         {
+            if (!TryNormalizeIdempotencyKey(idempotencyKey, out var normalizedIdempotencyKey))
+                return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.PaymentIdempotencyKeyHeaderMustBeValidUuid, null);
+
+            if (normalizedIdempotencyKey != null)
+            {
+                var existing = await _context.PetResanServices
+                    .Include(s => s.Schedules)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.UserId == userId && s.IdempotencyKey == normalizedIdempotencyKey);
+                if (existing != null)
+                {
+                    if (!IsSameCreateRequest(existing, dto))
+                        return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.PaymentIdempotencyKeyAlreadyUsedForDifferentCheckout, null);
+
+                    return await FindAsyncVDto(existing.Id, userId);
+                }
+            }
+
             if (dto.Origin == null)
                 return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.PleaseSetOrigin, null);
             if (dto.Destination == null)
@@ -77,14 +108,26 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             if (pet == null)
                 return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.NothingFound, null);
 
+            var uniqueSchedules = new HashSet<string>(StringComparer.Ordinal);
             foreach (var schedule in dto.Schedules)
             {
                 if (!ReservationScheduleValidator.TryGetServiceStartDateTime(DateTime.Now, schedule.Time, out _))
                     return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.InvalidTimeFormat, null);
+                if (!uniqueSchedules.Add($"{schedule.WeekDayId}:{schedule.Time}"))
+                    return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.DuplicateValue, null);
             }
 
             var startDate = DateTime.Now.Date;
-            var price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now);
+            double price;
+            try
+            {
+                price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "PetResan service activation could not calculate a verified price for user {UserId}.", userId);
+                return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.TripPriceCalculationFailed, null);
+            }
 
             var service = new PetResanService
             {
@@ -99,6 +142,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                 EndDate = dto.TotalWeeks.HasValue ? startDate.AddDays(dto.TotalWeeks.Value * 7) : (DateTime?)null,
                 Active = true,
                 CreateDate = DateTime.Now,
+                IdempotencyKey = normalizedIdempotencyKey,
                 PricePerOccurrence = price,
                 Schedules = dto.Schedules.Select(s => new PetResanServiceSchedule
                 {
@@ -109,10 +153,74 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             };
 
             await _context.PetResanServices.AddAsync(service);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException exception) when (normalizedIdempotencyKey != null && IsUniqueConstraintViolation(exception))
+            {
+                DetachServiceGraph(service);
+                var duplicate = await _context.PetResanServices
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.UserId == userId && s.IdempotencyKey == normalizedIdempotencyKey);
+                if (duplicate == null)
+                    throw;
+
+                _logger.LogInformation("Replayed concurrent PetResan service creation for user {UserId}.", userId);
+                return await FindAsyncVDto(duplicate.Id, userId);
+            }
 
             return await FindAsyncVDto(service.Id, userId);
         }
+
+        private static bool TryNormalizeIdempotencyKey(string value, out string normalized)
+        {
+            normalized = null;
+            if (string.IsNullOrWhiteSpace(value))
+                return true;
+            if (!Guid.TryParseExact(value.Trim(), "D", out var parsed) || parsed == Guid.Empty)
+                return false;
+
+            normalized = parsed.ToString("D");
+            return true;
+        }
+
+        private static bool IsSameCreateRequest(PetResanService existing, PetResanServiceCreateDto dto)
+        {
+            if (existing == null || dto == null || existing.Origin == null || existing.Destination == null || dto.Origin == null || dto.Destination == null)
+                return false;
+
+            var requestedSchedules = (dto.Schedules ?? new List<PetResanServiceScheduleDto>())
+                .Select(s => (s.WeekDayId, s.Time))
+                .OrderBy(s => s.WeekDayId)
+                .ThenBy(s => s.Time, StringComparer.Ordinal);
+            var existingSchedules = (existing.Schedules ?? new List<PetResanServiceSchedule>())
+                .Select(s => (s.WeekDayId, s.Time))
+                .OrderBy(s => s.WeekDayId)
+                .ThenBy(s => s.Time, StringComparer.Ordinal);
+
+            return existing.UserPetId == dto.UserPetId &&
+                   existing.TotalWeeks == dto.TotalWeeks &&
+                   SameCoordinate(existing.Origin.X, dto.Origin.x) &&
+                   SameCoordinate(existing.Origin.Y, dto.Origin.y) &&
+                   SameCoordinate(existing.Destination.X, dto.Destination.x) &&
+                   SameCoordinate(existing.Destination.Y, dto.Destination.y) &&
+                   string.Equals(existing.FromAddress, dto.FromAddress, StringComparison.Ordinal) &&
+                   string.Equals(existing.ToAddress, dto.ToAddress, StringComparison.Ordinal) &&
+                   requestedSchedules.SequenceEqual(existingSchedules);
+        }
+
+        private static bool SameCoordinate(double left, double right) => Math.Abs(left - right) < 0.000001;
+
+        private void DetachServiceGraph(PetResanService service)
+        {
+            foreach (var schedule in service.Schedules ?? Enumerable.Empty<PetResanServiceSchedule>())
+                _context.Entry(schedule).State = EntityState.Detached;
+            _context.Entry(service).State = EntityState.Detached;
+        }
+
+        private static bool IsUniqueConstraintViolation(DbUpdateException exception) =>
+            exception.InnerException is SqlException sqlException && (sqlException.Number == 2601 || sqlException.Number == 2627);
 
         public async Task<BaseResultDto<List<PetResanServiceVDto>>> GetMyListAsync(long userId)
         {

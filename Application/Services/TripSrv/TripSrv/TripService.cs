@@ -25,6 +25,7 @@ using DocumentFormat.OpenXml.Office.CustomUI;
 using Entities.Entities;
 using Entities.Entities.PansionField;
 using Entities.Entities.Security;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NetTopologySuite.Geometries;
@@ -352,7 +353,15 @@ namespace Application.Services.TripSrv.TripSrv
                 trip.IsOnline = false;
             }
 
-            trip.Price = await _priceCalculationService.CalculateTripPrice(dto);
+            try
+            {
+                trip.Price = await _priceCalculationService.CalculateTripPrice(dto);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Trip price calculation failed before trip creation for user {UserId}.", dto.UserId);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripPriceCalculationFailed, dto);
+            }
             trip.DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested;
             trip.TripStatusId = (long)TripStatusEnum.TripStatus_Requested;
             trip.ManualPayDate = null;
@@ -834,6 +843,16 @@ namespace Application.Services.TripSrv.TripSrv
             // فیلد قدیمی UserPetId برای سازگاری با کدهای قبلی (گزارش‌گیری سریع) به‌عنوان اولین پت نگه داشته می‌شود.
             trip.UserPetId = ids.FirstOrDefault();
         }
+
+        private void DetachTripGraph(Trip trip)
+        {
+            foreach (var tripPet in trip.TripPets ?? Enumerable.Empty<TripPet>())
+                _context.Entry(tripPet).State = EntityState.Detached;
+            _context.Entry(trip).State = EntityState.Detached;
+        }
+
+        private static bool IsUniqueConstraintViolation(DbUpdateException exception) =>
+            exception.InnerException is SqlException sqlException && (sqlException.Number == 2601 || sqlException.Number == 2627);
 
         private async Task SendTripProgressPushAsync(TripProgressStageEnum stage, long userId, string petName)
         {
@@ -1774,7 +1793,19 @@ namespace Application.Services.TripSrv.TripSrv
                 ApplyTripPets(trip, new List<long> { service.UserPetId }, null);
 
                 await _context.Trips.AddAsync(trip);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException exception) when (IsUniqueConstraintViolation(exception))
+                {
+                    DetachTripGraph(trip);
+                    _logger.LogInformation(
+                        "Skipped duplicate PetResan service occurrence for schedule {ScheduleId} at {OccurrenceAt}.",
+                        schedule.Id,
+                        occurrenceAt);
+                    continue;
+                }
 
                 trip.FromWallet = true;
                 trip.WalletPrice = trip.Price;

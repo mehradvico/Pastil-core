@@ -7805,7 +7805,7 @@
             پیش‌نمایش قیمت هر رفت‌وبرگشت، قبل از ثبت نهایی
             </summary>
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.PetResanServiceController.Post(Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceCreateDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.PetResanServiceController.Post(Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceCreateDto,System.String)">
             <summary>
             آیتم جدید
             </summary>
