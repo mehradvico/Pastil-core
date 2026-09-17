@@ -51,6 +51,20 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 builder.Services.AddRateLimiter(options =>
 {
+    options.AddPolicy("ServerMonitoring", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                // A mobile client polling every three seconds consumes 20
+                // requests per minute. This leaves room for short retries
+                // while containing an accidentally aggressive client.
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
     options.AddPolicy("Search", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -99,6 +113,9 @@ builder.Services.AddRateLimiter(options =>
 });
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<CallSessionTracker>();
+builder.Services.AddHttpClient(Api.Services.ServerMonitoring.ServerMonitoringAgentClient.HttpClientName,
+    client => client.Timeout = TimeSpan.FromSeconds(5));
+builder.Services.AddScoped<Api.Services.ServerMonitoring.ServerMonitoringAgentClient>();
 builder.Services.AddAuthorization(options => options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireClaim("RoleId", ((long)RoleEnum.Admin).ToString())));
 builder.Services
     .AddControllersWithViews()

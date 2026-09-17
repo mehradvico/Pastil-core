@@ -74,6 +74,9 @@ namespace Persistence.Interface
         public DbSet<CompanionPet> CompanionPets { get; set; }
         public DbSet<CompanionReport> CompanionReports { get; set; }
         public DbSet<CompanionReserve> CompanionReserves { get; set; }
+        public DbSet<CompanionReserveMessage> CompanionReserveMessages { get; set; }
+        public DbSet<CompanionReserveMessageAttachment> CompanionReserveMessageAttachments { get; set; }
+        public DbSet<CompanionReserveMessageReaction> CompanionReserveMessageReactions { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
         public DbSet<CompanionReserveComment> CompanionReserveComments { get; set; }
         public DbSet<CompanionReserveCommentRate> CompanionReserveCommentRates { get; set; }

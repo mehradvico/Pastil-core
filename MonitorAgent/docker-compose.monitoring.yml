@@ -1,0 +1,35 @@
+services:
+  monitor-agent:
+    image: pastil-monitor-agent:latest
+    container_name: pastil-monitor-agent
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    env_file:
+      - ./monitor-agent.env
+    volumes:
+      # The agent is the only component allowed to inspect host metrics.
+      # Neither mount is exposed to the public API container.
+      - /proc:/host/proc:ro
+      - /:/host/root:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - pastil-monitoring
+
+  api:
+    env_file:
+      - ./monitor-agent.env
+    environment:
+      ServerMonitoring__AgentUrl: http://monitor-agent:8080/snapshot
+    networks:
+      - default
+      - pastil-monitoring
+
+networks:
+  pastil-monitoring:
+    internal: true

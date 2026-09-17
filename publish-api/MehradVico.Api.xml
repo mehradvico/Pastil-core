@@ -4232,6 +4232,19 @@
             دریافت پرتکرارترین عبارت‌های جستجو
             </summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ServerMonitoringController">
+            <summary>
+            Read-only, live host and Docker statistics for the operations monitor.
+            The endpoint is restricted to administrator JWTs; it never exposes the
+            private agent token used to read the host.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ServerMonitoringController.Get(System.Threading.CancellationToken)">
+            <summary>
+            Gets a current server snapshot. Intended for a low-frequency (for
+            example, every three seconds) authenticated monitoring poll.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.SettlementController">
              <summary>
              تسویه حساب ها
@@ -9676,6 +9689,32 @@
             <param name="companionId">شناسه نماینده</param>
             <returns>تعداد رزروها</returns>
         </member>
+        <member name="T:Api.Controllers.CompanionReserveMessageAttachmentController">
+            <summary>
+            مدیریت فایل‌های پیام چت خدمات آنلاین
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CompanionReserveMessageController">
+            <summary>
+            چت خدمات آنلاین (رزروکننده و نماینده) — بدون Area چون مجاز بودن رابطه‌محور است، نه نقش‌محور
+            (دقیقاً مثل Api/Hubs/CallHub.cs که هر دو طرف را از یک نقطه‌ی ورود سرویس می‌دهد).
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CompanionReserveMessageDeliveredController">
+            <summary>
+            ثبت تحویل پیام چت خدمات آنلاین
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CompanionReserveMessageReactionController">
+            <summary>
+            مدیریت ری‌اکشن‌های پیام چت خدمات آنلاین
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CompanionReserveMessageReadController">
+            <summary>
+            ثبت خوانده شدن پیام‌های چت خدمات آنلاین
+            </summary>
+        </member>
         <member name="T:Api.Controllers.CompanionTimeController">
              <summary>
              مشاهده ساعات کاری نمایندگان (مرکز) - برای کاربر نهایی هنگام رزرو
@@ -10553,6 +10592,12 @@
             at all, /swagger returns 404 regardless of anything else. Real credential
             values must come from environment variables on the server, never from a
             committed appsettings file — see SWAGGER_ACCESS.md.
+            </summary>
+        </member>
+        <member name="T:Api.Services.ServerMonitoring.ServerMonitoringAgentClient">
+            <summary>
+            Reads a snapshot from the private monitoring agent. The agent token is
+            server-only and is never returned to a browser or mobile application.
             </summary>
         </member>
     </members>

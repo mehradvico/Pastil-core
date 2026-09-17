@@ -392,7 +392,142 @@ namespace Resource {
                 return ResourceManager.GetString("InvalidPastilMatchReplyMessage", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveMessageContentRequired.
+        /// </summary>
+        public static string CompanionReserveMessageContentRequired {
+            get {
+                return ResourceManager.GetString("CompanionReserveMessageContentRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to InvalidCompanionReserveMessageType.
+        /// </summary>
+        public static string InvalidCompanionReserveMessageType {
+            get {
+                return ResourceManager.GetString("InvalidCompanionReserveMessageType", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveChatNotAvailable.
+        /// </summary>
+        public static string CompanionReserveChatNotAvailable {
+            get {
+                return ResourceManager.GetString("CompanionReserveChatNotAvailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to InvalidCompanionReserveReplyMessage.
+        /// </summary>
+        public static string InvalidCompanionReserveReplyMessage {
+            get {
+                return ResourceManager.GetString("InvalidCompanionReserveReplyMessage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveMessagePreviewImage.
+        /// </summary>
+        public static string CompanionReserveMessagePreviewImage {
+            get {
+                return ResourceManager.GetString("CompanionReserveMessagePreviewImage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveMessagePreviewNewMessage.
+        /// </summary>
+        public static string CompanionReserveMessagePreviewNewMessage {
+            get {
+                return ResourceManager.GetString("CompanionReserveMessagePreviewNewMessage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveAttachmentUrlRequired.
+        /// </summary>
+        public static string CompanionReserveAttachmentUrlRequired {
+            get {
+                return ResourceManager.GetString("CompanionReserveAttachmentUrlRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveAttachmentContentTypeRequired.
+        /// </summary>
+        public static string CompanionReserveAttachmentContentTypeRequired {
+            get {
+                return ResourceManager.GetString("CompanionReserveAttachmentContentTypeRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveAttachmentFileSizeInvalid.
+        /// </summary>
+        public static string CompanionReserveAttachmentFileSizeInvalid {
+            get {
+                return ResourceManager.GetString("CompanionReserveAttachmentFileSizeInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveAttachmentOrderInvalid.
+        /// </summary>
+        public static string CompanionReserveAttachmentOrderInvalid {
+            get {
+                return ResourceManager.GetString("CompanionReserveAttachmentOrderInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveAttachmentAlreadyExists.
+        /// </summary>
+        public static string CompanionReserveAttachmentAlreadyExists {
+            get {
+                return ResourceManager.GetString("CompanionReserveAttachmentAlreadyExists", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to InvalidCompanionReserveImageContentType.
+        /// </summary>
+        public static string InvalidCompanionReserveImageContentType {
+            get {
+                return ResourceManager.GetString("InvalidCompanionReserveImageContentType", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveMessageAttachmentNotAvailable.
+        /// </summary>
+        public static string CompanionReserveMessageAttachmentNotAvailable {
+            get {
+                return ResourceManager.GetString("CompanionReserveMessageAttachmentNotAvailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveMessageReactionRequired.
+        /// </summary>
+        public static string CompanionReserveMessageReactionRequired {
+            get {
+                return ResourceManager.GetString("CompanionReserveMessageReactionRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to CompanionReserveMessageReactionTooLong.
+        /// </summary>
+        public static string CompanionReserveMessageReactionTooLong {
+            get {
+                return ResourceManager.GetString("CompanionReserveMessageReactionTooLong", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to InvalidPastilMatchReportReason.
         /// </summary>
