@@ -23,7 +23,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
     {
         private const string IssueNotFoundInCatalog = "در کاتالوگ پاستیل پیدا نشد";
         private const string IssueNoAutoMatch = "امکان تطبیق خودکار وجود نداشت؛ لطفاً به‌صورت دستی انتخاب کنید";
+        private const string IssueMultipleCloseMatches = "چند محصول مشابه یافت شد؛ لطفاً به‌صورت دستی انتخاب کنید";
         private const double MinimumSuggestedMatchConfidence = 0.60;
+        // فاصله‌ی امتیاز کاندید اول و دوم؛ کمتر از این یعنی مدل واقعاً بین دو محصول شبیه‌هم مردد بوده.
+        private const double AmbiguityMarginThreshold = 0.08;
 
         private static readonly JsonSerializerOptions RowsJsonOptions = new()
         {
@@ -158,6 +161,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                         {
                             RowId = $"shelf-{imageIndex}-{itemIndex}",
                             Name = extracted.DetectedName,
+                            Brand = extracted.Brand,
+                            AnimalType = extracted.AnimalType,
+                            PackageSizeValue = extracted.PackageSizeValue,
+                            PackageSizeUnit = extracted.PackageSizeUnit,
                             Price = extracted.PriceGuess,
                             Quantity = extracted.QuantityGuess,
                             Unit = extracted.Unit,
@@ -169,6 +176,9 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
                 foreach (var rowsForImage in await Task.WhenAll(extractionTasks))
                     workingRows.AddRange(rowsForImage);
+
+                // چند عکس هم‌پوشان از یک قفسه می‌توانند همان SKU را دوباره برگردانند؛ این یک محصول است، نه چند ردیف.
+                workingRows = AiProductMatchMatchingHelper.DeduplicateByName(workingRows);
 
                 if (workingRows.Count == 0)
                     return Fail(Resource.Notification.AiProductMatchUnanalyzable, 3);
@@ -256,16 +266,22 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                             !usedCandidateIndexes.Add(rankedCandidate.Index))
                             continue;
 
-                        var confidence = rankedCandidate.Confidence;
-                        if (!double.IsFinite(confidence) || confidence < MinimumSuggestedMatchConfidence)
+                        if (!double.IsFinite(rankedCandidate.Confidence))
                             continue;
 
                         var candidate = candidates[rankedCandidate.Index];
+                        // امتیاز نهایی فقط عدد خام مدل نیست: شباهت نام نرمال‌شده هم وزن دارد، چون مدل روی
+                        // اسم‌های شبیه‌هم (طعم/سایز متفاوت از یک برند) اغلب بیش‌ازحد مطمئن است.
+                        var confidence = AiProductMatchMatchingHelper.ComputeCompositeConfidence(
+                            rankedCandidate.Confidence, row.Name, row.Brand, candidate.Name, candidate.BrandName);
+                        if (confidence < MinimumSuggestedMatchConfidence)
+                            continue;
+
                         item.Matches.Add(new AiProductMatchCandidateDto
                         {
                             ProductId = candidate.ProductId,
                             Name = candidate.Name,
-                            Confidence = Math.Clamp(confidence, 0, 1),
+                            Confidence = confidence,
                             ProductItems = candidate.Packages
                         });
 
@@ -278,8 +294,15 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     }
                 }
 
-                var best = item.Matches.OrderByDescending(match => match.Confidence).FirstOrDefault();
-                if (best != null && best.Confidence >= _options.AutoSelectConfidenceThreshold)
+                var orderedMatches = item.Matches.OrderByDescending(match => match.Confidence).ToList();
+                item.Matches = orderedMatches;
+                var best = orderedMatches.FirstOrDefault();
+                var second = orderedMatches.Skip(1).FirstOrDefault();
+                // فاصله‌ی امتیاز کم بین دو کاندید برتر یعنی تصمیم مطمئنی وجود ندارد؛ به‌جای حدس، به فروشنده واگذار می‌شود.
+                var isAmbiguous = best != null && AiProductMatchMatchingHelper.IsAmbiguous(
+                    best.Confidence, second?.Confidence, MinimumSuggestedMatchConfidence, AmbiguityMarginThreshold);
+
+                if (best != null && !isAmbiguous && best.Confidence >= _options.AutoSelectConfidenceThreshold)
                 {
                     item.ProductId = best.ProductId;
                     item.ProductName = best.Name;
@@ -291,7 +314,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 }
                 else
                 {
-                    item.Issues.Add(IssueNoAutoMatch);
+                    item.Issues.Add(isAmbiguous ? IssueMultipleCloseMatches : IssueNoAutoMatch);
                 }
 
                 items.Add(item);
