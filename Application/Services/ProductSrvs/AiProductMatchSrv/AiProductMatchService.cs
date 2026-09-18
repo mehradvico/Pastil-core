@@ -69,7 +69,8 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             long storeId,
             AiProductMatchAnalyzeInputDto dto,
             string authorizationHeaderValue,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            Action<int, int> onBatchProgress = null)
         {
             if (!_options.Enabled || !_geminiClient.IsAvailable(out _))
                 return Fail(Resource.Notification.AiProductMatchServiceUnavailable, 6);
@@ -136,52 +137,61 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             {
                 // موازی: هر عکس یک Call مستقل به Gemini/GapGPT/AvalAI است (تا ~RequestTimeoutSeconds هرکدام)؛
                 // اجرای پشت‌سرهم برای چند عکس، بودجه‌ی زمانی کلاینت را چند برابر می‌کند بدون هیچ اشتراک state.
+                var completedImages = 0;
+                var totalImages = uploadedImages.Count;
                 var extractionTasks = uploadedImages.Select(async (uploaded, index) =>
                 {
                     var imageIndex = index + 1;
                     var (image, pictureId) = uploaded;
-
-                    byte[] bytes;
-                    await using (var stream = image.OpenReadStream())
-                    await using (var memory = new System.IO.MemoryStream())
+                    try
                     {
-                        await stream.CopyToAsync(memory, cancellationToken);
-                        bytes = memory.ToArray();
-                    }
+                        byte[] bytes;
+                        await using (var stream = image.OpenReadStream())
+                        await using (var memory = new System.IO.MemoryStream())
+                        {
+                            await stream.CopyToAsync(memory, cancellationToken);
+                            bytes = memory.ToArray();
+                        }
 
-                    var extraction = await _geminiClient.GenerateJsonAsync(
-                        AiProductMatchPrompts.ShelfExtractionSystemInstruction,
-                        AiProductMatchPrompts.ShelfExtractionUserText,
-                        new List<(string, byte[])> { (string.IsNullOrWhiteSpace(image.ContentType) ? "image/jpeg" : image.ContentType, bytes) },
-                        cancellationToken);
+                        var extraction = await _geminiClient.GenerateJsonAsync(
+                            AiProductMatchPrompts.ShelfExtractionSystemInstruction,
+                            AiProductMatchPrompts.ShelfExtractionUserText,
+                            new List<(string, byte[])> { (string.IsNullOrWhiteSpace(image.ContentType) ? "image/jpeg" : image.ContentType, bytes) },
+                            cancellationToken);
 
-                    var rowsForImage = new List<AiProductMatchWorkingRow>();
-                    if (!extraction.IsSuccess)
-                    {
-                        _logger.LogWarning("AiProductMatch shelf extraction failed for image {ImageIndex}, store {StoreId}: {Error}", imageIndex, storeId, extraction.ErrorCode);
+                        var rowsForImage = new List<AiProductMatchWorkingRow>();
+                        if (!extraction.IsSuccess)
+                        {
+                            _logger.LogWarning("AiProductMatch shelf extraction failed for image {ImageIndex}, store {StoreId}: {Error}", imageIndex, storeId, extraction.ErrorCode);
+                            return rowsForImage;
+                        }
+
+                        var extractedRows = AiProductMatchGeminiResponseParser.ParseShelfExtraction(extraction.RawJson);
+                        var itemIndex = 0;
+                        foreach (var extracted in extractedRows)
+                        {
+                            itemIndex++;
+                            rowsForImage.Add(new AiProductMatchWorkingRow
+                            {
+                                RowId = $"shelf-{imageIndex}-{itemIndex}",
+                                Name = extracted.DetectedName,
+                                Brand = extracted.Brand,
+                                AnimalType = extracted.AnimalType,
+                                PackageSizeValue = extracted.PackageSizeValue,
+                                PackageSizeUnit = extracted.PackageSizeUnit,
+                                Price = extracted.PriceGuess,
+                                Quantity = extracted.QuantityGuess,
+                                Unit = extracted.Unit,
+                                SourcePictureId = pictureId
+                            });
+                        }
                         return rowsForImage;
                     }
-
-                    var extractedRows = AiProductMatchGeminiResponseParser.ParseShelfExtraction(extraction.RawJson);
-                    var itemIndex = 0;
-                    foreach (var extracted in extractedRows)
+                    finally
                     {
-                        itemIndex++;
-                        rowsForImage.Add(new AiProductMatchWorkingRow
-                        {
-                            RowId = $"shelf-{imageIndex}-{itemIndex}",
-                            Name = extracted.DetectedName,
-                            Brand = extracted.Brand,
-                            AnimalType = extracted.AnimalType,
-                            PackageSizeValue = extracted.PackageSizeValue,
-                            PackageSizeUnit = extracted.PackageSizeUnit,
-                            Price = extracted.PriceGuess,
-                            Quantity = extracted.QuantityGuess,
-                            Unit = extracted.Unit,
-                            SourcePictureId = pictureId
-                        });
+                        var completed = Interlocked.Increment(ref completedImages);
+                        onBatchProgress?.Invoke(completed, totalImages);
                     }
-                    return rowsForImage;
                 });
 
                 foreach (var rowsForImage in await Task.WhenAll(extractionTasks))
@@ -195,7 +205,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             }
             else if (isImageTableCapture)
             {
-                workingRows = await ExtractTableCaptureRowsAsync(uploadedImages, storeId, cancellationToken);
+                workingRows = await ExtractTableCaptureRowsAsync(uploadedImages, storeId, cancellationToken, onBatchProgress);
 
                 // اسکرول صفحه‌به‌صفحه یعنی یک ردیف می‌تواند در دو اسکرین‌شات پشت‌سرهم دیده شود.
                 workingRows = AiProductMatchMatchingHelper.DeduplicateRows(workingRows);
@@ -355,7 +365,8 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         private async Task<List<AiProductMatchWorkingRow>> ExtractTableCaptureRowsAsync(
             List<(IFormFile Image, long? PictureId)> uploadedImages,
             long storeId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            Action<int, int> onBatchProgress = null)
         {
             var batchSize = Math.Max(1, _options.TableImagesPerVisionCall);
             var batches = uploadedImages
@@ -364,54 +375,65 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 .Select(g => g.Select(x => x.uploaded).ToList())
                 .ToList();
 
+            var completedBatches = 0;
+            var totalBatches = batches.Count;
+
             var extractionTasks = batches.Select(async (batch, batchIndex) =>
             {
-                var images = new List<(string MimeType, byte[] Bytes)>();
-                foreach (var (image, _) in batch)
+                try
                 {
-                    byte[] bytes;
-                    await using (var stream = image.OpenReadStream())
-                    await using (var memory = new System.IO.MemoryStream())
+                    var images = new List<(string MimeType, byte[] Bytes)>();
+                    foreach (var (image, _) in batch)
                     {
-                        await stream.CopyToAsync(memory, cancellationToken);
-                        bytes = memory.ToArray();
+                        byte[] bytes;
+                        await using (var stream = image.OpenReadStream())
+                        await using (var memory = new System.IO.MemoryStream())
+                        {
+                            await stream.CopyToAsync(memory, cancellationToken);
+                            bytes = memory.ToArray();
+                        }
+                        images.Add((string.IsNullOrWhiteSpace(image.ContentType) ? "image/png" : image.ContentType, bytes));
                     }
-                    images.Add((string.IsNullOrWhiteSpace(image.ContentType) ? "image/png" : image.ContentType, bytes));
-                }
 
-                var extraction = await _geminiClient.GenerateJsonAsync(
-                    AiProductMatchPrompts.TableCaptureExtractionSystemInstruction,
-                    AiProductMatchPrompts.TableCaptureExtractionUserText,
-                    images,
-                    cancellationToken);
+                    var extraction = await _geminiClient.GenerateJsonAsync(
+                        AiProductMatchPrompts.TableCaptureExtractionSystemInstruction,
+                        AiProductMatchPrompts.TableCaptureExtractionUserText,
+                        images,
+                        cancellationToken);
 
-                var rowsForBatch = new List<AiProductMatchWorkingRow>();
-                if (!extraction.IsSuccess)
-                {
-                    _logger.LogWarning("AiProductMatch table-capture extraction failed for batch {BatchIndex}, store {StoreId}: {Error}", batchIndex + 1, storeId, extraction.ErrorCode);
+                    var rowsForBatch = new List<AiProductMatchWorkingRow>();
+                    if (!extraction.IsSuccess)
+                    {
+                        _logger.LogWarning("AiProductMatch table-capture extraction failed for batch {BatchIndex}, store {StoreId}: {Error}", batchIndex + 1, storeId, extraction.ErrorCode);
+                        return rowsForBatch;
+                    }
+
+                    var extractedRows = AiProductMatchGeminiResponseParser.ParseTableCaptureExtraction(extraction.RawJson);
+                    var itemIndex = 0;
+                    foreach (var extracted in extractedRows)
+                    {
+                        itemIndex++;
+                        rowsForBatch.Add(new AiProductMatchWorkingRow
+                        {
+                            RowId = $"table-{batchIndex + 1}-{itemIndex}",
+                            Name = extracted.DetectedName,
+                            Brand = extracted.Brand,
+                            AnimalType = extracted.AnimalType,
+                            PackageSizeValue = extracted.PackageSizeValue,
+                            PackageSizeUnit = extracted.PackageSizeUnit,
+                            Price = extracted.Price,
+                            Quantity = extracted.Quantity,
+                            ExternalCode = extracted.ExternalCode,
+                            ExtractionIssue = extracted.ExtractionIssue
+                        });
+                    }
                     return rowsForBatch;
                 }
-
-                var extractedRows = AiProductMatchGeminiResponseParser.ParseTableCaptureExtraction(extraction.RawJson);
-                var itemIndex = 0;
-                foreach (var extracted in extractedRows)
+                finally
                 {
-                    itemIndex++;
-                    rowsForBatch.Add(new AiProductMatchWorkingRow
-                    {
-                        RowId = $"table-{batchIndex + 1}-{itemIndex}",
-                        Name = extracted.DetectedName,
-                        Brand = extracted.Brand,
-                        AnimalType = extracted.AnimalType,
-                        PackageSizeValue = extracted.PackageSizeValue,
-                        PackageSizeUnit = extracted.PackageSizeUnit,
-                        Price = extracted.Price,
-                        Quantity = extracted.Quantity,
-                        ExternalCode = extracted.ExternalCode,
-                        ExtractionIssue = extracted.ExtractionIssue
-                    });
+                    var completed = Interlocked.Increment(ref completedBatches);
+                    onBatchProgress?.Invoke(completed, totalBatches);
                 }
-                return rowsForBatch;
             });
 
             var result = new List<AiProductMatchWorkingRow>();

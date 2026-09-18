@@ -8780,6 +8780,20 @@
             تحلیل تصویر قفسه، اسکرین‌شات جدول نرم‌افزار انبار (سپیدار/دامپزشکیار)، یا داده‌ی جدول (Excel/سپیدار/دامپزشکیار) و تطبیق با کاتالوگ پاستیل
             </summary>
         </member>
+        <member name="M:Api.Areas.Seller.Controllers.AiProductMatchController.StartAnalyze(Application.Services.ProductSrvs.AiProductMatchSrv.Dto.AiProductMatchAnalyzeInputDto,Microsoft.Extensions.Options.IOptions{Application.Services.ProductSrvs.AiProductMatchSrv.AiProductMatchOptions})">
+            <summary>
+            همون آنالیز، ولی async/Job-based: بلافاصله jobId برمی‌گرده و پردازش واقعی در پس‌زمینه انجام
+            می‌شود — برای سناریوهایی مثل اسکرین‌شات‌های زیاد (سپیدار/دامپزشکیار) که ممکن است طول بکشد و
+            یک درخواست HTTP همزمان را در معرض Timeout سمت کلاینت بگذارد. اپ فروشنده (قفسه) نیازی به این
+            مسیر ندارد و همچنان از همون /analyze همزمان استفاده می‌کند.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.AiProductMatchController.AnalyzeStatus(System.String)">
+            <summary>
+            وضعیت/پیشرفت یک Job که با /analyze/start شروع شده — تا وقتی status="completed" نشده،
+            result همیشه null است.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Seller.Controllers.BrandController">
              <summary>
              مدیریت برندها
