@@ -24,7 +24,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         private const string IssueNotFoundInCatalog = "در کاتالوگ پاستیل پیدا نشد";
         private const string IssueNoAutoMatch = "امکان تطبیق خودکار وجود نداشت؛ لطفاً به‌صورت دستی انتخاب کنید";
         private const string IssueMultipleCloseMatches = "چند محصول مشابه یافت شد؛ لطفاً به‌صورت دستی انتخاب کنید";
+        private const string IssueCatalogMatchIncomplete = "تطبیق با کاتالوگ کامل نشد؛ لطفاً دوباره تلاش کنید";
         private const double MinimumSuggestedMatchConfidence = 0.60;
+
+        private sealed record BufferedImage(byte[] Bytes, string ContentType, string FileName, string Name);
         // فاصله‌ی امتیاز کاندید اول و دوم؛ کمتر از این یعنی مدل واقعاً بین دو محصول شبیه‌هم مردد بوده.
         private const double AmbiguityMarginThreshold = 0.08;
 
@@ -115,54 +118,49 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 }
             }
 
-            // آپلود تصاویر (اگر وجود دارد) به سرویس File — طبق تصمیم ۰.۶، برای نگهداری دائمی جهت بازبینی بعدی
-            // موازی: هر آپلود یک HTTP Call مستقل به File Service است؛ با چند عکس، این توالی خودش چند ثانیه از
-            // بودجه‌ی زمانی کلاینت را می‌بلعید (طبق لاگ واقعی: ~۳-۴ ثانیه به‌ازای هر عکس، پشت‌سرهم).
-            var uploadedImages = new List<(IFormFile Image, long? PictureId)>();
-            if (hasImages)
-            {
-                var uploadTasks = dto.Images.Select(async image =>
-                {
-                    var (ok, pictureId, error) = await _fileClient.UploadAsync(image, authorizationHeaderValue, cancellationToken);
-                    if (!ok)
-                        _logger.LogWarning("AiProductMatch failed to persist an uploaded image for store {StoreId}: {Error}", storeId, error);
-                    return (Image: image, PictureId: ok ? pictureId : (long?)null);
-                });
-                uploadedImages.AddRange(await Task.WhenAll(uploadTasks));
-            }
+            // بودجهٔ زمانی کل تحلیل: اپ سقف HTTP حدود ۶۰ ثانیه دارد و باید نتیجهٔ ناقص بگیرد، نه Timeout.
+            // استخراج از عکس بخشی از بودجه را می‌گیرد و بقیه برای جست‌وجوی کاتالوگ + تطبیق رزرو می‌ماند.
+            var totalBudget = TimeSpan.FromSeconds(Math.Max(5, _options.TotalBudgetSeconds));
+            using var overallCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            overallCts.CancelAfter(totalBudget);
+            using var extractionCts = CancellationTokenSource.CreateLinkedTokenSource(overallCts.Token);
+            extractionCts.CancelAfter(totalBudget - TimeSpan.FromSeconds(Math.Clamp(_options.MatchStageReserveSeconds, 0, (int)totalBudget.TotalSeconds - 1)));
+            var overallToken = overallCts.Token;
+            var extractionToken = extractionCts.Token;
+
+            // بایت‌ها یک‌بار به حافظه خوانده می‌شود: آپلود به سرویس File (~۳-۴ ثانیه) هم‌زمان با استخراج اجرا
+            // می‌شود و بایت‌های حافظه‌ای برخلاف استریم فرم HTTP، هم‌زمان‌خوانی امن و بعد از پایان درخواست هم معتبرند.
+            var bufferedImages = hasImages ? await BufferImagesAsync(dto.Images, cancellationToken) : new List<BufferedImage>();
+            var uploadTask = hasImages
+                ? UploadImagesAsync(bufferedImages, storeId, authorizationHeaderValue)
+                : Task.FromResult(Array.Empty<long?>());
 
             var workingRows = new List<AiProductMatchWorkingRow>();
+            var extractionFailures = 0;
 
             if (sourceType == "shelf")
             {
-                // موازی: هر عکس یک Call مستقل به Gemini/GapGPT/AvalAI است (تا ~RequestTimeoutSeconds هرکدام)؛
+                // موازی: هر عکس یک Call مستقل به Provider است (تا ~RequestTimeoutSeconds هرکدام)؛
                 // اجرای پشت‌سرهم برای چند عکس، بودجه‌ی زمانی کلاینت را چند برابر می‌کند بدون هیچ اشتراک state.
                 var completedImages = 0;
-                var totalImages = uploadedImages.Count;
-                var extractionTasks = uploadedImages.Select(async (uploaded, index) =>
+                var totalImages = bufferedImages.Count;
+                var extractionTasks = bufferedImages.Select(async (image, index) =>
                 {
                     var imageIndex = index + 1;
-                    var (image, pictureId) = uploaded;
                     try
                     {
-                        byte[] bytes;
-                        await using (var stream = image.OpenReadStream())
-                        await using (var memory = new System.IO.MemoryStream())
-                        {
-                            await stream.CopyToAsync(memory, cancellationToken);
-                            bytes = memory.ToArray();
-                        }
-
-                        var extraction = await _geminiClient.GenerateJsonAsync(
+                        var extraction = await CallModelAsync(
                             AiProductMatchPrompts.ShelfExtractionSystemInstruction,
                             AiProductMatchPrompts.ShelfExtractionUserText,
-                            new List<(string, byte[])> { (string.IsNullOrWhiteSpace(image.ContentType) ? "image/jpeg" : image.ContentType, bytes) },
+                            new List<(string MimeType, byte[] Bytes)> { (string.IsNullOrWhiteSpace(image.ContentType) ? "image/jpeg" : image.ContentType, image.Bytes) },
+                            extractionToken,
                             cancellationToken);
 
                         var rowsForImage = new List<AiProductMatchWorkingRow>();
                         if (!extraction.IsSuccess)
                         {
                             _logger.LogWarning("AiProductMatch shelf extraction failed for image {ImageIndex}, store {StoreId}: {Error}", imageIndex, storeId, extraction.ErrorCode);
+                            Interlocked.Increment(ref extractionFailures);
                             return rowsForImage;
                         }
 
@@ -182,7 +180,11 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                                 Price = extracted.PriceGuess,
                                 Quantity = extracted.QuantityGuess,
                                 Unit = extracted.Unit,
-                                SourcePictureId = pictureId
+                                NameConfidence = extracted.NameConfidence.HasValue && double.IsFinite(extracted.NameConfidence.Value)
+                                    ? Math.Clamp(extracted.NameConfidence.Value, 0, 1)
+                                    : null,
+                                BoundingBoxes = AiProductMatchMatchingHelper.NormalizeBoxes(extracted.Boxes),
+                                SourceImageIndex = index
                             });
                         }
                         return rowsForImage;
@@ -200,18 +202,38 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 // چند عکس هم‌پوشان از یک قفسه می‌توانند همان SKU را دوباره برگردانند؛ این یک محصول است، نه چند ردیف.
                 workingRows = AiProductMatchMatchingHelper.DeduplicateRows(workingRows);
 
+                // آپلود معمولاً همین حالا تمام شده؛ اگر نه، بیش از چند ثانیه منتظرش نمی‌مانیم (PictureId فقط برای بازبینی است).
+                long?[] pictureIds = Array.Empty<long?>();
+                try
+                {
+                    pictureIds = await uploadTask.WaitAsync(TimeSpan.FromSeconds(8), cancellationToken);
+                }
+                catch (TimeoutException)
+                {
+                    _logger.LogWarning("AiProductMatch image upload did not finish in time for store {StoreId}; SourcePictureId left empty.", storeId);
+                }
+                foreach (var row in workingRows)
+                    if (row.SourceImageIndex is int imageSlot && imageSlot < pictureIds.Length)
+                        row.SourcePictureId = pictureIds[imageSlot];
+
                 if (workingRows.Count == 0)
-                    return Fail(Resource.Notification.AiProductMatchUnanalyzable, 3);
+                    return extractionFailures > 0
+                        ? Fail(Resource.Notification.AiProductMatchGatewayError, 5)
+                        : Fail(Resource.Notification.AiProductMatchUnanalyzable, 3);
             }
             else if (isImageTableCapture)
             {
-                workingRows = await ExtractTableCaptureRowsAsync(uploadedImages, storeId, cancellationToken, onBatchProgress);
+                var (tableRows, tableFailures) = await ExtractTableCaptureRowsAsync(bufferedImages, storeId, extractionToken, cancellationToken, onBatchProgress);
+                workingRows = tableRows;
+                extractionFailures += tableFailures;
 
                 // اسکرول صفحه‌به‌صفحه یعنی یک ردیف می‌تواند در دو اسکرین‌شات پشت‌سرهم دیده شود.
                 workingRows = AiProductMatchMatchingHelper.DeduplicateRows(workingRows);
 
                 if (workingRows.Count == 0)
-                    return Fail(Resource.Notification.AiProductMatchUnanalyzable, 3);
+                    return extractionFailures > 0
+                        ? Fail(Resource.Notification.AiProductMatchGatewayError, 5)
+                        : Fail(Resource.Notification.AiProductMatchUnanalyzable, 3);
             }
             else
             {
@@ -237,16 +259,31 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     return Fail(Resource.Notification.AiProductMatchInvalidInput, 1);
             }
 
-            var candidatesByRow = await FindCandidatesForAllRowsAsync(workingRows, storeId, cancellationToken);
+            // خطا/اتمام بودجه در جست‌وجوی کاتالوگ یا تطبیق نباید با «واقعاً در کاتالوگ نیست» یکی شود:
+            // اپ ردیف با matches خالی را «ناموجود» گزارش می‌کند، پس این ردیف‌ها CatalogMatchFailed می‌گیرند.
+            Dictionary<string, List<AiProductMatchCandidateProduct>> candidatesByRow;
+            HashSet<string> searchFailedRowIds;
+            try
+            {
+                (candidatesByRow, searchFailedRowIds) = await FindCandidatesForAllRowsAsync(workingRows, storeId, overallToken);
+            }
+            catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogError(ex, "AiProductMatch candidate stage failed for store {StoreId}.", storeId);
+                candidatesByRow = workingRows.ToDictionary(row => row.RowId, _ => new List<AiProductMatchCandidateProduct>());
+                searchFailedRowIds = workingRows.Select(row => row.RowId).ToHashSet();
+            }
 
             var ranked = new List<AiProductMatchRankedRowResult>();
+            var matchStageFailed = false;
             if (candidatesByRow.Values.Any(list => list.Count > 0))
             {
                 var matchUserText = AiProductMatchPrompts.BuildMatchUserText(dto.Currency, workingRows, candidatesByRow);
-                var matchResult = await _geminiClient.GenerateJsonAsync(
+                var matchResult = await CallModelAsync(
                     AiProductMatchPrompts.MatchSystemInstruction,
                     matchUserText,
-                    Array.Empty<(string, byte[])>(),
+                    Array.Empty<(string MimeType, byte[] Bytes)>(),
+                    overallToken,
                     cancellationToken);
 
                 if (matchResult.IsSuccess)
@@ -255,6 +292,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 }
                 else
                 {
+                    matchStageFailed = true;
                     _logger.LogWarning("AiProductMatch matching stage failed for store {StoreId}: {Error}", storeId, matchResult.ErrorCode);
                 }
             }
@@ -270,8 +308,15 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     ExternalCode = row.ExternalCode,
                     Price = row.Price,
                     Quantity = row.Quantity,
-                    SourcePictureId = row.SourcePictureId
+                    SourcePictureId = row.SourcePictureId,
+                    Brand = string.IsNullOrWhiteSpace(row.Brand) ? null : row.Brand.Trim(),
+                    PackageSize = AiProductMatchMatchingHelper.FormatPackageSize(row.PackageSizeValue, row.PackageSizeUnit),
+                    BoundingBoxes = row.BoundingBoxes
                 };
+
+                // برای آیتم بدون تطبیق (یا تطبیق‌نشده به‌خاطر خطا)، Confidence یعنی اطمینان از خواندن نام؛ اپ فقط
+                // ردیف‌های ≥ ۰.۶ را به فهرست ناموجودها می‌فرستد. برای آیتم تطبیق‌خورده، پایین‌تر مقدار تطبیق جایگزین می‌شود.
+                item.Confidence = row.NameConfidence ?? 0;
 
                 // سلول ناخوانا (قیمت/تعداد/...) هنگام استخراج از عکس — نه رد کل ردیف، فقط هشدار به فروشنده.
                 if (!string.IsNullOrWhiteSpace(row.ExtractionIssue))
@@ -282,6 +327,19 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 // فروشنده از فهرست packages انتخاب کند، نه این‌که اولین/موجودترین تنوع اشتباه انتخاب شود.
                 var suggestedPackagesByProductId = new Dictionary<long, AiProductMatchPackageDto>();
 
+                var rowRanked = ranked.FirstOrDefault(r => r.RowId == row.RowId);
+
+                // مدل موظف است برای هر ردیفِ دارای کاندید یک نتیجه (حتی ranked خالی) برگرداند؛ نبودنش یعنی تطبیق کامل نشد.
+                var catalogMatchFailed = searchFailedRowIds.Contains(row.RowId)
+                    || (candidates.Count > 0 && (matchStageFailed || rowRanked == null));
+                if (catalogMatchFailed)
+                {
+                    item.CatalogMatchFailed = true;
+                    item.Issues.Add(IssueCatalogMatchIncomplete);
+                    items.Add(item);
+                    continue;
+                }
+
                 if (candidates.Count == 0)
                 {
                     item.Issues.Add(IssueNotFoundInCatalog);
@@ -289,7 +347,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     continue;
                 }
 
-                var rowRanked = ranked.FirstOrDefault(r => r.RowId == row.RowId);
                 if (rowRanked != null)
                 {
                     var usedCandidateIndexes = new HashSet<int>();
@@ -362,49 +419,44 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         // می‌کند و هم ریسک Rate-Limit سمت Provider را بالا می‌برد. SourcePictureId عمداً خالی می‌ماند
         // چون هر دسته چند تصویر دارد و نمی‌شود یک ردیف را با قطعیت به یکی از آن‌ها نسبت داد — مستند
         // فرانت هم این فیلد را برای veterinary/sepidar لازم نداشت.
-        private async Task<List<AiProductMatchWorkingRow>> ExtractTableCaptureRowsAsync(
-            List<(IFormFile Image, long? PictureId)> uploadedImages,
+        private async Task<(List<AiProductMatchWorkingRow> Rows, int Failures)> ExtractTableCaptureRowsAsync(
+            List<BufferedImage> bufferedImages,
             long storeId,
-            CancellationToken cancellationToken,
+            CancellationToken budgetToken,
+            CancellationToken callerToken,
             Action<int, int> onBatchProgress = null)
         {
             var batchSize = Math.Max(1, _options.TableImagesPerVisionCall);
-            var batches = uploadedImages
-                .Select((uploaded, index) => (uploaded, index))
+            var batches = bufferedImages
+                .Select((image, index) => (image, index))
                 .GroupBy(x => x.index / batchSize)
-                .Select(g => g.Select(x => x.uploaded).ToList())
+                .Select(g => g.Select(x => x.image).ToList())
                 .ToList();
 
             var completedBatches = 0;
+            var failedBatches = 0;
             var totalBatches = batches.Count;
 
             var extractionTasks = batches.Select(async (batch, batchIndex) =>
             {
                 try
                 {
-                    var images = new List<(string MimeType, byte[] Bytes)>();
-                    foreach (var (image, _) in batch)
-                    {
-                        byte[] bytes;
-                        await using (var stream = image.OpenReadStream())
-                        await using (var memory = new System.IO.MemoryStream())
-                        {
-                            await stream.CopyToAsync(memory, cancellationToken);
-                            bytes = memory.ToArray();
-                        }
-                        images.Add((string.IsNullOrWhiteSpace(image.ContentType) ? "image/png" : image.ContentType, bytes));
-                    }
+                    var images = batch
+                        .Select(image => (MimeType: string.IsNullOrWhiteSpace(image.ContentType) ? "image/png" : image.ContentType, image.Bytes))
+                        .ToList();
 
-                    var extraction = await _geminiClient.GenerateJsonAsync(
+                    var extraction = await CallModelAsync(
                         AiProductMatchPrompts.TableCaptureExtractionSystemInstruction,
                         AiProductMatchPrompts.TableCaptureExtractionUserText,
                         images,
-                        cancellationToken);
+                        budgetToken,
+                        callerToken);
 
                     var rowsForBatch = new List<AiProductMatchWorkingRow>();
                     if (!extraction.IsSuccess)
                     {
                         _logger.LogWarning("AiProductMatch table-capture extraction failed for batch {BatchIndex}, store {StoreId}: {Error}", batchIndex + 1, storeId, extraction.ErrorCode);
+                        Interlocked.Increment(ref failedBatches);
                         return rowsForBatch;
                     }
 
@@ -439,7 +491,65 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             var result = new List<AiProductMatchWorkingRow>();
             foreach (var rowsForBatch in await Task.WhenAll(extractionTasks))
                 result.AddRange(rowsForBatch);
+            return (result, failedBatches);
+        }
+
+        private static async Task<List<BufferedImage>> BufferImagesAsync(List<IFormFile> source, CancellationToken cancellationToken)
+        {
+            var result = new List<BufferedImage>();
+            foreach (var image in source)
+            {
+                await using var stream = image.OpenReadStream();
+                using var memory = new System.IO.MemoryStream();
+                await stream.CopyToAsync(memory, cancellationToken);
+                result.Add(new BufferedImage(memory.ToArray(), image.ContentType, image.FileName, image.Name));
+            }
             return result;
+        }
+
+        // هر آپلود روی FormFileِ حافظه‌ایِ مستقل خودش انجام می‌شود؛ شکست آپلود هرگز تحلیل را رد نمی‌کند.
+        private async Task<long?[]> UploadImagesAsync(List<BufferedImage> images, long storeId, string authorizationHeaderValue)
+        {
+            var uploads = images.Select(async image =>
+            {
+                try
+                {
+                    var file = new FormFile(new System.IO.MemoryStream(image.Bytes), 0, image.Bytes.Length, image.Name, image.FileName)
+                    {
+                        Headers = new HeaderDictionary(),
+                        ContentType = image.ContentType
+                    };
+                    var (ok, pictureId, error) = await _fileClient.UploadAsync(file, authorizationHeaderValue, CancellationToken.None);
+                    if (!ok)
+                        _logger.LogWarning("AiProductMatch failed to persist an uploaded image for store {StoreId}: {Error}", storeId, error);
+                    return ok ? pictureId : null;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "AiProductMatch image upload threw for store {StoreId}.", storeId);
+                    return (long?)null;
+                }
+            });
+            return await Task.WhenAll(uploads);
+        }
+
+        // تمام‌شدن بودجهٔ زمانی (budgetToken) را به شکست عادیِ Provider تبدیل می‌کند؛ فقط قطع‌شدن واقعیِ کلاینت
+        // (callerToken) Exception می‌دهد.
+        private async Task<AiProductMatchGeminiCallResult> CallModelAsync(
+            string systemInstruction,
+            string userText,
+            IReadOnlyList<(string MimeType, byte[] Bytes)> images,
+            CancellationToken budgetToken,
+            CancellationToken callerToken)
+        {
+            try
+            {
+                return await _geminiClient.GenerateJsonAsync(systemInstruction, userText, images, budgetToken);
+            }
+            catch (OperationCanceledException) when (!callerToken.IsCancellationRequested)
+            {
+                return AiProductMatchGeminiCallResult.Failure("budget_exhausted");
+            }
         }
 
         // موازی‌سازی جست‌وجوی کاندید برای همه‌ی ردیف‌ها هم‌زمان، در دو فاز:
@@ -449,15 +559,15 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         // فاز ۲) هیدریت (Products/ProductItems) روی _context یک‌بار و برای اجتماع همه‌ی شناسه‌ها انجام
         //        می‌شود — چون DbContext را نمی‌توان هم‌زمان از چند Task صدا زد (Thread-unsafe)، و این کار
         //        تعداد Round-trip های EF را هم از ۲×تعداد‌ردیف به فقط ۲ کاهش می‌دهد.
-        private async Task<Dictionary<string, List<AiProductMatchCandidateProduct>>> FindCandidatesForAllRowsAsync(
+        private async Task<(Dictionary<string, List<AiProductMatchCandidateProduct>> CandidatesByRow, HashSet<string> SearchFailedRowIds)> FindCandidatesForAllRowsAsync(
             List<AiProductMatchWorkingRow> rows,
             long storeId,
             CancellationToken cancellationToken)
         {
-            var searchTasks = rows.Select(async row => new
+            var searchTasks = rows.Select(async row =>
             {
-                row.RowId,
-                ProductIds = await SearchProductIdsAsync(row.Name, cancellationToken)
+                var (productIds, failed) = await SearchProductIdsAsync(row.Name, cancellationToken);
+                return new { row.RowId, ProductIds = productIds, Failed = failed };
             });
             var searchResults = await Task.WhenAll(searchTasks);
 
@@ -468,13 +578,15 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             foreach (var searchResult in searchResults)
                 candidatesByRow[searchResult.RowId] = BuildCandidates(searchResult.ProductIds, productById, itemsByProductId, storeId);
 
-            return candidatesByRow;
+            var failedRowIds = searchResults.Where(r => r.Failed).Select(r => r.RowId).ToHashSet();
+            return (candidatesByRow, failedRowIds);
         }
 
-        private async Task<List<long>> SearchProductIdsAsync(string rawName, CancellationToken cancellationToken)
+        // Failed=true یعنی جست‌وجو خطا داد (نه این‌که نتیجه‌ای نبوده) — این دو حالت برای اپ کاملاً فرق دارند.
+        private async Task<(List<long> ProductIds, bool Failed)> SearchProductIdsAsync(string rawName, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(rawName))
-                return new List<long>();
+                return (new List<long>(), false);
 
             var request = new SearchRequestDto
             {
@@ -497,7 +609,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             request.SearchTerms = SearchNormalizeHelper.BuildTerms(request.Q, request.EnableFuzzy);
 
             if (string.IsNullOrWhiteSpace(request.Q) || request.Q.Length < 2)
-                return new List<long>();
+                return (new List<long>(), false);
 
             try
             {
@@ -506,12 +618,12 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 // محصولاتی که فروشنده‌ی فعلی (یا هیچ فروشگاهی) هنوز براشون موجودی ثبت نکرده، چون
                 // کل هدف این فیچر همینه: پیدا کردن محصول کاتالوگ برای ساختن اولین ProductItem آن.
                 var found = await _productService.SearchCatalogProductIdsAsync(request, cancellationToken);
-                return found == null ? new List<long>() : found.Distinct().ToList();
+                return (found == null ? new List<long>() : found.Distinct().ToList(), false);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "AiProductMatch candidate search failed for raw name '{RawName}'.", rawName);
-                return new List<long>();
+                return (new List<long>(), true);
             }
         }
 

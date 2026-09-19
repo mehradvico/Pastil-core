@@ -1,4 +1,5 @@
 using Application.Common.Helpers;
+using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,17 +65,86 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         // یکسان است (وقتی هر دو ردیف externalCode دارند)؛ در غیر این صورت نام نرمال‌شده کلید تشخیص است.
         public static List<AiProductMatchWorkingRow> DeduplicateRows(List<AiProductMatchWorkingRow> rows)
         {
-            var seen = new HashSet<string>();
+            var kept = new Dictionary<string, AiProductMatchWorkingRow>();
             var result = new List<AiProductMatchWorkingRow>();
             foreach (var row in rows)
             {
                 var key = !string.IsNullOrWhiteSpace(row.ExternalCode)
                     ? "code:" + SearchNormalizeHelper.NormalizeNoSpace(row.ExternalCode)
                     : "name:" + SearchNormalizeHelper.NormalizeNoSpace(row.Name);
-                if (seen.Add(key))
-                    result.Add(row);
+
+                if (kept.TryGetValue(key, out var first))
+                {
+                    // ردیف تکراری حذف می‌شود ولی کادرهایش (هر بستهٔ قابل‌رؤیت از همان محصول) به ردیف اول اضافه می‌شود
+                    first.BoundingBoxes.AddRange(row.BoundingBoxes);
+                    if (row.NameConfidence > (first.NameConfidence ?? 0))
+                        first.NameConfidence = row.NameConfidence;
+                    continue;
+                }
+
+                kept[key] = row;
+                result.Add(row);
             }
             return result;
+        }
+
+        private const double MinBoxSide = 0.02;
+
+        // ورودی: [ymin, xmin, ymax, xmax] خام مدل. مقیاس ۰..۱۰۰۰ (قالب Gemini) یا ۰..۱ هر دو پذیرفته می‌شود؛
+        // کادر خارج از عکس clamp می‌شود و کادر با عرض/ارتفاع زیر ۲٪ (یا معکوس/تهی) دور ریخته می‌شود.
+        public static List<AiProductMatchBoundingBoxDto> NormalizeBoxes(IEnumerable<double[]> rawBoxes)
+        {
+            var result = new List<AiProductMatchBoundingBoxDto>();
+            if (rawBoxes == null)
+                return result;
+
+            foreach (var raw in rawBoxes)
+            {
+                if (raw == null || raw.Length != 4 || raw.Any(v => !double.IsFinite(v)))
+                    continue;
+
+                var scale = raw.All(v => v <= 1.0) ? 1.0 : 1000.0;
+                var ymin = Math.Clamp(raw[0] / scale, 0, 1);
+                var xmin = Math.Clamp(raw[1] / scale, 0, 1);
+                var ymax = Math.Clamp(raw[2] / scale, 0, 1);
+                var xmax = Math.Clamp(raw[3] / scale, 0, 1);
+
+                var width = xmax - xmin;
+                var height = ymax - ymin;
+                if (width < MinBoxSide || height < MinBoxSide)
+                    continue;
+
+                result.Add(new AiProductMatchBoundingBoxDto
+                {
+                    X = Math.Round(xmin, 4),
+                    Y = Math.Round(ymin, 4),
+                    Width = Math.Round(width, 4),
+                    Height = Math.Round(height, 4)
+                });
+            }
+
+            return result;
+        }
+
+        // «۴۰۰ گرم» — برای ساخت پیش‌نویس محصول ثبت‌نشده؛ اگر مقدار یا واحد خوانا نبود null.
+        public static string FormatPackageSize(double? value, string unit)
+        {
+            if (!value.HasValue || value.Value <= 0 || !double.IsFinite(value.Value) || string.IsNullOrWhiteSpace(unit))
+                return null;
+
+            var unitFa = unit.Trim().ToLowerInvariant() switch
+            {
+                "kilogram" or "kg" => "کیلوگرم",
+                "gram" or "g" => "گرم",
+                "liter" or "litre" or "l" => "لیتر",
+                "milliliter" or "ml" => "میلی‌لیتر",
+                "count" or "piece" or "pcs" => "عدد",
+                _ => unit.Trim()
+            };
+
+            var number = value.Value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+            var persianNumber = new string(number.Select(c => c >= '0' && c <= '9' ? (char)('۰' + (c - '0')) : c).ToArray());
+            return $"{persianNumber} {unitFa}";
         }
 
         private static HashSet<string> NormalizeTokens(string value)

@@ -25,6 +25,11 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         // وقتی مدل هنگام استخراج از عکس (نه مرحله‌ی تطبیق) به یک سلول/جزئیات ناخوانا برخورده — مستقیم
         // به‌عنوان issue همان ردیف در پاسخ نهایی ظاهر می‌شود.
         public string ExtractionIssue { get; set; }
+
+        // فقط شلف: کادرهای نرمال‌شده، اطمینان مدل از خواندن نام (۰..۱) و اندیس عکس برای اتصال دیرهنگام PictureId
+        public List<AiProductMatchBoundingBoxDto> BoundingBoxes { get; set; } = new();
+        public double? NameConfidence { get; set; }
+        public int? SourceImageIndex { get; set; }
     }
 
     public class AiProductMatchCandidateProduct

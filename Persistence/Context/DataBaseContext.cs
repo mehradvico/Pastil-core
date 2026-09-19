@@ -237,6 +237,7 @@ namespace Persistence.Context
         public DbSet<GalleryItem> GalleryItems { get; set; }
         public DbSet<Hashtag> Hashtags { get; set; }
         public DbSet<MapKey> MapKeys { get; set; }
+        public DbSet<MissingProduct> MissingProducts { get; set; }
         public DbSet<Merchant> Merchants { get; set; }
         public DbSet<MessageType> MessageTypes { get; set; }
         public DbSet<Neighborhood> Neighborhoods { get; set; }
@@ -1591,6 +1592,25 @@ namespace Persistence.Context
                 .IsUnique()
                 .HasFilter("[Slug] IS NOT NULL AND [Deleted] = 0")
                 .HasDatabaseName("IX_Categories_SlugScopeParentId_Slug");
+
+            modelBuilder.Entity<MissingProduct>(e =>
+            {
+                e.Property(x => x.Name).IsRequired().HasMaxLength(200);
+                e.Property(x => x.NormalizedName).IsRequired().HasMaxLength(250);
+                e.Property(x => x.Brand).HasMaxLength(100);
+                e.Property(x => x.PackageSize).HasMaxLength(100);
+                e.Property(x => x.Description).HasMaxLength(2000);
+                e.Property(x => x.RejectionReason).HasMaxLength(500);
+                e.Property(x => x.Source).HasMaxLength(30);
+
+                // هر فروشگاه هر نام (نرمال‌شده) را فقط یک‌بار می‌تواند ثبت کند؛ اسکن تکراری یک قفسه رکورد تکراری نمی‌سازد.
+                e.HasIndex(x => new { x.StoreId, x.NormalizedName }).IsUnique();
+                e.HasIndex(x => new { x.Status, x.Id });
+
+                e.HasOne(x => x.Store).WithMany().HasForeignKey(x => x.StoreId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Picture).WithMany().HasForeignKey(x => x.PictureId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+            });
 
             modelBuilder.Entity<PetTag>()
                 .Property(x => x.Code)

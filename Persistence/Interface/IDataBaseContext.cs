@@ -118,6 +118,7 @@ namespace Persistence.Interface
         public DbSet<GalleryItem> GalleryItems { get; set; }
         public DbSet<Hashtag> Hashtags { get; set; }
         public DbSet<MapKey> MapKeys { get; set; }
+        public DbSet<MissingProduct> MissingProducts { get; set; }
         public DbSet<Merchant> Merchants { get; set; }
         public DbSet<MessageType> MessageTypes { get; set; }
         public DbSet<Neighborhood> Neighborhoods { get; set; }
