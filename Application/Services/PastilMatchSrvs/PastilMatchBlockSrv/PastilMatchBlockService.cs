@@ -54,7 +54,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchBlockSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchBlockVDto>(false, ex.Message, null);
+                return new BaseResultDto<PastilMatchBlockVDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), null);
             }
         }
 
@@ -180,7 +180,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchBlockSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchBlockDto>(false, ex.Message, dto);
+                return new BaseResultDto<PastilMatchBlockDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
 
@@ -246,7 +246,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchBlockSrv
             catch (Exception ex)
             {
                 transaction.Rollback();
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 

@@ -80,7 +80,7 @@ namespace Application.Services.WeekDaySrv.WeekDaySrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<WeekDayDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<WeekDayDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
         public List<WeekDayDto> GetWeekDays()

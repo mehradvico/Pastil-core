@@ -93,7 +93,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentRateSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionReserveCommentRateDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionReserveCommentRateDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 

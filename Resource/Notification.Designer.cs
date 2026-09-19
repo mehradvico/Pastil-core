@@ -4073,5 +4073,49 @@ namespace Resource {
                 return ResourceManager.GetString("AiProductMatchServiceUnavailable", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to ProductItemVarietyInvalid.
+        /// </summary>
+        public static string ProductItemVarietyInvalid {
+            get {
+                return ResourceManager.GetString("ProductItemVarietyInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to VarietyItemInUseCannotBeDeleted.
+        /// </summary>
+        public static string VarietyItemInUseCannotBeDeleted {
+            get {
+                return ResourceManager.GetString("VarietyItemInUseCannotBeDeleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to VarietyInUseCannotBeDeleted.
+        /// </summary>
+        public static string VarietyInUseCannotBeDeleted {
+            get {
+                return ResourceManager.GetString("VarietyInUseCannotBeDeleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ProductVarietyInUseCannotBeChanged.
+        /// </summary>
+        public static string ProductVarietyInUseCannotBeChanged {
+            get {
+                return ResourceManager.GetString("ProductVarietyInUseCannotBeChanged", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to NoVarietyChangeNeeded.
+        /// </summary>
+        public static string NoVarietyChangeNeeded {
+            get {
+                return ResourceManager.GetString("NoVarietyChangeNeeded", resourceCulture);
+            }
+        }
     }
 }

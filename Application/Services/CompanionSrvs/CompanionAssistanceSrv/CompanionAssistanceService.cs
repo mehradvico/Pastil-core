@@ -157,7 +157,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionAssistanceDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionAssistanceDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
         public async Task<BaseResultDto> UpdateAsyncDto(CompanionAssistanceDto dto, long? companionId = null)
@@ -196,7 +196,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionAssistanceDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionAssistanceDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
 
         }

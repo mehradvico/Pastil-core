@@ -66,7 +66,8 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
             }
             else
             {
-                if (productItem.BasePrice > 0 && productItem.Quantity > 0)
+                // آیتم جدید با قیمت مثبت ساخته می‌شود؛ موجودی ۰ یعنی «ناموجود» (نه «ساخته نشود»). سطر خالی (قیمت ۰) ساخته نمی‌شود.
+                if (productItem.BasePrice > 0 && productItem.Quantity >= 0)
                 {
                     item = mapper.Map<ProductItem>(productItem);
                     item.SystemActive = true;
@@ -86,6 +87,36 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
         {
             if (productItemListUpdate == null || productItemListUpdate.ProductId <= 0 || productItemListUpdate.StoreId <= 0 || productItemListUpdate.ProductItems == null || !productItemListUpdate.ProductItems.Any())
                 return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            if (productItemListUpdate.ProductItems.Any(item => item.BasePrice < 0 || item.Quantity < 0))
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            // فروشنده فقط برای مقدارهای تنوعِ «همین محصول» (تعیین‌شده توسط ادمین) قیمت/موجودی می‌دهد؛ هر سطر نامعتبر
+            // کل درخواست را رد می‌کند و هیچ‌چیز ذخیره نمی‌شود.
+            var productVarieties = await _context.Products.AsNoTracking()
+                .Where(product => product.Id == productItemListUpdate.ProductId)
+                .Select(product => new { product.VarietyId, product.Variety2Id })
+                .FirstOrDefaultAsync();
+            if (productVarieties == null)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            var validValues1 = productVarieties.VarietyId.HasValue
+                ? (await _context.VarietyItems.AsNoTracking()
+                    .Where(value => value.VarietyId == productVarieties.VarietyId.Value && !value.Deleted)
+                    .Select(value => value.Id).ToListAsync()).ToHashSet()
+                : new HashSet<long>();
+            var validValues2 = productVarieties.Variety2Id.HasValue
+                ? (await _context.VarietyItems.AsNoTracking()
+                    .Where(value => value.VarietyId == productVarieties.Variety2Id.Value && !value.Deleted)
+                    .Select(value => value.Id).ToListAsync()).ToHashSet()
+                : new HashSet<long>();
+            if (!ProductVarietyRules.RowsAreValid(
+                    productVarieties.VarietyId,
+                    productVarieties.Variety2Id,
+                    validValues1,
+                    validValues2,
+                    productItemListUpdate.ProductItems.Select(item => (item.VarietyItemId, item.VarietyItem2Id))))
+                return new BaseResultDto(false, Resource.Notification.ProductItemVarietyInvalid);
 
             try
             {
@@ -178,6 +209,13 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
                 if (product.Variety != null)
                 {
                     varietyItems = product.Variety.VarietyItems.ToList();
+                    if (productItemListrequest.VarietyItemIds?.Count > 0)
+                    {
+                        // فقط مقدارهای انتخاب‌شده + مقدارهایی که این فروشگاه از قبل آیتم دارد
+                        var keep = product.ProductItems.Where(i => i.VarietyItemId.HasValue).Select(i => i.VarietyItemId.Value).ToHashSet();
+                        keep.UnionWith(productItemListrequest.VarietyItemIds);
+                        varietyItems = varietyItems.Where(v => keep.Contains(v.Id)).ToList();
+                    }
                 }
                 else
                 {
@@ -187,6 +225,12 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
                 if (product.Variety2 != null)
                 {
                     varietyItems2 = product.Variety2.VarietyItems.ToList();
+                    if (productItemListrequest.Variety2ItemIds?.Count > 0)
+                    {
+                        var keep2 = product.ProductItems.Where(i => i.VarietyItem2Id.HasValue).Select(i => i.VarietyItem2Id.Value).ToHashSet();
+                        keep2.UnionWith(productItemListrequest.Variety2ItemIds);
+                        varietyItems2 = varietyItems2.Where(v => keep2.Contains(v.Id)).ToList();
+                    }
                 }
                 else
                 {
@@ -247,6 +291,41 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
 
         }
 
+        public async Task<BaseResultDto> GetProductVarietyStructureAsync(long productId)
+        {
+            var product = await _context.Products.AsNoTracking()
+                .Where(p => p.Id == productId)
+                .Select(p => new { p.Id, p.VarietyId, p.Variety2Id })
+                .FirstOrDefaultAsync();
+            if (product == null)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            async Task<ProductVarietyDto> LoadAsync(long? varietyId)
+            {
+                if (!varietyId.HasValue)
+                    return null;
+                var variety = await _context.Varieties.AsNoTracking()
+                    .Where(v => v.Id == varietyId.Value && !v.Deleted)
+                    .Select(v => new { v.Id, v.Name, v.Label })
+                    .FirstOrDefaultAsync();
+                if (variety == null)
+                    return null;
+                var values = await _context.VarietyItems.AsNoTracking()
+                    .Where(v => v.VarietyId == variety.Id && !v.Deleted)
+                    .OrderBy(v => v.Id)
+                    .Select(v => new ProductVarietyValueDto { Id = v.Id, Name = v.Name, Label = v.Label })
+                    .ToListAsync();
+                return new ProductVarietyDto { Id = variety.Id, Name = variety.Name, Label = variety.Label, Values = values };
+            }
+
+            return new BaseResultDto<ProductVarietyStructureDto>(true, new ProductVarietyStructureDto
+            {
+                ProductId = product.Id,
+                Variety = await LoadAsync(product.VarietyId),
+                Variety2 = await LoadAsync(product.Variety2Id)
+            });
+        }
+
         public async Task<BaseResultDto> GetVarietyAsync(long productId)
         {
             var product = await _context.Products.AsTracking().Include(s => s.Variety).Include(s => s.Variety2)/*.ThenInclude(s => s.VarietyItems.Where(s => s.Deleted == false))*/.Include(s => s.ProductItems.OrderByDescending(o => o.SystemActive).ThenBy(s => s.Price)).ThenInclude(s => s.Store).FirstOrDefaultAsync(s => s.Id == productId && s.Status.Label == ProductStatusEnum.ProductStatus_Available.ToString() && s.Active && s.Deleted == false);
@@ -275,12 +354,17 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
                 result.Variety2 = mapper.Map<VarietyShowVDto>(product.Variety2);
                 result.VarietyItem1Id = varietyItem1Id;
                 result.VarietyItem2Id = varietyItem2Id;
+                // آیتمِ بدون مقدار روی محصول دارای تنوع (داده‌ی قدیمی/ناهماهنگ) قابل‌نمایش نیست و قبلاً NullReference می‌داد.
+                var hasVariety1 = product.VarietyId != null;
+                var hasVariety2 = product.Variety2Id != null;
                 var productItems = _context.ProductItems
                     .Include(s => s.VarietyItem)
                     .Include(s => s.VarietyItem2)
                     .Include(s => s.Store)
                     .Include(s => s.DiscountGroup)
-                    .Where(s => !s.Deleted && s.ProductId == productId && s.SystemActive)
+                    .Where(s => !s.Deleted && s.ProductId == productId && s.SystemActive
+                                && (!hasVariety1 || s.VarietyItemId != null)
+                                && (!hasVariety2 || s.VarietyItem2Id != null))
                     .OrderByDescending(o => o.SystemActive)
                     .ThenBy(o => o.Price);
                 if (await productItems.AnyAsync())
@@ -289,17 +373,20 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
                     {
                         var group = productItems.GroupBy(g => g.VarietyItem);
                         result.VarietyItems1 = mapper.Map<List<VarietyItemMinVDto>>(group.Select(s => s.Key).ToList());
-                        if (result.VarietyItem1Id == null)
-                            result.VarietyItem1Id = result.VarietyItems1.First().Id;
+                        // مقدار انتخابی نامعتبر/ناموجود (مثلاً id دست‌کاری‌شده) ⇒ به اولین مقدار موجود برمی‌گردیم، نه خطای ۵۰۰
+                        if (result.VarietyItem1Id == null || !result.VarietyItems1.Any(v => v.Id == result.VarietyItem1Id))
+                            result.VarietyItem1Id = result.VarietyItems1.FirstOrDefault()?.Id;
                         if (result.Variety2 != null)
                         {
                             if (result.VarietyItem2Id == null)
                             {
                                 result.VarietyItems2 = mapper.Map<List<VarietyItemMinVDto>>(group.ToList().First().ToList().Select(s => s.VarietyItem2).ToList());
-                                result.VarietyItem2Id = result.VarietyItems2.First().Id;
+                                result.VarietyItem2Id = result.VarietyItems2.FirstOrDefault()?.Id;
                             }
                             else
-                                result.VarietyItems2 = mapper.Map<List<VarietyItemMinVDto>>(group.ToList().First(g => g.Key.Id == varietyItem1Id).ToList().Select(s => s.VarietyItem2).DistinctBy(d => d.Id).ToList());
+                                result.VarietyItems2 = mapper.Map<List<VarietyItemMinVDto>>(
+                                    (group.ToList().FirstOrDefault(g => g.Key.Id == result.VarietyItem1Id)?.ToList() ?? new List<ProductItem>())
+                                        .Select(s => s.VarietyItem2).DistinctBy(d => d.Id).ToList());
                         }
                     }
                     result.ProductItems = mapper.Map<List<ProductItemShowVDto>>(productItems.Where(s => s.VarietyItemId == result.VarietyItem1Id && s.VarietyItem2Id == result.VarietyItem2Id));

@@ -174,7 +174,7 @@ namespace Application.Services.CompanionSrvs.CompanionZoneSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionZoneDto>(false, ex.Message, dto);
+                return new BaseResultDto<CompanionZoneDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
 

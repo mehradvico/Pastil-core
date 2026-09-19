@@ -71,7 +71,7 @@ namespace Application.Services.LocationFields.ParkPictureSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<ParkPictureDto>(false, ex.Message, dto);
+                return new BaseResultDto<ParkPictureDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
     }

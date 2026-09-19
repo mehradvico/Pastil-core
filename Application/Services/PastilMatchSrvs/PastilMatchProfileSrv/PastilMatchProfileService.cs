@@ -436,7 +436,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             {
                 return new BaseResultDto<PastilMatchProfileDto>(
                     isSuccess: false,
-                    val: ex.Message,
+                    val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex),
                     data: dto
                 );
             }
@@ -554,7 +554,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             {
                 return new BaseResultDto(
                     isSuccess: false,
-                    val: ex.Message
+                    val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex)
                 );
             }
         }
@@ -605,7 +605,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             {
                 return new BaseResultDto(
                     isSuccess: false,
-                    val: ex.Message
+                    val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex)
                 );
             }
         }
@@ -708,7 +708,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             {
                 return new BaseResultDto(
                     isSuccess: false,
-                    val: ex.Message
+                    val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex)
                 );
             }
         }
@@ -801,7 +801,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             {
                 return new BaseResultDto(
                     isSuccess: false,
-                    val: ex.Message
+                    val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex)
                 );
             }
         }
@@ -851,7 +851,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileSrv
             {
                 return new BaseResultDto(
                     isSuccess: false,
-                    val: ex.Message
+                    val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex)
                 );
             }
         }

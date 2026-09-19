@@ -204,7 +204,7 @@ namespace Application.Services.ProductSrvs.DiscountSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<DiscountDto>(isSuccess: false, val: ex.Message, data: discount);
+                return new BaseResultDto<DiscountDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: discount);
             }
         }
 

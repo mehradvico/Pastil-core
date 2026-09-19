@@ -219,7 +219,7 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -245,7 +245,7 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -272,7 +272,7 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 

@@ -1,4 +1,4 @@
-using Application.Common.Configuration;
+﻿using Application.Common.Configuration;
 using Application.Configures;
 using Application.Common.Enumerable;
 using File.Middleware;
@@ -178,6 +178,8 @@ builder.Services.Configure<FormOptions>(x =>
 });
 
 var app = builder.Build();
+app.UseUnhandledExceptionResult();
+Application.Common.Helpers.ExceptionResultHelper.Initialize(app.Services.GetRequiredService<ILoggerFactory>());
 
 
 if (app.Environment.IsDevelopment())

@@ -180,7 +180,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
         public CompanionReserveCommentSearchDto Search(CompanionReserveCommentInputDto baseSearchDto)

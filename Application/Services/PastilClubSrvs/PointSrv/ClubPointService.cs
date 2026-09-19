@@ -240,7 +240,7 @@ namespace Application.Services.PastilClubSrvs.PointSrv
             }
             catch (InvalidOperationException exception)
             {
-                return new BaseResultDto<ClubPointTransactionVDto>(false, exception.Message, null);
+                return new BaseResultDto<ClubPointTransactionVDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(exception), null);
             }
 
             account.AvailablePoint = change.AvailablePoint;

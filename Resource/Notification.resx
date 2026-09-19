@@ -1455,4 +1455,19 @@
   <data name="AiProductMatchServiceUnavailable" xml:space="preserve">
     <value>AI Product Match Service Unavailable</value>
   </data>
+  <data name="ProductItemVarietyInvalid" xml:space="preserve">
+    <value>ProductItemVarietyInvalid</value>
+  </data>
+  <data name="VarietyItemInUseCannotBeDeleted" xml:space="preserve">
+    <value>VarietyItemInUseCannotBeDeleted</value>
+  </data>
+  <data name="VarietyInUseCannotBeDeleted" xml:space="preserve">
+    <value>VarietyInUseCannotBeDeleted</value>
+  </data>
+  <data name="ProductVarietyInUseCannotBeChanged" xml:space="preserve">
+    <value>ProductVarietyInUseCannotBeChanged</value>
+  </data>
+  <data name="NoVarietyChangeNeeded" xml:space="preserve">
+    <value>NoVarietyChangeNeeded</value>
+  </data>
 </root>

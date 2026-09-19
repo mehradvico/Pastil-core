@@ -94,7 +94,7 @@ namespace Application.Services.LocationFields.ParkSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -118,7 +118,7 @@ namespace Application.Services.LocationFields.ParkSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
     }

@@ -102,7 +102,7 @@ namespace Application.Services.Accounting.UserPerRecordSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<UserPetRecordDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<UserPetRecordDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
     }

@@ -118,9 +118,57 @@ namespace Application.Services.Order.ProductOrderSrv
                         item.CreateDate,
                         await _context.GetNextBusinessCodeNumberAsync());
 
+                    // رزرو موجودی: بررسی «موجودی در دسترس» و ثبت سفارش زیر قفل‌های هم‌نام روی هر آیتم کالا انجام
+                    // می‌شود تا دو خریدار همزمان هر دو آخرین واحد را نگیرند (جزئیات: StockReservation).
+                    var requested = (item.ProductOrderStores ?? new List<ProductOrderStore>())
+                        .SelectMany(store => store.ProductOrderItems ?? new List<ProductOrderItem>())
+                        .GroupBy(orderItem => orderItem.ProductItemId)
+                        .ToDictionary(group => group.Key, group => group.Sum(orderItem => orderItem.Count));
+
+                    await using var transaction = await _context.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted);
+                    foreach (var productItemId in requested.Keys.OrderBy(id => id))
+                    {
+                        await _context.AcquireTransactionLockAsync($"stock-product-item:{productItemId}");
+                    }
+
+                    var itemIds = requested.Keys.ToList();
+                    var quantities = await _context.ProductItems.AsNoTracking()
+                        .Where(productItem => itemIds.Contains(productItem.Id))
+                        .ToDictionaryAsync(productItem => productItem.Id, productItem => productItem.Quantity);
+
+                    var holdCutoff = DateTime.Now.AddMinutes(-StockReservation.HoldMinutes);
+                    var heldRows = await _context.ProductOrderItems.AsNoTracking()
+                        .Where(orderItem => itemIds.Contains(orderItem.ProductItemId)
+                            && !orderItem.Deleted
+                            && !orderItem.ProductOrderStore.ProductOrder.IsPaid
+                            && !orderItem.ProductOrderStore.ProductOrder.Deleted
+                            && orderItem.ProductOrderStore.ProductOrder.CreateDate > holdCutoff
+                            && orderItem.ProductOrderStore.ProductOrder.UserId != dto.UserId
+                            && !(_context.Payments.Any(payment =>
+                                    (payment.ProductOrderId == orderItem.ProductOrderStore.ProductOrderId
+                                        || payment.CallBackId == orderItem.ProductOrderStore.ProductOrderId)
+                                    && payment.IsSuccess == false)
+                                && !_context.Payments.Any(payment =>
+                                    (payment.ProductOrderId == orderItem.ProductOrderStore.ProductOrderId
+                                        || payment.CallBackId == orderItem.ProductOrderStore.ProductOrderId)
+                                    && payment.IsSuccess == null)))
+                        .GroupBy(orderItem => orderItem.ProductItemId)
+                        .Select(group => new { ProductItemId = group.Key, Held = group.Sum(orderItem => orderItem.Count) })
+                        .ToListAsync();
+                    var heldByOthers = heldRows.ToDictionary(row => row.ProductItemId, row => row.Held);
+
+                    var shortages = StockReservation.FindShortages(requested, quantities, heldByOthers);
+                    if (shortages.Count > 0)
+                    {
+                        await transaction.RollbackAsync();
+                        _logger.LogInformation("ProductOrder rejected for user {UserId}: insufficient available stock for product items {ProductItemIds}", dto.UserId, string.Join(",", shortages));
+                        return new BaseResultDto<ProductOrderDto>(false, Resource.Notification.TheNumberIsMoreThanStock, dto);
+                    }
+
                     await _context.ProductOrders.AddAsync(item);
 
                     await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
                     return new BaseResultDto<ProductOrderDto>(true, mapper.Map<ProductOrderDto>(item));
                 }
 

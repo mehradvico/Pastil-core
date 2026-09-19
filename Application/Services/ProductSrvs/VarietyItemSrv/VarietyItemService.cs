@@ -45,7 +45,11 @@ namespace Application.Services.ProductSrvs.VarietyItemSrv
                 }
                 else
                 {
-                    if ((!NameIsUnique(dto.Name)))
+                    if (string.IsNullOrEmpty(SearchNormalizeHelper.NormalizeNoSpace(dto.Name)))
+                    {
+                        return new BaseResultDto<VarietyItemDto>(isSuccess: false, val1: Resource.Notification.InvalidData, val2: nameof(dto.Name), dto);
+                    }
+                    if (!NameIsUnique(dto.Name, dto.VarietyId))
                     {
                         return new BaseResultDto<VarietyItemDto>(isSuccess: false, val1: Resource.Notification.TheNameIsDuplicate, val2: nameof(dto.Name), dto);
                     }
@@ -58,7 +62,7 @@ namespace Application.Services.ProductSrvs.VarietyItemSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<VarietyItemDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<VarietyItemDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
 
 
@@ -77,7 +81,14 @@ namespace Application.Services.ProductSrvs.VarietyItemSrv
                 else
                 {
                     var item = _context.VarietyItems.FirstOrDefault(s => s.Id == dto.Id);
-                    if (dto.Name != item.Name && (!NameIsUnique(dto.Name)))
+                    if (item == null)
+                        return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
+                    if (string.IsNullOrEmpty(SearchNormalizeHelper.NormalizeNoSpace(dto.Name)))
+                    {
+                        return new BaseResultDto<VarietyItemDto>(isSuccess: false, val1: Resource.Notification.InvalidData, val2: nameof(dto.Name), dto);
+                    }
+                    // فقط وقتی نام یا تنوع عوض می‌شود بررسی می‌کنیم تا ردیف‌های تکراریِ قدیمی همچنان قابل ویرایش (مثلاً Label) بمانند
+                    if ((dto.Name != item.Name || dto.VarietyId != item.VarietyId) && !NameIsUnique(dto.Name, dto.VarietyId, item.Id))
                     {
                         return new BaseResultDto<VarietyItemDto>(isSuccess: false, val1: Resource.Notification.TheNameIsDuplicate, val2: nameof(dto.Name), dto);
                     }
@@ -90,17 +101,31 @@ namespace Application.Services.ProductSrvs.VarietyItemSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
 
         }
-        bool NameIsUnique(string name)
+        // ادمین فقط مقدار «اضافه» می‌کند؛ مقداری که در آیتم فعال یک فروشنده یا در سفارش‌ها استفاده شده حذف نمی‌شود.
+        public override BaseResultDto DeleteDto(long id)
         {
-            var item = _context.VarietyItems.FirstOrDefault(x => x.Name == name);
-            if (item == null)
-                return true;
-            return false;
+            var inUse = _context.ProductItems.IgnoreQueryFilters()
+                .Any(pi => (pi.VarietyItemId == id || pi.VarietyItem2Id == id)
+                           && (!pi.Deleted || _context.ProductOrderItems.Any(oi => oi.ProductItemId == pi.Id)));
+            if (inUse)
+                return new BaseResultDto(false, Resource.Notification.VarietyItemInUseCannotBeDeleted);
+            return base.DeleteDto(id);
+        }
 
+        // یکتایی «داخل همان تنوع» و با نرمال‌سازی املایی (فاصله/نیم‌فاصله، ی/ک عربی، ارقام فارسی/لاتین، حروف بزرگ/کوچک)؛
+        // ردیف‌های حذف‌شده مانع نیستند. «قرمز» در دو تنوع مختلف مجاز است. مقدارهای هر تنوع کم‌اند، پس مقایسه در حافظه مشکلی ندارد.
+        bool NameIsUnique(string name, long varietyId, long excludeId = 0)
+        {
+            var normalized = SearchNormalizeHelper.NormalizeNoSpace(name);
+            var existingNames = _context.VarietyItems.AsNoTracking()
+                .Where(x => x.VarietyId == varietyId && !x.Deleted && x.Id != excludeId)
+                .Select(x => x.Name)
+                .ToList();
+            return !existingNames.Any(existing => SearchNormalizeHelper.NormalizeNoSpace(existing) == normalized);
         }
     }
 }

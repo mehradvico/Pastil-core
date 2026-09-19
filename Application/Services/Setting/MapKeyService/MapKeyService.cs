@@ -89,7 +89,7 @@ namespace Application.Services.Setting.MapKeyService
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<MapKeyDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<MapKeyDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
     }

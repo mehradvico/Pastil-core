@@ -112,7 +112,7 @@ namespace Application.Services.Content.DiscussionQuestionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<DiscussionQuestionDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<DiscussionQuestionDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 
@@ -152,7 +152,7 @@ namespace Application.Services.Content.DiscussionQuestionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false,val: ex.Message);
+                return new BaseResultDto(isSuccess: false,val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -174,7 +174,7 @@ namespace Application.Services.Content.DiscussionQuestionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false,val: ex.Message);
+                return new BaseResultDto(isSuccess: false,val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
     }

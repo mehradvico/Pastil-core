@@ -424,7 +424,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchSuggestionSrv
             {
                 return new BaseResultDto<PastilMatchSuggestionVDto>(
                     false,
-                    ex.Message,
+                    Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex),
                     null
                 );
             }

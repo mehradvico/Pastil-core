@@ -48,7 +48,7 @@ namespace Application.Services.FinanceSrvs.SettlementStoreSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<SettlementStoreDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<SettlementStoreDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
     }

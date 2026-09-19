@@ -224,7 +224,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<SettlementDto>(false, ex.Message, dto);
+                return new BaseResultDto<SettlementDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
     }

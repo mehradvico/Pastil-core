@@ -9,8 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// صف «درخواست افزودن به کاتالوگ» — بررسی محصولاتی که فروشنده‌ها در کاتالوگ پیدا نکرده‌اند
+    /// درخواست های کاتالوگ محصول
     /// </summary>
+    /// <remarks>صف «درخواست افزودن به کاتالوگ» — بررسی محصولاتی که فروشنده‌ها در کاتالوگ پیدا نکرده‌اند</remarks>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]

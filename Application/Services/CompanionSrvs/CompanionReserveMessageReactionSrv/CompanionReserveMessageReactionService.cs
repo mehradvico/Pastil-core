@@ -55,7 +55,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionReserveMessageReactionVDto>(false, ex.Message, null);
+                return new BaseResultDto<CompanionReserveMessageReactionVDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), null);
             }
         }
 
@@ -176,7 +176,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionReserveMessageReactionDto>(false, ex.Message, dto);
+                return new BaseResultDto<CompanionReserveMessageReactionDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
 
@@ -208,7 +208,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 

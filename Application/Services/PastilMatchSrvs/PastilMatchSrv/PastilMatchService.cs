@@ -60,7 +60,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchVDto>(false, ex.Message, null);
+                return new BaseResultDto<PastilMatchVDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), null);
             }
         }
 
@@ -147,7 +147,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 

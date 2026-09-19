@@ -178,7 +178,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionAssistancePackageDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionAssistancePackageDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 
@@ -202,7 +202,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 

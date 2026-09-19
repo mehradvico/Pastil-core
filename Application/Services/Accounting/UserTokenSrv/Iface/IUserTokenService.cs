@@ -13,12 +13,15 @@ namespace Application.Services.Accounting.UserTokenSrv.Iface
             bool isAdmin = false,
             bool rememberMe = false,
             DateTime? refreshTokenExpiresAt = null,
-            long? rotatedFromTokenId = null);
+            long? rotatedFromTokenId = null,
+            string deviceName = null);
         Task<BaseResultDto> RefreshTokenAsync(RefreshTokenDto refreshToken);
         Task<BaseResultDto> SignOut(string token);
         Task<BaseResultDto> ResetTokenAsync(
             User user,
             bool isAdmin = false,
-            bool rememberMe = false);
+            bool rememberMe = false,
+            string deviceId = null,
+            bool revokeOnlySameClientKind = false);
     }
 }

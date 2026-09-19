@@ -1455,4 +1455,19 @@
   <data name="AiProductMatchServiceUnavailable" xml:space="preserve">
     <value>قابلیت تطبیق هوشمند محصول در حال حاضر در دسترس نیست.</value>
   </data>
+  <data name="ProductItemVarietyInvalid" xml:space="preserve">
+    <value>مقدار تنوع انتخاب‌شده برای این محصول معتبر نیست.</value>
+  </data>
+  <data name="VarietyItemInUseCannotBeDeleted" xml:space="preserve">
+    <value>این مقدار تنوع در آیتم‌های محصولات فروشنده‌ها یا سفارش‌ها استفاده شده و قابل حذف نیست.</value>
+  </data>
+  <data name="VarietyInUseCannotBeDeleted" xml:space="preserve">
+    <value>این تنوع روی محصولاتی تنظیم شده یا مقدارهایش استفاده شده و قابل حذف نیست.</value>
+  </data>
+  <data name="ProductVarietyInUseCannotBeChanged" xml:space="preserve">
+    <value>فروشنده‌ای برای این محصول با تنوع فعلی آیتم ثبت کرده است؛ تنوع استفاده‌شده را نمی‌توان حذف یا عوض کرد.</value>
+  </data>
+  <data name="NoVarietyChangeNeeded" xml:space="preserve">
+    <value>تغییری لازم نبود؛ تنوع محصول همین بود.</value>
+  </data>
 </root>

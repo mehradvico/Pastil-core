@@ -206,7 +206,7 @@ namespace Application.Services.Content.CargoSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CargoDto>(false, ex.Message, dto);
+                return new BaseResultDto<CargoDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
 

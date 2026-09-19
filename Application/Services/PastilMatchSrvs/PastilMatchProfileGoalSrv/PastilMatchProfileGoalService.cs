@@ -218,7 +218,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv
             {
                 return new BaseResultDto<PastilMatchProfileGoalDto>(
                     isSuccess: false,
-                    val: ex.Message,
+                    val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex),
                     data: dto
                 );
             }
@@ -310,7 +310,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv
             {
                 return new BaseResultDto(
                     isSuccess: false,
-                    val: ex.Message
+                    val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex)
                 );
             }
         }
@@ -360,7 +360,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileGoalSrv
             {
                 return new BaseResultDto(
                     isSuccess: false,
-                    val: ex.Message
+                    val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex)
                 );
             }
         }

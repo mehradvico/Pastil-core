@@ -139,7 +139,7 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<UserBankCardDto>(false, ex.Message, dto);
+                return new BaseResultDto<UserBankCardDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
 
@@ -202,7 +202,7 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -240,7 +240,7 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
     }

@@ -46,14 +46,26 @@ namespace Api.Areas.Seller.Controllers
         /// </summary>
         [HttpGet("id")]
         [ProducesResponseType(typeof(BaseResultDto<ProductItemDto>), 200)]
-        public async Task<IActionResult> Get(long id)
+        public async Task<IActionResult> Get(long id, [FromQuery] string varietyItemIds = null, [FromQuery] string variety2ItemIds = null)
         {
             var dto = new ProductItemListRequestDto();
             dto.StoreId = _currentUser.CurrentUser.StoreId;
             dto.ProductId = id;
+            // اختیاری (لیست جداشده با کاما): فقط سطرهای مقدارهای انتخاب‌شده + آیتم‌های موجود همین فروشگاه؛ نیاید = رفتار قدیمی
+            dto.VarietyItemIds = ParseIds(varietyItemIds);
+            dto.Variety2ItemIds = ParseIds(variety2ItemIds);
             var ProductItem = await _productItemService.GetInsertOrUpdateListAsync(dto);
             return Ok(ProductItem);
         }
+        private static List<long> ParseIds(string csv) =>
+            string.IsNullOrWhiteSpace(csv)
+                ? null
+                : csv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(part => long.TryParse(part, out var value) ? value : 0)
+                    .Where(value => value > 0)
+                    .Distinct()
+                    .ToList();
+
         /// <summary>
         /// ویرایش و اضافه تنوع
         /// </summary>

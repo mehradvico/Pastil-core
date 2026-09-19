@@ -37,7 +37,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             bool isAdmin = false,
             bool rememberMe = false,
             DateTime? refreshTokenExpiresAt = null,
-            long? rotatedFromTokenId = null)
+            long? rotatedFromTokenId = null,
+            string deviceName = null)
         {
             var userToken = CreateUserTokenDto(user, isAdmin);
             var now = DateTime.UtcNow;
@@ -77,6 +78,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             item.RefreshTokenHash = refreshToken.Tosha256Hash();
             item.TokenHash = jwtToken.Tosha256Hash();
             item.RotatedFromTokenId = rotatedFromTokenId;
+            if (deviceName != null)
+                item.DeviceName = deviceName;
             _context.UserTokens.Add(item);
             _context.SaveChanges();
             var result = new UserTokenDto()
@@ -103,16 +106,27 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             var userToken = await _context.UserTokens.Include(s => s.User).ThenInclude(s => s.Role).FirstOrDefaultAsync(s => s.TokenHash.Equals(hashedToken) && s.RefreshTokenHash == hashedRefreshToken && s.RefreshTokenExp > DateTime.UtcNow && s.Deleted != true);
             if (userToken != null)
             {
+                // نشست پنل به دستگاهی که ساخته‌اش گره خورده: refresh از دستگاه دیگر = توکن کپی شده → کل نشست‌های پنل
+                // این کاربر باطل می‌شود (همان سیاست «سرقت توکن»).
+                if (!PanelSessionDevice.Matches(userToken.DeviceName, refreshToken.DeviceId))
+                {
+                    await RevokePanelSessionsAsync(userToken.UserId);
+                    await transaction.CommitAsync();
+                    return new BaseResultDto(false, val: Resource.Notification.SessionRevokedTokenReuseDetected);
+                }
+
                 await _context.UserTokens
                     .Where(x => x.Id == userToken.Id && !x.Deleted)
                     .ExecuteUpdateAsync(setters => setters
                         .SetProperty(token => token.Deleted, true));
 
+                var isPanelSession = PanelSessionDevice.IsPanelSession(userToken.DeviceName) || refreshToken.IsAdmin;
                 var createdDto = CreateToken(
                     userToken.User,
-                    refreshToken.IsAdmin,
-                    rememberMe: true,
-                    rotatedFromTokenId: userToken.Id);
+                    isPanelSession,
+                    rememberMe: !isPanelSession || WasRemembered(userToken, userToken.User),
+                    rotatedFromTokenId: userToken.Id,
+                    deviceName: userToken.DeviceName);
                 await transaction.CommitAsync();
                 return new BaseResultDto<UserTokenDto>(true, createdDto);
             }
@@ -136,19 +150,21 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 // واقعی — و به‌جای نابودی سشن، یک توکن تازه‌ی دیگر (هم‌زنجیره) صادر می‌کنیم.
                 var wasRotatedWithinGracePeriod = await _context.UserTokens
                     .AnyAsync(s => s.RotatedFromTokenId == rotatedAway.Id &&
-                                   s.CreateDate >= DateTime.UtcNow - RefreshRotationRaceGracePeriod);
-                if (wasRotatedWithinGracePeriod)
+                                   s.CreateDate >= DateTime.UtcNow - TokenRotationPolicy.GracePeriod);
+                if (wasRotatedWithinGracePeriod && PanelSessionDevice.Matches(rotatedAway.DeviceName, refreshToken.DeviceId))
                 {
                     var owner = await _context.Users
                         .Include(s => s.Role)
                         .FirstOrDefaultAsync(s => s.Id == rotatedAway.UserId);
                     if (owner != null)
                     {
+                        var isPanelSession = PanelSessionDevice.IsPanelSession(rotatedAway.DeviceName) || refreshToken.IsAdmin;
                         var reissuedDto = CreateToken(
                             owner,
-                            refreshToken.IsAdmin,
-                            rememberMe: true,
-                            rotatedFromTokenId: rotatedAway.Id);
+                            isPanelSession,
+                            rememberMe: !isPanelSession || WasRemembered(rotatedAway, owner),
+                            rotatedFromTokenId: rotatedAway.Id,
+                            deviceName: rotatedAway.DeviceName);
                         await transaction.CommitAsync();
                         return new BaseResultDto<UserTokenDto>(true, reissuedDto);
                     }
@@ -171,7 +187,6 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
         // بازه‌ای که در آن، استفاده‌ی مجدد از یک رفرش‌توکنِ همین‌الان Rotate‌شده، سرقت
         // واقعی در نظر گرفته نمی‌شود بلکه یک رقابت (race) بی‌ضرر بین درخواست‌های هم‌زمانِ
         // همان کلاینت واقعی فرض می‌شود — نگاه کنید به استفاده‌اش در RefreshTokenAsync بالا.
-        private static readonly TimeSpan RefreshRotationRaceGracePeriod = TimeSpan.FromSeconds(15);
         private CreateUserTokenDto CreateUserTokenDto(User user, bool isAdmin = false)
         {
             var createToken = new CreateUserTokenDto()
@@ -191,12 +206,47 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             return createToken;
         }
 
+        // پنجره‌ی refresh نشست «بدون مرا به خاطر بسپار» (idle timeout)؛ نشست ماندگار پنجره‌ای بلندتر دارد.
+        private int GetNonPersistentRefreshMinutes(User user)
+        {
+            var configuredValue = user.Role.Label == RoleEnum.Admin.ToString()
+                ? configuration["JWtConfig:refresh_expires_admin_minutes"]
+                : configuration["JWtConfig:refresh_expires_user_minutes"];
+            return Convert.ToInt32(configuredValue);
+        }
+
+        // نشستِ پنل ماندگار (remember-me) بوده اگر طول پنجره‌ی refreshش از پنجره‌ی غیرماندگار بیشتر باشد
+        // (ستون جدیدی برای «به خاطر بسپار» نداریم؛ از همین اختلاف طول استنباط می‌شود).
+        private bool WasRemembered(UserToken token, User user)
+        {
+            var nonPersistent = GetNonPersistentRefreshMinutes(user);
+            return (token.RefreshTokenExp - token.CreateDate).TotalMinutes > nonPersistent + 1;
+        }
+
+        private async Task RevokePanelSessionsAsync(long userId)
+        {
+            await _context.UserTokens
+                .Where(x => x.UserId == userId && !x.Deleted && x.DeviceName != null && x.DeviceName.StartsWith(PanelSessionDevice.Prefix))
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(token => token.Deleted, true));
+        }
+
         private int GetRefreshExpirationMinutes(
             User user,
             bool isAdmin,
             bool rememberMe)
         {
-            if (!isAdmin || rememberMe)
+            // پنل + «مرا به خاطر بسپار»: پنجره‌ی لغزنده‌ی ماندگار ولی معقول (پیش‌فرض ۷ روز = همان وعده‌ی UI صفحه‌ی ورود پنل، قبلاً یک سال).
+            if (isAdmin && rememberMe)
+            {
+                return int.TryParse(
+                    configuration["JWtConfig:admin_persistent_session_minutes"],
+                    out var adminPersistentMinutes) && adminPersistentMinutes > 0
+                    ? adminPersistentMinutes
+                    : 7 * 24 * 60;
+            }
+
+            if (!isAdmin)
             {
                 return int.TryParse(
                     configuration["JWtConfig:persistent_session_minutes"],
@@ -232,17 +282,31 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
         public async Task<BaseResultDto> ResetTokenAsync(
             User user,
             bool isAdmin = false,
-            bool rememberMe = false)
+            bool rememberMe = false,
+            string deviceId = null,
+            bool revokeOnlySameClientKind = false)
         {
             await using var transaction = await _context.BeginTransactionAsync(
                 IsolationLevel.Serializable);
 
-            await _context.UserTokens
-                .Where(x => x.UserId == user.Id && !x.Deleted)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(token => token.Deleted, true));
+            // ورود عادی (وب‌اپ/اپ) قبلاً «همه‌ی» نشست‌های کاربر را می‌کشت؛ یعنی ادمینی که با همان حساب در وب‌اپ یا
+            // اپ موبایل وارد می‌شد، نشست پنلش می‌پرید. حالا ورود فقط نشست‌های هم‌نوع را می‌بندد (پنل ↔ پنل، غیرپنل ↔ غیرپنل).
+            // مسیرهای حساس (ریست رمز، تغییر موبایل...) همچنان revokeOnlySameClientKind=false و همه را می‌بندند.
+            var revocable = _context.UserTokens.Where(x => x.UserId == user.Id && !x.Deleted);
+            if (revokeOnlySameClientKind)
+            {
+                revocable = isAdmin
+                    ? revocable.Where(x => x.DeviceName != null && x.DeviceName.StartsWith(PanelSessionDevice.Prefix))
+                    : revocable.Where(x => x.DeviceName == null || !x.DeviceName.StartsWith(PanelSessionDevice.Prefix));
+            }
+            await revocable.ExecuteUpdateAsync(setters => setters
+                .SetProperty(token => token.Deleted, true));
 
-            var newToken = CreateToken(user, isAdmin, rememberMe);
+            var newToken = CreateToken(
+                user,
+                isAdmin,
+                rememberMe,
+                deviceName: isAdmin ? PanelSessionDevice.BuildName(deviceId) : null);
             await transaction.CommitAsync();
             return new BaseResultDto<UserTokenDto>(isSuccess: true, newToken);
         }

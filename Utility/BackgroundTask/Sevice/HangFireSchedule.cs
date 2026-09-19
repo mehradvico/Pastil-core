@@ -66,10 +66,12 @@ namespace Api.HangFire
             {
                 var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
                     OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
+                // همان ثبت Api/Program.cs (ساعتی): قبلاً اینجا زمان‌بندی دیگری ("0 9-11 * * *")
+                // با همان نام ثبت می‌شد و با هر فراخوانی دستی زمان‌بندی اصلی را بازنویسی می‌کرد.
                 _recurringJobManager.AddOrUpdate(
                     "Reminder",
                     () => _reminderService.SyncReminderAsync(),
-                    "0 9-11 * * *",
+                    Cron.Hourly,
                     new RecurringJobOptions { TimeZone = tehranTimeZone });
             });
         }

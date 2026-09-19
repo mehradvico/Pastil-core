@@ -61,7 +61,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchMessageVDto>(false, ex.Message, null);
+                return new BaseResultDto<PastilMatchMessageVDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), null);
             }
         }
 
@@ -257,7 +257,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchMessageDto>(false, ex.Message, dto);
+                return new BaseResultDto<PastilMatchMessageDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
 
@@ -306,7 +306,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -347,7 +347,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -385,7 +385,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -438,7 +438,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -482,7 +482,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchMessageDto>(false, ex.Message, null);
+                return new BaseResultDto<PastilMatchMessageDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), null);
             }
         }
 
@@ -516,7 +516,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 

@@ -47,7 +47,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchReportReasonSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchReportReasonVDto>(false, ex.Message, null);
+                return new BaseResultDto<PastilMatchReportReasonVDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), null);
             }
         }
 
@@ -146,7 +146,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchReportReasonSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchReportReasonDto>(false, ex.Message, dto);
+                return new BaseResultDto<PastilMatchReportReasonDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
 
@@ -203,7 +203,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchReportReasonSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -234,7 +234,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchReportReasonSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -266,7 +266,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchReportReasonSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 

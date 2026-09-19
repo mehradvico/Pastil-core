@@ -62,7 +62,7 @@ namespace Application.Services.Filing.PictureSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
         public BaseSearchDto<PictureVDto> Search(BaseInputDto baseSearchDto)

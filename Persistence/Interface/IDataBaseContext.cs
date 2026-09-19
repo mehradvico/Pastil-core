@@ -23,6 +23,8 @@ namespace Persistence.Interface
         Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken = default);
         Task<long> GetNextPaymentCodeNumberAsync(CancellationToken cancellationToken = default);
         Task<long> GetNextBusinessCodeNumberAsync(CancellationToken cancellationToken = default);
+        /// <summary>قفل انحصاری هم‌نام تا پایان تراکنش جاری (sp_getapplock)؛ فقط داخل یک تراکنش فعال معتبر است.</summary>
+        Task AcquireTransactionLockAsync(string resource, int timeoutMilliseconds = 10000, CancellationToken cancellationToken = default);
         public DbSet<Address> Addresses { get; set; }
         public DbSet<AdminSetting> AdminSettings { get; set; }
         public DbSet<AssistanceGroup> AssistanceGroups { get; set; }

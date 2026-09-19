@@ -234,7 +234,7 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionUserDto>(isSuccess: false,val: ex.Message,data: dto);
+                return new BaseResultDto<CompanionUserDto>(isSuccess: false,val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex),data: dto);
             }
         }
 

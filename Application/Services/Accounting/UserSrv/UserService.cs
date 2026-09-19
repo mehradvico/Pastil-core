@@ -157,7 +157,7 @@ namespace Application.Services.UserSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<UserDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<UserDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 
@@ -276,7 +276,7 @@ namespace Application.Services.UserSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -389,7 +389,17 @@ namespace Application.Services.UserSrv
                 .FirstOrDefaultAsync(x => x.UserId == userId && x.TokenHash == hashed);
             if (userToken == null)
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidToken);
-            if (userToken.TokenExp < DateTime.UtcNow || userToken.Deleted == true)
+            // access token ای که همین چند ثانیه‌ی پیش با refresh جایگزین شده (Deleted) و جانشینش هنوز زنده است،
+            // برای درخواست‌های موازیِ در راه هنوز معتبر می‌ماند؛ خروج (SignOut) و باطل‌سازی کل نشست‌ها جانشین را هم
+            // Deleted می‌کنند، پس آن‌ها این مهلت را نمی‌گیرند. جزئیات: TokenRotationPolicy.
+            var tokenIsDeleted = userToken.Deleted == true;
+            if (tokenIsDeleted && userToken.TokenExp >= DateTime.UtcNow)
+            {
+                var graceStart = DateTime.UtcNow - Application.Services.Accounting.UserTokenSrv.TokenRotationPolicy.GracePeriod;
+                tokenIsDeleted = !await _context.UserTokens.AnyAsync(t =>
+                    t.RotatedFromTokenId == userToken.Id && !t.Deleted && t.CreateDate >= graceStart);
+            }
+            if (userToken.TokenExp < DateTime.UtcNow || tokenIsDeleted)
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TokenExpired);
             else if (userToken.User.Deleted)
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFount);
@@ -490,7 +500,9 @@ namespace Application.Services.UserSrv
             var tokenResult = await userTokenSevice.ResetTokenAsync(
                 item,
                 isPanelLogin,
-                isPanelLogin ? user.RememberMe : true);
+                isPanelLogin ? user.RememberMe : true,
+                deviceId: user.DeviceId,
+                revokeOnlySameClientKind: true);
             await ChangUserCartAsync(item.Id, user.CartCode);
             return tokenResult;
         }

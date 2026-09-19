@@ -11,6 +11,8 @@
         public bool IsAdmin { get; set; }
         public bool IsSiteAdmin { get; set; }
         public bool RememberMe { get; set; }
+        /// <summary>شناسه‌ی تصادفی دستگاه پنل؛ نشست پنل به آن گره می‌خورد (اختیاری).</summary>
+        public string DeviceId { get; set; }
 
     }
 }

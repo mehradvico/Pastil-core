@@ -83,7 +83,7 @@ namespace Application.Services.PansionSrvs.PansionPetSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PansionPetDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<PansionPetDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
     }

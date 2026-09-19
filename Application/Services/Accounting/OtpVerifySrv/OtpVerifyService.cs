@@ -107,7 +107,7 @@ namespace Application.Services.Accounting.OtpVerifySrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
         public async Task<BaseResultDto> CheckVerify(OtpVerifyVDto dto)
@@ -195,7 +195,7 @@ namespace Application.Services.Accounting.OtpVerifySrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
         public async Task<BaseResultDto> IsVerified(OtpVerifyVDto dto)

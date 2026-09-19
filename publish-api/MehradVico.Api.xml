@@ -2240,6 +2240,26 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.MissingProductController">
+            <summary>
+            درخواست های کاتالوگ محصول
+            </summary>
+            <remarks>صف «درخواست افزودن به کاتالوگ» — بررسی محصولاتی که فروشنده‌ها در کاتالوگ پیدا نکرده‌اند</remarks>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.MissingProductController.Search(Application.Services.ProductSrvs.MissingProductSrv.Dto.MissingProductAdminSearchDto)">
+            <summary>فهرست درخواست‌ها. status خالی = همه به‌جز پیش‌نویس‌ها؛ status=submitted قدیمی‌ترین اول</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.MissingProductController.Get(System.Int64)">
+            <summary>جزئیات یک درخواست همراه «محصولات مشابه در کاتالوگ»</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.MissingProductController.Approve(Application.Services.ProductSrvs.MissingProductSrv.Dto.MissingProductApproveDto)">
+            <summary>
+            تأیید: محصول واقعی در کاتالوگ ساخته می‌شود و اگر فروشنده قیمت داده بود، ProductItem همان فروشگاه هم ساخته می‌شود
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.MissingProductController.Reject(Application.Services.ProductSrvs.MissingProductSrv.Dto.MissingProductRejectDto)">
+            <summary>رد با دلیل متنی (فروشنده می‌تواند اصلاح و دوباره بفرستد)</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.NeighborhoodController">
              <summary>
              محله ها
@@ -8925,6 +8945,30 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.Seller.Controllers.MissingProductController">
+            <summary>
+            محصولات ثبت‌نشده در کاتالوگ — فروشنده محصولی را که در کاتالوگ پاستیل نیست پیشنهاد می‌دهد و پس از
+            تأیید ادمین، هم در کاتالوگ ساخته می‌شود و هم به همین فروشگاه اضافه می‌شود. StoreId همیشه از توکن گرفته می‌شود.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.MissingProductController.Create(Application.Services.ProductSrvs.MissingProductSrv.Dto.MissingProductBatchInputDto)">
+            <summary>ثبت دسته‌ای (از اسکن قفسه) — تکراری‌ها (نام نرمال‌شده در همین فروشگاه) ساخته نمی‌شوند</summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.MissingProductController.List(System.Int32)">
+            <summary>فهرست محصولات ثبت‌نشدهٔ همین فروشگاه، جدیدترین اول</summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.MissingProductController.Update(Application.Services.ProductSrvs.MissingProductSrv.Dto.MissingProductUpdateDto)">
+            <summary>ویرایش (فقط draft/rejected؛ ویرایش rejected آن را به draft برمی‌گرداند)</summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.MissingProductController.UploadPicture(System.Int64,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>آپلود/جایگزینی تصویر (فیلد multipart: image؛ jpg/png/webp تا ۸MB)</summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.MissingProductController.Submit(System.Int64)">
+            <summary>ارسال برای بررسی ادمین (فقط از draft؛ نام و تصویر لازم است)</summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.MissingProductController.Delete(System.Int64)">
+            <summary>حذف (فقط draft/rejected)</summary>
+        </member>
         <member name="T:Api.Areas.Seller.Controllers.ProductAdminController">
              <summary>
              مدیریت فروشگاه ها
@@ -9005,7 +9049,7 @@
             جستجو
             </summary>
         </member>
-        <member name="M:Api.Areas.Seller.Controllers.ProductItemController.Get(System.Int64)">
+        <member name="M:Api.Areas.Seller.Controllers.ProductItemController.Get(System.Int64,System.String,System.String)">
             <summary>
             همه تنوع ها با شناسه محصول
             </summary>
@@ -9144,6 +9188,17 @@
         <member name="M:Api.Areas.Seller.Controllers.ProductOrderTrackingCodeController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderDto)">
             <summary>
             تغییر کد پیگیری سفارش ها
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Seller.Controllers.ProductVarietyController">
+            <summary>
+            ساختار تنوع یک محصول برای فروشنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ProductVarietyController.Get(System.Int64)">
+            <summary>
+            نوع(های) تنوع محصول (تعیین‌شده توسط ادمین) و مقدارهای قابل‌انتخاب هرکدام. Variety=null یعنی محصول بدون تنوع است.
+            فروشنده تنوع یا مقدار جدید نمی‌سازد؛ فقط از همین مقدارها برای هر ترکیب قیمت و موجودی می‌دهد.
             </summary>
         </member>
         <member name="T:Api.Areas.Seller.Controllers.SettlementController">
@@ -10644,6 +10699,13 @@
             at all, /swagger returns 404 regardless of anything else. Real credential
             values must come from environment variables on the server, never from a
             committed appsettings file — see SWAGGER_ACCESS.md.
+            </summary>
+        </member>
+        <member name="T:Api.Middleware.UnhandledExceptionExtensions">
+            <summary>
+            هندلر سراسری خطاهای مدیریت‌نشده: به‌جای صفحه‌ی خطای خام فریمورک (که جزئیات داخلی
+            را لو می‌دهد و با قرارداد پاسخ‌های برنامه نمی‌خواند) همان شکل استاندارد
+            {IsSuccess, Code, Messages, Data} را با وضعیت 500 برمی‌گرداند. جزئیات خطا فقط در لاگ سرور می‌ماند.
             </summary>
         </member>
         <member name="T:Api.Services.AiProductMatch.AiProductMatchExecutionGate">

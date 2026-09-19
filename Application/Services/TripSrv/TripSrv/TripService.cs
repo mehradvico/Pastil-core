@@ -246,7 +246,7 @@ namespace Application.Services.TripSrv.TripSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<TripDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<TripDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 
@@ -688,20 +688,59 @@ namespace Application.Services.TripSrv.TripSrv
             return new BaseResultDto<TripChangeStatusDto>(true, Resource.Notification.Success, dto);
         }
 
+        // Job هر ۲۰ دقیقه: وقتی کاربر مستقیماً یک راننده‌ی مشخص را انتخاب کرده (Trip.DriverId پر است) و
+        // آن راننده بعد از ۳۰ دقیقه هنوز نه قبول کرده نه رد، به ادمین پیامک می‌دهد.
+        // نسخه‌ی قبلی فیلتر وضعیت سفر نداشت و برای هر سفر قدیمی/لغوشده هم هر ۲۰ دقیقه دوباره پیامک می‌فرستاد؛
+        // حالا: فقط سفرهای هنوز-درخواستی (TripStatus_Requested) و در ۲۴ ساعت اخیر، هر سفر فقط یک‌بار
+        // (ردیف پیامک قبلی با همان سه توکن نشانه‌ی ارسال است — بدون نیاز به ستون جدید).
         public async Task SyncDriverAcceptAsync()
         {
-            var halfHourAgo = DateTime.Now.AddMinutes(-30);
+            var now = DateTime.Now;
+            var halfHourAgo = now.AddMinutes(-30);
+            var oldestAllowed = now.AddHours(-24);
 
-            var pendingTrips = await _context.Trips.Where(t => t.IsOnline == true && t.DriverId.HasValue && t.DriverStatusId == (long)DriverStatusEnum.DriverStatus_Requested && t.CreateDate <= halfHourAgo).ToListAsync();
+            var pendingTrips = await _context.Trips
+                .Where(t => t.IsOnline == true
+                    && t.DriverId.HasValue
+                    && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
+                    && t.DriverStatusId == (long)DriverStatusEnum.DriverStatus_Requested
+                    && t.CreateDate <= halfHourAgo
+                    && t.CreateDate >= oldestAllowed)
+                .ToListAsync();
+
+            if (pendingTrips.Count == 0)
+                return;
+
+            var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
 
             foreach (var trip in pendingTrips)
             {
-                var driver = await _context.Drivers.FindAsync(trip.DriverId);
-                var userPet = await _context.UserPets.Include(s => s.User).FirstOrDefaultAsync(s => s.Id == trip.UserPetId);
+                try
+                {
+                    var driver = await _context.Drivers.FindAsync(trip.DriverId);
+                    if (driver == null)
+                        continue;
 
-                var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
+                    var tripUser = await _context.Users
+                        .Where(u => u.Id == trip.UserId)
+                        .Select(u => u.Mobile)
+                        .FirstOrDefaultAsync();
+                    if (string.IsNullOrWhiteSpace(tripUser))
+                        continue;
 
-                await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.DriverNotAcceptedYet, mobileReceptor: adminMobile, emailReceptor: null, token1: driver.Name, token2: userPet.User.Mobile, token3: trip.Id.ToString());
+                    var tripIdToken = trip.Id.ToString();
+                    var alreadyNotified = await _context.Smses.AnyAsync(s =>
+                        s.Token1 == driver.Name && s.Token2 == tripUser && s.Token3 == tripIdToken);
+                    if (alreadyNotified)
+                        continue;
+
+                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.DriverNotAcceptedYet, mobileReceptor: adminMobile, emailReceptor: null, token1: driver.Name, token2: tripUser, token3: tripIdToken);
+                }
+                catch (Exception ex)
+                {
+                    // یک سفر خراب نباید بقیه‌ی سفرها را از اطلاع‌رسانی بیندازد.
+                    _logger.LogError(ex, "Notifying admin about driver {DriverId} not accepting trip {TripId} failed.", trip.DriverId, trip.Id);
+                }
             }
         }
 

@@ -31,6 +31,14 @@ namespace Utility.Reflection
             new(14, "مدیریت پت رسان", "TripManagement", 14)
         ];
 
+        // sync فقط هنگام «ساخت» permission مقدار IsMenu را می‌گذارد و برای ردیف موجود دستش نمی‌زند (تا ویرایش دستی
+        // حفظ شود). کنترلری که اول بدون منو ساخته شده و بعداً وارد MenuControllers شده باید یک‌بار اجباراً منو شود؛
+        // برای همین اینجا فهرست می‌شود (idempotent: بعد از اولین sync دیگر تغییری نمی‌دهد).
+        internal static readonly HashSet<string> ForceMenuOnSync = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "MissingProduct",
+        };
+
         private static readonly HashSet<string> MenuControllers = new(StringComparer.OrdinalIgnoreCase)
         {
             "Address",
@@ -74,6 +82,7 @@ namespace Utility.Reflection
             "PetBreed",
             "PetTag",
             "Product",
+            "MissingProduct",
             "ProductOrder",
             "PushMessage",
             "Rebate",
@@ -141,7 +150,8 @@ namespace Utility.Reflection
                 "BaseDetail",
                 "ClubReward",
                 "NotifyMessage",
-                "SearchAnalytics"
+                "SearchAnalytics",
+                "ServerMonitoring",
             ]);
 
             AddGroup(result, "UserManager",
@@ -248,7 +258,8 @@ namespace Utility.Reflection
                 "ProductsExcel",
                 "StoreUser",
                 "UpdateCargoStatus",
-                "VarietyItem"
+                "VarietyItem",
+                "MissingProduct",
             ]);
 
             AddGroup(result, "PastilAIManagement",

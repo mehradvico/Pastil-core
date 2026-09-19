@@ -274,7 +274,7 @@ namespace Application.Services.Content.PostSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PostDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<PostDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 
@@ -302,7 +302,7 @@ namespace Application.Services.Content.PostSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
         private BaseResultDto UpdatingDto(PostDto dto)
@@ -390,7 +390,7 @@ namespace Application.Services.Content.PostSrv
             catch (Exception ex)
             {
                 transaction.Rollback();
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -500,7 +500,7 @@ namespace Application.Services.Content.PostSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -532,7 +532,7 @@ namespace Application.Services.Content.PostSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 
@@ -557,7 +557,7 @@ namespace Application.Services.Content.PostSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
         public BaseResultDto GetSiteMap()
@@ -578,7 +578,7 @@ namespace Application.Services.Content.PostSrv
             }
             catch (ValidationException ex)
             {
-                return new BaseResultDto<bool>(false, ex.Message, false);
+                return new BaseResultDto<bool>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), false);
             }
 
             if (string.IsNullOrEmpty(slug))

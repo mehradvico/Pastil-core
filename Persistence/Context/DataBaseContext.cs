@@ -47,6 +47,19 @@ namespace Persistence.Context
             return await GetNextSequenceValueAsync("BusinessCodeSequence", cancellationToken);
         }
 
+        public async Task AcquireTransactionLockAsync(string resource, int timeoutMilliseconds = 10000, CancellationToken cancellationToken = default)
+        {
+            if (Database.CurrentTransaction == null)
+                throw new InvalidOperationException("AcquireTransactionLockAsync requires an active transaction.");
+
+            // Owner = Transaction: قفل خودکار با Commit/Rollback آزاد می‌شود. اگر در زمان تعیین‌شده
+            // گرفته نشد (کد بازگشتی منفی) استثنا می‌دهیم تا کار بدون قفل ادامه پیدا نکند.
+            await Database.ExecuteSqlInterpolatedAsync($@"
+DECLARE @lockResult int;
+EXEC @lockResult = sp_getapplock @Resource = {resource}, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = {timeoutMilliseconds};
+IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", cancellationToken);
+        }
+
         private async Task<long> GetNextSequenceValueAsync(string sequenceName, CancellationToken cancellationToken)
         {
             var connection = Database.GetDbConnection();

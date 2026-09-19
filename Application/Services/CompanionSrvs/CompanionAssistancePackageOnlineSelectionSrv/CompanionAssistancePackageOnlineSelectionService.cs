@@ -97,7 +97,7 @@ namespace Application.Services.CompanionSrvs.CompanionAssistancePackageOnlineSel
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionAssistancePackageOnlineSelectionDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionAssistancePackageOnlineSelectionDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 

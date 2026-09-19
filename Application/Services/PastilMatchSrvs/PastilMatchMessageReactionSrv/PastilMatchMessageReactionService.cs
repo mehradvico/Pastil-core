@@ -61,7 +61,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchMessageReactionVDto>(false, ex.Message, null);
+                return new BaseResultDto<PastilMatchMessageReactionVDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), null);
             }
         }
 
@@ -224,7 +224,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchMessageReactionDto>(false, ex.Message, dto);
+                return new BaseResultDto<PastilMatchMessageReactionDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
 
@@ -256,7 +256,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 

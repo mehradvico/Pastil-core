@@ -119,7 +119,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PastilMatchProfileLikeDto>(false, ex.Message, dto);
+                return new BaseResultDto<PastilMatchProfileLikeDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
 
@@ -157,7 +157,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchProfileLikeSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(false, ex.Message);
+                return new BaseResultDto(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
 

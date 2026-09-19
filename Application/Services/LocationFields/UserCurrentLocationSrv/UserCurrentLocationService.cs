@@ -127,7 +127,7 @@ namespace Application.Services.LocationFields.UserCurrentLocationSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<UserCurrentLocationDto>(false, ex.Message, null);
+                return new BaseResultDto<UserCurrentLocationDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), null);
             }
         }
     }

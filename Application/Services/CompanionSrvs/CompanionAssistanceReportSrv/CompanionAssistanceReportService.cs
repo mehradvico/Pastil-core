@@ -111,7 +111,7 @@ namespace Application.Services.CompanionAssistanceSrvs.CompanionAssistanceAssist
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionAssistanceReportDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionAssistanceReportDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
     }

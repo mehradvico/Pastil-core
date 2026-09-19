@@ -752,7 +752,7 @@ namespace Application.Maping
             CreateMap<Product, ProductVDto>();
             CreateMap<Product, ProductGroupVDto>();
             CreateMap<Product, ProductMinVDto>();
-            CreateMap<ProductDto, Product>().ForMember(x => x.VarietyId, y => y.Ignore()).ForMember(x => x.Variety2, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.CreateDate, y => y.Ignore()).ForMember(x => x.ProductPictures, y => y.Ignore());
+            CreateMap<ProductDto, Product>().ForMember(x => x.VarietyId, y => y.Ignore()).ForMember(x => x.Variety2Id, y => y.Ignore()).ForMember(x => x.Variety2, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.CreateDate, y => y.Ignore()).ForMember(x => x.ProductPictures, y => y.Ignore());
             CreateMap<ProductDuplicateDto, Product>();
             CreateMap<ProductDuplicateDto, ProductDto>();
             CreateMap<Product, ProductItemForProductDto>().ForMember(x => x.Variety1, o => o.MapFrom(m => m.Variety));

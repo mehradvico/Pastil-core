@@ -64,7 +64,7 @@ namespace Application.Services.ProductSrvs.CategoryVariety
             }
             catch (Exception e)
             {
-                return new BaseResultDto(false, val: e.Message);
+                return new BaseResultDto(false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(e));
             }
         }
     }

@@ -296,7 +296,7 @@ namespace Application.Services.ProductSrvs.ProductSrv
             {
                 await transaction.RollbackAsync();
 
-                return new BaseResultDto<ProductDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<ProductDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
         public async Task<BaseResultDto> UpdateDtoAsync(ProductDto dto, long? storeId = null)
@@ -354,7 +354,7 @@ namespace Application.Services.ProductSrvs.ProductSrv
             catch (Exception ex)
             {
                 await _context.RollbackTransactionAsync();
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
         public BaseResultDto DeleteDto(long id)
@@ -369,7 +369,7 @@ namespace Application.Services.ProductSrvs.ProductSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
         public async Task<BaseResultDto<ProductVDto>> FindAsyncVDto(long id, bool visit = true)
@@ -393,31 +393,55 @@ namespace Application.Services.ProductSrvs.ProductSrv
         }
         public async Task IncreaseSellCountAsync(ProductOrder order)
         {
-            try
+            // کاهش موجودی و افزایش فروش به‌صورت اتمیک در خود دیتابیس انجام می‌شود
+            // (read-modify-write روی Entity باعث گم‌شدن کاهش‌ها در سفارش‌های همزمان می‌شد).
+            // موجودی هیچ‌وقت منفی نمی‌شود. خطا دیگر بلعیده نمی‌شود؛ فراخواننده بعد از
+            // ثبت سفارش موفق است و نباید به‌خاطر این مرحله سفارش را ناموفق کند، پس فقط
+            // به Trace می‌رود تا در لاگ سرور قابل رصد باشد.
+            var productIds = new List<long>();
+            foreach (var itemStore in order.ProductOrderStores)
             {
-                var productIds = new List<long>();
-                foreach (var itemStore in order.ProductOrderStores)
+                foreach (var item in itemStore.ProductOrderItems)
                 {
-                    foreach (var item in itemStore.ProductOrderItems)
+                    try
                     {
-                        item.ProductItem.Quantity -= item.Count;
-                        if (item.ProductItem.Quantity < 0)
-                        {
-                            item.ProductItem.Quantity = 0;
-                        }
-                        _context.ProductItems.Update(item.ProductItem);
-                        productIds.Add(item.ProductItem.ProductId);
-                        var product = item.ProductItem.Product;
-                        product.SellCount += item.Count;
-                        _context.Products.Update(product);
+                        var count = item.Count;
+                        var productItemId = item.ProductItemId;
+                        var productId = item.ProductItem.ProductId;
+                        await _context.ProductItems
+                            .Where(p => p.Id == productItemId)
+                            .ExecuteUpdateAsync(setters => setters.SetProperty(
+                                p => p.Quantity,
+                                p => p.Quantity >= count ? p.Quantity - count : 0));
+                        await _context.Products
+                            .Where(p => p.Id == productId)
+                            .ExecuteUpdateAsync(setters => setters.SetProperty(
+                                p => p.SellCount,
+                                p => p.SellCount + count));
+                        productIds.Add(productId);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.TraceError(
+                            "IncreaseSellCount failed for order {0}, productItem {1}: {2}",
+                            order.Id, item.ProductItemId, ex);
                     }
                 }
-                await _context.SaveChangesAsync();
+            }
+
+            if (productIds.Count == 0)
+                return;
+
+            try
+            {
                 string productIdsString = string.Join(",", productIds.Distinct());
                 await UpdateProductPriceAsync(ProductUpdateTypeEnum.Product, productIdsString);
             }
-            catch { }
-
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError(
+                    "UpdateProductPrice after order {0} failed: {1}", order.Id, ex);
+            }
         }
         public BaseResultDto GetSiteMap()
         {
@@ -730,13 +754,40 @@ ORDER BY p.StatusId DESC, MatchScore DESC;";
             {
                 if (product.VarietyId != productEntity.VarietyId || product.Variety2Id != productEntity.Variety2Id)
                 {
-                    productEntity.VarietyId = product.VarietyId;
-                    productEntity.Variety2Id = product.Variety2Id;
-                    _context.Products.Update(productEntity);
-                    await _context.SaveChangesAsync();
-                    await _context.ProductItems.Where(s => s.ProductId == product.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.Deleted, true).SetProperty(a => a.Active, false).SetProperty(a => a.SystemActive, false));
+                    // اگر فروشنده‌ای آیتمی با مقدار تنوع برای این محصول دارد، ساختار تنوع قابل حذف/عوض‌شدن نیست
+                    // (قبلاً همه‌ی آیتم‌های همه‌ی فروشگاه‌ها بی‌صدا حذف نرم می‌شد).
+                    var hasItemsUsingVarieties = await _context.ProductItems.AsNoTracking()
+                        .AnyAsync(i => i.ProductId == product.Id && !i.Deleted && (i.VarietyItemId != null || i.VarietyItem2Id != null));
+                    if (Application.Services.ProductSrvs.ProductItemSrv.ProductVarietyRules.ChangeIsBlocked(
+                            productEntity.VarietyId, productEntity.Variety2Id, product.VarietyId, product.Variety2Id, hasItemsUsingVarieties))
+                        return new BaseResultDto(false, Resource.Notification.ProductVarietyInUseCannotBeChanged);
+
+                    // تغییر ساختار و پاک‌شدن آیتم‌های قدیمی (آیتم‌های بدون مقدار؛ چون مقدارداری‌ها بالا رد شدند) یا هر دو انجام
+                    // می‌شود یا هیچ‌کدام؛ بعدش قیمت محصول دوباره محاسبه می‌شود.
+                    await using (var transaction = await _context.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted))
+                    {
+                        productEntity.VarietyId = product.VarietyId;
+                        productEntity.Variety2Id = product.Variety2Id;
+                        _context.Products.Update(productEntity);
+                        await _context.SaveChangesAsync();
+                        await _context.ProductItems.Where(s => s.ProductId == product.Id).ExecuteUpdateAsync(s => s.SetProperty(a => a.Deleted, true).SetProperty(a => a.Active, false).SetProperty(a => a.SystemActive, false));
+                        await transaction.CommitAsync();
+                    }
+
+                    try
+                    {
+                        await UpdateProductPriceAsync(ProductUpdateTypeEnum.Product, product.Id.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        // تغییر ساختار ثبت شده؛ خرابی محاسبه‌ی قیمت نباید پاسخ را ناموفق کند.
+                        System.Diagnostics.Trace.TraceError("Price recalculation after variety change failed for product {0}: {1}", product.Id, ex);
+                    }
                     return new BaseResultDto(true, Resource.Notification.SuccessfullyCompletedPreviousVariationsWereRemoved);
                 }
+
+                // تغییری نبود: خطا نیست (idempotent)
+                return new BaseResultDto(true, Resource.Notification.NoVarietyChangeNeeded);
             }
             return new BaseResultDto(false, Resource.Notification.Unsuccess);
 

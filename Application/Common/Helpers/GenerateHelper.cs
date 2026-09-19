@@ -1,22 +1,24 @@
 ﻿using System;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Application.Common.Helpers
 {
     public static class GenerateHelper
     {
+        /// <summary>
+        /// کد عددی تصادفی با مولد امن رمزنگاری (برای OTP). رقم اول غیرصفر است تا طول ثابت بماند.
+        /// </summary>
         public static string RandomDigit(int length = 4)
         {
-            string random = "";
-            Random _rdm = new Random();
+            var random = new StringBuilder(length);
             for (int i = 0; i < length; i++)
             {
-                if (i == 0)
-                    random += _rdm.Next(1, 9).ToString();
-                else
-                    random += _rdm.Next(0, 9).ToString();
-
+                random.Append(i == 0
+                    ? RandomNumberGenerator.GetInt32(1, 10)
+                    : RandomNumberGenerator.GetInt32(0, 10));
             }
-            return random;
+            return random.ToString();
         }
     }
 }

@@ -79,7 +79,7 @@ namespace Application.Services.PastilClubSrvs.RewardOfferSrv
             }
             catch (InvalidOperationException exception)
             {
-                return new BaseResultDto<ClubRewardOfferVDto>(false, exception.Message, null);
+                return new BaseResultDto<ClubRewardOfferVDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(exception), null);
             }
 
             if (expiresAt <= now)

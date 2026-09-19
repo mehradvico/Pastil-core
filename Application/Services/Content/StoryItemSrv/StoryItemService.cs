@@ -145,7 +145,7 @@ namespace Application.Services.Content.StoryItemSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<StoryItemDto>(isSuccess: false, val: ex.Message, data: null);
+                return new BaseResultDto<StoryItemDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: null);
             }
         }
 
@@ -178,7 +178,7 @@ namespace Application.Services.Content.StoryItemSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<StoryItemDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<StoryItemDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 

@@ -90,7 +90,7 @@ namespace Application.Services.Content.DiscussionAnswerSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<DiscussionAnswerDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<DiscussionAnswerDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 
@@ -117,7 +117,7 @@ namespace Application.Services.Content.DiscussionAnswerSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
     }

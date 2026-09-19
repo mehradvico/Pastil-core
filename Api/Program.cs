@@ -404,6 +404,18 @@ builder.Services.AddHangfire(configuration => configuration
 builder.Services.AddHangfireServer();
 
 var app = builder.Build();
+app.UseUnhandledExceptionResult();
+Application.Common.Helpers.ExceptionResultHelper.Initialize(app.Services.GetRequiredService<ILoggerFactory>());
+
+// پرچم‌های تست فقط هشدار می‌دهند (رفتار را عوض نمی‌کنند): اگر روی سرور غیر Development روشن بمانند، در لاگ
+// استارتاپ دیده می‌شوند تا «پرداخت/ارسال تستی» بی‌خبر وارد لانچ نشود.
+if (!app.Environment.IsDevelopment())
+{
+    if (app.Configuration.GetValue<bool>("PaymentTestMode:Enabled"))
+        app.Logger.LogWarning("PaymentTestMode:Enabled is TRUE outside Development — payments are simulated, no real gateway is charged.");
+    if (app.Configuration.GetValue<bool>("Shipping:TestMode"))
+        app.Logger.LogWarning("Shipping:TestMode is TRUE outside Development — shipment quotes/orders are simulated, no real courier is booked.");
+}
 var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>();
 recurringJobManager.AddOrUpdate<INoticeService>("ArchiveNotices", x => x.ArchiveExpiredAsync(), Cron.Hourly);
 var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
@@ -450,6 +462,17 @@ recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITrip
     service => service.GeneratePetResanServiceTripsAsync(),
     "0 20 * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
+
+// جاب‌های دسته‌ی دوم (SMS زمان‌بندی‌شده، بستن تیکت، انقضای تخفیف، یادآوری عدم‌پذیرش راننده) قبلاً فقط با یک
+// فراخوانی دستی GET api/BackgroundTask بعد از هر deploy ثبت می‌شدند؛ حالا در استارتاپ ثبت می‌شوند.
+using (var jobScope = app.Services.CreateScope())
+{
+    var backgroundTask = jobScope.ServiceProvider.GetRequiredService<IBackgroundTask>();
+    backgroundTask.StartSyncSmsAsync().GetAwaiter().GetResult();
+    backgroundTask.StartSyncCloseTicketAsync().GetAwaiter().GetResult();
+    backgroundTask.StartSyncExpiredDiscountAsync().GetAwaiter().GetResult();
+    backgroundTask.StartSyncDriverAcceptAsync().GetAwaiter().GetResult();
+}
 
 app.UseRequestLocalization();
 if (app.Environment.IsDevelopment())

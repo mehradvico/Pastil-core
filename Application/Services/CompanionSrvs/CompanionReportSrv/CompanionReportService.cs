@@ -112,7 +112,7 @@ namespace Application.Services.CompanionSrvs.CompanionReportSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionReportDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionReportDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
     }

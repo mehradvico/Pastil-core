@@ -97,7 +97,7 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<PriceCalculationDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<PriceCalculationDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 

@@ -71,6 +71,9 @@ namespace Api.Areas.Seller.Controllers
         public async Task<IActionResult> Post(ProductDto productDto)
         {
             productDto.StoreId = _storeId;
+            // نوع تنوع محصول را فقط ادمین تعیین می‌کند (ProductChangeVariety)؛ مقدار ارسالیِ فروشنده نادیده گرفته می‌شود.
+            productDto.VarietyId = null;
+            productDto.Variety2Id = null;
             var item = await productService.InsertAsyncDto(productDto);
             return Ok(item);
         }

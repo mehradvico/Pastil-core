@@ -68,7 +68,12 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             if (!userCheck.IsSuccess)
             {
                 context.NoResult();
-                context.Response.StatusCode = 401;
+                // «دسترسی ندارید» با «نشست/توکن نامعتبر» فرق دارد: کلاینت‌ها (پنل) روی ۴۰۱ تلاش refresh و در
+                // نهایت خروج انجام می‌دهند؛ برای کاربری که فقط به یک endpoint مجوز ندارد باید ۴۰۳ برگردد
+                // تا نشست سالمش با هر poll پریشان (rotate/پاک) نشود.
+                var isPermissionDenied = userCheck.Messages?.Any(message =>
+                    message?.Item1 == Resource.Notification.YouHaveNotPermission) == true;
+                context.Response.StatusCode = isPermissionDenied ? 403 : 401;
                 context.Response.ContentType = "application/json";
                 context.Response.WriteAsync(JsonSerializer.Serialize(userCheck)).Wait();
                 return;

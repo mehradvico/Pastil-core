@@ -163,7 +163,7 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionInsurancePackageSaleDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<CompanionInsurancePackageSaleDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
 

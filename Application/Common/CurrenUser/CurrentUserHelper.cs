@@ -11,6 +11,7 @@ namespace Application.Common.CurrentUser
     public class CurrentUserHelper : ICurrentUserHelper
     {
         private readonly IUserService _userService;
+        private const string CacheKey = "Pastil.CurrentUser";
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CurrentUserHelper(IUserService userService, IHttpContextAccessor httpContext)
@@ -30,10 +31,24 @@ namespace Application.Common.CurrentUser
                 if (string.IsNullOrWhiteSpace(token))
                     return null;
 
-                return _userService
+                // این Property در هر درخواست بارها خوانده می‌شود و هر بار یک کوئری سنگین با
+                // چندین Include + انتظار هم‌زمان (sync-over-async) اجرا می‌کرد. نتیجه را
+                // یک‌بار برای همان درخواست نگه می‌داریم (کلید = خود توکن، پس عوض‌شدن توکن
+                // وسط یک درخواست کش قدیمی برنمی‌گرداند).
+                if (context.Items.TryGetValue(CacheKey, out var cached)
+                    && cached is (string cachedToken, CurrentUserDto cachedUser)
+                    && cachedToken == token)
+                {
+                    return cachedUser;
+                }
+
+                var user = _userService
                     .GetByTokenDto(token)
                     .GetAwaiter()
                     .GetResult();
+                if (user != null)
+                    context.Items[CacheKey] = (token, user);
+                return user;
 
             }
         }

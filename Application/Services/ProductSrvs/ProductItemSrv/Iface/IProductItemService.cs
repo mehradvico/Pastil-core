@@ -16,6 +16,7 @@ namespace Application.Services.ProductSrvs.ProductItemSrv.Iface
         Task<BaseResultDto<ProductItemVDto>> IsSalable(long productItemId, int count);
         Task<BaseResultDto> GetInsertOrUpdateListAsync(ProductItemListRequestDto productItemListrequest);
         Task<BaseResultDto> GetVarietyAsync(long productId);
+        Task<BaseResultDto> GetProductVarietyStructureAsync(long productId);
         Task<BaseResultDto<ProductItemForProductDto>> GetForProductVDto(long productId);
         Task<BaseResultDto> GetVariety2Async(long productId, long? varietyItem1Id, long? varietyItem2Id);
     }

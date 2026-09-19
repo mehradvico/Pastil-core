@@ -168,7 +168,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<StoreDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<StoreDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
 
 
@@ -432,7 +432,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
 
         }

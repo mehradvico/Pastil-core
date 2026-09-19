@@ -212,7 +212,9 @@ namespace Utility.Reflection
                         ? false
                         : anchorIsNew
                             ? controller.IsMenu
-                            : null,
+                            : controller.IsMenu && AdminPermissionCatalog.ForceMenuOnSync.Contains(controller.Name)
+                                ? true
+                                : null,
                     controller.Priority,
                     controller.ParentId);
 

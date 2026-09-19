@@ -45,7 +45,7 @@ namespace Application.Services.FinanceSrvs.SettlementCompanionSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<SettlementCompanionDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<SettlementCompanionDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
     }

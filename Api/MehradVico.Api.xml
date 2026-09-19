@@ -2242,8 +2242,9 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.MissingProductController">
             <summary>
-            صف «درخواست افزودن به کاتالوگ» — بررسی محصولاتی که فروشنده‌ها در کاتالوگ پیدا نکرده‌اند
+            درخواست های کاتالوگ محصول
             </summary>
+            <remarks>صف «درخواست افزودن به کاتالوگ» — بررسی محصولاتی که فروشنده‌ها در کاتالوگ پیدا نکرده‌اند</remarks>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.MissingProductController.Search(Application.Services.ProductSrvs.MissingProductSrv.Dto.MissingProductAdminSearchDto)">
             <summary>فهرست درخواست‌ها. status خالی = همه به‌جز پیش‌نویس‌ها؛ status=submitted قدیمی‌ترین اول</summary>
@@ -9048,7 +9049,7 @@
             جستجو
             </summary>
         </member>
-        <member name="M:Api.Areas.Seller.Controllers.ProductItemController.Get(System.Int64)">
+        <member name="M:Api.Areas.Seller.Controllers.ProductItemController.Get(System.Int64,System.String,System.String)">
             <summary>
             همه تنوع ها با شناسه محصول
             </summary>
@@ -9187,6 +9188,17 @@
         <member name="M:Api.Areas.Seller.Controllers.ProductOrderTrackingCodeController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderDto)">
             <summary>
             تغییر کد پیگیری سفارش ها
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Seller.Controllers.ProductVarietyController">
+            <summary>
+            ساختار تنوع یک محصول برای فروشنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ProductVarietyController.Get(System.Int64)">
+            <summary>
+            نوع(های) تنوع محصول (تعیین‌شده توسط ادمین) و مقدارهای قابل‌انتخاب هرکدام. Variety=null یعنی محصول بدون تنوع است.
+            فروشنده تنوع یا مقدار جدید نمی‌سازد؛ فقط از همین مقدارها برای هر ترکیب قیمت و موجودی می‌دهد.
             </summary>
         </member>
         <member name="T:Api.Areas.Seller.Controllers.SettlementController">
@@ -10687,6 +10699,13 @@
             at all, /swagger returns 404 regardless of anything else. Real credential
             values must come from environment variables on the server, never from a
             committed appsettings file — see SWAGGER_ACCESS.md.
+            </summary>
+        </member>
+        <member name="T:Api.Middleware.UnhandledExceptionExtensions">
+            <summary>
+            هندلر سراسری خطاهای مدیریت‌نشده: به‌جای صفحه‌ی خطای خام فریمورک (که جزئیات داخلی
+            را لو می‌دهد و با قرارداد پاسخ‌های برنامه نمی‌خواند) همان شکل استاندارد
+            {IsSuccess, Code, Messages, Data} را با وضعیت 500 برمی‌گرداند. جزئیات خطا فقط در لاگ سرور می‌ماند.
             </summary>
         </member>
         <member name="T:Api.Services.AiProductMatch.AiProductMatchExecutionGate">

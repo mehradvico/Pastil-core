@@ -172,7 +172,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceTimeSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<CompanionAssistanceTimeDto>(false, ex.Message, dto);
+                return new BaseResultDto<CompanionAssistanceTimeDto>(false, Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), dto);
             }
         }
         public override BaseResultDto UpdateDto(CompanionAssistanceTimeDto dto)
@@ -237,7 +237,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceTimeSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto(isSuccess: false, val: ex.Message);
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
         public async Task<BaseResultDto<CompanionAssistanceTimeUpdateListDto>> GetListAsync(long companionAssistanceId)

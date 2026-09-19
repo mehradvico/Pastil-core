@@ -88,7 +88,7 @@ namespace Application.Services.ProductSrvs.ProductReportSrv
             }
             catch (Exception ex)
             {
-                return new BaseResultDto<ProductReportDto>(isSuccess: false, val: ex.Message, data: dto);
+                return new BaseResultDto<ProductReportDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
         }
     }
