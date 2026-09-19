@@ -39,6 +39,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpPost]
         [Route("userdetail")]
+        [EnableRateLimiting("AccountLookup")]
         public async Task<IActionResult> Post(UserDetailDto dto)
         {
 
@@ -50,6 +51,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpGet]
         [Route("userrole")]
+        [EnableRateLimiting("AccountLookup")]
         public async Task<IActionResult> Get(string mobile)
         {
             var userrole = await userService.UserRole(mobile);
@@ -82,6 +84,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpPost]
         [Route("otp")]
+        [EnableRateLimiting("OtpSend")]
         public async Task<IActionResult> Post(OtpVerifyVDto dto)
         {
             dto.Type = MessageTypeEnum.Otp;
@@ -93,6 +96,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpPost]
         [Route("CheckOtp")]
+        [EnableRateLimiting("OtpVerify")]
         public async Task<IActionResult> CheckOtp(OtpVerifyVDto dto)
         {
             var otp = await otpVerifyService.CheckVerify(dto);

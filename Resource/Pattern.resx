@@ -285,6 +285,27 @@
   <data name="PushProductStockAvailable" xml:space="preserve">
     <value>Dear {0}, pet shop {2} has restocked {1}.</value>
   </data>
+  <data name="PushTripUserCanceled" xml:space="preserve">
+    <value>The customer canceled the pet-courier trip.</value>
+  </data>
+  <data name="PushOnlineReserveConfirmedUser" xml:space="preserve">
+    <value>Your online reservation for {0} ({1}) at {2} was confirmed.</value>
+  </data>
+  <data name="PushOnlineReserveReminderBeforeCompanion" xml:space="preserve">
+    <value>Reminder: the {2} online service for {0} at {1} starts soon.</value>
+  </data>
+  <data name="PushOnlineReserveReminderAtTimeCompanion" xml:space="preserve">
+    <value>It is time to provide the {2} online service for {0} at {1}.</value>
+  </data>
+  <data name="PushInAppCallStarted" xml:space="preserve">
+    <value>{0} started an in-app call.</value>
+  </data>
+  <data name="PushSchoolClassStarting" xml:space="preserve">
+    <value>Your {0} class starts soon.</value>
+  </data>
+  <data name="PushCompanionReserveNewMessage" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
   <data name="RebateMinCartPrice" xml:space="preserve">
     <value>حداقل مبلغ سفارش باید {0} باشد</value>
   </data>

@@ -4,6 +4,7 @@ using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.Filing.PictureSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Bmp;
@@ -27,6 +28,7 @@ namespace File.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("PictureUpload")]
         [RequestSizeLimit(15 * 1024 * 1024)]
         [RequestFormLimits(MultipartBodyLengthLimit = 15 * 1024 * 1024)]
         public async Task<IActionResult> Post(IFormFile PictureFile)
@@ -146,6 +148,7 @@ namespace File.Controllers
 
 
         [HttpPut]
+        [Authorize(Policy = "AdminOnly")]
         public IActionResult Put()
         {
             try

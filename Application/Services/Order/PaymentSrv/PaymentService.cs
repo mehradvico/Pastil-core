@@ -509,7 +509,11 @@ namespace Application.Services.Order.PaymentSrv
             Entities.Entities.Payment payment)
         {
             await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
-            var lockedPayment = await FindAsync(payment.Id);
+            // The callback path already tracked this entity before entering the
+            // transaction. Reload it under Serializable isolation so a duplicate
+            // callback cannot apply a stale, already-applied payment a second time.
+            await _context.Entry(payment).ReloadAsync();
+            var lockedPayment = payment;
             if (lockedPayment == null || lockedPayment.IsSuccess != true)
             {
                 await transaction.RollbackAsync();

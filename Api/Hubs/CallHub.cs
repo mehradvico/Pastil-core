@@ -18,6 +18,14 @@ namespace Api.Hubs
     [Authorize]
     public class CallHub : Hub
     {
+        private const int MaximumSignalPayloadLength = 32 * 1024;
+        private static readonly HashSet<string> AllowedSignalTypes = new(StringComparer.Ordinal)
+        {
+            "offer",
+            "answer",
+            "ice"
+        };
+
         private readonly IDataBaseContext _context;
         private readonly CallSessionTracker _tracker;
         private readonly IPushNotificationService _pushNotificationService;
@@ -125,6 +133,21 @@ namespace Api.Hubs
 
         public async Task SendSignal(long reserveId, string type, string payload)
         {
+            var userId = CurrentUserId;
+            if (!userId.HasValue || !_tracker.IsParticipant(reserveId, Context.ConnectionId, userId.Value))
+            {
+                await Clients.Caller.SendAsync("callError", "شما دسترسی به این تماس ندارید.");
+                return;
+            }
+
+            if (!AllowedSignalTypes.Contains(type) ||
+                string.IsNullOrWhiteSpace(payload) ||
+                payload.Length > MaximumSignalPayloadLength)
+            {
+                await Clients.Caller.SendAsync("callError", "پیام تماس نامعتبر است.");
+                return;
+            }
+
             await Clients.OthersInGroup(GroupName(reserveId)).SendAsync("signal", type, payload);
         }
 

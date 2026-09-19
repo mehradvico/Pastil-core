@@ -20,6 +20,7 @@ namespace Application.Common.Configuration
             Override(configuration, "Security:MerchantEncryptionKey", "PASTIL_MERCHANT_ENCRYPTION_KEY");
             OverrideFcmServiceAccountJson(configuration);
             Override(configuration, "Security:PasswordPepper", "PASTIL_PASSWORD_PEPPER");
+            Override(configuration, "Security:ClientIpAttestationKey", "PASTIL_CLIENT_IP_ATTESTATION_KEY");
             Override(configuration, "MapIr:ApiKey", "PASTIL_MAPIR_API_KEY");
             Override(configuration, "Shipping:TestMode", "PASTIL_SHIPPING_TEST_MODE");
             Override(configuration, "Shipping:AloPeyk:BaseUrl", "PASTIL_SHIPPING_ALOPEYK_BASE_URL");

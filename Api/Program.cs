@@ -1,5 +1,6 @@
 ﻿using Api.HangFire;
 using Api.Authorization;
+using Api.Health;
 using Api.Hubs;
 using Api.Middleware;
 using Api.Swagger;
@@ -12,9 +13,11 @@ using Application.Services.Setting.NoticeSrv.Iface;
 using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Persistence.Context;
@@ -23,6 +26,7 @@ using System.Text;
 using Utility.BackgroundTask.Iface;
 using Utility.ExternalRequest.Iface;
 using Utility.ExternalRequest.Service;
+using Utility.Observability;
 using Utility.Reflection;
 using Utility.Reflection.Iface;
 using NetTopologySuite.IO.Converters;
@@ -41,16 +45,48 @@ SecretConfiguration.Apply(
     "PASTIL_API_CONNECTION",
     includeVapidKeys: true);
 
+var otlpEndpoint = builder.Configuration["Observability:OtlpEndpoint"];
+if (string.IsNullOrWhiteSpace(otlpEndpoint))
+    otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+
+builder.Services.AddPastilOpenTelemetry(
+    serviceName: "pastil-api",
+    environmentName: builder.Environment.EnvironmentName,
+    otlpEndpoint: otlpEndpoint,
+    traceSampleRatio: builder.Configuration.GetValue<double?>("Observability:TraceSampleRatio") ?? 0.10);
+
 builder.Services.AddOutputCache();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
-    options.ForwardLimit = 1;
-});
+    ForwardedHeadersTrust.Apply(options, builder.Configuration));
+// Per-IP limits are only meaningful when the API can see each visitor's real IP.
+// For webapp traffic that requires the attestation key (see BffClientIpMiddleware):
+// without it every visitor arrives from the webapp server's address, so strict per-IP
+// buckets would throttle the whole site at once. In that case only flood-level limits apply.
+var perClientIpVisible = !string.IsNullOrWhiteSpace(builder.Configuration["Security:ClientIpAttestationKey"]);
+int IpLimit(int strict, int relaxed) => perClientIpVisible ? strict : relaxed;
+
 builder.Services.AddRateLimiter(options =>
 {
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        int? retryAfterSeconds = null;
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            retryAfterSeconds = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalSeconds));
+            context.HttpContext.Response.Headers.RetryAfter = retryAfterSeconds.Value.ToString();
+        }
+
+        context.HttpContext.Response.ContentType = "application/json; charset=utf-8";
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            isSuccess = false,
+            messages = new[]
+            {
+                new { item1 = "تعداد درخواست‌ها زیاد است. لطفاً کمی بعد دوباره تلاش کنید." }
+            },
+            retryAfterSeconds
+        }, cancellationToken);
+    };
     options.AddPolicy("ServerMonitoring", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -109,6 +145,52 @@ builder.Services.AddRateLimiter(options =>
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 AutoReplenishment = true
             }));
+    options.AddPolicy("OtpSend", httpContext =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new TokenBucketRateLimiterOptions
+            {
+                // The web client has a two-minute resend timer. A small initial burst
+                // tolerates a lost response, then only one new SMS may be requested
+                // every two minutes from the same client IP.
+                TokenLimit = IpLimit(3, 300),
+                TokensPerPeriod = IpLimit(1, 150),
+                ReplenishmentPeriod = TimeSpan.FromMinutes(2),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("OtpVerify", httpContext =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new TokenBucketRateLimiterOptions
+            {
+                // The database-level failed-code lock still protects an individual
+                // recipient; this limiter prevents a single client from brute-forcing
+                // the endpoint or consuming API capacity.
+                TokenLimit = IpLimit(6, 300),
+                TokensPerPeriod = IpLimit(3, 150),
+                ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("AccountLookup", httpContext =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new TokenBucketRateLimiterOptions
+            {
+                // userdetail/userrole reveal whether a mobile number has an account and
+                // what role it holds. The login form needs one call per attempt, so a
+                // small burst plus a slow refill is plenty for a person but makes
+                // walking a list of numbers impractical.
+                TokenLimit = IpLimit(20, 300),
+                TokensPerPeriod = IpLimit(10, 150),
+                ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
     options.AddPolicy("TripPrice", httpContext =>
     {
         var userId = httpContext.User.FindFirst("UserId")?.Value;
@@ -128,16 +210,42 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true
             });
     });
+    options.AddPolicy("AiProductMatch", httpContext =>
+    {
+        var userId = httpContext.User.FindFirst("UserId")?.Value;
+        var partitionKey = !string.IsNullOrWhiteSpace(userId)
+            ? $"ai-product-match:user:{userId}"
+            : $"ai-product-match:ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+        return RateLimitPartition.GetTokenBucketLimiter(
+            partitionKey,
+            _ => new TokenBucketRateLimiterOptions
+            {
+                // This is an expensive multimodal provider call. Six attempts are
+                // enough for a seller to retry a failed import without permitting
+                // a continuous account-level cost attack.
+                TokenLimit = 6,
+                TokensPerPeriod = 1,
+                ReplenishmentPeriod = TimeSpan.FromMinutes(2),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            });
+    });
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<CallSessionTracker>();
+builder.Services.AddSingleton<Api.Services.AiProductMatch.AiProductMatchExecutionGate>();
 builder.Services.AddHttpClient(Api.Services.ServerMonitoring.ServerMonitoringAgentClient.HttpClientName,
     client => client.Timeout = TimeSpan.FromSeconds(5));
 builder.Services.AddScoped<Api.Services.ServerMonitoring.ServerMonitoringAgentClient>();
 builder.Services.AddAuthorization(options => options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireClaim("RoleId", ((long)RoleEnum.Admin).ToString())));
 builder.Services
-    .AddControllersWithViews()
+    .AddControllersWithViews(options =>
+    {
+        options.Conventions.Add(new AdminAreaAuthorizationConvention());
+    })
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(
@@ -166,6 +274,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<IDataBaseContext, DataBaseContext>(p => p.UseSqlServer(
     builder.Configuration["connection"],
     x => x.UseNetTopologySuite().MigrationsAssembly(typeof(DataBaseContext).Assembly.FullName)));
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" });
 builder.Services.AddApplicationServices();
 builder.Services.Configure<PastilAiProviderOptions>(
     builder.Configuration.GetSection(PastilAiProviderOptions.SectionName));
@@ -342,20 +452,34 @@ recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITrip
     new RecurringJobOptions { TimeZone = tehranTimeZone });
 
 app.UseRequestLocalization();
-app.UseHangfireDashboard();
 if (app.Environment.IsDevelopment())
 {
 
 }
 app.UseForwardedHeaders();
+app.UseMiddleware<BffClientIpMiddleware>();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowPanel");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new AdminDashboardAuthorizationFilter()]
+});
 app.UseRateLimiter();
 app.UseOutputCache();
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false,
+    ResponseWriter = WriteHealthCheckResponseAsync
+}).AllowAnonymous();
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = WriteHealthCheckResponseAsync
+}).AllowAnonymous();
 app.MapControllers();
 app.MapHub<NoticeHub>("/hubs/notices");
 app.MapHub<CallHub>("/hubs/call");
@@ -374,3 +498,19 @@ app.UseSwaggerUI(options =>
     options.EnableDeepLinking();
 });
 app.Run();
+
+static Task WriteHealthCheckResponseAsync(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json; charset=utf-8";
+    return context.Response.WriteAsJsonAsync(new
+    {
+        status = report.Status.ToString(),
+        checks = report.Entries.ToDictionary(
+            entry => entry.Key,
+            entry => new
+            {
+                status = entry.Value.Status.ToString(),
+                description = entry.Value.Description
+            })
+    }, cancellationToken: context.RequestAborted);
+}
