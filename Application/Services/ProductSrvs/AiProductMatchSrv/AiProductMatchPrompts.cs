@@ -61,18 +61,25 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
               this exact product; otherwise null. Never infer a price from a neighboring or shared label.
             - quantityGuess and unit: MUST always be null for shelf/display photos. The number of facings on a
               shelf is never inventory quantity.
+            - nameConfidence: 0..1, how certain you are that detectedName is read correctly from the package
+              text. Use below 0.6 when the name is partially legible, blurry, or cut off; 0.9+ only when the
+              full name is clearly readable.
+            - boxes: one bounding box per visible facing/package of this item, as [ymin, xmin, ymax, xmax]
+              integers normalized to 0..1000 relative to the whole image (origin = top-left corner), drawn
+              tightly around that one package. If you cannot localize a package reliably, omit its box; an
+              empty array is correct when unsure. A wrong box is worse than no box.
 
             # Output contract
             Return JSON only. No prose, markdown, comments, or additional keys.
-            {"items":[{"detectedName":"string","brand":"string"|null,"animalType":"cat"|"dog"|"other"|null,"packageSizeValue":number|null,"packageSizeUnit":"string"|null,"priceGuess":number|null,"quantityGuess":number|null,"unit":"string"|null}]}
+            {"items":[{"detectedName":"string","nameConfidence":number,"brand":"string"|null,"animalType":"cat"|"dog"|"other"|null,"packageSizeValue":number|null,"packageSizeUnit":"string"|null,"priceGuess":number|null,"quantityGuess":number|null,"unit":"string"|null,"boxes":[[ymin,xmin,ymax,xmax]]}]}
 
             # Worked example
             A photo shows two facings of a bag clearly printed "ROYAL CANIN Indoor 27 — Adult Cat — 2 kg", and
             one facing of an unlabeled bag whose brand is not readable but the package clearly says "Adult Dog
             15kg":
             {"items":[
-              {"detectedName":"غذای خشک گربه رویال کنین ایندور ۲۷ بالغ ۲ کیلوگرم","brand":"رویال کنین","animalType":"cat","packageSizeValue":2,"packageSizeUnit":"kilogram","priceGuess":null,"quantityGuess":null,"unit":null},
-              {"detectedName":"غذای خشک سگ بالغ ۱۵ کیلوگرم","brand":null,"animalType":"dog","packageSizeValue":15,"packageSizeUnit":"kilogram","priceGuess":null,"quantityGuess":null,"unit":null}
+              {"detectedName":"غذای خشک گربه رویال کنین ایندور ۲۷ بالغ ۲ کیلوگرم","nameConfidence":0.95,"brand":"رویال کنین","animalType":"cat","packageSizeValue":2,"packageSizeUnit":"kilogram","priceGuess":null,"quantityGuess":null,"unit":null,"boxes":[[120,80,540,300],[125,310,545,520]]},
+              {"detectedName":"غذای خشک سگ بالغ ۱۵ کیلوگرم","nameConfidence":0.7,"brand":null,"animalType":"dog","packageSizeValue":15,"packageSizeUnit":"kilogram","priceGuess":null,"quantityGuess":null,"unit":null,"boxes":[[100,560,600,820]]}
             ]}
             """;
 

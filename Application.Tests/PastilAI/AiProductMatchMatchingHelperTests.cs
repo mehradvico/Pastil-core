@@ -1,4 +1,5 @@
 using Application.Services.ProductSrvs.AiProductMatchSrv;
+using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
 using System.Collections.Generic;
 using Xunit;
 
@@ -117,6 +118,68 @@ public class AiProductMatchMatchingHelperTests
         Assert.Equal(2, result.Count);
         Assert.Equal("table-1-1", result[0].RowId);
         Assert.Equal("table-2-2", result[1].RowId);
+    }
+
+    [Fact]
+    public void Deduplicated_rows_keep_the_bounding_boxes_of_every_removed_duplicate()
+    {
+        var box = (double x) => new AiProductMatchBoundingBoxDto { X = x, Y = 0.1, Width = 0.2, Height = 0.3 };
+        var rows = new List<AiProductMatchWorkingRow>
+        {
+            new() { RowId = "shelf-1-1", Name = "کنسرو گربه شایر ۴۰۰ گرم", BoundingBoxes = { box(0.1) }, NameConfidence = 0.6 },
+            new() { RowId = "shelf-1-2", Name = "کنسرو گربه شایر ۴۰۰ گرم", BoundingBoxes = { box(0.4), box(0.7) }, NameConfidence = 0.9 }
+        };
+
+        var result = AiProductMatchMatchingHelper.DeduplicateRows(rows);
+
+        Assert.Single(result);
+        Assert.Equal(3, result[0].BoundingBoxes.Count);
+        Assert.Equal(0.9, result[0].NameConfidence);
+    }
+
+    [Fact]
+    public void Gemini_scale_boxes_are_converted_to_relative_top_left_boxes()
+    {
+        var boxes = AiProductMatchMatchingHelper.NormalizeBoxes(new[] { new[] { 100.0, 200.0, 500.0, 600.0 } });
+
+        var box = Assert.Single(boxes);
+        Assert.Equal(0.2, box.X);
+        Assert.Equal(0.1, box.Y);
+        Assert.Equal(0.4, box.Width);
+        Assert.Equal(0.4, box.Height);
+    }
+
+    [Fact]
+    public void Already_relative_boxes_are_kept_as_is()
+    {
+        var boxes = AiProductMatchMatchingHelper.NormalizeBoxes(new[] { new[] { 0.1, 0.2, 0.5, 0.6 } });
+
+        Assert.Equal(0.2, Assert.Single(boxes).X);
+    }
+
+    [Fact]
+    public void Out_of_image_boxes_are_clamped_and_tiny_or_inverted_boxes_are_dropped()
+    {
+        var boxes = AiProductMatchMatchingHelper.NormalizeBoxes(new[]
+        {
+            new[] { -50.0, 900.0, 400.0, 1300.0 },
+            new[] { 100.0, 100.0, 110.0, 400.0 },
+            new[] { 500.0, 500.0, 300.0, 300.0 }
+        });
+
+        var box = Assert.Single(boxes);
+        Assert.Equal(0.0, box.Y);
+        Assert.Equal(0.1, box.Width);
+        Assert.Equal(0.4, box.Height);
+    }
+
+    [Fact]
+    public void Package_size_is_formatted_in_persian_and_null_when_unreadable()
+    {
+        Assert.Equal("۴۰۰ گرم", AiProductMatchMatchingHelper.FormatPackageSize(400, "gram"));
+        Assert.Equal("۳.۵ کیلوگرم", AiProductMatchMatchingHelper.FormatPackageSize(3.5, "kilogram"));
+        Assert.Null(AiProductMatchMatchingHelper.FormatPackageSize(null, "gram"));
+        Assert.Null(AiProductMatchMatchingHelper.FormatPackageSize(400, null));
     }
 
     [Fact]

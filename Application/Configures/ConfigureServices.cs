@@ -645,6 +645,7 @@ public static class ConfigureServices
         services.AddHttpClient<IAiProductMatchFileClient, AiProductMatchFileClient>();
         // Singleton عمدی: وضعیت Jobهای async باید بین درخواست‌های HTTP مختلف (شروع و پول کردن) مشترک بماند.
         services.AddSingleton<IAiProductMatchJobStore, AiProductMatchJobStore>();
+        services.AddScoped<Application.Services.ProductSrvs.MissingProductSrv.Iface.IMissingProductService, Application.Services.ProductSrvs.MissingProductSrv.MissingProductService>();
         services.AddScoped<IStoryGroupService, StoryGroupService>();
         services.AddScoped<IStoryItemService, StoryItemService>();
         services.AddScoped<IStoryUserLikeService, StoryUserLikeService>();

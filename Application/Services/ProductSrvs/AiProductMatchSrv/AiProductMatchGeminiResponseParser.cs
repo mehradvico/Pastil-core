@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 
 namespace Application.Services.ProductSrvs.AiProductMatchSrv
@@ -14,6 +15,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         public double? PriceGuess { get; set; }
         public int? QuantityGuess { get; set; }
         public string Unit { get; set; }
+        public double? NameConfidence { get; set; }
+
+        // هر عنصر [ymin, xmin, ymax, xmax] خام مدل؛ تبدیل/اعتبارسنجی در AiProductMatchMatchingHelper.NormalizeBoxes
+        public List<double[]> Boxes { get; set; } = new();
     }
 
     // بر خلاف قفسه (که فقط از روی بسته‌بندی فیزیکی حدس می‌زند)، این ردیف‌ها از اسکرین‌شات جدول یک
@@ -71,11 +76,32 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     PackageSizeUnit = item?["packageSizeUnit"]?.GetValue<string>(),
                     PriceGuess = TryGetDouble(item?["priceGuess"]),
                     QuantityGuess = TryGetInt(item?["quantityGuess"]),
-                    Unit = item?["unit"]?.GetValue<string>()
+                    Unit = item?["unit"]?.GetValue<string>(),
+                    NameConfidence = TryGetDouble(item?["nameConfidence"]),
+                    Boxes = ParseBoxes(item?["boxes"])
                 });
             }
 
             return result;
+        }
+
+        private static List<double[]> ParseBoxes(JsonNode node)
+        {
+            var boxes = new List<double[]>();
+            if (node is not JsonArray array)
+                return boxes;
+
+            foreach (var entry in array)
+            {
+                if (entry is not JsonArray coords || coords.Count != 4)
+                    continue;
+
+                var values = new[] { TryGetDouble(coords[0]), TryGetDouble(coords[1]), TryGetDouble(coords[2]), TryGetDouble(coords[3]) };
+                if (values.All(v => v.HasValue && double.IsFinite(v.Value)))
+                    boxes.Add(values.Select(v => v.Value).ToArray());
+            }
+
+            return boxes;
         }
 
         public static List<AiProductMatchTableExtractedRow> ParseTableCaptureExtraction(string rawJson)
