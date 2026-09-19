@@ -566,7 +566,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         {
             var searchTasks = rows.Select(async row =>
             {
-                var (productIds, failed) = await SearchProductIdsAsync(row.Name, cancellationToken);
+                var (productIds, failed) = await SearchProductIdsAsync(row.Name, storeId, cancellationToken);
                 return new { row.RowId, ProductIds = productIds, Failed = failed };
             });
             var searchResults = await Task.WhenAll(searchTasks);
@@ -583,7 +583,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         }
 
         // Failed=true یعنی جست‌وجو خطا داد (نه این‌که نتیجه‌ای نبوده) — این دو حالت برای اپ کاملاً فرق دارند.
-        private async Task<(List<long> ProductIds, bool Failed)> SearchProductIdsAsync(string rawName, CancellationToken cancellationToken)
+        private async Task<(List<long> ProductIds, bool Failed)> SearchProductIdsAsync(string rawName, long storeId, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(rawName))
                 return (new List<long>(), false);
@@ -617,7 +617,8 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 // حداقل یک فروشگاه فعال با موجودی>۰ دارند برمی‌گردونه. اینجا دقیقاً برعکسش لازمه —
                 // محصولاتی که فروشنده‌ی فعلی (یا هیچ فروشگاهی) هنوز براشون موجودی ثبت نکرده، چون
                 // کل هدف این فیچر همینه: پیدا کردن محصول کاتالوگ برای ساختن اولین ProductItem آن.
-                var found = await _productService.SearchCatalogProductIdsAsync(request, cancellationToken);
+                // پیش‌نویسِ (تأییدنشده‌ی) فروشگاه‌های دیگر به این فروشنده پیشنهاد داده نمی‌شود؛ بقیه‌ی وضعیت‌ها (موجود/ناموجود/…) بله.
+                var found = await _productService.SearchCatalogProductIdsAsync(request, cancellationToken, storeId);
                 return (found == null ? new List<long>() : found.Distinct().ToList(), false);
             }
             catch (Exception ex)

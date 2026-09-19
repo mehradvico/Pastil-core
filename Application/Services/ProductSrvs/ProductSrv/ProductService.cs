@@ -563,7 +563,8 @@ ORDER BY p.StatusId DESC, MatchScore DESC;";
         // فقط محصولاتی با حداقل یک ProductItem موجود/فعال در یک فروشگاه فعال را برمی‌گرداند)، این متد
         // هیچ پیش‌شرط موجودی/فروشگاهی ندارد — چون هدف دقیقاً پیدا کردن محصولات کاتالوگیه که فروشنده
         // فعلی (یا هیچ فروشگاهی) هنوز موجودی‌ای برایشان ثبت نکرده، تا بتواند آیتم جدید برایشان بسازد.
-        public async Task<List<long>> SearchCatalogProductIdsAsync(SearchRequestDto request, CancellationToken cancellationToken = default)
+        // currentStoreId: اگر داده شود، پیش‌نویسِ فروشگاه‌های دیگر (هنوز تأییدنشده) نتیجه نمی‌شود؛ null = بدون این فیلتر (ادمین).
+        public async Task<List<long>> SearchCatalogProductIdsAsync(SearchRequestDto request, CancellationToken cancellationToken = default, long? currentStoreId = null)
         {
             using var connection = new SqlConnection(connectionString);
 
@@ -572,7 +573,9 @@ ORDER BY p.StatusId DESC, MatchScore DESC;";
                 ProductCount = SearchQueryHelper.CandidateCount(request.ProductCount),
                 ProductNotId = request.ProductNotId,
                 Query = request.Q,
-                SearchTerms = string.Join(" ", request.SearchTerms)
+                SearchTerms = string.Join(" ", request.SearchTerms),
+                StoreId = currentStoreId,
+                DraftStatusId = (long)ProductStatusEnum.ProductStatus_Draft
             };
 
             var query = @"
@@ -586,7 +589,9 @@ WHERE LEN(value) >= 2;
 SELECT TOP(@ProductCount)
     p.Id,
     (
-        SELECT COUNT(*)
+        -- مجموع «طول» کلمه‌های جورشده، نه تعدادشان: کلمهٔ تخصصی («پرشین»، نام کامل) وزن بیشتری از کلمهٔ
+        -- عمومی («غذای»، «مدل») و دوحرفی‌های فازی دارد؛ وگرنه در کاتالوگ ده‌ها هزارتایی همه‌چیز هم‌امتیاز می‌شود.
+        SELECT ISNULL(SUM(LEN(k.Keyword)), 0)
         FROM @Keywords k
         WHERE p.Name COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
            OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
@@ -602,6 +607,7 @@ WHERE
     p.Active = 1
     AND p.Deleted = 0
     AND (p.Id != @ProductNotId OR @ProductNotId IS NULL)
+    AND (@StoreId IS NULL OR p.StatusId <> @DraftStatusId OR p.StoreId = @StoreId)
     AND (
         p.Name COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
         OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + @Query + '%'
@@ -620,7 +626,9 @@ WHERE
                OR ISNULL(p.ProductLabel, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
         )
     )
-ORDER BY p.StatusId DESC, MatchScore DESC;";
+-- عمداً p.StatusId در مرتب‌سازی نیست: در کاتالوگ، محصول فقط وقتی «موجود» می‌شود که یک فروشگاه آن را به
+-- فروشگاه خودش اضافه کرده باشد؛ هدف این جست‌وجو دقیقاً پیدا کردن محصولاتی است که هنوز هیچ فروشگاهی ندارند.
+ORDER BY MatchScore DESC, p.Id;";
 
             var command = new CommandDefinition(query, parameters, commandTimeout: 8, cancellationToken: cancellationToken);
             var result = await connection.QueryAsync<long>(command);
