@@ -17,7 +17,7 @@ namespace Application.Services.ProductSrvs.ProductSrv.Iface
         Task<BaseResultDto<ProductDto>> InsertAsyncDto(ProductDto dto);
         ProductSearchDto Search(ProductInputDto baseSearchDto);
         Task<List<SearchProductDto>> SearchMinAsync(SearchRequestDto request, CancellationToken cancellationToken = default);
-        Task<List<long>> SearchCatalogProductIdsAsync(SearchRequestDto request, CancellationToken cancellationToken = default);
+        Task<List<long>> SearchCatalogProductIdsAsync(SearchRequestDto request, CancellationToken cancellationToken = default, long? currentStoreId = null);
         Task<BaseResultDto> UpdateDtoAsync(ProductDto dto, long? storeId = null);
         BaseResultDto DeleteDto(long id);
         Task<Product> GetByIdAsync(long id);
