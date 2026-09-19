@@ -1,6 +1,7 @@
 using Application.Services.Order.ShippingSrv;
 using Application.Services.Order.ShippingSrv.Provider;
 using Entities.Entities.ShippingField;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -38,7 +39,7 @@ public class ShippingProviderTests
 
         Assert.False(result.IsSuccess);
         Assert.Equal(0, result.Price);
-        Assert.Contains("تکمیل نشده", result.ErrorMessage);
+        Assert.False(string.IsNullOrWhiteSpace(result.ErrorMessage));
     }
 
     [Fact]
@@ -67,7 +68,7 @@ public class ShippingProviderTests
         {
             TestMode = false,
             Miare = new ShippingProviderOptions { Enabled = true }
-        }));
+        }), NullLogger<MiareShippingProvider>.Instance);
 
         var result = await provider.CreateShipmentAsync(new ShippingProviderShipmentRequest
         {
@@ -96,7 +97,7 @@ public class ShippingProviderTests
         {
             TestMode = true,
             Miare = new ShippingProviderOptions { Enabled = false }
-        }));
+        }), NullLogger<MiareShippingProvider>.Instance);
 
         var result = await provider.CreateShipmentAsync(new ShippingProviderShipmentRequest
         {

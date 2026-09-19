@@ -8780,6 +8780,20 @@
             تحلیل تصویر قفسه، اسکرین‌شات جدول نرم‌افزار انبار (سپیدار/دامپزشکیار)، یا داده‌ی جدول (Excel/سپیدار/دامپزشکیار) و تطبیق با کاتالوگ پاستیل
             </summary>
         </member>
+        <member name="M:Api.Areas.Seller.Controllers.AiProductMatchController.StartAnalyze(Application.Services.ProductSrvs.AiProductMatchSrv.Dto.AiProductMatchAnalyzeInputDto,Microsoft.Extensions.Options.IOptions{Application.Services.ProductSrvs.AiProductMatchSrv.AiProductMatchOptions})">
+            <summary>
+            همون آنالیز، ولی async/Job-based: بلافاصله jobId برمی‌گرده و پردازش واقعی در پس‌زمینه انجام
+            می‌شود — برای سناریوهایی مثل اسکرین‌شات‌های زیاد (سپیدار/دامپزشکیار) که ممکن است طول بکشد و
+            یک درخواست HTTP همزمان را در معرض Timeout سمت کلاینت بگذارد. اپ فروشنده (قفسه) نیازی به این
+            مسیر ندارد و همچنان از همون /analyze همزمان استفاده می‌کند.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.AiProductMatchController.AnalyzeStatus(System.String)">
+            <summary>
+            وضعیت/پیشرفت یک Job که با /analyze/start شروع شده — تا وقتی status="completed" نشده،
+            result همیشه null است.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Seller.Controllers.BrandController">
              <summary>
              مدیریت برندها
@@ -9201,6 +9215,14 @@
              ویرایش آیتم
              </summary>
             
+        </member>
+        <member name="T:Api.Authorization.AdminAreaAuthorizationConvention">
+            <summary>
+            Makes the API's Admin area deny every non-admin user by default.
+            Controller attributes are easy to omit on a newly added endpoint, so this
+            convention is deliberately centralized instead of relying on each Admin
+            controller to remember the policy.
+            </summary>
         </member>
         <member name="T:Api.Controllers.AccountController">
             <summary>
@@ -10567,6 +10589,12 @@
             فهرست ثابت روزهای هفته — برای کاربر نهایی (مثلاً انتخاب برنامه‌ی هفتگی سرویس پت‌رسان)
             </summary>
         </member>
+        <member name="T:Api.HangFire.AdminDashboardAuthorizationFilter">
+            <summary>
+            Hangfire's dashboard is operationally powerful (it exposes jobs and allows retries/deletes),
+            so it must not rely on Hangfire's development-only local-request default.
+            </summary>
+        </member>
         <member name="T:Api.Hubs.CallHub">
             <summary>
             سیگنالینگ WebRTC برای تماس فوری درون‌برنامه‌ای بین کاربر و نماینده - جریان صوت مستقیم و نظیر-به-نظیر
@@ -10585,6 +10613,30 @@
             تا PushNotificationService بتواند مستقیم برایش پیام بفرستد، بدون نیاز به توکن ذخیره‌شده.
             </summary>
         </member>
+        <member name="T:Api.Middleware.BffClientIpMiddleware">
+            <summary>
+            Lets the Nuxt BFF (webapp server) vouch for the real end-user IP.
+            The webapp calls this API from its own server, so without this every visitor
+            shares one IP and per-IP rate limits (OTP, sign-in, ...) would throttle the
+            whole site at once. The IP is only honoured when the request also carries the
+            shared secret, so an anonymous caller cannot pick its own rate-limit bucket.
+            The secret is read from Security:ClientIpAttestationKey (env PASTIL_CLIENT_IP_ATTESTATION_KEY);
+            when it is missing or shorter than 32 characters the middleware does nothing.
+            </summary>
+        </member>
+        <member name="T:Api.Middleware.ForwardedHeadersTrust">
+             <summary>
+             Decides which peers may set X-Forwarded-For / X-Forwarded-Proto.
+             Before this, every peer was trusted, so anyone who could reach the API port
+             directly could pick their own client IP and dodge every per-IP rate limit.
+             Now only loopback and private (Docker / host reverse-proxy) addresses are trusted.
+            
+             Configuration (all optional):
+               ForwardedHeaders:TrustedNetworks  extra CIDR ranges, e.g. ["203.0.113.0/24"]
+               ForwardedHeaders:TrustAnyProxy    true restores the old trust-everyone behaviour
+                                                 (env ForwardedHeaders__TrustAnyProxy=true; emergency rollback only)
+             </summary>
+        </member>
         <member name="T:Api.Middleware.SwaggerAccessMiddleware">
             <summary>
             Gates /swagger (UI + swagger.json) behind HTTP Basic Auth, with an optional
@@ -10592,6 +10644,13 @@
             at all, /swagger returns 404 regardless of anything else. Real credential
             values must come from environment variables on the server, never from a
             committed appsettings file — see SWAGGER_ACCESS.md.
+            </summary>
+        </member>
+        <member name="T:Api.Services.AiProductMatch.AiProductMatchExecutionGate">
+            <summary>
+            Bounds expensive AI image analysis across every seller. The request rate
+            limiter protects each account; this gate prevents many valid accounts from
+            exhausting the process and the external model at the same time.
             </summary>
         </member>
         <member name="T:Api.Services.ServerMonitoring.ServerMonitoringAgentClient">

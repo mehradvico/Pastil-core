@@ -3,9 +3,11 @@ using Application.Common.Interface;
 using Application.Services.ProductSrvs.AiProductMatchSrv;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Iface;
+using Api.Services.AiProductMatch;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -30,19 +32,22 @@ namespace Api.Areas.Seller.Controllers
         private readonly IAiProductMatchJobStore _jobStore;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<AiProductMatchController> _logger;
+        private readonly AiProductMatchExecutionGate _executionGate;
 
         public AiProductMatchController(
             IAiProductMatchService aiProductMatchService,
             ICurrentUserHelper currentUser,
             IAiProductMatchJobStore jobStore,
             IServiceScopeFactory scopeFactory,
-            ILogger<AiProductMatchController> logger)
+            ILogger<AiProductMatchController> logger,
+            AiProductMatchExecutionGate executionGate)
         {
             _aiProductMatchService = aiProductMatchService;
             _currentUser = currentUser;
             _jobStore = jobStore;
             _scopeFactory = scopeFactory;
             _logger = logger;
+            _executionGate = executionGate;
         }
 
         /// <summary>
@@ -60,14 +65,25 @@ namespace Api.Areas.Seller.Controllers
         /// تحلیل تصویر قفسه، اسکرین‌شات جدول نرم‌افزار انبار (سپیدار/دامپزشکیار)، یا داده‌ی جدول (Excel/سپیدار/دامپزشکیار) و تطبیق با کاتالوگ پاستیل
         /// </summary>
         [HttpPost("analyze")]
+        [EnableRateLimiting("AiProductMatch")]
         // تا ۴۰ اسکرین‌شات جدول (سپیدار/دامپزشکیار) پوشش داده می‌شود، نه فقط ۸ عکس قفسه؛ سقف واقعی هر
         // تصویر همچنان با AiProductMatchOptions.MaxImageSizeBytes کنترل می‌شود.
         [RequestSizeLimit(128 * 1024 * 1024)]
         [RequestFormLimits(MultipartBodyLengthLimit = 128 * 1024 * 1024)]
         [ProducesResponseType(typeof(BaseResultDto<AiProductMatchAnalyzeResultDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<AiProductMatchAnalyzeResultDto>), StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> Analyze([FromForm] AiProductMatchAnalyzeInputDto dto)
         {
-            var storeId = _currentUser.CurrentUser.StoreId;
+            var currentUser = _currentUser.CurrentUser;
+            if (currentUser is null || currentUser.StoreId <= 0)
+                return Forbid();
+
+            using var executionLease = _executionGate.TryAcquire();
+            if (executionLease == null)
+                return StatusCode(StatusCodes.Status429TooManyRequests,
+                    new BaseResultDto<AiProductMatchAnalyzeResultDto>(false, "سرویس هوش مصنوعی در حال پردازش درخواست‌های دیگر است. لطفاً کمی بعد دوباره تلاش کنید.", null!, StatusCodes.Status429TooManyRequests));
+
+            var storeId = currentUser.StoreId;
             var authorizationHeaderValue = Request.Headers.Authorization.ToString();
             var result = await _aiProductMatchService.AnalyzeAsync(storeId, dto, authorizationHeaderValue, HttpContext.RequestAborted);
             return Ok(result);
@@ -80,55 +96,78 @@ namespace Api.Areas.Seller.Controllers
         /// مسیر ندارد و همچنان از همون /analyze همزمان استفاده می‌کند.
         /// </summary>
         [HttpPost("analyze/start")]
+        [EnableRateLimiting("AiProductMatch")]
         [RequestSizeLimit(128 * 1024 * 1024)]
         [RequestFormLimits(MultipartBodyLengthLimit = 128 * 1024 * 1024)]
         [ProducesResponseType(typeof(BaseResultDto<AiProductMatchJobStartedDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<AiProductMatchJobStartedDto>), StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> StartAnalyze([FromForm] AiProductMatchAnalyzeInputDto dto, [FromServices] Microsoft.Extensions.Options.IOptions<AiProductMatchOptions> options)
         {
-            var storeId = _currentUser.CurrentUser.StoreId;
+            var currentUser = _currentUser.CurrentUser;
+            if (currentUser is null || currentUser.StoreId <= 0)
+                return Forbid();
+
+            var executionLease = _executionGate.TryAcquire();
+            if (executionLease == null)
+                return StatusCode(StatusCodes.Status429TooManyRequests,
+                    new BaseResultDto<AiProductMatchJobStartedDto>(false, "سرویس هوش مصنوعی در حال پردازش درخواست‌های دیگر است. لطفاً کمی بعد دوباره تلاش کنید.", null!, StatusCodes.Status429TooManyRequests));
+
+            var storeId = currentUser.StoreId;
             var authorizationHeaderValue = Request.Headers.Authorization.ToString();
 
-            // بافر کردن بایت‌های عکس‌ها همین الان لازم است: بعد از برگشتن این پاسخ، استریم فایل‌های
-            // آپلودشده‌ی همین درخواست HTTP بسته می‌شود و در Task پس‌زمینه دیگر قابل‌خواندن نیست.
-            var bufferedDto = await BufferImagesAsync(dto);
-
-            var sourceType = dto.SourceType?.Trim().ToLowerInvariant();
-            var isTableCapture = (sourceType == "veterinary" || sourceType == "sepidar") && bufferedDto.Images?.Count > 0;
-            var totalBatches = isTableCapture
-                ? Math.Max(1, (int)Math.Ceiling(bufferedDto.Images.Count / (double)Math.Max(1, options.Value.TableImagesPerVisionCall)))
-                : Math.Max(1, bufferedDto.Images?.Count ?? 1);
-
-            var job = _jobStore.Create(totalBatches);
-
-            _ = Task.Run(async () =>
+            try
             {
-                // Scope جدید و جدا از Scope همین درخواست HTTP — چون تا زمانی که این Task اجرا می‌شود،
-                // Scope درخواست اصلی (و DbContext داخلش) از قبل Dispose شده.
-                using var scope = _scopeFactory.CreateScope();
-                var service = scope.ServiceProvider.GetRequiredService<IAiProductMatchService>();
-                try
-                {
-                    var result = await service.AnalyzeAsync(
-                        storeId, bufferedDto, authorizationHeaderValue, System.Threading.CancellationToken.None,
-                        (completed, total) => _jobStore.ReportProgress(job.JobId, completed));
+                // بافر کردن بایت‌های عکس‌ها همین الان لازم است: بعد از برگشتن این پاسخ، استریم فایل‌های
+                // آپلودشده‌ی همین درخواست HTTP بسته می‌شود و در Task پس‌زمینه دیگر قابل‌خواندن نیست.
+                var bufferedDto = await BufferImagesAsync(dto);
 
-                    if (result.IsSuccess)
-                        _jobStore.Complete(job.JobId, result.Data);
-                    else
-                        _jobStore.Fail(job.JobId, result.Messages?.FirstOrDefault()?.Item1, result.Code);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "AiProductMatch background job {JobId} failed unexpectedly for store {StoreId}.", job.JobId, storeId);
-                    _jobStore.Fail(job.JobId, "خطای غیرمنتظره در پردازش.", -1);
-                }
-            });
+                var sourceType = dto.SourceType?.Trim().ToLowerInvariant();
+                var bufferedImages = bufferedDto.Images ?? new List<IFormFile>();
+                var isTableCapture = (sourceType == "veterinary" || sourceType == "sepidar") && bufferedImages.Count > 0;
+                var totalBatches = isTableCapture
+                    ? Math.Max(1, (int)Math.Ceiling(bufferedImages.Count / (double)Math.Max(1, options.Value.TableImagesPerVisionCall)))
+                    : Math.Max(1, bufferedImages.Count);
 
-            return Ok(new BaseResultDto<AiProductMatchJobStartedDto>(true, new AiProductMatchJobStartedDto
+                var job = _jobStore.Create(totalBatches);
+
+                _ = Task.Run(async () =>
+                {
+                    using (executionLease)
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        // Scope جدید و جدا از Scope همین درخواست HTTP — چون تا زمانی که این Task اجرا می‌شود،
+                        // Scope درخواست اصلی (و DbContext داخلش) از قبل Dispose شده.
+                        var service = scope.ServiceProvider.GetRequiredService<IAiProductMatchService>();
+                        try
+                        {
+                            var result = await service.AnalyzeAsync(
+                                storeId, bufferedDto, authorizationHeaderValue, System.Threading.CancellationToken.None,
+                                (completed, total) => _jobStore.ReportProgress(job.JobId, completed));
+
+                            if (result.IsSuccess)
+                                _jobStore.Complete(job.JobId, result.Data);
+                            else
+                                _jobStore.Fail(job.JobId, result.Messages?.FirstOrDefault()?.Item1, result.Code);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "AiProductMatch background job {JobId} failed unexpectedly for store {StoreId}.", job.JobId, storeId);
+                            _jobStore.Fail(job.JobId, "خطای غیرمنتظره در پردازش.", -1);
+                        }
+                    }
+                });
+
+                return Ok(new BaseResultDto<AiProductMatchJobStartedDto>(true, new AiProductMatchJobStartedDto
+                {
+                    JobId = job.JobId,
+                    TotalBatches = job.TotalBatches
+                }));
+            }
+            catch
             {
-                JobId = job.JobId,
-                TotalBatches = job.TotalBatches
-            }));
+                executionLease.Dispose();
+                throw;
+            }
         }
 
         /// <summary>

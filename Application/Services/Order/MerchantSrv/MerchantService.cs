@@ -205,18 +205,36 @@ namespace Application.Services.Order.MerchantSrv
             GatewayCallbackResultDto result,
             bool isTestMode)
         {
-            payment.IsSuccess = result.IsSuccess;
-            payment.RefNumber = result.RefNumber;
-            payment.Token = result.Token;
-            payment.GatewayStatus = isTestMode
+            var gatewayStatus = isTestMode
                 ? result.IsSuccess ? "TEST_SUCCESS" : "TEST_FAILED"
                 : result.IsSuccess ? "SUCCESS" : "FAILED";
-            payment.Description = result.Description ?? result.ErrorMessage;
+            var description = result.Description ?? result.ErrorMessage;
 
-            _context.Payments.Update(payment);
-            await _context.SaveChangesAsync();
+            // Callback providers and browsers may deliver the same result at the
+            // same time. Only the first result may transition an unverified payment;
+            // a late verification must never overwrite an already-applied payment.
+            var updatedRows = await _context.Payments
+                .Where(item => item.Id == payment.Id &&
+                               item.IsSuccess == null &&
+                               item.AppliedDate == null)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(item => item.IsSuccess, result.IsSuccess)
+                    .SetProperty(item => item.RefNumber, result.RefNumber)
+                    .SetProperty(item => item.Token, result.Token)
+                    .SetProperty(item => item.GatewayStatus, gatewayStatus)
+                    .SetProperty(item => item.Description, description));
 
-            return new BaseResultDto(result.IsSuccess, result.ErrorMessage);
+            await _context.Entry(payment).ReloadAsync();
+            if (updatedRows == 1)
+                return new BaseResultDto(result.IsSuccess, result.ErrorMessage);
+
+            // Another request already persisted the gateway result (or applied the
+            // payment). Return that durable outcome instead of overwriting it.
+            return new BaseResultDto(
+                payment.IsSuccess == true || payment.AppliedDate.HasValue,
+                payment.IsSuccess == true || payment.AppliedDate.HasValue
+                    ? null
+                    : payment.Description ?? result.ErrorMessage);
         }
 
         private static byte[] ParseEncryptionKey(string value)

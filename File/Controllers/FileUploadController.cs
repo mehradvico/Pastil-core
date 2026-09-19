@@ -3,6 +3,7 @@ using Application.Services.Filing.FileSrv.Dto;
 using Application.Services.Filing.FileSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Linq;
 
 namespace File.Controllers
@@ -29,6 +30,7 @@ namespace File.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("FileUpload")]
         [RequestSizeLimit(80 * 1024 * 1024)]
         [RequestFormLimits(MultipartBodyLengthLimit = 80 * 1024 * 1024)]
         public async Task<IActionResult> Post(IFormFile file)

@@ -35,6 +35,11 @@ namespace Api.Hubs
             return count;
         }
 
+        public bool IsParticipant(long reserveId, string connectionId, long userId) =>
+            _participantsByReserve.TryGetValue(reserveId, out var group) &&
+            group.TryGetValue(connectionId, out var participantUserId) &&
+            participantUserId == userId;
+
         public (long ReserveId, int Remaining)? Leave(string connectionId)
         {
             foreach (var pair in _participantsByReserve)

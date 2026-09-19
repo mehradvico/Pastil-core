@@ -327,6 +327,27 @@
   <data name="PushProductStockAvailable" xml:space="preserve">
     <value>{0} عزیز، پت‌شاپ «{2}» کالای «{1}» که منتظرش بودی را موجود کرد.</value>
   </data>
+  <data name="PushTripUserCanceled" xml:space="preserve">
+    <value>کاربر سفر پت‌رسان را لغو کرد.</value>
+  </data>
+  <data name="PushOnlineReserveConfirmedUser" xml:space="preserve">
+    <value>رزرو آنلاین «{0}» برای {1} در {2} تأیید شد.</value>
+  </data>
+  <data name="PushOnlineReserveReminderBeforeCompanion" xml:space="preserve">
+    <value>یادآوری: خدمت آنلاین {2} برای «{0}» در «{1}» به‌زودی شروع می‌شود.</value>
+  </data>
+  <data name="PushOnlineReserveReminderAtTimeCompanion" xml:space="preserve">
+    <value>وقت ارائه خدمت آنلاین {2} برای «{0}» در «{1}» فرا رسیده است.</value>
+  </data>
+  <data name="PushInAppCallStarted" xml:space="preserve">
+    <value>{0} تماس درون‌برنامه‌ای را آغاز کرد.</value>
+  </data>
+  <data name="PushSchoolClassStarting" xml:space="preserve">
+    <value>کلاس «{0}» به‌زودی شروع می‌شود.</value>
+  </data>
+  <data name="PushCompanionReserveNewMessage" xml:space="preserve">
+    <value>پیام جدید از {0}: {1}</value>
+  </data>
   <data name="RebateMinCartPrice" xml:space="preserve">
     <value>حداقل مبلغ سفارش باید {0} باشد</value>
   </data>
