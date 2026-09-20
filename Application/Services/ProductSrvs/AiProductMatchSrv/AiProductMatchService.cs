@@ -311,6 +311,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             }
 
             var items = new List<AiProductMatchResultItemDto>();
+            var locallyRankedRowIds = new HashSet<string>();
             foreach (var row in workingRows)
             {
                 var candidates = candidatesByRow[row.RowId];
@@ -342,9 +343,25 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
                 var rowRanked = ranked.FirstOrDefault(r => r.RowId == row.RowId);
 
-                // مدل موظف است برای هر ردیفِ دارای کاندید یک نتیجه (حتی ranked خالی) برگرداند؛ نبودنش یعنی تطبیق کامل نشد.
+                // مدل برای این ردیف نتیجه‌ای نداد (دسته‌اش شکست خورد، بودجه‌ی زمانی تمام شد، یا پاسخ ناقص بود).
+                // تا قبل از این، ردیف مستقیم «نامشخص» می‌شد حتی وقتی محصولِ درست بین کاندیدهای همین‌جا بود؛
+                // حالا با شباهت نام محلی (بدون هیچ فراخوانی اضافه) دست‌کم پیشنهاد به فروشنده داده می‌شود.
+                var locallyRanked = false;
+                if (rowRanked == null && candidates.Count > 0 && !searchFailedRowIds.Contains(row.RowId))
+                {
+                    var localRanking = AiProductMatchMatchingHelper.RankLocally(
+                        row.RowId, row.Name, row.Brand, candidates, MinimumSuggestedMatchConfidence);
+                    if (localRanking.Ranked.Count > 0)
+                    {
+                        rowRanked = localRanking;
+                        locallyRanked = true;
+                        locallyRankedRowIds.Add(row.RowId);
+                    }
+                }
+
+                // «تطبیق کامل نشد» فقط وقتی که نه مدل و نه رتبه‌بندی محلی هیچ چیزی برای این ردیف نداشتند.
                 var catalogMatchFailed = searchFailedRowIds.Contains(row.RowId)
-                    || (candidates.Count > 0 && (failedMatchRowIds.Contains(row.RowId) || rowRanked == null));
+                    || (candidates.Count > 0 && rowRanked == null);
                 if (catalogMatchFailed)
                 {
                     item.CatalogMatchFailed = true;
@@ -406,7 +423,9 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 var isAmbiguous = best != null && AiProductMatchMatchingHelper.IsAmbiguous(
                     best.Confidence, second?.Confidence, MinimumSuggestedMatchConfidence, AmbiguityMarginThreshold);
 
-                if (best != null && !isAmbiguous && best.Confidence >= _options.AutoSelectConfidenceThreshold)
+                // رتبه‌بندی محلی هرگز انتخاب خودکار نمی‌کند: بدون تأیید مدل روی نوع حیوان/برند/سایز،
+                // دو سایز مختلفِ یک محصول نمره‌ی تقریباً یکسان می‌گیرند و انتخاب خودکار یعنی موجودی غلط.
+                if (best != null && !isAmbiguous && !locallyRanked && best.Confidence >= _options.AutoSelectConfidenceThreshold)
                 {
                     item.ProductId = best.ProductId;
                     item.ProductName = best.Name;
@@ -430,8 +449,9 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 var rowCandidates = candidatesByRow.TryGetValue(item.RowId, out var list) ? list.Count : 0;
                 var rankedByModel = ranked.FirstOrDefault(r => r.RowId == item.RowId)?.Ranked.Count ?? 0;
                 _logger.LogInformation(
-                    "AiProductMatch store {StoreId} row {RowId}: candidates={Candidates} rankedByModel={Ranked} matches={Matches} autoSelected={Auto} catalogMatchFailed={Failed} issues={Issues}",
-                    storeId, item.RowId, rowCandidates, rankedByModel, item.Matches.Count, item.ProductId.HasValue, item.CatalogMatchFailed, string.Join(" | ", item.Issues));
+                    "AiProductMatch store {StoreId} row {RowId}: candidates={Candidates} rankedByModel={Ranked} modelBatchFailed={BatchFailed} localFallback={Local} matches={Matches} autoSelected={Auto} catalogMatchFailed={Failed} issues={Issues}",
+                    storeId, item.RowId, rowCandidates, rankedByModel, failedMatchRowIds.Contains(item.RowId), locallyRankedRowIds.Contains(item.RowId),
+                    item.Matches.Count, item.ProductId.HasValue, item.CatalogMatchFailed, string.Join(" | ", item.Issues));
             }
 
             return new BaseResultDto<AiProductMatchAnalyzeResultDto>(true, new AiProductMatchAnalyzeResultDto { Items = items });
@@ -624,7 +644,13 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 PansionCount = 0,
                 PackageCount = 0,
                 TotalCount = _options.CandidateShortlistSize,
-                EnableFuzzy = true
+                // عمداً خاموش (بر خلاف جست‌وجوی مشتری): fuzzy هر توکن ۴+ حرفی را به دنباله‌ای از
+                // دوحرفی‌ها («ال»، «رو»، «کن») هم تبدیل می‌کند. برای یک عبارت تک‌کلمه‌ایِ تایپ‌شده مفید
+                // است، ولی ورودی اینجا یک نام کامل ۸-۱۲ کلمه‌ای از OCR است: آن دوحرفی‌ها هم سهمیه‌ی
+                // ۲۰تایی SearchTerms را از کلمات واقعی می‌گیرند، هم LIKE '%..%' را روی تقریباً کل
+                // Products صادق می‌کنند (Scan سنگین‌تر + ریسک commandTimeout=8s) و هم با امتیاز
+                // آشغال، کاندید درست را از Top N بیرون می‌اندازند.
+                EnableFuzzy = false
             };
             // همان دو خط دقیق SearchService.SearchAsync قبل از فراخوانی SearchMinAsync
             request.Q = SearchNormalizeHelper.Normalize(request.Q);

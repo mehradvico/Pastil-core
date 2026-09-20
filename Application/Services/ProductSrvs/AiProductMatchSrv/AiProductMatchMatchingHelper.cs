@@ -54,6 +54,41 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             return Math.Clamp(jaccard + brandBonus, 0, 1);
         }
 
+        // شبکه‌ی ایمنی مرحله‌ی تطبیق: وقتی مدل برای یک ردیف هیچ نتیجه‌ای نداد (بودجه‌ی زمانی تمام شد،
+        // Provider خطا/Timeout داد، یا پاسخ ناقص/بی‌rowId برگشت)، ردیف نباید «نامشخص» شود در حالی که
+        // کاندیدهای واقعی دیتابیس همین‌جا در دست‌اند. این رتبه‌بندی فقط چند مقایسه‌ی رشته روی حداکثر
+        // ~۲۵ کاندید است: صفر فراخوانی شبکه، صفر Query اضافه، عملاً بدون هزینه روی سرور.
+        // عمداً فقط «پیشنهاد» تولید می‌کند و هرگز نباید به انتخاب خودکار منجر شود — چون بر خلاف مدل،
+        // اینجا هیچ فیلتر سختی روی نوع حیوان/برند/سایز اعمال نشده و دو سایز مختلف یک محصول نمرات
+        // بسیار نزدیکی می‌گیرند.
+        public static AiProductMatchRankedRowResult RankLocally(
+            string rowId,
+            string detectedName,
+            string detectedBrand,
+            IReadOnlyList<AiProductMatchCandidateProduct> candidates,
+            double minimumConfidence,
+            int maxResults = 3)
+        {
+            var result = new AiProductMatchRankedRowResult { RowId = rowId };
+            if (candidates == null || candidates.Count == 0)
+                return result;
+
+            result.Ranked.AddRange(candidates
+                .Select((candidate, index) => new AiProductMatchRankedCandidate
+                {
+                    Index = index,
+                    PackageIndex = null,
+                    // همان فرمول مرحله‌ی عادی، با شباهت نام به‌جای نمره‌ی مدل؛ پس جریمه‌ی ناهم‌خوانی برند
+                    // هم در ComputeCompositeConfidence پایین‌دست دقیقاً مثل مسیر عادی اعمال می‌شود.
+                    Confidence = ComputeNameSimilarity(detectedName, candidate.Name, candidate.BrandName)
+                })
+                .Where(candidate => candidate.Confidence >= minimumConfidence)
+                .OrderByDescending(candidate => candidate.Confidence)
+                .Take(maxResults));
+
+            return result;
+        }
+
         // margin کوچک بین بهترین و دومین کاندید یعنی مدل واقعاً نمی‌تواند بین دو محصول شبیه‌هم تمایز بدهد.
         public static bool IsAmbiguous(double bestConfidence, double? secondConfidence, double minimumConfidence, double marginThreshold)
             => secondConfidence.HasValue

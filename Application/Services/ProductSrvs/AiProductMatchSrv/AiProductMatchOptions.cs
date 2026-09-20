@@ -42,10 +42,12 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
         // سقف سخت کل تحلیل (استخراج + جست‌وجوی کاتالوگ + تطبیق). اپ سقف HTTP حدود ۶۰ ثانیه دارد؛ اگر بودجه
         // تمام شود، سرور به‌جای Timeout نتیجهٔ ناقص برمی‌گرداند (آیتم‌های تطبیق‌نشده با CatalogMatchFailed=true).
-        public int TotalBudgetSeconds { get; set; } = 45;
+        public int TotalBudgetSeconds { get; set; } = 50;
 
         // بخشی از بودجه که استخراج از عکس اجازهٔ مصرفش را ندارد تا مرحلهٔ تطبیق هم جا بماند.
-        public int MatchStageReserveSeconds { get; set; } = 15;
+        // مرحله‌ی تطبیق خودش یک فراخوانی کامل مدل است (چند هزار توکن ورودی)؛ با رزرو ۱۵ ثانیه، یک
+        // استخراجِ کُندِ عکس عملاً تمام بودجه را می‌خورد و «همه‌ی ردیف‌ها» CatalogMatchFailed می‌شدند.
+        public int MatchStageReserveSeconds { get; set; } = 22;
 
         // حداقل امتیاز اطمینان برای انتخاب خودکار یک محصول به‌عنوان بهترین تطبیق؛
         // پایین‌تر از این فقط در matches[] پیشنهاد می‌شود، productId اصلی خالی می‌ماند.

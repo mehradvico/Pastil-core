@@ -1,4 +1,4 @@
-using Application.Services.ProductSrvs.AiProductMatchSrv;
+﻿using Application.Services.ProductSrvs.AiProductMatchSrv;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
 using System.Collections.Generic;
 using Xunit;
@@ -195,5 +195,45 @@ public class AiProductMatchMatchingHelperTests
 
         Assert.Single(result);
         Assert.Equal("table-1-1", result[0].RowId);
+    }
+
+    [Fact]
+    public void Local_fallback_ranks_the_real_catalog_product_first_when_the_model_stage_returns_nothing()
+    {
+        var candidates = new List<AiProductMatchCandidateProduct>
+        {
+            new() { ProductId = 1, Name = "غذای خشک سگ رویال کنین مدل مینی پاپی بسته وزن ۲ کیلوگرم", BrandName = "رویال کنین" },
+            new() { ProductId = 2, Name = "غذای خشک گربه رویال کنین مدل رنال بسته وزن ۲ کیلوگرم", BrandName = "رویال کنین" },
+            new() { ProductId = 3, Name = "تشویقی سگ پدیگری مرغ ۸۰ گرم", BrandName = "پدیگری" }
+        };
+
+        var ranked = AiProductMatchMatchingHelper.RankLocally(
+            rowId: "shelf-1-2",
+            detectedName: "غذای خشک گربه رویال کنین رنال ۲ کیلوگرم",
+            detectedBrand: "رویال کنین",
+            candidates: candidates,
+            minimumConfidence: 0.60);
+
+        Assert.Equal("shelf-1-2", ranked.RowId);
+        Assert.NotEmpty(ranked.Ranked);
+        Assert.Equal(1, ranked.Ranked[0].Index);
+        Assert.DoesNotContain(ranked.Ranked, entry => entry.Index == 2);
+        Assert.All(ranked.Ranked, entry => Assert.Null(entry.PackageIndex));
+    }
+
+    [Fact]
+    public void Local_fallback_returns_nothing_when_no_candidate_name_is_close_enough()
+    {
+        var ranked = AiProductMatchMatchingHelper.RankLocally(
+            rowId: "shelf-1-1",
+            detectedName: "غذای خشک گربه رویال کنین رنال ۲ کیلوگرم",
+            detectedBrand: "رویال کنین",
+            candidates: new List<AiProductMatchCandidateProduct>
+            {
+                new() { ProductId = 9, Name = "خاک گربه بنتونیتی کت لایف ۱۰ لیتری", BrandName = "کت لایف" }
+            },
+            minimumConfidence: 0.60);
+
+        Assert.Empty(ranked.Ranked);
     }
 }
