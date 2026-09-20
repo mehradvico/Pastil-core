@@ -639,7 +639,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "AiProductMatch candidate search failed for raw name '{RawName}'.", rawName);
+                // پیام خطا عمداً داخل همین خط است، نه فقط در Exception: با grep AiProductMatch روی لاگ
+                // کانتینر، خط پیام/نوع خطا جدا می‌افتاد و علت واقعی دیده نمی‌شد.
+                _logger.LogError(ex, "AiProductMatch candidate search failed for raw name '{RawName}': {ErrorType}: {ErrorMessage}",
+                    rawName, ex.GetType().Name, ex.Message);
                 return (new List<long>(), true);
             }
         }
