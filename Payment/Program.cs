@@ -1,3 +1,4 @@
+using Application.Common.Security;
 using Application.Common.Configuration;
 using Application.Common.Helpers;
 using Application.Configures;
@@ -70,6 +71,7 @@ builder.Services.AddControllers().AddViewLocalization(LanguageViewLocationExpand
 
 
 var app = builder.Build();
+app.UseBackendSecurityHeaders();
 
 if (!app.Environment.IsDevelopment())
 {

@@ -64,7 +64,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             string area = (string)context.HttpContext.Request.RouteValues["area"] ?? null;
             string controller = (string)context.HttpContext.Request.RouteValues["controller"] ?? null;
             string action = (string)context.HttpContext.Request.RouteValues["action"] ?? null;
-            var userCheck = await userService.CheckUser(Token.UnsafeToString(), userLong, area, controller, action /*storeId*/);
+            long? tokenRoleId = long.TryParse(claimsidentity.FindFirst("RoleId")?.Value, out var parsedRoleId) ? parsedRoleId : null;
+            var userCheck = await userService.CheckUser(Token.UnsafeToString(), userLong, area, controller, action, tokenRoleId);
             if (!userCheck.IsSuccess)
             {
                 context.NoResult();

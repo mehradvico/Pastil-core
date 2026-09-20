@@ -433,6 +433,11 @@ namespace Application.Services.Order.ProductOrderSrv
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
+            // مقدار باید یکی از وضعیت‌های تعریف‌شده باشد؛ قبلاً هر شناسه‌ی دلخواهی (حتی کدهای نامرتبط) ذخیره می‌شد.
+            var statusLabels = Enum.GetNames(typeof(ProductOrderStatusEnum));
+            if (!await _context.Codes.AnyAsync(c => c.Id == dto.ProductOrderStatusId && statusLabels.Contains(c.Label)))
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
             item.ProductOrderStatus = null;
             item.ProductOrderStatusId = dto.ProductOrderStatusId;
             var statusProccess = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Proccess.ToString());
@@ -463,6 +468,10 @@ namespace Application.Services.Order.ProductOrderSrv
             var item = await _context.ProductOrders.FirstOrDefaultAsync(s => s.Id == dto.Id);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            var stateLabels = Enum.GetNames(typeof(ProductOrderStateEnum));
+            if (!await _context.Codes.AnyAsync(c => c.Id == dto.ProductOrderStateId && stateLabels.Contains(c.Label)))
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
 
             item.ProductOrderState = null;
             item.ProductOrderStateId = dto.ProductOrderStateId;

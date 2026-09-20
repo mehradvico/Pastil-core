@@ -29,6 +29,7 @@ namespace Api.Controllers
         /// آیتم جدید
         /// </summary>  
         [HttpPost]
+        [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("ContactUs")]
         [ProducesResponseType(typeof(BaseResultDto<NewsletterDto>), 200)]
         public async Task<IActionResult> Post(NewsletterDto NewsletterDto)
         {

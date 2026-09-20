@@ -21,7 +21,9 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <Compile Include="..\Api\Authorization\PolicyNames.cs" Link="Api\Authorization\PolicyNames.cs" />
     <Compile Include="..\Api\Authorization\AdminAreaAuthorizationConvention.cs" Link="Api\Authorization\AdminAreaAuthorizationConvention.cs" />
+    <Compile Include="..\Api\Filters\ScrubAnonymousUserPiiFilter.cs" Link="Api\Filters\ScrubAnonymousUserPiiFilter.cs" />
     <Compile Include="..\Api\Hubs\CallSessionTracker.cs" Link="Api\Hubs\CallSessionTracker.cs" />
+    <Compile Include="..\File\Security\UploadSignature.cs" Link="File\Security\UploadSignature.cs" />
     <Compile Include="..\Api\Services\AiProductMatch\AiProductMatchExecutionGate.cs" Link="Api\Services\AiProductMatch\AiProductMatchExecutionGate.cs" />
   </ItemGroup>
 </Project>

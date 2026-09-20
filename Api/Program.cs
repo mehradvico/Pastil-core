@@ -1,5 +1,7 @@
-﻿using Api.HangFire;
+﻿using Application.Common.Security;
+using Api.HangFire;
 using Api.Authorization;
+using Api.Filters;
 using Api.Health;
 using Api.Hubs;
 using Api.Middleware;
@@ -191,6 +193,41 @@ builder.Services.AddRateLimiter(options =>
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 AutoReplenishment = true
             }));
+    // refresh token یک credential بلندمدت است؛ حدس/تکرار انبوه آن باید محدود باشد (کلاینت واقعی حداکثر چند refresh در دقیقه دارد)
+    options.AddPolicy("RefreshToken", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = IpLimit(30, 3000),
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
+    // استعلام عمومی کد قلاده شماره‌ی مالک را برمی‌گرداند؛ حدس‌زدن انبوه کدها باید عملاً غیرممکن باشد.
+    options.AddPolicy("PetTagLookup", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = IpLimit(20, 2000),
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
+    options.AddPolicy("MapSearch", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = IpLimit(120, 6000),
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
     options.AddPolicy("TripPrice", httpContext =>
     {
         var userId = httpContext.User.FindFirst("UserId")?.Value;
@@ -245,6 +282,8 @@ builder.Services
     .AddControllersWithViews(options =>
     {
         options.Conventions.Add(new AdminAreaAuthorizationConvention());
+        // endpoint بدون احراز هویت هیچ‌وقت اطلاعات شخصی کاربران دیگر را برنمی‌گرداند (ScrubAnonymousUserPiiFilter)
+        options.Filters.Add<ScrubAnonymousUserPiiFilter>();
     })
     .AddJsonOptions(options =>
     {
@@ -256,15 +295,21 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowPanel", policy =>
     {
+        // origin محلی (localhost) همراه با credentials فقط در توسعه؛ در production فقط دامنه‌های واقعی.
+        var panelOrigins = new List<string>
+        {
+            "https://panel.pastil.pet",
+            "https://app.pastil.pet",
+            "https://pastil.pet",
+            "https://www.pastil.pet"
+        };
+        if (builder.Environment.IsDevelopment())
+        {
+            panelOrigins.Add("http://localhost:3000");
+            panelOrigins.Add("http://localhost:3001");
+        }
         policy
-            .WithOrigins(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "https://panel.pastil.pet",
-                "https://app.pastil.pet",
-                "https://pastil.pet",
-                "https://www.pastil.pet"
-            )
+            .WithOrigins(panelOrigins.ToArray())
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -340,6 +385,14 @@ builder.Services.AddAuthentication(Options =>
                  IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWtConfig:key"] ?? throw new InvalidOperationException("JWT signing key is not configured."))),
                  ValidateIssuerSigningKey = true,
                  ValidateLifetime = true,
+                 ValidateIssuer = true,
+                 ValidateAudience = true,
+                 RequireExpirationTime = true,
+                 RequireSignedTokens = true,
+                 // فقط HS256 (الگوریتمی که خودمان با آن امضا می‌کنیم)؛ الگوریتم‌های دیگر/none رد می‌شوند
+                 ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+                 // پیش‌فرض ۵ دقیقه بود و هر توکن را عملاً ۵ دقیقه بیشتر زنده نگه می‌داشت؛ بررسی دقیق‌تر انقضا در دیتابیس (CheckUser) هم هست
+                 ClockSkew = TimeSpan.FromSeconds(30),
 
              };
              configureOptions.SaveToken = true;
@@ -404,11 +457,15 @@ builder.Services.AddHangfire(configuration => configuration
 builder.Services.AddHangfireServer();
 
 var app = builder.Build();
+app.UseBackendSecurityHeaders();
 app.UseUnhandledExceptionResult();
 Application.Common.Helpers.ExceptionResultHelper.Initialize(app.Services.GetRequiredService<ILoggerFactory>());
 
 // پرچم‌های تست فقط هشدار می‌دهند (رفتار را عوض نمی‌کنند): اگر روی سرور غیر Development روشن بمانند، در لاگ
 // استارتاپ دیده می‌شوند تا «پرداخت/ارسال تستی» بی‌خبر وارد لانچ نشود.
+if (Application.Common.Security.JwtKeyPolicy.IsWeak(app.Configuration["JWtConfig:key"]))
+    app.Logger.LogWarning("JWtConfig:key is shorter than {Bytes} bytes; use a random key of at least 32 bytes (a short HS256 key can be brute-forced offline from any issued token).", Application.Common.Security.JwtKeyPolicy.RecommendedMinimumBytes);
+
 if (!app.Environment.IsDevelopment())
 {
     if (app.Configuration.GetValue<bool>("PaymentTestMode:Enabled"))
@@ -440,6 +497,12 @@ recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITrip
     "AutoCancelUnansweredInstantTrips",
     service => service.AutoCancelUnansweredInstantTripsAsync(),
     "* * * * *");
+// توکن‌های منقضی‌شده (بیش از ۳۰ روز بعد از انقضای refresh) پاک می‌شوند؛ جدول UserTokens قبلاً هیچ‌وقت کوچک نمی‌شد
+recurringJobManager.AddOrUpdate<Application.Services.Accounting.UserTokenSrv.Iface.IUserTokenService>(
+    "PurgeExpiredUserTokens",
+    service => service.PurgeExpiredAsync(),
+    "30 3 * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
 recurringJobManager.AddOrUpdate<Application.Services.Accounting.UserPetSrv.Iface.IUserPetService>(
     "PetBirthdayPush",
     service => service.SendBirthdayPushesAsync(CancellationToken.None),
@@ -486,6 +549,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowPanel");
 app.UseAuthentication();
+app.UseMiddleware<Api.Middleware.SecurityAuditMiddleware>();
 app.UseAuthorization();
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {

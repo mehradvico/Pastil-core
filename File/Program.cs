@@ -1,4 +1,5 @@
-﻿using Application.Common.Configuration;
+﻿using Application.Common.Security;
+using Application.Common.Configuration;
 using Application.Configures;
 using Application.Common.Enumerable;
 using File.Middleware;
@@ -133,6 +134,14 @@ builder.Services.AddAuthentication(Options =>
                  IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWtConfig:Key"] ?? throw new InvalidOperationException("JWT signing key is not configured."))),
                  ValidateIssuerSigningKey = true,
                  ValidateLifetime = true,
+                 ValidateIssuer = true,
+                 ValidateAudience = true,
+                 RequireExpirationTime = true,
+                 RequireSignedTokens = true,
+                 // فقط HS256 (الگوریتمی که خودمان با آن امضا می‌کنیم)؛ الگوریتم‌های دیگر/none رد می‌شوند
+                 ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+                 // پیش‌فرض ۵ دقیقه بود و هر توکن را عملاً ۵ دقیقه بیشتر زنده نگه می‌داشت؛ بررسی دقیق‌تر انقضا در دیتابیس (CheckUser) هم هست
+                 ClockSkew = TimeSpan.FromSeconds(30),
 
              };
              configureOptions.SaveToken = true;
@@ -178,6 +187,7 @@ builder.Services.Configure<FormOptions>(x =>
 });
 
 var app = builder.Build();
+app.UseBackendSecurityHeaders();
 app.UseUnhandledExceptionResult();
 Application.Common.Helpers.ExceptionResultHelper.Initialize(app.Services.GetRequiredService<ILoggerFactory>());
 
@@ -190,7 +200,11 @@ else
 {
     app.UseHsts();
 }
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    // فایل‌های آپلودی روی origin عمومی سرو می‌شوند؛ مرورگر نباید نوع محتوا را حدس بزند (MIME sniffing → اجرای HTML/JS)
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers["X-Content-Type-Options"] = "nosniff"
+});
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("TrustedOrigins");

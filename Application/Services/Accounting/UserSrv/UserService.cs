@@ -47,6 +47,8 @@ namespace Application.Services.UserSrv
         private readonly INoticeService _noticeService;
         private readonly IUserPasswordService _passwordService;
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
+        private readonly Application.Common.Security.ISecurityAudit _audit;
+        private readonly Application.Common.Security.ILoginThrottle _loginThrottle;
 
         public UserService(
             IDataBaseContext _context,
@@ -60,7 +62,9 @@ namespace Application.Services.UserSrv
             IMessageSenderService messageSenderService,
             INoticeService noticeService,
             IUserPasswordService passwordService,
-            IClubPointIntegrationService clubPointIntegrationService) : base(_context, mapper)
+            IClubPointIntegrationService clubPointIntegrationService,
+            Application.Common.Security.ISecurityAudit audit,
+            Application.Common.Security.ILoginThrottle loginThrottle) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -74,6 +78,8 @@ namespace Application.Services.UserSrv
             this._noticeService = noticeService;
             this._passwordService = passwordService;
             this._clubPointIntegrationService = clubPointIntegrationService;
+            this._audit = audit;
+            this._loginThrottle = loginThrottle;
         }
         public override async Task<BaseResultDto<UserDto>> InsertAsyncDto(UserDto dto)
         {
@@ -265,8 +271,10 @@ namespace Application.Services.UserSrv
                         passwordHash = _passwordService.HashPassword(item, dto.Password);
                     }
 
+                    var createDate = item.CreateDate;
                     mapper.Map(dto, item);
                     item.Password = passwordHash;
+                    item.CreateDate = createDate;
                     item.ReferralCode = item.ReferralCode;
 
                     _context.Users.Update(item);
@@ -381,7 +389,7 @@ namespace Application.Services.UserSrv
 
             return new UserSearchDto(searchDto, query, mapper);
         }
-        public async Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action)
+        public async Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action, long? tokenRoleId = null)
         {
 
             var hashed = token.Tosha256Hash();
@@ -405,6 +413,11 @@ namespace Application.Services.UserSrv
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFount);
             else if (userToken.User.Locked)
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked);
+            // نقش داخل JWT هنگام صدور ثابت می‌شود (policy «AdminOnly» فقط همان claim را می‌خواند). ادمینی که تنزل رتبه یا نقشش عوض
+            // شده تا انقضای توکن (تا ۱۰۰ دقیقه) همچنان ادمین می‌ماند؛ اگر نقش فعلی در دیتابیس با claim نمی‌خواند توکن رد می‌شود
+            // و کلاینت با refresh توکنی با نقش درست می‌گیرد.
+            else if (tokenRoleId.HasValue && tokenRoleId.Value != userToken.User.RoleId)
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.TokenExpired);
             else if (userToken.User.RoleId == (long)RoleEnum.Admin)
             {
                 return new BaseResultDto(isSuccess: true);
@@ -432,14 +445,17 @@ namespace Application.Services.UserSrv
                 .FirstOrDefaultAsync(x => (!string.IsNullOrEmpty(x.Mobile) && x.Mobile == user.Mobile) || (!string.IsNullOrEmpty(x.Email) && x.Email == user.Mobile));
             if (item == null)
             {
+                _audit.Failure("SignIn", subject: user.Mobile, detail: "user_not_found");
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
             }
             else if (item.Deleted)
             {
+                _audit.Failure("SignIn", item.Id, user.Mobile, "user_deleted");
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
             }
             else if (item.Locked)
             {
+                _audit.Failure("SignIn", item.Id, user.Mobile, "account_locked");
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked);
             }
             var isPanelLogin = user.IsAdmin || user.IsSiteAdmin;
@@ -447,6 +463,7 @@ namespace Application.Services.UserSrv
                 item.Role.Label != RoleEnum.Admin.ToString() &&
                 !item.Role.Permissions.Any(permission => !permission.Deleted && permission.Area == "Admin"))
             {
+                _audit.Failure("SignIn", item.Id, user.Mobile, "panel_access_denied");
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
             }
             if (user.IsSiteAdmin &&
@@ -456,6 +473,7 @@ namespace Application.Services.UserSrv
                     permission.Area == "Admin" &&
                     permission.Controller == "SiteDashboard"))
             {
+                _audit.Failure("SignIn", item.Id, user.Mobile, "site_panel_access_denied");
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
             }
 
@@ -464,12 +482,16 @@ namespace Application.Services.UserSrv
             {
                 if (codeVerified.IsSuccess == false)
                 {
+                    _audit.Failure("SignIn", item.Id, user.Mobile, "otp_invalid_2fa");
                     return new BaseResultDto(isSuccess: false, val1: Resource.Notification.TheCodeIsWrong, val2: nameof(user.Code));
 
                 }
                 if (string.IsNullOrEmpty(user.Password))
                     return new BaseResultDto(isSuccess: false, val1: Resource.Notification.PleaseEnterThePassword, val2: nameof(user.Password));
-                if (!await VerifyAndUpgradePasswordAsync(item, user.Password))
+                var twoFactorPassword = await CheckPasswordThrottledAsync(item, user.Password, "SignIn", user.Mobile);
+                if (twoFactorPassword.Blocked != null)
+                    return twoFactorPassword.Blocked;
+                if (!twoFactorPassword.Succeeded)
                 {
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
                 }
@@ -481,6 +503,7 @@ namespace Application.Services.UserSrv
                 {
                     if (codeVerified.IsSuccess == false)
                     {
+                        _audit.Failure("SignIn", item.Id, user.Mobile, "otp_invalid");
                         return new BaseResultDto(isSuccess: false, val1: Resource.Notification.TheCodeIsWrong, val2: nameof(user.Code));
                     }
                     success = true;
@@ -489,7 +512,10 @@ namespace Application.Services.UserSrv
                 {
                     if (string.IsNullOrEmpty(user.Password))
                         return new BaseResultDto(isSuccess: false, val1: Resource.Notification.PleaseEnterThePassword, val2: nameof(user.Password));
-                    if (!await VerifyAndUpgradePasswordAsync(item, user.Password))
+                    var passwordCheck = await CheckPasswordThrottledAsync(item, user.Password, "SignIn", user.Mobile);
+                    if (passwordCheck.Blocked != null)
+                        return passwordCheck.Blocked;
+                    if (!passwordCheck.Succeeded)
                     {
                         return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFound);
                     }
@@ -503,8 +529,42 @@ namespace Application.Services.UserSrv
                 isPanelLogin ? user.RememberMe : true,
                 deviceId: user.DeviceId,
                 revokeOnlySameClientKind: true);
+            _audit.Success("SignIn", item.Id, user.Mobile, isPanelLogin ? "panel" : "client");
             await ChangUserCartAsync(item.Id, user.CartCode);
             return tokenResult;
+        }
+
+        private sealed class ThrottledPasswordResult
+        {
+            public bool Succeeded { get; set; }
+            public BaseResultDto Blocked { get; set; }
+        }
+
+        /// <summary>
+        /// بررسی رمز با سقف تلاش ناموفق برای هر حساب (۵ خطا در ۱۵ دقیقه ⇒ ۱۵ دقیقه بسته)، به‌علاوه ثبت رویداد امنیتی.
+        /// </summary>
+        private async Task<ThrottledPasswordResult> CheckPasswordThrottledAsync(User item, string password, string eventName, string subject)
+        {
+            var key = "pwd:" + item.Id;
+            if (_loginThrottle.IsBlocked(key, out var retryAfter))
+            {
+                _audit.Failure(eventName, item.Id, subject, "password_throttled");
+                var minutes = Math.Max(1, (int)Math.Ceiling(retryAfter.TotalMinutes));
+                return new ThrottledPasswordResult
+                {
+                    Blocked = new BaseResultDto(isSuccess: false, val: string.Format(Resource.Pattern.TooManyLoginAttempts, minutes))
+                };
+            }
+
+            if (await VerifyAndUpgradePasswordAsync(item, password))
+            {
+                _loginThrottle.Reset(key);
+                return new ThrottledPasswordResult { Succeeded = true };
+            }
+
+            _loginThrottle.RegisterFailure(key);
+            _audit.Failure(eventName, item.Id, subject, "password_invalid");
+            return new ThrottledPasswordResult { Succeeded = false };
         }
 
         private async Task<bool> VerifyAndUpgradePasswordAsync(
@@ -781,21 +841,34 @@ namespace Application.Services.UserSrv
                 (s.Mobile == user.Mobile || s.Email == user.Mobile) &&
                 !s.Deleted &&
                 !s.Locked);
-            if (item == null ||
-                !_passwordService.VerifyPassword(
-                    item,
-                    item.Password,
-                    user.OldPassword).Succeeded)
+            if (item == null)
             {
+                _audit.Failure("ChangePassword", subject: user.Mobile, detail: "user_not_found");
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
+            }
+
+            if (_loginThrottle.IsBlocked("pwd:" + item.Id, out var changeRetryAfter))
+            {
+                _audit.Failure("ChangePassword", item.Id, user.Mobile, "password_throttled");
+                return new BaseResultDto(isSuccess: false, val: string.Format(Resource.Pattern.TooManyLoginAttempts, Math.Max(1, (int)Math.Ceiling(changeRetryAfter.TotalMinutes))));
+            }
+
+            var oldPasswordCheck = _passwordService.VerifyPassword(item, item.Password, user.OldPassword);
+            if (!oldPasswordCheck.Succeeded)
+            {
+                _loginThrottle.RegisterFailure("pwd:" + item.Id);
+                _audit.Failure("ChangePassword", item.Id, user.Mobile, "old_password_invalid");
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
             }
             else
             {
+                _loginThrottle.Reset("pwd:" + item.Id);
                 item.Password = _passwordService.HashPassword(
                     item,
                     user.NewPassword);
                 _context.Users.Update(item);
                 await _context.SaveChangesAsync();
+                _audit.Success("ChangePassword", item.Id, user.Mobile);
                 return await userTokenSevice.ResetTokenAsync(item);
             }
         }
@@ -842,6 +915,7 @@ namespace Application.Services.UserSrv
             var codeVerified = await otpVerifyService.IsVerified(new OtpVerifyVDto() { Mobile = dto.Mobile, Email = dto.Email, Code = dto.Code });
             if (codeVerified.IsSuccess == false)
             {
+                _audit.Failure("ResetPassword", subject: dto.Mobile ?? dto.Email, detail: "otp_invalid");
                 return new BaseResultDto(isSuccess: false, val1: Resource.Notification.TheCodeIsWrong, val2: nameof(dto.Code));
             }
             var item = await _context.Users.FirstOrDefaultAsync(s =>
@@ -858,6 +932,8 @@ namespace Application.Services.UserSrv
                     dto.Password);
                 _context.Users.Update(item);
                 await _context.SaveChangesAsync();
+                _loginThrottle.Reset("pwd:" + item.Id);
+                _audit.Success("ResetPassword", item.Id, dto.Mobile ?? dto.Email);
                 return await userTokenSevice.ResetTokenAsync(item);
 
 
@@ -996,7 +1072,7 @@ namespace Application.Services.UserSrv
             {
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
             }
-            if (!await RegixHelper.IsEmailAsync(dto.Mobile))
+            if (!await RegixHelper.IsMobileAsync(dto.Mobile))
             {
                 return new BaseResultDto(false, Resource.Notification.TheMobileNumberIsWrong, nameof(dto.Mobile));
             }
@@ -1036,11 +1112,14 @@ namespace Application.Services.UserSrv
             var codeVerified = await otpVerifyService.IsVerified(new OtpVerifyVDto() { Mobile = dto.Mobile, Email = user.Email, Code = dto.Code });
             if (codeVerified.IsSuccess == false)
             {
+                _audit.Failure("ChangeMobile", user.Id, dto.Mobile, "otp_invalid");
                 return new BaseResultDto(isSuccess: false, val1: Resource.Notification.TheCodeIsWrong, val2: nameof(dto.Code));
             }
+            var previousMobile = user.Mobile;
             user.Mobile = dto.Mobile;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
+            _audit.Success("ChangeMobile", user.Id, dto.Mobile, "from=" + Application.Common.Security.SecurityAudit.MaskIdentifier(previousMobile));
             return await userTokenSevice.ResetTokenAsync(user);
 
 

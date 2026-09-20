@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Services.ProductSrvs.StoreCommentSrv.Dto;
 using Application.Services.ProductSrvs.StoreCommentSrv.Iface;
+using Application.Common.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,9 +19,11 @@ namespace Api.Controllers
         /// <summary>
         /// مرتبط با پست ها
         /// </summary>
-        public StoreCommentController(IStoreCommentService storeCommentService)
+        private readonly ICurrentUserHelper _currentUser;
+        public StoreCommentController(IStoreCommentService storeCommentService, ICurrentUserHelper currentUser)
         {
             this._storeCommentService = storeCommentService;
+            _currentUser = currentUser;
         }
         /// <summary>
         /// جستجو
@@ -37,10 +40,13 @@ namespace Api.Controllers
         /// <summary>
         /// آیتم جدید
         /// </summary>  
+        // قبلاً ناشناس بود و UserId را از بدنه می‌پذیرفت (جعل هویت/spam)؛ حالا فقط با لاگین و با UserId از توکن.
         [HttpPost]
+        [Authorize]
         [ProducesResponseType(typeof(BaseResultDto<StoreCommentDto>), 200)]
         public async Task<IActionResult> Post(StoreCommentDto storeComment)
         {
+            storeComment.UserId = _currentUser.CurrentUser.UserId;
             var dto = await _storeCommentService.InsertAsyncDto(storeComment);
             return Ok(dto);
         }

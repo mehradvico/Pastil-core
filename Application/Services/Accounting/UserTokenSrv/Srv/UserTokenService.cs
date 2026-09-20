@@ -25,9 +25,11 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly IConfiguration configuration;
+        private readonly Application.Common.Security.ISecurityAudit _audit;
 
-        public UserTokenService(IDataBaseContext _context, IConfiguration configuration, IMapper mapper)
+        public UserTokenService(IDataBaseContext _context, IConfiguration configuration, IMapper mapper, Application.Common.Security.ISecurityAudit audit)
         {
+            this._audit = audit;
             this._context = _context;
             this.configuration = configuration;
             this.mapper = mapper;
@@ -112,6 +114,7 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 {
                     await RevokePanelSessionsAsync(userToken.UserId);
                     await transaction.CommitAsync();
+                    _audit.Failure("RefreshTokenTheft", userToken.UserId, detail: "panel_device_mismatch_sessions_revoked");
                     return new BaseResultDto(false, val: Resource.Notification.SessionRevokedTokenReuseDetected);
                 }
 
@@ -177,6 +180,7 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                     .ExecuteUpdateAsync(setters => setters
                         .SetProperty(token => token.Deleted, true));
                 await transaction.CommitAsync();
+                _audit.Failure("RefreshTokenTheft", rotatedAway.UserId, detail: "reuse_outside_grace_all_sessions_revoked");
                 return new BaseResultDto(false, val: Resource.Notification.SessionRevokedTokenReuseDetected);
             }
 
@@ -261,6 +265,15 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
 
             return Convert.ToInt32(configuredValue);
         }
+        public async Task<int> PurgeExpiredAsync()
+        {
+            // ۳۰ روز نگهداری بعد از انقضا: بسیار بیشتر از پنجره‌ی تشخیص «استفاده‌ی مجدد از refresh token» (چند ثانیه) است
+            var cutoff = DateTime.UtcNow.AddDays(-30);
+            return await _context.UserTokens
+                .Where(token => token.RefreshTokenExp < cutoff)
+                .ExecuteDeleteAsync();
+        }
+
         public async Task<BaseResultDto> SignOut(string token)
         {
             if (!string.IsNullOrEmpty(token))

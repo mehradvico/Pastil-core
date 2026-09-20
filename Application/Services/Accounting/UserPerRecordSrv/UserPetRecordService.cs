@@ -81,6 +81,17 @@ namespace Application.Services.Accounting.UserPerRecordSrv
             return new UserPetRecordSearchDto(baseSearchDto, model, mapper);
         }
 
+        public async Task<bool> CanOperateOnPetAsync(long userPetId, long operatorUserId)
+        {
+            return await _context.CompanionReserves.AsNoTracking().AnyAsync(r =>
+                r.IsReserved && !r.IsCancel &&
+                r.UserPets.Any(p => p.Id == userPetId) &&
+                ((r.CompanionAssistanceUser != null &&
+                  r.CompanionAssistanceUser.Active && !r.CompanionAssistanceUser.Deleted &&
+                  r.CompanionAssistanceUser.UserId == operatorUserId) ||
+                 r.CompanionAssistance.Companion.OwnerId == operatorUserId));
+        }
+
         public override async Task<BaseResultDto<UserPetRecordDto>> InsertAsyncDto(UserPetRecordDto dto)
         {
             try

@@ -122,6 +122,12 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageAttachmentSr
                     return new BaseResultDto<CompanionReserveMessageAttachmentDto>(false, Resource.Notification.CompanionReserveAttachmentUrlRequired, dto);
                 }
 
+                if (!Application.Common.Security.AttachmentUrlPolicy.IsAllowed(dto.Url) ||
+                    !Application.Common.Security.AttachmentUrlPolicy.IsAllowedOptional(dto.ThumbnailUrl))
+                {
+                    return new BaseResultDto<CompanionReserveMessageAttachmentDto>(false, Resource.Notification.InvalidData, dto);
+                }
+
                 if (string.IsNullOrWhiteSpace(dto.ContentType))
                 {
                     return new BaseResultDto<CompanionReserveMessageAttachmentDto>(false, Resource.Notification.CompanionReserveAttachmentContentTypeRequired, dto);

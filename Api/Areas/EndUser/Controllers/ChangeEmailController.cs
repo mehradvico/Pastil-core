@@ -34,6 +34,7 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         [HttpPost]
         [Route("changeemailrequest")]
+        [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("OtpSend")]
         public async Task<IActionResult> Post(string Email)
         {
             var dto = new ChangeEmailDto()
@@ -49,6 +50,7 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         [HttpPost]
         [Route("changeemail")]
+        [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("OtpVerify")]
         public async Task<IActionResult> Post(ChangeEmailDto dto)
         {
             dto.UserId = _currentUserId;

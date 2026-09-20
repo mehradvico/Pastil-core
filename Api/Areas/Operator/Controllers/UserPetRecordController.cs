@@ -65,6 +65,10 @@ namespace Api.Areas.Operator.Controllers
         public async Task<IActionResult> Post(UserPetRecordDto UserPetRecordDto)
         {
             UserPetRecordDto.OperatorId = _currentUserHelper.CurrentUser.UserId;
+            // قبلاً هر کاربر لاگین‌کرده‌ای می‌توانست برای هر UserPetId سابقه‌ی پزشکی ثبت کند؛ فقط نیرو/صاحب مرکزی که در یک رزروِ
+            // فعال همین پت را سرویس می‌دهد مجاز است.
+            if (!await _petService.CanOperateOnPetAsync(UserPetRecordDto.UserPetId, UserPetRecordDto.OperatorId))
+                return Ok(new BaseResultDto<UserPetRecordDto>(false, Resource.Notification.AccessDenied, UserPetRecordDto));
             var dto = await _petService.InsertAsyncDto(UserPetRecordDto);
             return Ok(dto);
         }

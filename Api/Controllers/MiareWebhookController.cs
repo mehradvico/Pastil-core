@@ -43,7 +43,10 @@ namespace Api.Controllers
                 return Unauthorized();
 
             var authHeader = Request.Headers["Authorization"].ToString();
-            if (!string.Equals(authHeader, $"Token {expectedKey}", StringComparison.Ordinal))
+            // مقایسه‌ی زمان‌ثابت تا با اندازه‌گیری زمان پاسخ نتوان کلید را حدس زد
+            if (!System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                    System.Text.Encoding.UTF8.GetBytes(authHeader),
+                    System.Text.Encoding.UTF8.GetBytes($"Token {expectedKey}")))
                 return Unauthorized();
 
             string payload;

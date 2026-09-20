@@ -140,6 +140,7 @@ namespace Api.Controllers
         /// </summary>
         [HttpPost]
         [Route("refreshtoken")]
+        [EnableRateLimiting("RefreshToken")]
         public async Task<IActionResult> Post(RefreshTokenDto dto)
         {
             var reset = await userTokenService.RefreshTokenAsync(dto);

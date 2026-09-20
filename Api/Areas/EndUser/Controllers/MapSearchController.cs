@@ -25,7 +25,9 @@ namespace Api.Areas.EndUser.Controllers
         ///  جستجو در نقشه
         /// </summary>
         /// <returns></returns> 
+        // هر درخواست یک فراخوانی پولی/سهمیه‌دار به سرویس نقشه است و endpoint ناشناس بود؛ محدودیت per-IP (autocomplete عادی را خفه نمی‌کند)
         [HttpPost]
+        [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("MapSearch")]
         [ProducesResponseType(typeof(TripSearchDto), 200)]
         public async Task<IActionResult> Post(string q)
         {

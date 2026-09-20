@@ -72,9 +72,10 @@ namespace Api.Middleware
                         var username = decoded[..separatorIndex];
                         var password = decoded[(separatorIndex + 1)..];
 
+                        // مقایسه‌ی زمان‌ثابت (بدون short-circuit) تا از timing حدس‌زده نشود
                         var isValid = credentials.Any(c =>
-                            string.Equals(c.Username, username, StringComparison.Ordinal) &&
-                            string.Equals(c.Password, password, StringComparison.Ordinal));
+                            (System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(c.Username), Encoding.UTF8.GetBytes(username)) &
+                             System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(c.Password), Encoding.UTF8.GetBytes(password))));
 
                         if (isValid)
                         {

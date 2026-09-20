@@ -34,6 +34,7 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         [HttpPost]
         [Route("changemobilerequest")]
+        [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("OtpSend")]
         public async Task<IActionResult> Post(string mobile)
         {
             var dto = new ChangeMobileDto()
@@ -49,6 +50,7 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         [HttpPost]
         [Route("changemobile")]
+        [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("OtpVerify")]
         public async Task<IActionResult> Post(ChangeMobileDto dto)
         {
             dto.UserId = _currentUserId;

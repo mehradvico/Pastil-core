@@ -54,6 +54,12 @@ namespace Api.Areas.EndUser.Controllers
             userDto.Id = _currentUserHelper.CurrentUser.UserId;
             userDto.RoleId = _currentUserHelper.CurrentUser.RoleId;
             userDto.Locked = false;
+            // Over-posting: شماره موبایل فقط از مسیر OTP-دار changeMobile و رمز فقط از changepassword (با رمز فعلی) عوض می‌شود.
+            // قبلاً هر دو از بدنه‌ی همین PUT پذیرفته می‌شد و توکن دزدیده‌شده = تصاحب دائمی حساب.
+            if (string.IsNullOrWhiteSpace(_currentUserHelper.CurrentUser.Mobile))
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
+            userDto.Mobile = _currentUserHelper.CurrentUser.Mobile;
+            userDto.Password = null;
             var dto = userService.UpdateDto(userDto);
             return Ok(dto);
         }

@@ -121,6 +121,12 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageAttachmentSrv
                     return new BaseResultDto<PastilMatchMessageAttachmentDto>(false, Resource.Notification.PastilMatchAttachmentUrlRequired, dto);
                 }
 
+                if (!Application.Common.Security.AttachmentUrlPolicy.IsAllowed(dto.Url) ||
+                    !Application.Common.Security.AttachmentUrlPolicy.IsAllowedOptional(dto.ThumbnailUrl))
+                {
+                    return new BaseResultDto<PastilMatchMessageAttachmentDto>(false, Resource.Notification.InvalidData, dto);
+                }
+
                 if (string.IsNullOrWhiteSpace(dto.ContentType))
                 {
                     return new BaseResultDto<PastilMatchMessageAttachmentDto>(false, Resource.Notification.PastilMatchAttachmentContentTypeRequired, dto);

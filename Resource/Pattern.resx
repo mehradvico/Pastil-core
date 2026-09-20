@@ -312,6 +312,9 @@
   <data name="WrongVrifyCodeCount" xml:space="preserve">
     <value>Due to entering the wrong code more than three times, resending is not possible until {0} minutes later</value>
   </data>
+  <data name="TooManyLoginAttempts" xml:space="preserve">
+    <value>Too many failed sign-in attempts - please try again in {0} minutes</value>
+  </data>
   <data name="TooManyOtpRequests" xml:space="preserve">
     <value>Too many code requests - you can request a new code again in {0} minutes</value>
   </data>

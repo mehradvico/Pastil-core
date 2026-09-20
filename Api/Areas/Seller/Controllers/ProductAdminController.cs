@@ -71,6 +71,14 @@ namespace Api.Areas.Seller.Controllers
         public async Task<IActionResult> Post(ProductDto productDto)
         {
             productDto.StoreId = _storeId;
+            // Over-posting: وضعیت انتشار و آمار را فقط ادمین/سیستم تعیین می‌کند؛ محصول فروشنده همیشه Draft شروع می‌شود
+            // (قبلاً با StatusId=Available در بدنه بدون بررسی ادمین منتشر می‌شد).
+            productDto.StatusId = (long)Application.Common.Enumerable.ProductStatusEnum.ProductStatus_Draft;
+            productDto.SellCount = 0;
+            productDto.VisitCount = 0;
+            productDto.RateAvg = 0;
+            productDto.RateCount = 0;
+            productDto.AdminDescription = null;
             // نوع تنوع محصول را فقط ادمین تعیین می‌کند (ProductChangeVariety)؛ مقدار ارسالیِ فروشنده نادیده گرفته می‌شود.
             productDto.VarietyId = null;
             productDto.Variety2Id = null;

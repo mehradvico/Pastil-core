@@ -41,6 +41,8 @@ namespace Api.Areas.Admin.Controllers
         /// </summary>
         /// 
         [HttpPost]
+        [RequestSizeLimit(20 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 20 * 1024 * 1024)]
         public async Task<IActionResult> ImportProducts(IFormFile file)
         {
             var stream = await _excelService.ImportProductsAsync(file);

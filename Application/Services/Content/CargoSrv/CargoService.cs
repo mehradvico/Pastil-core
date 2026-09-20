@@ -186,11 +186,18 @@ namespace Application.Services.Content.CargoSrv
                 //    item.ReturnPrice = returnPrice;
                 //}
                 item.RebateId = null;
-                //item.Price = totalPrice;
+                // Over-posting: قیمت را ادمین بعد از بررسی درخواست تعیین می‌کند (Price==0 یعنی «قیمت نهایی هنوز نیست»)؛
+                // هیچ فیلد مالی از بدنه‌ی کلاینت پذیرفته نمی‌شود.
+                item.Price = 0;
+                item.DefaultPrice = 0;
+                item.NotAccompanyPrice = null;
+                item.ReturnPrice = null;
+                item.RebatePrice = 0;
+                item.WalletPrice = 0;
                 item.IsPaid = false;
                 item.CreateDate = DateTime.Now;
                 item.StatusId = (long)CargoStatusEnum.CargoStatus_Requested;
-                item.PaymentPrice = item.Price;
+                item.PaymentPrice = 0;
 
                 await _context.Cargoes.AddAsync(item);
                 await _context.SaveChangesAsync();

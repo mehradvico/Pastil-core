@@ -144,6 +144,13 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             if (!await CanManageCourseAsync(dto.SchoolCourseId, companionId))
                 return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.AccessDenied, dto);
 
+            // لینک کلاس در پنل ادمین/وب‌اپ به‌صورت href رندر می‌شود؛ `javascript:` و امثال آن (XSS ذخیره‌شده علیه ادمین) رد می‌شود.
+            dto.MeetingUrl = string.IsNullOrWhiteSpace(dto.MeetingUrl) ? null : dto.MeetingUrl.Trim();
+            if (dto.MeetingUrl != null &&
+                !(System.Uri.TryCreate(dto.MeetingUrl, System.UriKind.Absolute, out var meetingUri) &&
+                  (meetingUri.Scheme == System.Uri.UriSchemeHttps || meetingUri.Scheme == System.Uri.UriSchemeHttp)))
+                return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.InvalidData, dto);
+
             SchoolCourseSession item;
             if (dto.Id > 0)
             {

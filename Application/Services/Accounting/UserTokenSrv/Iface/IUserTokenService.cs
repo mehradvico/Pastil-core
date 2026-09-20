@@ -16,6 +16,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Iface
             long? rotatedFromTokenId = null,
             string deviceName = null);
         Task<BaseResultDto> RefreshTokenAsync(RefreshTokenDto refreshToken);
+        /// <summary>حذف ردیف‌های توکنی که بیش از ۳۰ روز از انقضای refresh‌شان گذشته؛ تعداد حذف‌شده را برمی‌گرداند.</summary>
+        Task<int> PurgeExpiredAsync();
         Task<BaseResultDto> SignOut(string token);
         Task<BaseResultDto> ResetTokenAsync(
             User user,

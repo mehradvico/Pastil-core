@@ -406,6 +406,8 @@ public static class ConfigureServices
         });
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<IUserPasswordService, UserPasswordService>();
+        services.AddSingleton<Application.Common.Security.ILoginThrottle, Application.Common.Security.LoginThrottle>();
+        services.AddScoped<Application.Common.Security.ISecurityAudit, Application.Common.Security.SecurityAudit>();
 
         services.Configure<RequestLocalizationOptions>(options =>
         {

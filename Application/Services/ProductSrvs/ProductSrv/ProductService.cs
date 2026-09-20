@@ -321,7 +321,26 @@ namespace Application.Services.ProductSrvs.ProductSrv
 
                         }
                     }
+                    // فروشنده (storeId != null) فقط فیلدهای محتوایی را عوض می‌کند؛ وضعیت/آمار/مالکیت/یادداشت ادمین ثابت می‌ماند.
+                    var sellerEdit = storeId != null;
+                    var keepStoreId = item.StoreId;
+                    var keepStatusId = item.StatusId;
+                    var keepSellCount = item.SellCount;
+                    var keepVisitCount = item.VisitCount;
+                    var keepRateAvg = item.RateAvg;
+                    var keepRateCount = item.RateCount;
+                    var keepAdminDescription = item.AdminDescription;
                     mapper.Map(dto, item);
+                    if (sellerEdit)
+                    {
+                        item.StoreId = keepStoreId;
+                        item.StatusId = keepStatusId;
+                        item.SellCount = keepSellCount;
+                        item.VisitCount = keepVisitCount;
+                        item.RateAvg = keepRateAvg;
+                        item.RateCount = keepRateCount;
+                        item.AdminDescription = keepAdminDescription;
+                    }
                     item.UpdateDate = DateTime.Now;
                     _context.Products.Update(item);
                     await _context.SaveChangesAsync();

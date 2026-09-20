@@ -1,4 +1,5 @@
 ﻿using Application.Common.Enumerable;
+using System;
 
 namespace Application.Common.Dto.Input
 {
@@ -13,11 +14,27 @@ namespace Application.Common.Dto.Input
         /// <summary>
         /// شماره صفحه
         /// </summary>
-        public int PageIndex { get; set; }
+        private int _pageIndex = 1;
+        private int _pageSize = 20;
+
+        public int PageIndex
+        {
+            get => _pageIndex;
+            // Skip((PageIndex-1)*PageSize) با صفحه‌ی ۰/منفی خطای ۵۰۰ می‌داد و مقدار بسیار بزرگ سرریز می‌کرد
+            set => _pageIndex = Math.Clamp(value, 1, 1_000_000);
+        }
         /// <summary>
         /// تعداد در صفحه
         /// </summary>
-        public int PageSize { get; set; }
+        /// <summary>
+        /// سقف ۱۰۰۰ (بزرگ‌ترین مقدار واقعی مصرف‌کننده‌ها: لیست برند/دسته در پنل). قبلاً بی‌سقف بود و هر endpoint عمومی را
+        /// می‌شد با pageSize میلیونی یک‌جا خالی کرد.
+        /// </summary>
+        public int PageSize
+        {
+            get => _pageSize;
+            set => _pageSize = value < 1 ? 20 : Math.Min(value, 1000);
+        }
         /// <summary>
         /// متن قابل جستجو
         /// </summary>

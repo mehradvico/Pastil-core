@@ -24,6 +24,7 @@ namespace Api.Controllers
         /// اگر متصل باشد پروفایل عمومی پت و مالکش برمی‌گردد.
         /// </summary>
         [HttpGet("{code}")]
+        [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("PetTagLookup")]
         public async Task<IActionResult> Get(string code) => Ok(await _service.GetPublicStatusAsync(code));
     }
 }

@@ -22,22 +22,22 @@
           "Api.dll": {}
         }
       },
-      "AngleSharp/0.17.1": {
+      "AngleSharp/1.7.2": {
         "runtime": {
-          "lib/netstandard2.0/AngleSharp.dll": {
-            "assemblyVersion": "0.17.1.0",
-            "fileVersion": "0.17.1.0"
+          "lib/net8.0/AngleSharp.dll": {
+            "assemblyVersion": "1.7.2.0",
+            "fileVersion": "1.7.2.0"
           }
         }
       },
-      "AngleSharp.Css/0.17.0": {
+      "AngleSharp.Css/1.0.2": {
         "dependencies": {
-          "AngleSharp": "0.17.1"
+          "AngleSharp": "1.7.2"
         },
         "runtime": {
-          "lib/net7.0/AngleSharp.Css.dll": {
-            "assemblyVersion": "0.17.0.0",
-            "fileVersion": "0.17.0.0"
+          "lib/net8.0/AngleSharp.Css.dll": {
+            "assemblyVersion": "1.0.2.0",
+            "fileVersion": "1.0.2.0"
           }
         }
       },
@@ -308,15 +308,15 @@
           }
         }
       },
-      "HtmlSanitizer/9.0.892": {
+      "HtmlSanitizer/9.2.1039": {
         "dependencies": {
-          "AngleSharp": "0.17.1",
-          "AngleSharp.Css": "0.17.0"
+          "AngleSharp": "1.7.2",
+          "AngleSharp.Css": "1.0.2"
         },
         "runtime": {
           "lib/net8.0/HtmlSanitizer.dll": {
             "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.892.0"
+            "fileVersion": "9.2.1039.0"
           }
         }
       },
@@ -1275,7 +1275,7 @@
           "ClosedXML": "0.104.2",
           "Dapper": "2.1.35",
           "FirebaseAdmin": "3.1.0",
-          "HtmlSanitizer": "9.0.892",
+          "HtmlSanitizer": "9.2.1039",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "9.0.0",
           "Microsoft.EntityFrameworkCore": "9.0.0",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.0",
@@ -1371,19 +1371,19 @@
       "serviceable": false,
       "sha512": ""
     },
-    "AngleSharp/0.17.1": {
+    "AngleSharp/1.7.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-5MPI4bbixlwxb0W/smOMeIR+QlxMy5/5jD+WnIAw4pBC+7AhLPe5bS3cLgQMJyvd6q0A48sG+uYOt/ep406GLA==",
-      "path": "anglesharp/0.17.1",
-      "hashPath": "anglesharp.0.17.1.nupkg.sha512"
+      "sha512": "sha512-r1rb5Qo/0KPzmP0nbSiXPDVfh4Ctu0B+y1RyyUq73g4sgAmEW7q10RDyTq2ZsILwtO9O2LAvMrUles7eD4zz1g==",
+      "path": "anglesharp/1.7.2",
+      "hashPath": "anglesharp.1.7.2.nupkg.sha512"
     },
-    "AngleSharp.Css/0.17.0": {
+    "AngleSharp.Css/1.0.2": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-bg0AcugmX6BFEi/DHG61QrwRU8iuiX4H8LZehdIzYdqOM/dgb3BsCTzNIcc1XADn4+xfQEdVwJYTSwUxroL4vg==",
-      "path": "anglesharp.css/0.17.0",
-      "hashPath": "anglesharp.css.0.17.0.nupkg.sha512"
+      "sha512": "sha512-XeBxh0h/73+MWFsGfeMwiK7xbzAK3YeHFdUIrMH1P90amIrDFD/vUDIrPlF3CixqaMH5MRIUvT6Ux+2zvhJ3SA==",
+      "path": "anglesharp.css/1.0.2",
+      "hashPath": "anglesharp.css.1.0.2.nupkg.sha512"
     },
     "AutoMapper/15.1.3": {
       "type": "package",
@@ -1525,12 +1525,12 @@
       "path": "hangfire.sqlserver/1.8.17",
       "hashPath": "hangfire.sqlserver.1.8.17.nupkg.sha512"
     },
-    "HtmlSanitizer/9.0.892": {
+    "HtmlSanitizer/9.2.1039": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-zdkMmpNCjTkxna8Y+jmPIFm2st+HjHrf32yNElFYwe7L4GmDm+mdKR6TzDyf6ewJ0RUUz84D4IkHNgrwGi4VbQ==",
-      "path": "htmlsanitizer/9.0.892",
-      "hashPath": "htmlsanitizer.9.0.892.nupkg.sha512"
+      "sha512": "sha512-PKxy1hYknAij8YlHCC2a9GSqzUd4bh3IvY+abJBvOH1FKcZpbyafEHtdFcXQBt12Y7hNPkNEOP6Qa7uKNSs/yA==",
+      "path": "htmlsanitizer/9.2.1039",
+      "hashPath": "htmlsanitizer.9.2.1039.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Authentication.JwtBearer/9.0.0": {
       "type": "package",

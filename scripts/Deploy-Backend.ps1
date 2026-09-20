@@ -1,17 +1,19 @@
 <#
 .SYNOPSIS
     One-command deploy of the Pastil backend services (api / file / payment).
-    Deploying api also refreshes the private monitor-agent sidecar required
-    for the authenticated server-monitoring endpoint.
+    Images are published through a private registry on the server, so Docker
+    transfers only layers that changed since the previous deploy.
 
 .DESCRIPTION
     For each requested service, automates the full manual pipeline:
         1. dotnet restore  <Service>/<Service>.csproj
         2. dotnet publish  -c Release -o publish-<service>
         3. docker build    -f <Service>/Dockerfile.runtime -t pastil-new-pastil-<service>:latest .
-        4. docker save     -> pastil-<service>.tar
-        5. scp             pastil-<service>.tar -> <remote>/<service>/
-        6. ssh             docker load + docker compose up -d --no-deps --force-recreate <service>
+        4. docker tag/push -> a private registry exposed only through an SSH tunnel
+        5. ssh             docker pull + docker compose up -d --no-deps --force-recreate <service>
+
+    The old tar + SCP route remains available with -TransferMode Scp for
+    recovery. It always sends the full image and is therefore much slower.
 
     Shared work (prerequisites, SSH credential, connectivity, secret scan)
     runs once, then each service is built and deployed in turn.
@@ -36,9 +38,18 @@
 .PARAMETER ClearCredential
     Delete any stored credential and exit.
 
+.PARAMETER TransferMode
+    Registry (default) sends only changed Docker layers through an SSH tunnel.
+    Scp uses the legacy full-image tar upload for emergency recovery.
+
+.PARAMETER RefreshMonitorAgent
+    Also build and deploy monitor-agent before API. This is only needed after
+    changing MonitorAgent itself; ordinary API deploys leave the healthy
+    sidecar running.
+
 .PARAMETER SkipBuild
-    Reuse the existing .tar files instead of rebuilding. Useful to retry a
-    failed upload without waiting for a full rebuild.
+    Reuse the existing local Docker image (Registry) or image tar (Scp)
+    instead of rebuilding. Useful to retry a failed transfer.
 
 .EXAMPLE
     .\scripts\Deploy-Backend.ps1
@@ -51,7 +62,13 @@
     .\scripts\Deploy-Backend.ps1 -Service api,payment
 
 .EXAMPLE
-    .\scripts\Deploy-Backend.ps1 -All
+    .\scripts\Deploy-Backend.ps1 -Service api -RefreshMonitorAgent
+    Deploys API and explicitly refreshes monitor-agent.
+
+.EXAMPLE
+    .\scripts\Deploy-Backend.ps1 -Service api -TransferMode Scp
+    Uses the legacy full-image transfer only if the private registry needs
+    emergency recovery.
 #>
 
 [CmdletBinding()]
@@ -68,6 +85,11 @@ param(
     [string]$RemoteDir,
     [switch]$SkipSecretScan,
     [switch]$SkipBuild,
+    [ValidateSet('Registry', 'Scp')]
+    [string]$TransferMode = 'Registry',
+    [switch]$RefreshMonitorAgent,
+    [ValidateRange(1024, 65535)]
+    [int]$RegistryLocalPort = 5001,
     [switch]$SaveCredential,
     [switch]$ClearCredential
 )
@@ -145,10 +167,10 @@ if ($unknown.Count -gt 0) {
 # Preserve canonical order (api, file, payment) and drop duplicates.
 $targets = @($ServiceMap.Keys | Where-Object { $requested -contains $_ })
 
-# The API proxies host metrics from the private monitor agent. Always refresh
-# the agent first when API is deployed so the public endpoint is functional as
-# soon as the new API container starts.
-if ($targets -contains 'api' -and $targets -notcontains 'monitor-agent') {
+# API only needs the already-running private monitor agent. Rebuilding and
+# copying its 90 MB image on every API deploy was unnecessary. Refresh it only
+# when MonitorAgent changed, using the explicit switch above.
+if ($RefreshMonitorAgent -and $targets -contains 'api' -and $targets -notcontains 'monitor-agent') {
     $targets = @('monitor-agent') + @($targets | Where-Object { $_ -ne 'monitor-agent' })
 }
 
@@ -386,6 +408,53 @@ function Remove-PasswordFile {
         } catch { }
         Remove-Item -LiteralPath $pwFile -Force -ErrorAction SilentlyContinue
     }
+}
+
+$script:RegistryTunnel = $null
+$RegistryName = 'pastil-deploy-registry'
+$RegistryRemoteAddress = '127.0.0.1:5000'
+$RegistryLocalAddress = "127.0.0.1:$RegistryLocalPort"
+
+function Test-LocalTcpPort {
+    param(
+        [string]$HostName,
+        [int]$Port
+    )
+
+    $client = New-Object System.Net.Sockets.TcpClient
+    try {
+        $client.Connect($HostName, $Port)
+        return $true
+    } catch {
+        return $false
+    } finally {
+        $client.Dispose()
+    }
+}
+
+function Start-PrivateRegistryTunnel {
+    # The registry itself is bound to 127.0.0.1 on the server. Docker reaches
+    # it over this authenticated SSH tunnel only; the registry is never
+    # exposed on the public network.
+    $forward = "127.0.0.1:$RegistryLocalPort`:$RegistryRemoteAddress"
+    $arguments = @(
+        '-batch', '-ssh', '-N', '-L', $forward,
+        '-l', $ServerUser, '-pwfile', $pwFile, $ServerHost)
+
+    $process = Start-Process -FilePath $plinkExe -ArgumentList $arguments -PassThru -WindowStyle Hidden
+
+    for ($attempt = 1; $attempt -le 20; $attempt++) {
+        if ($process.HasExited) {
+            Stop-WithError 'The private registry SSH tunnel exited before it became ready.'
+        }
+        if (Test-LocalTcpPort -HostName '127.0.0.1' -Port $RegistryLocalPort) {
+            return $process
+        }
+        Start-Sleep -Milliseconds 250
+    }
+
+    try { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue } catch { }
+    Stop-WithError "Timed out waiting for the private registry tunnel on localhost:$RegistryLocalPort."
 }
 
 try {

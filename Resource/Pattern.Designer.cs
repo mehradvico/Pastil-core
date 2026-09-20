@@ -331,6 +331,15 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Too many failed sign-in attempts - try again in {0} minutes.
+        /// </summary>
+        public static string TooManyLoginAttempts {
+            get {
+                return ResourceManager.GetString("TooManyLoginAttempts", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to شما می توانید حداکثر {0} عدد از این محصول را خریداری کنید.
         /// </summary>
         public static string YouCanBuyUpToT1Product {

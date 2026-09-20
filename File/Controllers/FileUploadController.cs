@@ -4,6 +4,7 @@ using Application.Services.Filing.FileSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using UploadGuards;
 using System.Linq;
 
 namespace File.Controllers
@@ -47,6 +48,13 @@ namespace File.Controllers
                 || !AllowedExtensions.Contains(extentionCheck)
                 || !contentTypeAllowed)
                 return Ok(new BaseResultDto(isSuccess: false, val: Resource.Notification.FileNotAllow));
+
+            // پسوند و Content-Type را کلاینت اعلام می‌کند؛ محتوای واقعی باید با قالب ادعاشده بخواند (نه HTML/اسکریپت با اسم .jpg/.pdf)
+            await using (var signatureStream = file.OpenReadStream())
+            {
+                if (!await UploadSignature.MatchesExtensionAsync(signatureStream, extentionCheck, HttpContext.RequestAborted))
+                    return Ok(new BaseResultDto(isSuccess: false, val: Resource.Notification.FileNotAllow));
+            }
 
             var now = DateTime.Now;
             var extention = extentionCheck;

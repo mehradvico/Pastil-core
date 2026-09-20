@@ -57,6 +57,13 @@ namespace File.Controllers
                 !(allowPicExtensions.Contains(extension) || allowVideoExtensions.Contains(extension)))
                 return Ok(new BaseResultDto(false, Resource.Notification.FileNotAllow));
 
+            if (allowVideoExtensions.Contains(extension))
+            {
+                await using var signatureStream = PictureFile.OpenReadStream();
+                if (!await UploadGuards.UploadSignature.MatchesExtensionAsync(signatureStream, extension, HttpContext.RequestAborted))
+                    return Ok(new BaseResultDto(false, Resource.Notification.FileNotAllow));
+            }
+
             var originalName = Path.GetFileName(PictureFile.FileName);
             var guid = Guid.NewGuid().ToString("N");
 
