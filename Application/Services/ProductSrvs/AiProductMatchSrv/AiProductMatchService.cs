@@ -128,6 +128,13 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             // پایان تحلیل دور ریخته می‌شود: عکس قفسه فقط ورودی تحلیل است و هیچ‌جا ذخیره نمی‌شود.
             var bufferedImages = hasImages ? await BufferImagesAsync(dto.Images, cancellationToken) : new List<BufferedImage>();
 
+            // زمان‌بندی مرحله‌به‌مرحله: وقتی همه‌ی ردیف‌ها CatalogMatchFailed می‌شوند، تنها راه تشخیص
+            // این‌که کدام مرحله بودجه را خورده، همین است (بدون دسترسی به Provider/دیتابیس از بیرون).
+            var stageWatch = System.Diagnostics.Stopwatch.StartNew();
+            var extractionMs = 0L;
+            var searchMs = 0L;
+            var matchMs = 0L;
+
             var workingRows = new List<AiProductMatchWorkingRow>();
             var extractionFailures = 0;
 
@@ -239,6 +246,8 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
             // خطا/اتمام بودجه در جست‌وجوی کاتالوگ یا تطبیق نباید با «واقعاً در کاتالوگ نیست» یکی شود:
             // اپ ردیف با matches خالی را «ناموجود» گزارش می‌کند، پس این ردیف‌ها CatalogMatchFailed می‌گیرند.
+            extractionMs = stageWatch.ElapsedMilliseconds;
+
             Dictionary<string, List<AiProductMatchCandidateProduct>> candidatesByRow;
             HashSet<string> searchFailedRowIds;
             try
@@ -251,6 +260,8 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 candidatesByRow = workingRows.ToDictionary(row => row.RowId, _ => new List<AiProductMatchCandidateProduct>());
                 searchFailedRowIds = workingRows.Select(row => row.RowId).ToHashSet();
             }
+
+            searchMs = stageWatch.ElapsedMilliseconds - extractionMs;
 
             var ranked = new List<AiProductMatchRankedRowResult>();
             var failedMatchRowIds = new HashSet<string>();
@@ -287,6 +298,8 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     }
                 }
             }
+
+            matchMs = stageWatch.ElapsedMilliseconds - extractionMs - searchMs;
 
             var items = new List<AiProductMatchResultItemDto>();
             var locallyRankedRowIds = new HashSet<string>();
@@ -421,6 +434,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             }
 
             // یک خط خلاصه برای هر ردیف تا علت «تطبیق نخورد» از لاگ سرور معلوم باشد (بدون کاندید / مدل ردش کرد / ناموفق / مبهم).
+            _logger.LogInformation(
+                "AiProductMatch store {StoreId} timing: extraction={ExtractionMs}ms search={SearchMs}ms match={MatchMs}ms budget={BudgetSec}s rows={Rows} searchFailed={SearchFailed} matchBatchesFailed={MatchFailed}",
+                storeId, extractionMs, searchMs, matchMs, _options.TotalBudgetSeconds, workingRows.Count, searchFailedRowIds.Count, failedMatchRowIds.Count);
+
             foreach (var item in items)
             {
                 var rowCandidates = candidatesByRow.TryGetValue(item.RowId, out var list) ? list.Count : 0;
