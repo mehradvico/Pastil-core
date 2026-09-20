@@ -1,19 +1,22 @@
 <#
 .SYNOPSIS
-    One-command deploy of the Pastil backend services (api / file / payment).
-    Images are published through a private registry on the server, so Docker
-    transfers only layers that changed since the previous deploy.
+    One-command deploy of the Pastil backend services (api / file / payment /
+    monitor-agent).
+    The default transfer path uses a full-image SCP upload because it is the
+    proven, production-safe path. The private registry mode is opt-in while
+    its host-specific SSH forwarding is being validated.
 
 .DESCRIPTION
     For each requested service, automates the full manual pipeline:
         1. dotnet restore  <Service>/<Service>.csproj
         2. dotnet publish  -c Release -o publish-<service>
         3. docker build    -f <Service>/Dockerfile.runtime -t pastil-new-pastil-<service>:latest .
-        4. docker tag/push -> a private registry exposed only through an SSH tunnel
-        5. ssh             docker pull + docker compose up -d --no-deps --force-recreate <service>
+        4. docker save     -> pastil-<service>.tar
+        5. scp             pastil-<service>.tar -> <remote>/<service>/
+        6. ssh             docker load + docker compose up -d --no-deps --force-recreate <service>
 
-    The old tar + SCP route remains available with -TransferMode Scp for
-    recovery. It always sends the full image and is therefore much slower.
+    Registry mode is retained as an opt-in experimental path. It can transfer
+    only changed layers, but must not block an ordinary production release.
 
     Shared work (prerequisites, SSH credential, connectivity, secret scan)
     runs once, then each service is built and deployed in turn.
@@ -24,7 +27,7 @@
     scripts/.deploy-credential.xml, also gitignored.
 
 .PARAMETER Service
-    One or more of: api, file, payment. Defaults to api.
+    One or more of: api, file, payment, monitor-agent. Defaults to api.
 
 .PARAMETER All
     Deploy all three services (api, file, payment).
@@ -39,8 +42,8 @@
     Delete any stored credential and exit.
 
 .PARAMETER TransferMode
-    Registry (default) sends only changed Docker layers through an SSH tunnel.
-    Scp uses the legacy full-image tar upload for emergency recovery.
+    Scp (default) uses the reliable full-image tar upload. Registry is an
+    opt-in changed-layer transfer mode that requires SSH forwarding to work.
 
 .PARAMETER RefreshMonitorAgent
     Also build and deploy monitor-agent before API. This is only needed after
@@ -86,7 +89,7 @@ param(
     [switch]$SkipSecretScan,
     [switch]$SkipBuild,
     [ValidateSet('Registry', 'Scp')]
-    [string]$TransferMode = 'Registry',
+    [string]$TransferMode = 'Scp',
     [switch]$RefreshMonitorAgent,
     [ValidateRange(1024, 65535)]
     [int]$RegistryLocalPort = 5001,
@@ -411,19 +414,20 @@ function Remove-PasswordFile {
 }
 
 $script:RegistryTunnel = $null
+$script:RegistryTunnelLogPaths = @()
 $RegistryName = 'pastil-deploy-registry'
 $RegistryRemoteAddress = '127.0.0.1:5000'
 $RegistryLocalAddress = "127.0.0.1:$RegistryLocalPort"
 
-function Test-LocalTcpPort {
-    param(
-        [string]$HostName,
-        [int]$Port
-    )
-
-    $client = New-Object System.Net.Sockets.TcpClient
+function Test-PrivateRegistryTunnel {
+    # A successful TCP connect only proves that plink opened a local listener.
+    # It can happen before SSH authentication/remote port forwarding is ready.
+    # Verify the registry's V2 endpoint through the tunnel before Docker tries
+    # to push, otherwise Docker reports a misleading connection-refused error.
+    $client = New-Object System.Net.WebClient
+    $client.Proxy = $null
     try {
-        $client.Connect($HostName, $Port)
+        [void]$client.DownloadString("http://$RegistryLocalAddress/v2/")
         return $true
     } catch {
         return $false
@@ -432,29 +436,70 @@ function Test-LocalTcpPort {
     }
 }
 
+function Get-RegistryTunnelDiagnostics {
+    $details = @()
+    foreach ($path in $script:RegistryTunnelLogPaths) {
+        if (Test-Path -LiteralPath $path) {
+            $content = (Get-Content -LiteralPath $path -Raw -ErrorAction SilentlyContinue).Trim()
+            if ($content) { $details += $content }
+        }
+    }
+    return ($details -join ' ')
+}
+
 function Start-PrivateRegistryTunnel {
     # The registry itself is bound to 127.0.0.1 on the server. Docker reaches
     # it over this authenticated SSH tunnel only; the registry is never
     # exposed on the public network.
     $forward = "127.0.0.1:$RegistryLocalPort`:$RegistryRemoteAddress"
+    # Keep a harmless remote command running for the lifetime of the
+    # forwarding session. On this Windows/PuTTY setup, -N could exit after
+    # the readiness probe, leaving Docker with a closed localhost port. The
+    # command is terminated locally in finally as soon as deployment ends.
     $arguments = @(
-        '-batch', '-ssh', '-N', '-L', $forward,
-        '-l', $ServerUser, '-pwfile', $pwFile, $ServerHost)
+        '-batch', '-ssh', '-T', '-L', $forward,
+        '-l', $ServerUser, '-pwfile', $pwFile, $ServerHost,
+        'while :; do sleep 3600; done')
 
-    $process = Start-Process -FilePath $plinkExe -ArgumentList $arguments -PassThru -WindowStyle Hidden
+    foreach ($path in $script:RegistryTunnelLogPaths) {
+        Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+    }
+    $logBase = Join-Path ([System.IO.Path]::GetTempPath()) ("pastil-registry-tunnel-{0}" -f [guid]::NewGuid().ToString('N'))
+    $stdoutPath = "$logBase.out"
+    $stderrPath = "$logBase.err"
+    $script:RegistryTunnelLogPaths = @($stdoutPath, $stderrPath)
+    $process = Start-Process -FilePath $plinkExe -ArgumentList $arguments -PassThru -WindowStyle Hidden `
+        -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
 
-    for ($attempt = 1; $attempt -le 20; $attempt++) {
+    for ($attempt = 1; $attempt -le 60; $attempt++) {
         if ($process.HasExited) {
-            Stop-WithError 'The private registry SSH tunnel exited before it became ready.'
+            $diagnostics = Get-RegistryTunnelDiagnostics
+            if (-not $diagnostics) { $diagnostics = 'No diagnostic output was written by plink.' }
+            Stop-WithError "The private registry SSH tunnel exited before it became ready: $diagnostics"
         }
-        if (Test-LocalTcpPort -HostName '127.0.0.1' -Port $RegistryLocalPort) {
+        if (Test-PrivateRegistryTunnel) {
             return $process
         }
         Start-Sleep -Milliseconds 250
     }
 
     try { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue } catch { }
-    Stop-WithError "Timed out waiting for the private registry tunnel on localhost:$RegistryLocalPort."
+    $diagnostics = Get-RegistryTunnelDiagnostics
+    if (-not $diagnostics) { $diagnostics = 'No diagnostic output was written by plink.' }
+    Stop-WithError "Timed out waiting for a registry response through localhost:$RegistryLocalPort. $diagnostics"
+}
+
+function Ensure-PrivateRegistryTunnel {
+    # A build can take minutes. Do not assume the SSH forward that was ready
+    # before the build is still alive when Docker actually starts a push.
+    if ($script:RegistryTunnel -and -not $script:RegistryTunnel.HasExited -and (Test-PrivateRegistryTunnel)) {
+        return
+    }
+
+    if ($script:RegistryTunnel -and -not $script:RegistryTunnel.HasExited) {
+        try { Stop-Process -Id $script:RegistryTunnel.Id -Force -ErrorAction SilentlyContinue } catch { }
+    }
+    $script:RegistryTunnel = Start-PrivateRegistryTunnel
 }
 
 try {
@@ -485,11 +530,11 @@ try {
 
     Write-Ok "Connected to $ServerUser@$ServerHost"
 
-    # -----------------------------------------------------------------------
-    # Private monitoring-agent bootstrap
+# -----------------------------------------------------------------------
+# Private monitoring-agent bootstrap
     # -----------------------------------------------------------------------
 
-    if ($targets -contains 'monitor-agent') {
+    if ($targets -contains 'monitor-agent' -or $targets -contains 'api') {
         $monitoringComposePath = Join-Path $BackendRoot 'MonitorAgent\docker-compose.monitoring.yml'
         $remoteMonitoringCompose = "{0}@{1}:{2}/pastil-monitoring.compose.yml" -f $ServerUser, $ServerHost, $RemoteDir
 
@@ -559,8 +604,11 @@ try {
             Stop-WithError 'Could not prepare the private deploy registry on the server. Re-run with -TransferMode Scp to use the legacy transfer.'
         }
 
-        $script:RegistryTunnel = Start-PrivateRegistryTunnel
+        Ensure-PrivateRegistryTunnel
         Write-Ok ("Private registry is available through {0}" -f $RegistryLocalAddress)
+    } else {
+        Write-Step 'Using reliable full-image transfer'
+        Write-Ok 'SCP mode selected; private registry is bypassed'
     }
 
     $deployed = @()
@@ -574,10 +622,18 @@ try {
 
         if ($SkipBuild) {
             Write-Step "$name : build (skipped)"
-            if (-not (Test-Path -LiteralPath $tarPath)) {
-                Stop-WithError "-SkipBuild was passed but $tarPath does not exist."
+            if ($TransferMode -eq 'Scp') {
+                if (-not (Test-Path -LiteralPath $tarPath)) {
+                    Stop-WithError "-SkipBuild was passed but $tarPath does not exist."
+                }
+                Write-Warn ("Reusing existing {0}" -f $meta.Tar)
+            } else {
+                $imageProbe = Invoke-NativeCapture -Exe $dockerExe -Arguments @('image', 'inspect', $meta.Image)
+                if ($imageProbe.ExitCode -ne 0) {
+                    Stop-WithError "-SkipBuild was passed but local image $($meta.Image) does not exist."
+                }
+                Write-Warn ("Reusing local image {0}" -f $meta.Image)
             }
-            Write-Warn ("Reusing existing {0}" -f $meta.Tar)
         } else {
             Push-Location $BackendRoot
             try {
@@ -595,35 +651,55 @@ try {
 
                 Write-Step "$name : docker build"
                 $code = Invoke-NativeStreaming -Exe $dockerExe -Arguments @(
-                    'build', '--no-cache', '-f', $meta.Dockerfile, '-t', $meta.Image, '.')
+                    'build', '-f', $meta.Dockerfile, '-t', $meta.Image, '.')
                 if ($code -ne 0) { Stop-WithError "docker build failed for $name (exit code $code)" }
                 Write-Ok ("Image built: {0}" -f $meta.Image)
 
-                Write-Step "$name : docker save"
-                if (Test-Path -LiteralPath $tarPath) {
-                    Remove-Item -LiteralPath $tarPath -Force
+                if ($TransferMode -eq 'Scp') {
+                    Write-Step "$name : docker save"
+                    if (Test-Path -LiteralPath $tarPath) {
+                        Remove-Item -LiteralPath $tarPath -Force
+                    }
+                    $code = Invoke-NativeStreaming -Exe $dockerExe -Arguments @('save', '-o', $meta.Tar, $meta.Image)
+                    if ($code -ne 0) { Stop-WithError "docker save failed for $name (exit code $code)" }
+                    $tarSizeMb = [math]::Round((Get-Item -LiteralPath $tarPath).Length / 1MB, 1)
+                    Write-Ok ("{0} written ({1} MB)" -f $meta.Tar, $tarSizeMb)
                 }
-                $code = Invoke-NativeStreaming -Exe $dockerExe -Arguments @('save', '-o', $meta.Tar, $meta.Image)
-                if ($code -ne 0) { Stop-WithError "docker save failed for $name (exit code $code)" }
-                $tarSizeMb = [math]::Round((Get-Item -LiteralPath $tarPath).Length / 1MB, 1)
-                Write-Ok ("{0} written ({1} MB)" -f $meta.Tar, $tarSizeMb)
             } finally {
                 Pop-Location
             }
         }
 
-        Write-Step "$name : uploading image"
+        $localRegistryImage = "{0}/{1}" -f $RegistryLocalAddress, $meta.Image
+        $remoteRegistryImage = "{0}/{1}" -f $RegistryRemoteAddress, $meta.Image
 
-        $tarSizeMb = [math]::Round((Get-Item -LiteralPath $tarPath).Length / 1MB, 1)
-        Write-Host ("      transferring {0} MB, this is usually the slow part..." -f $tarSizeMb) -ForegroundColor DarkGray
+        if ($TransferMode -eq 'Registry') {
+            Write-Step "$name : pushing changed image layers"
+            Write-Host '      unchanged layers are skipped by the private registry...' -ForegroundColor DarkGray
+            $code = Invoke-NativeStreaming -Exe $dockerExe -Arguments @('tag', $meta.Image, $localRegistryImage)
+            if ($code -ne 0) { Stop-WithError "Could not tag $name for the private registry." }
+            Ensure-PrivateRegistryTunnel
+            $code = Invoke-NativeStreaming -Exe $dockerExe -Arguments @('push', $localRegistryImage)
+            if ($code -ne 0) {
+                $tunnelState = if ($script:RegistryTunnel -and -not $script:RegistryTunnel.HasExited) { 'still running' } else { 'exited' }
+                $diagnostics = Get-RegistryTunnelDiagnostics
+                if (-not $diagnostics) { $diagnostics = 'No diagnostic output was written by plink.' }
+                Stop-WithError "Registry push failed for $name (exit code $code; tunnel $tunnelState): $diagnostics"
+            }
+            Write-Ok 'Changed layers uploaded'
+        } else {
+            Write-Step "$name : uploading image"
+            $tarSizeMb = [math]::Round((Get-Item -LiteralPath $tarPath).Length / 1MB, 1)
+            Write-Host ("      transferring {0} MB, this is usually the slow part..." -f $tarSizeMb) -ForegroundColor DarkGray
 
-        $remoteTarget = "{0}@{1}:{2}/{3}/{4}" -f $ServerUser, $ServerHost, $RemoteDir, $meta.RemoteSub, $meta.Tar
-        $code = Invoke-NativeStreaming -Exe $pscpExe -Arguments @(
-            '-batch', '-pwfile', $pwFile, $tarPath, $remoteTarget)
-        if ($code -ne 0) { Stop-WithError "Upload failed for $name (exit code $code)" }
-        Write-Ok 'Upload complete'
+            $remoteTarget = "{0}@{1}:{2}/{3}/{4}" -f $ServerUser, $ServerHost, $RemoteDir, $meta.RemoteSub, $meta.Tar
+            $code = Invoke-NativeStreaming -Exe $pscpExe -Arguments @(
+                '-batch', '-pwfile', $pwFile, $tarPath, $remoteTarget)
+            if ($code -ne 0) { Stop-WithError "Upload failed for $name (exit code $code)" }
+            Write-Ok 'Upload complete'
+        }
 
-        Write-Step "$name : loading image and recreating container"
+        Write-Step "$name : recreating container"
 
         $composeCommand = if ($name -eq 'monitor-agent' -or $name -eq 'api') {
             'docker compose -f docker-compose.yml -f pastil-monitoring.compose.yml'
@@ -631,16 +707,22 @@ try {
             'docker compose'
         }
 
-        $remoteCommand = @(
-            "set -e",
-            "cd '$RemoteDir'",
-            ("docker load -i {0}/{1}" -f $meta.RemoteSub, $meta.Tar),
+        $remoteImageCommands = if ($TransferMode -eq 'Registry') {
+            @(
+                ("docker pull {0}" -f $remoteRegistryImage),
+                ("docker tag {0} {1}" -f $remoteRegistryImage, $meta.Image)
+            )
+        } else {
+            @(("docker load -i {0}/{1}" -f $meta.RemoteSub, $meta.Tar))
+        }
+
+        $remoteCommand = @('set -e', "cd '$RemoteDir'") + $remoteImageCommands + @(
             ("{0} up -d --no-deps --force-recreate {1}" -f $composeCommand, $name)
         ) -join ' && '
 
         $code = Invoke-NativeStreaming -Exe $plinkExe -Arguments @(
             '-batch', '-ssh', '-l', $ServerUser, '-pwfile', $pwFile, $ServerHost, $remoteCommand)
-        if ($code -ne 0) { Stop-WithError "Remote docker load / compose up failed for $name (exit code $code)" }
+        if ($code -ne 0) { Stop-WithError "Remote image activation / compose up failed for $name (exit code $code)" }
         Write-Ok 'Container recreated'
 
         Write-Step "$name : verifying"
@@ -678,5 +760,11 @@ try {
     Write-Host ''
 
 } finally {
+    if ($script:RegistryTunnel -and -not $script:RegistryTunnel.HasExited) {
+        try { Stop-Process -Id $script:RegistryTunnel.Id -Force -ErrorAction SilentlyContinue } catch { }
+    }
+    foreach ($path in $script:RegistryTunnelLogPaths) {
+        Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+    }
     Remove-PasswordFile
 }
