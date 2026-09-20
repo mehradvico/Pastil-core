@@ -9,7 +9,14 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
     // Schema ساختاریافته با مدل‌های Gemini)؛ این متن هرگز مستقیم به کاربر نمایش داده نمی‌شود.
     public static class AiProductMatchPrompts
     {
-        private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
+        // بدون Encoder صریح، System.Text.Json هر حرف فارسی را به \uXXXX (۶ کاراکتر) تبدیل می‌کند؛ پیام مرحله‌ی تطبیق
+        // ~۳ برابر بزرگ و کند می‌شد و فراخوانی مدل به Timeout می‌خورد. خروجی فقط به مدل می‌رود (نه HTML)، پس Relaxed امن است.
+        private static readonly JsonSerializerOptions JsonOptions = new()
+        {
+            WriteIndented = false,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        };
         private const int MaxPackagesPerCandidateInPrompt = 12;
 
         // دو مرحله عمداً نقش‌های متفاوت دارند: مرحله‌ی اول فقط «آنچه واقعاً دیده می‌شود» را به یک عبارت
@@ -233,7 +240,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                         name = candidates[index].Name,
                         brand = candidates[index].BrandName,
                         catalogCode = candidates[index].CodeValue,
-                        packages
+                        packages = packages.Count > 0 ? packages : null
                     });
                 }
 

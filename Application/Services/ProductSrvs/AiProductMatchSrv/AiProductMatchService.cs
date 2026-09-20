@@ -275,25 +275,38 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             }
 
             var ranked = new List<AiProductMatchRankedRowResult>();
-            var matchStageFailed = false;
-            if (candidatesByRow.Values.Any(list => list.Count > 0))
+            var failedMatchRowIds = new HashSet<string>();
+            var rowsWithCandidates = workingRows.Where(row => candidatesByRow[row.RowId].Count > 0).ToList();
+            if (rowsWithCandidates.Count > 0)
             {
-                var matchUserText = AiProductMatchPrompts.BuildMatchUserText(dto.Currency, workingRows, candidatesByRow);
-                var matchResult = await CallModelAsync(
-                    AiProductMatchPrompts.MatchSystemInstruction,
-                    matchUserText,
-                    Array.Empty<(string MimeType, byte[] Bytes)>(),
-                    overallToken,
-                    cancellationToken);
+                // دسته‌های کوچک و موازی: هر دسته یک فراخوانی مستقل به مدل است، پس کندی/شکست یک دسته فقط ردیف‌های
+                // همان دسته را CatalogMatchFailed می‌کند، نه کل نتیجه را.
+                var batches = rowsWithCandidates.Chunk(Math.Max(1, _options.MatchRowsPerCall)).ToList();
+                var batchResults = await Task.WhenAll(batches.Select(async batch =>
+                {
+                    var matchUserText = AiProductMatchPrompts.BuildMatchUserText(dto.Currency, batch, candidatesByRow);
+                    var matchResult = await CallModelAsync(
+                        AiProductMatchPrompts.MatchSystemInstruction,
+                        matchUserText,
+                        Array.Empty<(string MimeType, byte[] Bytes)>(),
+                        overallToken,
+                        cancellationToken);
+                    return (Batch: batch, Result: matchResult, PromptChars: matchUserText.Length);
+                }));
 
-                if (matchResult.IsSuccess)
+                foreach (var (batch, matchResult, promptChars) in batchResults)
                 {
-                    ranked = AiProductMatchGeminiResponseParser.ParseMatchResults(matchResult.RawJson);
-                }
-                else
-                {
-                    matchStageFailed = true;
-                    _logger.LogWarning("AiProductMatch matching stage failed for store {StoreId}: {Error}", storeId, matchResult.ErrorCode);
+                    if (matchResult.IsSuccess)
+                    {
+                        ranked.AddRange(AiProductMatchGeminiResponseParser.ParseMatchResults(matchResult.RawJson));
+                    }
+                    else
+                    {
+                        foreach (var failedRow in batch)
+                            failedMatchRowIds.Add(failedRow.RowId);
+                        _logger.LogWarning("AiProductMatch matching batch ({Rows} rows, {PromptChars} chars) failed for store {StoreId}: {Error}",
+                            batch.Length, promptChars, storeId, matchResult.ErrorCode);
+                    }
                 }
             }
 
@@ -331,7 +344,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
                 // مدل موظف است برای هر ردیفِ دارای کاندید یک نتیجه (حتی ranked خالی) برگرداند؛ نبودنش یعنی تطبیق کامل نشد.
                 var catalogMatchFailed = searchFailedRowIds.Contains(row.RowId)
-                    || (candidates.Count > 0 && (matchStageFailed || rowRanked == null));
+                    || (candidates.Count > 0 && (failedMatchRowIds.Contains(row.RowId) || rowRanked == null));
                 if (catalogMatchFailed)
                 {
                     item.CatalogMatchFailed = true;
@@ -409,6 +422,16 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 }
 
                 items.Add(item);
+            }
+
+            // یک خط خلاصه برای هر ردیف تا علت «تطبیق نخورد» از لاگ سرور معلوم باشد (بدون کاندید / مدل ردش کرد / ناموفق / مبهم).
+            foreach (var item in items)
+            {
+                var rowCandidates = candidatesByRow.TryGetValue(item.RowId, out var list) ? list.Count : 0;
+                var rankedByModel = ranked.FirstOrDefault(r => r.RowId == item.RowId)?.Ranked.Count ?? 0;
+                _logger.LogInformation(
+                    "AiProductMatch store {StoreId} row {RowId}: candidates={Candidates} rankedByModel={Ranked} matches={Matches} autoSelected={Auto} catalogMatchFailed={Failed} issues={Issues}",
+                    storeId, item.RowId, rowCandidates, rankedByModel, item.Matches.Count, item.ProductId.HasValue, item.CatalogMatchFailed, string.Join(" | ", item.Issues));
             }
 
             return new BaseResultDto<AiProductMatchAnalyzeResultDto>(true, new AiProductMatchAnalyzeResultDto { Items = items });
@@ -619,7 +642,8 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 // کل هدف این فیچر همینه: پیدا کردن محصول کاتالوگ برای ساختن اولین ProductItem آن.
                 // پیش‌نویسِ (تأییدنشده‌ی) فروشگاه‌های دیگر به این فروشنده پیشنهاد داده نمی‌شود؛ بقیه‌ی وضعیت‌ها (موجود/ناموجود/…) بله.
                 var found = await _productService.SearchCatalogProductIdsAsync(request, cancellationToken, storeId);
-                return (found == null ? new List<long>() : found.Distinct().ToList(), false);
+                // SearchCatalogProductIdsAsync عمداً بیش‌ازحد می‌آورد (تا ۶۰)؛ فقط بهترین‌ها (به ترتیب امتیاز) به مدل می‌روند.
+                return (found == null ? new List<long>() : found.Distinct().Take(Math.Max(1, _options.CandidateShortlistSize)).ToList(), false);
             }
             catch (Exception ex)
             {

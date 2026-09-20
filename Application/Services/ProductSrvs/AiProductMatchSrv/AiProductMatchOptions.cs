@@ -34,6 +34,10 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         public int TableImagesPerVisionCall { get; set; } = 4;
 
         public int CandidateShortlistSize { get; set; } = 25;
+
+        // مرحله‌ی تطبیق ردیف‌ها را دسته‌دسته (موازی) به مدل می‌دهد، نه همه در یک پیام: با ۶+ ردیف × ده‌ها کاندید،
+        // یک پیام غول‌آسا از Timeout می‌گذشت و «همه‌ی ردیف‌ها» با هم ناموفق می‌شدند.
+        public int MatchRowsPerCall { get; set; } = 4;
         public int RequestTimeoutSeconds { get; set; } = 15;
 
         // سقف سخت کل تحلیل (استخراج + جست‌وجوی کاتالوگ + تطبیق). اپ سقف HTTP حدود ۶۰ ثانیه دارد؛ اگر بودجه
