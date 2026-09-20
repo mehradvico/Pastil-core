@@ -542,6 +542,27 @@ try {
     # Per-service build + deploy
     # -----------------------------------------------------------------------
 
+    if ($TransferMode -eq 'Registry') {
+        Write-Step 'Preparing private deploy registry'
+
+        # Keep the registry private: it is bound solely to the server's
+        # loopback interface and is reached from this machine via plink's
+        # authenticated port-forward below.
+        $remoteRegistrySetup = @(
+            'set -e',
+            ("if docker container inspect {0} >/dev/null 2>&1; then docker start {0} >/dev/null 2>&1 || true; else docker pull registry:2 >/dev/null && docker run -d --restart unless-stopped --name {0} -p 127.0.0.1:5000:5000 -v {0}-data:/var/lib/registry registry:2 >/dev/null; fi" -f $RegistryName),
+            ("docker container inspect -f '{{{{.State.Running}}}}' {0} | grep -qx true" -f $RegistryName)
+        ) -join ' && '
+        $code = Invoke-NativeStreaming -Exe $plinkExe -Arguments @(
+            '-batch', '-ssh', '-l', $ServerUser, '-pwfile', $pwFile, $ServerHost, $remoteRegistrySetup)
+        if ($code -ne 0) {
+            Stop-WithError 'Could not prepare the private deploy registry on the server. Re-run with -TransferMode Scp to use the legacy transfer.'
+        }
+
+        $script:RegistryTunnel = Start-PrivateRegistryTunnel
+        Write-Ok ("Private registry is available through {0}" -f $RegistryLocalAddress)
+    }
+
     $deployed = @()
 
     foreach ($name in $targets) {
