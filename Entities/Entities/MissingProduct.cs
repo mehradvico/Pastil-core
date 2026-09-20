@@ -1,5 +1,6 @@
-using Entities.Entities.CommonField;
+﻿using Entities.Entities.CommonField;
 using System;
+using System.Collections.Generic;
 
 namespace Entities.Entities
 {
@@ -40,7 +41,10 @@ namespace Entities.Entities
         public long? ProductItemId { get; set; }
 
         public Store Store { get; set; }
+
+        // کاور (همان تصویر SortOrder=0 داخل Pictures) — برای اینکه کوئری‌ها/ایندکس‌های موجود دست‌نخورده بمانند.
         public Picture Picture { get; set; }
+        public ICollection<MissingProductPicture> Pictures { get; set; } = new List<MissingProductPicture>();
         public Product Product { get; set; }
     }
 }

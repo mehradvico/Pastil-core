@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
 using System;
 using System.Threading;
@@ -15,7 +15,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv.Iface
         Task<BaseResultDto<AiProductMatchAnalyzeResultDto>> AnalyzeAsync(
             long storeId,
             AiProductMatchAnalyzeInputDto dto,
-            string authorizationHeaderValue,
             CancellationToken cancellationToken,
             Action<int, int> onBatchProgress = null);
     }

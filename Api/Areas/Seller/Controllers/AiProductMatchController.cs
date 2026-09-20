@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.ProductSrvs.AiProductMatchSrv;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
@@ -84,8 +84,7 @@ namespace Api.Areas.Seller.Controllers
                     new BaseResultDto<AiProductMatchAnalyzeResultDto>(false, "سرویس هوش مصنوعی در حال پردازش درخواست‌های دیگر است. لطفاً کمی بعد دوباره تلاش کنید.", null!, StatusCodes.Status429TooManyRequests));
 
             var storeId = currentUser.StoreId;
-            var authorizationHeaderValue = Request.Headers.Authorization.ToString();
-            var result = await _aiProductMatchService.AnalyzeAsync(storeId, dto, authorizationHeaderValue, HttpContext.RequestAborted);
+            var result = await _aiProductMatchService.AnalyzeAsync(storeId, dto, HttpContext.RequestAborted);
             return Ok(result);
         }
 
@@ -113,7 +112,6 @@ namespace Api.Areas.Seller.Controllers
                     new BaseResultDto<AiProductMatchJobStartedDto>(false, "سرویس هوش مصنوعی در حال پردازش درخواست‌های دیگر است. لطفاً کمی بعد دوباره تلاش کنید.", null!, StatusCodes.Status429TooManyRequests));
 
             var storeId = currentUser.StoreId;
-            var authorizationHeaderValue = Request.Headers.Authorization.ToString();
 
             try
             {
@@ -141,7 +139,7 @@ namespace Api.Areas.Seller.Controllers
                         try
                         {
                             var result = await service.AnalyzeAsync(
-                                storeId, bufferedDto, authorizationHeaderValue, System.Threading.CancellationToken.None,
+                                storeId, bufferedDto, System.Threading.CancellationToken.None,
                                 (completed, total) => _jobStore.ReportProgress(job.JobId, completed));
 
                             if (result.IsSuccess)

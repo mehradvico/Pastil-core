@@ -8960,8 +8960,11 @@
         <member name="M:Api.Areas.Seller.Controllers.MissingProductController.Update(Application.Services.ProductSrvs.MissingProductSrv.Dto.MissingProductUpdateDto)">
             <summary>ویرایش (فقط draft/rejected؛ ویرایش rejected آن را به draft برمی‌گرداند)</summary>
         </member>
-        <member name="M:Api.Areas.Seller.Controllers.MissingProductController.UploadPicture(System.Int64,Microsoft.AspNetCore.Http.IFormFile)">
-            <summary>آپلود/جایگزینی تصویر (فیلد multipart: image؛ jpg/png/webp تا ۸MB)</summary>
+        <member name="M:Api.Areas.Seller.Controllers.MissingProductController.AddPicture(System.Int64,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>افزودن یک تصویر (فیلد multipart: image؛ jpg/png/webp تا ۸MB؛ حداکثر ۵ تصویر برای هر درخواست)</summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.MissingProductController.RemovePicture(System.Int64,System.Int64)">
+            <summary>حذف یک تصویر از درخواست (فقط draft/rejected)</summary>
         </member>
         <member name="M:Api.Areas.Seller.Controllers.MissingProductController.Submit(System.Int64)">
             <summary>ارسال برای بررسی ادمین (فقط از draft؛ نام و تصویر لازم است)</summary>

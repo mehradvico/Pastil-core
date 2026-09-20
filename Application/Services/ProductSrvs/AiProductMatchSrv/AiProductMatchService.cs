@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Services.CommonSrv.SearchSrv.Dto;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Iface;
@@ -39,7 +39,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         private readonly IDataBaseContext _context;
         private readonly IProductService _productService;
         private readonly IAiProductMatchGeminiClient _geminiClient;
-        private readonly IAiProductMatchFileClient _fileClient;
         private readonly AiProductMatchOptions _options;
         private readonly ILogger<AiProductMatchService> _logger;
 
@@ -47,14 +46,12 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             IDataBaseContext context,
             IProductService productService,
             IAiProductMatchGeminiClient geminiClient,
-            IAiProductMatchFileClient fileClient,
             IOptions<AiProductMatchOptions> options,
             ILogger<AiProductMatchService> logger)
         {
             _context = context;
             _productService = productService;
             _geminiClient = geminiClient;
-            _fileClient = fileClient;
             _options = options.Value;
             _logger = logger;
         }
@@ -71,7 +68,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         public async Task<BaseResultDto<AiProductMatchAnalyzeResultDto>> AnalyzeAsync(
             long storeId,
             AiProductMatchAnalyzeInputDto dto,
-            string authorizationHeaderValue,
             CancellationToken cancellationToken,
             Action<int, int> onBatchProgress = null)
         {
@@ -128,12 +124,9 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             var overallToken = overallCts.Token;
             var extractionToken = extractionCts.Token;
 
-            // بایت‌ها یک‌بار به حافظه خوانده می‌شود: آپلود به سرویس File (~۳-۴ ثانیه) هم‌زمان با استخراج اجرا
-            // می‌شود و بایت‌های حافظه‌ای برخلاف استریم فرم HTTP، هم‌زمان‌خوانی امن و بعد از پایان درخواست هم معتبرند.
+            // بایت‌ها یک‌بار به حافظه خوانده می‌شود (استریم فرم HTTP برای خواندن موازی امن نیست) و بعد از
+            // پایان تحلیل دور ریخته می‌شود: عکس قفسه فقط ورودی تحلیل است و هیچ‌جا ذخیره نمی‌شود.
             var bufferedImages = hasImages ? await BufferImagesAsync(dto.Images, cancellationToken) : new List<BufferedImage>();
-            var uploadTask = hasImages
-                ? UploadImagesAsync(bufferedImages, storeId, authorizationHeaderValue)
-                : Task.FromResult(Array.Empty<long?>());
 
             var workingRows = new List<AiProductMatchWorkingRow>();
             var extractionFailures = 0;
@@ -183,8 +176,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                                 NameConfidence = extracted.NameConfidence.HasValue && double.IsFinite(extracted.NameConfidence.Value)
                                     ? Math.Clamp(extracted.NameConfidence.Value, 0, 1)
                                     : null,
-                                BoundingBoxes = AiProductMatchMatchingHelper.NormalizeBoxes(extracted.Boxes),
-                                SourceImageIndex = index
+                                BoundingBoxes = AiProductMatchMatchingHelper.NormalizeBoxes(extracted.Boxes)
                             });
                         }
                         return rowsForImage;
@@ -201,20 +193,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
                 // چند عکس هم‌پوشان از یک قفسه می‌توانند همان SKU را دوباره برگردانند؛ این یک محصول است، نه چند ردیف.
                 workingRows = AiProductMatchMatchingHelper.DeduplicateRows(workingRows);
-
-                // آپلود معمولاً همین حالا تمام شده؛ اگر نه، بیش از چند ثانیه منتظرش نمی‌مانیم (PictureId فقط برای بازبینی است).
-                long?[] pictureIds = Array.Empty<long?>();
-                try
-                {
-                    pictureIds = await uploadTask.WaitAsync(TimeSpan.FromSeconds(8), cancellationToken);
-                }
-                catch (TimeoutException)
-                {
-                    _logger.LogWarning("AiProductMatch image upload did not finish in time for store {StoreId}; SourcePictureId left empty.", storeId);
-                }
-                foreach (var row in workingRows)
-                    if (row.SourceImageIndex is int imageSlot && imageSlot < pictureIds.Length)
-                        row.SourcePictureId = pictureIds[imageSlot];
 
                 if (workingRows.Count == 0)
                     return extractionFailures > 0
@@ -322,7 +300,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                     ExternalCode = row.ExternalCode,
                     Price = row.Price,
                     Quantity = row.Quantity,
-                    SourcePictureId = row.SourcePictureId,
                     Brand = string.IsNullOrWhiteSpace(row.Brand) ? null : row.Brand.Trim(),
                     PackageSize = AiProductMatchMatchingHelper.FormatPackageSize(row.PackageSizeValue, row.PackageSizeUnit),
                     BoundingBoxes = row.BoundingBoxes
@@ -459,9 +436,7 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
 
         // اسکرین‌شات‌های جدول نرم‌افزار انبار را در دسته‌های چندتایی (نه یکی‌یکی مثل قفسه) به مدل
         // می‌فرستد: با تا ۴۰ صفحه، ۴۰ فراخوانی موازی جدا هم هزینه‌ی تکرار system prompt را ۴۰ برابر
-        // می‌کند و هم ریسک Rate-Limit سمت Provider را بالا می‌برد. SourcePictureId عمداً خالی می‌ماند
-        // چون هر دسته چند تصویر دارد و نمی‌شود یک ردیف را با قطعیت به یکی از آن‌ها نسبت داد — مستند
-        // فرانت هم این فیلد را برای veterinary/sepidar لازم نداشت.
+        // می‌کند و هم ریسک Rate-Limit سمت Provider را بالا می‌برد.
         private async Task<(List<AiProductMatchWorkingRow> Rows, int Failures)> ExtractTableCaptureRowsAsync(
             List<BufferedImage> bufferedImages,
             long storeId,
@@ -548,32 +523,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
                 result.Add(new BufferedImage(memory.ToArray(), image.ContentType, image.FileName, image.Name));
             }
             return result;
-        }
-
-        // هر آپلود روی FormFileِ حافظه‌ایِ مستقل خودش انجام می‌شود؛ شکست آپلود هرگز تحلیل را رد نمی‌کند.
-        private async Task<long?[]> UploadImagesAsync(List<BufferedImage> images, long storeId, string authorizationHeaderValue)
-        {
-            var uploads = images.Select(async image =>
-            {
-                try
-                {
-                    var file = new FormFile(new System.IO.MemoryStream(image.Bytes), 0, image.Bytes.Length, image.Name, image.FileName)
-                    {
-                        Headers = new HeaderDictionary(),
-                        ContentType = image.ContentType
-                    };
-                    var (ok, pictureId, error) = await _fileClient.UploadAsync(file, authorizationHeaderValue, CancellationToken.None);
-                    if (!ok)
-                        _logger.LogWarning("AiProductMatch failed to persist an uploaded image for store {StoreId}: {Error}", storeId, error);
-                    return ok ? pictureId : null;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "AiProductMatch image upload threw for store {StoreId}.", storeId);
-                    return (long?)null;
-                }
-            });
-            return await Task.WhenAll(uploads);
         }
 
         // تمام‌شدن بودجهٔ زمانی (budgetToken) را به شکست عادیِ Provider تبدیل می‌کند؛ فقط قطع‌شدن واقعیِ کلاینت

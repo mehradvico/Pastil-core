@@ -79,7 +79,7 @@ GET /api/Seller/ProductItem/id?id={productId}
 اگر بعد از deploy باز هم ردیفی اشتباهاً «در کاتالوگ نیست» شد، JSON همان ردیف (`issues`، `matches`، `catalogMatchFailed`) را برای بک‌اند بفرستید؛ با همین چهار متن علت مشخص می‌شود.
 
 ### ۲-۶. بدون تغییر لازم
-`analyze`، `analyze/start`، فیلدهای `items[]`، کدهای خطا، `boundingBoxes`، `sourcePictureId` و بخش ۳ سند اصلی همان قبلی است.
+`analyze`، `analyze/start`، فیلدهای `items[]`، کدهای خطا، `boundingBoxes` و بخش ۳ سند اصلی همان قبلی است. (`sourcePictureId` بعداً حذف شد — `FLUTTER_AI_PRODUCT_MATCH_RESULT_STATES_FA.md`.)
 
 ## ۳. چیزهایی که بعداً می‌آید و **الان پیاده نکنید**
 

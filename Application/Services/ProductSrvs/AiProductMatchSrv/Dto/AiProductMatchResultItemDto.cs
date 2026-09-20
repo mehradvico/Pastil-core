@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Application.Services.ProductSrvs.AiProductMatchSrv.Dto
 {
@@ -13,9 +13,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv.Dto
         public long? ProductItemId { get; set; }
         public string ProductName { get; set; }
         public double Confidence { get; set; }
-
-        // اگر این ردیف از یک تصویر قفسه استخراج شده، همان Picture ثبت‌شده در سرویس File (برای بازبینی بعدی)
-        public long? SourcePictureId { get; set; }
 
         // برند/سایز خوانده‌شده از روی بسته (فقط برای عکس؛ وگرنه null) — اپ برای ساخت «محصول ثبت‌نشده» استفاده می‌کند.
         public string Brand { get; set; }

@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.ProductSrvs.MissingProductSrv.Dto;
 using Application.Services.ProductSrvs.MissingProductSrv.Iface;
@@ -47,16 +47,22 @@ namespace Api.Areas.Seller.Controllers
         public async Task<IActionResult> Update([FromBody] MissingProductUpdateDto dto)
             => Ok(await _service.UpdateAsync(StoreId, dto));
 
-        /// <summary>آپلود/جایگزینی تصویر (فیلد multipart: image؛ jpg/png/webp تا ۸MB)</summary>
+        /// <summary>افزودن یک تصویر (فیلد multipart: image؛ jpg/png/webp تا ۸MB؛ حداکثر ۵ تصویر برای هر درخواست)</summary>
         [HttpPost("{id:long}/picture")]
         [RequestSizeLimit(10 * 1024 * 1024)]
         [RequestFormLimits(MultipartBodyLengthLimit = 10 * 1024 * 1024)]
         [ProducesResponseType(typeof(BaseResultDto<MissingProductDto>), 200)]
-        public async Task<IActionResult> UploadPicture(long id, IFormFile image)
+        public async Task<IActionResult> AddPicture(long id, IFormFile image)
         {
             var authorizationHeaderValue = Request.Headers.Authorization.ToString();
-            return Ok(await _service.SetPictureAsync(StoreId, id, image, authorizationHeaderValue, HttpContext.RequestAborted));
+            return Ok(await _service.AddPictureAsync(StoreId, id, image, authorizationHeaderValue, HttpContext.RequestAborted));
         }
+
+        /// <summary>حذف یک تصویر از درخواست (فقط draft/rejected)</summary>
+        [HttpDelete("{id:long}/picture/{pictureId:long}")]
+        [ProducesResponseType(typeof(BaseResultDto<MissingProductDto>), 200)]
+        public async Task<IActionResult> RemovePicture(long id, long pictureId)
+            => Ok(await _service.RemovePictureAsync(StoreId, id, pictureId));
 
         /// <summary>ارسال برای بررسی ادمین (فقط از draft؛ نام و تصویر لازم است)</summary>
         [HttpPost("{id:long}/submit")]

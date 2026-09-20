@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Helpers;
 using Application.Services.CommonSrv.SearchSrv.Dto;
@@ -34,6 +34,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
         private const int MaxReasonLength = 500;
         private const long MaxImageBytes = 8 * 1024 * 1024;
         private const int SimilarProductCount = 5;
+        private const int MaxPicturesPerRequest = 5;
 
         private const string MsgNotFound = "درخواست یافت نشد.";
         private const string MsgInvalid = "اطلاعات ارسال‌شده معتبر نیست.";
@@ -45,6 +46,8 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
         private const string MsgNotSubmitted = "فقط درخواست ارسال‌شده قابل بررسی است.";
         private const string MsgPictureRejected = "تصویر معتبر نیست؛ فقط jpg، png یا webp تا ۸ مگابایت.";
         private const string MsgPictureUploadFailed = "آپلود تصویر ناموفق بود؛ دوباره تلاش کنید.";
+        private const string MsgTooManyPictures = "حداکثر ۵ تصویر برای هر محصول مجاز است؛ یکی را حذف کنید.";
+        private const string MsgPictureNotFound = "این تصویر برای درخواست پیدا نشد.";
 
         private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
 
@@ -225,15 +228,20 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
             return new BaseResultDto<MissingProductDto>(true, ToDto(entity));
         }
 
-        public async Task<BaseResultDto<MissingProductDto>> SetPictureAsync(
+        // افزودن یک تصویر به فهرست (نه جایگزینی): فروشنده تا ۵ تصویر از محصول می‌گذارد و
+        // ادمین با همان‌ها تصمیم می‌گیرد؛ بعد از تأیید همین‌ها ProductPictureهای محصول کاتالوگ می‌شوند.
+        public async Task<BaseResultDto<MissingProductDto>> AddPictureAsync(
             long storeId, long id, IFormFile image, string authorizationHeaderValue, CancellationToken cancellationToken)
         {
-            var entity = await FindOwnAsync(storeId, id, includePicture: false);
+            var entity = await FindOwnAsync(storeId, id, includePicture: true);
             if (entity == null)
                 return Fail<MissingProductDto>(MsgNotFound, 3);
 
             if (entity.Status != MissingProductStatus.Draft && entity.Status != MissingProductStatus.Rejected)
                 return Fail<MissingProductDto>(MsgNotEditable);
+
+            if (entity.Pictures.Count >= MaxPicturesPerRequest)
+                return Fail<MissingProductDto>(MsgTooManyPictures);
 
             if (!await IsAcceptableImageAsync(image, cancellationToken))
                 return Fail<MissingProductDto>(MsgPictureRejected);
@@ -245,13 +253,45 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
                 return Fail<MissingProductDto>(MsgPictureUploadFailed, 5);
             }
 
-            entity.PictureId = pictureId;
+            entity.Pictures.Add(new MissingProductPicture
+            {
+                MissingProductId = entity.Id,
+                PictureId = pictureId.Value,
+                SortOrder = entity.Pictures.Count == 0 ? 0 : entity.Pictures.Max(x => x.SortOrder) + 1
+            });
+            SyncCover(entity);
             MarkEdited(entity);
             await _context.SaveChangesAsync();
 
-            var reloaded = await FindOwnAsync(storeId, id, includePicture: true);
-            return new BaseResultDto<MissingProductDto>(true, ToDto(reloaded));
+            return new BaseResultDto<MissingProductDto>(true, ToDto(await FindOwnAsync(storeId, id, includePicture: true)));
         }
+
+        public async Task<BaseResultDto<MissingProductDto>> RemovePictureAsync(long storeId, long id, long pictureId)
+        {
+            var entity = await FindOwnAsync(storeId, id, includePicture: true);
+            if (entity == null)
+                return Fail<MissingProductDto>(MsgNotFound, 3);
+
+            if (entity.Status != MissingProductStatus.Draft && entity.Status != MissingProductStatus.Rejected)
+                return Fail<MissingProductDto>(MsgNotEditable);
+
+            var row = entity.Pictures.FirstOrDefault(x => x.PictureId == pictureId);
+            if (row == null)
+                return Fail<MissingProductDto>(MsgPictureNotFound, 3);
+
+            entity.Pictures.Remove(row);
+            _context.MissingProductPictures.Remove(row);
+            SyncCover(entity);
+            MarkEdited(entity);
+            await _context.SaveChangesAsync();
+
+            return new BaseResultDto<MissingProductDto>(true, ToDto(await FindOwnAsync(storeId, id, includePicture: true)));
+        }
+
+        // PictureId روی خود رکورد فقط «کاور» است و همیشه اولین تصویر فهرست؛ نگه داشتنش یعنی همهٔ
+        // کوئری‌ها/ایندکس‌ها/شرط‌های موجود (از جمله «تصویر دارد یا نه») بدون تغییر کار می‌کنند.
+        private static void SyncCover(MissingProduct entity)
+            => entity.PictureId = entity.Pictures.OrderBy(x => x.SortOrder).ThenBy(x => x.Id).FirstOrDefault()?.PictureId;
 
         public async Task<BaseResultDto<MissingProductDto>> SubmitAsync(long storeId, long id)
         {
@@ -266,6 +306,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
 
             if (string.IsNullOrWhiteSpace(entity.Name))
                 return Fail<MissingProductDto>(MsgNameRequired);
+            // کاور همیشه اولین تصویر فهرست است، پس خالی‌بودنش یعنی هیچ تصویری آپلود نشده.
             if (entity.PictureId == null)
                 return Fail<MissingProductDto>(MsgPictureRequired);
 
@@ -332,6 +373,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
 
             var items = await ordered
                 .Include(x => x.Picture)
+                .Include(x => x.Pictures).ThenInclude(x => x.Picture)
                 .Include(x => x.Store)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -348,6 +390,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
         {
             var entity = await _context.MissingProducts
                 .Include(x => x.Picture)
+                .Include(x => x.Pictures).ThenInclude(x => x.Picture)
                 .Include(x => x.Store)
                 .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
             if (entity == null)
@@ -431,6 +474,28 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
                 .Where(x => x.Id == entity.Id)
                 .ExecuteUpdateAsync(s => s.SetProperty(x => x.ProductId, productId));
 
+            // تصاویر فروشنده (تا ۵ تا) به گالری محصول کاتالوگ منتقل می‌شوند؛ کاور از قبل به‌عنوان
+            // PictureId روی خود محصول نشسته. شکست این مرحله نباید تأیید را باطل کند.
+            try
+            {
+                var galleryPictureIds = await _context.MissingProductPictures
+                    .Where(x => x.MissingProductId == entity.Id)
+                    .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
+                    .Select(x => x.PictureId)
+                    .ToListAsync();
+
+                if (galleryPictureIds.Count > 0)
+                {
+                    await _context.ProductPictures.AddRangeAsync(galleryPictureIds
+                        .Select(pictureId => new ProductPicture { ProductId = productId, PictureId = pictureId }));
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MissingProduct {Id}: copying pictures to product {ProductId} failed.", entity.Id, productId);
+            }
+
             // محصول همان لحظه به فروشگاه درخواست‌دهنده هم اضافه می‌شود (اگر قیمت داده بود)؛ شکستش تأیید را باطل نمی‌کند
             long? productItemId = null;
             if (entity.Price is > 0)
@@ -510,7 +575,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
 
             var query = _context.MissingProducts.AsTracking().Where(x => x.Id == id && x.StoreId == storeId);
             if (includePicture)
-                query = query.Include(x => x.Picture);
+                query = query.Include(x => x.Picture).Include(x => x.Pictures).ThenInclude(x => x.Picture);
             return await query.FirstOrDefaultAsync();
         }
 
@@ -656,6 +721,12 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
             dto.Price = entity.Price;
             dto.Quantity = entity.Quantity;
             dto.PictureUrl = PictureUrl(entity.Picture);
+            dto.Pictures = entity.Pictures == null
+                ? new List<MissingProductPictureDto>()
+                : entity.Pictures
+                    .OrderBy(x => x.SortOrder).ThenBy(x => x.Id)
+                    .Select(x => new MissingProductPictureDto { PictureId = x.PictureId, PictureUrl = PictureUrl(x.Picture) })
+                    .ToList();
             dto.Status = entity.Status.ToString().ToLowerInvariant();
             dto.RejectionReason = entity.Status == MissingProductStatus.Rejected ? entity.RejectionReason : null;
             dto.Source = entity.Source;
