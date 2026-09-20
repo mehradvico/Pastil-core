@@ -122,8 +122,8 @@ public class InjectionAndBrowserSurfaceGuardTests
         Assert.Contains("\"\\\\u003c\"", source);
         Assert.Contains("\"\\\\u003e\"", source);
         Assert.Contains("\"\\\\u0026\"", source);
-        Assert.DoesNotContain(' ', source);
-        Assert.DoesNotContain(' ', source);
+        Assert.DoesNotContain('\u2028', source);
+        Assert.DoesNotContain('\u2029', source);
     }
 
     private static string FindRoot(string marker)

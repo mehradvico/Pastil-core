@@ -1,7 +1,7 @@
 ﻿using Application.Common.Dto.Result;
-using Application.Services.CommonSrv.SearchSrv.Dto;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Iface;
+using Application.Services.ProductSrvs.ProductSrv.Dto;
 using Application.Services.ProductSrvs.ProductSrv.Iface;
 using Application.Common.Helpers;
 using Entities.Entities;
@@ -561,90 +561,96 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
             }
         }
 
-        // موازی‌سازی جست‌وجوی کاندید برای همه‌ی ردیف‌ها هم‌زمان، در دو فاز:
-        // فاز ۱) هر ردیف یک Query مستقل روی Dapper/SqlConnection خودش می‌زند (Thread-safe، چون هرکدام
-        //        Connection جدای خودش را باز می‌کند) — قبلاً این حلقه پشت‌سرهم (Sequential) اجرا می‌شد و با
-        //        چند ردیف (مثلاً ۷ آیتم تشخیص‌داده‌شده از عکس)، مجموع Timeout ها به‌سرعت جمع می‌شد.
-        // فاز ۲) هیدریت (Products/ProductItems) روی _context یک‌بار و برای اجتماع همه‌ی شناسه‌ها انجام
-        //        می‌شود — چون DbContext را نمی‌توان هم‌زمان از چند Task صدا زد (Thread-unsafe)، و این کار
-        //        تعداد Round-trip های EF را هم از ۲×تعداد‌ردیف به فقط ۲ کاهش می‌دهد.
+        // یک کوئری برای همهٔ ردیف‌ها، نه یکی به‌ازای هر ردیف.
+        //
+        // قبلاً هر ردیفِ تشخیص‌داده‌شده از عکس Query جدای خودش را موازی می‌زد. چون Name/SecondName/
+        // ProductLabel از نوع nvarchar(max) اند، هر Query یک اسکن کاملِ رشته‌ای روی Products است؛ با ۶
+        // محصول در یک قفسه یعنی ۶ اسکن هم‌زمان که روی سرور واقعی هر شش‌تا به commandTimeout می‌خوردند
+        // («Execution Timeout Expired») ⇒ صفر کاندید ⇒ همهٔ ردیف‌ها CatalogMatchFailed («نامشخص»).
+        //
+        // حالا کلیدواژه‌های همهٔ ردیف‌ها یکی می‌شوند و یک فهرست کوتاه مشترک گرفته می‌شود؛ تخصیص کاندید
+        // به هر ردیف در حافظه و با همان شباهت نامی انجام می‌شود که مرحلهٔ تطبیق هم از آن استفاده می‌کند.
+        // ردیف‌های یک قفسه کلمات مشترک زیادی دارند، پس تعداد کلیدواژهٔ یکتا تقریباً ثابت می‌ماند و
+        // هزینهٔ دیتابیس عملاً به اندازهٔ «یک ردیف» می‌رسد، نه N ردیف.
         private async Task<(Dictionary<string, List<AiProductMatchCandidateProduct>> CandidatesByRow, HashSet<string> SearchFailedRowIds)> FindCandidatesForAllRowsAsync(
             List<AiProductMatchWorkingRow> rows,
             long storeId,
             CancellationToken cancellationToken)
         {
-            var searchTasks = rows.Select(async row =>
-            {
-                var (productIds, failed) = await SearchProductIdsAsync(row.Name, storeId, cancellationToken);
-                return new { row.RowId, ProductIds = productIds, Failed = failed };
-            });
-            var searchResults = await Task.WhenAll(searchTasks);
+            var candidatesByRow = rows.ToDictionary(row => row.RowId, _ => new List<AiProductMatchCandidateProduct>());
 
-            var allProductIds = searchResults.SelectMany(r => r.ProductIds).Distinct().ToList();
-            var (productById, itemsByProductId) = await LoadCandidateProductsAsync(allProductIds, cancellationToken);
+            var searchableRows = rows.Where(row => !string.IsNullOrWhiteSpace(row.Name)).ToList();
+            var terms = BuildSearchTerms(searchableRows);
+            if (terms.Count == 0)
+                return (candidatesByRow, new HashSet<string>());
 
-            var candidatesByRow = new Dictionary<string, List<AiProductMatchCandidateProduct>>();
-            foreach (var searchResult in searchResults)
-                candidatesByRow[searchResult.RowId] = BuildCandidates(searchResult.ProductIds, productById, itemsByProductId, storeId);
-
-            var failedRowIds = searchResults.Where(r => r.Failed).Select(r => r.RowId).ToHashSet();
-            return (candidatesByRow, failedRowIds);
-        }
-
-        // Failed=true یعنی جست‌وجو خطا داد (نه این‌که نتیجه‌ای نبوده) — این دو حالت برای اپ کاملاً فرق دارند.
-        private async Task<(List<long> ProductIds, bool Failed)> SearchProductIdsAsync(string rawName, long storeId, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(rawName))
-                return (new List<long>(), false);
-
-            var request = new SearchRequestDto
-            {
-                Q = rawName,
-                ProductCount = _options.CandidateShortlistSize,
-                BrandCount = 0,
-                CategoryCount = 0,
-                FeatureCount = 0,
-                CompanionCount = 0,
-                AssistanceCount = 0,
-                StoreCount = 0,
-                PansionCount = 0,
-                PackageCount = 0,
-                TotalCount = _options.CandidateShortlistSize,
-                // عمداً خاموش (بر خلاف جست‌وجوی مشتری): fuzzy هر توکن ۴+ حرفی را به دنباله‌ای از
-                // دوحرفی‌ها («ال»، «رو»، «کن») هم تبدیل می‌کند. برای یک عبارت تک‌کلمه‌ایِ تایپ‌شده مفید
-                // است، ولی ورودی اینجا یک نام کامل ۸-۱۲ کلمه‌ای از OCR است: آن دوحرفی‌ها هم سهمیه‌ی
-                // ۲۰تایی SearchTerms را از کلمات واقعی می‌گیرند، هم LIKE '%..%' را روی تقریباً کل
-                // Products صادق می‌کنند (Scan سنگین‌تر + ریسک commandTimeout=8s) و هم با امتیاز
-                // آشغال، کاندید درست را از Top N بیرون می‌اندازند.
-                EnableFuzzy = false
-            };
-            // همان دو خط دقیق SearchService.SearchAsync قبل از فراخوانی SearchMinAsync
-            request.Q = SearchNormalizeHelper.Normalize(request.Q);
-            request.ClampCounts();
-            request.SearchTerms = SearchNormalizeHelper.BuildTerms(request.Q, request.EnableFuzzy);
-
-            if (string.IsNullOrWhiteSpace(request.Q) || request.Q.Length < 2)
-                return (new List<long>(), false);
-
+            List<CatalogShortlistItemDto> shortlist;
             try
             {
-                // عمداً SearchMinAsync نیست: اون متد برای جستجوی مشتری طراحی شده و فقط محصولاتی که
-                // حداقل یک فروشگاه فعال با موجودی>۰ دارند برمی‌گردونه. اینجا دقیقاً برعکسش لازمه —
-                // محصولاتی که فروشنده‌ی فعلی (یا هیچ فروشگاهی) هنوز براشون موجودی ثبت نکرده، چون
-                // کل هدف این فیچر همینه: پیدا کردن محصول کاتالوگ برای ساختن اولین ProductItem آن.
-                // پیش‌نویسِ (تأییدنشده‌ی) فروشگاه‌های دیگر به این فروشنده پیشنهاد داده نمی‌شود؛ بقیه‌ی وضعیت‌ها (موجود/ناموجود/…) بله.
-                var found = await _productService.SearchCatalogProductIdsAsync(request, cancellationToken, storeId);
-                // SearchCatalogProductIdsAsync عمداً بیش‌ازحد می‌آورد (تا ۶۰)؛ فقط بهترین‌ها (به ترتیب امتیاز) به مدل می‌روند.
-                return (found == null ? new List<long>() : found.Distinct().Take(Math.Max(1, _options.CandidateShortlistSize)).ToList(), false);
+                // فهرست کوتاه سخاوتمندانه‌تر از سهمیهٔ یک ردیف گرفته می‌شود، چون بین همهٔ ردیف‌ها مشترک است.
+                var shortlistSize = Math.Clamp(searchableRows.Count * _options.CandidateShortlistSize, 60, 400);
+                shortlist = await _productService.SearchCatalogShortlistAsync(terms, shortlistSize, cancellationToken, storeId)
+                            ?? new List<CatalogShortlistItemDto>();
             }
             catch (Exception ex)
             {
-                // پیام خطا عمداً داخل همین خط است، نه فقط در Exception: با grep AiProductMatch روی لاگ
-                // کانتینر، خط پیام/نوع خطا جدا می‌افتاد و علت واقعی دیده نمی‌شد.
-                _logger.LogError(ex, "AiProductMatch candidate search failed for raw name '{RawName}': {ErrorType}: {ErrorMessage}",
-                    rawName, ex.GetType().Name, ex.Message);
-                return (new List<long>(), true);
+                // خطا (نه «نتیجه‌ای نبود») — این دو حالت برای اپ کاملاً فرق دارند: اولی «تلاش دوباره»،
+                // دومی «در کاتالوگ نیست». پیام خطا داخل همین خط است تا grep AiProductMatch کافی باشد.
+                _logger.LogError(ex, "AiProductMatch catalog shortlist failed for store {StoreId} ({Terms} terms, {Rows} rows): {ErrorType}: {ErrorMessage}",
+                    storeId, terms.Count, searchableRows.Count, ex.GetType().Name, ex.Message);
+                return (candidatesByRow, rows.Select(row => row.RowId).ToHashSet());
             }
+
+            if (shortlist.Count == 0)
+                return (candidatesByRow, new HashSet<string>());
+
+            // هر ردیف بهترین‌های همین فهرست مشترک را برمی‌دارد؛ شباهت صفر یعنی هیچ کلمهٔ مشترکی نیست.
+            var idsByRow = new Dictionary<string, List<long>>();
+            foreach (var row in searchableRows)
+            {
+                idsByRow[row.RowId] = shortlist
+                    .Select(item => new
+                    {
+                        item.Id,
+                        Similarity = AiProductMatchMatchingHelper.ComputeNameSimilarity(row.Name, item.Name, item.BrandName)
+                    })
+                    .Where(scored => scored.Similarity > 0)
+                    .OrderByDescending(scored => scored.Similarity)
+                    .Take(Math.Max(1, _options.CandidateShortlistSize))
+                    .Select(scored => scored.Id)
+                    .ToList();
+            }
+
+            // هیدریت (Products/ProductItems) یک‌بار برای اجتماع همهٔ شناسه‌ها: DbContext هم‌زمان‌پذیر
+            // نیست و این کار تعداد Round-trip های EF را هم به ۲ می‌رساند.
+            var allProductIds = idsByRow.Values.SelectMany(ids => ids).Distinct().ToList();
+            var (productById, itemsByProductId) = await LoadCandidateProductsAsync(allProductIds, cancellationToken);
+
+            foreach (var pair in idsByRow)
+                candidatesByRow[pair.Key] = BuildCandidates(pair.Value, productById, itemsByProductId, storeId);
+
+            return (candidatesByRow, new HashSet<string>());
+        }
+
+        // همان نرمال‌سازی/ساخت واژه‌های جست‌وجوی مشتری، ولی برای همهٔ ردیف‌ها یکجا و بدون fuzzy:
+        // fuzzy هر توکن ۴+ حرفی را به دوحرفی‌ها («ال»، «رو»، «کن») هم می‌شکند که برای یک عبارت
+        // تک‌کلمه‌ای تایپ‌شده مفید است، ولی ورودی اینجا نام کامل ۸-۱۲ کلمه‌ای از OCR است: آن دوحرفی‌ها
+        // LIKE '%..%' را روی تقریباً کل Products صادق می‌کنند و فقط اسکن را سنگین‌تر می‌کنند.
+        private static List<string> BuildSearchTerms(IEnumerable<AiProductMatchWorkingRow> rows)
+        {
+            var terms = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var row in rows)
+            {
+                var normalized = SearchNormalizeHelper.Normalize(row.Name);
+                if (string.IsNullOrWhiteSpace(normalized) || normalized.Length < 2)
+                    continue;
+
+                // فقط خودِ کلمه‌ها؛ نه عبارت کامل و نه نسخهٔ بدون‌فاصله (هیچ‌کدام در LIKE کاتالوگ جور نمی‌شوند).
+                foreach (var token in normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                    if (token.Length >= 2)
+                        terms.Add(token);
+            }
+            return terms.ToList();
         }
 
         private async Task<(Dictionary<long, Product> ProductById, Dictionary<long, List<ProductItem>> ItemsByProductId)> LoadCandidateProductsAsync(

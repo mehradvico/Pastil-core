@@ -34,6 +34,9 @@ namespace Application.Services.ProductSrvs.ProductSrv
         private readonly ICategoryService _categoryService;
         private readonly IProductCategoryService _productCategoryService;
         private readonly IProductPictureService _productPictureService;
+        // سقف کلیدواژه‌های یکتا در جست‌وجوی دسته‌ای؛ هر کلیدواژه یک پاس رشته‌ای روی کل جدول است.
+        private const int MaxBatchSearchTerms = 40;
+
         private readonly string connectionString;
 
         public ProductService(IDataBaseContext _context, IConfiguration config, IMapper mapper, ICategoryService categoryService, IProductCategoryService productCategoryService, IProductPictureService productPictureService)
@@ -675,6 +678,93 @@ ORDER BY MatchScore DESC, p.Id;";
 
             var command = new CommandDefinition(query, parameters, commandTimeout: 8, cancellationToken: cancellationToken);
             var result = await connection.QueryAsync<long>(command);
+            return result.ToList();
+        }
+
+        // نسخهٔ دسته‌ای SearchCatalogProductIdsAsync برای AiProductMatch: به‌جای یک کوئری به‌ازای هر
+        // ردیفِ تشخیص‌داده‌شده از عکس، **یک** کوئری برای همهٔ ردیف‌ها با کلیدواژه‌های یکی‌شده.
+        //
+        // چرا: Name/SecondName/ProductLabel از نوع nvarchar(max) اند، پس LIKE '%..%' با COLLATE روی
+        // آن‌ها نه ایندکس می‌گیرد نه ارزان است؛ هزینه = تعدادردیف × تعدادکلیدواژه × تعدادستون. با ۶ عکس
+        // قفسه، شش کوئری موازی همین کار را شش بار تکرار می‌کردند و هر شش تا به commandTimeout=8s
+        // می‌خوردند (Execution Timeout Expired) ⇒ صفر کاندید ⇒ همهٔ ردیف‌ها CatalogMatchFailed.
+        //
+        // سه صرفه‌جویی هم‌زمان، بدون تغییر در کیفیت نتیجه:
+        //  ۱) یک کوئری به‌جای N تا — و چون ردیف‌های یک قفسه کلمات مشترک زیادی دارند («غذای»، «خشک»،
+        //     «رویال»...)، تعداد کلیدواژه‌های یکتا تقریباً ثابت می‌ماند، نه N برابر.
+        //  ۲) امتیاز فقط یک‌بار حساب می‌شود (MatchScore > 0 به‌جای EXISTS جداگانه + ساب‌کوئری دوم).
+        //  ۳) ستون Categories.Name از شرط حذف شده: نام دسته («غذای خشک گربه») تقریباً برای تمام
+        //     اعضای همان دسته صادق است، پس قدرت تفکیک ~صفر داشت و فقط یک‌ششم کار رشته‌ای را می‌خورد.
+        //
+        // تخصیص کاندید به هر ردیف دیگر با MatchScore انجام نمی‌شود؛ سمت سرویس با شباهت نام نرمال‌شده
+        // (AiProductMatchMatchingHelper) است که برای «همین محصول است یا نه» دقیق‌تر از جمع طول کلمات است.
+        public async Task<List<CatalogShortlistItemDto>> SearchCatalogShortlistAsync(
+            IReadOnlyCollection<string> searchTerms,
+            int shortlistSize,
+            CancellationToken cancellationToken = default,
+            long? currentStoreId = null)
+        {
+            var terms = (searchTerms ?? Array.Empty<string>())
+                .Where(term => !string.IsNullOrWhiteSpace(term) && term.Trim().Length >= 2)
+                .Select(term => term.Trim())
+                .Distinct()
+                // کلمهٔ بلندتر = تخصصی‌تر؛ اگر مجبور به بریدن شدیم، عمومی‌ها («مدل»، «وزن») اول بریده شوند.
+                .OrderByDescending(term => term.Length)
+                .Take(MaxBatchSearchTerms)
+                .ToList();
+
+            if (terms.Count == 0)
+                return new List<CatalogShortlistItemDto>();
+
+            using var connection = new SqlConnection(connectionString);
+
+            var parameters = new
+            {
+                ProductCount = Math.Clamp(shortlistSize, 1, 500),
+                SearchTerms = string.Join(" ", terms),
+                StoreId = currentStoreId,
+                DraftStatusId = (long)ProductStatusEnum.ProductStatus_Draft
+            };
+
+            var query = @"
+DECLARE @Keywords TABLE (Keyword NVARCHAR(255) PRIMARY KEY);
+
+INSERT INTO @Keywords (Keyword)
+SELECT DISTINCT value
+FROM STRING_SPLIT(@SearchTerms, ' ')
+WHERE LEN(value) >= 2;
+
+SELECT TOP(@ProductCount)
+    scored.Id,
+    scored.Name,
+    scored.BrandName
+FROM (
+    SELECT
+        p.Id,
+        p.Name,
+        ISNULL(br.Name, '') AS BrandName,
+        (
+            SELECT ISNULL(SUM(LEN(k.Keyword)), 0)
+            FROM @Keywords k
+            WHERE p.Name COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(p.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(br.Name, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(br.SecondName, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+               OR ISNULL(p.ProductLabel, '') COLLATE Persian_100_CI_AS LIKE '%' + k.Keyword + '%'
+        ) AS MatchScore
+    FROM Products p
+    LEFT JOIN Brands br ON p.BrandId = br.Id
+    WHERE
+        p.Active = 1
+        AND p.Deleted = 0
+        -- پیش‌نویسِ تأییدنشدهٔ فروشگاه‌های دیگر به این فروشنده پیشنهاد نمی‌شود؛ پیش‌نویس خودش بله.
+        AND (@StoreId IS NULL OR p.StatusId <> @DraftStatusId OR p.StoreId = @StoreId)
+) AS scored
+WHERE scored.MatchScore > 0
+ORDER BY scored.MatchScore DESC, scored.Id;";
+
+            var command = new CommandDefinition(query, parameters, commandTimeout: 15, cancellationToken: cancellationToken);
+            var result = await connection.QueryAsync<CatalogShortlistItemDto>(command);
             return result.ToList();
         }
 
