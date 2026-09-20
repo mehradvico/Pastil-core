@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Services.ProductSrvs.MissingProductSrv.Dto;
 using Microsoft.AspNetCore.Http;
 using System.Threading;
@@ -12,7 +12,8 @@ namespace Application.Services.ProductSrvs.MissingProductSrv.Iface
         Task<BaseResultDto<MissingProductBatchResultDto>> CreateBatchAsync(long storeId, MissingProductBatchInputDto dto);
         Task<BaseResultDto<MissingProductListDto>> ListAsync(long storeId, int pageSize);
         Task<BaseResultDto<MissingProductDto>> UpdateAsync(long storeId, MissingProductUpdateDto dto);
-        Task<BaseResultDto<MissingProductDto>> SetPictureAsync(long storeId, long id, IFormFile image, string authorizationHeaderValue, CancellationToken cancellationToken);
+        Task<BaseResultDto<MissingProductDto>> AddPictureAsync(long storeId, long id, IFormFile image, string authorizationHeaderValue, CancellationToken cancellationToken);
+        Task<BaseResultDto<MissingProductDto>> RemovePictureAsync(long storeId, long id, long pictureId);
         Task<BaseResultDto<MissingProductDto>> SubmitAsync(long storeId, long id);
         Task<BaseResultDto> DeleteAsync(long storeId, long id);
 

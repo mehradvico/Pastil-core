@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Application.Services.ProductSrvs.MissingProductSrv.Dto
@@ -35,6 +35,12 @@ namespace Application.Services.ProductSrvs.MissingProductSrv.Dto
         public int? Quantity { get; set; }
     }
 
+    public class MissingProductPictureDto
+    {
+        public long PictureId { get; set; }
+        public string PictureUrl { get; set; }
+    }
+
     public class MissingProductDto
     {
         public long Id { get; set; }
@@ -44,7 +50,12 @@ namespace Application.Services.ProductSrvs.MissingProductSrv.Dto
         public string Description { get; set; }
         public long? Price { get; set; }
         public int? Quantity { get; set; }
+
+        // کاور (اولین تصویر) — برای سازگاری با نسخه‌های قبلی اپ نگه داشته شده
         public string PictureUrl { get; set; }
+
+        // همهٔ تصاویر به ترتیب، تا ۵ تا؛ اولی همان کاور است
+        public List<MissingProductPictureDto> Pictures { get; set; } = new();
 
         // draft | submitted | approved | rejected
         public string Status { get; set; }

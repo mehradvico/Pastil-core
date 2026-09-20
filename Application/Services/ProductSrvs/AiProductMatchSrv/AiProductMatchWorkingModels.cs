@@ -1,4 +1,4 @@
-using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
+﻿using Application.Services.ProductSrvs.AiProductMatchSrv.Dto;
 using System.Collections.Generic;
 
 namespace Application.Services.ProductSrvs.AiProductMatchSrv
@@ -13,7 +13,6 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         public double? Price { get; set; }
         public int? Quantity { get; set; }
         public string Unit { get; set; }
-        public long? SourcePictureId { get; set; }
 
         // فقط برای ردیف‌های استخراج‌شده از عکس (قفسه یا اسکرین‌شات جدول) پر می‌شوند؛ سیگنال ساختاریافته‌ی
         // مرحله‌ی تطبیق، به‌جای اتکای صرف به شباهت متنی روی detectedName.
@@ -26,10 +25,9 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv
         // به‌عنوان issue همان ردیف در پاسخ نهایی ظاهر می‌شود.
         public string ExtractionIssue { get; set; }
 
-        // فقط شلف: کادرهای نرمال‌شده، اطمینان مدل از خواندن نام (۰..۱) و اندیس عکس برای اتصال دیرهنگام PictureId
+        // فقط شلف: کادرهای نرمال‌شده و اطمینان مدل از خواندن نام (۰..۱)
         public List<AiProductMatchBoundingBoxDto> BoundingBoxes { get; set; } = new();
         public double? NameConfidence { get; set; }
-        public int? SourceImageIndex { get; set; }
     }
 
     public class AiProductMatchCandidateProduct

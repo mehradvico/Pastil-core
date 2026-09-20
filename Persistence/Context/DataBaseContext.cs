@@ -251,6 +251,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<Hashtag> Hashtags { get; set; }
         public DbSet<MapKey> MapKeys { get; set; }
         public DbSet<MissingProduct> MissingProducts { get; set; }
+        public DbSet<MissingProductPicture> MissingProductPictures { get; set; }
         public DbSet<Merchant> Merchants { get; set; }
         public DbSet<MessageType> MessageTypes { get; set; }
         public DbSet<Neighborhood> Neighborhoods { get; set; }
@@ -1623,6 +1624,17 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 e.HasOne(x => x.Store).WithMany().HasForeignKey(x => x.StoreId).OnDelete(DeleteBehavior.Restrict);
                 e.HasOne(x => x.Picture).WithMany().HasForeignKey(x => x.PictureId).OnDelete(DeleteBehavior.Restrict);
                 e.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<MissingProductPicture>(e =>
+            {
+                e.HasIndex(x => new { x.MissingProductId, x.SortOrder });
+
+                // حذف درخواست، تصاویرش را هم می‌برد (خود رکورد Picture در سرویس File دست‌نخورده می‌ماند).
+                e.HasOne(x => x.MissingProduct).WithMany(x => x.Pictures)
+                    .HasForeignKey(x => x.MissingProductId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(x => x.Picture).WithMany()
+                    .HasForeignKey(x => x.PictureId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<PetTag>()
