@@ -30,14 +30,18 @@ namespace Api.Areas.EndUser.Controllers
             var currentUser = _currentUserHelper.CurrentUser;
             if (currentUser == null)
             {
-                return Ok(new { reserveId = (long?)null, callerName = (string)null });
+                return Ok(new { reserveId = (long?)null, sessionId = (long?)null, callerName = (string)null, isVideo = false });
             }
 
             var pending = _tracker.FindPendingCallForBooker(currentUser.UserId);
+            // تماس جلسه‌ی آنلاین (بدون رزرو) در ردیاب با کلید منفی (-sessionId) نگه داشته می‌شود
+            var isSession = pending.HasValue && pending.Value.ReserveId < 0;
             return Ok(new
             {
-                reserveId = pending?.ReserveId,
-                callerName = pending?.CallerName
+                reserveId = pending.HasValue && !isSession ? pending.Value.ReserveId : (long?)null,
+                sessionId = isSession ? -pending.Value.ReserveId : (long?)null,
+                callerName = pending?.CallerName,
+                isVideo = pending?.IsVideo ?? false
             });
         }
     }

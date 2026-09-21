@@ -329,10 +329,14 @@ namespace Application.Maping
             CreateMap<CompanionAssistance, CompanionAssistanceFinanceVDto>().ForMember(d => d.HasCommission, o => o.MapFrom(s => s.CommissionPercent > 0));
             CreateMap<CompanionAssistance, CompanionAssistanceActivationDto>().ReverseMap();
             CreateMap<CompanionAssistancePackageDto, CompanionAssistancePackage>()
-                .ForMember(x => x.ActivationValue, y => y.Ignore()).ForMember(x => x.CompanionAssistance, y => y.Ignore());
-            CreateMap<CompanionAssistancePackage, CompanionAssistancePackageDto>();
+                .ForMember(x => x.ActivationValue, y => y.Ignore()).ForMember(x => x.CompanionAssistance, y => y.Ignore()).ForMember(x => x.PackageTypes, y => y.Ignore());
+            CreateMap<CompanionAssistancePackageType, CompanionAssistancePackageTypeDto>()
+                .ForMember(x => x.CompanionAssistanceTypeName, o => o.MapFrom(s => s.CompanionAssistanceType != null ? s.CompanionAssistanceType.Name : null));
+            CreateMap<CompanionAssistancePackage, CompanionAssistancePackageDto>()
+                .ForMember(x => x.Types, o => o.MapFrom(s => s.PackageTypes == null ? null : s.PackageTypes.Where(t => !t.Deleted)));
             CreateMap<CompanionAssistancePackage, CompanionAssistancePackageActivationDto>().ReverseMap();
-            CreateMap<CompanionAssistancePackage, CompanionAssistancePackageVDto>();
+            CreateMap<CompanionAssistancePackage, CompanionAssistancePackageVDto>()
+                .ForMember(x => x.Types, o => o.MapFrom(s => s.PackageTypes == null ? null : s.PackageTypes.Where(t => !t.Deleted)));
             CreateMap<CompanionAssistancePackageOnline, CompanionAssistancePackageOnlineDto>();
             CreateMap<CompanionAssistancePackageOnlineDto, CompanionAssistancePackageOnline>();
             CreateMap<CompanionAssistancePackageOnline, CompanionAssistancePackageOnlineVDto>();

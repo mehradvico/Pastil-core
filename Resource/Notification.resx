@@ -1470,4 +1470,13 @@
   <data name="NoVarietyChangeNeeded" xml:space="preserve">
     <value>NoVarietyChangeNeeded</value>
   </data>
+  <data name="ConsultationWindowEnded" xml:space="preserve">
+    <value>ConsultationWindowEnded</value>
+  </data>
+  <data name="ConsultationStartDeadlinePassed" xml:space="preserve">
+    <value>ConsultationStartDeadlinePassed</value>
+  </data>
+  <data name="ConsultationAlreadyStarted" xml:space="preserve">
+    <value>ConsultationAlreadyStarted</value>
+  </data>
 </root>

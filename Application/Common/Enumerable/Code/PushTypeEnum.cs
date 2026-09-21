@@ -70,6 +70,15 @@ namespace Application.Common.Enumerable.Code
         PushOnlineReserveReminderAtTimeCompanion = 61,
         PushInAppCallStarted = 63,
         PushSchoolClassStarting = 64,
-        PushCompanionReserveNewMessage = 65
+        PushCompanionReserveNewMessage = 65,
+        PushOnlineSessionChatInvite = 66,
+        PushOnlineSessionNewMessage = 67,
+        PushOnlineSessionCallStarted = 68,
+        PushOnlineSessionVideoCallStarted = 69,
+        PushOnlineSessionPhoneCallStarted = 70,
+        PushConsultationPurchasedAgent = 71,
+        PushConsultationPurchasedUser = 72,
+        PushConsultationEndingSoon = 73,
+        PushConsultationExpiredRefund = 74
     }
 }

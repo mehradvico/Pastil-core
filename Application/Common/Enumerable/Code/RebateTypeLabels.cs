@@ -10,5 +10,6 @@ namespace Application.Common.Enumerable.Code
         public const string PansionReserve = nameof(RebateTypeEnum.RebateType_PansionReserve);
         public const string PastilAI = nameof(RebateTypeEnum.RebateType_PastilAI);
         public const string SchoolReserve = nameof(RebateTypeEnum.RebateType_SchoolReserve);
+        public const string ConsultationPurchase = nameof(RebateTypeEnum.RebateType_ConsultationPurchase);
     }
 }

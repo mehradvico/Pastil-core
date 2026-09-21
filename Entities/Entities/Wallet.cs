@@ -23,6 +23,7 @@ namespace Entities.Entities
         public long? CompanionInsurancePackageSaleId { get; set; }
         public long? PastilAiSubscriptionId { get; set; }
         public long? SchoolReserveId { get; set; }
+        public long? ConsultationPurchaseId { get; set; }
         public bool Painding { get; set; }
         public bool Deleted { get; set; }
         public User User { get; set; }
@@ -35,5 +36,6 @@ namespace Entities.Entities
         public CompanionInsurancePackageSale CompanionInsurancePackageSale { get; set; }
         public PastilAiSubscription PastilAiSubscription { get; set; }
         public SchoolReserve SchoolReserve { get; set; }
+        public ConsultationPurchase ConsultationPurchase { get; set; }
     }
 }

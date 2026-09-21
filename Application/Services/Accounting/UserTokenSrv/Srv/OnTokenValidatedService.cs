@@ -79,6 +79,12 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 context.Response.WriteAsync(JsonSerializer.Serialize(userCheck)).Wait();
                 return;
             }
+
+            // نقش غیر Admin روی ناحیه‌ی Admin فقط وقتی به اینجا می‌رسد که CheckUser مجوز RolePermission همین controller/action را تأیید کرده باشد؛
+            // policy «AdminArea» به همین نشانه (fail-closed) تکیه می‌کند.
+            if (string.Equals(area, "admin", System.StringComparison.OrdinalIgnoreCase) &&
+                tokenRoleId != (long)Application.Common.Enumerable.RoleEnum.Admin)
+                context.HttpContext.Items["Pastil.AdminAreaPermissionVerified"] = true;
         }
     }
 }

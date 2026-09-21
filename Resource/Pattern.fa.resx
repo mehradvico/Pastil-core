@@ -363,4 +363,31 @@
   <data name="YouCanBuyUpToT1Product" xml:space="preserve">
     <value>شما می توانید حداکثر {0} عدد از این محصول را خریداری کنید</value>
   </data>
+  <data name="PushOnlineSessionChatInvite" xml:space="preserve">
+    <value>{0} می‌خواهد از طریق چت با شما در ارتباط باشد.</value>
+  </data>
+  <data name="PushOnlineSessionNewMessage" xml:space="preserve">
+    <value>پیام جدید از {0}: {1}</value>
+  </data>
+  <data name="PushOnlineSessionCallStarted" xml:space="preserve">
+    <value>{0} با شما تماس می‌گیرد.</value>
+  </data>
+  <data name="PushOnlineSessionVideoCallStarted" xml:space="preserve">
+    <value>{0} با شما تماس تصویری می‌گیرد.</value>
+  </data>
+  <data name="PushOnlineSessionPhoneCallStarted" xml:space="preserve">
+    <value>{0} در حال تماس تلفنی با شماست.</value>
+  </data>
+  <data name="PushConsultationPurchasedAgent" xml:space="preserve">
+    <value>{0} یک مشاوره خریده است؛ بیا ارتباط را برقرار کن.</value>
+  </data>
+  <data name="PushConsultationPurchasedUser" xml:space="preserve">
+    <value>مشاوره‌ی شما ثبت شد؛ منتظر شروع نماینده باشید.</value>
+  </data>
+  <data name="PushConsultationEndingSoon" xml:space="preserve">
+    <value>پنجره‌ی مشاوره ۵ دقیقه‌ی دیگر تمام می‌شود.</value>
+  </data>
+  <data name="PushConsultationExpiredRefund" xml:space="preserve">
+    <value>مشاوره‌ی شما شروع نشد؛ مبلغ به کیف پول برگشت.</value>
+  </data>
 </root>

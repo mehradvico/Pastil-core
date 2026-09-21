@@ -269,15 +269,44 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true
             });
     });
+    // سقف سراسری برای هر IP (پشتوانه‌ی policyهای اختصاصی): endpointهایی که policy جدا ندارند هم بی‌نهایت قابل‌فراخوانی نباشند.
+    // health و SignalR معاف‌اند؛ سقف عمداً بالاست تا کاربر واقعی هیچ‌وقت به آن نخورد. بدون ClientIpAttestationKey همه‌ی کاربران وب‌اپ یک IP دارند،
+    // پس فقط سقف «سیل» اعمال می‌شود (همان منطق IpLimit).
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var path = httpContext.Request.Path;
+        if (path.StartsWithSegments("/health") || path.StartsWithSegments("/hubs"))
+            return RateLimitPartition.GetNoLimiter("exempt");
+
+        return RateLimitPartition.GetSlidingWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = IpLimit(600, 30000),
+                Window = TimeSpan.FromMinutes(1),
+                SegmentsPerWindow = 6,
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<CallSessionTracker>();
+builder.Services.AddSingleton<CallWindowScheduler>();
 builder.Services.AddSingleton<Api.Services.AiProductMatch.AiProductMatchExecutionGate>();
 builder.Services.AddHttpClient(Api.Services.ServerMonitoring.ServerMonitoringAgentClient.HttpClientName,
     client => client.Timeout = TimeSpan.FromSeconds(5));
 builder.Services.AddScoped<Api.Services.ServerMonitoring.ServerMonitoringAgentClient>();
-builder.Services.AddAuthorization(options => options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireClaim("RoleId", ((long)RoleEnum.Admin).ToString())));
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, Api.Authorization.AdminAreaAuthorizationHandler>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, Api.Authorization.AreaMembershipAuthorizationHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireClaim("RoleId", ((long)RoleEnum.Admin).ToString()));
+    options.AddPolicy(PolicyNames.AdminArea, policy => policy.RequireAuthenticatedUser().AddRequirements(new Api.Authorization.AdminAreaRequirement()));
+    foreach (var membershipArea in new[] { "Seller", "Companion", "Driver" })
+        options.AddPolicy(PolicyNames.AreaMember(membershipArea), policy => policy.RequireAuthenticatedUser().AddRequirements(new Api.Authorization.AreaMembershipRequirement(membershipArea)));
+});
 builder.Services
     .AddControllersWithViews(options =>
     {
@@ -475,6 +504,14 @@ if (!app.Environment.IsDevelopment())
 }
 var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>();
 recurringJobManager.AddOrUpdate<INoticeService>("ArchiveNotices", x => x.ArchiveExpiredAsync(), Cron.Hourly);
+recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface.IConsultationPurchaseService>(
+    "ConsultationExpireOverdue", x => x.ExpireOverdueAsync(), Cron.Minutely);
+recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationSessionSrv.Iface.IConsultationSessionService>(
+    "ConsultationCompleteExpired", x => x.CompleteExpiredAsync(), Cron.Minutely);
+recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService>(
+    "ConsultationNotifyPurchases", x => x.NotifyPendingPurchasesAsync(), Cron.Minutely);
+recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService>(
+    "ConsultationEndingSoon", x => x.NotifyEndingSoonAsync(), Cron.Minutely);
 var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
     OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
 // Removed: memory-reminder push is now sent from the panel's own push
@@ -503,6 +540,16 @@ recurringJobManager.AddOrUpdate<Application.Services.Accounting.UserTokenSrv.Ifa
     service => service.PurgeExpiredAsync(),
     "30 3 * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
+// رمزنگاری رکوردهای قدیمی کارت بانکی (idempotent؛ بدون کلید کاری نمی‌کند). یک بار هم بلافاصله بعد از استارتاپ اجرا می‌شود.
+recurringJobManager.AddOrUpdate<Application.Services.FinanceSrvs.UserBankCardSrv.Iface.IUserBankCardProtectionService>(
+    "ProtectBankCardData",
+    service => service.ProtectExistingAsync(),
+    "40 3 * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
+if (Persistence.Security.SensitiveDataProtector.IsConfigured)
+    Hangfire.BackgroundJob.Enqueue<Application.Services.FinanceSrvs.UserBankCardSrv.Iface.IUserBankCardProtectionService>(service => service.ProtectExistingAsync());
+else
+    app.Logger.LogWarning("Security:BankCardEncryptionKey (PASTIL_BANKCARD_ENCRYPTION_KEY) is not configured: bank card numbers and sheba are stored WITHOUT encryption.");
 recurringJobManager.AddOrUpdate<Application.Services.Accounting.UserPetSrv.Iface.IUserPetService>(
     "PetBirthdayPush",
     service => service.SendBirthdayPushesAsync(CancellationToken.None),

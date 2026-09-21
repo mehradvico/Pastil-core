@@ -1470,4 +1470,13 @@
   <data name="NoVarietyChangeNeeded" xml:space="preserve">
     <value>تغییری لازم نبود؛ تنوع محصول همین بود.</value>
   </data>
+  <data name="ConsultationWindowEnded" xml:space="preserve">
+    <value>زمان این مشاوره به پایان رسیده است</value>
+  </data>
+  <data name="ConsultationStartDeadlinePassed" xml:space="preserve">
+    <value>مهلت شروع این مشاوره گذشته است</value>
+  </data>
+  <data name="ConsultationAlreadyStarted" xml:space="preserve">
+    <value>این مشاوره قبلاً شروع شده است</value>
+  </data>
 </root>

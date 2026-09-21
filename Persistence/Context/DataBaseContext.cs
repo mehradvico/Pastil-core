@@ -18,6 +18,7 @@ using Persistence.Interface;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
+using Persistence.Security;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -194,6 +195,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<CompanionAssistance> CompanionAssistances { get; set; }
         public DbSet<CompanionAssistancePackage> CompanionAssistancePackages { get; set; }
         public DbSet<CompanionAssistancePackageOnline> CompanionAssistancePackageOnlines { get; set; }
+        public DbSet<CompanionAssistancePackageType> CompanionAssistancePackageTypes { get; set; }
         public DbSet<CompanionAssistancePackageOnlineSelection> CompanionAssistancePackageOnlineSelections { get; set; }
         public DbSet<CompanionAssistancePackagePicture> CompanionAssistancePackagePictures { get; set; }
         public DbSet<CompanionAssistanceReport> CompanionAssistanceReports { get; set; }
@@ -209,6 +211,10 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<CompanionReserveMessage> CompanionReserveMessages { get; set; }
         public DbSet<CompanionReserveMessageAttachment> CompanionReserveMessageAttachments { get; set; }
         public DbSet<CompanionReserveMessageReaction> CompanionReserveMessageReactions { get; set; }
+        public DbSet<OnlineSession> OnlineSessions { get; set; }
+        public DbSet<OnlineSessionMessage> OnlineSessionMessages { get; set; }
+        public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
+        public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
         public DbSet<CompanionReserveComment> CompanionReserveComments { get; set; }
         public DbSet<CompanionReserveCommentRate> CompanionReserveCommentRates { get; set; }
@@ -405,6 +411,75 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         {
             modelBuilder.HasSequence<long>("PaymentCodeSequence");
             modelBuilder.HasSequence<long>("BusinessCodeSequence");
+
+            // شماره کارت و شبا در دیتابیس رمزشده (AES-GCM) ذخیره می‌شوند؛ تبدیل در EF شفاف است و مقدار قدیمیِ بدون پیشوند هم خوانده می‌شود.
+            modelBuilder.Entity<CompanionAssistancePackageType>(entity =>
+            {
+                entity.HasOne(item => item.CompanionAssistancePackage)
+                    .WithMany(package => package.PackageTypes)
+                    .HasForeignKey(item => item.CompanionAssistancePackageId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.CompanionAssistanceType)
+                    .WithMany()
+                    .HasForeignKey(item => item.CompanionAssistanceTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => new { item.CompanionAssistancePackageId, item.CompanionAssistanceTypeId });
+            });
+
+            // دو FK به Users روی یک جدول: بدون Restrict، SQL Server خطای multiple cascade paths می‌دهد.
+            modelBuilder.Entity<OnlineSession>(entity =>
+            {
+                entity.HasOne(item => item.InitiatorUser).WithMany().HasForeignKey(item => item.InitiatorUserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.TargetUser).WithMany().HasForeignKey(item => item.TargetUserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => new { item.TargetUserId, item.EndDate });
+                entity.HasIndex(item => new { item.InitiatorUserId, item.EndDate });
+            });
+            // پکیج/خرید مشاوره آنلاین (طراحی: Docs/ONLINE_CONSULTATION_PACKAGES_FA.md). همه‌ی FKها Restrict: سابقه‌ی مالی حذف نمی‌شود.
+            modelBuilder.Entity<ConsultationPackage>(entity =>
+            {
+                entity.HasOne(item => item.Companion).WithMany().HasForeignKey(item => item.CompanionId).OnDelete(DeleteBehavior.Restrict);
+                // برای هر (کلینیک، کانال، مدت) فقط یک ردیف زنده
+                entity.HasIndex(item => new { item.CompanionId, item.ChannelId, item.DurationMinutes })
+                    .IsUnique()
+                    .HasFilter("[Deleted] = 0");
+            });
+            modelBuilder.Entity<ConsultationPurchase>(entity =>
+            {
+                entity.Property(item => item.PurchaseCode).HasMaxLength(40);
+                entity.Property(item => item.CancelReason).HasMaxLength(500);
+                entity.HasIndex(item => item.PurchaseCode).IsUnique().HasFilter("[PurchaseCode] IS NOT NULL");
+                entity.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.AgentUser).WithMany().HasForeignKey(item => item.AgentUserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Companion).WithMany().HasForeignKey(item => item.CompanionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.ConsultationPackage).WithMany().HasForeignKey(item => item.ConsultationPackageId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.OnlineSession).WithMany().HasForeignKey(item => item.OnlineSessionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Rebate).WithMany().HasForeignKey(item => item.RebateId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => new { item.UserId, item.Status });
+                entity.HasIndex(item => new { item.CompanionId, item.Status });
+                entity.HasIndex(item => new { item.Status, item.StartDeadline });
+                entity.HasIndex(item => new { item.Status, item.ExpireDate });
+            });
+            modelBuilder.Entity<OnlineSessionMessage>(entity =>
+            {
+                entity.Property(item => item.Content).HasMaxLength(4000);
+                entity.Property(item => item.ImageUrl).HasMaxLength(2048);
+                entity.Property(item => item.ImageThumbnailUrl).HasMaxLength(2048);
+                entity.HasOne(item => item.OnlineSession).WithMany(session => session.Messages).HasForeignKey(item => item.OnlineSessionId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(item => item.SenderUser).WithMany().HasForeignKey(item => item.SenderUserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => new { item.OnlineSessionId, item.Id });
+            });
+
+            modelBuilder.Entity<UserBankCard>(entity =>
+            {
+                entity.Property(item => item.CardNumber).HasConversion(
+                    value => SensitiveDataProtector.Protect(value),
+                    value => SensitiveDataProtector.Unprotect(value));
+                entity.Property(item => item.ShebaNumber).HasConversion(
+                    value => SensitiveDataProtector.Protect(value),
+                    value => SensitiveDataProtector.Unprotect(value));
+                entity.Property(item => item.CardNumberHash).HasMaxLength(64);
+                entity.HasIndex(item => item.CardNumberHash);
+            });
 
             modelBuilder.Entity<CompanionReserve>(entity =>
             {
@@ -864,6 +939,11 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasIndex(item => item.PastilAiSubscriptionId)
                     .IsUnique()
                     .HasFilter("[PastilAiSubscriptionId] IS NOT NULL");
+                // برداشت کیف پول برای خرید مشاوره: برای هر خرید حداکثر یک ردیف (بازپرداخت‌ها ConsultationPurchaseId ندارند)
+                entity.HasOne(item => item.ConsultationPurchase).WithMany().HasForeignKey(item => item.ConsultationPurchaseId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => item.ConsultationPurchaseId)
+                    .IsUnique()
+                    .HasFilter("[ConsultationPurchaseId] IS NOT NULL");
                 entity.ToTable(table => table.HasCheckConstraint(
                     "CK_Wallet_Amount",
                     "[Amount] >= 0"));

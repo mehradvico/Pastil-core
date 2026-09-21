@@ -1501,6 +1501,30 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ConsultationPackageController">
+            <summary>
+            بسته‌های مشاوره آنلاین
+            </summary>
+            <remarks>فقط خواندن؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Get">
+            <summary>کلینیک‌های دارای بسته‌ی فعال + بازه‌ی قیمت + تعداد خرید</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Get(System.Int64)">
+            <summary>ماتریس بسته‌های یک کلینیک</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ConsultationPurchaseController">
+            <summary>
+            خریدهای مشاوره آنلاین
+            </summary>
+            <remarks>فقط خواندن؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Get(Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto.ConsultationPurchaseAdminInputDto)">
+            <summary>جستجوی خریدها (کلینیک، کاربر، وضعیت، روش، بازه‌ی تاریخ، متن)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Get(System.Int64)">
+            <summary>جزئیات یک خرید</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ContactUsController">
              <summary>
              ارتباط با ما
@@ -5998,6 +6022,28 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.ConsultationPackageController">
+            <summary>
+            تعریف پکیج‌های «مشاوره آنلاین» (کانال × مدت) توسط مالک کلینیک — جدا از پکیج‌های عادی خدمات
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationPackageController.Get">
+            <summary>ماتریس کامل ۸ خانه‌ای پکیج‌های کلینیک من</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationPackageController.Put(Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageSaveDto)">
+            <summary>ذخیره‌ی ماتریس پکیج‌ها (قیمت + فعال/غیرفعال هر خانه)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ConsultationSessionController">
+            <summary>
+            «مشاوره‌های من» برای نماینده: فهرست خریدهای مشاوره‌ی کلینیک، شروع و ورود دوباره در پنجره‌ی زمانی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationSessionController.Start(System.Int64)">
+            <summary>شروع مشاوره: پنجره‌ی ۳۰/۶۰ دقیقه‌ای از همین لحظه حساب می‌شود (فقط یک‌بار)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationSessionController.Enter(System.Int64)">
+            <summary>ورود دوباره به مشاوره‌ی در جریان (تا پایان پنجره)</summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.FinanceCompanionController">
              <summary>
              مدیریت حسابداری کلینیک ها
@@ -7109,6 +7155,28 @@
             <summary>
             تایید یا رد درخواست عضویت در نمایندگی
             </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ConsultationPackageController">
+            <summary>
+            پکیج‌های قابل خرید «مشاوره آنلاین» یک کلینیک (فقط فعال و با قیمت مثبت)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ConsultationPurchaseController">
+            <summary>
+            خرید پکیج «مشاوره آنلاین» توسط کاربر: خرید و پرداخت، فهرست/جزئیات و لغو قبل از شروع
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ConsultationPurchaseController.Post(Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto.ConsultationPurchaseCreateDto)">
+            <summary>خرید پکیج و شروع پرداخت (قیمت از سرور؛ کلاینت فقط پکیج و روش پرداخت را می‌فرستد)</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ConsultationPurchaseController.Get">
+            <summary>خریدهای من (جدیدترین اول)</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ConsultationPurchaseController.Active">
+            <summary>مشاوره‌های در جریان من (شروع‌شده و منقضی‌نشده) برای نوار «بازگشت به مشاوره»</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ConsultationPurchaseController.Cancel(System.Int64)">
+            <summary>لغو قبل از شروع نماینده + بازپرداخت کامل به کیف پول</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CurrentUserController">
              <summary>
@@ -9282,6 +9350,40 @@
             controller to remember the policy.
             </summary>
         </member>
+        <member name="F:Api.Authorization.AdminAreaAuthorizationConvention.AdminOnlyControllers">
+            <summary>
+            کنترلرهای Admin که هیچ‌وقت به نقش تفویض‌شده داده نمی‌شوند (ارتقای دسترسی، پول، تنظیمات سیستمی، زیرساخت). بقیه‌ی ناحیه‌ی Admin
+            با policy «AdminArea» (Admin یا مجوز RolePermission همان action) محافظت می‌شود.
+            </summary>
+        </member>
+        <member name="T:Api.Authorization.AdminAreaAuthorizationHandler">
+            <summary>
+            Admin ⇒ همیشه مجاز. نقش دیگر ⇒ فقط اگر OnTokenValidatedService در همین درخواست مجوز RolePermission آن controller/action را تأیید
+            و PermissionVerifiedItemKey را در HttpContext.Items گذاشته باشد؛ در غیر این صورت رد (fail-closed).
+            </summary>
+        </member>
+        <member name="M:Api.Authorization.AreaMembership.IsMember(System.String,Application.Services.Dto.CurrentUserDto)">
+            <summary>کاربر عضو ناحیه است؟ Seller = فروشگاه، Companion = مرکز (مالک یا عضو تأییدشده)، Driver = راننده. Admin همیشه عضو حساب می‌شود.</summary>
+        </member>
+        <member name="T:Api.Authorization.AreaMembershipAuthorizationHandler">
+            <summary>
+            سیاست عضویت ناحیه‌های Seller/Companion/Driver. حالت پیش‌فرض Audit است: غیرعضو رد نمی‌شود ولی رویداد AreaNonMember در
+            Security.Audit ثبت می‌شود (تا جریان‌های قبل از عضویت که ممکن است این ناحیه‌ها را صدا بزنند شناسایی شوند). بعد از یک دوره بدون رویداد
+            مشروع، با Security:AreaPolicyMode=Enforce (env PASTIL_AREA_POLICY_MODE) غیرعضو رد می‌شود.
+            </summary>
+        </member>
+        <member name="F:Api.Authorization.PolicyNames.AdminOnly">
+            <summary>فقط نقش Admin (claim RoleId). برای بخش‌های سیستمی/ارتقای دسترسی: نقش‌ها، مجوزها، کاربران، مرچنت، کیف پول، مانیتورینگ و ...</summary>
+        </member>
+        <member name="F:Api.Authorization.PolicyNames.AdminArea">
+            <summary>
+            بقیه‌ی ناحیه‌ی Admin: Admin، یا نقشی که OnTokenValidatedService برای همین controller/action مجوز RolePermission را تأیید کرده است
+            (جدول مجوز قبلاً از policy AdminOnly اثر نمی‌گرفت و نقش‌های تفویض‌شده عملاً کار نمی‌کردند).
+            </summary>
+        </member>
+        <member name="M:Api.Authorization.PolicyNames.AreaMember(System.String)">
+            <summary>عضویت در ناحیه‌ی Seller/Companion/Driver (فروشگاه/مرکز/راننده داشتن).</summary>
+        </member>
         <member name="T:Api.Controllers.AccountController">
             <summary>
             مدیریت حساب کاربری
@@ -10070,6 +10172,17 @@
             آیتم جدید
             </summary>  
         </member>
+        <member name="T:Api.Controllers.OnlineSessionController">
+            <summary>
+            جلسه‌ی آنلاین بدون رزرو (نماینده ← کاربر) — بدون Area چون مجاز بودن رابطه‌محور است؛
+            شروع جلسه فقط برای نماینده/اپراتور و بقیه‌ی عملیات فقط برای دو طرف جلسه.
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.OnlineSessionMessageController">
+            <summary>
+            پیام‌های چت جلسه‌ی آنلاین — رابطه‌محور (فقط دو طرف جلسه).
+            </summary>
+        </member>
         <member name="T:Api.Controllers.PansionController">
             <summary>
             مدیریت  پانسیون ها
@@ -10626,10 +10739,24 @@
             برقرار می‌شود، این هاب فقط پیام‌های SDP/ICE را بین دو طرف رله می‌کند.
             </summary>
         </member>
+        <member name="M:Api.Hubs.CallHub.JoinSessionCall(System.Int64)">
+            <summary>
+            تماس درون‌برنامه‌ای جلسه‌ی آنلاین (بدون رزرو). سیگنالینگ همان جریان JoinCall است؛ برای استفاده‌ی مجدد از
+            SendSignal/EndCall و ردیاب، جلسه با کلید منفی (-sessionId) ثبت می‌شود تا با شناسه‌ی رزروها تداخل نکند.
+            اولین نفری که وصل می‌شود (شروع‌کننده = نماینده) باعث پوش «زنگ خوردن» برای کاربر می‌شود.
+            </summary>
+        </member>
         <member name="T:Api.Hubs.CallSessionTracker">
             <summary>
             نگه‌داری وضعیت درون‌حافظه‌ای شرکت‌کنندگان هر تماس درون‌برنامه‌ای (برای هر نمونه از سرویس API - در صورت
             افزایش تعداد نمونه‌ها در آینده باید به یک بک‌اند مشترک مثل Redis منتقل شود).
+            </summary>
+        </member>
+        <member name="T:Api.Hubs.CallWindowScheduler">
+            <summary>
+            پایان خودکار تماسِ جلسه‌ی مشاوره‌ی مدت‌دار: وقتی به ExpireDate می‌رسد به هر دو طرف «callEnded» می‌رود و تماس دیگر سیگنال رله نمی‌کند.
+            (به‌ازای هر جلسه حداکثر یک تایمر؛ درون‌حافظه‌ای مثل CallSessionTracker.) بدون آن، تماسی که قبل از پایان پنجره شروع شده
+            تا وقتی یکی قطع کند ادامه می‌یافت. اتصال جدید بعد از پایان پنجره را خودِ JoinSessionCall رد می‌کند.
             </summary>
         </member>
         <member name="T:Api.Hubs.PushHub">

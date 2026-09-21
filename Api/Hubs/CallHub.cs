@@ -1,3 +1,4 @@
+using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -30,9 +31,11 @@ namespace Api.Hubs
         private readonly CallSessionTracker _tracker;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ILogger<CallHub> _logger;
+        private readonly CallWindowScheduler _windowScheduler;
 
-        public CallHub(IDataBaseContext context, CallSessionTracker tracker, IPushNotificationService pushNotificationService, ILogger<CallHub> logger)
+        public CallHub(IDataBaseContext context, CallSessionTracker tracker, IPushNotificationService pushNotificationService, ILogger<CallHub> logger, CallWindowScheduler windowScheduler)
         {
+            _windowScheduler = windowScheduler;
             _context = context;
             _tracker = tracker;
             _pushNotificationService = pushNotificationService;
@@ -131,6 +134,77 @@ namespace Api.Hubs
             await Clients.OthersInGroup(GroupName(reserveId)).SendAsync("callConnected", false);
         }
 
+        /// <summary>
+        /// تماس درون‌برنامه‌ای جلسه‌ی آنلاین (بدون رزرو). سیگنالینگ همان جریان JoinCall است؛ برای استفاده‌ی مجدد از
+        /// SendSignal/EndCall و ردیاب، جلسه با کلید منفی (-sessionId) ثبت می‌شود تا با شناسه‌ی رزروها تداخل نکند.
+        /// اولین نفری که وصل می‌شود (شروع‌کننده = نماینده) باعث پوش «زنگ خوردن» برای کاربر می‌شود.
+        /// </summary>
+        public async Task JoinSessionCall(long sessionId)
+        {
+            var userId = CurrentUserId;
+            if (!userId.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "احراز هویت نامعتبر است.");
+                return;
+            }
+
+            var session = await _context.OnlineSessions
+                .Include(s => s.InitiatorUser)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+            if (session == null || session.EndDate.HasValue || (session.ChannelId != (int)OnlineSessionChannelEnum.InAppCall && session.ChannelId != (int)OnlineSessionChannelEnum.VideoCall))
+            {
+                await Clients.Caller.SendAsync("callError", "تماس یافت نشد.");
+                return;
+            }
+
+            if (session.InitiatorUserId != userId.Value && session.TargetUserId != userId.Value)
+            {
+                await Clients.Caller.SendAsync("callError", "شما دسترسی به این تماس ندارید.");
+                return;
+            }
+
+            // جلسه‌ی مشاوره‌ی مدت‌دار: بعد از پایان پنجره ورود ممکن نیست؛ تماس در جریان هم با تایمر سرور بسته می‌شود
+            if (session.ExpireDate.HasValue && DateTime.Now >= session.ExpireDate.Value)
+            {
+                await Clients.Caller.SendAsync("callError", "زمان مشاوره به پایان رسیده است.");
+                return;
+            }
+
+            var key = -sessionId;
+            if (session.ExpireDate.HasValue)
+                _windowScheduler.Schedule(key, session.ExpireDate.Value);
+            var callerName = $"{session.InitiatorUser?.FirstName} {session.InitiatorUser?.LastName}".Trim();
+            await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(key));
+            var isVideo = session.ChannelId == (int)OnlineSessionChannelEnum.VideoCall;
+            var participantCount = _tracker.Join(key, Context.ConnectionId, userId.Value, session.TargetUserId, callerName, isVideo);
+
+            if (participantCount <= 1)
+            {
+                await Clients.Caller.SendAsync("waitingForPeer");
+
+                if (userId.Value == session.InitiatorUserId)
+                {
+                    try
+                    {
+                        await _pushNotificationService.SendPushAsync(
+                            isVideo ? PushTypeEnum.PushOnlineSessionVideoCallStarted : PushTypeEnum.PushOnlineSessionCallStarted,
+                            session.TargetUserId,
+                            token1: callerName,
+                            token2: sessionId.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send online session call push for session {SessionId}.", sessionId);
+                    }
+                }
+                return;
+            }
+
+            await Clients.Caller.SendAsync("callConnected", true);
+            await Clients.OthersInGroup(GroupName(key)).SendAsync("callConnected", false);
+        }
+
         public async Task SendSignal(long reserveId, string type, string payload)
         {
             var userId = CurrentUserId;
@@ -177,6 +251,12 @@ namespace Api.Hubs
 
         private async Task FinalizeCallAsync(long reserveId)
         {
+            // تماس جلسه‌ی آنلاین (کلید منفی) رزرو ندارد که زمان پایانش ثبت شود
+            if (reserveId < 0)
+            {
+                return;
+            }
+
             try
             {
                 var reserve = await _context.CompanionReserves.FirstOrDefaultAsync(r => r.Id == reserveId);

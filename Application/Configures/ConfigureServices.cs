@@ -408,6 +408,8 @@ public static class ConfigureServices
         services.AddScoped<IUserPasswordService, UserPasswordService>();
         services.AddSingleton<Application.Common.Security.ILoginThrottle, Application.Common.Security.LoginThrottle>();
         services.AddScoped<Application.Common.Security.ISecurityAudit, Application.Common.Security.SecurityAudit>();
+        services.AddHttpClient();
+        services.AddSingleton<Application.Common.Security.ISecurityAlertService, Application.Common.Security.SecurityAlertService>();
 
         services.Configure<RequestLocalizationOptions>(options =>
         {
@@ -571,6 +573,8 @@ public static class ConfigureServices
         services.AddScoped<IPastilMatchMessageAttachmentService, PastilMatchMessageAttachmentService>();
         services.AddScoped<IPastilMatchMessageReactionService, PastilMatchMessageReactionService>();
         services.AddScoped<ICompanionReserveMessageService, CompanionReserveMessageService>();
+        services.AddScoped<Application.Services.ConsultationSrvs.ConsultationPackageSrv.Iface.IConsultationPackageService, Application.Services.ConsultationSrvs.ConsultationPackageSrv.ConsultationPackageService>();
+        services.AddScoped<Application.Services.CompanionSrvs.OnlineSessionSrv.Iface.IOnlineSessionService, Application.Services.CompanionSrvs.OnlineSessionSrv.OnlineSessionService>();
         services.AddScoped<ICompanionReserveMessageAttachmentService, CompanionReserveMessageAttachmentService>();
         services.AddScoped<ICompanionReserveMessageReactionService, CompanionReserveMessageReactionService>();
         services.AddScoped<IPastilMatchSuggestionService, PastilMatchSuggestionService>();
@@ -640,6 +644,11 @@ public static class ConfigureServices
         services.AddScoped<IStoreUserService, StoreUserService>();
         services.AddScoped<IPastilAiPlanService, PastilAiPlanService>();
         services.AddScoped<IPastilAiSubscriptionActivator, PastilAiSubscriptionActivator>();
+        services.AddScoped<Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface.IConsultationPurchaseActivator, Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.ConsultationPurchaseActivator>();
+        services.AddScoped<Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface.IConsultationPurchaseService, Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.ConsultationPurchaseService>();
+        services.AddScoped<Application.Services.ConsultationSrvs.ConsultationSessionSrv.Iface.IConsultationSessionService, Application.Services.ConsultationSrvs.ConsultationSessionSrv.ConsultationSessionService>();
+        services.AddScoped<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService, Application.Services.ConsultationSrvs.ConsultationNotificationSrv.ConsultationNotificationService>();
+        services.AddScoped<Application.Services.ConsultationSrvs.ConsultationAdminSrv.Iface.IConsultationAdminService, Application.Services.ConsultationSrvs.ConsultationAdminSrv.ConsultationAdminService>();
         services.AddScoped<IPastilAiChatService, PastilAiChatService>();
         services.AddScoped<IPastilAiCompletionRouter, PastilAiCompletionRouter>();
         services.AddScoped<IAiProductMatchGeminiClient, AiProductMatchGeminiClient>();
@@ -659,6 +668,7 @@ public static class ConfigureServices
         services.AddScoped<Application.Services.TripSrv.PetResanServiceSrv.Iface.IPetResanServiceService, Application.Services.TripSrv.PetResanServiceSrv.PetResanServiceService>();
         services.AddScoped<ITripStopService, TripStopService>();
         services.AddScoped<IUserBankCardService, UserBankCardService>();
+        services.AddScoped<Application.Services.FinanceSrvs.UserBankCardSrv.Iface.IUserBankCardProtectionService, Application.Services.FinanceSrvs.UserBankCardSrv.UserBankCardProtectionService>();
         services.AddScoped<IUserPetPictureService, UserPetPictureService>();
         services.AddScoped<IUserPetRecordService, UserPetRecordService>();
         services.AddScoped<IUserPetService, UserPetService>();

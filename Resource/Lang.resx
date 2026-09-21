@@ -351,4 +351,16 @@
   <data name="CompanionReserveReports" xml:space="preserve">
     <value>Companion Reserve Reports</value>
   </data>
+  <data name="ConsultationChannelChat" xml:space="preserve">
+    <value>Chat</value>
+  </data>
+  <data name="ConsultationChannelInAppCall" xml:space="preserve">
+    <value>In-app call</value>
+  </data>
+  <data name="ConsultationChannelVideoCall" xml:space="preserve">
+    <value>Video call</value>
+  </data>
+  <data name="ConsultationChannelPhone" xml:space="preserve">
+    <value>Phone call</value>
+  </data>
 </root>

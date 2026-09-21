@@ -412,6 +412,33 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to ConsultationWindowEnded.
+        /// </summary>
+        public static string ConsultationWindowEnded {
+            get {
+                return ResourceManager.GetString("ConsultationWindowEnded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ConsultationStartDeadlinePassed.
+        /// </summary>
+        public static string ConsultationStartDeadlinePassed {
+            get {
+                return ResourceManager.GetString("ConsultationStartDeadlinePassed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ConsultationAlreadyStarted.
+        /// </summary>
+        public static string ConsultationAlreadyStarted {
+            get {
+                return ResourceManager.GetString("ConsultationAlreadyStarted", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to CompanionReserveChatNotAvailable.
         /// </summary>
         public static string CompanionReserveChatNotAvailable {

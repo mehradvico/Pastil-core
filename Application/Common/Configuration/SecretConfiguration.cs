@@ -18,9 +18,20 @@ namespace Application.Common.Configuration
             Override(configuration, "Search:Hybrid:ApiKey", "PASTIL_SEARCH_HYBRID_API_KEY");
             Override(configuration, "Search:Hybrid:SemanticWeight", "PASTIL_SEARCH_HYBRID_WEIGHT");
             Override(configuration, "Security:MerchantEncryptionKey", "PASTIL_MERCHANT_ENCRYPTION_KEY");
+            Override(configuration, "Security:BankCardEncryptionKey", "PASTIL_BANKCARD_ENCRYPTION_KEY");
             OverrideFcmServiceAccountJson(configuration);
             Override(configuration, "Security:PasswordPepper", "PASTIL_PASSWORD_PEPPER");
             Override(configuration, "Security:ClientIpAttestationKey", "PASTIL_CLIENT_IP_ATTESTATION_KEY");
+            // فهرست Hostهای مجاز (جداشده با ;) به‌جای "*"؛ مثال در .env.example. بدون این متغیر همان مقدار appsettings (پیش‌فرض "*") می‌ماند.
+            Override(configuration, "AllowedHosts", "PASTIL_ALLOWED_HOSTS");
+            // حالت سیاست عضویت ناحیه‌های Seller/Companion/Driver: Audit (پیش‌فرض، فقط لاگ) یا Enforce (رد غیرعضو)
+            Override(configuration, "Security:AreaPolicyMode", "PASTIL_AREA_POLICY_MODE");
+            Override(configuration, "Security:OtpLength", "PASTIL_OTP_LENGTH");
+            Application.Common.Helpers.GenerateHelper.ConfigureOtpLength(configuration["Security:OtpLength"]);
+            // هشدار لحظه‌ای امنیتی (اختیاری): webhook عمومی یا ربات تلگرام؛ بدون آن‌ها هشدار فقط در لاگ (Critical, Security.Alert) می‌آید
+            Override(configuration, "Security:AlertWebhookUrl", "PASTIL_SECURITY_ALERT_WEBHOOK_URL");
+            Override(configuration, "Security:AlertTelegramBotToken", "PASTIL_SECURITY_ALERT_TELEGRAM_BOT_TOKEN");
+            Override(configuration, "Security:AlertTelegramChatId", "PASTIL_SECURITY_ALERT_TELEGRAM_CHAT_ID");
             Override(configuration, "MapIr:ApiKey", "PASTIL_MAPIR_API_KEY");
             Override(configuration, "Shipping:TestMode", "PASTIL_SHIPPING_TEST_MODE");
             Override(configuration, "Shipping:AloPeyk:BaseUrl", "PASTIL_SHIPPING_ALOPEYK_BASE_URL");
@@ -32,6 +43,9 @@ namespace Application.Common.Configuration
             Override(configuration, "Shipping:Miare:BaseUrl", "PASTIL_SHIPPING_MIARE_BASE_URL");
             Override(configuration, "Shipping:Miare:ApiKey", "PASTIL_SHIPPING_MIARE_API_KEY");
             Override(configuration, "Shipping:Miare:AccountingBaseUrl", "PASTIL_SHIPPING_MIARE_ACCOUNTING_BASE_URL");
+
+            // کلید رمزنگاری ستونی شماره کارت/شبا؛ بدون کلید معتبر مقدارهای جدید بدون رمز ذخیره می‌شوند (هشدار در استارتاپ)
+            Persistence.Security.SensitiveDataProtector.Configure(configuration["Security:BankCardEncryptionKey"]);
 
             if (includeVapidKeys)
             {

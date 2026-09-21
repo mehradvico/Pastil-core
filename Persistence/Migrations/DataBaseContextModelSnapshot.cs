@@ -1378,6 +1378,38 @@ namespace Persistence.Migrations
                     b.ToTable("CompanionAssistancePackageOnlineSelections");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionAssistancePackageType", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CompanionAssistancePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CompanionAssistanceTypeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("PrePaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionAssistanceTypeId");
+
+                    b.HasIndex("CompanionAssistancePackageId", "CompanionAssistanceTypeId");
+
+                    b.ToTable("CompanionAssistancePackageTypes");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionAssistanceTime", b =>
                 {
                     b.Property<long>("Id")
@@ -2175,6 +2207,163 @@ namespace Persistence.Migrations
                     b.HasIndex("WeekDayId");
 
                     b.ToTable("CompanionTimes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ConsultationPackage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ChannelId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("CompanionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionId", "ChannelId", "DurationMinutes")
+                        .IsUnique()
+                        .HasFilter("[Deleted] = 0");
+
+                    b.ToTable("ConsultationPackages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ConsultationPurchase", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("AgentUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("CancelDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ChannelId")
+                        .HasColumnType("int");
+
+                    b.Property<long>("CompanionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("CompanionShare")
+                        .HasColumnType("float");
+
+                    b.Property<long>("ConsultationPackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("Discount")
+                        .HasColumnType("float");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExpireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("FromWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("OnlineSessionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("PaymentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("PaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<string>("PurchaseCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("RebateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RebatePrice")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("RefundDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("SiteShare")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("StartDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("WalletPrice")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentUserId");
+
+                    b.HasIndex("ConsultationPackageId");
+
+                    b.HasIndex("OnlineSessionId");
+
+                    b.HasIndex("PurchaseCode")
+                        .IsUnique()
+                        .HasFilter("[PurchaseCode] IS NOT NULL");
+
+                    b.HasIndex("RebateId");
+
+                    b.HasIndex("CompanionId", "Status");
+
+                    b.HasIndex("Status", "ExpireDate");
+
+                    b.HasIndex("Status", "StartDeadline");
+
+                    b.HasIndex("UserId", "Status");
+
+                    b.ToTable("ConsultationPurchases");
                 });
 
             modelBuilder.Entity("Entities.Entities.ContactUs", b =>
@@ -3681,6 +3870,91 @@ namespace Persistence.Migrations
                     b.HasIndex("PictureId");
 
                     b.ToTable("NotifyMessages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.OnlineSession", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("ChannelId")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("ConsultationPurchaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("InitiatorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TargetUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InitiatorUserId", "EndDate");
+
+                    b.HasIndex("TargetUserId", "EndDate");
+
+                    b.ToTable("OnlineSessions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.OnlineSessionMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Content")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DeliveredDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageThumbnailUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<long>("OnlineSessionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ReadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("SenderUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.HasIndex("OnlineSessionId", "Id");
+
+                    b.ToTable("OnlineSessionMessages");
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.Pansion", b =>
@@ -9248,6 +9522,10 @@ namespace Persistence.Migrations
                     b.Property<string>("CardNumber")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CardNumberHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -9266,6 +9544,8 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BankCardId");
+
+                    b.HasIndex("CardNumberHash");
 
                     b.HasIndex("UserId");
 
@@ -9619,6 +9899,9 @@ namespace Persistence.Migrations
                     b.Property<long?>("CompanionReserveId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ConsultationPurchaseId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
 
@@ -9668,6 +9951,10 @@ namespace Persistence.Migrations
                     b.HasIndex("CompanionReserveId")
                         .IsUnique()
                         .HasFilter("[CompanionReserveId] IS NOT NULL");
+
+                    b.HasIndex("ConsultationPurchaseId")
+                        .IsUnique()
+                        .HasFilter("[ConsultationPurchaseId] IS NOT NULL");
 
                     b.HasIndex("PansionReserveId")
                         .IsUnique()
@@ -10423,6 +10710,25 @@ namespace Persistence.Migrations
                     b.Navigation("CompanionAssistancePackageOnline");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionAssistancePackageType", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionAssistancePackage", "CompanionAssistancePackage")
+                        .WithMany("PackageTypes")
+                        .HasForeignKey("CompanionAssistancePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Code", "CompanionAssistanceType")
+                        .WithMany()
+                        .HasForeignKey("CompanionAssistanceTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CompanionAssistancePackage");
+
+                    b.Navigation("CompanionAssistanceType");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionAssistanceTime", b =>
                 {
                     b.HasOne("Entities.Entities.CompanionAssistance", "CompanionAssistance")
@@ -10860,6 +11166,65 @@ namespace Persistence.Migrations
                     b.Navigation("Companion");
 
                     b.Navigation("WeekDay");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ConsultationPackage", b =>
+                {
+                    b.HasOne("Entities.Entities.Companion", "Companion")
+                        .WithMany()
+                        .HasForeignKey("CompanionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Companion");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ConsultationPurchase", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "AgentUser")
+                        .WithMany()
+                        .HasForeignKey("AgentUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Companion", "Companion")
+                        .WithMany()
+                        .HasForeignKey("CompanionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ConsultationPackage", "ConsultationPackage")
+                        .WithMany()
+                        .HasForeignKey("ConsultationPackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.OnlineSession", "OnlineSession")
+                        .WithMany()
+                        .HasForeignKey("OnlineSessionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Rebate", "Rebate")
+                        .WithMany()
+                        .HasForeignKey("RebateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AgentUser");
+
+                    b.Navigation("Companion");
+
+                    b.Navigation("ConsultationPackage");
+
+                    b.Navigation("OnlineSession");
+
+                    b.Navigation("Rebate");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Entities.Entities.ContactUs", b =>
@@ -11428,6 +11793,44 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.OnlineSession", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "InitiatorUser")
+                        .WithMany()
+                        .HasForeignKey("InitiatorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "TargetUser")
+                        .WithMany()
+                        .HasForeignKey("TargetUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("InitiatorUser");
+
+                    b.Navigation("TargetUser");
+                });
+
+            modelBuilder.Entity("Entities.Entities.OnlineSessionMessage", b =>
+                {
+                    b.HasOne("Entities.Entities.OnlineSession", "OnlineSession")
+                        .WithMany("Messages")
+                        .HasForeignKey("OnlineSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "SenderUser")
+                        .WithMany()
+                        .HasForeignKey("SenderUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OnlineSession");
+
+                    b.Navigation("SenderUser");
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.Pansion", b =>
@@ -13859,6 +14262,11 @@ namespace Persistence.Migrations
                         .WithOne("Wallet")
                         .HasForeignKey("Entities.Entities.Wallet", "CompanionReserveId");
 
+                    b.HasOne("Entities.Entities.ConsultationPurchase", "ConsultationPurchase")
+                        .WithMany()
+                        .HasForeignKey("ConsultationPurchaseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.PansionField.PansionReserve", "PansionReserve")
                         .WithOne("Wallet")
                         .HasForeignKey("Entities.Entities.Wallet", "PansionReserveId");
@@ -13895,6 +14303,8 @@ namespace Persistence.Migrations
                     b.Navigation("CompanionInsurancePackageSale");
 
                     b.Navigation("CompanionReserve");
+
+                    b.Navigation("ConsultationPurchase");
 
                     b.Navigation("PansionReserve");
 
@@ -14203,6 +14613,8 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.CompanionAssistancePackage", b =>
                 {
                     b.Navigation("CompanionAssistancePackagePictures");
+
+                    b.Navigation("PackageTypes");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionInsurancePackageSale", b =>
@@ -14318,6 +14730,11 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.NoticeType", b =>
                 {
                     b.Navigation("Notices");
+                });
+
+            modelBuilder.Entity("Entities.Entities.OnlineSession", b =>
+                {
+                    b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.Pansion", b =>

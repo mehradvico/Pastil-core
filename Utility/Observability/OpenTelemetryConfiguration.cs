@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -66,6 +68,25 @@ public static class OpenTelemetryConfiguration
             if (endpoint is not null)
                 metrics.AddOtlpExporter(options => options.Endpoint = endpoint);
         });
+
+        // لاگ‌ها هم به OTLP می‌روند تا alert روی رویدادهای امنیتی (Security.Audit / Security.Alert) در Grafana/Loki ممکن باشد؛
+        // برای کم‌ماندن حجم فقط این دو category در سطح Information و بقیه از Warning به بالا export می‌شوند.
+        if (endpoint is not null)
+        {
+            services.AddLogging(logging =>
+            {
+                logging.AddOpenTelemetry(options =>
+                {
+                    options.IncludeFormattedMessage = true;
+                    options.ParseStateValues = true;
+                    options.IncludeScopes = false;
+                    options.AddOtlpExporter(exporter => exporter.Endpoint = endpoint);
+                });
+                logging.AddFilter<OpenTelemetryLoggerProvider>(null, LogLevel.Warning);
+                logging.AddFilter<OpenTelemetryLoggerProvider>("Security.Audit", LogLevel.Information);
+                logging.AddFilter<OpenTelemetryLoggerProvider>("Security.Alert", LogLevel.Information);
+            });
+        }
 
         return services;
     }

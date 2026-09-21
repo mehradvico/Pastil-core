@@ -64,6 +64,7 @@ namespace Persistence.Interface
         public DbSet<CompanionAssistance> CompanionAssistances { get; set; }
         public DbSet<CompanionAssistancePackage> CompanionAssistancePackages { get; set; }
         public DbSet<CompanionAssistancePackageOnline> CompanionAssistancePackageOnlines { get; set; }
+        public DbSet<CompanionAssistancePackageType> CompanionAssistancePackageTypes { get; set; }
         public DbSet<CompanionAssistancePackageOnlineSelection> CompanionAssistancePackageOnlineSelections { get; set; }
         public DbSet<CompanionAssistancePackagePicture> CompanionAssistancePackagePictures { get; set; }
         public DbSet<CompanionAssistanceReport> CompanionAssistanceReports { get; set; }
@@ -79,6 +80,10 @@ namespace Persistence.Interface
         public DbSet<CompanionReserveMessage> CompanionReserveMessages { get; set; }
         public DbSet<CompanionReserveMessageAttachment> CompanionReserveMessageAttachments { get; set; }
         public DbSet<CompanionReserveMessageReaction> CompanionReserveMessageReactions { get; set; }
+        public DbSet<OnlineSession> OnlineSessions { get; set; }
+        public DbSet<OnlineSessionMessage> OnlineSessionMessages { get; set; }
+        public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
+        public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
         public DbSet<CompanionReserveComment> CompanionReserveComments { get; set; }
         public DbSet<CompanionReserveCommentRate> CompanionReserveCommentRates { get; set; }

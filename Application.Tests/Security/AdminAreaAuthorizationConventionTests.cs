@@ -20,7 +20,7 @@ public class AdminAreaAuthorizationConventionTests
         new AdminAreaAuthorizationConvention().Apply(application);
 
         var filter = Assert.Single(controller.Filters.OfType<AuthorizeFilter>());
-        Assert.Equal(PolicyNames.AdminOnly, Assert.Single(filter.AuthorizeData).Policy);
+        Assert.Equal(PolicyNames.AdminArea, Assert.Single(filter.AuthorizeData).Policy);
     }
 
     [Fact]

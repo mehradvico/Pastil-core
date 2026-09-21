@@ -351,4 +351,16 @@
   <data name="CompanionReserveReports" xml:space="preserve">
     <value>گزارش رزرو های نماینده</value>
   </data>
+  <data name="ConsultationChannelChat" xml:space="preserve">
+    <value>چت</value>
+  </data>
+  <data name="ConsultationChannelInAppCall" xml:space="preserve">
+    <value>تماس درون‌برنامه‌ای</value>
+  </data>
+  <data name="ConsultationChannelVideoCall" xml:space="preserve">
+    <value>تماس تصویری</value>
+  </data>
+  <data name="ConsultationChannelPhone" xml:space="preserve">
+    <value>تماس تلفنی</value>
+  </data>
 </root>

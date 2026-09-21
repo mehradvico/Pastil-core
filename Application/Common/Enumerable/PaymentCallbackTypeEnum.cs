@@ -11,6 +11,7 @@
         PastilAI,
         Wallet,
         SchoolReserve,
-        CompanionReserveBatch
+        CompanionReserveBatch,
+        ConsultationPurchase
     }
 }

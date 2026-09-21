@@ -21,6 +21,10 @@ using Utility.Reflection.Iface;
 DotEnvLoader.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+// LOCKED (2026-09-20): این پروژه‌ی قدیمی (ZandShop.RealTime) در Pastil.sln، Docker و deploy نیست ولی داشبورد Hangfire بدون احراز هویت
+// و CORS باز (AllowAnyOrigin) دارد. خارج از Development اجازه‌ی اجرا ندارد؛ برای استفاده‌ی واقعی باید اول محافظت‌ها اضافه شود.
+if (!builder.Environment.IsDevelopment())
+    throw new InvalidOperationException("RealTime is a legacy project and is disabled outside Development. Use the Api service instead.");
 SecretConfiguration.Apply(builder.Configuration, "PASTIL_REALTIME_CONNECTION");
 
 builder.Services.AddOutputCache();
@@ -106,6 +110,7 @@ builder.Services.AddHangfireServer();
 var app = builder.Build();
 
 app.UseRequestLocalization();
+// داشبورد فقط برای درخواست‌های محلی (پیش‌فرض Hangfire)؛ اجرای غیر Development بالا رد می‌شود
 app.UseHangfireDashboard();
 
 if (app.Environment.IsDevelopment())

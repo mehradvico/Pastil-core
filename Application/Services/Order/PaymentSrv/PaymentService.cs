@@ -16,6 +16,7 @@ using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
 using Application.Services.SchoolSrvs.SchoolReserveSrv.Iface;
 using Application.Services.PastilAISrv.Iface;
+using Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
@@ -52,6 +53,7 @@ namespace Application.Services.Order.PaymentSrv
         private readonly IPansionReserveService _pansionReserve;
         private readonly ISchoolReserveService _schoolReserve;
         private readonly IPastilAiSubscriptionActivator _pastilAiSubscriptionActivator;
+        private readonly IConsultationPurchaseActivator _consultationPurchaseActivator;
         private readonly IRebateService _rebateService;
         private readonly IConfiguration _configuration;
         private readonly IPaymentTestModeService _paymentTestModeService;
@@ -73,6 +75,7 @@ namespace Application.Services.Order.PaymentSrv
             ICargoService cargoService,
             ICompanionInsurancePackageSaleService companionInsurance,
             IPastilAiSubscriptionActivator pastilAiSubscriptionActivator,
+            IConsultationPurchaseActivator consultationPurchaseActivator,
             IRebateService rebateService,
             IPaymentTestModeService paymentTestModeService,
             ICurrentUserHelper currentUserHelper,
@@ -94,6 +97,7 @@ namespace Application.Services.Order.PaymentSrv
             _pansionReserve = pansionReserve;
             _schoolReserve = schoolReserve;
             _pastilAiSubscriptionActivator = pastilAiSubscriptionActivator;
+            _consultationPurchaseActivator = consultationPurchaseActivator;
             _rebateService = rebateService;
             _paymentTestModeService = paymentTestModeService;
             _currentUserHelper = currentUserHelper;
@@ -580,6 +584,11 @@ namespace Application.Services.Order.PaymentSrv
                         .Where(item => item.Id == pansionReserveId)
                         .Select(item => item.ReserveCode)
                         .FirstOrDefaultAsync(),
+                nameof(PaymentCallbackTypeEnum.ConsultationPurchase) when long.TryParse(payment.CallBackId, out var consultationPurchaseRefId) =>
+                    await _context.ConsultationPurchases.AsNoTracking()
+                        .Where(item => item.Id == consultationPurchaseRefId)
+                        .Select(item => item.PurchaseCode)
+                        .FirstOrDefaultAsync(),
                 nameof(PaymentCallbackTypeEnum.SchoolReserve) when long.TryParse(payment.CallBackId, out var schoolReserveId) =>
                     await _context.SchoolReserves.AsNoTracking()
                         .Where(item => item.Id == schoolReserveId)
@@ -607,6 +616,12 @@ namespace Application.Services.Order.PaymentSrv
                 long.TryParse(payment.CallBackId, out var subscriptionId))
             {
                 await _pastilAiSubscriptionActivator.MarkPaymentFailedAsync(subscriptionId, payment.Id);
+            }
+
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ConsultationPurchase.ToString() &&
+                long.TryParse(payment.CallBackId, out var consultationPurchaseId))
+            {
+                await _consultationPurchaseActivator.MarkPaymentFailedAsync(consultationPurchaseId, payment.Id);
             }
 
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ProductOrder.ToString())
@@ -1300,6 +1315,22 @@ namespace Application.Services.Order.PaymentSrv
                     : new BaseResultDto(false, Resource.Notification.InvalidData);
             }
 
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ConsultationPurchase.ToString())
+            {
+                var item = await _context.ConsultationPurchases.AsNoTracking()
+                    .Where(s => s.Id == referenceId && s.UserId == payment.UserId)
+                    .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
+                    .FirstOrDefaultAsync();
+                return item != null && SnapshotMatches(
+                    payment,
+                    item.PaymentPrice + item.RebatePrice,
+                    item.RebatePrice,
+                    item.WalletPrice,
+                    item.PaymentPrice - item.WalletPrice)
+                    ? new BaseResultDto(true)
+                    : new BaseResultDto(false, Resource.Notification.InvalidData);
+            }
+
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.Trip.ToString())
             {
                 var item = await _context.Trips.AsNoTracking()
@@ -1420,6 +1451,11 @@ namespace Application.Services.Order.PaymentSrv
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.Insurance.ToString())
             {
                 return await _companionInsurance.CompanionInsurancePackageSalePaymentCallback(referenceId, useWallet);
+            }
+
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ConsultationPurchase.ToString())
+            {
+                return await _consultationPurchaseActivator.ActivateAfterPaymentAsync(referenceId, payment.Id);
             }
 
             return new BaseResultDto(false, Resource.Notification.InvalidData);
@@ -1600,6 +1636,7 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentCallbackTypeEnum.Cargo => PaymentTypeEnum.PaymentType_Cargo.ToString(),
                 PaymentCallbackTypeEnum.Insurance => PaymentTypeEnum.PaymentType_Insurance.ToString(),
                 PaymentCallbackTypeEnum.PastilAI => PaymentTypeEnum.PaymentType_PastilAI.ToString(),
+                PaymentCallbackTypeEnum.ConsultationPurchase => PaymentTypeEnum.PaymentType_ConsultationPurchase.ToString(),
                 PaymentCallbackTypeEnum.Wallet => PaymentTypeEnum.PaymentType_Wallet.ToString(),
                 _ => null
             };

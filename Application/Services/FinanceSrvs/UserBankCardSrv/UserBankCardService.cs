@@ -13,6 +13,7 @@ using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
+using Persistence.Security;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -116,13 +117,18 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
                     shebaToStore = "IR" + shebaRaw;
                 }
 
-                var duplicate = await _context.UserBankCards.AnyAsync(x => !x.Deleted && x.CardNumber == cardNumber);
+                // شماره کارت رمزشده ذخیره می‌شود و با رمزنگاری تصادفی نمی‌شود روی آن برابری زد؛ چک تکراری با شاخص کور (HMAC) انجام می‌شود.
+                var cardHash = SensitiveDataProtector.BlindIndex(cardNumber);
+                var duplicate = cardHash != null
+                    ? await _context.UserBankCards.AnyAsync(x => !x.Deleted && x.CardNumberHash == cardHash)
+                    : await _context.UserBankCards.AnyAsync(x => !x.Deleted && x.CardNumber == cardNumber);
 
                 if (duplicate)
                     return new BaseResultDto<UserBankCardDto>(isSuccess: false, val: Resource.Notification.DuplicateValue, data: dto);
 
                 var item = mapper.Map<UserBankCard>(dto);
                 item.CardNumber = cardNumber;
+                item.CardNumberHash = cardHash;
                 item.ShebaNumber = shebaToStore;
                 item.BankCardId = bankCard.Id;
 
@@ -183,6 +189,34 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
                     shebaToStore = "IR" + shebaRaw;
                 }
 
+                // شماره کارت: قبلاً مقدار خام بدنه بدون هیچ اعتبارسنجی روی رکورد می‌نشست (mapper.Map). حالا مثل ثبت اولیه
+                // نرمال/اعتبارسنجی می‌شود (۱۶ رقم، BIN، تکراری‌نبودن) و شاخص کورش هم به‌روز می‌شود.
+                var finalCardNumber = item.CardNumber;
+                var finalBankCardId = item.BankCardId;
+                if (!string.IsNullOrWhiteSpace(dto.CardNumber))
+                {
+                    var requestedCard = new string(dto.CardNumber.Where(char.IsDigit).ToArray());
+                    if (requestedCard.Length != 16)
+                        return new BaseResultDto(isSuccess: false, val: Resource.Notification.CartNumberMustBe16Digit);
+
+                    if (requestedCard != item.CardNumber)
+                    {
+                        var requestedBankCard = _context.BankCards.AsNoTracking().FirstOrDefault(x => x.CardPrefix == requestedCard.Substring(0, 6));
+                        if (requestedBankCard == null)
+                            return new BaseResultDto(isSuccess: false, val: Resource.Notification.BankCartIsNotAvailable);
+
+                        var requestedHash = SensitiveDataProtector.BlindIndex(requestedCard);
+                        var duplicateCard = requestedHash != null
+                            ? _context.UserBankCards.Any(x => !x.Deleted && x.Id != item.Id && x.CardNumberHash == requestedHash)
+                            : _context.UserBankCards.Any(x => !x.Deleted && x.Id != item.Id && x.CardNumber == requestedCard);
+                        if (duplicateCard)
+                            return new BaseResultDto(isSuccess: false, val: Resource.Notification.DuplicateValue);
+
+                        finalCardNumber = requestedCard;
+                        finalBankCardId = requestedBankCard.Id;
+                    }
+                }
+
                 var createDate = item.CreateDate;
                 var userId = item.UserId;
                 var deleted = item.Deleted;
@@ -193,6 +227,9 @@ namespace Application.Services.FinanceSrvs.UserBankCardSrv
                 item.CreateDate = createDate;
                 item.LastUpdateDate = DateTime.Now;
                 item.ShebaNumber = shebaToStore;
+                item.CardNumber = finalCardNumber;
+                item.BankCardId = finalBankCardId;
+                item.CardNumberHash = SensitiveDataProtector.BlindIndex(finalCardNumber);
                 item.Approved = false;
                 item.Deleted = deleted;
 

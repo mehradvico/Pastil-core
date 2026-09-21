@@ -452,10 +452,19 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     {
                         return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidData, dto);
                     }
-                    var packages = await _context.CompanionAssistancePackages.Where(p => dto.CompanionAssistancePackagesIds.Contains(p.Id) && p.CompanionAssistanceId == dto.CompanionAssistanceId && p.Active && !p.Deleted).ToListAsync();
+                    var packages = await _context.CompanionAssistancePackages.Include(p => p.PackageTypes).Where(p => dto.CompanionAssistancePackagesIds.Contains(p.Id) && p.CompanionAssistanceId == dto.CompanionAssistanceId && p.Active && !p.Deleted).ToListAsync();
                     if (packages.Count != dto.CompanionAssistancePackagesIds.Count)
                     {
                         return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.InvalidData, dto);
+                    }
+
+                    // قیمت هر پکیج از ردیف «نحوه ارائه»ی انتخابیِ کاربر می‌آید؛ پکیجی که این حالت را ارائه نمی‌دهد قابل رزرو نیست
+                    var quotes = packages
+                        .Select(p => Application.Services.CompanionSrv.CompanionAssistancePackageSrv.CompanionPackagePricing.Resolve(p.PackageTypes, p.Price, p.PrePaymentPrice, dto.CompanionAssistanceTypeId))
+                        .ToList();
+                    if (quotes.Any(q => !q.Offered))
+                    {
+                        return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.CompanionReserveAssistanceTypeNotBelongToService, dto);
                     }
 
                     var unPaidStatus = await _codeService.GetIdByLabelAsync(CompanionReserveStateEnum.CompanianReserveState_Registered.ToString());
@@ -485,9 +494,10 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
                     var petCount = dto.UserPetIds.Count;
 
-                    item.PackagePrice = packages.Sum(p => p.Price) * petCount;
-                    item.PrePaymentPrice = packages.Sum(p => p.PrePaymentPrice) * petCount;
-                    if (onlineSelection != null)
+                    item.PackagePrice = quotes.Sum(q => q.Price) * petCount;
+                    item.PrePaymentPrice = quotes.Sum(q => q.PrePaymentPrice) * petCount;
+                    // قیمت روش آنلاین فقط برای پکیج‌های قدیمی (بدون ردیف حالت) روی قیمت پکیج جمع می‌شود؛ در مدل جدید قیمت آنلاین همان قیمت حالت «آنلاین» پکیج است
+                    if (onlineSelection != null && !quotes.All(q => q.FromModeRow))
                     {
                         item.PackagePrice += onlineSelection.Price;
                         item.PrePaymentPrice += onlineSelection.Price;
@@ -1309,10 +1319,22 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 dto.UserPetIds = dto.UserPetIds.Distinct().ToList();
                 var petCount = dto.UserPetIds.Count;
                 var packages = item.CompanionAssistancePackages.ToList();
+                var packageTypes = await _context.CompanionAssistancePackageTypes
+                    .Where(t => packages.Select(p => p.Id).Contains(t.CompanionAssistancePackageId) && !t.Deleted)
+                    .ToListAsync();
+                var quotes = packages
+                    .Select(p =>
+                    {
+                        var quote = Application.Services.CompanionSrv.CompanionAssistancePackageSrv.CompanionPackagePricing.Resolve(
+                            packageTypes.Where(t => t.CompanionAssistancePackageId == p.Id), p.Price, p.PrePaymentPrice, item.CompanionAssistanceTypeId);
+                        // حالتی که بعد از ثبت رزرو از پکیج حذف شده نباید قیمت را صفر کند؛ به قیمت پایه‌ی پکیج برمی‌گردیم
+                        return quote.Offered ? quote : new Application.Services.CompanionSrv.CompanionAssistancePackageSrv.CompanionPackagePricing.Quote(true, p.Price, p.PrePaymentPrice, true);
+                    })
+                    .ToList();
 
-                item.PackagePrice = packages.Sum(p => p.Price) * petCount;
-                item.PrePaymentPrice = packages.Sum(p => p.PrePaymentPrice) * petCount;
-                if (item.CompanionAssistancePackageOnlineSelectionId.HasValue)
+                item.PackagePrice = quotes.Sum(q => q.Price) * petCount;
+                item.PrePaymentPrice = quotes.Sum(q => q.PrePaymentPrice) * petCount;
+                if (item.CompanionAssistancePackageOnlineSelectionId.HasValue && !quotes.All(q => q.FromModeRow))
                 {
                     var onlineSelectionPrice = await _context.CompanionAssistancePackageOnlineSelections
                         .Where(s => s.Id == item.CompanionAssistancePackageOnlineSelectionId.Value)

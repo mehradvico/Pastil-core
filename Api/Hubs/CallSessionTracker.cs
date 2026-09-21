@@ -8,7 +8,7 @@ namespace Api.Hubs
     /// </summary>
     public class CallSessionTracker
     {
-        public record WaitingCallInfo(long BookerId, string CallerName);
+        public record WaitingCallInfo(long BookerId, string CallerName, bool IsVideo = false);
 
         private readonly ConcurrentDictionary<long, ConcurrentDictionary<string, long>> _participantsByReserve = new();
 
@@ -17,7 +17,7 @@ namespace Api.Hubs
         // با باز کردن اپ هم بشود زنگ خوردن تماس را کشف کرد (نگاه کنید به CallPendingController).
         private readonly ConcurrentDictionary<long, WaitingCallInfo> _waitingByReserve = new();
 
-        public int Join(long reserveId, string connectionId, long userId, long? bookerId = null, string callerName = null)
+        public int Join(long reserveId, string connectionId, long userId, long? bookerId = null, string callerName = null, bool isVideo = false)
         {
             var group = _participantsByReserve.GetOrAdd(reserveId, _ => new ConcurrentDictionary<string, long>());
             group[connectionId] = userId;
@@ -25,7 +25,7 @@ namespace Api.Hubs
 
             if (count == 1 && bookerId.HasValue && userId != bookerId.Value)
             {
-                _waitingByReserve[reserveId] = new WaitingCallInfo(bookerId.Value, callerName);
+                _waitingByReserve[reserveId] = new WaitingCallInfo(bookerId.Value, callerName, isVideo);
             }
             else if (count > 1)
             {
@@ -56,13 +56,20 @@ namespace Api.Hubs
             return null;
         }
 
-        public (long ReserveId, string CallerName)? FindPendingCallForBooker(long bookerUserId)
+        // پایان اجباری تماس (پایان پنجره‌ی مشاوره): همه‌ی شرکت‌کنندگان از ردیاب حذف می‌شوند تا دیگر سیگنالی رله نشود
+        public void RemoveCall(long reserveId)
+        {
+            _participantsByReserve.TryRemove(reserveId, out _);
+            _waitingByReserve.TryRemove(reserveId, out _);
+        }
+
+        public (long ReserveId, string CallerName, bool IsVideo)? FindPendingCallForBooker(long bookerUserId)
         {
             foreach (var pair in _waitingByReserve)
             {
                 if (pair.Value.BookerId == bookerUserId)
                 {
-                    return (pair.Key, pair.Value.CallerName);
+                    return (pair.Key, pair.Value.CallerName, pair.Value.IsVideo);
                 }
             }
             return null;

@@ -230,12 +230,17 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 // پوش «شروع تماس درون‌برنامه‌ای» علاوه بر متن عادی، باید مثل زنگ تلفن واقعی رفتار کند:
                 // دکمه‌های پاسخ/رد روی خود نوتیفیکیشن (اندروید/دسکتاپ - iOS از اکشن نوتیفیکیشن پشتیبانی نمی‌کند)
                 // و requireInteraction تا با ورود پیام دیگری بلافاصله از صفحه ناپدید نشود.
-                if (pattern.PushTypeId == (long)PushTypeEnum.PushInAppCallStarted)
+                var isSessionVideoCall = pattern.PushTypeId == (long)PushTypeEnum.PushOnlineSessionVideoCallStarted;
+                var isSessionCall = pattern.PushTypeId == (long)PushTypeEnum.PushOnlineSessionCallStarted || isSessionVideoCall;
+                if (pattern.PushTypeId == (long)PushTypeEnum.PushInAppCallStarted || isSessionCall)
                 {
                     payloadDto.Type = "call";
                     payloadDto.RequireInteraction = true;
-                    payloadDto.ReserveId = notif.Token2;
+                    // تماس جلسه‌ی آنلاین (بدون رزرو) شناسه‌ی جلسه را در SessionId می‌فرستد، تماس رزرو در ReserveId
+                    if (isSessionCall) payloadDto.SessionId = notif.Token2;
+                    else payloadDto.ReserveId = notif.Token2;
                     payloadDto.CallerName = notif.Token1;
+                    if (isSessionVideoCall) payloadDto.IsVideo = true;
                     payloadDto.Actions = new List<PushActionDto>
                     {
                         new PushActionDto { Action = "answer", Title = "پاسخ" },
@@ -427,6 +432,8 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             public string Type { get; set; }
             public bool? RequireInteraction { get; set; }
             public string ReserveId { get; set; }
+            public string SessionId { get; set; }
+            public bool? IsVideo { get; set; }
             public string CallerName { get; set; }
             public List<PushActionDto> Actions { get; set; }
         }

@@ -61,6 +61,42 @@ namespace Resource {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ConsultationChannelChat.
+        /// </summary>
+        public static string ConsultationChannelChat {
+            get {
+                return ResourceManager.GetString("ConsultationChannelChat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ConsultationChannelInAppCall.
+        /// </summary>
+        public static string ConsultationChannelInAppCall {
+            get {
+                return ResourceManager.GetString("ConsultationChannelInAppCall", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ConsultationChannelVideoCall.
+        /// </summary>
+        public static string ConsultationChannelVideoCall {
+            get {
+                return ResourceManager.GetString("ConsultationChannelVideoCall", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to ConsultationChannelPhone.
+        /// </summary>
+        public static string ConsultationChannelPhone {
+            get {
+                return ResourceManager.GetString("ConsultationChannelPhone", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Active.
         /// </summary>
         public static string Active {

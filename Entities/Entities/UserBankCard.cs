@@ -13,6 +13,8 @@ namespace Entities.Entities
         public long UserId { get; set; }
         public string CardNumber { get; set; }
         public string ShebaNumber { get; set; }
+        /// <summary>شاخص کور (HMAC-SHA256 hex) شماره کارت برای چک تکراری‌بودن؛ خود CardNumber رمزشده ذخیره می‌شود.</summary>
+        public string CardNumberHash { get; set; }
         public long BankCardId { get; set; }
         public string CardHolderName { get; set; }
         public DateTime CreateDate { get; set; }

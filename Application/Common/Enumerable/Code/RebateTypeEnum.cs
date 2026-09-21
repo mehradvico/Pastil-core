@@ -15,6 +15,7 @@ namespace Application.Common.Enumerable.Code
         RebateType_InsurancePackageSale = 66,
         RebateType_PansionReserve = 67,
         RebateType_PastilAI = 68,
-        RebateType_SchoolReserve = 69
+        RebateType_SchoolReserve = 69,
+        RebateType_ConsultationPurchase = 70
     }
 }

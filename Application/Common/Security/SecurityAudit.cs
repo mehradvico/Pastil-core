@@ -22,11 +22,13 @@ namespace Application.Common.Security
 
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ISecurityAlertService _alerts;
 
-        public SecurityAudit(ILoggerFactory loggerFactory, IHttpContextAccessor httpContextAccessor)
+        public SecurityAudit(ILoggerFactory loggerFactory, IHttpContextAccessor httpContextAccessor, ISecurityAlertService alerts = null)
         {
             _logger = loggerFactory.CreateLogger(Category);
             _httpContextAccessor = httpContextAccessor;
+            _alerts = alerts;
         }
 
         public void Success(string eventName, long? userId = null, string subject = null, string detail = null) =>
@@ -54,6 +56,16 @@ namespace Application.Common.Security
                     context?.Request?.Method,
                     context?.Request?.Path.Value,
                     detail);
+
+                _alerts?.Observe(new SecurityEvent
+                {
+                    Name = eventName,
+                    IsFailure = outcome == "failure",
+                    UserId = userId,
+                    Ip = context?.Connection?.RemoteIpAddress?.ToString(),
+                    Detail = detail,
+                    Path = context?.Request?.Path.Value
+                });
             }
             catch
             {

@@ -142,16 +142,13 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 var item = mapper.Map<CompanionAssistance>(dto);
                 await _context.CompanionAssistances.AddAsync(item);
                 await _context.SaveChangesAsync();
-                if (dto.CompanionAssistanceTypeIds == null)
+                // نحوه ارائه (آنلاین/مرکز/در محل) حالا روی «پکیج» تعیین می‌شود و حالت‌های خدمت از پکیج‌های فعال مشتق می‌شود؛
+                // کلاینت قدیمی که هنوز حالت‌ها را روی خدمت می‌فرستد مثل قبل پذیرفته می‌شود، ولی دیگر الزامی نیست.
+                if (dto.CompanionAssistanceTypeIds != null && dto.CompanionAssistanceTypeIds.Any())
                 {
-                    dto.CompanionAssistanceTypeIds = new List<long>();
+                    dto.CompanionAssistanceTypeIds = dto.CompanionAssistanceTypeIds.Distinct().ToList();
+                    await _companionAssistanceTypeService.InsertOrUpdateAsync(item, dto.CompanionAssistanceTypeIds);
                 }
-                if (!dto.CompanionAssistanceTypeIds.Any())
-                {
-                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.SelectAtLeastOneType, dto);
-                }
-                dto.CompanionAssistanceTypeIds = dto.CompanionAssistanceTypeIds.Distinct().ToList();
-                await _companionAssistanceTypeService.InsertOrUpdateAsync(item, dto.CompanionAssistanceTypeIds);
                 await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceSubmitted, ReferenceType = "CompanionAssistance", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionId", item.CompanionId.ToString() } } });
                 return new BaseResultDto<CompanionAssistanceDto>(true, mapper.Map<CompanionAssistanceDto>(item));
             }
@@ -177,20 +174,19 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 {
                     item.Approved = dto.Approved;
                 }
-                if (dto.CompanionAssistanceTypeIds == null)
-                {
-                    dto.CompanionAssistanceTypeIds = new List<long>();
-                }
-                if (!dto.CompanionAssistanceTypeIds.Any())
-                {
-                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.SelectAtLeastOneType, dto);
-                }
                 item.CompanionTypeId = dto.CompanionTypeId;
-                await (_context as DbContext).Database.ExecuteSqlRawAsync("DELETE FROM CodeCompanionAssistance WHERE CompanionAssistancesId = {0}", item.Id);
+                // فهرست حالت‌ها خالی/null ⇒ حالت‌های فعلی خدمت دست‌نخورده می‌ماند (حالت‌ها را پکیج‌ها تعیین می‌کنند)؛
+                // فهرست غیرخالی (کلاینت قدیمی) مثل قبل جایگزین می‌کند
+                var replaceModes = dto.CompanionAssistanceTypeIds != null && dto.CompanionAssistanceTypeIds.Any();
+                if (replaceModes)
+                    await (_context as DbContext).Database.ExecuteSqlRawAsync("DELETE FROM CodeCompanionAssistance WHERE CompanionAssistancesId = {0}", item.Id);
                 _context.CompanionAssistances.Update(item);
                 await _context.SaveChangesAsync();
-                dto.CompanionAssistanceTypeIds = dto.CompanionAssistanceTypeIds.Distinct().ToList();
-                await _companionAssistanceTypeService.InsertOrUpdateAsync(item, dto.CompanionAssistanceTypeIds);
+                if (replaceModes)
+                {
+                    dto.CompanionAssistanceTypeIds = dto.CompanionAssistanceTypeIds.Distinct().ToList();
+                    await _companionAssistanceTypeService.InsertOrUpdateAsync(item, dto.CompanionAssistanceTypeIds);
+                }
                 await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionAssistanceUpdated, ReferenceType = "CompanionAssistance", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionAssistanceUpdated}:{item.Id}:{DateTime.UtcNow.Ticks}", Metadata = new Dictionary<string, string> { { "companionId", item.CompanionId.ToString() } } });
                 return new BaseResultDto<CompanionAssistanceDto>(true, mapper.Map<CompanionAssistanceDto>(item));
             }

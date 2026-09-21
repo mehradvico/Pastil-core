@@ -422,7 +422,7 @@ namespace Application.Services.UserSrv
             {
                 return new BaseResultDto(isSuccess: true);
             }
-            else if ((!string.IsNullOrEmpty(area)) && (area.ToLower().Equals("admin")) && !userToken.User.Role.Permissions.Any(s => s.Area.ToLower().Equals(area.ToLower()) && s.Controller.ToLower().Equals(controller.ToLower()) && s.Action.ToLower().Equals(action.ToLower())))
+            else if ((!string.IsNullOrEmpty(area)) && (area.ToLower().Equals("admin")) && !userToken.User.Role.Permissions.Any(s => !s.Deleted && s.Area.ToLower().Equals(area.ToLower()) && s.Controller.ToLower().Equals(controller.ToLower()) && s.Action.ToLower().Equals(action.ToLower())))
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.YouHaveNotPermission);
             else
             {

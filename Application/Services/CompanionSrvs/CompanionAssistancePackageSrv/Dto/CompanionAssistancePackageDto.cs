@@ -13,6 +13,8 @@ namespace Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto
         public long CompanionAssistanceId { get; set; }
         public string Discription { get; set; }
         public string PetSize { get; set; }
+        /// <summary>نحوه ارائه + قیمت هر حالت. خالی/null یعنی «بدون تغییر» (رفتار قدیمی با Price/PrePaymentPrice).</summary>
+        public System.Collections.Generic.List<CompanionAssistancePackageTypeDto> Types { get; set; }
 
         public CompanionAssistanceVDto CompanionAssistance { get; set; }
     }

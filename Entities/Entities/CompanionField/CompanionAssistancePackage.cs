@@ -23,5 +23,6 @@ namespace Entities.Entities
         public Picture Picture { get; set; }
         public ICollection<CompanionReserve> CompanionReserves { get; set; }
         public ICollection<CompanionAssistancePackagePicture> CompanionAssistancePackagePictures { get; set; }
+        public ICollection<CompanionAssistancePackageType> PackageTypes { get; set; }
     }
 }

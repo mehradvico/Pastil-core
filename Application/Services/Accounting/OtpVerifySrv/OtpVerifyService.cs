@@ -62,7 +62,7 @@ namespace Application.Services.Accounting.OtpVerifySrv
                         return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, messages: errors, dto);
                     }
                     var item = await _context.OtpVerifies.FirstOrDefaultAsync(s => (string.IsNullOrEmpty(dto.Mobile) == false && s.Mobile == dto.Mobile) || (string.IsNullOrEmpty(dto.Email) == false && s.Email == dto.Email));
-                    var newCode = GenerateHelper.RandomDigit();
+                    var newCode = GenerateHelper.RandomDigit(GenerateHelper.OtpLength);
 
                     if (item != null)
                     {
@@ -102,6 +102,7 @@ namespace Application.Services.Accounting.OtpVerifySrv
                     }
                     //dto.Code = newCode;
                     await _messageSenderService.SendMessageAsync(messageType: dto.Type, mobileReceptor: dto.Mobile, emailReceptor: dto.Email, token1: newCode);
+                    dto.CodeLength = GenerateHelper.OtpLength;
                     return new BaseResultDto<OtpVerifyVDto>(isSuccess: true, dto);
                 }
             }
@@ -162,7 +163,7 @@ namespace Application.Services.Accounting.OtpVerifySrv
                         }
                         if (item.Code != dto.Code || item.UpdateDate < DateTime.Now.AddMinutes(-3))
                         {
-                            item.Code = GenerateHelper.RandomDigit();
+                            item.Code = GenerateHelper.RandomDigit(GenerateHelper.OtpLength);
                             item.UpdateDate = DateTime.Now;
                             item.Verify = false;
                             item.TryCount++;
