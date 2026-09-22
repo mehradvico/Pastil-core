@@ -644,6 +644,8 @@ public static class ConfigureServices
         services.AddScoped<IPastilAiCompletionRouter, PastilAiCompletionRouter>();
         services.AddScoped<IAiProductMatchGeminiClient, AiProductMatchGeminiClient>();
         services.AddScoped<IAiProductMatchService, AiProductMatchService>();
+        services.AddScoped<Application.Services.ProductSrvs.ProductImageEnhanceSrv.Iface.IProductImageEnhanceService,
+            Application.Services.ProductSrvs.ProductImageEnhanceSrv.ProductImageEnhanceService>();
         services.AddHttpClient<IAiProductMatchFileClient, AiProductMatchFileClient>();
         // Singleton عمدی: وضعیت Jobهای async باید بین درخواست‌های HTTP مختلف (شروع و پول کردن) مشترک بماند.
         services.AddSingleton<IAiProductMatchJobStore, AiProductMatchJobStore>();

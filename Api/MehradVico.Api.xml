@@ -9035,6 +9035,18 @@
             جستجو
             </summary>
         </member>
+        <member name="T:Api.Areas.Seller.Controllers.ProductImageController">
+            <summary>
+            پردازش تصویر محصول قبل از آپلود — فعلاً فقط سفیدسازی پس‌زمینه با هوش مصنوعی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ProductImageController.Enhance(Microsoft.AspNetCore.Http.IFormFile,System.String)">
+            <summary>
+            تصویر خام محصول را به تصویر کاتالوگی (پس‌زمینه‌ی سفید، بوم مربع، حاشیه‌ی یکسان) تبدیل می‌کند.
+            پاسخ موفق بدنه‌ی خودِ تصویر است (image/png)، نه JSON. هیچ تصویری ذخیره نمی‌شود؛
+            آپلود نهایی همان مسیر همیشگی MissingProduct/{id}/picture است.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Seller.Controllers.ProductItemController">
              <summary>
              مدیریت فروشگاه ها

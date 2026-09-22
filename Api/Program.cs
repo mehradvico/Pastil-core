@@ -326,6 +326,8 @@ builder.Services.Configure<PastilAiProviderOptions>(
     builder.Configuration.GetSection(PastilAiProviderOptions.SectionName));
 builder.Services.Configure<AiProductMatchOptions>(
     builder.Configuration.GetSection(AiProductMatchOptions.SectionName));
+builder.Services.Configure<Application.Services.ProductSrvs.ProductImageEnhanceSrv.ProductImageEnhanceOptions>(
+    builder.Configuration.GetSection(Application.Services.ProductSrvs.ProductImageEnhanceSrv.ProductImageEnhanceOptions.SectionName));
 builder.Services.Configure<Application.Services.CommonSrv.SearchSrv.SearchHybridOptions>(
     builder.Configuration.GetSection(Application.Services.CommonSrv.SearchSrv.SearchHybridOptions.SectionName));
 builder.Services.AddScoped<INoticeRealtimePublisher, NoticeRealtimePublisher>();
