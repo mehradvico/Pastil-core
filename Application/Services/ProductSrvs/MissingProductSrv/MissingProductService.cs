@@ -49,8 +49,6 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
         private const string MsgTooManyPictures = "حداکثر ۵ تصویر برای هر محصول مجاز است؛ یکی را حذف کنید.";
         private const string MsgPictureNotFound = "این تصویر برای درخواست پیدا نشد.";
 
-        private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
-
         private readonly IDataBaseContext _context;
         private readonly IProductService _productService;
         private readonly IProductItemService _productItemService;
@@ -243,7 +241,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
             if (entity.Pictures.Count >= MaxPicturesPerRequest)
                 return Fail<MissingProductDto>(MsgTooManyPictures);
 
-            if (!await IsAcceptableImageAsync(image, cancellationToken))
+            if (!await ImageContentValidator.IsAcceptableAsync(image, MaxImageBytes, cancellationToken))
                 return Fail<MissingProductDto>(MsgPictureRejected);
 
             var (ok, pictureId, error) = await _fileClient.UploadAsync(image, authorizationHeaderValue, cancellationToken);
@@ -656,28 +654,6 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
         }
 
         // بررسی واقعی محتوا (نه فقط پسوند): امضای بایت‌های ابتدای فایل باید jpg/png/webp باشد
-        private static async Task<bool> IsAcceptableImageAsync(IFormFile image, CancellationToken cancellationToken)
-        {
-            if (image == null || image.Length <= 0 || image.Length > MaxImageBytes)
-                return false;
-
-            var extension = System.IO.Path.GetExtension(image.FileName)?.ToLowerInvariant();
-            if (string.IsNullOrEmpty(extension) || !AllowedImageExtensions.Contains(extension))
-                return false;
-
-            var header = new byte[12];
-            await using var stream = image.OpenReadStream();
-            var read = await stream.ReadAtLeastAsync(header, 12, throwOnEndOfStream: false, cancellationToken);
-            if (read < 12)
-                return false;
-
-            var isJpeg = header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF;
-            var isPng = header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47;
-            var isWebp = header[0] == 'R' && header[1] == 'I' && header[2] == 'F' && header[3] == 'F'
-                         && header[8] == 'W' && header[9] == 'E' && header[10] == 'B' && header[11] == 'P';
-            return isJpeg || isPng || isWebp;
-        }
-
         private static bool IsDuplicateKey(DbUpdateException exception)
             => exception.InnerException is SqlException { Number: 2601 or 2627 };
 
