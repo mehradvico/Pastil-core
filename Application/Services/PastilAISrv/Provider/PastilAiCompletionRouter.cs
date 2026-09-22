@@ -51,6 +51,11 @@ namespace Application.Services.PastilAISrv.Provider
                 .ThenBy(x => x.Provider.Order)
                 .ToList();
 
+            // ارائه‌دهنده‌ای که تازه با خطای پایدار (اعتبار/کلید/مدل/timeout) شکست خورده مدتی کنار می‌ماند؛ اگر همه کنار رفته بودند، همه امتحان می‌شوند
+            var healthy = providers.Where(x => !PastilAiProviderCooldown.IsCoolingDown(x.Provider.Name)).ToList();
+            if (healthy.Count > 0)
+                providers = healthy;
+
             var attemptOrder = 0;
 
             foreach (var candidate in providers)
@@ -124,8 +129,12 @@ namespace Application.Services.PastilAISrv.Provider
                 });
 
                 if (!response.IsSuccess)
+                {
+                    PastilAiProviderCooldown.MarkFailed(provider.Name, response.HttpStatusCode, response.ErrorCode);
                     continue;
+                }
 
+                PastilAiProviderCooldown.MarkSucceeded(provider.Name);
                 routed.Provider = provider.Name;
                 routed.Response = response;
 

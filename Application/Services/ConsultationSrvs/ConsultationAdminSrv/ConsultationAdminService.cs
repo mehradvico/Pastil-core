@@ -2,6 +2,9 @@ using Application.Common.Dto.Result;
 using Application.Common.Helpers;
 using Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto;
 using Application.Services.ConsultationSrvs.ConsultationAdminSrv.Iface;
+using Application.Services.ConsultationSrvs.ConsultationPackageSrv;
+using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto;
+using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Iface;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
@@ -16,12 +19,15 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
     public class ConsultationAdminService : IConsultationAdminService
     {
         private const int MaxPageSize = 100;
+        private const int MaxClinics = 200;
 
         private readonly IDataBaseContext _context;
+        private readonly IConsultationPackageService _packageService;
 
-        public ConsultationAdminService(IDataBaseContext context)
+        public ConsultationAdminService(IDataBaseContext context, IConsultationPackageService packageService)
         {
             _context = context;
+            _packageService = packageService;
         }
 
         public async Task<BaseResultDto<ConsultationPurchaseAdminSearchDto>> SearchPurchasesAsync(ConsultationPurchaseAdminInputDto dto)
@@ -103,32 +109,46 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
             }
         }
 
-        public async Task<BaseResultDto<List<ConsultationClinicAdminVDto>>> GetClinicsAsync()
+        public async Task<BaseResultDto<List<ConsultationClinicAdminVDto>>> GetClinicsAsync(string q)
         {
             try
             {
-                var clinics = await _context.ConsultationPackages.AsNoTracking()
-                    .Where(s => !s.Deleted && s.Active && !s.Companion.Deleted)
-                    .GroupBy(s => new { s.CompanionId, s.Companion.Name })
-                    .Select(g => new ConsultationClinicAdminVDto
-                    {
-                        CompanionId = g.Key.CompanionId,
-                        CompanionName = g.Key.Name,
-                        ActivePackages = g.Count(),
-                        MinPrice = g.Min(x => x.Price),
-                        MaxPrice = g.Max(x => x.Price)
-                    })
-                    .OrderBy(s => s.CompanionName)
+                var companions = _context.Companions.AsNoTracking().Where(c => !c.Deleted && c.Active && c.Approved);
+                if (!string.IsNullOrWhiteSpace(q))
+                {
+                    var term = q.Trim();
+                    companions = companions.Where(c => c.Name.Contains(term));
+                }
+
+                var clinics = await companions
+                    .OrderBy(c => c.Name)
+                    .Take(MaxClinics)
+                    .Select(c => new ConsultationClinicAdminVDto { CompanionId = c.Id, CompanionName = c.Name })
                     .ToListAsync();
 
+                var ids = clinics.Select(c => c.CompanionId).ToList();
+                var packages = await _context.ConsultationPackages.AsNoTracking()
+                    .Where(s => ids.Contains(s.CompanionId) && !s.Deleted && s.Active)
+                    .Select(s => new { s.CompanionId, s.Price })
+                    .ToListAsync();
                 var counts = await _context.ConsultationPurchases.AsNoTracking()
+                    .Where(s => ids.Contains(s.CompanionId))
                     .GroupBy(s => s.CompanionId)
                     .Select(g => new { CompanionId = g.Key, Count = g.Count() })
                     .ToDictionaryAsync(x => x.CompanionId, x => x.Count);
-                foreach (var c in clinics)
-                    c.PurchasesCount = counts.TryGetValue(c.CompanionId, out var n) ? n : 0;
 
-                return new BaseResultDto<List<ConsultationClinicAdminVDto>>(true, clinics);
+                foreach (var c in clinics)
+                {
+                    var mine = packages.Where(p => p.CompanionId == c.CompanionId).ToList();
+                    c.ActivePackages = mine.Count;
+                    c.MinPrice = mine.Count > 0 ? mine.Min(p => p.Price) : 0;
+                    c.MaxPrice = mine.Count > 0 ? mine.Max(p => p.Price) : 0;
+                    c.PurchasesCount = counts.TryGetValue(c.CompanionId, out var n) ? n : 0;
+                }
+
+                // کلینیک‌های دارای بسته‌ی فعال اول
+                return new BaseResultDto<List<ConsultationClinicAdminVDto>>(true,
+                    clinics.OrderByDescending(c => c.ActivePackages).ThenBy(c => c.CompanionName).ToList());
             }
             catch (Exception ex)
             {
@@ -140,27 +160,59 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
         {
             try
             {
-                var rows = await _context.ConsultationPackages.AsNoTracking()
-                    .Where(s => s.CompanionId == companionId && !s.Deleted)
-                    .OrderBy(s => s.ChannelId).ThenBy(s => s.DurationMinutes)
-                    .Select(s => new ConsultationPackageAdminVDto
-                    {
-                        Id = s.Id,
-                        CompanionId = s.CompanionId,
-                        CompanionName = s.Companion.Name,
-                        ChannelId = s.ChannelId,
-                        DurationMinutes = s.DurationMinutes,
-                        Price = s.Price,
-                        Active = s.Active
-                    })
-                    .ToListAsync();
-                return new BaseResultDto<List<ConsultationPackageAdminVDto>>(true, rows);
+                var name = await _context.Companions.AsNoTracking()
+                    .Where(c => c.Id == companionId && !c.Deleted)
+                    .Select(c => c.Name)
+                    .FirstOrDefaultAsync();
+                if (name == null)
+                    return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, Resource.Notification.NothingFound, null);
+
+                var matrix = await _packageService.GetMatrixAsync(companionId);
+                if (!matrix.IsSuccess)
+                    return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, Resource.Notification.Unsuccess, null);
+                return new BaseResultDto<List<ConsultationPackageAdminVDto>>(true, ToAdminList(matrix.Data, companionId, name));
             }
             catch (Exception ex)
             {
                 return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, ExceptionResultHelper.ToClientMessage(ex), null);
             }
         }
+
+        public async Task<BaseResultDto<List<ConsultationPackageAdminVDto>>> SaveClinicPackagesAsync(long companionId, ConsultationPackageSaveDto dto)
+        {
+            try
+            {
+                var name = await _context.Companions.AsNoTracking()
+                    .Where(c => c.Id == companionId && !c.Deleted)
+                    .Select(c => c.Name)
+                    .FirstOrDefaultAsync();
+                if (name == null)
+                    return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, Resource.Notification.NothingFound, null);
+
+                // اعتبارسنجی و upsert همان سرویس نماینده است (قیمت ≥ ۰؛ فعال فقط با قیمت > ۰؛ مدت فقط ۳۰/۶۰)
+                var saved = await _packageService.SaveMatrixAsync(companionId, dto);
+                if (!saved.IsSuccess)
+                    return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, saved.Messages, null);
+                return new BaseResultDto<List<ConsultationPackageAdminVDto>>(true, ToAdminList(saved.Data, companionId, name));
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, ExceptionResultHelper.ToClientMessage(ex), null);
+            }
+        }
+
+        private static List<ConsultationPackageAdminVDto> ToAdminList(IEnumerable<ConsultationPackageItemDto> items, long companionId, string name) =>
+            items.OrderBy(i => i.ChannelId).ThenBy(i => i.DurationMinutes)
+                .Select(i => new ConsultationPackageAdminVDto
+                {
+                    Id = i.Id,
+                    CompanionId = companionId,
+                    CompanionName = name,
+                    ChannelId = i.ChannelId,
+                    DurationMinutes = i.DurationMinutes,
+                    Price = i.Price,
+                    Active = i.Active
+                }).ToList();
 
         private sealed class Row
         {

@@ -38,6 +38,10 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var reserve = await _schoolReserveService.FindAsyncVDto(id);
+            var companionId = _currentUser.CurrentUser.CompanionId;
+            if (!reserve.IsSuccess || !companionId.HasValue ||
+                reserve.Data?.SchoolCourse?.School?.CompanionId != companionId.Value)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(reserve);
         }
     }

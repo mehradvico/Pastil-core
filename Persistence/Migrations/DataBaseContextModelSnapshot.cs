@@ -1766,6 +1766,30 @@ namespace Persistence.Migrations
                     b.ToTable("CompanionUsers");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionField.CompanionUserExpertise", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CompanionUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ExpertiseId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpertiseId");
+
+                    b.HasIndex("CompanionUserId", "ExpertiseId")
+                        .IsUnique();
+
+                    b.ToTable("CompanionUserExpertises");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionZone", b =>
                 {
                     b.Property<long>("Id")
@@ -2314,6 +2338,9 @@ namespace Persistence.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
 
+                    b.Property<int?>("Rate")
+                        .HasColumnType("int");
+
                     b.Property<long?>("RebateId")
                         .HasColumnType("bigint");
 
@@ -2321,6 +2348,12 @@ namespace Persistence.Migrations
                         .HasColumnType("float");
 
                     b.Property<DateTime?>("RefundDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReviewText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReviewedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<double>("SiteShare")
@@ -10940,6 +10973,25 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionField.CompanionUserExpertise", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionField.CompanionUser", "CompanionUser")
+                        .WithMany("Expertises")
+                        .HasForeignKey("CompanionUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionField.Expertise", "Expertise")
+                        .WithMany()
+                        .HasForeignKey("ExpertiseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CompanionUser");
+
+                    b.Navigation("Expertise");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionZone", b =>
                 {
                     b.HasOne("Entities.Entities.LocationField.City", "City")
@@ -14620,6 +14672,11 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionInsurancePackageSale", b =>
                 {
                     b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionField.CompanionUser", b =>
+                {
+                    b.Navigation("Expertises");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionField.Expertise", b =>

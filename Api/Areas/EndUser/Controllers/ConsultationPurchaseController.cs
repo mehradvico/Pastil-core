@@ -57,5 +57,11 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Cancel(long id)
             => Ok(await _service.CancelAsync(_currentUserHelper.CurrentUser.UserId, id));
+
+        /// <summary>ثبت نظر کاربر (فقط برای مشاوره‌ی تکمیل‌شده‌ی خودش، فقط یک‌بار)</summary>
+        [HttpPut("{id}/Review")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Review(long id, [FromBody] ConsultationPurchaseReviewDto dto)
+            => Ok(await _service.ReviewAsync(_currentUserHelper.CurrentUser.UserId, id, dto));
     }
 }

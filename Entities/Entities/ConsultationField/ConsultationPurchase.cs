@@ -46,6 +46,11 @@ namespace Entities.Entities
         public string CancelReason { get; set; }
         public DateTime? RefundDate { get; set; }
 
+        // ---- نظر کاربر (فقط بعد از Status=Completed، یک‌بار)
+        public int? Rate { get; set; }
+        public string ReviewText { get; set; }
+        public DateTime? ReviewedAt { get; set; }
+
         public DateTime CreateDate { get; set; }
 
         public User User { get; set; }

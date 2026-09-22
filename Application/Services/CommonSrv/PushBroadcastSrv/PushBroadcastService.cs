@@ -79,9 +79,21 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
 
             var subsQuery = _context.Set<Entities.Entities.PushSubscription>().Include(x => x.User).Where(x => x.IsActive);
 
-            subsQuery = msg.UserId.HasValue
-                ? subsQuery.Where(x => x.UserId == msg.UserId.Value)
-                : ApplyTypeFilter(subsQuery, (PushMessageTypeEnum)msg.PushMessageTypeId);
+            if (msg.UserId.HasValue)
+            {
+                subsQuery = subsQuery.Where(x => x.UserId == msg.UserId.Value);
+            }
+            else
+            {
+                // مخاطب از «Label» کد نوع پیام تشخیص داده می‌شود (نه شناسه‌ی عددی)؛ نوع ناشناخته هرگز به «همه» تبدیل نمی‌شود
+                var audience = await ResolveAudienceAsync(msg.PushMessageTypeId);
+                if (audience == null)
+                {
+                    _logger.LogWarning("Push message {MessageId} has an unknown audience type {TypeId}; nothing was sent.", msg.Id, msg.PushMessageTypeId);
+                    return new BaseResultDto(false, Resource.Notification.InvalidData);
+                }
+                subsQuery = ApplyTypeFilter(subsQuery, audience.Value);
+            }
 
             var subs = await subsQuery.AsTracking().ToListAsync();
 
@@ -138,33 +150,59 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
             return $"{fileBaseUrl}{(path.StartsWith("/") ? path : "/" + path)}";
         }
 
-        private static IQueryable<Entities.Entities.PushSubscription> ApplyTypeFilter(IQueryable<Entities.Entities.PushSubscription> query, PushMessageTypeEnum type)
+        // شناسه‌ی Code در دیتابیس لزوماً برابر مقدار enum نیست؛ اول Label (مثل PushMessageType_Companion) خوانده می‌شود
+        private async Task<PushMessageTypeEnum?> ResolveAudienceAsync(long typeId)
         {
+            var label = await _context.Codes.AsNoTracking().Where(c => c.Id == typeId).Select(c => c.Label).FirstOrDefaultAsync();
+            if (!string.IsNullOrWhiteSpace(label) && Enum.TryParse<PushMessageTypeEnum>(label, out var byLabel) && Enum.IsDefined(byLabel))
+                return byLabel;
+            return null;
+        }
+
+        // «نقش» واقعی کاربر از روی رابطه‌هایش تعیین می‌شود: کاربران همیشه با RoleId=مشتری ساخته می‌شوند و نماینده/فروشنده
+        // بودن با مالکیت کلینیک/فروشگاه یا عضویت در آن‌هاست، نه با RoleId. (RoleId هم برای نقش‌های دستی حفظ شده است.)
+        private IQueryable<Entities.Entities.PushSubscription> ApplyTypeFilter(IQueryable<Entities.Entities.PushSubscription> query, PushMessageTypeEnum type)
+        {
+            var companionOwners = _context.Companions.Where(c => !c.Deleted).Select(c => c.OwnerId);
+            var companionStaff = _context.CompanionUsers.Where(u => u.Active && !u.Deleted).Select(u => u.UserId);
+            var pansionOwners = _context.Pansions.Where(p => p.Active).Select(p => p.Companion.OwnerId);
+
             switch (type)
             {
                 case PushMessageTypeEnum.PushMessageType_All:
                     return query;
 
                 case PushMessageTypeEnum.PushMessageType_Admin:
-                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Admin);
-
-                case PushMessageTypeEnum.PushMessageType_Companion:
-                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Companion);
-
-                case PushMessageTypeEnum.PushMessageType_Store:
-                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Store);
+                    return query.Where(x => x.UserId != null && x.User.RoleId == (long)RoleEnum.Admin);
 
                 case PushMessageTypeEnum.PushMessageType_Operator:
-                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Operator);
+                    return query.Where(x => x.UserId != null && x.User.RoleId == (long)RoleEnum.Operator);
 
-                case PushMessageTypeEnum.PushMessageType_EndUser:
-                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Customer);
+                case PushMessageTypeEnum.PushMessageType_Companion:
+                    return query.Where(x => x.UserId != null && (
+                        x.User.RoleId == (long)RoleEnum.Companion ||
+                        companionOwners.Contains(x.UserId.Value) ||
+                        companionStaff.Contains(x.UserId.Value)));
 
                 case PushMessageTypeEnum.PushMessageType_Pansion:
-                    return query.Where(x => x.UserId != null && x.User != null && x.User.RoleId == (long)RoleEnum.Companion);
+                    return query.Where(x => x.UserId != null && pansionOwners.Contains(x.UserId.Value));
+
+                case PushMessageTypeEnum.PushMessageType_Store:
+                    return query.Where(x => x.UserId != null && (
+                        x.User.RoleId == (long)RoleEnum.Store ||
+                        x.User.Stores.Any(s => s.Active && !s.Deleted)));
+
+                case PushMessageTypeEnum.PushMessageType_EndUser:
+                    // فقط مشتری‌های معمولی: نه ادمین/اپراتور، نه نماینده/کارمند کلینیک، نه فروشنده
+                    return query.Where(x => x.UserId != null &&
+                        x.User.RoleId == (long)RoleEnum.Customer &&
+                        !companionOwners.Contains(x.UserId.Value) &&
+                        !companionStaff.Contains(x.UserId.Value) &&
+                        !x.User.Stores.Any(s => s.Active && !s.Deleted));
 
                 default:
-                    return query;
+                    // نوع ناشناخته: هیچ‌کس (fail-closed)؛ قبلاً همه را برمی‌گرداند
+                    return query.Where(x => false);
             }
         }
 

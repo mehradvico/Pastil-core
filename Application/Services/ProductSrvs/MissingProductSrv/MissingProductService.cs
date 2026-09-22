@@ -422,6 +422,11 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
             if (dto.BrandId.HasValue && !await _context.Brands.AnyAsync(x => x.Id == dto.BrandId.Value))
                 return Fail<MissingProductApproveResultDto>("برند انتخاب‌شده معتبر نیست.");
 
+            if (dto.PictureId.HasValue && !await _context.Pictures.AnyAsync(x => x.Id == dto.PictureId.Value))
+                return Fail<MissingProductApproveResultDto>(MsgInvalid);
+            if (dto.Price is < 0 || dto.Quantity is < 0)
+                return Fail<MissingProductApproveResultDto>(MsgInvalid);
+
             var entity = await _context.MissingProducts.AsTracking().FirstOrDefaultAsync(x => x.Id == dto.Id);
             if (entity == null)
                 return Fail<MissingProductApproveResultDto>(MsgNotFound, 3);
@@ -453,7 +458,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
                 Description = string.IsNullOrWhiteSpace(dto.Description) ? entity.Description : dto.Description.Trim(),
                 CategoryId = dto.CategoryId,
                 BrandId = dto.BrandId,
-                PictureId = entity.PictureId,
+                PictureId = dto.PictureId ?? entity.PictureId,
                 StatusId = (long)ProductStatusEnum.ProductStatus_Available,
                 TypeId = (long)ProductTypeEnum.ProductType_Product,
                 Active = true,
@@ -498,7 +503,9 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
 
             // محصول همان لحظه به فروشگاه درخواست‌دهنده هم اضافه می‌شود (اگر قیمت داده بود)؛ شکستش تأیید را باطل نمی‌کند
             long? productItemId = null;
-            if (entity.Price is > 0)
+            var itemPrice = dto.Price ?? entity.Price;
+            var itemQuantity = dto.Quantity ?? entity.Quantity;
+            if (itemPrice is > 0)
             {
                 try
                 {
@@ -508,7 +515,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
                         ProductId = productId,
                         ProductItems = new List<ProductItemDto>
                         {
-                            new() { BasePrice = entity.Price.Value, Quantity = entity.Quantity ?? 0, Active = true, Warranty = "" }
+                            new() { BasePrice = itemPrice.Value, Quantity = itemQuantity ?? 0, Active = true, Warranty = "" }
                         }
                     });
 

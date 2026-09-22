@@ -14,8 +14,12 @@ namespace Application.Services.CompanionSrvs.CompanionUserSrv.Dto
         public string Phone { get; set; }
         public long UserId { get; set; }
         public bool Active { get; set; }
+        // تخصص اصلی (اولین مورد ExpertiseIds)؛ برای سازگاری با اپ‌های قدیمی نگه داشته شده
         public long? ExpertiseId { get; set; }
         public ExpertiseVDto Expertise { get; set; }
+        // چند تخصص/عنوان شغلی؛ در ورودی اگر خالی باشد ExpertiseId تکی استفاده می‌شود
+        public System.Collections.Generic.List<long> ExpertiseIds { get; set; } = new();
+        public System.Collections.Generic.List<ExpertiseVDto> Expertises { get; set; } = new();
         public CompanionVDto Companion { get; set; }
         public UserMinVDto User { get; set; }
 

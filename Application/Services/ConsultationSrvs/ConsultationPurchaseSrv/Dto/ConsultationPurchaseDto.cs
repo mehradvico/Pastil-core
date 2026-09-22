@@ -35,5 +35,14 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto
         public DateTime? RefundDate { get; set; }
         // ساعت سرور هنگام پاسخ؛ کلاینت شمارش معکوس را با آن هم‌گام می‌کند (نه ساعت دستگاه)
         public DateTime ServerNow { get; set; }
+        public int? Rate { get; set; }
+        public string ReviewText { get; set; }
+        public DateTime? ReviewedAt { get; set; }
+    }
+
+    public class ConsultationPurchaseReviewDto
+    {
+        public int Rate { get; set; }
+        public string Text { get; set; }
     }
 }

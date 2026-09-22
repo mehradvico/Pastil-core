@@ -8,6 +8,9 @@ namespace Application.Tests.PastilAI;
 
 public class PastilAiCompletionRouterTests
 {
+    // هر تست با حالت تازه‌ی cooldown شروع می‌شود (cooldown استاتیک است)
+    public PastilAiCompletionRouterTests() => Application.Services.PastilAISrv.Provider.PastilAiProviderCooldown.Clear();
+
     [Fact]
     public async Task Falls_back_to_next_provider_after_http_failure()
     {

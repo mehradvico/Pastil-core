@@ -258,6 +258,34 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             }
         }
 
+        public async Task<BaseResultDto> ReviewAsync(long userId, long id, Dto.ConsultationPurchaseReviewDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.Rate < 1 || dto.Rate > 5)
+                    return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+                // گذار اتمی: فقط برای مشاوره‌ی «تکمیل‌شده»‌ای که هنوز نظری برایش ثبت نشده - هر کاربر فقط یک‌بار نظر می‌دهد
+                var affected = await _context.ConsultationPurchases
+                    .Where(s => s.Id == id && s.UserId == userId &&
+                                s.Status == (int)ConsultationPurchaseStatusEnum.Completed &&
+                                s.ReviewedAt == null)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(s => s.Rate, dto.Rate)
+                        .SetProperty(s => s.ReviewText, (dto.Text ?? string.Empty).Trim())
+                        .SetProperty(s => s.ReviewedAt, (DateTime?)DateTime.Now));
+
+                if (affected == 0)
+                    return new BaseResultDto(false, Resource.Notification.CompanionReserveCommentOnlyForOwnCompletedReserve);
+
+                return new BaseResultDto(true, Resource.Notification.Success);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
+            }
+        }
+
         public async Task<int> ExpireOverdueAsync()
         {
             var now = DateTime.Now;
@@ -381,7 +409,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             OnlineSessionId = s.OnlineSessionId,
             CancelDate = s.CancelDate,
             RefundDate = s.RefundDate,
-            ServerNow = now
+            ServerNow = now,
+            Rate = s.Rate,
+            ReviewText = s.ReviewText,
+            ReviewedAt = s.ReviewedAt
         };
     }
 }

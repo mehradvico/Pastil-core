@@ -361,6 +361,7 @@ namespace Application.Maping
             CreateMap<CompanionAssistanceUser, CompanionAssistanceUserVDto>();
             CreateMap<CompanionReserve, CompanionReserveCancelDto>().ReverseMap();
             CreateMap<CompanionReserve, CompanionReserveOperatorDto>().ReverseMap();
+            CreateMap<CompanionReserve, CompanionReserveUserResponseDto>();
             CreateMap<CompanionReserveDto, CompanionReserve>()
                 .ForMember(x => x.ReserveCode, y => y.Ignore())
                 .ForMember(x => x.FromWallet, y => y.Ignore()).ForMember(x => x.WalletPrice, y => y.Ignore()).ForMember(x => x.Wallet, y => y.Ignore())
@@ -380,9 +381,23 @@ namespace Application.Maping
             CreateMap<CompanionReserveComment, CompanionReserveCommentVDto>();
             CreateMap<CompanionReserveCommentRate, CompanionReserveCommentRateDto>().ReverseMap();
             CreateMap<CompanionReserveCommentRate, CompanionReserveCommentRateVDto>();
-            CreateMap<CompanionUser, CompanionUserVDto>();
-            CreateMap<CompanionUser, CompanionUserDto>();
-            CreateMap<CompanionUserDto, CompanionUser>().ForMember(x => x.Companion, y => y.Ignore()).ForMember(x => x.User, y => y.Ignore()).ForMember(x => x.UserId, y => y.Ignore());
+            // چند تخصص: از جدول CompanionUserExpertises؛ ردیف قدیمی بدون جدول → همان ExpertiseId تکی
+            CreateMap<CompanionUser, CompanionUserVDto>()
+                .ForMember(x => x.ExpertiseIds, o => o.MapFrom(s => s.Expertises != null && s.Expertises.Any()
+                    ? s.Expertises.Select(e => e.ExpertiseId).ToList()
+                    : (s.ExpertiseId.HasValue ? new List<long> { s.ExpertiseId.Value } : new List<long>())))
+                .ForMember(x => x.Expertises, o => o.MapFrom(s => s.Expertises != null && s.Expertises.Any()
+                    ? s.Expertises.Where(e => e.Expertise != null).Select(e => e.Expertise).ToList()
+                    : (s.Expertise != null ? new List<Expertise> { s.Expertise } : new List<Expertise>())));
+            CreateMap<CompanionUser, CompanionUserDto>()
+                .ForMember(x => x.ExpertiseIds, o => o.MapFrom(s => s.Expertises != null && s.Expertises.Any()
+                    ? s.Expertises.Select(e => e.ExpertiseId).ToList()
+                    : (s.ExpertiseId.HasValue ? new List<long> { s.ExpertiseId.Value } : new List<long>())))
+                .ForMember(x => x.Expertises, o => o.MapFrom(s => s.Expertises != null && s.Expertises.Any()
+                    ? s.Expertises.Where(e => e.Expertise != null).Select(e => e.Expertise).ToList()
+                    : (s.Expertise != null ? new List<Expertise> { s.Expertise } : new List<Expertise>())));
+            CreateMap<CompanionUserDto, CompanionUser>().ForMember(x => x.Companion, y => y.Ignore()).ForMember(x => x.User, y => y.Ignore()).ForMember(x => x.UserId, y => y.Ignore())
+                .ForMember(x => x.Expertises, y => y.Ignore()).ForMember(x => x.Expertise, y => y.Ignore());
             CreateMap<CompanionReportDto, CompanionReport>().ForMember(x => x.User, y => y.Ignore()).ForMember(x => x.Companion, y => y.Ignore());
             CreateMap<CompanionReport, CompanionReportDto>();
             CreateMap<CompanionReport, CompanionReportVDto>();

@@ -1505,13 +1505,16 @@
             <summary>
             بسته‌های مشاوره آنلاین
             </summary>
-            <remarks>فقط خواندن؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
+            <remarks>مشاهده و ویرایش بسته‌های هر کلینیک؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Get">
-            <summary>کلینیک‌های دارای بسته‌ی فعال + بازه‌ی قیمت + تعداد خرید</summary>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Get(System.String)">
+            <summary>فهرست کلینیک‌ها با تعداد بسته‌ی فعال و بازه‌ی قیمت</summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Get(System.Int64)">
             <summary>ماتریس بسته‌های یک کلینیک</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Put(System.Int64,Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageSaveDto)">
+            <summary>ویرایش بسته‌های یک کلینیک</summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ConsultationPurchaseController">
             <summary>
@@ -7177,6 +7180,9 @@
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.ConsultationPurchaseController.Cancel(System.Int64)">
             <summary>لغو قبل از شروع نماینده + بازپرداخت کامل به کیف پول</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ConsultationPurchaseController.Review(System.Int64,Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto.ConsultationPurchaseReviewDto)">
+            <summary>ثبت نظر کاربر (فقط برای مشاوره‌ی تکمیل‌شده‌ی خودش، فقط یک‌بار)</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CurrentUserController">
              <summary>

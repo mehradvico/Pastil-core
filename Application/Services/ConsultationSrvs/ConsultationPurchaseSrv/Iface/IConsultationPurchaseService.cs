@@ -16,6 +16,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface
         // لغو توسط کاربر (فقط پرداخت‌شده و شروع‌نشده) + بازپرداخت کامل به کیف پول
         Task<BaseResultDto> CancelAsync(long userId, long id);
 
+        // ثبت نظر کاربر (فقط برای مشاوره‌ی «تکمیل‌شده»‌ی خودش، فقط یک‌بار)
+        Task<BaseResultDto> ReviewAsync(long userId, long id, ConsultationPurchaseReviewDto dto);
+
         // لغو خودکار خریدهای پرداخت‌شده‌ای که نماینده تا مهلت شروع نکرده (job زمان‌بندی‌شده) + بازپرداخت؛ تعداد را برمی‌گرداند
         Task<int> ExpireOverdueAsync();
     }

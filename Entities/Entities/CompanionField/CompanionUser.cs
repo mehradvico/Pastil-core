@@ -15,5 +15,6 @@ namespace Entities.Entities.CompanionField
         public Companion Companion { get; set; }
         public User User { get; set; }
         public Expertise Expertise { get; set; }
+        public System.Collections.Generic.ICollection<CompanionUserExpertise> Expertises { get; set; }
     }
 }

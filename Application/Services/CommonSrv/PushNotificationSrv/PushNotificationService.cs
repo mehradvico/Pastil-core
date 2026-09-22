@@ -201,7 +201,6 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             notif.IsSend = true;
             notif.AttemptCount++;
             notif.NextAttemptDate = null;
-            _context.PushNotifications.Update(notif);
             await _context.SaveChangesAsync();
 
             try
@@ -245,6 +244,17 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                     {
                         new PushActionDto { Action = "answer", Title = "پاسخ" },
                         new PushActionDto { Action = "decline", Title = "رد تماس" }
+                    };
+                }
+
+                // پوش «اپراتور خدمت را کامل کرد»: کاربر باید بتواند مستقیم روی خود پوش تأیید کند، بدون باز کردن اپ و
+                // پیدا کردن رزرو. کلیک روی این دکمه در service-worker به‌جای باز کردن ساده‌ی صفحه، همان لحظه با
+                // ?confirm=1 صفحه‌ی جزئیات رزرو را باز می‌کند و آن صفحه خودش تأیید را به سرور می‌فرستد (بند notificationclick در sw.js).
+                if (pattern.PushTypeId == (long)PushTypeEnum.PushCompleteReserveUser)
+                {
+                    payloadDto.Actions = new List<PushActionDto>
+                    {
+                        new PushActionDto { Action = "confirmReserve", Title = "بله تایید می‌کنم" }
                     };
                 }
 
@@ -319,7 +329,6 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                     notif.Status = true;
                     notif.StatusText = "OK";
                     notif.NextAttemptDate = null;
-                    _context.PushNotifications.Update(notif);
                     await _context.SaveChangesAsync();
                 }
                 else if (transientFailures > 0 && notif.AttemptCount < MaxAttemptCount)
@@ -393,7 +402,6 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             notif.SentDate = null;
             notif.NextAttemptDate = DateTime.Now.AddMinutes(5 * notif.AttemptCount);
 
-            _context.PushNotifications.Update(notif);
             await _context.SaveChangesAsync();
         }
 
@@ -405,7 +413,6 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             notif.IsSend = true;
             notif.NextAttemptDate = null;
 
-            _context.PushNotifications.Update(notif);
             await _context.SaveChangesAsync();
         }
 

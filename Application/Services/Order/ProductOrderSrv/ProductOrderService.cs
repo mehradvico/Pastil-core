@@ -369,9 +369,9 @@ namespace Application.Services.Order.ProductOrderSrv
             }
             var orderUrl = productOrder.Id;
 
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token3: orderUrl);
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id);
-            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: productOrder.UserId, token1: nameText, token2: productOrder.Id.ToString());
+            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.OrderCode, token3: orderUrl);
+            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.OrderCode);
+            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: productOrder.UserId, token1: nameText, token2: productOrder.OrderCode);
             var orderId = long.Parse(productOrder.Id);
             await _notificationService.CreateAsync(new NoticeCreateDto
             {
@@ -388,7 +388,7 @@ namespace Application.Services.Order.ProductOrderSrv
                 var store = productOrderStore.Store;
                 if (store != null)
                 {
-                    await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.StoreRegisterOrder, mobileReceptor: store.Mobile, emailReceptor: store.Email, token1: nameText, token2: productOrder.Id);
+                    await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.StoreRegisterOrder, mobileReceptor: store.Mobile, emailReceptor: store.Email, token1: nameText, token2: productOrder.OrderCode);
                 }
             }
             return new BaseResultDto(true);
@@ -450,7 +450,7 @@ namespace Application.Services.Order.ProductOrderSrv
             }
             if (dto.ProductOrderStatusId == statusSend)
             {
-                await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSentOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
+                await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSentOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.OrderCode);
             }
             _context.ProductOrders.Update(item);
             await _context.SaveChangesAsync();
@@ -460,7 +460,7 @@ namespace Application.Services.Order.ProductOrderSrv
                 item.IsPaid)
                 await _clubPointIntegrationService.ProductOrderCompletedAsync(item.UserId, item.Id);
 
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderChangeStatus, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: item.User.FirstName, token2: item.Id);
+            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderChangeStatus, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: item.User.FirstName, token2: item.OrderCode);
             return new BaseResultDto(true);
         }
         public async Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto)
@@ -498,7 +498,7 @@ namespace Application.Services.Order.ProductOrderSrv
                     {
                         string nameText = string.Format("{0}_{1}", productOrder.User.FirstName, productOrder.User.LastName).Replace(" ", "_");
                         string trackingText = string.Format(Resource.Pattern.ProductOrderTrakingCode, productOrder.DeliveryType.Name, productOrder.TrackingCode);
-                        await _messageSenderService.SendMessageAsync(messageType: Common.Enumerable.Message.MessageTypeEnum.TrackingCode, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.Id, token5: trackingText, sendDate: DateTime.Now);
+                        await _messageSenderService.SendMessageAsync(messageType: Common.Enumerable.Message.MessageTypeEnum.TrackingCode, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.OrderCode, token5: trackingText, sendDate: DateTime.Now);
                     }
                 }
             }
@@ -573,7 +573,7 @@ namespace Application.Services.Order.ProductOrderSrv
                     item.UserDescription = productOrder.UserDescription;
                     _context.ProductOrders.Update(item);
                     _context.SaveChanges();
-                    await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderCancelRequest, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: item.User.Email, token1: productOrder.Id);
+                    await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderCancelRequest, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: item.User.Email, token1: item.OrderCode);
 
                     return new BaseResultDto(true);
                 }
@@ -599,7 +599,7 @@ namespace Application.Services.Order.ProductOrderSrv
                     await _shipmentService.CancelForOrderAsync(item.Id);
                 }
 
-                await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderCancelAnswer, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: productOrder.Id);
+                await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderCancelAnswer, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: item.OrderCode);
                 return new BaseResultDto(true);
             }
             return new BaseResultDto(false, val: Resource.Notification.InvalidData);

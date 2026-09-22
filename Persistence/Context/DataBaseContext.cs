@@ -220,6 +220,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<CompanionReserveCommentRate> CompanionReserveCommentRates { get; set; }
         public DbSet<CompanionType> CompanionTypes { get; set; }
         public DbSet<CompanionUser> CompanionUsers { get; set; }
+        public DbSet<CompanionUserExpertise> CompanionUserExpertises { get; set; }
         public DbSet<CompanionZone> CompanionZones { get; set; }
         public DbSet<ContactUs> ContactUses { get; set; }
         public DbSet<ContactUsGroup> ContactUsGroups { get; set; }
@@ -1224,6 +1225,13 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 .WithMany(x => x.CompanionUsers)
                 .HasForeignKey(x => x.ExpertiseId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CompanionUserExpertise>(entity =>
+            {
+                entity.HasOne(x => x.CompanionUser).WithMany(x => x.Expertises).HasForeignKey(x => x.CompanionUserId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.Expertise).WithMany().HasForeignKey(x => x.ExpertiseId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => new { x.CompanionUserId, x.ExpertiseId }).IsUnique();
+            });
 
             modelBuilder.Entity<PostComment>().ToTable("PostComments");
             modelBuilder.Entity<ProductComment>().ToTable("ProductComments");

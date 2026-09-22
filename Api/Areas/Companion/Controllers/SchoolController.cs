@@ -68,6 +68,19 @@ namespace Api.Areas.Companion.Controllers
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
 
             dto.CompanionId = _currentUser.CurrentUser.CompanionId.Value;
+
+            // UpdateDto عمومی همه‌ی فیلدهای DTO را روی موجودیت می‌نویسد؛ فیلدهای تأیید/نمایش/امتیاز فقط با
+            // ادمین یا سیستم عوض می‌شوند (Approve/ApprovalValue با SchoolApprove، Active با SchoolActive،
+            // ShowToSite/Suggested با ادمین). همیشه مقدار ذخیره‌شده برگردانده می‌شود.
+            dto.Approve = existing.Data.Approve;
+            dto.ApprovalValue = existing.Data.ApprovalValue;
+            dto.Active = existing.Data.Active;
+            dto.ShowToSite = existing.Data.ShowToSite;
+            dto.Suggested = existing.Data.Suggested;
+            dto.CommentCount = existing.Data.CommentCount;
+            dto.RateAvg = existing.Data.RateAvg;
+            dto.RateCount = existing.Data.RateCount;
+
             var result = _schoolService.UpdateDto(dto);
             return Ok(result);
         }

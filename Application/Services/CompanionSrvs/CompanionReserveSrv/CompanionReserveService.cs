@@ -1701,7 +1701,11 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 item.OperatorStateId = dto.OperatorStateId;
                 item.OperatorDetail = dto.OperatorDetail?.Trim();
                 item.OperatorChangeStateDate = DateTime.Now;
-                item.UserResponse = true;
+                // «کامل‌شده» واقعاً منتظر تأیید صریح کاربر می‌ماند (پیامک/پوش «بله تایید می‌کنم» ⇒
+                // PUT /api/EndUser/CompanionReserveUserResponse)؛ «لغوشده» چیزی برای تأیید کاربر ندارد.
+                item.UserResponse = dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Cancelled
+                    ? true
+                    : null;
                 item.StateId = paidStateId.Value;
                 item.OperatorWagesPrice = dto.OperatorWagesPrice;
                 item.OperatorStuffPrice = dto.OperatorStuffPrice;
@@ -1766,11 +1770,14 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 ? PushTypeEnum.PushCancelReserveUser
                 : PushTypeEnum.PushCompleteReserveUser;
             await RunPostCommitActionAsync(
+                // token3 = شناسه‌ی رزرو: هم برای لینک صفحه‌ی جزئیات (به‌جای فهرست کلی) و هم برای دکمه‌ی
+                // «بله تایید می‌کنم» روی پوش «کار انجام شد» لازم است (PushNotificationService.SendSingleAsync)
                 () => _pushNotificationService.SendPushAsync(
                     pushType,
                     item.Booker.Id,
                     token1: item.Booker.FirstName,
-                    token2: item.CompanionAssistance.Assistance.Name),
+                    token2: item.CompanionAssistance.Assistance.Name,
+                    token3: item.Id.ToString()),
                 item.Id,
                 "operator state push");
 

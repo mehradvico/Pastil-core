@@ -233,7 +233,17 @@ namespace Application.Services.UserSrv
                             !companionUser.Expertise.Deleted)
                         .OrderByDescending(companionUser => companionUser.UserAccept == true)
                         .ThenByDescending(companionUser => companionUser.Id)
-                        .Select(companionUser => companionUser.Expertise.Name)
+                        .Select(companionUser => new
+                        {
+                            Primary = companionUser.Expertise.Name,
+                            All = companionUser.Expertises
+                                .Where(e => e.Expertise.Active && !e.Expertise.Deleted)
+                                .OrderBy(e => e.Id)
+                                .Select(e => e.Expertise.Name)
+                                .ToList()
+                        })
+                        .AsEnumerable()
+                        .Select(x => JoinExpertiseNames(x.Primary, x.All))
                         .FirstOrDefault();
 
                     var canSetExpertise = CanHaveExpertise(item.Id);
@@ -1263,15 +1273,27 @@ namespace Application.Services.UserSrv
                     !companionUser.Expertise.Deleted)
                 .OrderByDescending(companionUser => companionUser.UserAccept == true)
                 .ThenByDescending(companionUser => companionUser.Id)
-                .Select(companionUser => companionUser.Expertise.Name)
+                .Select(companionUser => new
+                {
+                    Primary = companionUser.Expertise.Name,
+                    All = companionUser.Expertises
+                        .Where(e => e.Expertise.Active && !e.Expertise.Deleted)
+                        .OrderBy(e => e.Id)
+                        .Select(e => e.Expertise.Name)
+                        .ToList()
+                })
                 .FirstOrDefaultAsync();
 
-            if (!string.IsNullOrWhiteSpace(assignedExpertise))
-                return assignedExpertise;
+            var assignedText = assignedExpertise == null ? null : JoinExpertiseNames(assignedExpertise.Primary, assignedExpertise.All);
+            if (!string.IsNullOrWhiteSpace(assignedText))
+                return assignedText;
 
             return await CanHaveExpertiseAsync(userId)
                 ? storedExpertise
                 : null;
         }
+        // «دامپزشک عمومی، متخصص پوست»: همه‌ی تخصص‌های عضو تیم؛ اگر جدول چندتخصصی خالی بود همان تخصص اصلی
+        private static string JoinExpertiseNames(string primary, System.Collections.Generic.List<string> all)
+            => all != null && all.Count > 0 ? string.Join("، ", all) : primary;
     }
 }

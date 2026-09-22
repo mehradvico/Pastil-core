@@ -125,6 +125,13 @@ namespace Application.Services.ProductSrvs.MissingProductSrv.Dto
         public string SecondName { get; set; }
         public string Summary { get; set; }
         public string Description { get; set; }
+
+        // ویرایش ادمین قبل از تأیید (خالی = همان مقدار درخواست فروشنده)
+        // تصویر اصلی جایگزین (شناسه‌ی تصویر آپلودشده)
+        public long? PictureId { get; set; }
+        // قیمت/موجودی آیتم فروشگاه درخواست‌دهنده
+        public long? Price { get; set; }
+        public int? Quantity { get; set; }
     }
 
     public class MissingProductApproveResultDto

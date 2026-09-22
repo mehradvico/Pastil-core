@@ -80,7 +80,10 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
                         reserve.BookerId == currentUserId &&
                         reserve.IsReserved &&
                         !reserve.IsCancel &&
-                        reserve.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete);
+                        // خدمت آنلاین (چت/تماس با نماینده) با پایان زمان مشاوره تمام‌شده حساب می‌شود؛
+                        // برخلاف خدمت حضوری، اپراتور برای آن مرحله‌ی جدای «کامل کردن» را طی نمی‌کند.
+                        (reserve.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete ||
+                         (reserve.CompanionAssistancePackageOnlineSelectionId != null && reserve.CallEndDate.HasValue)));
                 if (reserve == null)
                 {
                     return new BaseResultDto<CompanionReserveCommentDto>(
@@ -195,6 +198,8 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
                 .Include(s => s.User).AsQueryable();
             if (searchDto.CompanionReserveId.HasValue)
                 query = query.Where(s => s.CompanionReserveId == searchDto.CompanionReserveId);
+            if (searchDto.CompanionId.HasValue)
+                query = query.Where(s => s.CompanionReserve.CompanionAssistance.CompanionId == searchDto.CompanionId);
             if (searchDto.UserId.HasValue)
                 query = query.Where(s => s.UserId == searchDto.UserId);
             if (searchDto.AllStatus == false)

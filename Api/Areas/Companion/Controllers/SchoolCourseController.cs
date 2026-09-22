@@ -60,6 +60,9 @@ namespace Api.Areas.Companion.Controllers
         {
             if (!await OwnsSchoolAsync(dto.SchoolId))
                 return Forbid();
+            // کمیسیون را نماینده تعیین نمی‌کند: دوره‌ی جدید با کمیسیون پیش‌فرض ۰ ساخته می‌شود و فقط ادمین تغییرش می‌دهد
+            dto.Id = 0;
+            dto.CommissionPercent = 0;
             var result = await _schoolCourseService.InsertAsyncDto(dto);
             return Ok(result);
         }
@@ -68,8 +71,14 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(SchoolCourseDto dto)
         {
-            if (!await OwnsSchoolAsync(dto.SchoolId))
-                return Forbid();
+            // مالکیت روی دوره‌ی ذخیره‌شده بررسی می‌شود، نه SchoolId بدنه (وگرنه با SchoolId خودش می‌شد دوره‌ی دیگری را ویرایش/منتقل کرد)
+            var existing = await _schoolCourseService.FindAsyncVDto(dto.Id);
+            if (!existing.IsSuccess || existing.Data == null || !await OwnsSchoolAsync(existing.Data.SchoolId))
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
+
+            dto.SchoolId = existing.Data.SchoolId;
+            // کمیسیون فقط ادمین؛ مقدار ذخیره‌شده حفظ می‌شود
+            dto.CommissionPercent = existing.Data.CommissionPercent;
             var result = _schoolCourseService.UpdateDto(dto);
             return Ok(result);
         }
