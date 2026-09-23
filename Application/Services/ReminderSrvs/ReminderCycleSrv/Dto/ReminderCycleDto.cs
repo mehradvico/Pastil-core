@@ -1,11 +1,5 @@
-﻿using Application.Common.Dto.Field;
-using Entities.Entities.CommonField;
-using System;
-using System.Collections.Generic;
+using Application.Common.Dto.Field;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Services.ReminderSrvs.ReminderCycleSrv.Dto
 {
@@ -13,5 +7,9 @@ namespace Application.Services.ReminderSrvs.ReminderCycleSrv.Dto
     {
         [Range(1, int.MaxValue)]
         public int Cycle { get; set; }
+
+        /// <summary>Application.Common.Enumerable.ReminderCycleUnitEnum: 1=روز، 2=هفته، 3=ماه.</summary>
+        [Range(1, 3)]
+        public int UnitId { get; set; } = (int)Application.Common.Enumerable.ReminderCycleUnitEnum.Month;
     }
 }

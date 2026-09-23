@@ -79,6 +79,8 @@ namespace Application.Common.Enumerable.Code
         PushConsultationPurchasedAgent = 71,
         PushConsultationPurchasedUser = 72,
         PushConsultationEndingSoon = 73,
-        PushConsultationExpiredRefund = 74
+        PushConsultationExpiredRefund = 74,
+        /// <summary>یادآور با چرخه‌ی روزانه/هفتگی: دقیقاً روز نوبت (بدون یادآوری چند روز قبل/بعد مثل چرخه‌ی ماهانه).</summary>
+        PushReminderToday = 75
     }
 }

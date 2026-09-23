@@ -10,5 +10,6 @@ namespace Application.Services.ReminderSrvs.ReminderCycleSrv.Dto
     public class ReminderCycleVDto : Name_FieldDto
     {
         public int Cycle { get; set; }
+        public int UnitId { get; set; }
     }
 }

@@ -2494,6 +2494,15 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Reminder Today Text.
+        /// </summary>
+        public static string ReminderTodayText {
+            get {
+                return ResourceManager.GetString("ReminderTodayText", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Memory Not Found.
         /// </summary>
         public static string MemoryNotFound {

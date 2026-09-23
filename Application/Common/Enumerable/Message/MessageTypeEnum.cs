@@ -47,6 +47,8 @@
         PansionReserveForUser,
         PansionReserveForPansion,
         PansionReserveForAdmin,
-        PansionReserveCancelForAdmin
+        PansionReserveCancelForAdmin,
+        // اضافه‌شده به انتهای enum عمداً؛ این enum به‌صورت ordinal تلویحی است و مقادیر قبلی نباید جابه‌جا شوند.
+        UserReminderToday
     }
 }

@@ -252,6 +252,7 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
                         var moment = ReminderScheduleCalculator.Resolve(
                             reminder.StartDate,
                             reminder.ReminderCycle.Cycle,
+                            (Application.Common.Enumerable.ReminderCycleUnitEnum)reminder.ReminderCycle.UnitId,
                             today);
 
                         await SendReminderAsync(reminder, moment, today);
@@ -290,6 +291,10 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
                     PushTypeEnum.PushReminderOneDayAfter,
                     MessageTypeEnum.UserReminderTomorrow,
                     Resource.Notification.ReminderYesterdayText),
+                ReminderNotificationMoment.OnTheDay => new ReminderNotification(
+                    PushTypeEnum.PushReminderToday,
+                    MessageTypeEnum.UserReminderToday,
+                    Resource.Notification.ReminderTodayText),
                 _ => null
             };
 

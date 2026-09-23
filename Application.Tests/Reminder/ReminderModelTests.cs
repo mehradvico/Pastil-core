@@ -39,6 +39,32 @@ namespace Application.Tests.Reminder
             Assert.Equal("[Cycle] > 0", constraint.Sql);
         }
 
+        [Fact]
+        public void ReminderCycle_UnitId_IsRestrictedToDayWeekMonthAndDefaultsToMonth()
+        {
+            using var context = CreateContext();
+            var model = context.GetService<IDesignTimeModel>().Model;
+            var entity = model.FindEntityType(typeof(ReminderCycle));
+
+            var constraint = entity!.GetCheckConstraints().Single(item => item.Name == "CK_ReminderCycle_Unit");
+            Assert.Equal("[UnitId] IN (1, 2, 3)", constraint.Sql);
+
+            var unitProperty = entity.FindProperty(nameof(ReminderCycle.UnitId));
+            Assert.Equal(3, unitProperty!.GetDefaultValue()); // 3 = ReminderCycleUnitEnum.Month — چرخه‌های قدیمی همیشه ماهانه بودند
+        }
+
+        [Theory]
+        [InlineData(Application.Common.Enumerable.ReminderCycleUnitEnum.Day, 1)]
+        [InlineData(Application.Common.Enumerable.ReminderCycleUnitEnum.Week, 2)]
+        [InlineData(Application.Common.Enumerable.ReminderCycleUnitEnum.Month, 3)]
+        public void ReminderCycleUnitEnum_ValuesMatchTheDatabaseCheckConstraint(
+            Application.Common.Enumerable.ReminderCycleUnitEnum unit,
+            int expected)
+        {
+            // این مقادیر باید دقیقاً با CK_ReminderCycle_Unit ([UnitId] IN (1, 2, 3)) و مقدار DEFAULT (3) یکی بمانند
+            Assert.Equal(expected, (int)unit);
+        }
+
         private static DataBaseContext CreateContext()
         {
             var options = new DbContextOptionsBuilder<DataBaseContext>()

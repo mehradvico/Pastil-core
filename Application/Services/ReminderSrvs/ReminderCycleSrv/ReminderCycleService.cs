@@ -69,15 +69,19 @@ namespace Application.Services.ReminderSrvs.ReminderCycleSrv
             return new ReminderCycleSearchDto(baseSearchDto, model, mapper);
         }
 
+        private static bool IsValidUnit(int unitId) =>
+            System.Enum.IsDefined(typeof(Application.Common.Enumerable.ReminderCycleUnitEnum), unitId);
+
         public override async Task<BaseResultDto<ReminderCycleDto>> InsertAsyncDto(ReminderCycleDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Name) || dto.Cycle <= 0)
+            if (string.IsNullOrWhiteSpace(dto.Name) || dto.Cycle <= 0 || !IsValidUnit(dto.UnitId))
                 return new BaseResultDto<ReminderCycleDto>(false, Resource.Notification.InvalidData, dto);
 
             var name = dto.Name.Trim();
+            // تکراری‌بودن با (Cycle, Unit) سنجیده می‌شود، نه فقط Cycle؛ وگرنه «هر ۱ روز» با «هر ۱ ماه» یکی حساب می‌شد.
             var duplicate = await _context.ReminderCycles.AsNoTracking().AnyAsync(item =>
                 !item.Deleted &&
-                (item.Name == name || item.Cycle == dto.Cycle));
+                (item.Name == name || (item.Cycle == dto.Cycle && item.UnitId == dto.UnitId)));
             if (duplicate)
                 return new BaseResultDto<ReminderCycleDto>(false, Resource.Notification.DuplicateValue, dto);
 
@@ -85,6 +89,7 @@ namespace Application.Services.ReminderSrvs.ReminderCycleSrv
             {
                 Name = name,
                 Cycle = dto.Cycle,
+                UnitId = dto.UnitId,
                 Deleted = false
             };
             await _context.ReminderCycles.AddAsync(item);
@@ -94,7 +99,7 @@ namespace Application.Services.ReminderSrvs.ReminderCycleSrv
 
         public override BaseResultDto UpdateDto(ReminderCycleDto dto)
         {
-            if (dto.Id <= 0 || string.IsNullOrWhiteSpace(dto.Name) || dto.Cycle <= 0)
+            if (dto.Id <= 0 || string.IsNullOrWhiteSpace(dto.Name) || dto.Cycle <= 0 || !IsValidUnit(dto.UnitId))
                 return new BaseResultDto(false, Resource.Notification.InvalidData);
 
             var item = _context.ReminderCycles.FirstOrDefault(cycle => cycle.Id == dto.Id && !cycle.Deleted);
@@ -105,12 +110,13 @@ namespace Application.Services.ReminderSrvs.ReminderCycleSrv
             var duplicate = _context.ReminderCycles.AsNoTracking().Any(cycle =>
                 cycle.Id != dto.Id &&
                 !cycle.Deleted &&
-                (cycle.Name == name || cycle.Cycle == dto.Cycle));
+                (cycle.Name == name || (cycle.Cycle == dto.Cycle && cycle.UnitId == dto.UnitId)));
             if (duplicate)
                 return new BaseResultDto(false, Resource.Notification.DuplicateValue);
 
             item.Name = name;
             item.Cycle = dto.Cycle;
+            item.UnitId = dto.UnitId;
             _context.SaveChanges();
             return new BaseResultDto(true);
         }

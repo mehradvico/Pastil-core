@@ -603,10 +603,16 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 .WithMany()
                 .HasForeignKey(item => item.ParkId)
                 .OnDelete(DeleteBehavior.Restrict);
-            modelBuilder.Entity<ReminderCycle>()
-                .ToTable(table => table.HasCheckConstraint(
-                    "CK_ReminderCycle_Cycle",
-                    "[Cycle] > 0"));
+            modelBuilder.Entity<ReminderCycle>(entity =>
+            {
+                // Persistence به Application ارجاع ندارد؛ 3 = ReminderCycleUnitEnum.Month (چرخه‌های قدیمی همیشه ماهانه بودند)
+                entity.Property(item => item.UnitId).HasDefaultValue(3);
+                entity.ToTable(table =>
+                {
+                    table.HasCheckConstraint("CK_ReminderCycle_Cycle", "[Cycle] > 0");
+                    table.HasCheckConstraint("CK_ReminderCycle_Unit", "[UnitId] IN (1, 2, 3)");
+                });
+            });
             modelBuilder.Entity<PushNotification>()
                 .HasIndex(item => new
                 {

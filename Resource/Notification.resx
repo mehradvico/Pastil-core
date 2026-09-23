@@ -1161,6 +1161,9 @@
   <data name="ReminderYesterdayText" xml:space="preserve">
     <value>Reminder Yesterday Text</value>
   </data>
+  <data name="ReminderTodayText" xml:space="preserve">
+    <value>Reminder Today Text</value>
+  </data>
   <data name="MemoryNotFound" xml:space="preserve">
     <value>Memory Not Found</value>
   </data>
