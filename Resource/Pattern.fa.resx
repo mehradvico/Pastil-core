@@ -318,6 +318,12 @@
   <data name="PushReminderToday" xml:space="preserve">
     <value>یادآوری! امروز موعد «{1}» برای پت «{0}» است.</value>
   </data>
+  <data name="PushTripNoDriverAdminNotified" xml:space="preserve">
+    <value>نگران نباشید! هنوز راننده‌ای سفرتون رو قبول نکرده، به ادمین اطلاع دادیم که براتون دنبال راننده بگرده.</value>
+  </data>
+  <data name="PushTripNoDriverTryAnotherOption" xml:space="preserve">
+    <value>متأسفانه فعلاً راننده‌ای برای این سفر پیدا نشد. می‌تونید یک رزرو دیگه یا سرویس دیگه‌ای رو امتحان کنید.</value>
+  </data>
   <data name="PushCompanionReserveAssigned" xml:space="preserve">
     <value>خدمت {0} برای کاربر {1} به شما اختصاص داده شد.</value>
   </data>

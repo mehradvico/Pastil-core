@@ -536,6 +536,12 @@ recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITrip
     "AutoCancelUnansweredInstantTrips",
     service => service.AutoCancelUnansweredInstantTripsAsync(),
     "* * * * *");
+// هشدار زودهنگام (قبل از لغو خودکار بالا): وقتی سفر فوری چند دقیقه است ثبت شده و هنوز راننده‌ای قبول نکرده،
+// به کاربر پوش می‌دهد که ادمین در جریان است - بدون لغو سفر.
+recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
+    "NotifyAdminForSlowInstantTrips",
+    service => service.NotifyAdminForSlowInstantTripsAsync(),
+    "* * * * *");
 // توکن‌های منقضی‌شده (بیش از ۳۰ روز بعد از انقضای refresh) پاک می‌شوند؛ جدول UserTokens قبلاً هیچ‌وقت کوچک نمی‌شد
 recurringJobManager.AddOrUpdate<Application.Services.Accounting.UserTokenSrv.Iface.IUserTokenService>(
     "PurgeExpiredUserTokens",

@@ -34,6 +34,7 @@ namespace Application.Services.Setting.NoticeSrv
         public const string TripPetPickedUp = "Trip.PetPickedUp";
         public const string TripArrivedDestination = "Trip.ArrivedDestination";
         public const string TripDriverCanceled = "Trip.DriverCanceled";
+        public const string TripNoDriverFound = "Trip.NoDriverFound";
         public const string PetResanServiceInsufficientWallet = "PetResanService.InsufficientWallet";
         public const string PastilMatchProfileSubmitted = "PastilMatch.ProfileSubmitted";
         public const string PastilMatchVerificationRequested = "PastilMatch.VerificationRequested";

@@ -81,6 +81,10 @@ namespace Application.Common.Enumerable.Code
         PushConsultationEndingSoon = 73,
         PushConsultationExpiredRefund = 74,
         /// <summary>یادآور با چرخه‌ی روزانه/هفتگی: دقیقاً روز نوبت (بدون یادآوری چند روز قبل/بعد مثل چرخه‌ی ماهانه).</summary>
-        PushReminderToday = 75
+        PushReminderToday = 75,
+        /// <summary>سفر فوری (Broadcast) بعد از N دقیقه هنوز راننده‌ای قبول نکرده - مرحله‌ی ۱: به کاربر اطلاع می‌دهیم که ادمین در جریان است.</summary>
+        PushTripNoDriverAdminNotified = 76,
+        /// <summary>سفر فوری (Broadcast) بعد از مرحله‌ی ۱ هم همچنان راننده‌ای پیدا نشده - مرحله‌ی ۲: به کاربر پیشنهاد می‌دهیم رزرو/سرویس دیگری را امتحان کند.</summary>
+        PushTripNoDriverTryAnotherOption = 77
     }
 }

@@ -28,6 +28,7 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto> SetWalletAsyncDto(TripSetWalletDto dto);
         Task<BaseResultDto> ClearRebateCodeAsync(long id);
         Task SyncDriverAcceptAsync();
+        Task NotifyAdminForSlowInstantTripsAsync();
 
         // پت‌رسان — مراحل ریز پیشرفت سفر
         Task<BaseResultDto<TripVDto>> AdvanceTripProgressAsync(long tripId, long driverId, TripProgressStageEnum targetStage);

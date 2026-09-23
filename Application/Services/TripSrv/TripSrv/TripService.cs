@@ -744,6 +744,65 @@ namespace Application.Services.TripSrv.TripSrv
             }
         }
 
+        // Job هر دقیقه: سفرهای فوری Broadcast (بدون راننده‌ی از‌قبل‌انتخاب‌شده - DriverId خالی، برخلاف
+        // SyncDriverAcceptAsync بالا که مخصوص انتخاب مستقیم راننده است) که مدتی است هیچ راننده‌ای قبولش
+        // نکرده اما هنوز به مهلت AutoCancelUnansweredInstantTripsAsync (پایین‌تر، ۵ دقیقه) نرسیده‌اند.
+        // این «مرحله‌ی ۱» است: فقط یک هشدار زودهنگام به کاربر که ادمین در جریان است - سفر لغو نمی‌شود.
+        // «مرحله‌ی ۲» (وقتی واقعاً نا‌امید می‌شویم و باید رزرو/سرویس دیگری پیشنهاد بدهیم) همان لحظه‌ی
+        // لغو خودکار توسط AutoCancelUnansweredInstantTripsAsync است - آنجا پوش نهایی فرستاده می‌شود.
+        // Idempotent از طریق چک PushNotifications قبلی با همان کاربر/الگو/Token1=TripId (بدون ستون جدید،
+        // هم‌الگوی SyncDriverAcceptAsync).
+        private const int InstantTripAdminNoticeDelayMinutes = 2;
+
+        public async Task NotifyAdminForSlowInstantTripsAsync()
+        {
+            var now = DateTime.Now;
+            var noticeThreshold = now.AddMinutes(-InstantTripAdminNoticeDelayMinutes);
+            var autoCancelThreshold = now.AddMinutes(-InstantTripDriverSearchTimeoutMinutes);
+
+            var pendingTrips = await _context.Trips
+                .Where(t => !t.ScheduledDepartureAt.HasValue
+                    && !t.DriverId.HasValue
+                    && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
+                    && t.CreateDate <= noticeThreshold
+                    && t.CreateDate > autoCancelThreshold)
+                .ToListAsync();
+
+            if (pendingTrips.Count == 0)
+                return;
+
+            foreach (var trip in pendingTrips)
+            {
+                try
+                {
+                    var tripIdToken = trip.Id.ToString();
+
+                    var alreadyNotified = await _context.PushNotifications
+                        .AnyAsync(p => p.UserId == trip.UserId
+                            && p.PushPattern.PushTypeId == (long)PushTypeEnum.PushTripNoDriverAdminNotified
+                            && p.Token1 == tripIdToken);
+
+                    if (alreadyNotified)
+                        continue;
+
+                    await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripNoDriverAdminNotified, trip.UserId, token1: tripIdToken);
+
+                    await _noticeService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.TripNoDriverFound,
+                        ActorUserId = trip.UserId,
+                        ReferenceType = "Trip",
+                        ReferenceId = trip.Id,
+                        DeduplicationKey = $"{NoticeTypeLabels.TripNoDriverFound}:{trip.Id}"
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Notifying about slow driver search for trip {TripId} failed.", trip.Id);
+                }
+            }
+        }
+
         public async Task<BaseResultDto> SetRebateCodeAsyncDto(TripSetRebateCodeDto dto)
         {
             var item = await _context.Trips.AsTracking().FirstOrDefaultAsync(s =>
@@ -1979,6 +2038,17 @@ namespace Application.Services.TripSrv.TripSrv
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Creating admin notice for auto-canceled trip {TripId} failed.", trip.Id);
+                }
+
+                try
+                {
+                    // همان لحظه‌ای که کاربر تو اپ هم صفحه‌ی «راننده پیدا نشد» (با دکمه‌ی درخواست از ادمین/
+                    // ثبت دوباره) را می‌بیند؛ این پوش برای وقتی است که اپ باز نیست.
+                    await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripNoDriverTryAnotherOption, trip.UserId, token1: trip.Id.ToString());
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Sending no-driver-found push for trip {TripId} failed.", trip.Id);
                 }
             }
         }
