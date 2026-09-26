@@ -54,6 +54,7 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public bool IsReturnLeg { get; set; }
         public long? CompanionReserveId { get; set; }
         public long? PansionReserveId { get; set; }
+        public long? SchoolReserveId { get; set; }
         public int? ScheduledLeadMinutes { get; set; }
         public DateTime? ScheduledDepartureAt { get; set; }
         public bool OwnerRidesAlong { get; set; }

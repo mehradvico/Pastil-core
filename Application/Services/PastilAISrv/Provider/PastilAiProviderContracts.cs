@@ -27,6 +27,10 @@ namespace Application.Services.PastilAISrv.Provider
         public string VisionModel { get; set; }
         public string ThinkingMode { get; set; }
         public int Order { get; set; }
+        // A slower primary provider should fail over quickly without giving
+        // the fallback provider an unrealistically short response window.
+        // Null means use PastilAI:RequestTimeoutSeconds.
+        public int? TimeoutSeconds { get; set; }
         public bool Enabled { get; set; }
         public bool SupportsImage { get; set; }
         public bool SupportsAudio { get; set; }
@@ -71,12 +75,28 @@ namespace Application.Services.PastilAISrv.Provider
         public string Answer { get; set; }
         public PastilAiScope Scope { get; set; }
         public bool IsEmergency { get; set; }
+        // شناسه‌ها فقط از JSON ساخت‌یافتهٔ مدل خوانده می‌شوند و قبل از خروجی با
+        // گزینه‌های واقعی‌ای که به مدل داده شده‌اند اعتبارسنجی خواهند شد.
+        public List<long> ProductIds { get; set; } = new();
+        public List<long> PackageIds { get; set; } = new();
+        // فقط هنگامی پر می‌شود که محصول درخواست‌شده در کاتالوگ پیدا نشده است؛
+        // مقادیر آن پیش‌نویس قابل‌ویرایش فرم درخواست محصول هستند.
+        public PastilAiProductRequestDraft ProductRequest { get; set; }
         public string Model { get; set; }
         public int? PromptTokens { get; set; }
         public int? CompletionTokens { get; set; }
         public int? HttpStatusCode { get; set; }
         public string ErrorCode { get; set; }
         public string ErrorMessage { get; set; }
+    }
+
+    public class PastilAiProductRequestDraft
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string ProductName { get; set; }
+        public string Brand { get; set; }
+        public string Quantity { get; set; }
     }
 
     public interface IPastilAiProvider

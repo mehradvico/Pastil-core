@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Enumerable;
 using Application.Services.FinanceSrvs.FinanceCompanionSrv.Dto;
 using Application.Services.FinanceSrvs.FinanceCompanionSrv.Iface;
 using Microsoft.EntityFrameworkCore;
@@ -84,7 +85,64 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                     })
                     .ToList();
 
-                var list = companionReserves.Concat(pansionReserves).ToList();
+                // مشاوره‌های آنلاین: فقط «تکمیل‌شده» (پنجره تمام شده و دیگر قابل بازپرداخت نیست) سهم قابل تسویه دارد
+                var completedStatus = (int)ConsultationPurchaseStatusEnum.Completed;
+                var consultationQ = _context.ConsultationPurchases
+                    .AsNoTracking()
+                    .Where(p => p.CompanionId == dto.CompanionId && p.Status == completedStatus)
+                    .AsQueryable();
+
+                if (dto.Permitted.HasValue)
+                    consultationQ = consultationQ.Where(p => p.Permitted == dto.Permitted.Value);
+
+                var consultations = consultationQ
+                    .Select(p => new FinanceCompanionReserveVDto
+                    {
+                        ReserveId = p.Id.ToString(),
+                        ReserveCode = p.PurchaseCode,
+                        BookerFullName = ((p.User.FirstName ?? "") + " " + (p.User.LastName ?? "")).Trim(),
+                        PaymentPrice = p.PaymentPrice,
+                        CommissionPercent = p.PaymentPrice > 0 ? (decimal)(p.SiteShare / p.PaymentPrice * 100) : 0,
+                        CompanionShare = p.CompanionShare,
+                        SiteShare = p.SiteShare,
+                        StatusLabel = null,
+                        IsPansion = false,
+                        IsConsultation = true,
+                        PackageName = p.PackageName,
+                        DurationMinutes = p.DurationMinutes,
+                        ChannelId = p.ChannelId,
+                        Permitted = p.Permitted
+                    })
+                    .ToList();
+
+                // ثبت‌نام دوره‌های مدرسه‌ی کلینیک (پرداخت‌شده و لغو نشده)
+                var schoolQ = _context.SchoolReserves
+                    .AsNoTracking()
+                    .Where(r => r.IsReserved && !r.IsCancel && r.SchoolCourse.School.CompanionId == dto.CompanionId)
+                    .AsQueryable();
+
+                if (dto.Permitted.HasValue)
+                    schoolQ = schoolQ.Where(r => r.Permitted == dto.Permitted.Value);
+
+                var schools = schoolQ
+                    .Select(r => new FinanceCompanionReserveVDto
+                    {
+                        ReserveId = r.Id.ToString(),
+                        ReserveCode = r.ReserveCode,
+                        BookerFullName = ((r.Booker.FirstName ?? "") + " " + (r.Booker.LastName ?? "")).Trim(),
+                        PaymentPrice = r.PaymentPrice,
+                        CommissionPercent = r.SchoolCourse.CommissionPercent,
+                        CompanionShare = r.CompanionShare,
+                        SiteShare = r.SiteShare,
+                        StatusLabel = null,
+                        IsPansion = false,
+                        IsSchool = true,
+                        PackageName = r.SchoolCourse.Name,
+                        Permitted = r.Permitted
+                    })
+                    .ToList();
+
+                var list = companionReserves.Concat(pansionReserves).Concat(consultations).Concat(schools).ToList();
 
                 var res = new FinanceCompanionVDto
                 {

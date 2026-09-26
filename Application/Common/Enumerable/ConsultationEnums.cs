@@ -20,7 +20,8 @@ namespace Application.Common.Enumerable
     {
         // خدمت کاتالوگ «مشاوره آنلاین» (Assistance شناسه‌ی ۱۵)
         public const long AssistanceId = 15;
-        public static readonly int[] AllowedDurations = { 30, 60 };
+        // مدت‌های ثابت قابل انتخاب برای پکیج (دقیقه). ذخیره‌شده‌ها با مدت قدیمی (۳۰/۶۰) همچنان معتبرند.
+        public static readonly int[] AllowedDurations = { 15, 30, 45, 60, 90 };
         public static readonly int[] AllowedChannels =
         {
             (int)OnlineSessionChannelEnum.Chat,
@@ -31,11 +32,5 @@ namespace Application.Common.Enumerable
         // مهلت شروع نماینده بعد از پرداخت؛ بعد از آن لغو خودکار و بازپرداخت
         public static readonly System.TimeSpan StartDeadlineAfterPayment = System.TimeSpan.FromHours(24);
 
-        public static bool IsValidCombination(int channelId, int durationMinutes) =>
-            AllowedChannels.Contains(channelId) && AllowedDurations.Contains(durationMinutes);
-
-        // همه‌ی ۸ ترکیب (کانال × مدت) به ترتیب ثابت؛ برای ماتریس تعریف پکیج
-        public static IEnumerable<(int ChannelId, int DurationMinutes)> AllCombinations() =>
-            AllowedChannels.SelectMany(channel => AllowedDurations.Select(duration => (channel, duration)));
     }
 }

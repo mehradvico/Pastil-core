@@ -117,17 +117,20 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
 
         public async Task<BaseResultDto> DeleteUserAsync(long id, long userId)
         {
-            var item = await _context.Reminders
-                .FirstOrDefaultAsync(reminder =>
+            // حذف نرم با یک UPDATE مستقیم؛ فقط وقتی موفق است که ردیفی واقعاً تغییر کرده باشد (نه صرفاً «پیدا شد»).
+            var affected = await _context.Reminders
+                .Where(reminder =>
                     reminder.Id == id &&
                     !reminder.Deleted &&
-                    reminder.UserPet.UserId == userId);
-            if (item == null)
+                    reminder.UserPet.UserId == userId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(reminder => reminder.Deleted, true));
+            if (affected == 0)
+            {
+                _logger.LogWarning("Reminder {ReminderId} was not deleted for user {UserId}: no matching row", id, userId);
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            }
 
-            item.Deleted = true;
-            await _context.SaveChangesAsync();
-            return new BaseResultDto(true);
+            return new BaseResultDto(true, Resource.Notification.ReminderDeleted);
         }
 
         private async Task<BaseResultDto<ReminderDto>> InsertValidatedAsync(
@@ -140,18 +143,35 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
                 if (!modelCheker.IsSuccess)
                     return modelCheker;
 
-                var today = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TehranTimeZone).Date;
-                if (dto.StartDate.Date <= today)
+                var now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TehranTimeZone).DateTime;
+                if (dto.StartDate.Date < now.Date || dto.StartDate.Date.Add(dto.NotificationTime) <= now)
                     return new BaseResultDto<ReminderDto>(false, Resource.Notification.StartDateMustBeFromTommarow, dto);
 
-                if (dto.ReminderTypeId <= 0 || dto.ReminderCycleId <= 0 || dto.UserPetId <= 0)
+                if (dto.NotificationTime < TimeSpan.Zero || dto.NotificationTime >= TimeSpan.FromDays(1))
+                    return new BaseResultDto<ReminderDto>(false, Resource.Notification.InvalidData, dto);
+                dto.CustomText = string.IsNullOrWhiteSpace(dto.CustomText) ? null : dto.CustomText.Trim();
+                if (dto.CustomText?.Length > 500)
                     return new BaseResultDto<ReminderDto>(false, Resource.Notification.InvalidData, dto);
 
-                var reminderTypeExists = await _context.ReminderTypes
-                    .AsNoTracking()
-                    .AnyAsync(item => item.Id == dto.ReminderTypeId && !item.Deleted);
-                if (!reminderTypeExists)
-                    return new BaseResultDto<ReminderDto>(false, Resource.Notification.NothingFound, dto);
+                if (dto.ReminderCycleId <= 0 || dto.UserPetId <= 0)
+                    return new BaseResultDto<ReminderDto>(false, Resource.Notification.InvalidData, dto);
+
+                // هر یادآور یا «نوع» دارد یا «متن دلخواه»؛ هیچ‌کدام نامعتبر است و اگر متن دلخواه باشد نوع ذخیره نمی‌شود.
+                if (dto.ReminderTypeId <= 0)
+                    dto.ReminderTypeId = null;
+                if (dto.CustomText != null)
+                    dto.ReminderTypeId = null;
+                else if (!dto.ReminderTypeId.HasValue)
+                    return new BaseResultDto<ReminderDto>(false, Resource.Notification.InvalidData, dto);
+
+                if (dto.ReminderTypeId.HasValue)
+                {
+                    var reminderTypeExists = await _context.ReminderTypes
+                        .AsNoTracking()
+                        .AnyAsync(item => item.Id == dto.ReminderTypeId.Value && !item.Deleted);
+                    if (!reminderTypeExists)
+                        return new BaseResultDto<ReminderDto>(false, Resource.Notification.NothingFound, dto);
+                }
 
                 var reminderCycleExists = await _context.ReminderCycles
                     .AsNoTracking()
@@ -172,22 +192,12 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
                 if (!userPetExists)
                     return new BaseResultDto<ReminderDto>(false, Resource.Notification.NothingFound, dto);
 
+                // یادآور تکراری (همان پت + نوع + چرخه + روز) مجاز است: کاربر می‌تواند با متن/ساعت متفاوت هر تعداد یادآور بسازد.
                 var startDate = dto.StartDate.Date;
-                var endDate = startDate.AddDays(1);
-                var duplicateExists = await _context.Reminders
-                    .AsNoTracking()
-                    .AnyAsync(item =>
-                        !item.Deleted &&
-                        item.UserPetId == dto.UserPetId &&
-                        item.ReminderTypeId == dto.ReminderTypeId &&
-                        item.ReminderCycleId == dto.ReminderCycleId &&
-                        item.StartDate >= startDate &&
-                        item.StartDate < endDate);
-                if (duplicateExists)
-                    return new BaseResultDto<ReminderDto>(false, Resource.Notification.DuplicateValue, dto);
 
                 var item = mapper.Map<Reminder>(dto);
                 item.StartDate = startDate;
+                item.NotificationTime = dto.NotificationTime;
                 item.LastChecked = null;
                 item.Deleted = false;
                 await _context.Reminders.AddAsync(item);
@@ -224,6 +234,7 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
                         !reminder.UserPet.Deleted &&
                         !reminder.UserPet.User.Deleted &&
                         !reminder.UserPet.User.Locked &&
+                        now.TimeOfDay >= reminder.NotificationTime &&
                         (reminder.LastChecked == null || reminder.LastChecked.Value.Date < today) &&
                         !failedReminderIds.Contains(reminder.Id))
                     .OrderBy(reminder => reminder.Id)
@@ -237,7 +248,7 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
                 foreach (var reminder in reminders)
                 {
                     if (reminder.ReminderCycle.Deleted ||
-                        reminder.ReminderType.Deleted ||
+                        (reminder.ReminderType != null && reminder.ReminderType.Deleted) ||
                         reminder.ReminderCycle.Cycle <= 0)
                     {
                         _logger.LogWarning(
@@ -305,7 +316,7 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
                 pushType: notification.PushType,
                 userId: reminder.UserPet.UserId,
                 token1: reminder.UserPet.Name,
-                token2: reminder.ReminderType.Name,
+                token2: reminder.CustomText ?? reminder.ReminderType?.Name ?? string.Empty,
                 token3: notification.WhenText);
 
             await _messageSender.SendMessageAsync(
@@ -313,7 +324,7 @@ namespace Application.Services.ReminderSrvs.ReminderSrv
                 mobileReceptor: reminder.UserPet.User.Mobile,
                 emailReceptor: null,
                 token1: reminder.UserPet.Name,
-                token2: reminder.ReminderType.Name,
+                token2: reminder.CustomText ?? reminder.ReminderType?.Name ?? string.Empty,
                 sendDate: today);
         }
 

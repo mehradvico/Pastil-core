@@ -2503,6 +2503,69 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Reminder Deleted.
+        /// </summary>
+        public static string ReminderDeleted {
+            get {
+                return ResourceManager.GetString("ReminderDeleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Package name must be between 2 and 100 characters.
+        /// </summary>
+        public static string ConsultationPackageNameInvalid {
+            get {
+                return ResourceManager.GetString("ConsultationPackageNameInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A package with this name already exists in this channel.
+        /// </summary>
+        public static string UnpaidDebtLocked {
+            get {
+                return ResourceManager.GetString("UnpaidDebtLocked", resourceCulture);
+            }
+        }
+
+        public static string UnpaidDebtNotFound {
+            get {
+                return ResourceManager.GetString("UnpaidDebtNotFound", resourceCulture);
+            }
+        }
+
+        public static string UnpaidDebtWalletInsufficient {
+            get {
+                return ResourceManager.GetString("UnpaidDebtWalletInsufficient", resourceCulture);
+            }
+        }
+
+        public static string ConsultationPackageDuplicateName {
+            get {
+                return ResourceManager.GetString("ConsultationPackageDuplicateName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The selected duration is not allowed.
+        /// </summary>
+        public static string ConsultationPackageDurationInvalid {
+            get {
+                return ResourceManager.GetString("ConsultationPackageDurationInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Package description must not exceed 500 characters.
+        /// </summary>
+        public static string ConsultationPackageDescriptionTooLong {
+            get {
+                return ResourceManager.GetString("ConsultationPackageDescriptionTooLong", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Memory Not Found.
         /// </summary>
         public static string MemoryNotFound {

@@ -40,6 +40,8 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto<TripVDto>> GetTripForReservationAsync(long companionReserveId, long userId);
         Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForPansionAsync(TripPansionReservationCreateDto dto, long userId);
         Task<BaseResultDto<TripVDto>> GetTripForPansionReservationAsync(long pansionReserveId, long userId);
+        Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForSchoolAsync(TripSchoolReservationCreateDto dto, long userId);
+        Task<BaseResultDto<TripVDto>> GetTripForSchoolReservationAsync(long schoolReserveId, long userId);
         Task GeneratePetResanServiceTripsAsync();
         Task DispatchScheduledTripsAsync();
         Task AutoCancelUnansweredInstantTripsAsync();

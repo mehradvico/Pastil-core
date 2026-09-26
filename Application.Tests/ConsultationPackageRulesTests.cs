@@ -1,51 +1,89 @@
 using Application.Common.Enumerable;
 using Application.Services.ConsultationSrvs.ConsultationPackageSrv;
 using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto;
-using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace Application.Tests;
 
 public class ConsultationPackageRulesTests
 {
-    private static ConsultationPackageItemDto Item(int channel, int duration, double price, bool active) =>
-        new() { ChannelId = channel, DurationMinutes = duration, Price = price, Active = active };
-
     private const int Chat = (int)OnlineSessionChannelEnum.Chat;
     private const int Phone = (int)OnlineSessionChannelEnum.Phone;
 
+    private static ConsultationPackageItemDto Item(int channel = Chat, int duration = 30, double price = 150_000, bool active = true, string name = "مشاوره فوری") =>
+        new() { ChannelId = channel, DurationMinutes = duration, Price = price, Active = active, Name = name };
+
     [Fact]
-    public void Valid_items_pass()
+    public void A_valid_named_package_passes()
     {
-        var items = new List<ConsultationPackageItemDto> { Item(Chat, 30, 150_000, true), Item(Phone, 60, 0, false) };
-        Assert.Equal(ConsultationPackageRules.Problem.None, ConsultationPackageRules.Validate(items));
+        Assert.Equal(ConsultationPackageRules.Problem.None, ConsultationPackageRules.Validate(Item()));
+        Assert.Equal(ConsultationPackageRules.Problem.None, ConsultationPackageRules.Validate(Item(Phone, 90, 0, false, "پیگیری بعد از عمل")));
     }
 
     [Fact]
-    public void Empty_or_missing_items_are_rejected()
+    public void Missing_item_is_rejected()
     {
-        Assert.Equal(ConsultationPackageRules.Problem.NoItems, ConsultationPackageRules.Validate(null));
-        Assert.Equal(ConsultationPackageRules.Problem.NoItems, ConsultationPackageRules.Validate(new List<ConsultationPackageItemDto>()));
+        Assert.Equal(ConsultationPackageRules.Problem.NoItem, ConsultationPackageRules.Validate(null));
     }
 
     [Theory]
-    [InlineData(0, 30)]   // کانال ناشناخته
-    [InlineData(5, 30)]
-    [InlineData(1, 45)]   // مدت غیرمجاز
-    [InlineData(1, 0)]
-    [InlineData(1, 120)]
-    public void Unknown_channel_or_duration_is_rejected(int channel, int duration)
+    [InlineData(0)]
+    [InlineData(5)]
+    [InlineData(-1)]
+    public void Unknown_channel_is_rejected(int channel)
     {
-        var items = new List<ConsultationPackageItemDto> { Item(channel, duration, 1000, true) };
-        Assert.Equal(ConsultationPackageRules.Problem.UnknownCombination, ConsultationPackageRules.Validate(items));
+        Assert.Equal(ConsultationPackageRules.Problem.UnknownChannel, ConsultationPackageRules.Validate(Item(channel)));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(10)]
+    [InlineData(20)]
+    [InlineData(120)]
+    [InlineData(-30)]
+    public void Duration_must_come_from_the_fixed_list(int duration)
+    {
+        Assert.Equal(ConsultationPackageRules.Problem.UnknownDuration, ConsultationPackageRules.Validate(Item(duration: duration)));
+    }
+
+    [Theory]
+    [InlineData(15)]
+    [InlineData(30)]
+    [InlineData(45)]
+    [InlineData(60)]
+    [InlineData(90)]
+    public void Every_fixed_duration_is_accepted(int duration)
+    {
+        Assert.Equal(ConsultationPackageRules.Problem.None, ConsultationPackageRules.Validate(Item(duration: duration)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("آ")]
+    public void Name_is_required_and_at_least_two_characters(string name)
+    {
+        Assert.Equal(ConsultationPackageRules.Problem.InvalidName, ConsultationPackageRules.Validate(Item(name: name)));
     }
 
     [Fact]
-    public void Duplicate_cells_are_rejected()
+    public void Name_longer_than_one_hundred_characters_is_rejected()
     {
-        var items = new List<ConsultationPackageItemDto> { Item(Chat, 30, 1000, true), Item(Chat, 30, 2000, false) };
-        Assert.Equal(ConsultationPackageRules.Problem.DuplicateCombination, ConsultationPackageRules.Validate(items));
+        Assert.Equal(ConsultationPackageRules.Problem.InvalidName, ConsultationPackageRules.Validate(Item(name: new string('ا', 101))));
+        Assert.Equal(ConsultationPackageRules.Problem.None, ConsultationPackageRules.Validate(Item(name: new string('ب', 100))));
+    }
+
+    [Fact]
+    public void Description_is_optional_but_capped_at_five_hundred_characters()
+    {
+        var ok = Item();
+        ok.Description = new string('ج', 500);
+        Assert.Equal(ConsultationPackageRules.Problem.None, ConsultationPackageRules.Validate(ok));
+
+        var tooLong = Item();
+        tooLong.Description = new string('ج', 501);
+        Assert.Equal(ConsultationPackageRules.Problem.DescriptionTooLong, ConsultationPackageRules.Validate(tooLong));
     }
 
     [Theory]
@@ -54,44 +92,43 @@ public class ConsultationPackageRulesTests
     [InlineData(double.PositiveInfinity)]
     public void Negative_or_non_finite_price_is_rejected(double price)
     {
-        var items = new List<ConsultationPackageItemDto> { Item(Chat, 30, price, false) };
-        Assert.Equal(ConsultationPackageRules.Problem.InvalidPrice, ConsultationPackageRules.Validate(items));
+        Assert.Equal(ConsultationPackageRules.Problem.InvalidPrice, ConsultationPackageRules.Validate(Item(price: price, active: false)));
     }
 
     [Fact]
-    public void A_zero_price_package_can_not_be_active()
+    public void A_zero_price_package_can_not_be_active_but_can_be_saved_inactive()
     {
-        var items = new List<ConsultationPackageItemDto> { Item(Chat, 30, 0, true) };
-        Assert.Equal(ConsultationPackageRules.Problem.ActiveWithoutPrice, ConsultationPackageRules.Validate(items));
+        Assert.Equal(ConsultationPackageRules.Problem.ActiveWithoutPrice, ConsultationPackageRules.Validate(Item(price: 0, active: true)));
+        Assert.Equal(ConsultationPackageRules.Problem.None, ConsultationPackageRules.Validate(Item(price: 0, active: false)));
     }
 
     [Fact]
-    public void Matrix_always_has_eight_cells_and_defaults_to_inactive_zero_price()
+    public void Two_named_packages_with_the_same_channel_and_duration_are_both_valid()
     {
-        var stored = new List<ConsultationPackageItemDto> { new() { Id = 7, ChannelId = Chat, DurationMinutes = 60, Price = 90_000, Active = true } };
-
-        var matrix = ConsultationPackageRules.BuildMatrix(stored);
-
-        Assert.Equal(8, matrix.Count);
-        Assert.Equal(8, matrix.Select(m => (m.ChannelId, m.DurationMinutes)).Distinct().Count());
-        var saved = matrix.Single(m => m.ChannelId == Chat && m.DurationMinutes == 60);
-        Assert.Equal((7L, 90_000d, true), (saved.Id, saved.Price, saved.Active));
-        Assert.All(matrix.Where(m => m.Id == 0), m => Assert.False(m.Active || m.Price != 0));
+        // برخلاف ماتریس قبلی: زیر یک کانال و یک مدت هر تعداد پکیج با نام‌های متفاوت مجاز است
+        Assert.Equal(ConsultationPackageRules.Problem.None, ConsultationPackageRules.Validate(Item(name: "اورژانسی")));
+        Assert.Equal(ConsultationPackageRules.Problem.None, ConsultationPackageRules.Validate(Item(name: "مشاوره تغذیه")));
     }
 
     [Fact]
-    public void Matrix_of_nothing_is_the_full_default_grid()
+    public void Names_are_normalized_so_arabic_letters_and_extra_spaces_do_not_create_duplicates()
     {
-        var matrix = ConsultationPackageRules.BuildMatrix(null);
-        Assert.Equal(8, matrix.Count);
-        Assert.All(matrix, m => Assert.True(m.Id == 0 && !m.Active && m.Price == 0));
+        Assert.Equal("مشاوره فوري".Replace('ي', 'ی'), ConsultationPackageRules.NormalizeName("  مشاوره   فوري "));
+        Assert.Equal(ConsultationPackageRules.NameKey("مشاوره كودك"), ConsultationPackageRules.NameKey("مشاوره  کودک "));
+        Assert.NotEqual(ConsultationPackageRules.NameKey("مشاوره کودک"), ConsultationPackageRules.NameKey("مشاوره نوزاد"));
     }
 
     [Fact]
-    public void Allowed_combinations_are_four_channels_by_two_durations()
+    public void Description_is_trimmed_and_empty_becomes_null()
     {
-        Assert.Equal(8, ConsultationRules.AllCombinations().Count());
-        Assert.True(ConsultationRules.IsValidCombination(Phone, 30));
-        Assert.False(ConsultationRules.IsValidCombination(Phone, 45));
+        Assert.Null(ConsultationPackageRules.NormalizeDescription("   "));
+        Assert.Null(ConsultationPackageRules.NormalizeDescription(null));
+        Assert.Equal("توضیح", ConsultationPackageRules.NormalizeDescription("  توضیح "));
+    }
+
+    [Fact]
+    public void Fixed_durations_are_the_agreed_list()
+    {
+        Assert.Equal(new[] { 15, 30, 45, 60, 90 }, ConsultationRules.AllowedDurations);
     }
 }

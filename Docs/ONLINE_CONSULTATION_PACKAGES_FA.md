@@ -176,3 +176,16 @@ PendingPayment ──(پرداخت موفق)──▶ Paid ──(نماینده
 
 **تست‌نشده تا اینجا** (نیاز به آزمون روی سرور): پرداخت با درگاه بانکی و کال‌بک، کد تخفیف واقعی، رسانه‌ی واقعی صدا/تصویر (نیاز به TURN برای شبکه‌های متفاوت)، تحویل واقعی پوش (FCM/وب‌پوش).
 
+---
+
+## ۱۴. پکیج‌های نام‌دار و حسابداری (بازطراحی ۱۴۰۵/۰۷/۰۳) — جایگزین ماتریس ۴×۲
+
+> هر جا در این سند «ماتریس ۸ خانه‌ای» آمده، با این بخش منسوخ شده است.
+
+- **پکیج نام‌دار:** هر کلینیک هر تعداد پکیج دارد؛ فیلدها: `Name` (۲..۱۰۰ نویسه)، `ChannelId` (۱..۴)، `DurationMinutes` از فهرست ثابت **۱۵/۳۰/۴۵/۶۰/۹۰**، `Price`، `Description` (تا ۵۰۰)، `PictureId` (اختیاری)، `Active`، `SortOrder`. یکتایی ایندکس (کلینیک، کانال، مدت) حذف شد؛ نام تکراری زیر یک کلینیک مجاز نیست.
+- **API نماینده/مالک (breaking):** `GET /api/Companion/ConsultationPackage` فهرست پکیج‌ها؛ `POST` ساخت؛ `PUT` ویرایش (`id` الزامی)؛ `DELETE ?id=` حذف. دیگر ماتریس PUT وجود ندارد. BFF وب‌اپ: `/api/consultation/mine` (GET/POST/PUT/DELETE).
+- **ادمین:** `GET/POST/PUT/DELETE /api/Admin/ConsultationPackage/{companionId}`، `GET /api/Admin/ConsultationPurchase/Summary` (خلاصه‌ی مالی/مدت با همان فیلترهای جستجو).
+- **خرید:** `ConsultationPurchase.PackageName` نام پکیج را در لحظه‌ی خرید ذخیره می‌کند (تغییر/حذف بعدی پکیج روی خریدهای قبلی اثر ندارد).
+- **مدت:** مدت خریداری‌شده = `DurationMinutes`. مدت واقعی فقط برای تماس درون‌برنامه‌ای (صوتی/تصویری) از `CallHub` اندازه‌گیری و در `OnlineSession.CallSeconds/CallStartDate/CallEndDate` جمع می‌شود؛ چت: تعداد پیام؛ تلفنی: اندازه‌گیری نمی‌شود.
+- **حسابداری:** فقط Paid/Active/Completed درآمد حساب می‌شوند؛ فقط Completed قابل تسویه است (`Permitted` + `SettlementCompanion.ConsultationPurchaseId`)؛ با بازپرداخت، `CompanionShare` و `SiteShare` صفر می‌شوند؛ کمیسیون همچنان ۰٪.
+- **مهاجرت:** `ConsultationNamedPackagesAndAccounting` (نام پیش‌فرض برای پکیج‌های قدیمی و `PackageName` برای خریدهای قدیمی را پر می‌کند).

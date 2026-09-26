@@ -13,6 +13,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv.Iface
         Task<BaseResultDto<SchoolReserveVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto> UpdateCancelDto(SchoolReserveCancelDto dto);
         Task<BaseResultDto> UpdateStatusDto(SchoolReserveStatusDto dto);
+        Task<BaseResultDto> CompleteByCompanionAsync(long id, long companionId);
         Task<int> GetRemainingCapacityAsync(long schoolCourseId);
         Task<BaseResultDto> SchoolReservePaymentCallback(long? reserveId, bool fromWallet = false);
         Task<BaseResultDto> SetRebateCodeAsyncDto(SchoolReserveRebateCodeDto dto);

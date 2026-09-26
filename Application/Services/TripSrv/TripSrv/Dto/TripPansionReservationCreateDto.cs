@@ -20,6 +20,7 @@ namespace Application.Services.TripSrv.TripSrv.Dto
 
         public bool OwnerRidesAlong { get; set; }
         public List<long> UserPetIds { get; set; } = new List<long>();
+        public List<long> TripOptionIds { get; set; } = new List<long>();
 
         /// <summary>
         /// فقط برای پانسیون‌های شبانه/اقامتی (Pansion.IsDaycare == false) لازم است، چون FromDate

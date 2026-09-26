@@ -452,6 +452,7 @@ public static class ConfigureServices
         services.AddScoped<IAssistanceQuestionnaireService, AssistanceQuestionnaireService>();
         services.AddScoped<IAssistanceGroupService, AssistanceGroupService>();
         services.AddScoped<IExpertiseService, ExpertiseService>();
+        services.AddScoped<Application.Services.CompanionSrvs.AssistanceExpertiseSrv.Iface.IAssistanceExpertiseService, Application.Services.CompanionSrvs.AssistanceExpertiseSrv.AssistanceExpertiseService>();
         services.AddScoped<IAssistanceService, AssistanceService>();
         services.AddScoped<IBankCardService, BankCardService>();
         services.AddScoped<IBankService, BankService>();
@@ -649,6 +650,8 @@ public static class ConfigureServices
         services.AddScoped<Application.Services.ConsultationSrvs.ConsultationSessionSrv.Iface.IConsultationSessionService, Application.Services.ConsultationSrvs.ConsultationSessionSrv.ConsultationSessionService>();
         services.AddScoped<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService, Application.Services.ConsultationSrvs.ConsultationNotificationSrv.ConsultationNotificationService>();
         services.AddScoped<Application.Services.ConsultationSrvs.ConsultationAdminSrv.Iface.IConsultationAdminService, Application.Services.ConsultationSrvs.ConsultationAdminSrv.ConsultationAdminService>();
+        services.AddScoped<Application.Services.FinanceSrvs.FinanceReportSrv.IFinanceReportService, Application.Services.FinanceSrvs.FinanceReportSrv.FinanceReportService>();
+        services.AddScoped<Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ICompanionReserveDebtService, Application.Services.CompanionSrvs.CompanionReserveDebtSrv.CompanionReserveDebtService>();
         services.AddScoped<IPastilAiChatService, PastilAiChatService>();
         services.AddScoped<IPastilAiCompletionRouter, PastilAiCompletionRouter>();
         services.AddScoped<IAiProductMatchGeminiClient, AiProductMatchGeminiClient>();

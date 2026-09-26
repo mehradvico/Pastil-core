@@ -16,6 +16,21 @@ namespace Application.Services.Order.ShippingSrv
 {
     public class ShipmentService : IShipmentService
     {
+        // متن آدرس گیرنده برای سرویس ارسال: آدرس + طبقه + واحد (اگر ثبت شده باشند)
+        public static string ComposeRecipientAddress(Address address)
+        {
+            if (address == null)
+                return null;
+
+            var parts = new List<string> { address.AddressValue };
+            if (!string.IsNullOrWhiteSpace(address.Floor))
+                parts.Add($"{Resource.Field.Floor} {address.Floor.Trim()}");
+            if (!string.IsNullOrWhiteSpace(address.Unit))
+                parts.Add($"{Resource.Field.Unit} {address.Unit.Trim()}");
+
+            return string.Join("، ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
+        }
+
         private readonly IDataBaseContext _context;
         private readonly IReadOnlyDictionary<ShippingProviderEnum, IShippingProvider> _providers;
         private readonly ILogger<ShipmentService> _logger;
@@ -78,7 +93,7 @@ namespace Application.Services.Order.ShippingSrv
                         ExternalQuoteId = quote?.ExternalQuoteId,
                         RecipientName = $"{productOrder.Address?.FirstName} {productOrder.Address?.LastName}".Trim(),
                         RecipientMobile = productOrder.Address?.Mobile,
-                        RecipientAddress = productOrder.Address?.AddressValue,
+                        RecipientAddress = ComposeRecipientAddress(productOrder.Address),
                         PickupName = store?.Name,
                         PickupPhone = store?.Phone,
                         OriginLatitude = store?.Location?.Y,

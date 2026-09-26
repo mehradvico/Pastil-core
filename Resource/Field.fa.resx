@@ -126,6 +126,12 @@
   <data name="AddressValue" xml:space="preserve">
     <value>آدرس</value>
   </data>
+  <data name="Floor" xml:space="preserve">
+    <value>طبقه</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>واحد</value>
+  </data>
   <data name="Area" xml:space="preserve">
     <value>محیط</value>
   </data>

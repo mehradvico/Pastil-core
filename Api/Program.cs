@@ -293,6 +293,7 @@ builder.Services.AddRateLimiter(options =>
 });
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<CallSessionTracker>();
+builder.Services.AddSingleton<CallDurationRecorder>();
 builder.Services.AddSingleton<CallWindowScheduler>();
 builder.Services.AddSingleton<Api.Services.AiProductMatch.AiProductMatchExecutionGate>();
 builder.Services.AddHttpClient(Api.Services.ServerMonitoring.ServerMonitoringAgentClient.HttpClientName,
@@ -522,7 +523,7 @@ recurringJobManager.RemoveIfExists("MemoryDailyReminder");
 recurringJobManager.AddOrUpdate<IReminderService>(
     "Reminder",
     service => service.SyncReminderAsync(),
-    Cron.Hourly,
+    Cron.Minutely,
     new RecurringJobOptions { TimeZone = tehranTimeZone });
 recurringJobManager.AddOrUpdate<Application.Services.CommonSrv.PushNotificationSrv.Iface.IPushNotificationService>(
     "PushNotificationDispatch",

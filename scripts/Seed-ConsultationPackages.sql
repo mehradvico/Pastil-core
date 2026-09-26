@@ -9,7 +9,8 @@
 
   برای هر «کلینیک فعال» (Companions: Active=1, Approved=1, Deleted=0):
     ۱) اگر CompanionAssistance برای خدمت کاتالوگ ۱۵ (مشاوره آنلاین) ندارد، ساخته می‌شود (Active=1, Approved=1, کارمزد ۰٪).
-    ۲) ۸ پکیج (۴ کانال × ۳۰ دقیقه / ۶۰ دقیقه) با قیمت ۰ و «غیرفعال» ساخته می‌شود؛ کلینیک قیمت می‌گذارد و فعال می‌کند.
+    (تغییر ۱۴۰۵/۰۷/۰۳) پکیج‌ها دیگر ماتریس ثابت ۸ خانه‌ای نیستند: هر کلینیک خودش پکیج‌های نام‌دار (نام، کانال، مدت از
+    فهرست ثابت، قیمت، تصویر) می‌سازد؛ پس این اسکریپت دیگر پکیج پیش‌فرض نمی‌سازد و فقط خدمت ۱۵ را برای کلینیک‌ها فراهم می‌کند.
   کانال‌ها (OnlineSessionChannelEnum): ۱ چت، ۲ تماس درون‌برنامه‌ای، ۳ تماس تصویری، ۴ تماس تلفنی.
 
   اگر خدمت کاتالوگ ۱۵ وجود نداشته باشد اسکریپت بدون تغییر متوقف می‌شود.
@@ -55,19 +56,8 @@ WHERE c.Active = 1 AND c.Approved = 1 AND c.Deleted = 0
                   WHERE ca.CompanionId = c.Id AND ca.AssistanceId = @AssistanceId AND ca.Deleted = 0);
 SET @CreatedAssistances = @@ROWCOUNT;
 
--- ۲) ۸ پکیج غیرفعال با قیمت ۰ برای هر کلینیک فعال
-DECLARE @Combos TABLE (ChannelId INT NOT NULL, DurationMinutes INT NOT NULL);
-INSERT INTO @Combos (ChannelId, DurationMinutes)
-VALUES (1, 30), (1, 60), (2, 30), (2, 60), (3, 30), (3, 60), (4, 30), (4, 60);
+-- ۲) پکیج پیش‌فرض ساخته نمی‌شود؛ کلینیک پکیج‌های نام‌دار خودش را از پنل نماینده تعریف می‌کند.
 
-INSERT INTO ConsultationPackages (CompanionId, ChannelId, DurationMinutes, Price, Active, Deleted, CreateDate)
-SELECT c.Id, k.ChannelId, k.DurationMinutes, 0, 0, 0, SYSDATETIME()
-FROM Companions c
-CROSS JOIN @Combos k
-WHERE c.Active = 1 AND c.Approved = 1 AND c.Deleted = 0
-  AND NOT EXISTS (SELECT 1 FROM ConsultationPackages p
-                  WHERE p.CompanionId = c.Id AND p.ChannelId = k.ChannelId AND p.DurationMinutes = k.DurationMinutes AND p.Deleted = 0);
-DECLARE @CreatedPackages INT = @@ROWCOUNT;
 
 COMMIT TRANSACTION;
 
@@ -75,5 +65,4 @@ COMMIT TRANSACTION;
 SELECT
     (SELECT COUNT(*) FROM Companions WHERE Active = 1 AND Approved = 1 AND Deleted = 0) AS ActiveClinics,
     @CreatedAssistances AS CreatedConsultationAssistances,
-    @CreatedPackages    AS CreatedPackages,
     (SELECT COUNT(*) FROM ConsultationPackages WHERE Deleted = 0) AS TotalPackages;

@@ -10,5 +10,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
         public string OperatorDetail { get; set; }
         public double OperatorStuffPrice { get; set; }
         public double OperatorWagesPrice { get; set; }
+        // کاربر هزینه‌ی نهایی را (هنوز) پرداخت نکرده است؛ فقط با وضعیت «کامل‌شده» و مبلغ > ۰ معنی دارد
+        public bool OperatorUnpaid { get; set; }
     }
 }

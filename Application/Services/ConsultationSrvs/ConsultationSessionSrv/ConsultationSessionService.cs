@@ -75,6 +75,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     PurchaseCode = s.PurchaseCode,
                     CompanionId = s.CompanionId,
                     CompanionName = s.Companion?.Name,
+                    PackageName = s.PackageName,
                     ChannelId = s.ChannelId,
                     DurationMinutes = s.DurationMinutes,
                     Status = s.Status,
@@ -210,6 +211,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 {
                     PurchaseId = s.Id,
                     OnlineSessionId = s.OnlineSessionId.Value,
+                    PackageName = s.PackageName,
                     ChannelId = s.ChannelId,
                     DurationMinutes = s.DurationMinutes,
                     StartDate = s.StartDate ?? now,

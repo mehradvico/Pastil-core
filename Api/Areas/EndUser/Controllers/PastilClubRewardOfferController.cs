@@ -22,6 +22,11 @@ namespace Api.Areas.EndUser.Controllers
             _currentUser = currentUser;
         }
 
+        [HttpPost("sync")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Sync(CancellationToken cancellationToken) =>
+            Ok(await _service.SyncAutomatedOffersAsync(_currentUser.CurrentUser.UserId, cancellationToken));
+
         [HttpGet("{id:long}")]
         [ProducesResponseType(typeof(BaseResultDto<ClubRewardOfferVDto>), 200)]
         public async Task<IActionResult> Get(long id, CancellationToken cancellationToken) =>

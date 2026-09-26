@@ -1164,6 +1164,21 @@
   <data name="ReminderTodayText" xml:space="preserve">
     <value>امروز است.</value>
   </data>
+  <data name="ReminderDeleted" xml:space="preserve">
+    <value>یادآور با موفقیت حذف شد.</value>
+  </data>
+  <data name="ConsultationPackageNameInvalid" xml:space="preserve">
+    <value>نام پکیج باید بین ۲ تا ۱۰۰ کاراکتر باشد.</value>
+  </data>
+  <data name="ConsultationPackageDuplicateName" xml:space="preserve">
+    <value>پکیجی با همین نام در همین کانال دارید؛ نام دیگری انتخاب کنید.</value>
+  </data>
+  <data name="ConsultationPackageDurationInvalid" xml:space="preserve">
+    <value>مدت انتخاب‌شده مجاز نیست.</value>
+  </data>
+  <data name="ConsultationPackageDescriptionTooLong" xml:space="preserve">
+    <value>توضیح پکیج نباید بیشتر از ۵۰۰ کاراکتر باشد.</value>
+  </data>
   <data name="MemoryNotFound" xml:space="preserve">
     <value>خاطره موردنظر پیدا نشد.</value>
   </data>
@@ -1481,5 +1496,14 @@
   </data>
   <data name="ConsultationAlreadyStarted" xml:space="preserve">
     <value>این مشاوره قبلاً شروع شده است</value>
+  </data>
+  <data name="UnpaidDebtLocked" xml:space="preserve">
+    <value>حساب شما برای رزرو جدید قفل است؛ هزینه‌ی یک خدمت بیش از ۷ روز پرداخت نشده. ابتدا آن را پرداخت کنید.</value>
+  </data>
+  <data name="UnpaidDebtNotFound" xml:space="preserve">
+    <value>هزینه‌ی پرداخت‌نشده‌ای پیدا نشد.</value>
+  </data>
+  <data name="UnpaidDebtWalletInsufficient" xml:space="preserve">
+    <value>موجودی کیف پول کافی نیست؛ ابتدا کیف پول را شارژ کنید.</value>
   </data>
 </root>

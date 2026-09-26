@@ -15,6 +15,8 @@ namespace Entities.Entities
 
         public int ChannelId { get; set; }
         public int DurationMinutes { get; set; }
+        // نام پکیج در لحظه‌ی خرید (تغییر یا حذف بعدی پکیج روی گزارش اثر ندارد)
+        public string PackageName { get; set; }
         // قیمت پکیج در لحظه‌ی خرید (قبل از تخفیف)
         public double Price { get; set; }
 
@@ -33,6 +35,8 @@ namespace Entities.Entities
         // ---- سهم درآمد (فعلاً کارمزد ۰٪: همه‌ی مبلغ سهم کلینیک)
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
+        // true وقتی این خرید (بعد از تکمیل) داخل یک تسویه‌ی نماینده آمده است (مثل Permitted در رزرو)
+        public bool Permitted { get; set; }
 
         // ---- شروع و پنجره‌ی زمانی
         public DateTime? StartDeadline { get; set; }

@@ -52,6 +52,15 @@ namespace Entities.Entities
         public string OperatorDetail { get; set; }
         public bool? UserResponse { get; set; }
 
+        // «پرداخت‌نشده»: اپراتور/پزشک هزینه‌ی نهایی خدمت را ثبت کرده ولی کاربر پرداخت نکرده است.
+        // بدهی باز = OperatorUnpaid && OperatorDebtPaidDate == null؛ بعد از ۷ روز رزرو جدید برای کاربر قفل می‌شود.
+        public bool OperatorUnpaid { get; set; }
+        public double OperatorUnpaidAmount { get; set; }
+        public DateTime? OperatorUnpaidDate { get; set; }
+        public DateTime? OperatorDebtPaidDate { get; set; }
+        // true = کاربر از کیف پول در پاستیل پرداخت کرد؛ false = کلینیک دریافت مستقیم را تأیید کرد
+        public bool OperatorDebtPaidByWallet { get; set; }
+
 
         public double Discount { get; set; }
         public long? RebateId { get; set; }

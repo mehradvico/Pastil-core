@@ -85,6 +85,24 @@ public class PastilAiCompletionRouterTests
         Assert.Single(result.Attempts);
     }
 
+    [Fact]
+    public async Task Parses_structured_product_and_package_ids()
+    {
+        var handler = new StubHandler(_ => Json(HttpStatusCode.OK,
+            """{"choices":[{"message":{"content":"{\"answer\":\"پیشنهاد\",\"scope\":\"PastilData\",\"isEmergency\":false,\"productIds\":[12,\"13\",12,0],\"packageIds\":[22,23,24,25]}"}}]}"""));
+        var router = CreateRouter(handler, Provider("First", "https://first.test/v1", 1));
+
+        var result = await router.CompleteAsync(new PastilAiProviderRequest
+        {
+            SystemPrompt = "system",
+            UserMessage = "برای سگم غذا چی پیشنهاد می‌دی؟"
+        }, CancellationToken.None);
+
+        Assert.True(result.Response.IsSuccess);
+        Assert.Equal(new long[] { 12, 13 }, result.Response.ProductIds);
+        Assert.Equal(new long[] { 22, 23, 24 }, result.Response.PackageIds);
+    }
+
     private static PastilAiCompletionRouter CreateRouter(HttpMessageHandler handler, params PastilAiProviderDefinition[] providers)
     {
         var options = Options.Create(new PastilAiProviderOptions

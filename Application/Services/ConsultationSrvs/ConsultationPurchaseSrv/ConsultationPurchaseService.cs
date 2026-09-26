@@ -58,6 +58,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                 if (dto == null || dto.PackageId <= 0)
                     return new BaseResultDto(false, Resource.Notification.InvalidData);
 
+                if (await Application.Services.CompanionSrvs.CompanionReserveDebtSrv.CompanionReserveDebtRules.IsLockedAsync(_context, userId, DateTime.Now))
+                    return new BaseResultDto(false, Resource.Notification.UnpaidDebtLocked);
+
                 var package = await _context.ConsultationPackages.AsNoTracking()
                     .FirstOrDefaultAsync(s => s.Id == dto.PackageId && !s.Deleted && s.Active && s.Price > 0);
                 if (package == null)
@@ -129,6 +132,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     CompanionId = package.CompanionId,
                     ChannelId = package.ChannelId,
                     DurationMinutes = package.DurationMinutes,
+                    PackageName = package.Name,
                     Price = package.Price,
                     Status = pending,
                     FromWallet = dto.FromWallet,
@@ -363,6 +367,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                 .Where(s => s.Id == purchaseId && s.RefundDate == null)
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(s => s.Status, (int)ConsultationPurchaseStatusEnum.Refunded)
+                    // خرید بازپرداخت‌شده درآمدی برای کلینیک/پاستیل ندارد؛ مبلغ پرداختی (PaymentPrice) برای سابقه می‌ماند
+                    .SetProperty(s => s.CompanionShare, 0d)
+                    .SetProperty(s => s.SiteShare, 0d)
                     .SetProperty(s => s.RefundDate, (DateTime?)DateTime.Now));
             return true;
         }
@@ -394,6 +401,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             PurchaseCode = s.PurchaseCode,
             CompanionId = s.CompanionId,
             CompanionName = companionName,
+            PackageName = s.PackageName,
             ChannelId = s.ChannelId,
             DurationMinutes = s.DurationMinutes,
             Price = s.Price,

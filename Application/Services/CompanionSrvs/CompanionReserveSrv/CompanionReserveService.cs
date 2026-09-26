@@ -28,6 +28,7 @@ using Application.Services.Setting.NoticeSrv.Iface;
 using Application.Services.TripSrv.TripSrv.Dto;
 using AutoMapper;
 using Entities.Entities;
+using Entities.Entities.CompanionField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -89,7 +90,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 .Include(s => s.CompanionAssistanceUser).ThenInclude(s => s.User).Include(s => s.Booker).Include(s => s.UserPets)
                 .Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion)
                 .Include(s => s.CompanionAssistancePackages).ThenInclude(s => s.Picture).Include(s => s.CompanionAssistanceTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionAssistanceType)
-                .Include(s => s.OperatorState).Include(s => s.Rebate).Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).ThenInclude(s => s.Picture)
+                .Include(s => s.OperatorState).Include(s => s.Address).ThenInclude(a => a.City).ThenInclude(c => c.State).Include(s => s.Rebate).Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).ThenInclude(s => s.Picture)
                 .Include(s => s.CompanionAssistancePackageOnlineSelection).ThenInclude(s => s.CompanionAssistancePackageOnline).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
@@ -104,7 +105,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 .Include(s => s.CompanionAssistanceUser).ThenInclude(s => s.User).Include(s => s.Booker).Include(s => s.UserPets)
                 .Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion)
                 .Include(s => s.CompanionAssistancePackages).ThenInclude(s => s.Picture).Include(s => s.CompanionAssistanceTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionAssistanceType)
-                .Include(s => s.OperatorState).Include(s => s.Rebate).Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).ThenInclude(s => s.Picture)
+                .Include(s => s.OperatorState).Include(s => s.Address).ThenInclude(a => a.City).ThenInclude(c => c.State).Include(s => s.Rebate).Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).ThenInclude(s => s.Picture)
                 .Include(s => s.CompanionAssistancePackageOnlineSelection).ThenInclude(s => s.CompanionAssistancePackageOnline).Where(s => s.Id == id);
             if (bookerId.HasValue)
                 query = query.Where(s => s.BookerId == bookerId.Value);
@@ -123,7 +124,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 .Include(s => s.CompanionAssistanceUser).ThenInclude(s => s.User).Include(s => s.Booker).Include(s => s.UserPets)
                 .Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion)
                 .Include(s => s.CompanionAssistancePackages).Include(s => s.CompanionAssistanceTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionTime).ThenInclude(s => s.WeekDay)
-                .Include(s => s.CompanionAssistanceType).Include(s => s.OperatorState).AsQueryable();
+                .Include(s => s.CompanionAssistanceType).Include(s => s.OperatorState).Include(s => s.Address).ThenInclude(a => a.City).ThenInclude(c => c.State).AsQueryable();
 
             if (baseSearchDto.BookerId.HasValue)
             {
@@ -222,6 +223,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 }
                 else
                 {
+                    if (await Application.Services.CompanionSrvs.CompanionReserveDebtSrv.CompanionReserveDebtRules.IsLockedAsync(_context, dto.BookerId, DateTime.Now))
+                        return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.UnpaidDebtLocked, dto);
+
                     dto.UserPetIds = dto.UserPetIds?.Distinct().ToList() ?? new List<long>();
                     if (!dto.UserPetIds.Any())
                         return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.SelectAtLeastOneType, dto);
@@ -540,6 +544,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 var bookerId = dto.Items[0].BookerId;
                 if (dto.Items.Any(s => s.BookerId != bookerId))
                     return new BaseResultDto<CompanionReserveBatchVDto>(false, Resource.Notification.InvalidData, null);
+                if (await Application.Services.CompanionSrvs.CompanionReserveDebtSrv.CompanionReserveDebtRules.IsLockedAsync(_context, bookerId, DateTime.Now))
+                    return new BaseResultDto<CompanionReserveBatchVDto>(false, Resource.Notification.UnpaidDebtLocked, null);
 
                 var assistanceIds = dto.Items.Select(s => s.CompanionAssistanceId).Distinct().ToList();
                 var companionIds = await _context.CompanionAssistances
@@ -606,7 +612,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 .Include(s => s.CompanionAssistanceUser).ThenInclude(s => s.User).Include(s => s.Booker).Include(s => s.UserPets)
                 .Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion)
                 .Include(s => s.CompanionAssistancePackages).ThenInclude(s => s.Picture).Include(s => s.CompanionAssistanceTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionAssistanceType)
-                .Include(s => s.OperatorState).Include(s => s.Rebate)
+                .Include(s => s.OperatorState).Include(s => s.Address).ThenInclude(a => a.City).ThenInclude(c => c.State).Include(s => s.Rebate)
                 .Include(s => s.CompanionAssistancePackageOnlineSelection).ThenInclude(s => s.CompanionAssistancePackageOnline)
                 .Where(s => s.BatchId == batch.Id)
                 .OrderBy(s => s.Id)
@@ -856,9 +862,20 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             }
         }
 
+        private async Task<HashSet<long>> GetRelatedExpertiseIdsAsync(long assistanceId)
+        {
+            var ids = await _context.AssistanceExpertises
+                .AsNoTracking()
+                .Where(row => row.AssistanceId == assistanceId && !row.Expertise.Deleted)
+                .Select(row => row.ExpertiseId)
+                .ToListAsync();
+            return ids.ToHashSet();
+        }
+
         public async Task<BaseResultDto<List<CompanionReserveAssigneeVDto>>> GetCompanionReserveAssigneesAsync(
             long reserveId,
-            bool adminAccess = false)
+            bool adminAccess = false,
+            bool includeUnlinked = false)
         {
             var reserve = await _context.CompanionReserves
                 .AsNoTracking()
@@ -882,47 +899,75 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     null);
             }
 
+            // اتصال‌های فعال همکار↔همین خدمت (CompanionAssistanceUser)
             var assistanceUsers = await _context.CompanionAssistanceUsers
                 .AsNoTracking()
-                .Include(s => s.User)
                 .Where(s =>
                     s.CompanionAssistanceId == reserve.CompanionAssistanceId &&
                     s.Active &&
                     !s.Deleted &&
                     !s.User.Deleted)
-                .OrderBy(s => s.User.FirstName)
-                .ThenBy(s => s.User.LastName)
                 .ToListAsync();
+            var linkByUserId = assistanceUsers
+                .GroupBy(s => s.UserId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(s => s.Id).First());
 
-            var userIds = assistanceUsers.Select(s => s.UserId).Distinct().ToList();
-            var companionUsers = await _context.CompanionUsers
+            // همکاران فعال و تأییدشده‌ی کلینیک. بدون includeUnlinked فقط متصل‌ها (رفتار قدیمی اپ‌ها)؛
+            // با includeUnlinked همه‌ی همکاران، و انتخاب همکارِ غیرمتصل هنگام تخصیص، اتصال خدمت را خودکار می‌سازد.
+            var linkedUserIds = linkByUserId.Keys.ToList();
+            var members = await _context.CompanionUsers
                 .AsNoTracking()
+                .Include(s => s.User)
                 .Include(s => s.Expertise)
+                .Include(s => s.Expertises).ThenInclude(s => s.Expertise)
                 .Where(s =>
                     s.CompanionId == reserve.CompanionAssistance.CompanionId &&
-                    userIds.Contains(s.UserId) &&
                     !s.Deleted &&
                     s.Active &&
-                    s.UserAccept == true)
-                .ToDictionaryAsync(s => s.UserId);
+                    s.UserAccept == true &&
+                    !s.User.Deleted &&
+                    (includeUnlinked || linkedUserIds.Contains(s.UserId)))
+                .ToListAsync();
 
-            var result = assistanceUsers
-                .Where(s => companionUsers.ContainsKey(s.UserId))
-                .Select(s =>
+            // تخصص‌های مرتبط با این خدمت (اگر برای خدمت تعریف شده باشد) برای پیشنهاد همکار مناسب
+            var relatedExpertiseIds = await GetRelatedExpertiseIdsAsync(reserve.CompanionAssistance.AssistanceId);
+
+            var result = members
+                .Select(member =>
                 {
-                    var companionUser = companionUsers[s.UserId];
+                    linkByUserId.TryGetValue(member.UserId, out var link);
+                    var expertises = member.Expertises?
+                        .Where(row => row.Expertise != null && !row.Expertise.Deleted)
+                        .OrderBy(row => row.Id)
+                        .ToList() ?? new List<CompanionUserExpertise>();
+                    var expertiseNames = expertises.Select(row => row.Expertise.Name).ToList();
+                    if (expertiseNames.Count == 0 && member.Expertise != null)
+                        expertiseNames.Add(member.Expertise.Name);
+                    var matchesRelated = relatedExpertiseIds.Count > 0 &&
+                        (expertises.Any(row => relatedExpertiseIds.Contains(row.ExpertiseId)) ||
+                         member.ExpertiseId.HasValue && relatedExpertiseIds.Contains(member.ExpertiseId.Value));
+
                     return new CompanionReserveAssigneeVDto
                     {
-                        CompanionAssistanceUserId = s.Id,
-                        UserId = s.UserId,
-                        FullName = $"{s.User.FirstName} {s.User.LastName}".Trim(),
-                        PictureId = s.User.PictureId,
-                        IsFemale = s.User.IsFemale,
-                        ExpertiseId = companionUser.ExpertiseId,
-                        ExpertiseName = companionUser.Expertise?.Name,
-                        IsAssigned = reserve.CompanionAssistanceUserId == s.Id
+                        CompanionAssistanceUserId = link?.Id,
+                        CompanionUserId = member.Id,
+                        IsLinkedToService = link != null,
+                        UserId = member.UserId,
+                        FullName = $"{member.User.FirstName} {member.User.LastName}".Trim(),
+                        PictureId = member.User.PictureId,
+                        IsFemale = member.User.IsFemale,
+                        ExpertiseId = member.ExpertiseId,
+                        ExpertiseName = member.Expertise?.Name,
+                        Expertises = expertiseNames,
+                        IsRecommended = matchesRelated,
+                        IsAssigned = link != null && reserve.CompanionAssistanceUserId == link.Id
                     };
                 })
+                // مسئول فعلی، سپس همکار مرتبط با تخصص خدمت، سپس متصل‌ها، سپس بقیه (بر اساس نام)
+                .OrderByDescending(item => item.IsAssigned)
+                .ThenByDescending(item => item.IsRecommended)
+                .ThenByDescending(item => item.IsLinkedToService)
+                .ThenBy(item => item.FullName)
                 .ToList();
 
             return new BaseResultDto<List<CompanionReserveAssigneeVDto>>(true, result);
@@ -1047,6 +1092,67 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     false,
                     Resource.Notification.CompanionReserveCompletedCannotReassign,
                     null);
+            }
+
+            // تخصیص با CompanionUserId: اگر همکار هنوز به این خدمت وصل نیست، اتصال خدمت همین‌جا (داخل همان تراکنش) ساخته/فعال می‌شود.
+            if (dto.CompanionAssistanceUserId <= 0)
+            {
+                if (dto.CompanionUserId is not > 0)
+                {
+                    return new BaseResultDto<CompanionReserveAdminVDto>(
+                        false,
+                        Resource.Notification.InvalidData,
+                        null);
+                }
+
+                if (reserve.CompanionAssistance.Companion.IsPersonal)
+                {
+                    return new BaseResultDto<CompanionReserveAdminVDto>(
+                        false,
+                        Resource.Notification.AccessDenied,
+                        null);
+                }
+
+                var member = await _context.CompanionUsers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s =>
+                        s.Id == dto.CompanionUserId.Value &&
+                        s.CompanionId == reserve.CompanionAssistance.CompanionId &&
+                        !s.Deleted &&
+                        s.Active &&
+                        s.UserAccept == true);
+                if (member == null)
+                {
+                    return new BaseResultDto<CompanionReserveAdminVDto>(
+                        false,
+                        Resource.Notification.CompanionReserveUserMembershipNotActiveOrConfirmed,
+                        null);
+                }
+
+                var link = await _context.CompanionAssistanceUsers
+                    .AsTracking()
+                    .FirstOrDefaultAsync(s =>
+                        s.UserId == member.UserId &&
+                        s.CompanionAssistanceId == reserve.CompanionAssistanceId &&
+                        !s.Deleted);
+                if (link == null)
+                {
+                    link = new CompanionAssistanceUser
+                    {
+                        UserId = member.UserId,
+                        CompanionAssistanceId = reserve.CompanionAssistanceId,
+                        Active = true
+                    };
+                    await _context.CompanionAssistanceUsers.AddAsync(link);
+                }
+                else if (!link.Active)
+                {
+                    link.Active = true;
+                    link.ActivationValue = null;
+                }
+
+                await _context.SaveChangesAsync();
+                dto.CompanionAssistanceUserId = link.Id;
             }
 
             var assignee = await _context.CompanionAssistanceUsers
@@ -1175,6 +1281,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     .ThenInclude(s => s.WeekDay)
                 .Include(s => s.CompanionAssistanceType)
                 .Include(s => s.OperatorState)
+                .Include(s => s.Address).ThenInclude(a => a.City).ThenInclude(c => c.State)
                 .Include(s => s.Rebate)
                 .Include(s => s.CompanionAssistancePackageOnlineSelection)
                     .ThenInclude(s => s.CompanionAssistancePackageOnline)
@@ -1711,6 +1818,16 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 item.OperatorStuffPrice = dto.OperatorStuffPrice;
                 item.OperatorFinalPrice = dto.OperatorStuffPrice + dto.OperatorWagesPrice;
                 item.PaymentPrice = item.OperatorFinalPrice;
+
+                // پرداخت‌نشده: فقط برای رزرو «کامل‌شده» با مبلغ نهایی > ۰؛ ۷ روز مهلت از همین لحظه شروع می‌شود
+                var recordAsUnpaid = dto.OperatorUnpaid
+                    && dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete
+                    && item.OperatorFinalPrice > 0;
+                item.OperatorUnpaid = recordAsUnpaid;
+                item.OperatorUnpaidAmount = recordAsUnpaid ? item.OperatorFinalPrice : 0;
+                item.OperatorUnpaidDate = recordAsUnpaid ? DateTime.Now : null;
+                item.OperatorDebtPaidDate = null;
+                item.OperatorDebtPaidByWallet = false;
 
                 _context.CompanionReserves.Update(item);
                 await _context.SaveChangesAsync();

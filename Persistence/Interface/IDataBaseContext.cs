@@ -90,6 +90,7 @@ namespace Persistence.Interface
         public DbSet<CompanionType> CompanionTypes { get; set; }
         public DbSet<CompanionUser> CompanionUsers { get; set; }
         public DbSet<CompanionUserExpertise> CompanionUserExpertises { get; set; }
+        public DbSet<AssistanceExpertise> AssistanceExpertises { get; set; }
         public DbSet<CompanionZone> CompanionZones { get; set; }
         public DbSet<ContactUs> ContactUses { get; set; }
         public DbSet<ContactUsGroup> ContactUsGroups { get; set; }

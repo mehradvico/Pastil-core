@@ -110,6 +110,11 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
             var item = await _context.PriceCalculations.FirstOrDefaultAsync(s => s.Deleted == false && s.FromTime <= hour && s.ToTime >= hour);
             return mapper.Map<PriceCalculationVDto>(item);
         }
+        // مبلغ پایه‌ی هر درخواست پت‌رسان (تومان): بدون توجه به مسافت، این مبلغ اول حساب می‌شود و
+        // هزینه‌ی متری، رفت‌وبرگشت، توقف، گزینه‌ها، پت اضافه و وانت روی آن اضافه می‌شود.
+        public const double RequestBasePrice = 500_000;
+        public const double DefaultExtraPetPrice = 100_000;
+
         public async Task<double> CalculateTripPrice(TripDto tripDto)
         {
             // برای سفرهای زمان‌بندی‌شده (رزرو پت‌رسان)، نرخ باید بر اساس ساعتِ حرکتِ واقعی سفر
@@ -125,8 +130,7 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
             var distanceMeter = await _geographyService.GetDrivingDistanceAsync(tripDto.Origin, tripDto.Destination, false, true);
             if (tripDto.SecondDestination != null && tripDto.SecondDestination.x > 0)
                 distanceMeter += await _geographyService.GetDrivingDistanceAsync(tripDto.Destination, tripDto.SecondDestination, false, true);
-            if (tripDto.RoundTrip)
-                distanceMeter = distanceMeter * 2;
+            // رفت‌وبرگشت دیگر مسافت را دوبرابر نمی‌کند؛ در انتها نصف «کل هزینه» به مبلغ اضافه می‌شود.
             price = distanceMeter * priceCalculation.Price;
             if (tripDto.TripStopId.HasValue)
             {
@@ -142,15 +146,48 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
             {
                 price += tripDto.StopMinutes.Value * priceCalculation.StopPrice;
             }
+            double optionsTotal = 0;
             if (tripDto.TripOptionIds != null && tripDto.TripOptionIds.Any())
             {
                 var optionList = await _tripOptionService.GetListAsync(tripDto.TripOptionIds);
                 foreach (var tripOption in optionList)
                 {
-                    price += tripOption.Price;
+                    optionsTotal += tripOption.Price;
                 }
             }
-            return price;
+            price += optionsTotal;
+
+            // چند پت در یک سفر: پت اول رایگان است، از پت دوم به بعد هر پت اضافه یک‌بار ExtraPetPrice اضافه می‌کند.
+            var petIds = (tripDto.UserPetIds != null && tripDto.UserPetIds.Any())
+                ? tripDto.UserPetIds.Distinct().ToList()
+                : (tripDto.UserPetId.HasValue ? new System.Collections.Generic.List<long> { tripDto.UserPetId.Value } : new System.Collections.Generic.List<long>());
+            var extraPetCount = System.Math.Max(0, petIds.Count - 1);
+            if (extraPetCount > 0)
+            {
+                // هر پت اضافه: مبلغ ثابت پت اضافه (اگر در ردیف نرخ صفر باشد ۱۰۰٬۰۰۰ تومان) + نصفِ هزینه‌ی گزینه‌های
+                // انتخاب‌شده‌ی سفر که دوباره برای همان پت اعمال می‌شود.
+                var extraPetFee = priceCalculation.ExtraPetPrice > 0 ? priceCalculation.ExtraPetPrice : DefaultExtraPetPrice;
+                price += extraPetCount * (extraPetFee + optionsTotal / 2);
+            }
+
+            // نوع خودرو: فقط وقتی کاربر صراحتاً «وانت» را انتخاب کرده (نه «فرقی نداره»)، مبلغ ثابت اضافه می‌شود.
+            if (tripDto.VehicleTypeId.HasValue)
+            {
+                var vehicleTypeName = await _context.Codes.AsNoTracking()
+                    .Where(c => c.Id == tripDto.VehicleTypeId.Value)
+                    .Select(c => c.Name)
+                    .FirstOrDefaultAsync();
+                if (vehicleTypeName != null && vehicleTypeName.Contains("وانت"))
+                    price += priceCalculation.PickupVehicleExtraPrice;
+            }
+
+            // مبلغ پایه‌ی درخواست، جدا از هزینه‌های محاسبه‌شده‌ی بالا
+            var total = RequestBasePrice + price;
+            // رفت‌وبرگشت: نصف کل هزینه‌ی سفر (مبلغ پایه + همه‌ی هزینه‌ها) به مبلغ کل اضافه می‌شود.
+            // مثال: ۵۰۰٬۰۰۰ + ۶۰۰٬۰۰۰ = ۱٬۱۰۰٬۰۰۰ ← با رفت‌وبرگشت: ۱٬۶۵۰٬۰۰۰
+            if (tripDto.RoundTrip)
+                total += total / 2;
+            return total;
 
         }
     }

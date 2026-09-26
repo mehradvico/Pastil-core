@@ -20,6 +20,11 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
 
         public double PrePaymentPrice { get; set; }
         public double OperatorFinalPrice { get; set; }
+        public bool OperatorUnpaid { get; set; }
+        public double OperatorUnpaidAmount { get; set; }
+        public System.DateTime? OperatorUnpaidDate { get; set; }
+        public System.DateTime? OperatorDebtPaidDate { get; set; }
+        public bool OperatorDebtPaidByWallet { get; set; }
         public double OperatorStuffPrice { get; set; }
         public double OperatorWagesPrice { get; set; }
         public double PaymentPrice { get; set; }

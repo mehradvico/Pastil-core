@@ -316,7 +316,7 @@
     <value>یادآوری! دیروز موعد «{1}» برای پت «{0}» بوده است.</value>
   </data>
   <data name="PushReminderToday" xml:space="preserve">
-    <value>یادآوری! امروز موعد «{1}» برای پت «{0}» است.</value>
+    <value>یادآوری! الان وقت «{1}» برای «{0}» هست، فراموش نکنی!</value>
   </data>
   <data name="PushTripNoDriverAdminNotified" xml:space="preserve">
     <value>نگران نباشید! هنوز راننده‌ای سفرتون رو قبول نکرده، به ادمین اطلاع دادیم که براتون دنبال راننده بگرده.</value>

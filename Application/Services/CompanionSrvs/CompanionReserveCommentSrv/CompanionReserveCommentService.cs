@@ -202,6 +202,8 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv
                 query = query.Where(s => s.CompanionReserve.CompanionAssistance.CompanionId == searchDto.CompanionId);
             if (searchDto.UserId.HasValue)
                 query = query.Where(s => s.UserId == searchDto.UserId);
+            if (searchDto.HideRejected)
+                query = query.Where(s => s.Status.Label != CommentEnum.Comment_Reject.ToString());
             if (searchDto.AllStatus == false)
             {
                 switch (searchDto.Available)

@@ -112,6 +112,54 @@ namespace Application.Services.PastilAISrv.Dto
         public long? DurationMilliseconds { get; set; }
         public List<PastilAiAttachmentDto> Attachments { get; set; } = new();
         public List<PastilAiProviderAttemptDto> ProviderAttempts { get; set; } = new();
+        // کارت‌های قابل‌کلیکِ پیشنهادشده توسط PastilAI. این اطلاعات همراه خود پیام ذخیره
+        // می‌شود تا با باز کردن دوبارهٔ مکالمه هم از بین نرود.
+        public List<PastilAiRecommendedProductDto> RecommendedProducts { get; set; } = new();
+        public List<PastilAiRecommendedPackageDto> RecommendedPackages { get; set; } = new();
+        public string ProductRequestText { get; set; }
+        public PastilAiProductRequestDraftDto ProductRequest { get; set; }
+        /// <summary>
+        /// پاسخ مربوط به خود پاستیل یا یک مشکل خدماتی/مالی است و کلاینت باید کارت تیکت‌سنتر را نمایش دهد.
+        /// </summary>
+        public bool SupportTicket { get; set; }
+    }
+
+    public class PastilAiRecommendedProductDto
+    {
+        public long ProductId { get; set; }
+        public string Name { get; set; }
+        public long Price { get; set; }
+        public int DiscountPercent { get; set; }
+        public bool InStock { get; set; }
+        public PastilAiProductPictureDto Picture { get; set; }
+    }
+
+    public class PastilAiProductPictureDto
+    {
+        public string Url { get; set; }
+        public string GuidName { get; set; }
+        public string Extension { get; set; }
+    }
+
+    public class PastilAiProductRequestDraftDto
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string ProductName { get; set; }
+        public string Brand { get; set; }
+        public string Quantity { get; set; }
+    }
+
+    public class PastilAiRecommendedPackageDto
+    {
+        public long PackageId { get; set; }
+        public long CompanionId { get; set; }
+        public long CompanionAssistanceId { get; set; }
+        public string Name { get; set; }
+        public string CompanionName { get; set; }
+        public string AssistanceName { get; set; }
+        public double Price { get; set; }
+        public double PrePaymentPrice { get; set; }
     }
 
     public class PastilAiAttachmentDto

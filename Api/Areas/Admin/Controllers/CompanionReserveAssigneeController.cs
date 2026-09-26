@@ -25,13 +25,13 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
-        /// دریافت کاربران فعال و تأییدشده همان خدمت برای تخصیص رزرو توسط مدیر
+        /// دریافت کاربران فعال و تأییدشده برای تخصیص؛ پیش‌فرض فقط متصل‌ها به همان خدمت، با includeAll=true همه‌ی همکاران کلینیک رزرو توسط مدیر
         /// </summary>
         [HttpGet("{reserveId}")]
         [ProducesResponseType(typeof(BaseResultDto<List<CompanionReserveAssigneeVDto>>), 200)]
-        public async Task<IActionResult> Get(long reserveId)
+        public async Task<IActionResult> Get(long reserveId, [FromQuery] bool includeAll = false)
         {
-            return Ok(await _companionReserveService.GetCompanionReserveAssigneesAsync(reserveId, adminAccess: true));
+            return Ok(await _companionReserveService.GetCompanionReserveAssigneesAsync(reserveId, adminAccess: true, includeUnlinked: includeAll));
         }
     }
 }

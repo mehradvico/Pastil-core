@@ -35,19 +35,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
             try
             {
                 dto ??= new ConsultationPurchaseAdminInputDto();
-                var query = _context.ConsultationPurchases.AsNoTracking().AsQueryable();
-                if (dto.CompanionId.HasValue) query = query.Where(s => s.CompanionId == dto.CompanionId.Value);
-                if (dto.UserId.HasValue) query = query.Where(s => s.UserId == dto.UserId.Value);
-                if (dto.Status.HasValue) query = query.Where(s => s.Status == dto.Status.Value);
-                if (dto.ChannelId.HasValue) query = query.Where(s => s.ChannelId == dto.ChannelId.Value);
-                if (dto.FromDate.HasValue) query = query.Where(s => s.CreateDate >= dto.FromDate.Value.Date);
-                if (dto.ToDate.HasValue) query = query.Where(s => s.CreateDate < dto.ToDate.Value.Date.AddDays(1));
-                if (!string.IsNullOrWhiteSpace(dto.Q))
-                {
-                    var q = dto.Q.Trim();
-                    query = query.Where(s => s.PurchaseCode.Contains(q) || s.User.Mobile.Contains(q) ||
-                                             s.User.FirstName.Contains(q) || s.User.LastName.Contains(q) || s.Companion.Name.Contains(q));
-                }
+                var query = ApplyFilters(_context.ConsultationPurchases.AsNoTracking(), dto);
 
                 var pageSize = Math.Clamp(dto.PageSize, 1, MaxPageSize);
                 var pageIndex = Math.Max(1, dto.PageIndex);
@@ -64,7 +52,11 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
                         LastName = s.User.LastName,
                         Mobile = s.User.Mobile,
                         AgentFirst = s.AgentUser.FirstName,
-                        AgentLast = s.AgentUser.LastName
+                        AgentLast = s.AgentUser.LastName,
+                        CallSeconds = s.OnlineSession == null ? 0 : s.OnlineSession.CallSeconds,
+                        CallStart = s.OnlineSession == null ? null : s.OnlineSession.CallStartDate,
+                        CallEnd = s.OnlineSession == null ? null : s.OnlineSession.CallEndDate,
+                        MessageCount = s.OnlineSession == null ? 0 : s.OnlineSession.Messages.Count()
                     })
                     .ToListAsync();
 
@@ -96,7 +88,11 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
                         LastName = s.User.LastName,
                         Mobile = s.User.Mobile,
                         AgentFirst = s.AgentUser.FirstName,
-                        AgentLast = s.AgentUser.LastName
+                        AgentLast = s.AgentUser.LastName,
+                        CallSeconds = s.OnlineSession == null ? 0 : s.OnlineSession.CallSeconds,
+                        CallStart = s.OnlineSession == null ? null : s.OnlineSession.CallStartDate,
+                        CallEnd = s.OnlineSession == null ? null : s.OnlineSession.CallEndDate,
+                        MessageCount = s.OnlineSession == null ? 0 : s.OnlineSession.Messages.Count()
                     })
                     .FirstOrDefaultAsync();
                 if (row == null)
@@ -107,6 +103,62 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
             {
                 return new BaseResultDto<ConsultationPurchaseAdminVDto>(false, ExceptionResultHelper.ToClientMessage(ex), null);
             }
+        }
+
+        public async Task<BaseResultDto<ConsultationPurchaseAdminSummaryDto>> GetPurchaseSummaryAsync(ConsultationPurchaseAdminInputDto dto)
+        {
+            try
+            {
+                dto ??= new ConsultationPurchaseAdminInputDto();
+                var query = ApplyFilters(_context.ConsultationPurchases.AsNoTracking(), dto);
+
+                // یک کوئری گروه‌بندی‌شده روی (وضعیت، تسویه‌شده) و جمع‌بندی در حافظه با قواعد خالص گزارش
+                var groups = await query
+                    .GroupBy(s => new { s.Status, s.Permitted })
+                    .Select(g => new
+                    {
+                        g.Key.Status,
+                        g.Key.Permitted,
+                        Count = g.Count(),
+                        Price = g.Sum(x => x.Price),
+                        Rebate = g.Sum(x => x.RebatePrice),
+                        Paid = g.Sum(x => x.PaymentPrice),
+                        CompanionShare = g.Sum(x => x.CompanionShare),
+                        SiteShare = g.Sum(x => x.SiteShare),
+                        Minutes = g.Sum(x => x.DurationMinutes)
+                    })
+                    .ToListAsync();
+
+                var talkSeconds = await query
+                    .Where(s => s.OnlineSessionId != null)
+                    .SumAsync(s => (long?)s.OnlineSession.CallSeconds) ?? 0;
+
+                var summary = ConsultationAdminReport.BuildSummary(groups.Select(g => new ConsultationAdminReport.StatusGroup(
+                    g.Status, g.Permitted, g.Count, g.Price, g.Rebate, g.Paid, g.CompanionShare, g.SiteShare, g.Minutes)));
+                summary.TalkSeconds = talkSeconds;
+                return new BaseResultDto<ConsultationPurchaseAdminSummaryDto>(true, summary);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<ConsultationPurchaseAdminSummaryDto>(false, ExceptionResultHelper.ToClientMessage(ex), null);
+            }
+        }
+
+        private static IQueryable<ConsultationPurchase> ApplyFilters(IQueryable<ConsultationPurchase> query, ConsultationPurchaseAdminInputDto dto)
+        {
+            if (dto.CompanionId.HasValue) query = query.Where(s => s.CompanionId == dto.CompanionId.Value);
+            if (dto.UserId.HasValue) query = query.Where(s => s.UserId == dto.UserId.Value);
+            if (dto.Status.HasValue) query = query.Where(s => s.Status == dto.Status.Value);
+            if (dto.ChannelId.HasValue) query = query.Where(s => s.ChannelId == dto.ChannelId.Value);
+            if (dto.FromDate.HasValue) query = query.Where(s => s.CreateDate >= dto.FromDate.Value.Date);
+            if (dto.ToDate.HasValue) query = query.Where(s => s.CreateDate < dto.ToDate.Value.Date.AddDays(1));
+            if (!string.IsNullOrWhiteSpace(dto.Q))
+            {
+                var q = dto.Q.Trim();
+                query = query.Where(s => s.PurchaseCode.Contains(q) || s.PackageName.Contains(q) || s.User.Mobile.Contains(q) ||
+                                         s.User.FirstName.Contains(q) || s.User.LastName.Contains(q) || s.Companion.Name.Contains(q));
+            }
+            return query;
         }
 
         public async Task<BaseResultDto<List<ConsultationClinicAdminVDto>>> GetClinicsAsync(string q)
@@ -160,17 +212,14 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
         {
             try
             {
-                var name = await _context.Companions.AsNoTracking()
-                    .Where(c => c.Id == companionId && !c.Deleted)
-                    .Select(c => c.Name)
-                    .FirstOrDefaultAsync();
+                var name = await GetClinicNameAsync(companionId);
                 if (name == null)
                     return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, Resource.Notification.NothingFound, null);
 
-                var matrix = await _packageService.GetMatrixAsync(companionId);
-                if (!matrix.IsSuccess)
+                var list = await _packageService.GetListAsync(companionId);
+                if (!list.IsSuccess)
                     return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, Resource.Notification.Unsuccess, null);
-                return new BaseResultDto<List<ConsultationPackageAdminVDto>>(true, ToAdminList(matrix.Data, companionId, name));
+                return new BaseResultDto<List<ConsultationPackageAdminVDto>>(true, list.Data.Select(i => ToAdminItem(i, companionId, name)).ToList());
             }
             catch (Exception ex)
             {
@@ -178,41 +227,55 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
             }
         }
 
-        public async Task<BaseResultDto<List<ConsultationPackageAdminVDto>>> SaveClinicPackagesAsync(long companionId, ConsultationPackageSaveDto dto)
+        public async Task<BaseResultDto<ConsultationPackageAdminVDto>> CreateClinicPackageAsync(long companionId, ConsultationPackageItemDto dto)
         {
-            try
-            {
-                var name = await _context.Companions.AsNoTracking()
-                    .Where(c => c.Id == companionId && !c.Deleted)
-                    .Select(c => c.Name)
-                    .FirstOrDefaultAsync();
-                if (name == null)
-                    return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, Resource.Notification.NothingFound, null);
+            var name = await GetClinicNameAsync(companionId);
+            if (name == null)
+                return new BaseResultDto<ConsultationPackageAdminVDto>(false, Resource.Notification.NothingFound, null);
 
-                // اعتبارسنجی و upsert همان سرویس نماینده است (قیمت ≥ ۰؛ فعال فقط با قیمت > ۰؛ مدت فقط ۳۰/۶۰)
-                var saved = await _packageService.SaveMatrixAsync(companionId, dto);
-                if (!saved.IsSuccess)
-                    return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, saved.Messages, null);
-                return new BaseResultDto<List<ConsultationPackageAdminVDto>>(true, ToAdminList(saved.Data, companionId, name));
-            }
-            catch (Exception ex)
-            {
-                return new BaseResultDto<List<ConsultationPackageAdminVDto>>(false, ExceptionResultHelper.ToClientMessage(ex), null);
-            }
+            // اعتبارسنجی و ذخیره همان سرویس نماینده است
+            var saved = await _packageService.CreateAsync(companionId, dto);
+            return saved.IsSuccess
+                ? new BaseResultDto<ConsultationPackageAdminVDto>(true, ToAdminItem(saved.Data, companionId, name))
+                : new BaseResultDto<ConsultationPackageAdminVDto>(false, saved.Messages, null);
         }
 
-        private static List<ConsultationPackageAdminVDto> ToAdminList(IEnumerable<ConsultationPackageItemDto> items, long companionId, string name) =>
-            items.OrderBy(i => i.ChannelId).ThenBy(i => i.DurationMinutes)
-                .Select(i => new ConsultationPackageAdminVDto
-                {
-                    Id = i.Id,
-                    CompanionId = companionId,
-                    CompanionName = name,
-                    ChannelId = i.ChannelId,
-                    DurationMinutes = i.DurationMinutes,
-                    Price = i.Price,
-                    Active = i.Active
-                }).ToList();
+        public async Task<BaseResultDto<ConsultationPackageAdminVDto>> UpdateClinicPackageAsync(long companionId, ConsultationPackageItemDto dto)
+        {
+            var name = await GetClinicNameAsync(companionId);
+            if (name == null)
+                return new BaseResultDto<ConsultationPackageAdminVDto>(false, Resource.Notification.NothingFound, null);
+
+            var saved = await _packageService.UpdateAsync(companionId, dto);
+            return saved.IsSuccess
+                ? new BaseResultDto<ConsultationPackageAdminVDto>(true, ToAdminItem(saved.Data, companionId, name))
+                : new BaseResultDto<ConsultationPackageAdminVDto>(false, saved.Messages, null);
+        }
+
+        public Task<BaseResultDto> DeleteClinicPackageAsync(long companionId, long id) =>
+            _packageService.DeleteAsync(companionId, id);
+
+        private Task<string> GetClinicNameAsync(long companionId) =>
+            _context.Companions.AsNoTracking()
+                .Where(c => c.Id == companionId && !c.Deleted)
+                .Select(c => c.Name)
+                .FirstOrDefaultAsync();
+
+        private static ConsultationPackageAdminVDto ToAdminItem(ConsultationPackageItemDto i, long companionId, string name) => new()
+        {
+            Id = i.Id,
+            CompanionId = companionId,
+            CompanionName = name,
+            ChannelId = i.ChannelId,
+            DurationMinutes = i.DurationMinutes,
+            Price = i.Price,
+            Active = i.Active,
+            Name = i.Name,
+            Description = i.Description,
+            PictureId = i.PictureId,
+            Picture = i.Picture,
+            SortOrder = i.SortOrder
+        };
 
         private sealed class Row
         {
@@ -223,6 +286,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
             public string Mobile { get; set; }
             public string AgentFirst { get; set; }
             public string AgentLast { get; set; }
+            public int CallSeconds { get; set; }
+            public DateTime? CallStart { get; set; }
+            public DateTime? CallEnd { get; set; }
+            public int MessageCount { get; set; }
         }
 
         private static ConsultationPurchaseAdminVDto ToVDto(Row r)
@@ -237,6 +304,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
                 UserId = s.UserId,
                 UserFullName = $"{r.FirstName} {r.LastName}".Trim(),
                 UserMobile = r.Mobile,
+                PackageId = s.ConsultationPackageId,
+                PackageName = s.PackageName,
                 ChannelId = s.ChannelId,
                 DurationMinutes = s.DurationMinutes,
                 Price = s.Price,
@@ -245,12 +314,19 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
                 PaymentPrice = s.PaymentPrice,
                 CompanionShare = s.CompanionShare,
                 SiteShare = s.SiteShare,
+                NetPaid = ConsultationAdminReport.NetPaid(s.Status, s.PaymentPrice),
+                RefundedAmount = ConsultationAdminReport.RefundedAmount(s.Status, s.PaymentPrice),
+                Permitted = s.Permitted,
                 Status = s.Status,
                 CreateDate = s.CreateDate,
                 PaidDate = s.PaidDate,
                 StartDeadline = s.StartDeadline,
                 StartDate = s.StartDate,
                 ExpireDate = s.ExpireDate,
+                CallSeconds = r.CallSeconds,
+                CallStartDate = r.CallStart,
+                CallEndDate = r.CallEnd,
+                MessageCount = r.MessageCount,
                 CancelDate = s.CancelDate,
                 CancelReason = s.CancelReason,
                 RefundDate = s.RefundDate,

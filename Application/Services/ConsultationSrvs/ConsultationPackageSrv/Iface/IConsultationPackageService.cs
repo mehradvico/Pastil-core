@@ -7,11 +7,17 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv.Iface
 {
     public interface IConsultationPackageService
     {
-        // ماتریس کامل ۸ خانه‌ای پکیج‌های یک کلینیک (برای صفحه‌ی تعریف پکیج نماینده)
-        Task<BaseResultDto<List<ConsultationPackageItemDto>>> GetMatrixAsync(long companionId);
+        // همه‌ی پکیج‌های نام‌دار یک کلینیک (فعال و غیرفعال) برای صفحه‌ی مدیریت پکیج نماینده
+        Task<BaseResultDto<List<ConsultationPackageItemDto>>> GetListAsync(long companionId);
 
-        // ذخیره‌ی ماتریس (upsert)؛ فقط برای مالک همان کلینیک از کنترلر صدا زده می‌شود
-        Task<BaseResultDto<List<ConsultationPackageItemDto>>> SaveMatrixAsync(long companionId, ConsultationPackageSaveDto dto);
+        // ساخت یک پکیج جدید؛ فقط برای مالک همان کلینیک از کنترلر صدا زده می‌شود
+        Task<BaseResultDto<ConsultationPackageItemDto>> CreateAsync(long companionId, ConsultationPackageItemDto dto);
+
+        // ویرایش یک پکیج (بر اساس dto.Id)
+        Task<BaseResultDto<ConsultationPackageItemDto>> UpdateAsync(long companionId, ConsultationPackageItemDto dto);
+
+        // حذف نرم؛ خریدهای قبلی نام و قیمت خودشان را در لحظه‌ی خرید نگه داشته‌اند و اثری نمی‌پذیرند
+        Task<BaseResultDto> DeleteAsync(long companionId, long id);
 
         // پکیج‌های قابل خرید یک کلینیک برای کاربر
         Task<BaseResultDto<List<ConsultationPackagePublicVDto>>> GetPublicAsync(long companionId);

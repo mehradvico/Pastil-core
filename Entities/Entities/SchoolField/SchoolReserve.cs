@@ -30,6 +30,8 @@ namespace Entities.Entities.SchoolField
 
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
+        // true وقتی سهم مدرسه (کلینیک) در یک تسویه آمده است
+        public bool Permitted { get; set; }
 
         public SchoolCourse SchoolCourse { get; set; }
         public UserPet UserPet { get; set; }

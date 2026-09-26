@@ -48,6 +48,12 @@ namespace Application.Services.ReminderSrvs.ReminderTypeSrv
         {
             var model = _context.ReminderTypes.AsQueryable().Where(s => !s.Deleted);
 
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.Q))
+            {
+                var text = baseSearchDto.Q.Trim();
+                model = model.Where(s => s.Name.Contains(text));
+            }
+
             switch (baseSearchDto.SortBy)
             {
                 case SortEnum.New:

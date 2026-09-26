@@ -11,6 +11,8 @@ namespace Application.Services.FinanceSrvs.SettlementCompanionSrv.Dto
     {
         public long? CompanionReserveId { get; set; }
         public long? PansionReserveId { get; set; }
+        public long? ConsultationPurchaseId { get; set; }
+        public long? SchoolReserveId { get; set; }
         public long SettlementId { get; set; }
     }
 }

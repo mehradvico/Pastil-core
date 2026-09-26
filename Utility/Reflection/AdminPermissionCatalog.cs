@@ -37,10 +37,13 @@ namespace Utility.Reflection
         internal static readonly HashSet<string> ForceMenuOnSync = new(StringComparer.OrdinalIgnoreCase)
         {
             "MissingProduct",
+            "DiscountGroup",
+            "CompanionReserveComment",
         };
 
         private static readonly HashSet<string> MenuControllers = new(StringComparer.OrdinalIgnoreCase)
         {
+            "CompanionReserveComment",
             "Address",
             "Assistance",
             "AssistanceQuestionnaire",
@@ -56,6 +59,7 @@ namespace Utility.Reflection
             "Delivery",
             "Detail",
             "Discount",
+            "DiscountGroup",
             "Driver",
             "Trip",
             "TripOption",
@@ -66,6 +70,7 @@ namespace Utility.Reflection
             "PastilAI",
             "Feature",
             "Finance",
+            "FinanceReport",
             "Neighborhood",
             "Pansion",
             "PansionReserve",
@@ -186,6 +191,7 @@ namespace Utility.Reflection
                 "Assistance",
                 "AssistanceGroup",
                 "Expertise",
+                "AssistanceExpertise",
                 "PansionActive",
                 "CompanionActivation",
                 "CompanionReserveAssign",
@@ -305,6 +311,7 @@ namespace Utility.Reflection
             [
                 "ProductOrderCancelRequest",
                 "Finance",
+                "FinanceReport",
                 "FinanceStore",
                 "UserBankCard",
                 "ProductOrder",

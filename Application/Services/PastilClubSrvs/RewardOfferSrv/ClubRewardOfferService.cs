@@ -205,6 +205,58 @@ namespace Application.Services.PastilClubSrvs.RewardOfferSrv
             return await SearchAsync(query, dto, now, cancellationToken);
         }
 
+        public async Task<BaseResultDto> SyncAutomatedOffersAsync(long userId, CancellationToken cancellationToken = default)
+        {
+            if (userId <= 0)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+            var now = DateTimeOffset.UtcNow;
+            var userPetTypeIds = _context.UserPets.AsNoTracking()
+                .Where(item => item.UserId == userId && item.Active && !item.Deleted)
+                .Select(item => item.PetId);
+            var templates = await _context.ClubRewardTemplates.AsNoTracking()
+                .Where(item => item.Active && item.IsAutomationAllowed &&
+                    (!item.StartDate.HasValue || item.StartDate <= now) &&
+                    (!item.EndDate.HasValue || item.EndDate >= now) &&
+                    (!item.PetTypes.Any() || item.PetTypes.Any(pet => userPetTypeIds.Contains(pet.PetTypeId))))
+                .ToListAsync(cancellationToken);
+            if (templates.Count == 0) return new BaseResultDto(true);
+
+            var templateIds = templates.Select(item => item.Id).ToList();
+            var offeredTemplateIds = await _context.ClubRewardOffers.AsNoTracking()
+                .Where(item => item.UserId == userId && templateIds.Contains(item.RewardTemplateId))
+                .Select(item => item.RewardTemplateId)
+                .ToListAsync(cancellationToken);
+            var added = 0;
+            foreach (var template in templates.Where(item => !offeredTemplateIds.Contains(item.Id)))
+            {
+                DateTimeOffset expiresAt;
+                try { expiresAt = ClubRewardExpirationResolver.Resolve(template, now); }
+                catch (InvalidOperationException) { continue; }
+                if (expiresAt <= now) continue;
+                await _context.ClubRewardOffers.AddAsync(new ClubRewardOffer
+                {
+                    UserId = userId, RewardTemplateId = template.Id,
+                    SourceType = ClubRewardOfferSourceEnum.Automation,
+                    Status = ClubRewardOfferStatusEnum.Approved,
+                    PointCostSnapshot = template.PointCost,
+                    GeneratedDate = now, ApprovedDate = now, ExpiresAt = expiresAt,
+                    CreateDate = DateTime.UtcNow
+                }, cancellationToken);
+                added++;
+            }
+            if (added == 0) return new BaseResultDto(true);
+            try
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException)
+            {
+                // ایندکس یکتای UserId/RewardTemplateId در درخواست هم‌زمان مانع پیشنهاد تکراری است.
+            }
+            return new BaseResultDto(true);
+        }
+
         private async Task<BaseResultDto<ClubRewardOfferVDto>> DecideAsync(
             long offerId,
             long adminId,

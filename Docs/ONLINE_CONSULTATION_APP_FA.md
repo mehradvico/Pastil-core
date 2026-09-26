@@ -204,3 +204,11 @@ Duration remaining(String expireDate, String serverNow, DateTime fetchedAt) =>
 - [ ] `JoinSessionCall` دوباره هنگام بازگشت؛ صف ICE؛ TURN
 - [ ] چت فقط‌خواندنی بعد از پایان؛ پیام‌های ۶۶–۷۴ با مقصد درست
 - [ ] `Idempotency-Key` در خرید؛ `paymentIsLink` برای درگاه
+
+---
+
+## تغییر ناسازگار (۱۴۰۵/۰۷/۰۳): پکیج‌های نام‌دار
+
+- `GET /api/Companion/ConsultationPackage` حالا **فهرست** پکیج‌هاست (نه ماتریس ۸ خانه)؛ `PUT` ماتریسی حذف شد و به‌جایش `POST` (ساخت)، `PUT` (ویرایش با `id`)، `DELETE ?id=` است.
+- هر پکیج `name`، `description`، `picture` (`{id,url}`)، `durationMinutes` از {۱۵،۳۰،۴۵،۶۰،۹۰} دارد؛ تعداد پکیج در هر کانال نامحدود است.
+- `GET /api/EndUser/ConsultationPackage?companionId=` همین فیلدها را برمی‌گرداند؛ لیست خرید/جلسه‌ها فیلد `packageName` دارند و باید به‌جای «کانال · مدت» نمایش داده شود.

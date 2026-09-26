@@ -113,6 +113,9 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
             try
             {
+                if (await Application.Services.CompanionSrvs.CompanionReserveDebtSrv.CompanionReserveDebtRules.IsLockedAsync(_context, dto.BookerId, DateTime.Now))
+                    return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.UnpaidDebtLocked, dto);
+
                 var course = await _context.SchoolCourses.Include(c => c.School)
                     .FirstOrDefaultAsync(c => c.Id == dto.SchoolCourseId && !c.Deleted && c.Active);
                 if (course == null)
@@ -373,6 +376,16 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
 
             await _context.SaveChangesAsync();
             return new BaseResultDto(true);
+        }
+
+        // مدرسه‌ی صاحب دوره می‌تواند ثبت‌نام «پرداخت‌شده» و لغو‌نشده‌ی خودش را «کامل‌شده» کند؛ تغییرات دیگر فقط ادمین
+        public async Task<BaseResultDto> CompleteByCompanionAsync(long id, long companionId)
+        {
+            var paid = (int)SchoolReserveStatusEnum.Paid;
+            var done = await _context.SchoolReserves
+                .Where(s => s.Id == id && s.IsReserved && !s.IsCancel && s.StatusId == paid && s.SchoolCourse.School.CompanionId == companionId)
+                .ExecuteUpdateAsync(x => x.SetProperty(r => r.StatusId, (int)SchoolReserveStatusEnum.Complete));
+            return done == 0 ? new BaseResultDto(false, Resource.Notification.NothingFound) : new BaseResultDto(true);
         }
 
         public async Task<BaseResultDto> UpdateStatusDto(SchoolReserveStatusDto dto)

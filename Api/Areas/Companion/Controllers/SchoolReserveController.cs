@@ -33,6 +33,17 @@ namespace Api.Areas.Companion.Controllers
             return Ok(search);
         }
 
+        /// <summary>ثبت «کامل‌شده» برای ثبت‌نام پرداخت‌شده‌ی دوره‌ی مدرسه‌ی خودِ نماینده</summary>
+        [HttpPut("{id}/Complete")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Complete(long id)
+        {
+            var companionId = _currentUser.CurrentUser.CompanionId;
+            if (!companionId.HasValue)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
+            return Ok(await _schoolReserveService.CompleteByCompanionAsync(id, companionId.Value));
+        }
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BaseResultDto<SchoolReserveVDto>), 200)]
         public async Task<IActionResult> Get(long id)

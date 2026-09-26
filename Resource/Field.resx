@@ -126,6 +126,12 @@
   <data name="AddressValue" xml:space="preserve">
     <value>Address value</value>
   </data>
+  <data name="Floor" xml:space="preserve">
+    <value>Floor</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Unit</value>
+  </data>
   <data name="Area" xml:space="preserve">
     <value>Area</value>
   </data>

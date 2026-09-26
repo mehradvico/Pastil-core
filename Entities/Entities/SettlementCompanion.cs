@@ -12,10 +12,14 @@ namespace Entities.Entities
     {
         public long? CompanionReserveId { get; set; }
         public long? PansionReserveId { get; set; }
+        public long? ConsultationPurchaseId { get; set; }
+        public long? SchoolReserveId { get; set; }
         public long SettlementId { get; set; }
 
         public Settlement Settlement { get; set; }
         public PansionReserve PansionReserve { get; set; }
         public CompanionReserve CompanionReserve { get; set; }
+        public ConsultationPurchase ConsultationPurchase { get; set; }
+        public Entities.SchoolField.SchoolReserve SchoolReserve { get; set; }
     }
 }

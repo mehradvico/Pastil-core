@@ -16,5 +16,6 @@ namespace Application.Services.PastilClubSrvs.RewardOfferSrv.Iface
         Task<BaseResultDto> BulkRejectAsync(ClubRewardOfferBulkDecisionDto dto, long adminId, CancellationToken cancellationToken = default);
         Task<BaseResultDto<ClubRewardOfferVDto>> FindUserAsync(long id, long userId, CancellationToken cancellationToken = default);
         Task<ClubRewardOfferSearchDto> SearchUserAsync(ClubRewardOfferInputDto dto, long userId, CancellationToken cancellationToken = default);
+        Task<BaseResultDto> SyncAutomatedOffersAsync(long userId, CancellationToken cancellationToken = default);
     }
 }

@@ -9,5 +9,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Dto
         public long? CompanionId { get; set; }
         public bool? AllStatus { get; set; }
         public long? UserId { get; set; }
+        // نمای نماینده: نظرهای ردشده‌ی ادمین نمایش داده نشوند
+        public bool HideRejected { get; set; }
     }
 }

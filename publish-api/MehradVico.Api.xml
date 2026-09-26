@@ -84,6 +84,21 @@
              حذف آیتم 
             </summary>  
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.AssistanceExpertiseController">
+            <summary>
+            تخصص‌های مرتبط با هر خدمت (برای پیشنهاد همکار مناسب هنگام تخصیص رزرو)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceExpertiseController.Get(System.Int64)">
+            <summary>
+            تخصص‌های مرتبط با یک خدمت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AssistanceExpertiseController.Put(Application.Services.CompanionSrvs.AssistanceExpertiseSrv.Dto.AssistanceExpertiseDto)">
+            <summary>
+            جایگزینی کامل تخصص‌های مرتبط با یک خدمت
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.AssistanceGroupController">
             <summary>
             گروه‌های خدمات
@@ -1211,9 +1226,9 @@
             کاربران قابل تخصیص به رزرو خدمت توسط مدیر
             </summary>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.CompanionReserveAssigneeController.Get(System.Int64)">
+        <member name="M:Api.Areas.Admin.Controllers.CompanionReserveAssigneeController.Get(System.Int64,System.Boolean)">
             <summary>
-            دریافت کاربران فعال و تأییدشده همان خدمت برای تخصیص رزرو توسط مدیر
+            دریافت کاربران فعال و تأییدشده برای تخصیص؛ پیش‌فرض فقط متصل‌ها به همان خدمت، با includeAll=true همه‌ی همکاران کلینیک رزرو توسط مدیر
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionReserveCancelController">
@@ -1505,16 +1520,22 @@
             <summary>
             بسته‌های مشاوره آنلاین
             </summary>
-            <remarks>مشاهده و ویرایش بسته‌های هر کلینیک؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
+            <remarks>مشاهده و مدیریت پکیج‌های نام‌دار هر کلینیک؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Get(System.String)">
             <summary>فهرست کلینیک‌ها با تعداد بسته‌ی فعال و بازه‌ی قیمت</summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Get(System.Int64)">
-            <summary>ماتریس بسته‌های یک کلینیک</summary>
+            <summary>همه‌ی پکیج‌های نام‌دار یک کلینیک</summary>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Put(System.Int64,Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageSaveDto)">
-            <summary>ویرایش بسته‌های یک کلینیک</summary>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Post(System.Int64,Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageItemDto)">
+            <summary>ساخت پکیج برای یک کلینیک</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Put(System.Int64,Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageItemDto)">
+            <summary>ویرایش پکیج یک کلینیک (dto.id الزامی)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPackageController.Delete(System.Int64,System.Int64)">
+            <summary>حذف پکیج یک کلینیک</summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ConsultationPurchaseController">
             <summary>
@@ -1524,6 +1545,9 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Get(Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto.ConsultationPurchaseAdminInputDto)">
             <summary>جستجوی خریدها (کلینیک، کاربر، وضعیت، روش، بازه‌ی تاریخ، متن)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Summary(Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto.ConsultationPurchaseAdminInputDto)">
+            <summary>خلاصه‌ی مالی و مدت برای همان فیلترهای جستجو: تعداد به تفکیک وضعیت، فروش، تخفیف، بازپرداخت، سهم‌ها و وضعیت تسویه، مدت خریداری‌شده و مدت واقعی تماس</summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Get(System.Int64)">
             <summary>جزئیات یک خرید</summary>
@@ -1776,7 +1800,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.DiscountGroupController">
              <summary>
-             گروه تخفیف
+             کمپین / گروه‌های تخفیف
              </summary>
             
         </member>
@@ -2101,6 +2125,15 @@
              ویرایش آیتم
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.FinanceReportController">
+            <summary>
+            گزارش مالی یکپارچه
+            </summary>
+            <remarks>همه‌ی پول پرداخت‌شده‌ی کاربران (درگاه + کیف پول) به تفکیک منبع، بازپرداخت‌ها، سهم سایت و شریک</remarks>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceReportController.Get(Application.Services.FinanceSrvs.FinanceReportSrv.FinanceReportInputDto)">
+            <summary>خلاصه‌ی مالی کل (اختیاری: بازه‌ی تاریخ)</summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.FinanceStoreController">
              <summary>
@@ -5765,9 +5798,9 @@
             کاربران قابل تخصیص به رزرو خدمت
             </summary>
         </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveAssigneeController.Get(System.Int64)">
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveAssigneeController.Get(System.Int64,System.Boolean)">
             <summary>
-            دریافت کاربران فعال و تأییدشده همان خدمت برای تخصیص رزرو
+            دریافت کاربران فعال و تأییدشده برای تخصیص؛ پیش‌فرض فقط متصل‌ها به همان خدمت، با includeAll=true همه‌ی همکاران کلینیک رزرو
             </summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionReserveCancelController">
@@ -5802,7 +5835,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.#ctor(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Iface.ICompanionReserveCommentService)">
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveCommentController.#ctor(Application.Services.CompanionSrvs.CompanionReserveCommentSrv.Iface.ICompanionReserveCommentService,Application.Common.Interface.ICurrentUserHelper)">
             <summary>
             مدیریت کامنت های رزرو نمایندگان
             </summary>
@@ -5857,6 +5890,15 @@
             آیتم جدید
             </summary>
             <returns></returns>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveDebtController">
+            <summary>
+            بستن بدهی پرداخت‌نشده توسط کلینیک
+            </summary>
+            <remarks>وقتی کاربر مبلغ را مستقیم به کلینیک داده، مالک کلینیک بدهی را «دریافت شد» می‌کند</remarks>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveDebtController.MarkPaid(Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ReserveDebtMarkPaidDto)">
+            <summary>دریافت مستقیم مبلغ از کاربر تأیید شد</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionTimeController">
              <summary>
@@ -6027,14 +6069,20 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.ConsultationPackageController">
             <summary>
-            تعریف پکیج‌های «مشاوره آنلاین» (کانال × مدت) توسط مالک کلینیک — جدا از پکیج‌های عادی خدمات
+            پکیج‌های نام‌دار «مشاوره آنلاین» (چت / تماس درون‌برنامه / تماس تصویری / تماس تلفنی) توسط مالک کلینیک — جدا از پکیج‌های عادی خدمات
             </summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.ConsultationPackageController.Get">
-            <summary>ماتریس کامل ۸ خانه‌ای پکیج‌های کلینیک من</summary>
+            <summary>همه‌ی پکیج‌های کلینیک من (فعال و غیرفعال) به ترتیب کانال، ترتیب نمایش و مدت</summary>
         </member>
-        <member name="M:Api.Areas.Companion.Controllers.ConsultationPackageController.Put(Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageSaveDto)">
-            <summary>ذخیره‌ی ماتریس پکیج‌ها (قیمت + فعال/غیرفعال هر خانه)</summary>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationPackageController.Post(Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageItemDto)">
+            <summary>ساخت یک پکیج جدید (نام، کانال، مدت از فهرست ثابت، قیمت، توضیح و تصویر اختیاری)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationPackageController.Put(Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageItemDto)">
+            <summary>ویرایش یک پکیج (dto.id الزامی است؛ فعال/غیرفعال کردن هم با همین)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationPackageController.Delete(System.Int64)">
+            <summary>حذف پکیج؛ خریدهای قبلی نام و قیمت خودشان را نگه داشته‌اند</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.ConsultationSessionController">
             <summary>
@@ -6210,6 +6258,9 @@
             <summary>
             ثبت‌نام‌های دوره‌های مدرسه‌ی خودِ نماینده
             </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolReserveController.Complete(System.Int64)">
+            <summary>ثبت «کامل‌شده» برای ثبت‌نام پرداخت‌شده‌ی دوره‌ی مدرسه‌ی خودِ نماینده</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.SettlementController">
              <summary>
@@ -7072,6 +7123,18 @@
             </summary>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CompanionReserveDebtController">
+            <summary>
+            هزینه‌های پرداخت‌نشده‌ی خدمات
+            </summary>
+            <remarks>بدهی‌هایی که اپراتور/پزشک «پرداخت‌نشده» ثبت کرده؛ بعد از ۷ روز رزرو جدید قفل می‌شود</remarks>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CompanionReserveDebtController.Get">
+            <summary>بدهی‌های باز من، وضعیت قفل و موجودی کیف پول</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CompanionReserveDebtController.Pay(Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ReserveDebtPayDto)">
+            <summary>پرداخت یک بدهی از کیف پول</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionReservePaymentController">
             <summary>
@@ -10749,6 +10812,13 @@
             <summary>
             Hangfire's dashboard is operationally powerful (it exposes jobs and allows retries/deletes),
             so it must not rely on Hangfire's development-only local-request default.
+            </summary>
+        </member>
+        <member name="T:Api.Hubs.CallDurationRecorder">
+            <summary>
+            ثبت مدت واقعی تماس درون‌برنامه‌ای (صوتی/تصویری) جلسه‌ی آنلاین برای گزارش ادمین: فقط لحظه‌هایی که <b>هر دو طرف</b> به هم وصل بودند.
+            یک جلسه‌ی مشاوره ممکن است چند بار قطع و وصل شود؛ هر قطعه‌ی تماس به CallSeconds اضافه می‌شود.
+            Singleton است چون هم هاب (scope هر درخواست) و هم تایمر پایان پنجره (بدون scope) از آن استفاده می‌کنند.
             </summary>
         </member>
         <member name="T:Api.Hubs.CallHub">

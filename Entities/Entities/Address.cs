@@ -14,6 +14,9 @@ namespace Entities.Entities
         public string Phone { get; set; }
         public string Mobile { get; set; }
         public string AddressValue { get; set; }
+        // واحد و طبقه‌ی آدرس (اختیاری)؛ متن آزاد کوتاه مثل «۴» یا «همکف»
+        public string Unit { get; set; }
+        public string Floor { get; set; }
         public Point Location { get; set; }
         public string PostalCode { get; set; }
         public string NationalCode { get; set; }

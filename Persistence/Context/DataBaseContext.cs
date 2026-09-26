@@ -221,6 +221,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<CompanionType> CompanionTypes { get; set; }
         public DbSet<CompanionUser> CompanionUsers { get; set; }
         public DbSet<CompanionUserExpertise> CompanionUserExpertises { get; set; }
+        public DbSet<AssistanceExpertise> AssistanceExpertises { get; set; }
         public DbSet<CompanionZone> CompanionZones { get; set; }
         public DbSet<ContactUs> ContactUses { get; set; }
         public DbSet<ContactUsGroup> ContactUsGroups { get; set; }
@@ -439,15 +440,17 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             modelBuilder.Entity<ConsultationPackage>(entity =>
             {
                 entity.HasOne(item => item.Companion).WithMany().HasForeignKey(item => item.CompanionId).OnDelete(DeleteBehavior.Restrict);
-                // برای هر (کلینیک، کانال، مدت) فقط یک ردیف زنده
-                entity.HasIndex(item => new { item.CompanionId, item.ChannelId, item.DurationMinutes })
-                    .IsUnique()
-                    .HasFilter("[Deleted] = 0");
+                entity.Property(item => item.Name).HasMaxLength(100);
+                entity.Property(item => item.Description).HasMaxLength(500);
+                entity.HasOne(item => item.Picture).WithMany().HasForeignKey(item => item.PictureId).OnDelete(DeleteBehavior.Restrict);
+                // هر کلینیک زیر هر کانال هر تعداد پکیج نام‌دار می‌تواند داشته باشد؛ فقط ایندکس جست‌وجو
+                entity.HasIndex(item => new { item.CompanionId, item.ChannelId });
             });
             modelBuilder.Entity<ConsultationPurchase>(entity =>
             {
                 entity.Property(item => item.PurchaseCode).HasMaxLength(40);
                 entity.Property(item => item.CancelReason).HasMaxLength(500);
+                entity.Property(item => item.PackageName).HasMaxLength(100);
                 entity.HasIndex(item => item.PurchaseCode).IsUnique().HasFilter("[PurchaseCode] IS NOT NULL");
                 entity.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(item => item.AgentUser).WithMany().HasForeignKey(item => item.AgentUserId).OnDelete(DeleteBehavior.Restrict);
@@ -588,15 +591,15 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             });
             modelBuilder.Entity<Reminder>(entity =>
             {
+                entity.Property(item => item.CustomText).HasMaxLength(500);
                 entity.HasIndex(item => new
                 {
                     item.UserPetId,
                     item.ReminderTypeId,
                     item.ReminderCycleId,
                     item.StartDate
-                })
-                    .IsUnique()
-                    .HasFilter("[Deleted] = 0");
+                });
+                // یکتا نیست: کاربر می‌تواند برای یک پت با همان نوع/چرخه/روز، یادآورهای متعدد (با متن/ساعت متفاوت) بسازد.
             });
             modelBuilder.Entity<PastilMatchMessage>()
                 .HasOne(item => item.Park)
@@ -1196,6 +1199,9 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             modelBuilder.Entity<Trip>()
                 .HasMany<TripOption>(s => s.TripOptions)
                 .WithMany(c => c.Trips);
+            modelBuilder.Entity<PetResanService>()
+                .HasMany(s => s.TripOptions)
+                .WithMany(option => option.PetResanServices);
 
             modelBuilder.Entity<CompanionAssistance>()
                 .HasMany<Code>(s => s.Codes)
@@ -1237,6 +1243,19 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasOne(x => x.CompanionUser).WithMany(x => x.Expertises).HasForeignKey(x => x.CompanionUserId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(x => x.Expertise).WithMany().HasForeignKey(x => x.ExpertiseId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasIndex(x => new { x.CompanionUserId, x.ExpertiseId }).IsUnique();
+            });
+
+            modelBuilder.Entity<Address>(entity =>
+            {
+                entity.Property(x => x.Unit).HasMaxLength(20);
+                entity.Property(x => x.Floor).HasMaxLength(20);
+            });
+
+            modelBuilder.Entity<AssistanceExpertise>(entity =>
+            {
+                entity.HasOne(x => x.Assistance).WithMany().HasForeignKey(x => x.AssistanceId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(x => x.Expertise).WithMany().HasForeignKey(x => x.ExpertiseId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => new { x.AssistanceId, x.ExpertiseId }).IsUnique();
             });
 
             modelBuilder.Entity<PostComment>().ToTable("PostComments");
@@ -1328,6 +1347,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 .HasOne(t => t.PansionReserve)
                 .WithMany()
                 .HasForeignKey(t => t.PansionReserveId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.SchoolReserve)
+                .WithMany()
+                .HasForeignKey(t => t.SchoolReserveId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Trip>()
@@ -1771,7 +1796,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                     .HasMaxLength(200);
 
                 entity.Property(x => x.TicketCategoryId)
-                    .HasDefaultValue(10139L);
+                    .HasDefaultValue(55L);
 
                 entity.HasOne(x => x.User)
                     .WithMany()

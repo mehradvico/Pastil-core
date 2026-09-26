@@ -12,7 +12,7 @@ namespace Api.Areas.Admin.Controllers
     /// <summary>
     /// بسته‌های مشاوره آنلاین
     /// </summary>
-    /// <remarks>مشاهده و ویرایش بسته‌های هر کلینیک؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
+    /// <remarks>مشاهده و مدیریت پکیج‌های نام‌دار هر کلینیک؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
@@ -32,16 +32,28 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Get([FromQuery] string q)
             => Ok(await _service.GetClinicsAsync(q));
 
-        /// <summary>ماتریس بسته‌های یک کلینیک</summary>
+        /// <summary>همه‌ی پکیج‌های نام‌دار یک کلینیک</summary>
         [HttpGet("{companionId}")]
         [ProducesResponseType(typeof(BaseResultDto<List<ConsultationPackageAdminVDto>>), 200)]
         public async Task<IActionResult> Get(long companionId)
             => Ok(await _service.GetClinicPackagesAsync(companionId));
 
-        /// <summary>ویرایش بسته‌های یک کلینیک</summary>
+        /// <summary>ساخت پکیج برای یک کلینیک</summary>
+        [HttpPost("{companionId}")]
+        [ProducesResponseType(typeof(BaseResultDto<ConsultationPackageAdminVDto>), 200)]
+        public async Task<IActionResult> Post(long companionId, [FromBody] ConsultationPackageItemDto dto)
+            => Ok(await _service.CreateClinicPackageAsync(companionId, dto));
+
+        /// <summary>ویرایش پکیج یک کلینیک (dto.id الزامی)</summary>
         [HttpPut("{companionId}")]
-        [ProducesResponseType(typeof(BaseResultDto<List<ConsultationPackageAdminVDto>>), 200)]
-        public async Task<IActionResult> Put(long companionId, [FromBody] ConsultationPackageSaveDto dto)
-            => Ok(await _service.SaveClinicPackagesAsync(companionId, dto));
+        [ProducesResponseType(typeof(BaseResultDto<ConsultationPackageAdminVDto>), 200)]
+        public async Task<IActionResult> Put(long companionId, [FromBody] ConsultationPackageItemDto dto)
+            => Ok(await _service.UpdateClinicPackageAsync(companionId, dto));
+
+        /// <summary>حذف پکیج یک کلینیک</summary>
+        [HttpDelete("{companionId}")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Delete(long companionId, [FromQuery] long id)
+            => Ok(await _service.DeleteClinicPackageAsync(companionId, id));
     }
 }

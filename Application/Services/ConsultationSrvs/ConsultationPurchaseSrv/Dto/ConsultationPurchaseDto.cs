@@ -18,6 +18,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto
         public string PurchaseCode { get; set; }
         public long CompanionId { get; set; }
         public string CompanionName { get; set; }
+        // نام پکیج در لحظه‌ی خرید
+        public string PackageName { get; set; }
         public int ChannelId { get; set; }
         public int DurationMinutes { get; set; }
         public double Price { get; set; }

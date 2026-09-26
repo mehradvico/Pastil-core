@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 
 namespace Api.Hubs
@@ -16,6 +17,18 @@ namespace Api.Hubs
         // با پیوستن نفر دوم یا خروج کامل از تماس، حذف می‌شوند. برای این‌که اگر کاربر پوش را از دست داد،
         // با باز کردن اپ هم بشود زنگ خوردن تماس را کشف کرد (نگاه کنید به CallPendingController).
         private readonly ConcurrentDictionary<long, WaitingCallInfo> _waitingByReserve = new();
+
+        // لحظه‌ی وصل شدن هر دو طرف هر تماس (برای اندازه‌گیری مدت واقعی تماس)؛ فقط تا وقتی که هر دو وصل‌اند
+        private readonly ConcurrentDictionary<long, DateTime> _connectedSince = new();
+
+        // هر دو طرف وصل شدند؛ true فقط وقتی اولین‌بار این قطعه‌ی تماس شروع می‌شود
+        public bool MarkConnected(long callKey) => _connectedSince.TryAdd(callKey, DateTime.Now);
+
+        // پایان قطعه‌ی تماس (یکی خارج شد / پنجره تمام شد): ثانیه‌های وصل بودن را برمی‌گرداند و علامت را پاک می‌کند (تکرار صدا زدن ۰ می‌دهد)
+        public int TakeConnectedSeconds(long callKey) =>
+            _connectedSince.TryRemove(callKey, out var since)
+                ? Math.Max(0, (int)Math.Round((DateTime.Now - since).TotalSeconds))
+                : 0;
 
         public int Join(long reserveId, string connectionId, long userId, long? bookerId = null, string callerName = null, bool isVideo = false)
         {

@@ -108,6 +108,8 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
 
                 var createdStoreLinks = new List<long>();
                 var createdCompanionLinks = new List<long>();
+                var permittedConsultationIds = new List<long>();
+                var permittedSchoolIds = new List<long>();
 
                 double paidPrice = 0;
                 long itemCount = 0;
@@ -186,6 +188,69 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                             paidPrice += r.CompanionShare;
                             itemCount++;
                         }
+
+                        // مشاوره‌های آنلاین تکمیل‌شده‌ی نماینده که هنوز در تسویه نیامده‌اند
+                        var completedStatus = (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Completed;
+                        var consultationPurchases = _context.ConsultationPurchases
+                            .Where(p => p.CompanionId == dto.CompanionId.Value && p.Status == completedStatus && !p.Permitted)
+                            .ToList();
+
+                        foreach (var p in consultationPurchases)
+                        {
+                            // گذار اتمی: اگر همزمان در تسویه‌ی دیگری آمده باشد هیچ ردیفی تغییر نمی‌کند و کل تسویه لغو می‌شود
+                            var marked = await _context.ConsultationPurchases
+                                .Where(x => x.Id == p.Id && !x.Permitted && x.Status == completedStatus)
+                                .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Permitted, true));
+                            if (marked == 0)
+                                throw new Exception("ConsultationPurchase permitted update failed");
+                            permittedConsultationIds.Add(p.Id);
+
+                            var linkRes = await _settlementCompanionService.InsertAsyncDto(new SettlementCompanionDto
+                            {
+                                SettlementId = item.Id,
+                                ConsultationPurchaseId = p.Id
+                            });
+
+                            if (!linkRes.IsSuccess)
+                                throw new Exception("ConsultationPurchase link failed");
+
+                            createdCompanionLinks.Add(linkRes.Data.Id);
+
+                            paidPrice += p.CompanionShare;
+                            itemCount++;
+                        }
+                    }
+
+                    if (hasCompanion)
+                    {
+                        // ثبت‌نام دوره‌های مدرسه‌ی کلینیک که هنوز در تسویه نیامده‌اند
+                        var schoolReserves = _context.SchoolReserves
+                            .Where(r => r.IsReserved && !r.IsCancel && !r.Permitted && r.SchoolCourse.School.CompanionId == dto.CompanionId.Value)
+                            .ToList();
+
+                        foreach (var r in schoolReserves)
+                        {
+                            var marked = await _context.SchoolReserves
+                                .Where(x => x.Id == r.Id && !x.Permitted && x.IsReserved && !x.IsCancel)
+                                .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Permitted, true));
+                            if (marked == 0)
+                                throw new Exception("SchoolReserve permitted update failed");
+                            permittedSchoolIds.Add(r.Id);
+
+                            var linkRes = await _settlementCompanionService.InsertAsyncDto(new SettlementCompanionDto
+                            {
+                                SettlementId = item.Id,
+                                SchoolReserveId = r.Id
+                            });
+
+                            if (!linkRes.IsSuccess)
+                                throw new Exception("SchoolReserve link failed");
+
+                            createdCompanionLinks.Add(linkRes.Data.Id);
+
+                            paidPrice += r.CompanionShare;
+                            itemCount++;
+                        }
                     }
 
                     item.PaidPrice = paidPrice;
@@ -198,6 +263,20 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 }
                 catch
                 {
+                    if (permittedSchoolIds.Any())
+                    {
+                        await _context.SchoolReserves
+                            .Where(x => permittedSchoolIds.Contains(x.Id))
+                            .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Permitted, false));
+                    }
+
+                    if (permittedConsultationIds.Any())
+                    {
+                        await _context.ConsultationPurchases
+                            .Where(x => permittedConsultationIds.Contains(x.Id))
+                            .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Permitted, false));
+                    }
+
                     if (createdStoreLinks.Any())
                     {
                         var links = _context.SettlementStores.Where(x => createdStoreLinks.Contains(x.Id)).ToList();

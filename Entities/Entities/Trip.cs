@@ -2,6 +2,7 @@
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.PetResanServiceField;
+using Entities.Entities.SchoolField;
 using Entities.Entities.Security;
 using NetTopologySuite.Geometries;
 using System;
@@ -59,6 +60,8 @@ namespace Entities.Entities
         public long? CompanionReserveId { get; set; }
         // اتصال به رزرو پانسیون (فقط برای سفرهای «رزرو هم‌زمان» با هتل/مهد پانسیون)
         public long? PansionReserveId { get; set; }
+        // اتصال به ثبت نام مدرسه (تحویل پت برای اولین جلسه حضوری)
+        public long? SchoolReserveId { get; set; }
         // اتصال به یک ردیف برنامه‌ی هفتگیِ «سرویس پت‌رسان» — این Trip به‌صورت خودکار از آن زاییده شده
         public long? PetResanServiceScheduleId { get; set; }
         public int? ScheduledLeadMinutes { get; set; }
@@ -94,6 +97,7 @@ namespace Entities.Entities
         public User User { get; set; }
         public CompanionReserve CompanionReserve { get; set; }
         public PansionReserve PansionReserve { get; set; }
+        public SchoolReserve SchoolReserve { get; set; }
         public PetResanServiceSchedule PetResanServiceSchedule { get; set; }
         public ICollection<TripOption> TripOptions { get; set; }
         public ICollection<TripPet> TripPets { get; set; }

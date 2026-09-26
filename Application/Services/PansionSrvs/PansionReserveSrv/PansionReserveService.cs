@@ -151,6 +151,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 }
                 else
                 {
+                    if (await Application.Services.CompanionSrvs.CompanionReserveDebtSrv.CompanionReserveDebtRules.IsLockedAsync(_context, dto.BookerId, DateTime.Now))
+                        return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.UnpaidDebtLocked, dto);
+
                     var item = mapper.Map<PansionReserve>(dto);
                     item.IsCancel = false;
                     item.CreateDate = DateTime.Now;

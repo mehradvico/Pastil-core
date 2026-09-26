@@ -20,6 +20,8 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public int TotalReserveCount { get; set; }
         public int CompanionReserveCount { get; set; }
         public int PansionReserveCount { get; set; }
+        // مشاوره‌های آنلاین پرداخت‌شده (در جریان یا تکمیل‌شده؛ بدون لغو/بازپرداخت)
+        public int ConsultationPurchaseCount { get; set; }
         public UserMinVDto Owner { get; set; }
     }
 }

@@ -152,6 +152,10 @@ namespace Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Floor")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<bool>("IsSelected")
                         .HasColumnType("bit");
 
@@ -175,6 +179,10 @@ namespace Persistence.Migrations
 
                     b.Property<string>("PostalCode")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
@@ -1477,6 +1485,30 @@ namespace Persistence.Migrations
                     b.ToTable("CompanionAssistanceUsers");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionField.AssistanceExpertise", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AssistanceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ExpertiseId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpertiseId");
+
+                    b.HasIndex("AssistanceId", "ExpertiseId")
+                        .IsUnique();
+
+                    b.ToTable("AssistanceExpertises");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionAssistancePackagePicture", b =>
                 {
                     b.Property<long>("Id")
@@ -1938,6 +1970,12 @@ namespace Persistence.Migrations
                     b.Property<DateTime?>("OperatorChangeStateDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("OperatorDebtPaidByWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("OperatorDebtPaidDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("OperatorDetail")
                         .HasColumnType("nvarchar(max)");
 
@@ -1949,6 +1987,15 @@ namespace Persistence.Migrations
 
                     b.Property<double>("OperatorStuffPrice")
                         .HasColumnType("float");
+
+                    b.Property<bool>("OperatorUnpaid")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("OperatorUnpaidAmount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("OperatorUnpaidDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<double>("OperatorWagesPrice")
                         .HasColumnType("float");
@@ -2256,20 +2303,34 @@ namespace Persistence.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("int");
 
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
                     b.Property<double>("Price")
                         .HasColumnType("float");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdateDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanionId", "ChannelId", "DurationMinutes")
-                        .IsUnique()
-                        .HasFilter("[Deleted] = 0");
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("CompanionId", "ChannelId");
 
                     b.ToTable("ConsultationPackages");
                 });
@@ -2322,6 +2383,10 @@ namespace Persistence.Migrations
                     b.Property<long?>("OnlineSessionId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("PackageName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<DateTime?>("PaidDate")
                         .HasColumnType("datetime2");
 
@@ -2330,6 +2395,9 @@ namespace Persistence.Migrations
 
                     b.Property<double>("PaymentPrice")
                         .HasColumnType("float");
+
+                    b.Property<bool>("Permitted")
+                        .HasColumnType("bit");
 
                     b.Property<double>("Price")
                         .HasColumnType("float");
@@ -3912,6 +3980,15 @@ namespace Persistence.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime?>("CallEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CallSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CallStartDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("ChannelId")
                         .HasColumnType("int");
@@ -6545,8 +6622,14 @@ namespace Persistence.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<double>("ExtraPetPrice")
+                        .HasColumnType("float");
+
                     b.Property<int>("FromTime")
                         .HasColumnType("int");
+
+                    b.Property<double>("PickupVehicleExtraPrice")
+                        .HasColumnType("float");
 
                     b.Property<double>("Price")
                         .HasColumnType("float");
@@ -7641,16 +7724,23 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("CustomText")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
                     b.Property<DateTime?>("LastChecked")
                         .HasColumnType("datetime2");
 
+                    b.Property<TimeSpan>("NotificationTime")
+                        .HasColumnType("time");
+
                     b.Property<long>("ReminderCycleId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("ReminderTypeId")
+                    b.Property<long?>("ReminderTypeId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("StartDate")
@@ -7665,9 +7755,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("ReminderTypeId");
 
-                    b.HasIndex("UserPetId", "ReminderTypeId", "ReminderCycleId", "StartDate")
-                        .IsUnique()
-                        .HasFilter("[Deleted] = 0");
+                    b.HasIndex("UserPetId", "ReminderTypeId", "ReminderCycleId", "StartDate");
 
                     b.ToTable("Reminders");
                 });
@@ -7994,6 +8082,9 @@ namespace Persistence.Migrations
 
                     b.Property<double>("PaymentPrice")
                         .HasColumnType("float");
+
+                    b.Property<bool>("Permitted")
+                        .HasColumnType("bit");
 
                     b.Property<double>("Price")
                         .HasColumnType("float");
@@ -8448,7 +8539,13 @@ namespace Persistence.Migrations
                     b.Property<long?>("CompanionReserveId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ConsultationPurchaseId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("PansionReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SchoolReserveId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("SettlementId")
@@ -8458,7 +8555,11 @@ namespace Persistence.Migrations
 
                     b.HasIndex("CompanionReserveId");
 
+                    b.HasIndex("ConsultationPurchaseId");
+
                     b.HasIndex("PansionReserveId");
+
+                    b.HasIndex("SchoolReserveId");
 
                     b.HasIndex("SettlementId");
 
@@ -9138,7 +9239,7 @@ namespace Persistence.Migrations
                     b.Property<long>("TicketCategoryId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasDefaultValue(10139L);
+                        .HasDefaultValue(55L);
 
                     b.Property<DateTime>("UpdateDate")
                         .HasColumnType("datetime2");
@@ -9325,6 +9426,9 @@ namespace Persistence.Migrations
                     b.Property<int?>("ScheduledLeadMinutes")
                         .HasColumnType("int");
 
+                    b.Property<long?>("SchoolReserveId")
+                        .HasColumnType("bigint");
+
                     b.Property<Point>("SecondDestination")
                         .HasColumnType("geography");
 
@@ -9389,6 +9493,8 @@ namespace Persistence.Migrations
                     b.HasIndex("PreviousTripId");
 
                     b.HasIndex("RebateId");
+
+                    b.HasIndex("SchoolReserveId");
 
                     b.HasIndex("TripStatusId");
 
@@ -10076,6 +10182,21 @@ namespace Persistence.Migrations
                     b.HasIndex("RolesId");
 
                     b.ToTable("PermissionRole");
+                });
+
+            modelBuilder.Entity("PetResanServiceTripOption", b =>
+                {
+                    b.Property<long>("PetResanServicesId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TripOptionsId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("PetResanServicesId", "TripOptionsId");
+
+                    b.HasIndex("TripOptionsId");
+
+                    b.ToTable("PetResanServiceTripOption");
                 });
 
             modelBuilder.Entity("PostProduct", b =>
@@ -10807,6 +10928,25 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionField.AssistanceExpertise", b =>
+                {
+                    b.HasOne("Entities.Entities.Assistance", "Assistance")
+                        .WithMany()
+                        .HasForeignKey("AssistanceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionField.Expertise", "Expertise")
+                        .WithMany()
+                        .HasForeignKey("ExpertiseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assistance");
+
+                    b.Navigation("Expertise");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionField.CompanionAssistancePackagePicture", b =>
                 {
                     b.HasOne("Entities.Entities.CompanionAssistancePackage", "CompanionAssistancePackage")
@@ -11235,7 +11375,14 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Companion");
+
+                    b.Navigation("Picture");
                 });
 
             modelBuilder.Entity("Entities.Entities.ConsultationPurchase", b =>
@@ -13358,9 +13505,7 @@ namespace Persistence.Migrations
 
                     b.HasOne("Entities.Entities.ReminderType", "ReminderType")
                         .WithMany()
-                        .HasForeignKey("ReminderTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("ReminderTypeId");
 
                     b.HasOne("Entities.Entities.UserPet", "UserPet")
                         .WithMany()
@@ -13638,9 +13783,17 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CompanionReserveId");
 
+                    b.HasOne("Entities.Entities.ConsultationPurchase", "ConsultationPurchase")
+                        .WithMany()
+                        .HasForeignKey("ConsultationPurchaseId");
+
                     b.HasOne("Entities.Entities.PansionField.PansionReserve", "PansionReserve")
                         .WithMany()
                         .HasForeignKey("PansionReserveId");
+
+                    b.HasOne("Entities.Entities.SchoolField.SchoolReserve", "SchoolReserve")
+                        .WithMany()
+                        .HasForeignKey("SchoolReserveId");
 
                     b.HasOne("Entities.Entities.Settlement", "Settlement")
                         .WithMany()
@@ -13650,7 +13803,11 @@ namespace Persistence.Migrations
 
                     b.Navigation("CompanionReserve");
 
+                    b.Navigation("ConsultationPurchase");
+
                     b.Navigation("PansionReserve");
+
+                    b.Navigation("SchoolReserve");
 
                     b.Navigation("Settlement");
                 });
@@ -14006,6 +14163,11 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("RebateId");
 
+                    b.HasOne("Entities.Entities.SchoolField.SchoolReserve", "SchoolReserve")
+                        .WithMany()
+                        .HasForeignKey("SchoolReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Code", "TripStatus")
                         .WithMany()
                         .HasForeignKey("TripStatusId")
@@ -14048,6 +14210,8 @@ namespace Persistence.Migrations
                     b.Navigation("PreviousTrip");
 
                     b.Navigation("Rebate");
+
+                    b.Navigation("SchoolReserve");
 
                     b.Navigation("TripStatus");
 
@@ -14406,6 +14570,21 @@ namespace Persistence.Migrations
                     b.HasOne("Entities.Entities.Security.Role", null)
                         .WithMany()
                         .HasForeignKey("RolesId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PetResanServiceTripOption", b =>
+                {
+                    b.HasOne("Entities.Entities.PetResanServiceField.PetResanService", null)
+                        .WithMany()
+                        .HasForeignKey("PetResanServicesId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.TripOption", null)
+                        .WithMany()
+                        .HasForeignKey("TripOptionsId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

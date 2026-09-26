@@ -1,6 +1,7 @@
 using Entities.Entities.PastilAIField;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -71,9 +72,10 @@ namespace Application.Services.PastilAISrv.Provider
                     using var timeout =
                         CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
+                    var timeoutSeconds = provider.TimeoutSeconds ?? _options.RequestTimeoutSeconds;
                     timeout.CancelAfter(
                         TimeSpan.FromSeconds(
-                            Math.Clamp(_options.RequestTimeoutSeconds, 5, 180)));
+                            Math.Clamp(timeoutSeconds, 5, 180)));
 
                     response = string.Equals(
                         provider.Kind,
@@ -400,7 +402,10 @@ namespace Application.Services.PastilAISrv.Provider
                     IsSuccess = true,
                     Answer = answer.Trim(),
                     Scope = scope,
-                    IsEmergency = node?["isEmergency"]?.GetValue<bool?>() ?? false
+                    IsEmergency = node?["isEmergency"]?.GetValue<bool?>() ?? false,
+                    ProductIds = ReadIds(node?["productIds"]),
+                    PackageIds = ReadIds(node?["packageIds"]),
+                    ProductRequest = ReadProductRequestDraft(node?["productRequest"])
                 };
             }
             catch (Exception ex)
@@ -412,6 +417,65 @@ namespace Application.Services.PastilAISrv.Provider
                     ErrorMessage = ex.Message
                 };
             }
+        }
+
+        private static List<long> ReadIds(JsonNode node)
+        {
+            var nodes = node is JsonArray array
+                ? array.AsEnumerable()
+                : node == null ? Enumerable.Empty<JsonNode>() : new[] { node };
+
+            return nodes
+                .Select(ReadId)
+                .Where(id => id.HasValue && id.Value > 0)
+                .Select(id => id.Value)
+                .Distinct()
+                .Take(3)
+                .ToList();
+        }
+
+        private static long? ReadId(JsonNode node)
+        {
+            if (node is not JsonValue value)
+                return null;
+
+            if (value.TryGetValue<long>(out var number))
+                return number;
+
+            return value.TryGetValue<string>(out var text) && long.TryParse(text, out number)
+                ? number
+                : null;
+        }
+
+        private static PastilAiProductRequestDraft ReadProductRequestDraft(JsonNode node)
+        {
+            if (node is not JsonObject draft)
+                return null;
+
+            var result = new PastilAiProductRequestDraft
+            {
+                Title = ReadText(draft["title"], 150),
+                Description = ReadText(draft["description"], 1200),
+                ProductName = ReadText(draft["productName"], 200),
+                Brand = ReadText(draft["brand"], 150),
+                Quantity = ReadText(draft["quantity"], 40)
+            };
+
+            return string.IsNullOrWhiteSpace(result.Title) &&
+                   string.IsNullOrWhiteSpace(result.Description) &&
+                   string.IsNullOrWhiteSpace(result.ProductName) &&
+                   string.IsNullOrWhiteSpace(result.Brand)
+                ? null
+                : result;
+        }
+
+        private static string ReadText(JsonNode node, int maxLength)
+        {
+            if (node is not JsonValue value || !value.TryGetValue<string>(out var text))
+                return null;
+
+            text = text.Trim();
+            return text.Length <= maxLength ? text : text[..maxLength];
         }
 
         private static JsonObject CreateOpenAiMediaPart(PastilAiProviderRequest request)

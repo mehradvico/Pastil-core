@@ -46,7 +46,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
 
             try
             {
-                var price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now);
+                var price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now, dto.TripOptionIds);
                 return new BaseResultDto<double>(true, price);
             }
             catch (Exception exception)
@@ -61,7 +61,8 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             Application.Common.Dto.LocationPoint.PointDto destination,
             string fromAddress,
             string toAddress,
-            DateTime atMoment)
+            DateTime atMoment,
+            List<long> tripOptionIds = null)
         {
             var priceInput = new TripDto
             {
@@ -70,7 +71,8 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                 FromAddress = fromAddress,
                 ToAddress = toAddress,
                 TripStartDateTime = atMoment,
-                RoundTrip = true
+                RoundTrip = true,
+                TripOptionIds = tripOptionIds ?? new List<long>()
             };
             return await _priceCalculationService.CalculateTripPrice(priceInput);
         }
@@ -84,6 +86,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             {
                 var existing = await _context.PetResanServices
                     .Include(s => s.Schedules)
+                    .Include(s => s.TripOptions)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(s => s.UserId == userId && s.IdempotencyKey == normalizedIdempotencyKey);
                 if (existing != null)
@@ -104,6 +107,14 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             if (dto.TotalWeeks.HasValue && dto.TotalWeeks.Value <= 0)
                 return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.PetResanServiceInvalidTotalWeeks, null);
 
+            var requestedTripOptionIds = dto.TripOptionIds ?? new List<long>();
+            var tripOptionIds = requestedTripOptionIds.Distinct().ToList();
+            if (tripOptionIds.Count != requestedTripOptionIds.Count)
+                return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.DuplicateValue, null);
+            if (tripOptionIds.Count != await _context.TripOptions.AsNoTracking()
+                    .CountAsync(option => tripOptionIds.Contains(option.Id) && option.Active && !option.Deleted))
+                return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.NothingFound, null);
+
             var pet = await _context.UserPets.AsNoTracking().FirstOrDefaultAsync(s => s.Id == dto.UserPetId && s.UserId == userId);
             if (pet == null)
                 return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.NothingFound, null);
@@ -121,7 +132,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             double price;
             try
             {
-                price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now);
+                price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now, tripOptionIds);
             }
             catch (Exception exception)
             {
@@ -144,6 +155,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                 CreateDate = DateTime.Now,
                 IdempotencyKey = normalizedIdempotencyKey,
                 PricePerOccurrence = price,
+                TripOptions = tripOptionIds.Select(id => new Entities.Entities.TripOption { Id = id }).ToList(),
                 Schedules = dto.Schedules.Select(s => new PetResanServiceSchedule
                 {
                     WeekDayId = s.WeekDayId,
@@ -151,6 +163,9 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                     Active = true
                 }).ToList()
             };
+
+            foreach (var option in service.TripOptions)
+                _context.Entry(option).State = EntityState.Unchanged;
 
             await _context.PetResanServices.AddAsync(service);
             try
@@ -198,6 +213,8 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                 .Select(s => (s.WeekDayId, s.Time))
                 .OrderBy(s => s.WeekDayId)
                 .ThenBy(s => s.Time, StringComparer.Ordinal);
+            var requestedTripOptionIds = (dto.TripOptionIds ?? new List<long>()).OrderBy(id => id);
+            var existingTripOptionIds = (existing.TripOptions ?? new List<Entities.Entities.TripOption>()).Select(option => option.Id).OrderBy(id => id);
 
             return existing.UserPetId == dto.UserPetId &&
                    existing.TotalWeeks == dto.TotalWeeks &&
@@ -207,6 +224,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                    SameCoordinate(existing.Destination.Y, dto.Destination.y) &&
                    string.Equals(existing.FromAddress, dto.FromAddress, StringComparison.Ordinal) &&
                    string.Equals(existing.ToAddress, dto.ToAddress, StringComparison.Ordinal) &&
+                   requestedTripOptionIds.SequenceEqual(existingTripOptionIds) &&
                    requestedSchedules.SequenceEqual(existingSchedules);
         }
 
@@ -226,6 +244,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
         {
             var services = await _context.PetResanServices
                 .Include(s => s.UserPet)
+                .Include(s => s.TripOptions)
                 .Include(s => s.Schedules).ThenInclude(s => s.WeekDay)
                 .AsNoTracking()
                 .Where(s => s.UserId == userId)
@@ -239,6 +258,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
         {
             var service = await _context.PetResanServices
                 .Include(s => s.UserPet)
+                .Include(s => s.TripOptions)
                 .Include(s => s.Schedules).ThenInclude(s => s.WeekDay)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);
@@ -276,6 +296,13 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             EndDate = service.EndDate,
             Active = service.Active,
             PricePerOccurrence = service.PricePerOccurrence,
+            TripOptions = (service.TripOptions ?? new List<Entities.Entities.TripOption>()).Select(option => new Application.Services.TripSrv.TripOptionSrv.Dto.TripOptionVDto
+            {
+                Id = option.Id,
+                Name = option.Name,
+                Price = option.Price,
+                Active = option.Active
+            }).ToList(),
             Schedules = (service.Schedules ?? new List<PetResanServiceSchedule>()).Select(s => new PetResanServiceScheduleVDto
             {
                 Id = s.Id,

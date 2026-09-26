@@ -19,6 +19,10 @@ namespace Entities.Entities
         // ConsultationPurchaseId عمداً FK ندارد (حلقه‌ی وابستگی با ConsultationPurchase.OnlineSessionId).
         public DateTime? ExpireDate { get; set; }
         public long? ConsultationPurchaseId { get; set; }
+        // تماس درون‌برنامه‌ای (صوتی/تصویری): اولین لحظه‌ی وصل شدن هر دو طرف، آخرین پایان تماس، و جمع ثانیه‌هایی که هر دو طرف واقعاً به هم وصل بودند
+        public DateTime? CallStartDate { get; set; }
+        public DateTime? CallEndDate { get; set; }
+        public int CallSeconds { get; set; }
 
         public User InitiatorUser { get; set; }
         public User TargetUser { get; set; }

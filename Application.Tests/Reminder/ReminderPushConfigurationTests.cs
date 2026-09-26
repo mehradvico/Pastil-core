@@ -36,7 +36,7 @@ namespace Application.Tests.Reminder
         [InlineData("PushReminderOneWeekBefore", "یادآوری! یک هفته دیگر موعد «واکسن هاری» برای پت «پاستیل» است.")]
         [InlineData("PushReminderOneDayBefore", "یادآوری! فردا موعد «واکسن هاری» برای پت «پاستیل» است.")]
         [InlineData("PushReminderOneDayAfter", "یادآوری! دیروز موعد «واکسن هاری» برای پت «پاستیل» بوده است.")]
-        [InlineData("PushReminderToday", "یادآوری! امروز موعد «واکسن هاری» برای پت «پاستیل» است.")]
+        [InlineData("PushReminderToday", "یادآوری! الان وقت «واکسن هاری» برای «پاستیل» هست، فراموش نکنی!")]
         public void ReminderMomentPattern_IdentifiesReminderTypeAndPet(string resourceKey, string expected)
         {
             var pattern = PersianPushTextHelper.ResolvePattern(resourceKey, string.Empty);

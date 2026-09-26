@@ -10,7 +10,7 @@ namespace Application.Tests.Reminder
     public class ReminderModelTests
     {
         [Fact]
-        public void Reminder_Identity_HasFilteredUniqueIndex()
+        public void Reminder_Identity_HasNonUniqueIndex_SoUsersCanCreateManyReminders()
         {
             using var context = CreateContext();
             var entity = context.Model.FindEntityType(typeof(Entities.Entities.Reminder));
@@ -23,8 +23,17 @@ namespace Application.Tests.Reminder
                     nameof(Entities.Entities.Reminder.StartDate)
                 }));
 
-            Assert.True(index.IsUnique);
-            Assert.Equal("[Deleted] = 0", index.GetFilter());
+            Assert.False(index.IsUnique);
+        }
+
+        [Fact]
+        public void Reminder_ReminderTypeId_IsOptional_BecauseCustomTextCanReplaceIt()
+        {
+            using var context = CreateContext();
+            var entity = context.Model.FindEntityType(typeof(Entities.Entities.Reminder));
+            var property = entity!.FindProperty(nameof(Entities.Entities.Reminder.ReminderTypeId));
+
+            Assert.True(property!.IsNullable);
         }
 
         [Fact]

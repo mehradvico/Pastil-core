@@ -30,6 +30,12 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Get([FromQuery] ConsultationPurchaseAdminInputDto dto)
             => Ok(await _service.SearchPurchasesAsync(dto));
 
+        /// <summary>خلاصه‌ی مالی و مدت برای همان فیلترهای جستجو: تعداد به تفکیک وضعیت، فروش، تخفیف، بازپرداخت، سهم‌ها و وضعیت تسویه، مدت خریداری‌شده و مدت واقعی تماس</summary>
+        [HttpGet("Summary")]
+        [ProducesResponseType(typeof(BaseResultDto<ConsultationPurchaseAdminSummaryDto>), 200)]
+        public async Task<IActionResult> Summary([FromQuery] ConsultationPurchaseAdminInputDto dto)
+            => Ok(await _service.GetPurchaseSummaryAsync(dto));
+
         /// <summary>جزئیات یک خرید</summary>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BaseResultDto<ConsultationPurchaseAdminVDto>), 200)]

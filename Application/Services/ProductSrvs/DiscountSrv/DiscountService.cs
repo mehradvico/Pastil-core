@@ -195,10 +195,14 @@ namespace Application.Services.ProductSrvs.DiscountSrv
                         updateId = discount.ProductItemId.Value;
                     }
                 }
+                if (!await IsTargetOwnedByStoreAsync(discount, type?.Label))
+                    return new BaseResultDto<DiscountDto>(false, "DISCOUNT_TARGET_NOT_OWNED_BY_STORE", discount);
+
                 var item = mapper.Map<Discount>(discount);
                 await _context.Discounts.AddAsync(item);
                 await _context.SaveChangesAsync();
                 await _productService.UpdateProductPriceAsync(updateType, Id: updateId.ToString());
+                await SetStoreMaxDiscountAsync(discount.StoreId);
 
                 return new BaseResultDto(true);
             }
@@ -304,11 +308,34 @@ namespace Application.Services.ProductSrvs.DiscountSrv
 
         private async Task SetStoreMaxDiscountAsync(long storeId)
         {
-            var maxDiscount = _context.Discounts.AsTracking().Where(s => s.StoreId == storeId && s.Active && s.Deleted == false && (s.EndDate == null || s.EndDate >= DateTime.Now.Date));
-            if (maxDiscount.Any())
+            var maxDiscount = await _context.Discounts.AsNoTracking()
+                .Where(s => s.StoreId == storeId && s.Active && !s.Deleted &&
+                    (!s.EndDate.HasValue || s.EndDate.Value >= DateTime.Now.Date))
+                .Select(s => (int?)s.Percent)
+                .MaxAsync() ?? 0;
+            await _storeService.SetMaxDiscountAsync(storeId, maxDiscount);
+        }
+
+        private Task<bool> IsTargetOwnedByStoreAsync(DiscountDto discount, string typeLabel)
+        {
+            if (string.IsNullOrEmpty(typeLabel) || typeLabel == DiscountTypeEnum.DiscountType_Store.ToString())
+                return Task.FromResult(true);
+
+            var storeItems = _context.ProductItems.AsNoTracking()
+                .Where(item => item.StoreId == discount.StoreId);
+            return typeLabel switch
             {
-                await _storeService.SetMaxDiscountAsync(storeId: storeId, maxDiscount.Max(s => s.Percent));
-            }
+                var label when label == DiscountTypeEnum.DiscountType_Category.ToString() =>
+                    storeItems.AnyAsync(item => item.Product.CategoryId == discount.CategoryId ||
+                        item.Product.Categories.Any(category => category.Id == discount.CategoryId)),
+                var label when label == DiscountTypeEnum.DiscountType_Brand.ToString() =>
+                    storeItems.AnyAsync(item => item.Product.BrandId == discount.BrandId),
+                var label when label == DiscountTypeEnum.DiscountType_Product.ToString() =>
+                    storeItems.AnyAsync(item => item.ProductId == discount.ProductId),
+                var label when label == DiscountTypeEnum.DiscountType_ProductItem.ToString() =>
+                    storeItems.AnyAsync(item => item.Id == discount.ProductItemId),
+                _ => Task.FromResult(false)
+            };
         }
     }
 }

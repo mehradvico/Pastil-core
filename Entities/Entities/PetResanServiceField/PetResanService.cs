@@ -1,5 +1,6 @@
 using Entities.Entities.CommonField;
 using Entities.Entities.Security;
+using Entities.Entities;
 using NetTopologySuite.Geometries;
 using System;
 using System.Collections.Generic;
@@ -42,5 +43,6 @@ namespace Entities.Entities.PetResanServiceField
         public User User { get; set; }
         public UserPet UserPet { get; set; }
         public ICollection<PetResanServiceSchedule> Schedules { get; set; }
+        public ICollection<TripOption> TripOptions { get; set; }
     }
 }

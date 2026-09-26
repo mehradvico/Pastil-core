@@ -10,6 +10,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto
         public string PurchaseCode { get; set; }
         public long CompanionId { get; set; }
         public string CompanionName { get; set; }
+        public string PackageName { get; set; }
         public int ChannelId { get; set; }
         public int DurationMinutes { get; set; }
         public int Status { get; set; }
@@ -50,6 +51,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto
     {
         public long PurchaseId { get; set; }
         public long OnlineSessionId { get; set; }
+        public string PackageName { get; set; }
         public int ChannelId { get; set; }
         public int DurationMinutes { get; set; }
         public DateTime StartDate { get; set; }

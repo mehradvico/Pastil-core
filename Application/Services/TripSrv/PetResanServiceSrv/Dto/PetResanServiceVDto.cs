@@ -1,4 +1,5 @@
 using Application.Common.Dto.LocationPoint;
+using Application.Services.TripSrv.TripOptionSrv.Dto;
 using System;
 using System.Collections.Generic;
 
@@ -18,6 +19,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv.Dto
         public DateTime? EndDate { get; set; }
         public bool Active { get; set; }
         public double PricePerOccurrence { get; set; }
+        public List<TripOptionVDto> TripOptions { get; set; } = new List<TripOptionVDto>();
         public List<PetResanServiceScheduleVDto> Schedules { get; set; } = new List<PetResanServiceScheduleVDto>();
     }
 }

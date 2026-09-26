@@ -28,6 +28,10 @@ ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
         [Required(ErrorMessageResourceType = typeof(Resource.Pattern),
 ErrorMessageResourceName = nameof(Resource.Pattern.PleaseInsertT1))]
         public string AddressValue { get; set; }
+        [MaxLength(20)]
+        public string Unit { get; set; }
+        [MaxLength(20)]
+        public string Floor { get; set; }
         public PointDto Location { get; set; }
         public string PostalCode { get; set; }
         public string NationalCode { get; set; }

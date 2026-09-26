@@ -1302,6 +1302,7 @@
           "QRCoder": "1.8.0",
           "Resource": "1.0.0",
           "RestSharp": "112.1.0",
+          "SixLabors.ImageSharp": "3.1.12",
           "System.Security.Cryptography.Xml": "9.0.18",
           "System.ServiceModel.Http": "8.1.2",
           "System.ServiceModel.NetTcp": "8.1.2",

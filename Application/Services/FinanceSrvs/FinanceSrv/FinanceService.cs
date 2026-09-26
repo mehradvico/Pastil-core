@@ -137,6 +137,20 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 .ToList()
                 .ToDictionary(x => x.CompanionId, x => x.Count);
 
+            // مشاوره‌های آنلاین پرداخت‌شده (Paid / Active / Completed): Refunded، Cancelled و Expired جزو رزرو معتبر نیستند
+            var consultationPaidStatuses = new[]
+            {
+                (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Paid,
+                (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Active,
+                (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Completed
+            };
+            var consultationStats = _context.ConsultationPurchases
+                .Where(p => companionIds.Contains(p.CompanionId) && consultationPaidStatuses.Contains(p.Status))
+                .GroupBy(p => p.CompanionId)
+                .Select(g => new { CompanionId = g.Key, Count = g.Count() })
+                .ToList()
+                .ToDictionary(x => x.CompanionId, x => x.Count);
+
             var companions = companionsQ
                 .AsEnumerable()
                 .Select(c =>
@@ -155,7 +169,8 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
 
                     dtoC.CompanionReserveCount = companionReserveStats.TryGetValue(c.Id, out var cr) ? cr : 0;
                     dtoC.PansionReserveCount = pansionReserveStats.TryGetValue(c.Id, out var pr) ? pr : 0;
-                    dtoC.TotalReserveCount = dtoC.CompanionReserveCount + dtoC.PansionReserveCount;
+                    dtoC.ConsultationPurchaseCount = consultationStats.TryGetValue(c.Id, out var cn) ? cn : 0;
+                    dtoC.TotalReserveCount = dtoC.CompanionReserveCount + dtoC.PansionReserveCount + dtoC.ConsultationPurchaseCount;
 
                     return dtoC;
                 })

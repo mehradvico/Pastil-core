@@ -16,11 +16,13 @@ namespace Api.Hubs
         private readonly IHubContext<CallHub> _hubContext;
         private readonly CallSessionTracker _tracker;
         private readonly ConcurrentDictionary<long, CancellationTokenSource> _timers = new();
+        private readonly CallDurationRecorder _durationRecorder;
 
-        public CallWindowScheduler(IHubContext<CallHub> hubContext, CallSessionTracker tracker)
+        public CallWindowScheduler(IHubContext<CallHub> hubContext, CallSessionTracker tracker, CallDurationRecorder durationRecorder)
         {
             _hubContext = hubContext;
             _tracker = tracker;
+            _durationRecorder = durationRecorder;
         }
 
         public void Schedule(long callKey, DateTime expireDate)
@@ -42,7 +44,11 @@ namespace Api.Hubs
                 {
                     await Task.Delay(delay, cts.Token);
                     await _hubContext.Clients.Group($"call-{callKey}").SendAsync("callEnded", cts.Token);
+                    // آخرین قطعه‌ی تماسِ در جریان تا پایان پنجره حساب می‌شود
+                    var seconds = _tracker.TakeConnectedSeconds(callKey);
                     _tracker.RemoveCall(callKey);
+                    if (callKey < 0)
+                        await _durationRecorder.RecordSegmentAsync(-callKey, seconds);
                 }
                 catch (OperationCanceledException)
                 {

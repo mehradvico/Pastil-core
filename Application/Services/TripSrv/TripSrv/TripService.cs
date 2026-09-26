@@ -24,6 +24,7 @@ using AutoMapper;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using Entities.Entities;
 using Entities.Entities.PansionField;
+using Entities.Entities.SchoolField;
 using Entities.Entities.Security;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -1449,7 +1450,8 @@ namespace Application.Services.TripSrv.TripSrv
                 Destination = dto.Destination,
                 FromAddress = dto.FromAddress,
                 ToAddress = dto.ToAddress,
-                TripStartDateTime = scheduledDepartureAt
+                TripStartDateTime = scheduledDepartureAt,
+                TripOptionIds = dto.TripOptionIds
             };
 
             var trip = new Trip
@@ -1491,6 +1493,18 @@ namespace Application.Services.TripSrv.TripSrv
             }
 
             trip.PaymentPrice = trip.Price;
+
+            if (dto.TripOptionIds != null && dto.TripOptionIds.Any())
+            {
+                var optionIds = dto.TripOptionIds.Distinct().ToList();
+                var validOptionCount = await _context.TripOptions.CountAsync(o => optionIds.Contains(o.Id) && o.Active && !o.Deleted);
+                if (validOptionCount != optionIds.Count)
+                    return new BaseResultDto<TripDto>(false, Resource.Notification.InvalidData, null);
+
+                trip.TripOptions = optionIds.Select(id => new TripOption { Id = id }).ToList();
+                foreach (var option in trip.TripOptions)
+                    _context.Entry(option).State = EntityState.Unchanged;
+            }
 
             ApplyTripPets(trip, dto.UserPetIds, null);
 
@@ -1558,7 +1572,8 @@ namespace Application.Services.TripSrv.TripSrv
                 Destination = dto.Destination,
                 FromAddress = dto.FromAddress,
                 ToAddress = dto.ToAddress,
-                TripStartDateTime = scheduledDepartureAt
+                TripStartDateTime = scheduledDepartureAt,
+                TripOptionIds = dto.TripOptionIds
             };
 
             var trip = new Trip
@@ -1597,6 +1612,18 @@ namespace Application.Services.TripSrv.TripSrv
             }
 
             trip.PaymentPrice = trip.Price;
+
+            if (dto.TripOptionIds != null && dto.TripOptionIds.Any())
+            {
+                var optionIds = dto.TripOptionIds.Distinct().ToList();
+                var validOptionCount = await _context.TripOptions.CountAsync(o => optionIds.Contains(o.Id) && o.Active && !o.Deleted);
+                if (validOptionCount != optionIds.Count)
+                    return new BaseResultDto<TripDto>(false, Resource.Notification.InvalidData, null);
+
+                trip.TripOptions = optionIds.Select(id => new TripOption { Id = id }).ToList();
+                foreach (var option in trip.TripOptions)
+                    _context.Entry(option).State = EntityState.Unchanged;
+            }
 
             ApplyTripPets(trip, dto.UserPetIds, null);
 
@@ -1792,6 +1819,91 @@ namespace Application.Services.TripSrv.TripSrv
             return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(trip));
         }
 
+        /// <summary>سفر پت رسانِ ثبت نام مدرسه؛ فقط دوره های حضوری با جلسه آینده قابل انتخاب هستند.</summary>
+        public async Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForSchoolAsync(TripSchoolReservationCreateDto dto, long userId)
+        {
+            if (dto.ScheduledLeadMinutes != 60 && dto.ScheduledLeadMinutes != 120)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripDriverMovementIntervalMustBe60Or120, null);
+            if (dto.Origin == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetOrigin, null);
+            if (dto.Destination == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetDestination, null);
+
+            var reserve = await _context.SchoolReserves.AsNoTracking()
+                .Include(r => r.SchoolCourse).ThenInclude(c => c.SchoolCourseSessions)
+                .FirstOrDefaultAsync(r => r.Id == dto.SchoolReserveId && r.BookerId == userId && !r.IsCancel);
+            if (reserve == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
+
+            // پترسان فقط برای دوره حضوری و اولین جلسه آینده معنا دارد؛ ویدیو و کلاس آنلاین مقصد فیزیکی ندارند.
+            if (reserve.SchoolCourse?.CourseTypeId != 3)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.InvalidData, null);
+            var session = reserve.SchoolCourse.SchoolCourseSessions?
+                .Where(s => s.Active && !s.Deleted && ReservationScheduleValidator.TryGetServiceStartDateTime(s.SessionDate, s.StartTime, out _))
+                .Select(s => new { Session = s, Start = GetSchoolSessionStart(s) })
+                .Where(x => x.Start > DateTime.Now)
+                .OrderBy(x => x.Start)
+                .FirstOrDefault();
+            if (session == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
+
+            var scheduledDepartureAt = session.Start.AddMinutes(-dto.ScheduledLeadMinutes);
+            if (scheduledDepartureAt <= DateTime.Now)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripInsufficientTimeToAppointmentForInterval, null);
+            if (await _context.Trips.AnyAsync(t => t.SchoolReserveId == dto.SchoolReserveId && t.TripStatusId != (long)TripStatusEnum.TripStatus_Canceled))
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripPetDeliveryAlreadyExistsForReserve, null);
+
+            var optionIds = (dto.TripOptionIds ?? new List<long>()).Distinct().ToList();
+            if (optionIds.Count != 0 && await _context.TripOptions.CountAsync(o => optionIds.Contains(o.Id) && o.Active && !o.Deleted) != optionIds.Count)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.InvalidData, null);
+
+            var priceInput = new TripDto { Origin = dto.Origin, Destination = dto.Destination, FromAddress = dto.FromAddress, ToAddress = dto.ToAddress, TripStartDateTime = scheduledDepartureAt, TripOptionIds = optionIds };
+            double price;
+            try { price = await _priceCalculationService.CalculateTripPrice(priceInput); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Calculating price for school reservation-linked trip (reserve {ReserveId}) failed.", dto.SchoolReserveId);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.Unsuccess, null);
+            }
+            if (price <= 0)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.FinalPriceIsNotAvailable, null);
+
+            var trip = new Trip
+            {
+                Origin = new Point(dto.Origin.x, dto.Origin.y) { SRID = 4326 },
+                Destination = new Point(dto.Destination.x, dto.Destination.y) { SRID = 4326 },
+                FromAddress = dto.FromAddress, ToAddress = dto.ToAddress, UserId = userId, IsOnline = true,
+                CreateDate = DateTime.Now, TripStartDateTime = scheduledDepartureAt,
+                DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested, TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
+                SchoolReserveId = dto.SchoolReserveId, ScheduledLeadMinutes = dto.ScheduledLeadMinutes,
+                ScheduledDepartureAt = scheduledDepartureAt, OwnerRidesAlong = dto.OwnerRidesAlong,
+                ScheduledDispatched = false, Price = price, PaymentPrice = price,
+                TripOptions = optionIds.Select(id => new TripOption { Id = id }).ToList()
+            };
+            foreach (var option in trip.TripOptions) _context.Entry(option).State = EntityState.Unchanged;
+            ApplyTripPets(trip, dto.UserPetIds, null);
+            await _context.Trips.AddAsync(trip);
+            await _context.SaveChangesAsync();
+            await BroadcastTripAvailableAsync(trip.Id);
+            await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverRequested, ActorUserId = trip.UserId, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}" });
+            return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(trip));
+        }
+
+        private static DateTime GetSchoolSessionStart(SchoolCourseSession session)
+        {
+            ReservationScheduleValidator.TryGetServiceStartDateTime(session.SessionDate, session.StartTime, out var start);
+            return start;
+        }
+
+        public async Task<BaseResultDto<TripVDto>> GetTripForSchoolReservationAsync(long schoolReserveId, long userId)
+        {
+            var trip = await _context.Trips.Include(t => t.Driver).Include(t => t.DriverStatus).Include(t => t.TripStatus).AsNoTracking()
+                .Where(t => t.SchoolReserveId == schoolReserveId && t.UserId == userId).OrderByDescending(t => t.Id).FirstOrDefaultAsync();
+            return trip == null
+                ? new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null)
+                : new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(trip));
+        }
+
         /// <summary>
         /// Job زمان‌بندی‌شده (Hangfire): دیگه خودکار نزدیک‌ترین راننده رو اختصاص نمی‌ده — چون سفرهای
         /// رزرویی از همون لحظه‌ی ثبت (نه فقط لحظه‌ی حرکت) Broadcast می‌شن و راننده‌ها می‌تونن زودتر قبول
@@ -1823,7 +1935,7 @@ namespace Application.Services.TripSrv.TripSrv
 
             var schedules = await _context.PetResanServiceSchedules
                 .Include(s => s.WeekDay)
-                .Include(s => s.PetResanService)
+                .Include(s => s.PetResanService).ThenInclude(service => service.TripOptions)
                 .Where(s => s.Active
                     && s.WeekDay.Number == tomorrowDayNumber
                     && s.PetResanService.Active
@@ -1852,7 +1964,8 @@ namespace Application.Services.TripSrv.TripSrv
                     FromAddress = service.FromAddress,
                     ToAddress = service.ToAddress,
                     TripStartDateTime = occurrenceAt,
-                    RoundTrip = true
+                    RoundTrip = true,
+                    TripOptionIds = service.TripOptions?.Select(option => option.Id).ToList() ?? new List<long>()
                 };
 
                 var trip = new Trip
@@ -1869,8 +1982,12 @@ namespace Application.Services.TripSrv.TripSrv
                     TripStartDateTime = occurrenceAt,
                     DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
                     TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
-                    PetResanServiceScheduleId = schedule.Id
+                    PetResanServiceScheduleId = schedule.Id,
+                    TripOptions = service.TripOptions?.Select(option => new TripOption { Id = option.Id }).ToList()
                 };
+
+                foreach (var option in trip.TripOptions ?? [])
+                    _context.Entry(option).State = EntityState.Unchanged;
 
                 try
                 {

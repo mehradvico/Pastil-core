@@ -9,5 +9,6 @@ namespace Entities.Entities
         public bool Active { get; set; }
         public bool Deleted { get; set; }
         public ICollection<Trip> Trips { get; set; }
+        public ICollection<PetResanServiceField.PetResanService> PetResanServices { get; set; }
     }
 }

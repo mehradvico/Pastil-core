@@ -14,6 +14,8 @@ namespace Application.Services.Order.AddressSrv.Dto
         public string Phone { get; set; }
         public string Mobile { get; set; }
         public string AddressValue { get; set; }
+        public string Unit { get; set; }
+        public string Floor { get; set; }
         public PointDto Location { get; set; }
         public string PostalCode { get; set; }
         public string NationalCode { get; set; }

@@ -32,10 +32,12 @@ namespace Api.Hubs
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ILogger<CallHub> _logger;
         private readonly CallWindowScheduler _windowScheduler;
+        private readonly CallDurationRecorder _durationRecorder;
 
-        public CallHub(IDataBaseContext context, CallSessionTracker tracker, IPushNotificationService pushNotificationService, ILogger<CallHub> logger, CallWindowScheduler windowScheduler)
+        public CallHub(IDataBaseContext context, CallSessionTracker tracker, IPushNotificationService pushNotificationService, ILogger<CallHub> logger, CallWindowScheduler windowScheduler, CallDurationRecorder durationRecorder)
         {
             _windowScheduler = windowScheduler;
+            _durationRecorder = durationRecorder;
             _context = context;
             _tracker = tracker;
             _pushNotificationService = pushNotificationService;
@@ -201,6 +203,10 @@ namespace Api.Hubs
                 return;
             }
 
+            // هر دو طرف وصل‌اند: شروع اندازه‌گیری مدت واقعی تماس (برای گزارش ادمین)
+            if (_tracker.MarkConnected(key))
+                await _durationRecorder.RecordConnectedAsync(sessionId);
+
             await Clients.Caller.SendAsync("callConnected", true);
             await Clients.OthersInGroup(GroupName(key)).SendAsync("callConnected", false);
         }
@@ -235,6 +241,7 @@ namespace Api.Hubs
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(result.Value.ReserveId));
             await Clients.OthersInGroup(GroupName(result.Value.ReserveId)).SendAsync("callEnded");
+            await RecordSessionCallSegmentAsync(result.Value.ReserveId, result.Value.Remaining);
             await FinalizeCallAsync(result.Value.ReserveId);
         }
 
@@ -244,9 +251,20 @@ namespace Api.Hubs
             if (result.HasValue)
             {
                 await Clients.OthersInGroup(GroupName(result.Value.ReserveId)).SendAsync("callEnded");
+                await RecordSessionCallSegmentAsync(result.Value.ReserveId, result.Value.Remaining);
                 await FinalizeCallAsync(result.Value.ReserveId);
             }
             await base.OnDisconnectedAsync(exception);
+        }
+
+        // تماس جلسه‌ی آنلاین (کلید منفی): وقتی کمتر از دو نفر مانده، قطعه‌ی تماس تمام شده و مدتش به CallSeconds اضافه می‌شود
+        private async Task RecordSessionCallSegmentAsync(long callKey, int remaining)
+        {
+            if (callKey >= 0 || remaining >= 2)
+                return;
+
+            var seconds = _tracker.TakeConnectedSeconds(callKey);
+            await _durationRecorder.RecordSegmentAsync(-callKey, seconds);
         }
 
         private async Task FinalizeCallAsync(long reserveId)

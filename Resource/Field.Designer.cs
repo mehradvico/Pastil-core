@@ -86,6 +86,24 @@ namespace Resource {
                 return ResourceManager.GetString("AddressValue", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Floor.
+        /// </summary>
+        public static string Floor {
+            get {
+                return ResourceManager.GetString("Floor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unit.
+        /// </summary>
+        public static string Unit {
+            get {
+                return ResourceManager.GetString("Unit", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Area.

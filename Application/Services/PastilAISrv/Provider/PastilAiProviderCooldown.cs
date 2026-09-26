@@ -19,6 +19,10 @@ namespace Application.Services.PastilAISrv.Provider
                 return TimeSpan.FromMinutes(5);
             if (string.Equals(errorCode, "timeout", StringComparison.OrdinalIgnoreCase))
                 return TimeSpan.FromMinutes(2);
+            // خطاهای شبکه/DNS نیز تا چند دقیقه پایدارند. تکرار فوری آن‌ها فقط زمان پاسخ
+            // را بیشتر می‌کند؛ بنابراین تا بازیابی DNS یا شبکه، این provider را رد کن.
+            if (string.Equals(errorCode, "provider_exception", StringComparison.OrdinalIgnoreCase))
+                return TimeSpan.FromMinutes(5);
             return null;
         }
 

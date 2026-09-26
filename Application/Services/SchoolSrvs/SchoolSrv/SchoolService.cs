@@ -132,7 +132,8 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             item.Approve = dto.Approve;
             item.Active = dto.Approve;
             item.ApprovalValue = dto.Approve ? null : dto.ApprovalValue.Trim();
-            item.ShowToSite = dto.Approve && item.ShowToSite;
+            // مدرسه‌ی تأییدشده خودکار در سایت/اپ نمایش داده می‌شود؛ رد شدن آن را پنهان می‌کند
+            item.ShowToSite = dto.Approve;
             await _context.SaveChangesAsync();
 
             return new BaseResultDto(true);
