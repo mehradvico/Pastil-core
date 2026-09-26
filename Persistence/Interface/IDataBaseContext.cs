@@ -84,6 +84,8 @@ namespace Persistence.Interface
         public DbSet<OnlineSessionMessage> OnlineSessionMessages { get; set; }
         public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
         public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
+        public DbSet<Entities.Entities.PrescriptionField.OnlinePrescription> OnlinePrescriptions { get; set; }
+        public DbSet<Entities.Entities.PrescriptionField.OnlinePrescriptionPicture> OnlinePrescriptionPictures { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
         public DbSet<CompanionReserveComment> CompanionReserveComments { get; set; }
         public DbSet<CompanionReserveCommentRate> CompanionReserveCommentRates { get; set; }

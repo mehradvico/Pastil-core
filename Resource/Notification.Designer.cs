@@ -2523,6 +2523,12 @@ namespace Resource {
         /// <summary>
         ///   Looks up a localized string similar to A package with this name already exists in this channel.
         /// </summary>
+        public static string ConsultationAlreadyInProgress {
+            get {
+                return ResourceManager.GetString("ConsultationAlreadyInProgress", resourceCulture);
+            }
+        }
+
         public static string UnpaidDebtLocked {
             get {
                 return ResourceManager.GetString("UnpaidDebtLocked", resourceCulture);

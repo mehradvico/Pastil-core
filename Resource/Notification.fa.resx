@@ -1497,6 +1497,9 @@
   <data name="ConsultationAlreadyStarted" xml:space="preserve">
     <value>این مشاوره قبلاً شروع شده است</value>
   </data>
+  <data name="ConsultationAlreadyInProgress" xml:space="preserve">
+    <value>شما یک مشاوره‌ی آنلاین فعال دارید؛ تا پایان زمان آن نمی‌توانید مشاوره‌ی دیگری بخرید.</value>
+  </data>
   <data name="UnpaidDebtLocked" xml:space="preserve">
     <value>حساب شما برای رزرو جدید قفل است؛ هزینه‌ی یک خدمت بیش از ۷ روز پرداخت نشده. ابتدا آن را پرداخت کنید.</value>
   </data>

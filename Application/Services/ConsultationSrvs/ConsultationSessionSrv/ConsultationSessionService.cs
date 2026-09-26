@@ -24,11 +24,14 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
 
         private readonly IDataBaseContext _context;
         private readonly IPushNotificationService _pushNotificationService;
+        private readonly Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService _notifications;
 
-        public ConsultationSessionService(IDataBaseContext context, IPushNotificationService pushNotificationService)
+        public ConsultationSessionService(IDataBaseContext context, IPushNotificationService pushNotificationService,
+            Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService notifications)
         {
             _context = context;
             _pushNotificationService = pushNotificationService;
+            _notifications = notifications;
         }
 
         // کلینیک‌هایی که کاربر نماینده‌ی مجازشان است: مالک، یا کاربر تخصیص‌یافته روی خدمت «مشاوره آنلاین» همان کلینیک
@@ -69,6 +72,24 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 var ownedIds = await _context.Companions.AsNoTracking()
                     .Where(s => s.OwnerId == agentUserId && !s.Deleted).Select(s => s.Id).ToListAsync();
 
+                // مالک هر کلینیک: فهرست نمایندگان قابل تخصیص (مالک + کارکنان فعال روی خدمت ۱۵) با نام
+                var assignable = new Dictionary<long, List<ConsultationAssignableAgentVDto>>();
+                foreach (var companionId in ownedIds.Where(id => rows.Any(r => r.CompanionId == id)))
+                {
+                    var ownerId = await _context.Companions.AsNoTracking().Where(c => c.Id == companionId).Select(c => c.OwnerId).FirstAsync();
+                    var staffIds = await _context.CompanionAssistanceUsers.AsNoTracking()
+                        .Where(x => x.Active && !x.Deleted && !x.CompanionAssistance.Deleted && x.CompanionAssistance.Active &&
+                                    x.CompanionAssistance.CompanionId == companionId &&
+                                    x.CompanionAssistance.AssistanceId == ConsultationRules.AssistanceId)
+                        .Select(x => x.UserId).ToListAsync();
+                    var ids = staffIds.Append(ownerId).Distinct().ToList();
+                    assignable[companionId] = (await _context.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).ToListAsync())
+                        .Select(u => new ConsultationAssignableAgentVDto { UserId = u.Id, FullName = $"{u.FirstName} {u.LastName}".Trim() }).ToList();
+                }
+                var agentIds = rows.Where(r => r.AgentUserId.HasValue).Select(r => r.AgentUserId.Value).Distinct().ToList();
+                var agentNames = (await _context.Users.AsNoTracking().Where(u => agentIds.Contains(u.Id)).ToListAsync())
+                    .ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}".Trim());
+
                 var list = rows.Select(s => new ConsultationAgentItemVDto
                 {
                     Id = s.Id,
@@ -89,7 +110,12 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     UserMobile = s.User?.Mobile,
                     UserPicture = ToPictureVDto(s.User?.Picture),
                     AgentUserId = s.AgentUserId,
-                    CanStart = ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now),
+                    AgentName = s.AgentUserId.HasValue && agentNames.TryGetValue(s.AgentUserId.Value, out var an) ? an : null,
+                    // تخصیص‌یافته به دیگری ⇒ فقط او یا مالک «شروع» را می‌بیند
+                    CanStart = ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now) &&
+                               (!s.AgentUserId.HasValue || s.AgentUserId == agentUserId || ownedIds.Contains(s.CompanionId)),
+                    CanAssign = s.Status == paid && ownedIds.Contains(s.CompanionId) && ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now),
+                    AssignableAgents = s.Status == paid && assignable.TryGetValue(s.CompanionId, out var al) ? al : null,
                     CanEnter = ConsultationPurchaseRules.CanAgentEnter(s.Status, s.ExpireDate, now, s.AgentUserId, agentUserId, ownedIds.Contains(s.CompanionId)),
                     ServerNow = now
                 }).ToList();
@@ -113,6 +139,11 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     return Fail(Resource.Notification.NothingFound);
 
                 if (!await AgentCompanionIds(agentUserId).ContainsAsync(purchase.CompanionId))
+                    return Fail(Resource.Notification.AccessDenied);
+
+                // تخصیص‌یافته به نماینده‌ی دیگر: فقط او یا مالک می‌تواند شروع کند
+                if (purchase.Status == (int)ConsultationPurchaseStatusEnum.Paid && purchase.AgentUserId.HasValue &&
+                    purchase.AgentUserId != agentUserId && !await IsOwnerAsync(agentUserId, purchase.CompanionId))
                     return Fail(Resource.Notification.AccessDenied);
 
                 var now = DateTime.Now;
@@ -158,12 +189,60 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     await transaction.CommitAsync();
 
                 await NotifyUserAsync(purchase, agentUserId, session.Id);
+                try { await _notifications.NotifyTakenByColleagueAsync(purchase.Id, agentUserId); } catch { /* best-effort */ }
 
                 return new BaseResultDto<ConsultationSessionInfoVDto>(true, ToInfo(purchase, session.Id, now, expire, now));
             }
             catch (Exception ex)
             {
                 return new BaseResultDto<ConsultationSessionInfoVDto>(false, ExceptionResultHelper.ToClientMessage(ex), null);
+            }
+        }
+
+        private static BaseResultDto<bool> FailBool(string message) =>
+            new BaseResultDto<bool>(false, new List<System.Tuple<string, string>> { System.Tuple.Create(string.Empty, message) }, false);
+
+        public async Task<BaseResultDto<bool>> AssignAsync(long ownerUserId, long purchaseId, long? targetUserId)
+        {
+            try
+            {
+                var purchase = await _context.ConsultationPurchases.AsNoTracking().FirstOrDefaultAsync(s => s.Id == purchaseId);
+                if (purchase == null)
+                    return FailBool(Resource.Notification.NothingFound);
+                if (!await IsOwnerAsync(ownerUserId, purchase.CompanionId))
+                    return FailBool(Resource.Notification.AccessDenied);
+
+                var now = DateTime.Now;
+                if (!ConsultationPurchaseRules.CanStart(purchase.Status, purchase.StartDeadline, now))
+                    return FailBool(Resource.Notification.PleaseChangeTheStatus);
+
+                if (targetUserId.HasValue)
+                {
+                    var staff = await _context.CompanionAssistanceUsers.AsNoTracking()
+                        .AnyAsync(s => s.UserId == targetUserId.Value && s.Active && !s.Deleted &&
+                                       !s.CompanionAssistance.Deleted && s.CompanionAssistance.Active &&
+                                       s.CompanionAssistance.CompanionId == purchase.CompanionId &&
+                                       s.CompanionAssistance.AssistanceId == ConsultationRules.AssistanceId);
+                    if (!staff && !await IsOwnerAsync(targetUserId.Value, purchase.CompanionId))
+                        return FailBool(Resource.Notification.InvalidData);
+                }
+
+                var paid = (int)ConsultationPurchaseStatusEnum.Paid;
+                var affected = await _context.ConsultationPurchases
+                    .Where(s => s.Id == purchaseId && s.Status == paid)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.AgentUserId, targetUserId));
+                if (affected == 0)
+                    return FailBool(Resource.Notification.ConsultationAlreadyStarted);
+
+                if (targetUserId.HasValue && targetUserId.Value != ownerUserId)
+                {
+                    try { await _notifications.NotifyAssignedAsync(purchaseId, targetUserId.Value); } catch { /* best-effort */ }
+                }
+                return new BaseResultDto<bool>(true, true);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<bool>(false, ExceptionResultHelper.ToClientMessage(ex), false);
             }
         }
 
@@ -186,6 +265,42 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
 
                 return new BaseResultDto<ConsultationSessionInfoVDto>(true,
                     ToInfo(purchase, purchase.OnlineSessionId.Value, purchase.StartDate ?? now, purchase.ExpireDate.Value, now));
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<ConsultationSessionInfoVDto>(false, ExceptionResultHelper.ToClientMessage(ex), null);
+            }
+        }
+
+        public async Task<BaseResultDto<ConsultationSessionInfoVDto>> CompleteAsync(long agentUserId, long purchaseId)
+        {
+            try
+            {
+                var purchase = await _context.ConsultationPurchases.AsNoTracking()
+                    .Include(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Id == purchaseId);
+                if (purchase == null || !purchase.OnlineSessionId.HasValue)
+                    return Fail(Resource.Notification.NothingFound);
+
+                var isOwner = await IsOwnerAsync(agentUserId, purchase.CompanionId);
+                if (purchase.AgentUserId != agentUserId && !isOwner)
+                    return Fail(Resource.Notification.AccessDenied);
+
+                // فقط مشاوره‌ی «در جریان»؛ گذار اتمی تا اگر همزمان job پایان پنجره اجرا شد دوبار تکمیل نشود
+                var active = (int)ConsultationPurchaseStatusEnum.Active;
+                var now = DateTime.Now;
+                var affected = await _context.ConsultationPurchases
+                    .Where(s => s.Id == purchaseId && s.Status == active)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Status, (int)ConsultationPurchaseStatusEnum.Completed));
+                if (affected == 0)
+                    return Fail(Resource.Notification.PleaseChangeTheStatus);
+
+                await _context.OnlineSessions
+                    .Where(s => s.Id == purchase.OnlineSessionId.Value && s.EndDate == null)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.EndDate, (DateTime?)now));
+
+                return new BaseResultDto<ConsultationSessionInfoVDto>(true,
+                    ToInfo(purchase, purchase.OnlineSessionId.Value, purchase.StartDate ?? now, purchase.ExpireDate ?? now, now));
             }
             catch (Exception ex)
             {

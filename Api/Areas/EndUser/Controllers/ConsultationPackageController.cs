@@ -22,6 +22,8 @@ namespace Api.Areas.EndUser.Controllers
             _service = service;
         }
 
+        // فهرست بسته‌ها اطلاعات عمومی کلینیک است (نام، روش، مدت، قیمت)؛ مهمان هم می‌تواند ببیند. خرید همچنان نیازمند ورود است.
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(typeof(BaseResultDto<List<ConsultationPackagePublicVDto>>), 200)]
         public async Task<IActionResult> Get([FromQuery] long companionId)

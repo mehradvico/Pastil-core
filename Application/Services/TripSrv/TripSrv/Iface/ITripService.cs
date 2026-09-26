@@ -23,6 +23,8 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto<TripShareDto>> UpdateTripShareAsync(TripShareDto dto);
         Task<BaseResultDto<TripAdminChooseDriverDto>> ChooseDriverAsync(TripAdminChooseDriverDto dto);
         Task<BaseResultDto<TripChangeStatusDto>> TripChangeStatusAsync(TripChangeStatusDto dto);
+        Task<BaseResultDto<TripVDto>> AdminCancelAsync(TripAdminActionDto dto);
+        Task<BaseResultDto<TripVDto>> AdminCompleteAsync(TripAdminActionDto dto);
         Task<BaseResultDto<TripUserChangeStatusDto>> UpdateTripUserStatusAsync(TripUserChangeStatusDto dto);
         Task<BaseResultDto> SetRebateCodeAsyncDto(TripSetRebateCodeDto dto);
         Task<BaseResultDto> SetWalletAsyncDto(TripSetWalletDto dto);

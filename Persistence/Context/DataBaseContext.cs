@@ -282,6 +282,8 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<SchoolCourseSession> SchoolCourseSessions { get; set; }
         public DbSet<SchoolCourseVideo> SchoolCourseVideos { get; set; }
         public DbSet<SchoolPicture> SchoolPictures { get; set; }
+        public DbSet<Entities.Entities.PrescriptionField.OnlinePrescription> OnlinePrescriptions { get; set; }
+        public DbSet<Entities.Entities.PrescriptionField.OnlinePrescriptionPicture> OnlinePrescriptionPictures { get; set; }
         public DbSet<SchoolReserve> SchoolReserves { get; set; }
         public DbSet<Park> Parks { get; set; }
         public DbSet<ParkPicture> ParkPictures { get; set; }
@@ -588,6 +590,22 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                     .WithMany()
                     .HasForeignKey(item => item.ReferredByStoreId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<Driver>().Property(item => item.CommissionPercent).HasPrecision(5, 2);
+            modelBuilder.Entity<Entities.Entities.PrescriptionField.OnlinePrescription>(entity =>
+            {
+                entity.Property(item => item.Text).HasMaxLength(4000);
+                // برای هر رزرو / هر خرید مشاوره فقط یک نسخه‌ی فعال
+                entity.HasIndex(item => item.CompanionReserveId).IsUnique().HasFilter("[CompanionReserveId] IS NOT NULL AND [Deleted] = 0");
+                entity.HasIndex(item => item.ConsultationPurchaseId).IsUnique().HasFilter("[ConsultationPurchaseId] IS NOT NULL AND [Deleted] = 0");
+                entity.HasOne(item => item.CompanionReserve).WithMany().HasForeignKey(item => item.CompanionReserveId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.ConsultationPurchase).WithMany().HasForeignKey(item => item.ConsultationPurchaseId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.AuthorUser).WithMany().HasForeignKey(item => item.AuthorUserId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<Entities.Entities.PrescriptionField.OnlinePrescriptionPicture>(entity =>
+            {
+                entity.HasOne(item => item.OnlinePrescription).WithMany(item => item.Pictures).HasForeignKey(item => item.OnlinePrescriptionId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(item => item.Picture).WithMany().HasForeignKey(item => item.PictureId).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<Reminder>(entity =>
             {

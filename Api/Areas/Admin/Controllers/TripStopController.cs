@@ -57,8 +57,9 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto<TripStopDto>), 200)]
         public async Task<IActionResult> Post(TripStopDto dto)
         {
-            var result = await _assistanceService.InsertAsyncDto(dto);
-            return Ok(result);
+            // فقط یک تعرفه‌ی «۵ دقیقه انتظار» مجاز است (قیمت هر ۵ دقیقه)؛ ساخت ردیف جدید بسته است
+            return Ok(new BaseResultDto<TripStopDto>(false,
+                new List<Tuple<string, string>> { Tuple.Create(string.Empty, Resource.Notification.InvalidData) }, null));
         }
 
         /// <summary>
@@ -81,8 +82,10 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public IActionResult Delete(long id)
         {
-            var dto = _assistanceService.DeleteDto(id);
-            return Ok(dto);
+            // تنها تعرفه‌ی انتظار حذف‌شدنی نیست؛ فقط قیمتش ویرایش می‌شود
+            return Ok(new BaseResultDto(false,
+                new List<Tuple<string, string>> { Tuple.Create(string.Empty, Resource.Notification.InvalidData) }))
+            ;
         }
     }
 }

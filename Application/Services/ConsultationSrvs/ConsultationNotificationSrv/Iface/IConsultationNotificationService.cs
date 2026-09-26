@@ -17,5 +17,15 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Ifac
 
         // ۵ دقیقه به پایان پنجره ⇒ به هر دو طرف (job)؛ تعداد خریدهای اعلان‌شده را برمی‌گرداند
         Task<int> NotifyEndingSoonAsync();
+
+        // مالک مشاوره را به یک نماینده محول کرد ⇒ پوش به همان نماینده
+        Task NotifyAssignedAsync(long purchaseId, long agentUserId);
+
+        // یک نماینده مشاوره را برداشت/شروع کرد ⇒ به بقیه‌ی همکاران «دکتر X این مشاوره را برداشت»
+        Task NotifyTakenByColleagueAsync(long purchaseId, long takerUserId);
+
+        // شبکه‌ی اطمینان (job): مشاوره‌ی پرداخت‌شده‌ای که چند دقیقه گذشته و کسی شروعش نکرده ⇒ یادآوری به همه‌ی نمایندگان مجاز
+        // (اگر تخصیص دارد: به نماینده‌ی تخصیص‌یافته و مالک). تعداد خریدهای اعلان‌شده را برمی‌گرداند
+        Task<int> NotifyUnclaimedAsync();
     }
 }

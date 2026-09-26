@@ -33,5 +33,25 @@ namespace Api.Areas.Admin.Controllers
             var agency = await _assistanceService.TripChangeStatusAsync(dto);
             return Ok(agency);
         }
+
+        /// <summary>
+        /// لغو دستی سفر توسط ادمین (اعلان به کاربر و راننده؛ توضیح ادمین در دلیل لغو سفر ثبت می‌شود)
+        /// </summary>
+        [HttpPost("cancel")]
+        [ProducesResponseType(typeof(BaseResultDto<TripVDto>), 200)]
+        public async Task<IActionResult> Cancel(TripAdminActionDto dto)
+        {
+            return Ok(await _assistanceService.AdminCancelAsync(dto));
+        }
+
+        /// <summary>
+        /// تکمیل دستی سفر پذیرفته‌شده توسط ادمین
+        /// </summary>
+        [HttpPost("complete")]
+        [ProducesResponseType(typeof(BaseResultDto<TripVDto>), 200)]
+        public async Task<IActionResult> Complete(TripAdminActionDto dto)
+        {
+            return Ok(await _assistanceService.AdminCompleteAsync(dto));
+        }
     }
 }

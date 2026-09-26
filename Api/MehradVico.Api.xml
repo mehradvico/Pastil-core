@@ -1334,6 +1334,11 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionReserveUnifiedController">
+            <summary>
+            لیست یکپارچه‌ی رزروهای خدمت و خریدهای مشاوره آنلاین نمایندگان
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionTimeController">
              <summary>
              ساعات کاری نمایندگان (مرکز)
@@ -1541,7 +1546,7 @@
             <summary>
             خریدهای مشاوره آنلاین
             </summary>
-            <remarks>فقط خواندن؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
+            <remarks>خواندن + لغو/تکمیل دستی؛ دسترسی با RolePermission ناحیه‌ی Admin</remarks>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Get(Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto.ConsultationPurchaseAdminInputDto)">
             <summary>جستجوی خریدها (کلینیک، کاربر، وضعیت، روش، بازه‌ی تاریخ، متن)</summary>
@@ -1551,6 +1556,12 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Get(System.Int64)">
             <summary>جزئیات یک خرید</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Cancel(System.Int64,Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto.ConsultationAdminCancelDto)">
+            <summary>لغو دستی توسط ادمین + بازپرداخت کامل به کیف پول کاربر (فقط پرداخت‌شده یا در جریان)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Complete(System.Int64)">
+            <summary>تکمیل دستی مشاوره‌ی در جریان توسط ادمین</summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ContactUsController">
              <summary>
@@ -2112,6 +2123,26 @@
         <member name="M:Api.Areas.Admin.Controllers.FinanceController.Get(System.Int64)">
             <summary>
              اطلاعات آیتم 
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.FinanceDriverController">
+            <summary>
+            حسابداری رانندگان (کمیسیون، تعداد سفر و سهم‌ها)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceDriverController.Get(Application.Services.FinanceSrvs.FinanceDriverSrv.Dto.FinanceDriverInputDto)">
+            <summary>
+            لیست رانندگان با آمار سفرها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceDriverController.Get(System.Int64)">
+            <summary>
+            جزئیات مالی یک راننده و سفرهای او
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceDriverController.Put(Application.Services.FinanceSrvs.FinanceDriverSrv.Dto.FinanceDriverCommissionDto)">
+            <summary>
+            تنظیم درصد کمیسیون سایت برای یک راننده
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.FinancePansionController">
@@ -4806,6 +4837,16 @@
             <returns>
             </returns>
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.TripChangeStatusController.Cancel(Application.Services.TripSrv.TripSrv.Dto.TripAdminActionDto)">
+            <summary>
+            لغو دستی سفر توسط ادمین (اعلان به کاربر و راننده؛ توضیح ادمین در دلیل لغو سفر ثبت می‌شود)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TripChangeStatusController.Complete(Application.Services.TripSrv.TripSrv.Dto.TripAdminActionDto)">
+            <summary>
+            تکمیل دستی سفر پذیرفته‌شده توسط ادمین
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.TripChooseDriverController">
             <summary>
             انتخاب راننده سفر
@@ -5112,6 +5153,11 @@
             <summary>
             آیتم جدید
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.UserStatsController">
+            <summary>
+            آمار زنده‌ی تعداد کاربران برای داشبورد پنل (شمارنده‌ی رو به رشد)
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.varietyController">
              <summary>
@@ -6092,8 +6138,17 @@
         <member name="M:Api.Areas.Companion.Controllers.ConsultationSessionController.Start(System.Int64)">
             <summary>شروع مشاوره: پنجره‌ی ۳۰/۶۰ دقیقه‌ای از همین لحظه حساب می‌شود (فقط یک‌بار)</summary>
         </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationSessionController.Assign(System.Int64,System.Nullable{System.Int64})">
+            <summary>تخصیص مشاوره‌ی شروع‌نشده به یک نماینده (فقط مالک). targetUserId=null ⇒ برداشتن تخصیص</summary>
+        </member>
         <member name="M:Api.Areas.Companion.Controllers.ConsultationSessionController.Enter(System.Int64)">
             <summary>ورود دوباره به مشاوره‌ی در جریان (تا پایان پنجره)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationSessionController.Complete(System.Int64)">
+            <summary>
+            تکمیل مشاوره‌ی در جریان توسط نماینده‌ی شروع‌کننده (یا مالک کلینیک): وضعیت به «پایان‌یافته» می‌رود، جلسه بسته می‌شود،
+            تماس درون‌برنامه‌ای (اگر باز است) برای هر دو طرف «callEnded» می‌گیرد و مدت واقعی تماس ثبت می‌شود.
+            </summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.FinanceCompanionController">
              <summary>
@@ -6106,6 +6161,17 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.OnlinePrescriptionController">
+            <summary>
+            نسخه‌ی پزشک برای رزرو آنلاین / مشاوره (نماینده و همکار)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.OnlinePrescriptionController.Get(Application.Services.PrescriptionSrv.Dto.PrescriptionTargetDto)">
+            <summary>خواندن نسخه‌ی یک رزرو/مشاوره (data=null یعنی هنوز ثبت نشده). دقیقاً یکی از companionReserveId، consultationPurchaseId، onlineSessionId</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.OnlinePrescriptionController.Put(Application.Services.PrescriptionSrv.Dto.PrescriptionUpsertDto)">
+            <summary>ثبت یا ویرایش نسخه (متن حداکثر ۴۰۰۰ کاراکتر، حداکثر ۱۰ تصویر)</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.PansionActiveController">
              <summary>
@@ -7432,6 +7498,11 @@
         <member name="M:Api.Areas.EndUser.Controllers.NotificationsController.ReadAll">
             <summary>
             خوانده‌شدن همه‌ی اعلان‌ها. Idempotent است.
+            </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.OnlinePrescriptionController">
+            <summary>
+            نسخه‌ی پزشک برای کاربر (فقط خواندنِ نسخه‌ی رزرو یا مشاوره‌ی خودش)
             </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.PansionCommentController">
@@ -10832,6 +10903,14 @@
             تماس درون‌برنامه‌ای جلسه‌ی آنلاین (بدون رزرو). سیگنالینگ همان جریان JoinCall است؛ برای استفاده‌ی مجدد از
             SendSignal/EndCall و ردیاب، جلسه با کلید منفی (-sessionId) ثبت می‌شود تا با شناسه‌ی رزروها تداخل نکند.
             اولین نفری که وصل می‌شود (شروع‌کننده = نماینده) باعث پوش «زنگ خوردن» برای کاربر می‌شود.
+            </summary>
+        </member>
+        <member name="M:Api.Hubs.CallHub.EndReserveCall(System.Int64)">
+            <summary>
+            پایان تماس رزرو با شناسه‌ی رزرو. EndCall فقط وقتی کار می‌کند که ردیاب درون‌حافظه‌ی سرور همین اتصال را بشناسد؛
+            بعد از ری‌استارت/دیپلوی سرور، اتصال مجدد (شناسه‌ی اتصال جدید) یا قطعی وسط تماس ردیاب اتصال را ندارد و
+            EndCall بی‌صدا هیچ کاری نمی‌کرد، پس CallEndDate هیچ‌وقت ثبت نمی‌شد و رزرو «در جریان» می‌ماند.
+            این متد بر اساس شناسه‌ی رزرو (بعد از بررسی دسترسی) در هر حالت پایان تماس را ثبت می‌کند و idempotent است.
             </summary>
         </member>
         <member name="T:Api.Hubs.CallSessionTracker">

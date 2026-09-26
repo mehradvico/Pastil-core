@@ -534,6 +534,9 @@ public static class ConfigureServices
         services.AddScoped<IFinanceCompanionService, FinanceCompanionService>();
         services.AddScoped<IFinanceService, FinanceService>();
         services.AddScoped<IFinanceStoreService, FinanceStoreService>();
+        services.AddScoped<Application.Services.FinanceSrvs.FinanceDriverSrv.Iface.IFinanceDriverService, Application.Services.FinanceSrvs.FinanceDriverSrv.FinanceDriverService>();
+        services.AddScoped<Application.Services.CompanionSrvs.CompanionReserveUnifiedSrv.Iface.IUnifiedReserveService, Application.Services.CompanionSrvs.CompanionReserveUnifiedSrv.UnifiedReserveService>();
+        services.AddScoped<Application.Services.PrescriptionSrv.Iface.IOnlinePrescriptionService, Application.Services.PrescriptionSrv.OnlinePrescriptionService>();
         services.AddScoped<IGalleryItemService, GalleryItemService>();
         services.AddScoped<IGalleryService, GalleryService>();
         services.AddSingleton<OsrmRequestCoordinator>();

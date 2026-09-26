@@ -6,6 +6,8 @@ namespace Application.Common.Enumerable
     {
         Driver = 1,
         User = 2,
-        System = 3
+        System = 3,
+        // لغو دستی توسط ادمین از پنل
+        Admin = 4
     }
 }

@@ -1,4 +1,4 @@
-﻿using Application.Common.Dto.Result;
+using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Geography.Iface;
 using Application.Common.Helpers;
@@ -140,11 +140,17 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
                     price += tripStop.Price;
                 }
             }
-            // توقف در مسیر به ازای هر دقیقه - نرخش (PriceCalculation.StopPrice) هم بر اساس
-            // ساعت شروع سفر انتخاب می‌شه، دقیقاً مثل نرخ فاصله.
+            // توقف در مسیر: تعرفه‌ی «زمان انتظار ۵ دقیقه‌ای» از پنل (/admin/tripstop) خوانده می‌شود و
+            // فرانت ۵ دقیقه‌ـ۵ دقیقه اضافه می‌کند؛ ۶۰ دقیقه = ۱۲ × قیمت آن تعرفه.
+            // اگر تعرفه‌ای تعریف نشده بود، به PriceCalculation.StopPrice (قیمت هر ۵ دقیقه) برمی‌گردد.
             if (tripDto.StopMinutes.HasValue && tripDto.StopMinutes.Value > 0)
             {
-                price += tripDto.StopMinutes.Value * priceCalculation.StopPrice;
+                var unit = await _context.TripStops.AsNoTracking()
+                    .Where(t => !t.Deleted && t.Active)
+                    .OrderBy(t => t.Id)
+                    .Select(t => (double?)t.Price)
+                    .FirstOrDefaultAsync() ?? priceCalculation.StopPrice;
+                price += Math.Ceiling(tripDto.StopMinutes.Value / 5.0) * unit;
             }
             double optionsTotal = 0;
             if (tripDto.TripOptionIds != null && tripDto.TripOptionIds.Any())

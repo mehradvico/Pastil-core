@@ -2942,6 +2942,10 @@ namespace Persistence.Migrations
                     b.Property<long>("CityId")
                         .HasColumnType("bigint");
 
+                    b.Property<decimal?>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
@@ -6609,6 +6613,77 @@ namespace Persistence.Migrations
                     b.HasIndex("PostId");
 
                     b.ToTable("PostPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PrescriptionField.OnlinePrescription", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("AuthorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CompanionReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ConsultationPurchaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Text")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("CompanionReserveId")
+                        .IsUnique()
+                        .HasFilter("[CompanionReserveId] IS NOT NULL AND [Deleted] = 0");
+
+                    b.HasIndex("ConsultationPurchaseId")
+                        .IsUnique()
+                        .HasFilter("[ConsultationPurchaseId] IS NOT NULL AND [Deleted] = 0");
+
+                    b.ToTable("OnlinePrescriptions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PrescriptionField.OnlinePrescriptionPicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("OnlinePrescriptionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OnlinePrescriptionId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("OnlinePrescriptionPictures");
                 });
 
             modelBuilder.Entity("Entities.Entities.PriceCalculation", b =>
@@ -13032,6 +13107,50 @@ namespace Persistence.Migrations
                     b.Navigation("Post");
                 });
 
+            modelBuilder.Entity("Entities.Entities.PrescriptionField.OnlinePrescription", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "AuthorUser")
+                        .WithMany()
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionReserve", "CompanionReserve")
+                        .WithMany()
+                        .HasForeignKey("CompanionReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.ConsultationPurchase", "ConsultationPurchase")
+                        .WithMany()
+                        .HasForeignKey("ConsultationPurchaseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AuthorUser");
+
+                    b.Navigation("CompanionReserve");
+
+                    b.Navigation("ConsultationPurchase");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PrescriptionField.OnlinePrescriptionPicture", b =>
+                {
+                    b.HasOne("Entities.Entities.PrescriptionField.OnlinePrescription", "OnlinePrescription")
+                        .WithMany("Pictures")
+                        .HasForeignKey("OnlinePrescriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OnlinePrescription");
+
+                    b.Navigation("Picture");
+                });
+
             modelBuilder.Entity("Entities.Entities.Product", b =>
                 {
                     b.HasOne("Entities.Entities.Brand", "Brand")
@@ -15080,6 +15199,11 @@ namespace Persistence.Migrations
                     b.Navigation("PostFiles");
 
                     b.Navigation("PostPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PrescriptionField.OnlinePrescription", b =>
+                {
+                    b.Navigation("Pictures");
                 });
 
             modelBuilder.Entity("Entities.Entities.Product", b =>

@@ -1,5 +1,6 @@
 using Application.Services.Filing.PictureSrv.Dto;
 using System;
+using System.Collections.Generic;
 
 namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto
 {
@@ -29,7 +30,19 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto
         // این کاربر همین الان می‌تواند «شروع» یا «ورود» را بزند
         public bool CanStart { get; set; }
         public bool CanEnter { get; set; }
+        // فقط مالک: می‌تواند مشاوره‌ی شروع‌نشده را به یک نماینده تخصیص دهد
+        public bool CanAssign { get; set; }
+        // نام نماینده‌ی تخصیص‌یافته (تا قبل از شروع) یا شروع‌کننده
+        public string AgentName { get; set; }
+        // نمایندگان قابل تخصیص (فقط وقتی CanAssign = true)
+        public List<ConsultationAssignableAgentVDto> AssignableAgents { get; set; }
         public DateTime ServerNow { get; set; }
+    }
+
+    public class ConsultationAssignableAgentVDto
+    {
+        public long UserId { get; set; }
+        public string FullName { get; set; }
     }
 
     // نتیجه‌ی شروع/ورود: نماینده بر اساس کانال به صفحه‌ی مناسب هدایت می‌شود

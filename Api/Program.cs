@@ -1,4 +1,4 @@
-﻿using Application.Common.Security;
+using Application.Common.Security;
 using Api.HangFire;
 using Api.Authorization;
 using Api.Filters;
@@ -515,6 +515,8 @@ recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.Consultati
     "ConsultationNotifyPurchases", x => x.NotifyPendingPurchasesAsync(), Cron.Minutely);
 recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService>(
     "ConsultationEndingSoon", x => x.NotifyEndingSoonAsync(), Cron.Minutely);
+recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService>(
+    "ConsultationNotifyUnclaimed", x => x.NotifyUnclaimedAsync(), Cron.Minutely);
 var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
     OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
 // Removed: memory-reminder push is now sent from the panel's own push

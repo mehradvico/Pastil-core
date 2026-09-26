@@ -14,6 +14,8 @@ namespace Entities.Entities
         public string OwnerDetail { get; set; }
         public bool Active { get; set; }
         public bool Deleted { get; set; }
+        // درصد کمیسیون سایت از مبلغ هر سفر این راننده (۰ تا ۱۰۰)؛ null = هنوز تنظیم نشده (سهم سایت صفر حساب می‌شود)
+        public decimal? CommissionPercent { get; set; }
         public int Rate { get; set; }
         public long? ProfilePictureId { get; set; }
         public long? CertificatePictureId { get; set; }

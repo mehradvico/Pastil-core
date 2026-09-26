@@ -326,7 +326,7 @@ namespace Application.Services.TripSrv.TripSrv
             {
                 if (dto.IsOnline)
                 {
-                    var hasActiveOnlineTrip = await _context.Trips.AnyAsync(s => s.UserId == dto.UserId && s.IsOnline && (s.TripStatusId == (long)TripStatusEnum.TripStatus_Requested || s.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted));
+                    var hasActiveOnlineTrip = await _context.Trips.AnyAsync(TripCurrentForUser(dto.UserId, DateTime.Now));
                     if (hasActiveOnlineTrip)
                     {
                         return new BaseResultDto<TripDto>(false, Resource.Notification.YouAlreadyHaveOnlineTrip, dto);
@@ -420,12 +420,27 @@ namespace Application.Services.TripSrv.TripSrv
         {
             var item = await _context.Trips.Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.UserPet).ThenInclude(s => s.User)
                 .Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).ThenInclude(t => t.ProfilePicture)
-                .FirstOrDefaultAsync(s => s.UserPet.UserId == userId && s.IsOnline && (s.TripStatusId == (long)TripStatusEnum.TripStatus_Requested || s.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted));
+                .Where(TripCurrentForUser(userId, DateTime.Now))
+                .OrderByDescending(s => s.IsOnline)
+                .ThenBy(s => s.TripStartDateTime)
+                .FirstOrDefaultAsync();
             if (item != null)
             {
                 return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(item));
             }
             return new BaseResultDto<TripVDto>(false, mapper.Map<TripVDto>(item));
+        }
+
+        // «سفر جاری» کاربر = سفر تمام‌نشده (درخواست‌شده یا پذیرفته‌شده) که یا فوری است، یا سفر زمان‌بندی‌شده‌ای (مثلاً
+        // رزرو-متصل پت‌رسان) که زمان حرکتش رسیده یا کمتر از ۳ ساعت مانده. سفر رزروی چند روز بعد جلوی سفر جدید را نمی‌گیرد.
+        private static System.Linq.Expressions.Expression<Func<Trip, bool>> TripCurrentForUser(long userId, DateTime now)
+        {
+            var requested = (long)TripStatusEnum.TripStatus_Requested;
+            var accepted = (long)TripStatusEnum.TripStatus_Accepted;
+            var soon = now.AddHours(3);
+            return s => s.UserId == userId
+                && (s.TripStatusId == requested || s.TripStatusId == accepted)
+                && (s.IsOnline || (s.TripStartDateTime != null && s.TripStartDateTime <= soon));
         }
 
         public async Task<BaseResultDto<TripVDto>> GetDriverCurrentTrip(long driverId)
@@ -680,13 +695,148 @@ namespace Application.Services.TripSrv.TripSrv
             return new BaseResultDto<TripAdminChooseDriverDto>(true, Resource.Notification.Success, dto);
         }
 
+        /// <summary>
+        /// تغییر وضعیت دستی سفر توسط ادمین. لغو و تکمیل به AdminCancelAsync / AdminCompleteAsync هدایت می‌شوند (اعلان و
+        /// فیلدهای لغو دارند)؛ اینجا فقط «برگرداندن» سفر به درخواست‌شده یا پذیرفته‌شده مجاز است:
+        ///  - درخواست‌شده: راننده‌ی سفر آزاد می‌شود و سفر دوباره برای رانندگان نمایش داده می‌شود؛
+        ///  - پذیرفته‌شده: فقط وقتی سفر راننده دارد.
+        /// </summary>
         public async Task<BaseResultDto<TripChangeStatusDto>> TripChangeStatusAsync(TripChangeStatusDto dto)
         {
             var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
+            if (trip == null)
+                return new BaseResultDto<TripChangeStatusDto>(false, Resource.Notification.NothingFound, dto);
+
+            if (dto.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled)
+            {
+                var cancelResult = await AdminCancelAsync(new TripAdminActionDto { Id = dto.Id });
+                return cancelResult.IsSuccess
+                    ? new BaseResultDto<TripChangeStatusDto>(true, Resource.Notification.Success, dto)
+                    : new BaseResultDto<TripChangeStatusDto>(false, Resource.Notification.PleaseChangeTheStatus, dto);
+            }
+
+            if (dto.TripStatusId == (long)TripStatusEnum.TripStatus_Compeleted)
+            {
+                var completeResult = await AdminCompleteAsync(new TripAdminActionDto { Id = dto.Id });
+                return completeResult.IsSuccess
+                    ? new BaseResultDto<TripChangeStatusDto>(true, Resource.Notification.Success, dto)
+                    : new BaseResultDto<TripChangeStatusDto>(false, Resource.Notification.PleaseChangeTheStatus, dto);
+            }
+
+            if (dto.TripStatusId != (long)TripStatusEnum.TripStatus_Requested &&
+                dto.TripStatusId != (long)TripStatusEnum.TripStatus_Accepted)
+                return new BaseResultDto<TripChangeStatusDto>(false, Resource.Notification.InvalidData, dto);
+
+            if (trip.TripStatusId == dto.TripStatusId)
+                return new BaseResultDto<TripChangeStatusDto>(true, Resource.Notification.Success, dto);
+
+            if (dto.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted)
+            {
+                if (!trip.DriverId.HasValue)
+                    return new BaseResultDto<TripChangeStatusDto>(false, Resource.Notification.PleaseChangeTheStatus, dto);
+                trip.DriverStatusId = (long)DriverStatusEnum.DriverStatus_Accepted;
+                if (trip.ProgressStageId == (int)TripProgressStageEnum.None)
+                    trip.ProgressStageId = (int)TripProgressStageEnum.EnRouteOrigin;
+            }
+            else
+            {
+                // برگشت به «درخواست‌شده»: راننده آزاد و پیشرفت مسیر صفر می‌شود؛ فیلدهای لغو پاک می‌شوند.
+                trip.DriverId = null;
+                trip.DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested;
+                trip.ProgressStageId = (int)TripProgressStageEnum.None;
+                trip.CancelInitiatorId = null;
+                trip.CancelReasonCodeId = null;
+                trip.CancelReasonDetail = null;
+            }
+
             trip.TripStatusId = dto.TripStatusId;
+            trip.ProgressUpdateDate = DateTime.Now;
             _context.Trips.Update(trip);
             await _context.SaveChangesAsync();
             return new BaseResultDto<TripChangeStatusDto>(true, Resource.Notification.Success, dto);
+        }
+
+        /// <summary>لغو دستی سفر توسط ادمین (فقط سفر درخواست‌شده یا پذیرفته‌شده).</summary>
+        public async Task<BaseResultDto<TripVDto>> AdminCancelAsync(TripAdminActionDto dto)
+        {
+            var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
+            if (trip == null)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
+
+            if (trip.TripStatusId == (long)TripStatusEnum.TripStatus_Compeleted || trip.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.PleaseChangeTheStatus, null);
+
+            var detail = string.IsNullOrWhiteSpace(dto.Detail) ? null : dto.Detail.Trim();
+            var previousDriverId = trip.DriverId;
+
+            trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
+            trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.Admin;
+            trip.CancelReasonCodeId = null;
+            trip.CancelReasonDetail = detail;
+            trip.ProgressUpdateDate = DateTime.Now;
+            _context.Trips.Update(trip);
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripCanceled, trip.UserId);
+                if (previousDriverId.HasValue)
+                {
+                    var driver = await _context.Drivers.FindAsync(previousDriverId.Value);
+                    if (driver != null)
+                        await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripCanceled, driver.OwnerId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Sending admin-cancel push for trip {TripId} failed.", trip.Id);
+            }
+
+            return await FindAsyncVDto(trip.Id);
+        }
+
+        /// <summary>
+        /// سهم راننده و سایت را از روی درصد کمیسیون همان راننده حساب می‌کند: سهم سایت = مبلغ پرداخت‌شده × درصد؛
+        /// باقی سهم راننده است. اگر کمیسیون راننده تنظیم نشده باشد سهم سایت صفر است.
+        /// </summary>
+        private async Task ApplyDriverCommissionAsync(Trip trip)
+        {
+            var percent = trip.DriverId.HasValue
+                ? await _context.Drivers.AsNoTracking().Where(d => d.Id == trip.DriverId.Value).Select(d => d.CommissionPercent).FirstOrDefaultAsync()
+                : null;
+            var total = trip.PaymentPrice > 0 ? trip.PaymentPrice : trip.Price;
+            var siteShare = Math.Round(total * (double)(percent ?? 0m) / 100d);
+            trip.SiteShare = siteShare;
+            trip.DriverShare = total - siteShare;
+        }
+
+        /// <summary>تکمیل دستی سفر توسط ادمین (فقط سفر پذیرفته‌شده‌ی دارای راننده).</summary>
+        public async Task<BaseResultDto<TripVDto>> AdminCompleteAsync(TripAdminActionDto dto)
+        {
+            var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
+            if (trip == null)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
+
+            if (trip.TripStatusId != (long)TripStatusEnum.TripStatus_Accepted || !trip.DriverId.HasValue)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.PleaseChangeTheStatus, null);
+
+            trip.TripStatusId = (long)TripStatusEnum.TripStatus_Compeleted;
+            trip.ProgressStageId = (int)TripProgressStageEnum.ArrivedDestination;
+            trip.ProgressUpdateDate = DateTime.Now;
+            await ApplyDriverCommissionAsync(trip);
+            _context.Trips.Update(trip);
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripCompleted, trip.UserId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Sending admin-complete push for trip {TripId} failed.", trip.Id);
+            }
+
+            return await FindAsyncVDto(trip.Id);
         }
 
         // Job هر ۲۰ دقیقه: وقتی کاربر مستقیماً یک راننده‌ی مشخص را انتخاب کرده (Trip.DriverId پر است) و
@@ -1257,6 +1407,15 @@ namespace Application.Services.TripSrv.TripSrv
                 trip.IsReturnLeg = true;
                 trip.ProgressStageId = (int)TripProgressStageEnum.EnRouteOrigin;
                 isFinalArrival = false;
+            }
+
+            // رسیدن به مقصدِ نهایی (تک‌مسیره، یا مسیر برگشتِ رفت‌وبرگشت) = پایان کار سفر: وضعیت سفر «تکمیل‌شده» می‌شود،
+            // سهم راننده/سایت با کمیسیون همان راننده ثبت می‌شود و سفر از «سفر جاری» راننده و کاربر خارج می‌شود.
+            // قبلاً فقط ProgressStageId عوض می‌شد و سفر برای همیشه «پذیرفته‌شده» (باز) می‌ماند مگر کلاینت جداگانه وضعیت را می‌زد.
+            if (targetStage == TripProgressStageEnum.ArrivedDestination && isFinalArrival)
+            {
+                trip.TripStatusId = (long)TripStatusEnum.TripStatus_Compeleted;
+                await ApplyDriverCommissionAsync(trip);
             }
 
             await _context.SaveChangesAsync();

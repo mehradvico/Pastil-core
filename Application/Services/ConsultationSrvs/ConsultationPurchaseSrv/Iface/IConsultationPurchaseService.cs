@@ -16,6 +16,12 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface
         // لغو توسط کاربر (فقط پرداخت‌شده و شروع‌نشده) + بازپرداخت کامل به کیف پول
         Task<BaseResultDto> CancelAsync(long userId, long id);
 
+        // لغو دستی توسط ادمین: خرید پرداخت‌شده یا در جریان + بازپرداخت کامل به کیف پول (و بستن جلسه‌ی آنلاین در صورت وجود)
+        Task<BaseResultDto> AdminCancelAsync(long id, string reason);
+
+        // تکمیل دستی توسط ادمین: فقط مشاوره‌ی «در جریان» (جلسه بسته می‌شود؛ سهم کلینیک مثل تکمیل خودکار حساب می‌شود)
+        Task<BaseResultDto> AdminCompleteAsync(long id);
+
         // ثبت نظر کاربر (فقط برای مشاوره‌ی «تکمیل‌شده»‌ی خودش، فقط یک‌بار)
         Task<BaseResultDto> ReviewAsync(long userId, long id, ConsultationPurchaseReviewDto dto);
 

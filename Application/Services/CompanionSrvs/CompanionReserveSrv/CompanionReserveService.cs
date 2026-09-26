@@ -124,7 +124,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 .Include(s => s.CompanionAssistanceUser).ThenInclude(s => s.User).Include(s => s.Booker).Include(s => s.UserPets)
                 .Include(s => s.CompanionAssistance).ThenInclude(s => s.Assistance).Include(s => s.CompanionAssistance).ThenInclude(s => s.Companion)
                 .Include(s => s.CompanionAssistancePackages).Include(s => s.CompanionAssistanceTime).ThenInclude(s => s.WeekDay).Include(s => s.CompanionTime).ThenInclude(s => s.WeekDay)
-                .Include(s => s.CompanionAssistanceType).Include(s => s.OperatorState).Include(s => s.Address).ThenInclude(a => a.City).ThenInclude(c => c.State).AsQueryable();
+                .Include(s => s.CompanionAssistanceType).Include(s => s.OperatorState).Include(s => s.Address).ThenInclude(a => a.City).ThenInclude(c => c.State)
+                .Include(s => s.CompanionAssistancePackageOnlineSelection).ThenInclude(s => s.CompanionAssistancePackageOnline).AsQueryable();
 
             if (baseSearchDto.BookerId.HasValue)
             {
@@ -914,7 +915,6 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
             // همکاران فعال و تأییدشده‌ی کلینیک. بدون includeUnlinked فقط متصل‌ها (رفتار قدیمی اپ‌ها)؛
             // با includeUnlinked همه‌ی همکاران، و انتخاب همکارِ غیرمتصل هنگام تخصیص، اتصال خدمت را خودکار می‌سازد.
-            var linkedUserIds = linkByUserId.Keys.ToList();
             var members = await _context.CompanionUsers
                 .AsNoTracking()
                 .Include(s => s.User)
@@ -925,9 +925,38 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     !s.Deleted &&
                     s.Active &&
                     s.UserAccept == true &&
-                    !s.User.Deleted &&
-                    (includeUnlinked || linkedUserIds.Contains(s.UserId)))
+                    !s.User.Deleted)
                 .ToListAsync();
+
+            // همه‌ی همکاران فعال و تأییدشده‌ی کلینیک قابل تخصیص‌اند (تخصص فقط برای ترتیب/پیشنهاد است). اپ‌های قدیمی فقط
+            // CompanionAssistanceUserId می‌فرستند، پس اتصال خدمتِ همکارانِ بدون اتصال همین‌جا ساخته/فعال می‌شود تا هر آیتم شناسه‌ی اتصال داشته باشد.
+            if (!reserve.CompanionAssistance.Companion.IsPersonal)
+            {
+                var unlinkedUserIds = members.Select(m => m.UserId).Where(id => !linkByUserId.ContainsKey(id)).Distinct().ToList();
+                if (unlinkedUserIds.Count > 0)
+                {
+                    var existing = await _context.CompanionAssistanceUsers.AsTracking()
+                        .Where(x => x.CompanionAssistanceId == reserve.CompanionAssistanceId && !x.Deleted && unlinkedUserIds.Contains(x.UserId))
+                        .ToListAsync();
+                    foreach (var userId in unlinkedUserIds)
+                    {
+                        var link = existing.FirstOrDefault(x => x.UserId == userId);
+                        if (link == null)
+                            await _context.CompanionAssistanceUsers.AddAsync(new CompanionAssistanceUser { UserId = userId, CompanionAssistanceId = reserve.CompanionAssistanceId, Active = true });
+                        else
+                        {
+                            link.Active = true;
+                            link.ActivationValue = null;
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                    var refreshed = await _context.CompanionAssistanceUsers.AsNoTracking()
+                        .Where(x => x.CompanionAssistanceId == reserve.CompanionAssistanceId && x.Active && !x.Deleted && unlinkedUserIds.Contains(x.UserId))
+                        .ToListAsync();
+                    foreach (var g in refreshed.GroupBy(x => x.UserId))
+                        linkByUserId[g.Key] = g.OrderBy(x => x.Id).First();
+                }
+            }
 
             // تخصص‌های مرتبط با این خدمت (اگر برای خدمت تعریف شده باشد) برای پیشنهاد همکار مناسب
             var relatedExpertiseIds = await GetRelatedExpertiseIdsAsync(reserve.CompanionAssistance.AssistanceId);

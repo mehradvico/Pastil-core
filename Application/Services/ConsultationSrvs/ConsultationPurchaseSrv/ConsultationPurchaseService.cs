@@ -27,6 +27,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
     public class ConsultationPurchaseService : IConsultationPurchaseService
     {
         private const string CancelReasonUser = "UserCancelled";
+        private const string CancelReasonAdmin = "AdminCancelled";
         private const string CancelReasonPaymentFailed = "PaymentFailed";
         private const string CancelReasonStartDeadline = "StartDeadlineExpired";
         private const int ExpireBatchSize = 100;
@@ -82,7 +83,17 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     s.UserId == userId && s.CompanionId == package.CompanionId && s.ChannelId == package.ChannelId &&
                     (s.Status == paid || s.Status == active));
                 if (alreadyHasOne)
-                    return new BaseResultDto(false, Resource.Notification.InvalidData);
+                    return new BaseResultDto(false, Resource.Notification.ConsultationAlreadyInProgress);
+
+                // تا وقتی زمانِ یک مشاوره‌ی خریداری‌شده تمام نشده (منتظر شروع و در مهلت، یا در جریان و پنجره‌اش باز)،
+                // کاربر مشاوره‌ی دیگری — با هر کلینیک یا روشی — نمی‌تواند بخرد.
+                var nowForBlock = DateTime.Now;
+                var hasLiveConsultation = await _context.ConsultationPurchases.AsNoTracking().AnyAsync(s =>
+                    s.UserId == userId &&
+                    ((s.Status == paid && (s.StartDeadline == null || s.StartDeadline > nowForBlock)) ||
+                     (s.Status == active && (s.ExpireDate == null || s.ExpireDate > nowForBlock))));
+                if (hasLiveConsultation)
+                    return new BaseResultDto(false, Resource.Notification.ConsultationAlreadyInProgress);
 
                 // خرید در انتظار پرداختِ در جریان (درگاه باز است) دوباره ساخته نمی‌شود؛ بدون پرداخت‌های قدیمی همین پکیج کنار گذاشته می‌شوند
                 var pending = (int)ConsultationPurchaseStatusEnum.PendingPayment;
@@ -254,6 +265,90 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
 
                 if (transaction != null)
                     await transaction.CommitAsync();
+                return new BaseResultDto(true, Resource.Notification.Success);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
+            }
+        }
+
+        public async Task<BaseResultDto> AdminCancelAsync(long id, string reason)
+        {
+            try
+            {
+                await using var transaction = _context.CurrentTransaction == null
+                    ? await _context.BeginTransactionAsync(System.Data.IsolationLevel.Serializable)
+                    : null;
+
+                var detail = string.IsNullOrWhiteSpace(reason) ? CancelReasonAdmin : reason.Trim();
+                if (detail.Length > 500)
+                    detail = detail.Substring(0, 500);
+                var paid = (int)ConsultationPurchaseStatusEnum.Paid;
+                var active = (int)ConsultationPurchaseStatusEnum.Active;
+
+                var purchase = await _context.ConsultationPurchases.AsNoTracking()
+                    .Where(s => s.Id == id && (s.Status == paid || s.Status == active))
+                    .Select(s => new { s.Id, s.OnlineSessionId })
+                    .FirstOrDefaultAsync();
+                if (purchase == null)
+                    return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+                // گذار اتمی؛ اگر همزمان وضعیت عوض شده باشد هیچ ردیفی تغییر نمی‌کند
+                var affected = await _context.ConsultationPurchases
+                    .Where(s => s.Id == id && (s.Status == paid || s.Status == active))
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(s => s.Status, (int)ConsultationPurchaseStatusEnum.Cancelled)
+                        .SetProperty(s => s.CancelDate, (DateTime?)DateTime.Now)
+                        .SetProperty(s => s.CancelReason, detail));
+                if (affected == 0)
+                    return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+                if (purchase.OnlineSessionId.HasValue)
+                {
+                    await _context.OnlineSessions
+                        .Where(s => s.Id == purchase.OnlineSessionId.Value && s.EndDate == null)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.EndDate, (DateTime?)DateTime.Now));
+                }
+
+                if (!await RefundAsync(id))
+                    return new BaseResultDto(false, Resource.Notification.Unsuccess);
+
+                if (transaction != null)
+                    await transaction.CommitAsync();
+                return new BaseResultDto(true, Resource.Notification.Success);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
+            }
+        }
+
+        public async Task<BaseResultDto> AdminCompleteAsync(long id)
+        {
+            try
+            {
+                var active = (int)ConsultationPurchaseStatusEnum.Active;
+                var purchase = await _context.ConsultationPurchases.AsNoTracking()
+                    .Where(s => s.Id == id && s.Status == active)
+                    .Select(s => new { s.Id, s.OnlineSessionId })
+                    .FirstOrDefaultAsync();
+                if (purchase == null)
+                    return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+                var now = DateTime.Now;
+                var affected = await _context.ConsultationPurchases
+                    .Where(s => s.Id == id && s.Status == active)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Status, (int)ConsultationPurchaseStatusEnum.Completed));
+                if (affected == 0)
+                    return new BaseResultDto(false, Resource.Notification.InvalidData);
+
+                if (purchase.OnlineSessionId.HasValue)
+                {
+                    await _context.OnlineSessions
+                        .Where(s => s.Id == purchase.OnlineSessionId.Value && s.EndDate == null)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.EndDate, (DateTime?)now));
+                }
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
             catch (Exception ex)

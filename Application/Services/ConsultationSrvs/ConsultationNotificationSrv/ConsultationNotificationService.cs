@@ -16,6 +16,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
     public class ConsultationNotificationService : IConsultationNotificationService
     {
         private const int BatchSize = 50;
+        // بعد از این مدت از پرداخت، اگر هنوز کسی شروع نکرده یادآوری می‌رود
+        public static readonly TimeSpan UnclaimedAfter = TimeSpan.FromMinutes(5);
         private static readonly TimeSpan EndingSoonLead = TimeSpan.FromMinutes(5);
         private static readonly CultureInfo Persian = new("fa");
 
@@ -121,6 +123,75 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
                     {
                         await SendOnceAsync(PushTypeEnum.PushConsultationEndingSoon, purchase.AgentUserId.Value, purchase.Id,
                             FullName(purchase.User), purchase.Id.ToString(), AgentPagePath);
+                    }
+                    notified++;
+                }
+                catch { /* اجرای بعدی دوباره تلاش می‌کند */ }
+            }
+            return notified;
+        }
+
+        public async Task NotifyAssignedAsync(long purchaseId, long agentUserId)
+        {
+            var purchase = await LoadAsync(purchaseId);
+            if (purchase == null || purchase.Status != (int)ConsultationPurchaseStatusEnum.Paid)
+                return;
+
+            await SendOnceAsync(PushTypeEnum.PushConsultationAssigned, agentUserId, purchase.Id,
+                FullName(purchase.User), purchase.Id.ToString(), ChannelLabel(purchase.ChannelId));
+        }
+
+        public async Task NotifyTakenByColleagueAsync(long purchaseId, long takerUserId)
+        {
+            var purchase = await LoadAsync(purchaseId);
+            if (purchase == null)
+                return;
+
+            var taker = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == takerUserId);
+            var takerName = FullName(taker);
+            var buyerName = FullName(purchase.User);
+            foreach (var agentId in await AgentUserIdsAsync(purchase.CompanionId))
+            {
+                if (agentId == takerUserId)
+                    continue;
+                try
+                {
+                    await SendOnceAsync(PushTypeEnum.PushConsultationTakenByColleague, agentId, purchase.Id,
+                        takerName, purchase.Id.ToString(), buyerName);
+                }
+                catch { /* پوش همکار نباید شروع مشاوره را خراب کند */ }
+            }
+        }
+
+        public async Task<int> NotifyUnclaimedAsync()
+        {
+            var now = DateTime.Now;
+            var paid = (int)ConsultationPurchaseStatusEnum.Paid;
+            var before = now - UnclaimedAfter;
+            var rows = await _context.ConsultationPurchases.AsNoTracking()
+                .Where(s => s.Status == paid && s.PaidDate != null && s.PaidDate <= before &&
+                            (s.StartDeadline == null || s.StartDeadline > now))
+                .Include(s => s.User)
+                .OrderBy(s => s.PaidDate)
+                .Take(BatchSize)
+                .ToListAsync();
+
+            var notified = 0;
+            foreach (var purchase in rows)
+            {
+                try
+                {
+                    var owners = await _context.Companions.AsNoTracking()
+                        .Where(c => c.Id == purchase.CompanionId && !c.Deleted).Select(c => c.OwnerId).ToListAsync();
+                    var recipients = purchase.AgentUserId.HasValue
+                        ? owners.Append(purchase.AgentUserId.Value).Distinct().ToList()
+                        : await AgentUserIdsAsync(purchase.CompanionId);
+
+                    var minutes = ((int)UnclaimedAfter.TotalMinutes).ToString(Persian);
+                    foreach (var userId in recipients)
+                    {
+                        await SendOnceAsync(PushTypeEnum.PushConsultationUnclaimed, userId, purchase.Id,
+                            FullName(purchase.User), purchase.Id.ToString(), minutes);
                     }
                     notified++;
                 }

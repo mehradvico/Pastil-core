@@ -245,6 +245,62 @@ namespace Api.Hubs
             await FinalizeCallAsync(result.Value.ReserveId);
         }
 
+        /// <summary>
+        /// پایان تماس رزرو با شناسه‌ی رزرو. EndCall فقط وقتی کار می‌کند که ردیاب درون‌حافظه‌ی سرور همین اتصال را بشناسد؛
+        /// بعد از ری‌استارت/دیپلوی سرور، اتصال مجدد (شناسه‌ی اتصال جدید) یا قطعی وسط تماس ردیاب اتصال را ندارد و
+        /// EndCall بی‌صدا هیچ کاری نمی‌کرد، پس CallEndDate هیچ‌وقت ثبت نمی‌شد و رزرو «در جریان» می‌ماند.
+        /// این متد بر اساس شناسه‌ی رزرو (بعد از بررسی دسترسی) در هر حالت پایان تماس را ثبت می‌کند و idempotent است.
+        /// </summary>
+        public async Task EndReserveCall(long reserveId)
+        {
+            if (reserveId <= 0)
+            {
+                return;
+            }
+
+            var userId = CurrentUserId;
+            if (!userId.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "احراز هویت نامعتبر است.");
+                return;
+            }
+
+            var reserve = await _context.CompanionReserves
+                .AsNoTracking()
+                .Include(r => r.CompanionAssistance).ThenInclude(a => a.Companion)
+                .FirstOrDefaultAsync(r => r.Id == reserveId);
+            if (reserve == null)
+            {
+                return;
+            }
+
+            var isBooker = reserve.BookerId == userId.Value;
+            var isCompanionOwner = reserve.CompanionAssistance.Companion.OwnerId == userId.Value;
+            var isAssignedStaff = reserve.CompanionAssistanceUserId.HasValue &&
+                await _context.CompanionAssistanceUsers.AnyAsync(u => u.Id == reserve.CompanionAssistanceUserId.Value && u.UserId == userId.Value);
+            if (!isBooker && !isCompanionOwner && !isAssignedStaff)
+            {
+                await Clients.Caller.SendAsync("callError", "شما دسترسی به این تماس ندارید.");
+                return;
+            }
+
+            var result = _tracker.Leave(Context.ConnectionId);
+            if (result.HasValue && result.Value.ReserveId == reserveId)
+            {
+                // مسیر عادی: همان رفتار EndCall
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(reserveId));
+                await Clients.OthersInGroup(GroupName(reserveId)).SendAsync("callEnded");
+            }
+            else
+            {
+                // ردیاب این اتصال را نمی‌شناسد (ری‌استارت سرور / اتصال مجدد): تماس را برای هر دو طرف می‌بندیم
+                _tracker.RemoveCall(reserveId);
+                await Clients.Group(GroupName(reserveId)).SendAsync("callEnded");
+            }
+
+            await FinalizeCallAsync(reserveId);
+        }
+
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var result = _tracker.Leave(Context.ConnectionId);

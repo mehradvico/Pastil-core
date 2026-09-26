@@ -1497,6 +1497,9 @@
   <data name="ConsultationAlreadyStarted" xml:space="preserve">
     <value>ConsultationAlreadyStarted</value>
   </data>
+  <data name="ConsultationAlreadyInProgress" xml:space="preserve">
+    <value>You already have an online consultation in progress. You cannot buy another one until its time ends.</value>
+  </data>
   <data name="UnpaidDebtLocked" xml:space="preserve">
     <value>Your account is locked for new bookings because a service fee has been unpaid for over 7 days. Please pay it first.</value>
   </data>

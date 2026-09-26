@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -85,6 +85,9 @@ namespace Application.Common.Enumerable.Code
         /// <summary>سفر فوری (Broadcast) بعد از N دقیقه هنوز راننده‌ای قبول نکرده - مرحله‌ی ۱: به کاربر اطلاع می‌دهیم که ادمین در جریان است.</summary>
         PushTripNoDriverAdminNotified = 76,
         /// <summary>سفر فوری (Broadcast) بعد از مرحله‌ی ۱ هم همچنان راننده‌ای پیدا نشده - مرحله‌ی ۲: به کاربر پیشنهاد می‌دهیم رزرو/سرویس دیگری را امتحان کند.</summary>
-        PushTripNoDriverTryAnotherOption = 77
+        PushTripNoDriverTryAnotherOption = 77,
+        PushConsultationAssigned = 78,
+        PushConsultationTakenByColleague = 79,
+        PushConsultationUnclaimed = 80
     }
 }
