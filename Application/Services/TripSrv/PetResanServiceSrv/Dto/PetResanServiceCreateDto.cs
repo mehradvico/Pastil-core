@@ -14,6 +14,9 @@ namespace Application.Services.TripSrv.PetResanServiceSrv.Dto
         /// <summary>null یا خالی یعنی بی‌نهایت/باز، تا خودِ کاربر لغو کند.</summary>
         public int? TotalWeeks { get; set; }
 
+        /// <summary>رفت‌وبرگشت؟ پیش‌فرض true (رفتار قبلی سرویس هفتگی)؛ false = فقط رفت. فرمول رفت‌وبرگشت همان PriceCalculationService (+۵۰٪ کل هزینه).</summary>
+        public bool RoundTrip { get; set; } = true;
+
         public List<long> TripOptionIds { get; set; } = new List<long>();
         public List<PetResanServiceScheduleDto> Schedules { get; set; } = new List<PetResanServiceScheduleDto>();
     }

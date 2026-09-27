@@ -399,4 +399,13 @@
   <data name="PushConsultationExpiredRefund" xml:space="preserve">
     <value>مشاوره‌ی شما شروع نشد؛ مبلغ به کیف پول برگشت.</value>
   </data>
+  <data name="PushConsultationAssigned" xml:space="preserve">
+    <value>مشاوره‌ی {2} برای شما ثبت شد؛ مشاوره‌ی {0} را پاسخ بده.</value>
+  </data>
+  <data name="PushConsultationTakenByColleague" xml:space="preserve">
+    <value>{0} مشاوره‌ی {2} را برعهده گرفت.</value>
+  </data>
+  <data name="PushConsultationUnclaimed" xml:space="preserve">
+    <value>مشاوره‌ی {0} بعد از {2} دقیقه هنوز کسی جواب نداده.</value>
+  </data>
 </root>

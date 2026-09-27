@@ -129,7 +129,7 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Type = SearchItemType.Pansion,
                     Id = p.Id,
                     Title = p.Name,
-                    SubTitle = Resource.Notification.SearchResultTypePansion,
+                    SubTitle = p.IsDaycare == true ? Resource.Notification.SearchResultTypeDaycare : Resource.Notification.SearchResultTypePansion,
                     Picture = p.Picture,
                     Score = Score(request, p.Name) + Math.Min(10, p.RateAvg),
                     Url = $"/pansion/{p.Id}",
@@ -149,6 +149,51 @@ namespace Application.Services.CommonSrv.SearchSrv
                     Score = Score(request, package.Name, package.CompanionName, package.AssistanceName, package.Description) + 5,
                     Url = $"/companion-assistance-package/{package.Id}",
                     MatchedBy = MatchField(q, ("name", package.Name), ("companion", package.CompanionName), ("assistance", package.AssistanceName), ("description", package.Description))
+                }));
+            }
+
+            if (result.Schools != null)
+            {
+                items.AddRange(result.Schools.Select(sc => new SearchItemDto
+                {
+                    Type = SearchItemType.School,
+                    Id = sc.Id,
+                    Title = sc.Name,
+                    SubTitle = Resource.Notification.SearchResultTypeSchool,
+                    Picture = sc.Picture,
+                    Score = Score(request, sc.Name) + Math.Min(10, sc.RateAvg),
+                    Url = $"/school/{sc.Id}",
+                    MatchedBy = MatchField(q, ("name", sc.Name))
+                }));
+            }
+
+            if (result.SchoolCourses != null)
+            {
+                items.AddRange(result.SchoolCourses.Select(course => new SearchItemDto
+                {
+                    Type = SearchItemType.SchoolCourse,
+                    Id = course.Id,
+                    Title = course.Name,
+                    SubTitle = $"{Resource.Notification.SearchResultTypeSchoolCourse} · {course.SchoolName}",
+                    Picture = course.Picture,
+                    Score = Score(request, course.Name, course.SchoolName, course.Description) + 3,
+                    Url = $"/school-course/{course.Id}",
+                    MatchedBy = MatchField(q, ("name", course.Name), ("school", course.SchoolName), ("description", course.Description))
+                }));
+            }
+
+            if (result.ConsultationPackages != null)
+            {
+                items.AddRange(result.ConsultationPackages.Select(package => new SearchItemDto
+                {
+                    Type = SearchItemType.ConsultationPackage,
+                    Id = package.Id,
+                    Title = package.Name,
+                    SubTitle = $"{Resource.Notification.SearchResultTypeConsultationPackage} · {package.CompanionName}",
+                    Picture = package.Picture,
+                    Score = Score(request, package.Name, package.CompanionName, package.Description) + 3,
+                    Url = $"/consultations/buy?companionId={package.CompanionId}&packageId={package.Id}",
+                    MatchedBy = MatchField(q, ("name", package.Name), ("companion", package.CompanionName), ("description", package.Description))
                 }));
             }
 

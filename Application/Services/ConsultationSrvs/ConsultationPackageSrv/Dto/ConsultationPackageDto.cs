@@ -34,5 +34,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto
         public string Description { get; set; }
         public PictureVDto Picture { get; set; }
         public int SortOrder { get; set; }
+        // true اگر همین الان حداقل یک نفر از تیم کلینیک «آنلاینم» را زده باشد (چراغ سبز مشاوره)
+        public bool CompanionOnline { get; set; }
     }
 }

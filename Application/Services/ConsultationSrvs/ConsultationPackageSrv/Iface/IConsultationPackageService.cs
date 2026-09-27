@@ -1,4 +1,5 @@
 using Application.Common.Dto.Result;
+using Application.Services.CommonSrv.SearchSrv.Dto;
 using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -21,5 +22,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv.Iface
 
         // پکیج‌های قابل خرید یک کلینیک برای کاربر
         Task<BaseResultDto<List<ConsultationPackagePublicVDto>>> GetPublicAsync(long companionId);
+
+        // جستجوی سراسری در پکیج‌های فعال همه‌ی کلینیک‌ها
+        Task<List<SearchConsultationPackageDto>> SearchMinAsync(SearchRequestDto request);
     }
 }

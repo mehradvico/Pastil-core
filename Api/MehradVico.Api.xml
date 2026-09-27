@@ -6113,6 +6113,18 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.ConsultationOnlineController">
+            <summary>
+            «من آنلاینم» برای مشاوره آنلاین
+            </summary>
+            <remarks>دکتر/اپراتور عضو کلینیک وضعیت خودش را روشن یا خاموش می‌کند؛ روشن‌کردن حداکثر ۳ ساعت اعتبار دارد</remarks>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationOnlineController.Get(System.Nullable{System.Int64})">
+            <summary>وضعیت آنلاین من</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationOnlineController.Put(Api.Areas.Companion.Controllers.ConsultationOnlineSetDto)">
+            <summary>روشن/خاموش کردن وضعیت آنلاین من</summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.ConsultationPackageController">
             <summary>
             پکیج‌های نام‌دار «مشاوره آنلاین» (چت / تماس درون‌برنامه / تماس تصویری / تماس تلفنی) توسط مالک کلینیک — جدا از پکیج‌های عادی خدمات
@@ -7287,6 +7299,14 @@
             <summary>
             تایید یا رد درخواست عضویت در نمایندگی
             </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ConsultationOnlineController">
+            <summary>
+            وضعیت آنلاین‌بودن کلینیک برای مشاوره آنلاین (عمومی)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ConsultationOnlineController.Get(System.Int64)">
+            <summary>آیا الان کسی از تیم این کلینیک برای مشاوره آنلاین است</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.ConsultationPackageController">
             <summary>

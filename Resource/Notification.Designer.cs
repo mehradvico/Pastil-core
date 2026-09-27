@@ -2715,6 +2715,30 @@ namespace Resource {
             }
         }
 
+        public static string SearchResultTypeSchool {
+            get {
+                return ResourceManager.GetString("SearchResultTypeSchool", resourceCulture);
+            }
+        }
+
+        public static string SearchResultTypeSchoolCourse {
+            get {
+                return ResourceManager.GetString("SearchResultTypeSchoolCourse", resourceCulture);
+            }
+        }
+
+        public static string SearchResultTypeConsultationPackage {
+            get {
+                return ResourceManager.GetString("SearchResultTypeConsultationPackage", resourceCulture);
+            }
+        }
+
+        public static string SearchResultTypeDaycare {
+            get {
+                return ResourceManager.GetString("SearchResultTypeDaycare", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Shipping Provider Service Disabled.
         /// </summary>

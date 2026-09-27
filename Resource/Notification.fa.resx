@@ -1227,6 +1227,19 @@
   <data name="SearchResultTypePansion" xml:space="preserve">
     <value>پانسیون</value>
   </data>
+  <data name="SearchResultTypeSchool" xml:space="preserve">
+    <value>مدرسه</value>
+  </data>
+  <data name="SearchResultTypeSchoolCourse" xml:space="preserve">
+    <value>دوره</value>
+  </data>
+  <data name="SearchResultTypeConsultationPackage" xml:space="preserve">
+    <value>مشاوره آنلاین</value>
+  </data>
+  <data name="SearchResultTypeDaycare" xml:space="preserve">
+    <value>مهد پت</value>
+  </data>
+
   <data name="ShippingProviderServiceDisabled" xml:space="preserve">
     <value>این سرویس ارسال غیرفعال است.</value>
   </data>

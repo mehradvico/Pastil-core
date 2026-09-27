@@ -105,7 +105,9 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 {
                     // ContentAvailable در کنار alert نگه داشته می‌شود تا هندلر داده‌ای اپ هم بیدار شود.
                     ContentAvailable = true,
-                    Sound = "default",
+                    // فایل صدای سفارشی iOS (notif.caf) باید در باندل اپ فلاتر باشد (خارج از این ریپو ساخته می‌شود)؛
+                    // اگر آن فایل در باندل نباشد، iOS خودش به‌جای این مقدار از صدای پیش‌فرض سیستم استفاده می‌کند.
+                    Sound = "notif.caf",
                     MutableContent = true
                 }
             };

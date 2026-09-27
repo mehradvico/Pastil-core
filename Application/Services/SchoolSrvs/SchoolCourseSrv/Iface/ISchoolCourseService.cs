@@ -1,7 +1,9 @@
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.SchoolSrvs.SchoolCourseSrv.Dto;
+using Application.Services.CommonSrv.SearchSrv.Dto;
 using Entities.Entities.SchoolField;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Iface
@@ -17,5 +19,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Iface
 
         Task<BaseResultDto<SchoolCourseVideoDto>> UpsertVideoAsync(SchoolCourseVideoDto dto, long? companionId = null);
         Task<BaseResultDto> DeleteVideoAsync(long id, long? companionId = null);
+
+        Task<List<SearchSchoolCourseDto>> SearchMinAsync(SearchRequestDto request);
     }
 }

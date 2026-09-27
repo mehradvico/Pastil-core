@@ -207,20 +207,19 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
                 .Include(s => s.Companion)
                 .FirstOrDefaultAsync(s => s.Id == purchaseId);
 
-        // نمایندگان مجاز کلینیک: مالک + کاربران تخصیص‌یافته‌ی فعال روی خدمت ۱۵ (همان تعریف ConsultationSessionService)
+        // نمایندگان مجاز کلینیک: مالک + همه‌ی اعضای فعال و تأییدشده‌ی تیم (همان تعریف در ConsultationSessionService؛
+        // قبلاً فقط کارکنان خدمت ۱۵ بودند، پس اپراتورها هیچ پوشی برای مشاوره‌ی جدید/بی‌صاحب نمی‌گرفتند)
         private async Task<List<long>> AgentUserIdsAsync(long companionId)
         {
             var owners = await _context.Companions.AsNoTracking()
                 .Where(s => s.Id == companionId && !s.Deleted)
                 .Select(s => s.OwnerId)
                 .ToListAsync();
-            var staff = await _context.CompanionAssistanceUsers.AsNoTracking()
-                .Where(s => s.Active && !s.Deleted && !s.CompanionAssistance.Deleted &&
-                            s.CompanionAssistance.CompanionId == companionId &&
-                            s.CompanionAssistance.AssistanceId == ConsultationRules.AssistanceId)
+            var members = await _context.CompanionUsers.AsNoTracking()
+                .Where(s => s.CompanionId == companionId && s.Active && s.UserAccept == true && !s.Deleted)
                 .Select(s => s.UserId)
                 .ToListAsync();
-            return owners.Concat(staff).Distinct().ToList();
+            return owners.Concat(members).Distinct().ToList();
         }
 
         // هر (کاربر، نوع پوش، خرید) فقط یک‌بار: token2 همیشه شناسه‌ی خرید است

@@ -1227,6 +1227,19 @@
   <data name="SearchResultTypePansion" xml:space="preserve">
     <value>Search Result Type Pansion</value>
   </data>
+  <data name="SearchResultTypeSchool" xml:space="preserve">
+    <value>Search Result Type School</value>
+  </data>
+  <data name="SearchResultTypeSchoolCourse" xml:space="preserve">
+    <value>Search Result Type School Course</value>
+  </data>
+  <data name="SearchResultTypeConsultationPackage" xml:space="preserve">
+    <value>Search Result Type Online Consultation</value>
+  </data>
+  <data name="SearchResultTypeDaycare" xml:space="preserve">
+    <value>Search Result Type Daycare</value>
+  </data>
+
   <data name="ShippingProviderServiceDisabled" xml:space="preserve">
     <value>Shipping Provider Service Disabled</value>
   </data>

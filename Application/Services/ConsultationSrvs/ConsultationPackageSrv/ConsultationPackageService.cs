@@ -10,16 +10,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.Common.Helpers;
+using Application.Services.CommonSrv.SearchSrv.Dto;
 
 namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
 {
     public class ConsultationPackageService : IConsultationPackageService
     {
         private readonly IDataBaseContext _context;
+        private readonly Application.Services.CompanionSrvs.ConsultationOnlineSrv.IConsultationOnlineService _onlineService;
 
-        public ConsultationPackageService(IDataBaseContext context)
+        public ConsultationPackageService(IDataBaseContext context, Application.Services.CompanionSrvs.ConsultationOnlineSrv.IConsultationOnlineService onlineService)
         {
             _context = context;
+            _onlineService = onlineService;
         }
 
         public async Task<BaseResultDto<List<ConsultationPackageItemDto>>> GetListAsync(long companionId)
@@ -163,12 +167,40 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                     })
                     .ToListAsync();
 
+                var online = (await _onlineService.GetPublicAsync(companionId)).Online;
+                list.ForEach(s => s.CompanionOnline = online);
+
                 return new BaseResultDto<List<ConsultationPackagePublicVDto>>(true, list);
             }
             catch (Exception ex)
             {
                 return new BaseResultDto<List<ConsultationPackagePublicVDto>>(false, ExceptionResultHelper.ToClientMessage(ex), null);
             }
+        }
+
+        public async Task<List<SearchConsultationPackageDto>> SearchMinAsync(SearchRequestDto request)
+        {
+            var predicate = SearchQueryHelper.ContainsAny<ConsultationPackage>(request.SearchTerms,
+                item => item.Name, item => item.Description, item => item.Companion.Name);
+            var query = _context.ConsultationPackages.AsNoTracking()
+                .Where(s => !s.Deleted && s.Active && s.Price > 0 &&
+                            !s.Companion.Deleted && s.Companion.Active && s.Companion.Approved);
+            return await query.Where(predicate)
+                .OrderBy(s => s.ChannelId).ThenBy(s => s.SortOrder)
+                .Take(SearchQueryHelper.CandidateCount(request.ConsultationPackageCount))
+                .Select(s => new SearchConsultationPackageDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    CompanionId = s.CompanionId,
+                    CompanionName = s.Companion.Name,
+                    ChannelId = s.ChannelId,
+                    DurationMinutes = s.DurationMinutes,
+                    Price = s.Price,
+                    Description = s.Description,
+                    Picture = s.Picture == null ? null : new Application.Services.Filing.PictureSrv.Dto.PictureVDto { Id = s.Picture.Id, Url = s.Picture.Url, OrginalName = s.Picture.OrginalName, GuidName = s.Picture.GuidName, Extension = s.Picture.Extension }
+                })
+                .ToListAsync();
         }
 
         // null یعنی معتبر؛ غیر از آن پاسخ خطای آماده‌ی برگشتی

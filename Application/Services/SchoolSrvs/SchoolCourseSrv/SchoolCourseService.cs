@@ -7,8 +7,12 @@ using AutoMapper;
 using Entities.Entities.SchoolField;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.Common.Helpers;
+using Application.Services.CommonSrv.SearchSrv.Dto;
+using Application.Services.Filing.PictureSrv.Dto;
 
 namespace Application.Services.SchoolSrvs.SchoolCourseSrv
 {
@@ -226,6 +230,27 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             item.Deleted = true;
             await _context.SaveChangesAsync();
             return new BaseResultDto(true);
+        }
+
+        public async Task<List<SearchSchoolCourseDto>> SearchMinAsync(SearchRequestDto request)
+        {
+            var predicate = SearchQueryHelper.ContainsAny<SchoolCourse>(request.SearchTerms,
+                item => item.Name, item => item.Discription, item => item.School.Name);
+            var query = _context.SchoolCourses.AsNoTracking()
+                .Where(c => c.Active && !c.Deleted && c.School.Active && c.School.Approve && c.School.ShowToSite);
+            return await query.Where(predicate)
+                .Take(SearchQueryHelper.CandidateCount(request.SchoolCourseCount))
+                .Select(c => new SearchSchoolCourseDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    SchoolId = c.SchoolId,
+                    SchoolName = c.School.Name,
+                    Price = c.Price,
+                    Description = c.Discription,
+                    Picture = c.School.Picture == null ? null : new PictureVDto { Id = c.School.Picture.Id, Url = c.School.Picture.Url, OrginalName = c.School.Picture.OrginalName, GuidName = c.School.Picture.GuidName, Extension = c.School.Picture.Extension }
+                })
+                .ToListAsync();
         }
     }
 }

@@ -20,6 +20,12 @@ using Application.Services.ProductSrvs.StoreSrv.Dto;
 using Application.Services.StoreSrv.Iface;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistancePackageSrv.Iface;
+using Application.Services.SchoolSrvs.SchoolSrv.Dto;
+using Application.Services.SchoolSrvs.SchoolSrv.Iface;
+using Application.Services.SchoolSrvs.SchoolCourseSrv.Dto;
+using Application.Services.SchoolSrvs.SchoolCourseSrv.Iface;
+using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto;
+using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Iface;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -113,7 +119,19 @@ namespace Application.Services.CommonSrv.SearchSrv
                 ? RunScoped<ICompanionAssistancePackageService, SearchCompanionAssistancePackageDto>(s => s.SearchMinAsync(request, cancellationToken))
                 : Task.FromResult<List<SearchCompanionAssistancePackageDto>>(null);
 
-            await Task.WhenAll(productsT, pansionsT, storesT, categoriesT, brandsT, featuresT, companionsT, assistancesT, packagesT)
+            var schoolsT = request.SchoolCount > 0
+                ? RunScoped<ISchoolService, SearchSchoolDto>(s => s.SearchMinAsync(request))
+                : Task.FromResult<List<SearchSchoolDto>>(null);
+
+            var schoolCoursesT = request.SchoolCourseCount > 0
+                ? RunScoped<ISchoolCourseService, SearchSchoolCourseDto>(s => s.SearchMinAsync(request))
+                : Task.FromResult<List<SearchSchoolCourseDto>>(null);
+
+            var consultationPackagesT = request.ConsultationPackageCount > 0
+                ? RunScoped<IConsultationPackageService, SearchConsultationPackageDto>(s => s.SearchMinAsync(request))
+                : Task.FromResult<List<SearchConsultationPackageDto>>(null);
+
+            await Task.WhenAll(productsT, pansionsT, storesT, categoriesT, brandsT, featuresT, companionsT, assistancesT, packagesT, schoolsT, schoolCoursesT, consultationPackagesT)
                 .WaitAsync(cancellationToken);
 
             var result = new SearchDto
@@ -127,6 +145,9 @@ namespace Application.Services.CommonSrv.SearchSrv
                 Companions = companionsT.Result,
                 Assistances = assistancesT.Result,
                 Packages = packagesT.Result,
+                Schools = schoolsT.Result,
+                SchoolCourses = schoolCoursesT.Result,
+                ConsultationPackages = consultationPackagesT.Result,
                 Query = originalQuery,
                 NormalizedQuery = request.Q,
             };
@@ -144,6 +165,9 @@ namespace Application.Services.CommonSrv.SearchSrv
             result.Stores = RankGroup(result.Stores, rankedItems, SearchItemType.Store, request.StoreCount, item => item.Id);
             result.Pansions = RankGroup(result.Pansions, rankedItems, SearchItemType.Pansion, request.PansionCount, item => item.Id);
             result.Packages = RankGroup(result.Packages, rankedItems, SearchItemType.CompanionAssistancePackage, request.PackageCount, item => item.Id);
+            result.Schools = RankGroup(result.Schools, rankedItems, SearchItemType.School, request.SchoolCount, item => item.Id);
+            result.SchoolCourses = RankGroup(result.SchoolCourses, rankedItems, SearchItemType.SchoolCourse, request.SchoolCourseCount, item => item.Id);
+            result.ConsultationPackages = RankGroup(result.ConsultationPackages, rankedItems, SearchItemType.ConsultationPackage, request.ConsultationPackageCount, item => item.Id);
             result.Suggestions = request.SearchTerms
                 .Where(term => !term.Equals(request.Q, StringComparison.OrdinalIgnoreCase))
                 .Where(term => term.Length >= 3)

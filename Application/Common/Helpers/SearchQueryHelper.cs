@@ -36,6 +36,30 @@ namespace Application.Common.Helpers
         public static int CandidateCount(int requestedCount) =>
             Math.Min(Math.Max(requestedCount * 4, requestedCount), SearchRequestDto.MaxPerTypeCount * 3);
 
+        public static Expression<Func<TEntity, bool>> And<TEntity>(
+            Expression<Func<TEntity, bool>> left,
+            Expression<Func<TEntity, bool>> right)
+        {
+            var parameter = Expression.Parameter(typeof(TEntity), "item");
+            var leftBody = new ReplaceParameterVisitor(left.Parameters[0], parameter).Visit(left.Body)!;
+            var rightBody = new ReplaceParameterVisitor(right.Parameters[0], parameter).Visit(right.Body)!;
+            return Expression.Lambda<Func<TEntity, bool>>(Expression.AndAlso(leftBody, rightBody), parameter);
+        }
+
+        // item => item.Collection.Any(relatedPredicate) — برای شرط‌هایی که روی فیلد یک ناوبری جمعی (one-to-many) هستند
+        public static Expression<Func<TEntity, bool>> CollectionAny<TEntity, TRelated>(
+            Expression<Func<TEntity, IEnumerable<TRelated>>> collectionSelector,
+            Expression<Func<TRelated, bool>> relatedPredicate)
+        {
+            var entityParam = Expression.Parameter(typeof(TEntity), "item");
+            var collectionBody = new ReplaceParameterVisitor(collectionSelector.Parameters[0], entityParam).Visit(collectionSelector.Body)!;
+            var anyMethod = typeof(System.Linq.Enumerable).GetMethods()
+                .First(m => m.Name == nameof(System.Linq.Enumerable.Any) && m.GetParameters().Length == 2)
+                .MakeGenericMethod(typeof(TRelated));
+            var anyCall = Expression.Call(anyMethod, collectionBody, relatedPredicate);
+            return Expression.Lambda<Func<TEntity, bool>>(anyCall, entityParam);
+        }
+
         public static Expression<Func<TEntity, bool>> Or<TEntity>(
             Expression<Func<TEntity, bool>> left,
             Expression<Func<TEntity, bool>> right)

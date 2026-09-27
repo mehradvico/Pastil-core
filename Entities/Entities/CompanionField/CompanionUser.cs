@@ -12,6 +12,12 @@ namespace Entities.Entities.CompanionField
         public bool Active { get; set; }
         public string ActivationValue { get; set; }
         public bool Deleted { get; set; }
+
+        // "من آنلاینم" برای مشاوره‌ی آنلاین: دکتر/اپراتور خودش روشن می‌کند؛ بعد از ConsultationOnlineExpiresAt خودکار خاموش حساب می‌شود
+        // (چراغ سبز کاذب برای همیشه نمی‌ماند). قواعد: ConsultationOnlineSrv/ConsultationOnlineRules.cs.
+        public bool ConsultationOnline { get; set; }
+        public System.DateTime? ConsultationOnlineExpiresAt { get; set; }
+
         public Companion Companion { get; set; }
         public User User { get; set; }
         public Expertise Expertise { get; set; }

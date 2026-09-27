@@ -142,14 +142,14 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
             }
             // توقف در مسیر: تعرفه‌ی «زمان انتظار ۵ دقیقه‌ای» از پنل (/admin/tripstop) خوانده می‌شود و
             // فرانت ۵ دقیقه‌ـ۵ دقیقه اضافه می‌کند؛ ۶۰ دقیقه = ۱۲ × قیمت آن تعرفه.
-            // اگر تعرفه‌ای تعریف نشده بود، به PriceCalculation.StopPrice (قیمت هر ۵ دقیقه) برمی‌گردد.
+            // (ستون StopPrice در PriceCalculation دیگر در محاسبه نقشی ندارد.)
             if (tripDto.StopMinutes.HasValue && tripDto.StopMinutes.Value > 0)
             {
                 var unit = await _context.TripStops.AsNoTracking()
                     .Where(t => !t.Deleted && t.Active)
                     .OrderBy(t => t.Id)
                     .Select(t => (double?)t.Price)
-                    .FirstOrDefaultAsync() ?? priceCalculation.StopPrice;
+                    .FirstOrDefaultAsync() ?? 0;
                 price += Math.Ceiling(tripDto.StopMinutes.Value / 5.0) * unit;
             }
             double optionsTotal = 0;
@@ -163,16 +163,16 @@ namespace Application.Services.TripSrv.PriceCalculationSrv
             }
             price += optionsTotal;
 
-            // چند پت در یک سفر: پت اول رایگان است، از پت دوم به بعد هر پت اضافه یک‌بار ExtraPetPrice اضافه می‌کند.
+            // چند پت در یک سفر: پت اول رایگان است، از پت دوم به بعد هر پت اضافه یک‌بار DefaultExtraPetPrice اضافه می‌کند.
             var petIds = (tripDto.UserPetIds != null && tripDto.UserPetIds.Any())
                 ? tripDto.UserPetIds.Distinct().ToList()
                 : (tripDto.UserPetId.HasValue ? new System.Collections.Generic.List<long> { tripDto.UserPetId.Value } : new System.Collections.Generic.List<long>());
             var extraPetCount = System.Math.Max(0, petIds.Count - 1);
             if (extraPetCount > 0)
             {
-                // هر پت اضافه: مبلغ ثابت پت اضافه (اگر در ردیف نرخ صفر باشد ۱۰۰٬۰۰۰ تومان) + نصفِ هزینه‌ی گزینه‌های
+                // هر پت اضافه: مبلغ ثابت پت اضافه (۱۰۰٬۰۰۰ تومان) + نصفِ هزینه‌ی گزینه‌های
                 // انتخاب‌شده‌ی سفر که دوباره برای همان پت اعمال می‌شود.
-                var extraPetFee = priceCalculation.ExtraPetPrice > 0 ? priceCalculation.ExtraPetPrice : DefaultExtraPetPrice;
+                var extraPetFee = DefaultExtraPetPrice; // مبلغ ثابت (ستون ExtraPetPrice دیگر در محاسبه نقشی ندارد)
                 price += extraPetCount * (extraPetFee + optionsTotal / 2);
             }
 

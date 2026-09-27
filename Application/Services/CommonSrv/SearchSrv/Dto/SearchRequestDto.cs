@@ -20,6 +20,9 @@ namespace Application.Services.CommonSrv.SearchSrv.Dto
         public int StoreCount { get; set; } = 5;
         public int PansionCount { get; set; } = 5;
         public int PackageCount { get; set; } = 5;
+        public int SchoolCount { get; set; } = 5;
+        public int SchoolCourseCount { get; set; } = 5;
+        public int ConsultationPackageCount { get; set; } = 5;
         public int TotalCount { get; set; } = 20;
 
         public bool EnableFuzzy { get; set; } = true;
@@ -42,6 +45,9 @@ namespace Application.Services.CommonSrv.SearchSrv.Dto
             StoreCount = Clamp(StoreCount);
             PansionCount = Clamp(PansionCount);
             PackageCount = Clamp(PackageCount);
+            SchoolCount = Clamp(SchoolCount);
+            SchoolCourseCount = Clamp(SchoolCourseCount);
+            ConsultationPackageCount = Clamp(ConsultationPackageCount);
             TotalCount = System.Math.Clamp(TotalCount, 1, MaxTotalCount);
         }
 

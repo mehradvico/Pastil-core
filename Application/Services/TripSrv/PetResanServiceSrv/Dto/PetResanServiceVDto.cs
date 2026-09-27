@@ -19,6 +19,8 @@ namespace Application.Services.TripSrv.PetResanServiceSrv.Dto
         public DateTime? EndDate { get; set; }
         public bool Active { get; set; }
         public double PricePerOccurrence { get; set; }
+        /// <summary>هزینه‌ی یک هفته = PricePerOccurrence × تعداد روزهای انتخاب‌شده در هفته</summary>
+        public double PricePerWeek { get; set; }
         public List<TripOptionVDto> TripOptions { get; set; } = new List<TripOptionVDto>();
         public List<PetResanServiceScheduleVDto> Schedules { get; set; } = new List<PetResanServiceScheduleVDto>();
     }

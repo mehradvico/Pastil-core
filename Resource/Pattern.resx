@@ -348,4 +348,13 @@
   <data name="PushConsultationExpiredRefund" xml:space="preserve">
     <value>Consultation was not started; refunded.</value>
   </data>
+  <data name="PushConsultationAssigned" xml:space="preserve">
+    <value>{0} booked a {2} consultation; go respond.</value>
+  </data>
+  <data name="PushConsultationTakenByColleague" xml:space="preserve">
+    <value>{0} took the consultation from {2}.</value>
+  </data>
+  <data name="PushConsultationUnclaimed" xml:space="preserve">
+    <value>Consultation from {0} still unclaimed after {2} min.</value>
+  </data>
 </root>

@@ -2,7 +2,11 @@ using Application.Common.Dto.Result;
 using Application.Common.Enumerable.Code;
 using Application.Common.Service;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
+using Application.Common.Helpers;
+using Application.Services.CommonSrv.SearchSrv.Dto;
+using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.SchoolSrvs.SchoolSrv.Dto;
+using System.Collections.Generic;
 using Application.Services.SchoolSrvs.SchoolSrv.Iface;
 using AutoMapper;
 using Entities.Entities.SchoolField;
@@ -154,6 +158,26 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
             return new BaseResultDto(true);
+        }
+
+        public async Task<List<SearchSchoolDto>> SearchMinAsync(SearchRequestDto request)
+        {
+            var predicate = SearchQueryHelper.ContainsAny<Entities.Entities.SchoolField.School>(request.SearchTerms,
+                item => item.Name, item => item.Discription, item => item.AddressValue, item => item.City.Name, item => item.State.Name);
+            var query = _context.Schools.AsNoTracking().Where(s => s.Active && s.Approve && s.ShowToSite);
+            return await query.Where(predicate)
+                .OrderByDescending(s => s.RateAvg)
+                .Take(SearchQueryHelper.CandidateCount(request.SchoolCount))
+                .Select(s => new SearchSchoolDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    CompanionId = s.CompanionId,
+                    RateAvg = s.RateAvg,
+                    RateCount = s.RateCount,
+                    Picture = s.Picture == null ? null : new PictureVDto { Id = s.Picture.Id, Url = s.Picture.Url, OrginalName = s.Picture.OrginalName, GuidName = s.Picture.GuidName, Extension = s.Picture.Extension }
+                })
+                .ToListAsync();
         }
     }
 }

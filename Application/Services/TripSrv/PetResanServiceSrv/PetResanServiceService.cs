@@ -46,8 +46,10 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
 
             try
             {
-                var price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now, dto.TripOptionIds);
-                return new BaseResultDto<double>(true, price);
+                var price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now, dto.TripOptionIds, dto.RoundTrip);
+                // مبلغ هفتگی: قیمت پایه‌ی هر نوبت × تعداد روزهای انتخاب‌شده (بدون انتخاب، یک نوبت)
+                var occurrences = Math.Max(1, CountWeeklyOccurrences(dto.Schedules));
+                return new BaseResultDto<double>(true, price * occurrences);
             }
             catch (Exception exception)
             {
@@ -56,13 +58,18 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             }
         }
 
+        // تعداد نوبت‌های یک هفته: ترکیب‌های یکتای (روز هفته، ساعت)
+        private static int CountWeeklyOccurrences(List<PetResanServiceScheduleDto> schedules) =>
+            (schedules ?? new List<PetResanServiceScheduleDto>()).Select(s => $"{s.WeekDayId}:{s.Time}").Distinct().Count();
+
         private async Task<double> CalculateOccurrencePriceAsync(
             Application.Common.Dto.LocationPoint.PointDto origin,
             Application.Common.Dto.LocationPoint.PointDto destination,
             string fromAddress,
             string toAddress,
             DateTime atMoment,
-            List<long> tripOptionIds = null)
+            List<long> tripOptionIds = null,
+            bool roundTrip = true)
         {
             var priceInput = new TripDto
             {
@@ -71,7 +78,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                 FromAddress = fromAddress,
                 ToAddress = toAddress,
                 TripStartDateTime = atMoment,
-                RoundTrip = true,
+                RoundTrip = roundTrip,
                 TripOptionIds = tripOptionIds ?? new List<long>()
             };
             return await _priceCalculationService.CalculateTripPrice(priceInput);
@@ -132,7 +139,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             double price;
             try
             {
-                price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now, tripOptionIds);
+                price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now, tripOptionIds, dto.RoundTrip);
             }
             catch (Exception exception)
             {
@@ -296,6 +303,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             EndDate = service.EndDate,
             Active = service.Active,
             PricePerOccurrence = service.PricePerOccurrence,
+            PricePerWeek = service.PricePerOccurrence * Math.Max(1, (service.Schedules ?? new List<PetResanServiceSchedule>()).Count(x => x.Active)),
             TripOptions = (service.TripOptions ?? new List<Entities.Entities.TripOption>()).Select(option => new Application.Services.TripSrv.TripOptionSrv.Dto.TripOptionVDto
             {
                 Id = option.Id,

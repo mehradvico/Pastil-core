@@ -1,7 +1,9 @@
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.SchoolSrvs.SchoolSrv.Dto;
+using Application.Services.CommonSrv.SearchSrv.Dto;
 using Entities.Entities.SchoolField;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Application.Services.SchoolSrvs.SchoolSrv.Iface
@@ -13,5 +15,6 @@ namespace Application.Services.SchoolSrvs.SchoolSrv.Iface
         BaseResultDto UpdateSchoolActiveDto(SchoolActiveDto dto, long? companionId = null);
         Task<BaseResultDto> UpdateSchoolApproveAsyncDto(SchoolApproveDto dto);
         Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
+        Task<List<SearchSchoolDto>> SearchMinAsync(SearchRequestDto request);
     }
 }

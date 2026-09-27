@@ -34,18 +34,34 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
             _notifications = notifications;
         }
 
-        // کلینیک‌هایی که کاربر نماینده‌ی مجازشان است: مالک، یا کاربر تخصیص‌یافته روی خدمت «مشاوره آنلاین» همان کلینیک
+        // کلینیک‌هایی که کاربر نماینده‌ی مجازشان است: مالک، یا هر عضو فعال و تأییدشده‌ی تیم کلینیک (اپراتور/دکتر/…).
+        // قبلاً فقط کسی که رویش «خدمت مشاوره آنلاین» (Assistance ۱۵) فعال بود حساب می‌شد؛ اپراتورهایی که این خدمت
+        // رویشان فعال نیست هیچ‌وقت اجازه‌ی دیدن/شروع/تخصیص مشاوره را نداشتند (درخواست:
+        // CONSULTATION_ASSIGN_TO_OPERATOR_REQUEST_FA.md). حالا عضویت ساده در تیم کلینیک کافی است.
         private IQueryable<long> AgentCompanionIds(long userId)
         {
             var owned = _context.Companions.AsNoTracking()
                 .Where(s => s.OwnerId == userId && !s.Deleted)
                 .Select(s => s.Id);
-            var staff = _context.CompanionAssistanceUsers.AsNoTracking()
-                .Where(s => s.UserId == userId && s.Active && !s.Deleted &&
-                            !s.CompanionAssistance.Deleted && s.CompanionAssistance.Active &&
-                            s.CompanionAssistance.AssistanceId == ConsultationRules.AssistanceId)
-                .Select(s => s.CompanionAssistance.CompanionId);
-            return owned.Union(staff);
+            var member = _context.CompanionUsers.AsNoTracking()
+                .Where(s => s.UserId == userId && s.Active && s.UserAccept == true && !s.Deleted)
+                .Select(s => s.CompanionId);
+            return owned.Union(member);
+        }
+
+        // اعضای قابل‌تخصیص یک کلینیک (مالک + همه‌ی اعضای فعال و تأییدشده‌ی تیم)؛ هم برای ساخت assignableAgents
+        // و هم برای اعتبارسنجی targetUserId در AssignAsync استفاده می‌شود تا دو جا رفتار متفاوت نداشته باشند.
+        private async Task<List<long>> AssignableUserIdsAsync(long companionId)
+        {
+            var ownerId = await _context.Companions.AsNoTracking()
+                .Where(c => c.Id == companionId).Select(c => (long?)c.OwnerId).FirstOrDefaultAsync();
+            var memberIds = await _context.CompanionUsers.AsNoTracking()
+                .Where(x => x.CompanionId == companionId && x.Active && x.UserAccept == true && !x.Deleted)
+                .Select(x => x.UserId)
+                .ToListAsync();
+            if (ownerId.HasValue)
+                memberIds.Add(ownerId.Value);
+            return memberIds.Distinct().ToList();
         }
 
         private Task<bool> IsOwnerAsync(long userId, long companionId) =>
@@ -72,17 +88,11 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 var ownedIds = await _context.Companions.AsNoTracking()
                     .Where(s => s.OwnerId == agentUserId && !s.Deleted).Select(s => s.Id).ToListAsync();
 
-                // مالک هر کلینیک: فهرست نمایندگان قابل تخصیص (مالک + کارکنان فعال روی خدمت ۱۵) با نام
+                // مالک هر کلینیک: فهرست نمایندگان قابل تخصیص (مالک + همه‌ی اعضای فعال و تأییدشده‌ی تیم، از جمله اپراتورها)
                 var assignable = new Dictionary<long, List<ConsultationAssignableAgentVDto>>();
                 foreach (var companionId in ownedIds.Where(id => rows.Any(r => r.CompanionId == id)))
                 {
-                    var ownerId = await _context.Companions.AsNoTracking().Where(c => c.Id == companionId).Select(c => c.OwnerId).FirstAsync();
-                    var staffIds = await _context.CompanionAssistanceUsers.AsNoTracking()
-                        .Where(x => x.Active && !x.Deleted && !x.CompanionAssistance.Deleted && x.CompanionAssistance.Active &&
-                                    x.CompanionAssistance.CompanionId == companionId &&
-                                    x.CompanionAssistance.AssistanceId == ConsultationRules.AssistanceId)
-                        .Select(x => x.UserId).ToListAsync();
-                    var ids = staffIds.Append(ownerId).Distinct().ToList();
+                    var ids = await AssignableUserIdsAsync(companionId);
                     assignable[companionId] = (await _context.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).ToListAsync())
                         .Select(u => new ConsultationAssignableAgentVDto { UserId = u.Id, FullName = $"{u.FirstName} {u.LastName}".Trim() }).ToList();
                 }
@@ -218,12 +228,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
 
                 if (targetUserId.HasValue)
                 {
-                    var staff = await _context.CompanionAssistanceUsers.AsNoTracking()
-                        .AnyAsync(s => s.UserId == targetUserId.Value && s.Active && !s.Deleted &&
-                                       !s.CompanionAssistance.Deleted && s.CompanionAssistance.Active &&
-                                       s.CompanionAssistance.CompanionId == purchase.CompanionId &&
-                                       s.CompanionAssistance.AssistanceId == ConsultationRules.AssistanceId);
-                    if (!staff && !await IsOwnerAsync(targetUserId.Value, purchase.CompanionId))
+                    var assignableIds = await AssignableUserIdsAsync(purchase.CompanionId);
+                    if (!assignableIds.Contains(targetUserId.Value))
                         return FailBool(Resource.Notification.InvalidData);
                 }
 

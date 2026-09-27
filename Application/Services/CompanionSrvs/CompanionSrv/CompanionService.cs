@@ -670,14 +670,26 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                 item => item.AddressValue,
                 item => item.City.Name,
                 item => item.Neighborhood.Name);
-            System.Linq.Expressions.Expression<Func<Companion, bool>> assistancePredicate = item =>
-                item.CompanionAssistances.Any(assistance =>
-                    assistance.Active &&
-                    assistance.Approved &&
-                    !assistance.Deleted &&
-                    !assistance.Assistance.Deleted &&
-                    assistance.Assistance.Active &&
-                    assistance.Assistance.Name.Contains(q));
+
+            // خدمتی که کلینیک ارائه می‌دهد (مثلاً «تربیت سگ»، «آرایش») یا گروه آن («مهد پت»، «آموزش») با همان
+            // مجموعه‌ی کامل عبارت‌های جستجو (نه فقط عبارت خام کامل) چک می‌شود؛ قبلاً فقط q خام و بدون گروه بود
+            // و باعث می‌شد مثلاً «تربیت سگ» چیزی پیدا نکند وقتی نام خدمت فقط «تربیت» بود.
+            var assistanceActive = SearchQueryHelper.And<Entities.Entities.CompanionAssistance>(
+                assistance => assistance.Active && assistance.Approved && !assistance.Deleted && !assistance.Assistance.Deleted && assistance.Assistance.Active,
+                SearchQueryHelper.ContainsAny<Entities.Entities.CompanionAssistance>(request.SearchTerms,
+                    assistance => assistance.Assistance.Name,
+                    assistance => assistance.Assistance.AssistanceGroup.Name));
+            System.Linq.Expressions.Expression<Func<Companion, bool>> assistancePredicate =
+                SearchQueryHelper.CollectionAny<Companion, Entities.Entities.CompanionAssistance>(
+                    item => item.CompanionAssistances, assistanceActive);
+
+            // نوع مرکز (مثلاً «آرایشگاه»، «دامپزشکی») هم قابل جستجو باشد، حتی اگر نام مرکز/خدماتش آن کلمه را نداشته باشد
+            var typeActive = SearchQueryHelper.And<Entities.Entities.CompanionField.CompanionType>(
+                type => !type.Deleted,
+                SearchQueryHelper.ContainsAny<Entities.Entities.CompanionField.CompanionType>(request.SearchTerms, type => type.Type.Name));
+            System.Linq.Expressions.Expression<Func<Companion, bool>> typePredicate =
+                SearchQueryHelper.CollectionAny<Companion, Entities.Entities.CompanionField.CompanionType>(
+                    item => item.CompanionTypes, typeActive);
 
             var query = _context.Companions
                 .AsNoTracking()
@@ -687,7 +699,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                     s.Approved);
 
             var list = await query
-                .Where(SearchQueryHelper.Or(textPredicate, assistancePredicate))
+                .Where(SearchQueryHelper.Or(SearchQueryHelper.Or(textPredicate, assistancePredicate), typePredicate))
                 .OrderByDescending(item => item.RateAvg)
                 .Take(SearchQueryHelper.CandidateCount(request.CompanionCount))
                 .Select(s => new SearchCompanionDto
