@@ -1140,6 +1140,9 @@
   <data name="PetResanServiceAtLeastOneScheduleRequired" xml:space="preserve">
     <value>حداقل یک روز و ساعت برای سرویس پت‌رسان باید انتخاب شود.</value>
   </data>
+  <data name="PetResanServiceReturnTimeMustBeAfterDeparture" xml:space="preserve">
+    <value>ساعت برگشت باید بعد از ساعت رفت باشد.</value>
+  </data>
   <data name="PetResanServiceInvalidTotalWeeks" xml:space="preserve">
     <value>تعداد هفته باید یک عدد مثبت باشد (یا برای مدت باز خالی بماند).</value>
   </data>

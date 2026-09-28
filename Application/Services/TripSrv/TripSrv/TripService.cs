@@ -431,8 +431,13 @@ namespace Application.Services.TripSrv.TripSrv
             return new BaseResultDto<TripVDto>(false, mapper.Map<TripVDto>(item));
         }
 
-        // «سفر جاری» کاربر = سفر تمام‌نشده (درخواست‌شده یا پذیرفته‌شده) که یا فوری است، یا سفر زمان‌بندی‌شده‌ای (مثلاً
-        // رزرو-متصل پت‌رسان) که زمان حرکتش رسیده یا کمتر از ۳ ساعت مانده. سفر رزروی چند روز بعد جلوی سفر جدید را نمی‌گیرد.
+        // «سفر جاری» کاربر = سفر تمام‌نشده (درخواست‌شده یا پذیرفته‌شده) که زمان حرکتش رسیده یا کمتر از ۳ ساعت مانده.
+        // سفر فوری همیشه همین قاعده را برآورده می‌کند چون TripStartDateTime‌اش همان لحظه‌ی ثبت است (هیچ‌وقت در
+        // آینده نیست)، پس رفتار قبلی برایش عوض نمی‌شود. سفر رزروی/زمان‌بندی‌شده‌ی چند روز/ساعت بعد دیگر جلوی سفر
+        // جدید را نمی‌گیرد — قبلاً چون این سفرها هم IsOnline=true دارند (برای Broadcast به راننده‌ها)، این شرط با
+        // آن‌ها همیشه true می‌شد و کاربری که مثلاً یک رزرو کلینیکِ هفته‌ی بعد با پت‌رسان داشت، تا آن موقع اصلاً
+        // نمی‌توانست هیچ سفر فوری دیگری بگیرد؛ حالا فقط وقتی سفرِ متصل به رزرو واقعاً نزدیک است (یا لغو نشده و
+        // هنوز راننده قبول نکرده) مسدود می‌کند.
         private static System.Linq.Expressions.Expression<Func<Trip, bool>> TripCurrentForUser(long userId, DateTime now)
         {
             var requested = (long)TripStatusEnum.TripStatus_Requested;
@@ -440,7 +445,7 @@ namespace Application.Services.TripSrv.TripSrv
             var soon = now.AddHours(3);
             return s => s.UserId == userId
                 && (s.TripStatusId == requested || s.TripStatusId == accepted)
-                && (s.IsOnline || (s.TripStartDateTime != null && s.TripStartDateTime <= soon));
+                && (s.TripStartDateTime == null || s.TripStartDateTime <= soon);
         }
 
         public async Task<BaseResultDto<TripVDto>> GetDriverCurrentTrip(long driverId)
@@ -756,8 +761,9 @@ namespace Application.Services.TripSrv.TripSrv
             return new BaseResultDto<TripChangeStatusDto>(true, Resource.Notification.Success, dto);
         }
 
-        /// <summary>لغو دستی سفر توسط ادمین (فقط سفر درخواست‌شده یا پذیرفته‌شده).</summary>
-        public async Task<BaseResultDto<TripVDto>> AdminCancelAsync(TripAdminActionDto dto)
+        /// <summary>لغو دستی سفر توسط ادمین (فقط سفر درخواست‌شده یا پذیرفته‌شده)؛ initiator پیش‌فرض Admin است — کنسل‌های
+        /// خودکار (مثلاً لغو رزرویی که این سفر بهش وصل بود) System می‌فرستند تا در تاریخچه معلوم باشد دستی نبوده.</summary>
+        public async Task<BaseResultDto<TripVDto>> AdminCancelAsync(TripAdminActionDto dto, TripCancelInitiatorEnum initiator = TripCancelInitiatorEnum.Admin)
         {
             var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
             if (trip == null)
@@ -770,7 +776,7 @@ namespace Application.Services.TripSrv.TripSrv
             var previousDriverId = trip.DriverId;
 
             trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
-            trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.Admin;
+            trip.CancelInitiatorId = (int)initiator;
             trip.CancelReasonCodeId = null;
             trip.CancelReasonDetail = detail;
             trip.ProgressUpdateDate = DateTime.Now;
@@ -793,6 +799,45 @@ namespace Application.Services.TripSrv.TripSrv
             }
 
             return await FindAsyncVDto(trip.Id);
+        }
+
+        // لغو خودکار سفر پت‌رسانِ متصل، وقتی خودِ رزرو (خدمت/پانسیون/مدرسه) لغو می‌شود؛ بی‌صدا نادیده می‌گیرد اگر
+        // سفری نبود یا قبلاً تمام/لغو شده بود — چیزی نباید لغوِ خودِ رزرو را متوقف کند.
+        public Task CancelLinkedTripForCompanionReserveAsync(long companionReserveId) =>
+            CancelLinkedTripAsync(t => t.CompanionReserveId == companionReserveId);
+
+        public Task CancelLinkedTripForPansionReserveAsync(long pansionReserveId) =>
+            CancelLinkedTripAsync(t => t.PansionReserveId == pansionReserveId);
+
+        public Task CancelLinkedTripForSchoolReserveAsync(long schoolReserveId) =>
+            CancelLinkedTripAsync(t => t.SchoolReserveId == schoolReserveId);
+
+        private async Task CancelLinkedTripAsync(System.Linq.Expressions.Expression<Func<Trip, bool>> reserveMatch)
+        {
+            try
+            {
+                var notFinished = new[] { (long)TripStatusEnum.TripStatus_Requested, (long)TripStatusEnum.TripStatus_Accepted };
+                var predicate = System.Linq.Expressions.Expression.Lambda<Func<Trip, bool>>(
+                    System.Linq.Expressions.Expression.AndAlso(
+                        reserveMatch.Body,
+                        System.Linq.Expressions.Expression.Call(
+                            System.Linq.Expressions.Expression.Constant(notFinished),
+                            typeof(long[]).GetMethod("Contains", new[] { typeof(long) })!,
+                            System.Linq.Expressions.Expression.Property(reserveMatch.Parameters[0], nameof(Trip.TripStatusId)))),
+                    reserveMatch.Parameters);
+
+                var tripId = await _context.Trips.AsNoTracking().Where(predicate).Select(t => (long?)t.Id).FirstOrDefaultAsync();
+                if (!tripId.HasValue)
+                    return;
+
+                await AdminCancelAsync(
+                    new TripAdminActionDto { Id = tripId.Value, Detail = "رزروی که این سفر پت‌رسان به آن وصل بود لغو شد." },
+                    TripCancelInitiatorEnum.System);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Auto-canceling the linked pet-taxi trip after a reservation cancel failed.");
+            }
         }
 
         /// <summary>
@@ -1603,6 +1648,11 @@ namespace Application.Services.TripSrv.TripSrv
             if (alreadyLinked)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.TripPetDeliveryAlreadyExistsForReserve, null);
 
+            // کاربر یک سفر پت‌رسان دیگر (فوری، رزرو-متصل دیگر یا تاریخ‌دار) هنوز باز دارد؛ همان پیام/همان قاعده‌ی
+            // InsertOrUpdateAsync، تا کاربر هم‌زمان دو راننده برای دو سفر مختلف نگیرد.
+            if (await _context.Trips.AnyAsync(TripCurrentForUser(userId, DateTime.Now)))
+                return new BaseResultDto<TripDto>(false, Resource.Notification.YouAlreadyHaveOnlineTrip, null);
+
             var priceInput = new TripDto
             {
                 Origin = dto.Origin,
@@ -1724,6 +1774,9 @@ namespace Application.Services.TripSrv.TripSrv
 
             if (alreadyLinked)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.TripPetDeliveryAlreadyExistsForReserve, null);
+
+            if (await _context.Trips.AnyAsync(TripCurrentForUser(userId, DateTime.Now)))
+                return new BaseResultDto<TripDto>(false, Resource.Notification.YouAlreadyHaveOnlineTrip, null);
 
             var priceInput = new TripDto
             {
@@ -1856,6 +1909,9 @@ namespace Application.Services.TripSrv.TripSrv
 
             if (dto.ScheduledDepartureAt <= DateTime.Now)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.CompanionReserveCannotSelectPastTime, null);
+
+            if (await _context.Trips.AnyAsync(TripCurrentForUser(userId, DateTime.Now)))
+                return new BaseResultDto<TripDto>(false, Resource.Notification.YouAlreadyHaveOnlineTrip, null);
 
             var priceInput = new TripDto
             {
@@ -2012,6 +2068,9 @@ namespace Application.Services.TripSrv.TripSrv
             if (await _context.Trips.AnyAsync(t => t.SchoolReserveId == dto.SchoolReserveId && t.TripStatusId != (long)TripStatusEnum.TripStatus_Canceled))
                 return new BaseResultDto<TripDto>(false, Resource.Notification.TripPetDeliveryAlreadyExistsForReserve, null);
 
+            if (await _context.Trips.AnyAsync(TripCurrentForUser(userId, DateTime.Now)))
+                return new BaseResultDto<TripDto>(false, Resource.Notification.YouAlreadyHaveOnlineTrip, null);
+
             var optionIds = (dto.TripOptionIds ?? new List<long>()).Distinct().ToList();
             if (optionIds.Count != 0 && await _context.TripOptions.CountAsync(o => optionIds.Contains(o.Id) && o.Active && !o.Deleted) != optionIds.Count)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.InvalidData, null);
@@ -2095,6 +2154,7 @@ namespace Application.Services.TripSrv.TripSrv
             var schedules = await _context.PetResanServiceSchedules
                 .Include(s => s.WeekDay)
                 .Include(s => s.PetResanService).ThenInclude(service => service.TripOptions)
+                .Include(s => s.PetResanService).ThenInclude(service => service.Pets)
                 .Where(s => s.Active
                     && s.WeekDay.Number == tomorrowDayNumber
                     && s.PetResanService.Active
@@ -2104,128 +2164,181 @@ namespace Application.Services.TripSrv.TripSrv
 
             foreach (var schedule in schedules)
             {
-                if (!ReservationScheduleValidator.TryGetServiceStartDateTime(tomorrow, schedule.Time, out var occurrenceAt))
-                    continue;
-
-                var alreadyGenerated = await _context.Trips.AnyAsync(t =>
-                    t.PetResanServiceScheduleId == schedule.Id &&
-                    t.TripStartDateTime.HasValue &&
-                    t.TripStartDateTime.Value.Date == tomorrow);
-                if (alreadyGenerated)
-                    continue;
-
                 var service = schedule.PetResanService;
 
-                var priceInput = new TripDto
+                // بدون ReturnTime: رفتار قدیمی — یک سفر «رفت‌وبرگشت» (قیمت شامل هر دو طرف، بدون سفر برگشت واقعی).
+                // با ReturnTime: دو سفر یک‌طرفه‌ی جدا — رفت (مبدا→مقصد) در Time، برگشت (مقصد→مبدا، IsReturnLeg=true) در ReturnTime.
+                if (string.IsNullOrWhiteSpace(schedule.ReturnTime))
                 {
-                    Origin = new Application.Common.Dto.LocationPoint.PointDto(service.Origin.X, service.Origin.Y),
-                    Destination = new Application.Common.Dto.LocationPoint.PointDto(service.Destination.X, service.Destination.Y),
-                    FromAddress = service.FromAddress,
-                    ToAddress = service.ToAddress,
-                    TripStartDateTime = occurrenceAt,
-                    RoundTrip = true,
-                    TripOptionIds = service.TripOptions?.Select(option => option.Id).ToList() ?? new List<long>()
-                };
-
-                var trip = new Trip
-                {
-                    Origin = new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 },
-                    Destination = new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 },
-                    FromAddress = service.FromAddress,
-                    ToAddress = service.ToAddress,
-                    UserId = service.UserId,
-                    IsOnline = true,
-                    RoundTrip = true,
-                    OwnerRidesAlong = false,
-                    CreateDate = DateTime.Now,
-                    TripStartDateTime = occurrenceAt,
-                    DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
-                    TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
-                    PetResanServiceScheduleId = schedule.Id,
-                    TripOptions = service.TripOptions?.Select(option => new TripOption { Id = option.Id }).ToList()
-                };
-
-                foreach (var option in trip.TripOptions ?? [])
-                    _context.Entry(option).State = EntityState.Unchanged;
-
-                try
-                {
-                    trip.Price = await _priceCalculationService.CalculateTripPrice(priceInput);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Calculating price for PetResanService occurrence (schedule {ScheduleId}) failed.", schedule.Id);
-                    continue;
-                }
-
-                if (trip.Price <= 0)
-                {
-                    _logger.LogError("Calculated price for PetResanService occurrence (schedule {ScheduleId}) was {Price} — skipping.", schedule.Id, trip.Price);
-                    continue;
-                }
-
-                ApplyTripPets(trip, new List<long> { service.UserPetId }, null);
-
-                await _context.Trips.AddAsync(trip);
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateException exception) when (IsUniqueConstraintViolation(exception))
-                {
-                    DetachTripGraph(trip);
-                    _logger.LogInformation(
-                        "Skipped duplicate PetResan service occurrence for schedule {ScheduleId} at {OccurrenceAt}.",
-                        schedule.Id,
-                        occurrenceAt);
-                    continue;
-                }
-
-                trip.FromWallet = true;
-                trip.WalletPrice = trip.Price;
-
-                BaseResultDto<Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto> walletResult;
-                try
-                {
-                    walletResult = await _walletService.InsertUpdateTripAsync(
-                        new Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto { Painding = false, Amount = trip.WalletPrice, UserId = service.UserId, TripId = trip.Id },
-                        true);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Charging wallet for PetResanService occurrence (trip {TripId}) failed.", trip.Id);
-                    walletResult = new BaseResultDto<Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto>(false, null);
-                }
-
-                if (walletResult.IsSuccess)
-                {
-                    trip.IsPaid = true;
-                    await _context.SaveChangesAsync();
-
-                    await _noticeService.CreateAsync(new NoticeCreateDto
+                    if (ReservationScheduleValidator.TryGetServiceStartDateTime(tomorrow, schedule.Time, out var occurrenceAt))
                     {
-                        Label = NoticeTypeLabels.TripDriverSelectionRequired,
-                        ReferenceType = "Trip",
-                        ReferenceId = trip.Id,
-                        DeduplicationKey = $"{NoticeTypeLabels.TripDriverSelectionRequired}:{trip.Id}"
-                    });
+                        await GenerateOnePetResanTripAsync(
+                            schedule, service, tomorrow, occurrenceAt,
+                            new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 },
+                            new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 },
+                            service.FromAddress, service.ToAddress,
+                            roundTrip: true, isReturnLeg: false);
+                    }
+                    continue;
                 }
-                else
-                {
-                    trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
-                    trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.System;
-                    trip.CancelReasonDetail = "موجودی کیف پول برای سرویس پت‌رسان هفتگی کافی نبود.";
-                    await _context.SaveChangesAsync();
 
-                    await _noticeService.CreateAsync(new NoticeCreateDto
-                    {
-                        Label = NoticeTypeLabels.PetResanServiceInsufficientWallet,
-                        ActorUserId = service.UserId,
-                        ReferenceType = "PetResanService",
-                        ReferenceId = service.Id,
-                        DeduplicationKey = $"{NoticeTypeLabels.PetResanServiceInsufficientWallet}:{schedule.Id}:{tomorrow:yyyyMMdd}"
-                    });
+                if (ReservationScheduleValidator.TryGetServiceStartDateTime(tomorrow, schedule.Time, out var departAt))
+                {
+                    await GenerateOnePetResanTripAsync(
+                        schedule, service, tomorrow, departAt,
+                        new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 },
+                        new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 },
+                        service.FromAddress, service.ToAddress,
+                        roundTrip: false, isReturnLeg: false);
                 }
+
+                if (ReservationScheduleValidator.TryGetServiceStartDateTime(tomorrow, schedule.ReturnTime, out var returnAt))
+                {
+                    await GenerateOnePetResanTripAsync(
+                        schedule, service, tomorrow, returnAt,
+                        new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 },
+                        new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 },
+                        service.ToAddress, service.FromAddress,
+                        roundTrip: false, isReturnLeg: true);
+                }
+            }
+        }
+
+        // یک leg از سرویس پت‌رسان هفتگی (رفت، برگشت، یا رفت‌وبرگشتِ قدیمی) را قیمت می‌گذارد، Trip می‌سازد و از
+        // کیف پول کسر می‌کند. تکرار (idempotency) با یکتاییِ (PetResanServiceScheduleId, TripStartDateTime) تضمین
+        // می‌شود — رفت و برگشت چون ساعتِ دقیقشان فرق دارد با هم تداخل نمی‌کنند، ولی اجرای دوباره‌ی همین Job برای
+        // همان روز هیچ‌کدام را تکراری نمی‌سازد.
+        private async Task GenerateOnePetResanTripAsync(
+            Entities.Entities.PetResanServiceField.PetResanServiceSchedule schedule,
+            Entities.Entities.PetResanServiceField.PetResanService service,
+            DateTime occurrenceDate,
+            DateTime occurrenceAt,
+            Point origin,
+            Point destination,
+            string fromAddress,
+            string toAddress,
+            bool roundTrip,
+            bool isReturnLeg)
+        {
+            var alreadyGenerated = await _context.Trips.AnyAsync(t =>
+                t.PetResanServiceScheduleId == schedule.Id &&
+                t.TripStartDateTime == occurrenceAt);
+            if (alreadyGenerated)
+                return;
+
+            var priceInput = new TripDto
+            {
+                Origin = new Application.Common.Dto.LocationPoint.PointDto(origin.X, origin.Y),
+                Destination = new Application.Common.Dto.LocationPoint.PointDto(destination.X, destination.Y),
+                FromAddress = fromAddress,
+                ToAddress = toAddress,
+                TripStartDateTime = occurrenceAt,
+                RoundTrip = roundTrip,
+                TripOptionIds = service.TripOptions?.Select(option => option.Id).ToList() ?? new List<long>()
+            };
+
+            var trip = new Trip
+            {
+                Origin = origin,
+                Destination = destination,
+                FromAddress = fromAddress,
+                ToAddress = toAddress,
+                UserId = service.UserId,
+                IsOnline = true,
+                RoundTrip = roundTrip,
+                IsReturnLeg = isReturnLeg,
+                OwnerRidesAlong = false,
+                CreateDate = DateTime.Now,
+                TripStartDateTime = occurrenceAt,
+                DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
+                TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
+                PetResanServiceScheduleId = schedule.Id,
+                TripOptions = service.TripOptions?.Select(option => new TripOption { Id = option.Id }).ToList()
+            };
+
+            foreach (var option in trip.TripOptions ?? [])
+                _context.Entry(option).State = EntityState.Unchanged;
+
+            try
+            {
+                trip.Price = await _priceCalculationService.CalculateTripPrice(priceInput);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Calculating price for PetResanService occurrence (schedule {ScheduleId}, returnLeg {IsReturnLeg}) failed.", schedule.Id, isReturnLeg);
+                return;
+            }
+
+            if (trip.Price <= 0)
+            {
+                _logger.LogError("Calculated price for PetResanService occurrence (schedule {ScheduleId}, returnLeg {IsReturnLeg}) was {Price} — skipping.", schedule.Id, isReturnLeg, trip.Price);
+                return;
+            }
+
+            var servicePetIds = (service.Pets != null && service.Pets.Any())
+                ? service.Pets.Select(p => p.UserPetId).Distinct().ToList()
+                : new List<long> { service.UserPetId };
+            ApplyTripPets(trip, servicePetIds, null);
+
+            await _context.Trips.AddAsync(trip);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException exception) when (IsUniqueConstraintViolation(exception))
+            {
+                DetachTripGraph(trip);
+                _logger.LogInformation(
+                    "Skipped duplicate PetResan service occurrence for schedule {ScheduleId} at {OccurrenceAt}.",
+                    schedule.Id,
+                    occurrenceAt);
+                return;
+            }
+
+            trip.FromWallet = true;
+            trip.WalletPrice = trip.Price;
+
+            BaseResultDto<Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto> walletResult;
+            try
+            {
+                walletResult = await _walletService.InsertUpdateTripAsync(
+                    new Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto { Painding = false, Amount = trip.WalletPrice, UserId = service.UserId, TripId = trip.Id },
+                    true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Charging wallet for PetResanService occurrence (trip {TripId}) failed.", trip.Id);
+                walletResult = new BaseResultDto<Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto>(false, null);
+            }
+
+            if (walletResult.IsSuccess)
+            {
+                trip.IsPaid = true;
+                await _context.SaveChangesAsync();
+
+                await _noticeService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.TripDriverSelectionRequired,
+                    ReferenceType = "Trip",
+                    ReferenceId = trip.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.TripDriverSelectionRequired}:{trip.Id}"
+                });
+            }
+            else
+            {
+                trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
+                trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.System;
+                trip.CancelReasonDetail = "موجودی کیف پول برای سرویس پت‌رسان هفتگی کافی نبود.";
+                await _context.SaveChangesAsync();
+
+                await _noticeService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.PetResanServiceInsufficientWallet,
+                    ActorUserId = service.UserId,
+                    ReferenceType = "PetResanService",
+                    ReferenceId = service.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.PetResanServiceInsufficientWallet}:{schedule.Id}:{occurrenceDate:yyyyMMdd}:{(isReturnLeg ? "ret" : "go")}"
+                });
             }
         }
 

@@ -23,6 +23,9 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv.Dto
         public bool IsSchool { get; set; }
         public string PackageName { get; set; }
         public int DurationMinutes { get; set; }
+        // مبلغ سفر پت‌رسانِ متصل (اگر بود)؛ کاملاً جدا از PaymentPrice پرداخت و حساب می‌شود — فقط برای نمایش کنار هم
+        public bool HasPetResan { get; set; }
+        public double PetResanPrice { get; set; }
         public int ChannelId { get; set; }
         public bool Permitted { get; set; }
     }

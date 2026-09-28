@@ -59,13 +59,15 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
         private readonly ILogger<CompanionReserveService> _logger;
         private readonly IPaymentTestModeService _paymentTestModeService;
+        private readonly Application.Services.TripSrv.TripSrv.Iface.ITripService _tripService;
         public CompanionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper,
             ICompanionReservePackageService companionReservePackageService, ICompanionReserveUserPetService companionReserveUserPetService,
             IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService,
             IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService,
             IClubPointIntegrationService clubPointIntegrationService, ILogger<CompanionReserveService> logger,
-            IPaymentTestModeService paymentTestModeService) : base(_context, mapper)
+            IPaymentTestModeService paymentTestModeService, Application.Services.TripSrv.TripSrv.Iface.ITripService tripService) : base(_context, mapper)
         {
+            this._tripService = tripService;
             this._context = _context;
             this.mapper = mapper;
             this._codeService = codeService;
@@ -94,9 +96,26 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 .Include(s => s.CompanionAssistancePackageOnlineSelection).ThenInclude(s => s.CompanionAssistancePackageOnline).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
-                return new BaseResultDto<CompanionReserveAdminVDto>(true, mapper.Map<CompanionReserveAdminVDto>(item));
+                var vdto = mapper.Map<CompanionReserveAdminVDto>(item);
+                await AttachPetResanTripAsync(vdto);
+                return new BaseResultDto<CompanionReserveAdminVDto>(true, vdto);
             }
             return new BaseResultDto<CompanionReserveAdminVDto>(false, mapper.Map<CompanionReserveAdminVDto>(item));
+        }
+
+        // سفر پت‌رسانِ متصل (اگر بود) را روی نمای رزرو می‌گذارد؛ TotalPrice فقط برای نمایش است، چیزی در حسابداری تغییر نمی‌کند.
+        private async Task AttachPetResanTripAsync(CompanionReserveAdminVDto vdto)
+        {
+            var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForCompanionReservesAsync(_context, new[] { vdto.Id });
+            vdto.PetResanTrip = trips.TryGetValue(vdto.Id, out var trip) ? trip : null;
+            vdto.TotalPrice = vdto.PaymentPrice + (vdto.PetResanTrip?.PaymentPrice > 0 ? vdto.PetResanTrip.PaymentPrice : vdto.PetResanTrip?.Price ?? 0);
+        }
+
+        private async Task AttachPetResanTripAsync(CompanionReserveVDto vdto)
+        {
+            var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForCompanionReservesAsync(_context, new[] { vdto.Id });
+            vdto.PetResanTrip = trips.TryGetValue(vdto.Id, out var trip) ? trip : null;
+            vdto.TotalPrice = vdto.PaymentPrice + (vdto.PetResanTrip?.PaymentPrice > 0 ? vdto.PetResanTrip.PaymentPrice : vdto.PetResanTrip?.Price ?? 0);
         }
 
         public async Task<BaseResultDto<CompanionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null)
@@ -112,7 +131,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
-                return new BaseResultDto<CompanionReserveVDto>(true, mapper.Map<CompanionReserveVDto>(item));
+                var vdto = mapper.Map<CompanionReserveVDto>(item);
+                await AttachPetResanTripAsync(vdto);
+                return new BaseResultDto<CompanionReserveVDto>(true, vdto);
             }
             return new BaseResultDto<CompanionReserveVDto>(false, mapper.Map<CompanionReserveVDto>(item));
         }
@@ -1660,7 +1681,12 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             await _context.SaveChangesAsync();
 
             if (dto.IsCancel)
+            {
                 await _clubPointIntegrationService.CompanionReserveReversedAsync(model.BookerId, model.Id);
+                // سفر پت‌رسانِ متصل (اگر بود و هنوز تمام نشده) هم لغو می‌شود؛ وگرنه کاربر تا نزدیکِ زمان همان سفرِ
+                // یتیم نمی‌تواند سفر جدیدی بگیرد (TripService.TripCurrentForUser).
+                await _tripService.CancelLinkedTripForCompanionReserveAsync(model.Id);
+            }
 
             var booker = _context.Users.FirstOrDefault(u => u.Id == model.BookerId);
             var companionAssistances = _context.CompanionAssistances.Include(s => s.Assistance).Include(s => s.Companion).FirstOrDefault(a => a.Id == model.CompanionAssistanceId);

@@ -36,7 +36,18 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto
         public string AgentName { get; set; }
         // نمایندگان قابل تخصیص (فقط وقتی CanAssign = true)
         public List<ConsultationAssignableAgentVDto> AssignableAgents { get; set; }
+        // پت‌های همین مشتری (خرید مشاوره شناسه‌ی پت ندارد؛ نماینده حین گفتگو خودش تشخیص می‌دهد
+        // سابقه‌ای که می‌نویسد مال کدام پت است — POST /api/Operator/UserPetRecord با یکی از همین‌ها)
+        public List<ConsultationCustomerPetVDto> CustomerPets { get; set; }
         public DateTime ServerNow { get; set; }
+    }
+
+    public class ConsultationCustomerPetVDto
+    {
+        public long UserPetId { get; set; }
+        public string Name { get; set; }
+        public string PetName { get; set; }
+        public PictureVDto Picture { get; set; }
     }
 
     public class ConsultationAssignableAgentVDto

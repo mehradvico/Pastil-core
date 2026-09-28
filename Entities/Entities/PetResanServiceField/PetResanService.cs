@@ -15,6 +15,8 @@ namespace Entities.Entities.PetResanServiceField
     public class PetResanService : Id_Field
     {
         public long UserId { get; set; }
+        // پت اول (سازگاری با کدهای قبلی/گزارش سریع)؛ فهرست کامل پت‌ها در Pets است. همان الگوی
+        // Trip.UserPetId / Trip.TripPets.
         public long UserPetId { get; set; }
 
         public Point Origin { get; set; }
@@ -44,5 +46,6 @@ namespace Entities.Entities.PetResanServiceField
         public UserPet UserPet { get; set; }
         public ICollection<PetResanServiceSchedule> Schedules { get; set; }
         public ICollection<TripOption> TripOptions { get; set; }
+        public ICollection<PetResanServicePet> Pets { get; set; }
     }
 }

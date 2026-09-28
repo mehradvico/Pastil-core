@@ -41,7 +41,8 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             IPushNotificationService pushNotificationService,
             IRebateService rebateService,
             IWalletService walletService,
-            ILogger<SchoolReserveService> logger) : base(_context, mapper)
+            ILogger<SchoolReserveService> logger,
+            Application.Services.TripSrv.TripSrv.Iface.ITripService tripService) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -50,7 +51,9 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             this._rebateService = rebateService;
             this._walletService = walletService;
             this._logger = logger;
+            this._tripService = tripService;
         }
+        private readonly Application.Services.TripSrv.TripSrv.Iface.ITripService _tripService;
 
         public async Task<int> GetRemainingCapacityAsync(long schoolCourseId)
         {
@@ -71,7 +74,13 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                 .Include(r => r.Booker)
                 .FirstOrDefaultAsync(r => r.Id == id);
             if (item != null)
-                return new BaseResultDto<SchoolReserveVDto>(true, mapper.Map<SchoolReserveVDto>(item));
+            {
+                var vdto = mapper.Map<SchoolReserveVDto>(item);
+                var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForSchoolReservesAsync(_context, new[] { vdto.Id });
+                vdto.PetResanTrip = trips.TryGetValue(vdto.Id, out var trip) ? trip : null;
+                vdto.TotalPrice = vdto.PaymentPrice + (vdto.PetResanTrip?.PaymentPrice > 0 ? vdto.PetResanTrip.PaymentPrice : vdto.PetResanTrip?.Price ?? 0);
+                return new BaseResultDto<SchoolReserveVDto>(true, vdto);
+            }
             return new BaseResultDto<SchoolReserveVDto>(false, mapper.Map<SchoolReserveVDto>(item));
         }
 
@@ -375,6 +384,10 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             }
 
             await _context.SaveChangesAsync();
+
+            if (dto.IsCancel)
+                await _tripService.CancelLinkedTripForSchoolReserveAsync(model.Id);
+
             return new BaseResultDto(true);
         }
 

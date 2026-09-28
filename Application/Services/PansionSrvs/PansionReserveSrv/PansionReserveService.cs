@@ -52,11 +52,14 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
         private readonly IScoreTransactionService _scoreService;
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
         private readonly ILogger<PansionReserveService> _logger;
+        private readonly Application.Services.TripSrv.TripSrv.Iface.ITripService _tripService;
         public PansionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper, IWalletService walletService,
             IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService, IMessageSenderService messageSender,
             ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService,
-            IClubPointIntegrationService clubPointIntegrationService, ILogger<PansionReserveService> logger) : base(_context, mapper)
+            IClubPointIntegrationService clubPointIntegrationService, ILogger<PansionReserveService> logger,
+            Application.Services.TripSrv.TripSrv.Iface.ITripService tripService) : base(_context, mapper)
         {
+            this._tripService = tripService;
             this._context = _context;
             this.mapper = mapper;
             this._codeService = codeService;
@@ -81,7 +84,12 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
-                return new BaseResultDto<PansionReserveVDto>(true, mapper.Map<PansionReserveVDto>(item));
+                var vdto = mapper.Map<PansionReserveVDto>(item);
+                // سفر پت‌رسانِ متصل (اگر بود)؛ پرداختش جدا از رزرو است، TotalPrice فقط برای نمایش
+                var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForPansionReservesAsync(_context, new[] { vdto.Id });
+                vdto.PetResanTrip = trips.TryGetValue(vdto.Id, out var trip) ? trip : null;
+                vdto.TotalPrice = vdto.PaymentPrice + (vdto.PetResanTrip?.PaymentPrice > 0 ? vdto.PetResanTrip.PaymentPrice : vdto.PetResanTrip?.Price ?? 0);
+                return new BaseResultDto<PansionReserveVDto>(true, vdto);
             }
             return new BaseResultDto<PansionReserveVDto>(false, mapper.Map<PansionReserveVDto>(item));
         }
@@ -589,7 +597,10 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             await _context.SaveChangesAsync();
 
             if (dto.IsCancel)
+            {
                 await _clubPointIntegrationService.PansionReserveReversedAsync(model.BookerId, model.Id);
+                await _tripService.CancelLinkedTripForPansionReserveAsync(model.Id);
+            }
 
             var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
             var booker = _context.Users.FirstOrDefault(u => u.Id == model.BookerId);

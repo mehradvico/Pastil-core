@@ -46,10 +46,8 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
 
             try
             {
-                var price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now, dto.TripOptionIds, dto.RoundTrip);
-                // مبلغ هفتگی: قیمت پایه‌ی هر نوبت × تعداد روزهای انتخاب‌شده (بدون انتخاب، یک نوبت)
-                var occurrences = Math.Max(1, CountWeeklyOccurrences(dto.Schedules));
-                return new BaseResultDto<double>(true, price * occurrences);
+                var (total, _) = await CalculateWeeklyTotalPriceAsync(dto);
+                return new BaseResultDto<double>(true, total);
             }
             catch (Exception exception)
             {
@@ -58,9 +56,61 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             }
         }
 
-        // تعداد نوبت‌های یک هفته: ترکیب‌های یکتای (روز هفته، ساعت)
+        // تعداد ردیف‌های یکتای هفته: ترکیب‌های یکتای (روز هفته، ساعتِ رفت). یک ردیف با ReturnTime هم همچنان
+        // یک «ردیف/نوبت» حساب می‌شود (برای PricePerOccurrence نمایشی)، حتی اگر واقعاً دو Trip بسازد.
         private static int CountWeeklyOccurrences(List<PetResanServiceScheduleDto> schedules) =>
             (schedules ?? new List<PetResanServiceScheduleDto>()).Select(s => $"{s.WeekDayId}:{s.Time}").Distinct().Count();
+
+        // مبلغ هفتگی: قیمت هر نوبت باید با نرخِ همان ساعتِ نوبت حساب شود (شب/روز نرخ فرق دارد)، نه با نرخ لحظه‌ی
+        // درخواست. به تفکیک هر ساعتِ یکتا (نه هر (روز، ساعت)) یک‌بار قیمت گرفته می‌شود — چون در
+        // PriceCalculationService.CalculateTripPrice فقط ساعت اثر دارد نه روز هفته — و حاصل‌جمع نوبت‌ها برگردانده می‌شود.
+        //
+        // اگر یک ردیف ReturnTime داشته باشد، «رفت‌وبرگشتِ کلی» جایش را به دو قیمت یک‌طرفه‌ی جدا می‌دهد: رفت با نرخ
+        // ساعتِ Time، برگشت (مبدا/مقصد جابه‌جا) با نرخ ساعتِ ReturnTime — دقیقاً هم‌ارز دو Tripی که
+        // GeneratePetResanServiceTripsAsync برای همین ردیف می‌سازد؛ رفتار قدیمی (بدون ReturnTime) دست‌نخورده می‌ماند.
+        private async Task<(double Total, int OccurrenceCount)> CalculateWeeklyTotalPriceAsync(PetResanServiceCreateDto dto)
+        {
+            var schedules = dto.Schedules ?? new List<PetResanServiceScheduleDto>();
+            var uniqueSchedules = schedules
+                .GroupBy(s => $"{s.WeekDayId}:{s.Time}")
+                .Select(g => g.First())
+                .ToList();
+
+            if (uniqueSchedules.Count == 0)
+            {
+                // بدون هیچ نوبتی هنوز (پیش‌نمایش اولیه‌ی فرم): یک نوبت با نرخ همین لحظه، مثل رفتار قبلی
+                var now = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now, dto.TripOptionIds, dto.RoundTrip);
+                return (now, 1);
+            }
+
+            var priceByKey = new Dictionary<string, double>(StringComparer.Ordinal);
+
+            async Task<double> PriceAtAsync(string cacheKey, Application.Common.Dto.LocationPoint.PointDto origin, Application.Common.Dto.LocationPoint.PointDto destination, string fromAddress, string toAddress, string time, bool roundTrip)
+            {
+                if (priceByKey.TryGetValue(cacheKey, out var cached))
+                    return cached;
+                var atMoment = ReservationScheduleValidator.TryGetServiceStartDateTime(DateTime.Today, time, out var parsed) ? parsed : DateTime.Now;
+                var price = await CalculateOccurrencePriceAsync(origin, destination, fromAddress, toAddress, atMoment, dto.TripOptionIds, roundTrip);
+                priceByKey[cacheKey] = price;
+                return price;
+            }
+
+            double total = 0;
+            foreach (var schedule in uniqueSchedules)
+            {
+                if (!string.IsNullOrWhiteSpace(schedule.ReturnTime))
+                {
+                    // دو یک‌طرفه‌ی جدا: رفت (مبدا→مقصد) و برگشت (مقصد→مبدا)
+                    total += await PriceAtAsync($"go:{schedule.Time}", dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, schedule.Time, false);
+                    total += await PriceAtAsync($"ret:{schedule.ReturnTime}", dto.Destination, dto.Origin, dto.ToAddress, dto.FromAddress, schedule.ReturnTime, false);
+                }
+                else
+                {
+                    total += await PriceAtAsync($"rt:{schedule.Time}:{dto.RoundTrip}", dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, schedule.Time, dto.RoundTrip);
+                }
+            }
+            return (total, uniqueSchedules.Count);
+        }
 
         private async Task<double> CalculateOccurrencePriceAsync(
             Application.Common.Dto.LocationPoint.PointDto origin,
@@ -122,8 +172,16 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                     .CountAsync(option => tripOptionIds.Contains(option.Id) && option.Active && !option.Deleted))
                 return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.NothingFound, null);
 
-            var pet = await _context.UserPets.AsNoTracking().FirstOrDefaultAsync(s => s.Id == dto.UserPetId && s.UserId == userId);
-            if (pet == null)
+            var requestedPetIds = (dto.UserPetIds != null && dto.UserPetIds.Any())
+                ? dto.UserPetIds
+                : (dto.UserPetId > 0 ? new List<long> { dto.UserPetId } : new List<long>());
+            var petIds = requestedPetIds.Distinct().ToList();
+            if (petIds.Count == 0)
+                return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.SelectAtLeastOneType, null);
+            if (petIds.Count != requestedPetIds.Count)
+                return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.DuplicateValue, null);
+            var ownedPetCount = await _context.UserPets.AsNoTracking().CountAsync(s => petIds.Contains(s.Id) && s.UserId == userId);
+            if (ownedPetCount != petIds.Count)
                 return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.NothingFound, null);
 
             var uniqueSchedules = new HashSet<string>(StringComparer.Ordinal);
@@ -131,6 +189,9 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             {
                 if (!ReservationScheduleValidator.TryGetServiceStartDateTime(DateTime.Now, schedule.Time, out _))
                     return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.InvalidTimeFormat, null);
+                if (!string.IsNullOrWhiteSpace(schedule.ReturnTime) &&
+                    !ReservationScheduleValidator.TryGetServiceTimeRange(schedule.Time, schedule.ReturnTime, out _, out _))
+                    return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.PetResanServiceReturnTimeMustBeAfterDeparture, null);
                 if (!uniqueSchedules.Add($"{schedule.WeekDayId}:{schedule.Time}"))
                     return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.DuplicateValue, null);
             }
@@ -139,7 +200,20 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             double price;
             try
             {
-                price = await CalculateOccurrencePriceAsync(dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, DateTime.Now, tripOptionIds, dto.RoundTrip);
+                // میانگین قیمتِ هر ردیف با نرخِ واقعیِ ساعتِ همان نوبت (نه نرخ لحظه‌ی ثبت درخواست)؛ فقط برای
+                // پیش‌نمایش/نمایش به کاربر است — قیمت قطعی هر Trip دوباره در GeneratePetResanServiceTripsAsync
+                // با نرخ همان ساعت محاسبه می‌شود.
+                var (total, occurrenceCount) = await CalculateWeeklyTotalPriceAsync(new PetResanServiceCreateDto
+                {
+                    Origin = dto.Origin,
+                    Destination = dto.Destination,
+                    FromAddress = dto.FromAddress,
+                    ToAddress = dto.ToAddress,
+                    RoundTrip = dto.RoundTrip,
+                    TripOptionIds = tripOptionIds,
+                    Schedules = dto.Schedules
+                });
+                price = occurrenceCount > 0 ? total / occurrenceCount : total;
             }
             catch (Exception exception)
             {
@@ -150,7 +224,8 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             var service = new PetResanService
             {
                 UserId = userId,
-                UserPetId = dto.UserPetId,
+                UserPetId = petIds[0],
+                Pets = petIds.Select(id => new PetResanServicePet { UserPetId = id }).ToList(),
                 Origin = new Point(dto.Origin.x, dto.Origin.y) { SRID = 4326 },
                 Destination = new Point(dto.Destination.x, dto.Destination.y) { SRID = 4326 },
                 FromAddress = dto.FromAddress,
@@ -167,6 +242,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                 {
                     WeekDayId = s.WeekDayId,
                     Time = s.Time,
+                    ReturnTime = string.IsNullOrWhiteSpace(s.ReturnTime) ? null : s.ReturnTime,
                     Active = true
                 }).ToList()
             };
@@ -213,17 +289,20 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                 return false;
 
             var requestedSchedules = (dto.Schedules ?? new List<PetResanServiceScheduleDto>())
-                .Select(s => (s.WeekDayId, s.Time))
+                .Select(s => (s.WeekDayId, s.Time, ReturnTime: s.ReturnTime ?? string.Empty))
                 .OrderBy(s => s.WeekDayId)
                 .ThenBy(s => s.Time, StringComparer.Ordinal);
             var existingSchedules = (existing.Schedules ?? new List<PetResanServiceSchedule>())
-                .Select(s => (s.WeekDayId, s.Time))
+                .Select(s => (s.WeekDayId, s.Time, ReturnTime: s.ReturnTime ?? string.Empty))
                 .OrderBy(s => s.WeekDayId)
                 .ThenBy(s => s.Time, StringComparer.Ordinal);
             var requestedTripOptionIds = (dto.TripOptionIds ?? new List<long>()).OrderBy(id => id);
             var existingTripOptionIds = (existing.TripOptions ?? new List<Entities.Entities.TripOption>()).Select(option => option.Id).OrderBy(id => id);
 
-            return existing.UserPetId == dto.UserPetId &&
+            var existingPetIds = (existing.Pets != null && existing.Pets.Any()) ? existing.Pets.Select(p => p.UserPetId).OrderBy(id => id) : new[] { existing.UserPetId }.OrderBy(id => id);
+            var requestedPetIdsForCompare = ((dto.UserPetIds != null && dto.UserPetIds.Any()) ? dto.UserPetIds : new List<long> { dto.UserPetId }).OrderBy(id => id);
+
+            return existingPetIds.SequenceEqual(requestedPetIdsForCompare) &&
                    existing.TotalWeeks == dto.TotalWeeks &&
                    SameCoordinate(existing.Origin.X, dto.Origin.x) &&
                    SameCoordinate(existing.Origin.Y, dto.Origin.y) &&
@@ -241,6 +320,8 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
         {
             foreach (var schedule in service.Schedules ?? Enumerable.Empty<PetResanServiceSchedule>())
                 _context.Entry(schedule).State = EntityState.Detached;
+            foreach (var petLink in service.Pets ?? Enumerable.Empty<PetResanServicePet>())
+                _context.Entry(petLink).State = EntityState.Detached;
             _context.Entry(service).State = EntityState.Detached;
         }
 
@@ -251,6 +332,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
         {
             var services = await _context.PetResanServices
                 .Include(s => s.UserPet)
+                .Include(s => s.Pets).ThenInclude(p => p.UserPet)
                 .Include(s => s.TripOptions)
                 .Include(s => s.Schedules).ThenInclude(s => s.WeekDay)
                 .AsNoTracking()
@@ -265,6 +347,7 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
         {
             var service = await _context.PetResanServices
                 .Include(s => s.UserPet)
+                .Include(s => s.Pets).ThenInclude(p => p.UserPet)
                 .Include(s => s.TripOptions)
                 .Include(s => s.Schedules).ThenInclude(s => s.WeekDay)
                 .AsNoTracking()
@@ -294,6 +377,9 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             Id = service.Id,
             UserPetId = service.UserPetId,
             UserPetName = service.UserPet?.Name,
+            UserPets = (service.Pets != null && service.Pets.Any())
+                ? service.Pets.Select(p => new PetResanServicePetVDto { UserPetId = p.UserPetId, Name = p.UserPet?.Name }).ToList()
+                : new List<PetResanServicePetVDto> { new PetResanServicePetVDto { UserPetId = service.UserPetId, Name = service.UserPet?.Name } },
             Origin = new Application.Common.Dto.LocationPoint.PointDto(service.Origin.X, service.Origin.Y),
             Destination = new Application.Common.Dto.LocationPoint.PointDto(service.Destination.X, service.Destination.Y),
             FromAddress = service.FromAddress,
@@ -317,7 +403,8 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                 WeekDayId = s.WeekDayId,
                 WeekDayName = s.WeekDay?.Name,
                 WeekDayNumber = s.WeekDay?.Number ?? 0,
-                Time = s.Time
+                Time = s.Time,
+                ReturnTime = s.ReturnTime
             }).OrderBy(s => s.WeekDayNumber).ToList()
         };
     }

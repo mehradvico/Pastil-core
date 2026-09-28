@@ -276,6 +276,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<PansionReserve> PansionReserves { get; set; }
         public DbSet<PetResanService> PetResanServices { get; set; }
         public DbSet<PetResanServiceSchedule> PetResanServiceSchedules { get; set; }
+        public DbSet<Entities.Entities.PetResanServiceField.PetResanServicePet> PetResanServicePets { get; set; }
         public DbSet<School> Schools { get; set; }
         public DbSet<SchoolComment> SchoolComments { get; set; }
         public DbSet<SchoolCourse> SchoolCourses { get; set; }
@@ -1406,6 +1407,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             {
                 e.HasOne(s => s.PetResanService).WithMany(s => s.Schedules).HasForeignKey(s => s.PetResanServiceId).OnDelete(DeleteBehavior.Cascade);
                 e.HasOne(s => s.WeekDay).WithMany().HasForeignKey(s => s.WeekDayId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<Entities.Entities.PetResanServiceField.PetResanServicePet>(e =>
+            {
+                e.HasOne(p => p.PetResanService).WithMany(s => s.Pets).HasForeignKey(p => p.PetResanServiceId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(p => p.UserPet).WithMany().HasForeignKey(p => p.UserPetId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<Trip>()

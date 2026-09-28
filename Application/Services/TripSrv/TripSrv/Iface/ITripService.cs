@@ -23,7 +23,10 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto<TripShareDto>> UpdateTripShareAsync(TripShareDto dto);
         Task<BaseResultDto<TripAdminChooseDriverDto>> ChooseDriverAsync(TripAdminChooseDriverDto dto);
         Task<BaseResultDto<TripChangeStatusDto>> TripChangeStatusAsync(TripChangeStatusDto dto);
-        Task<BaseResultDto<TripVDto>> AdminCancelAsync(TripAdminActionDto dto);
+        Task<BaseResultDto<TripVDto>> AdminCancelAsync(TripAdminActionDto dto, Application.Common.Enumerable.TripCancelInitiatorEnum initiator = Application.Common.Enumerable.TripCancelInitiatorEnum.Admin);
+        Task CancelLinkedTripForCompanionReserveAsync(long companionReserveId);
+        Task CancelLinkedTripForPansionReserveAsync(long pansionReserveId);
+        Task CancelLinkedTripForSchoolReserveAsync(long schoolReserveId);
         Task<BaseResultDto<TripVDto>> AdminCompleteAsync(TripAdminActionDto dto);
         Task<BaseResultDto<TripUserChangeStatusDto>> UpdateTripUserStatusAsync(TripUserChangeStatusDto dto);
         Task<BaseResultDto> SetRebateCodeAsyncDto(TripSetRebateCodeDto dto);

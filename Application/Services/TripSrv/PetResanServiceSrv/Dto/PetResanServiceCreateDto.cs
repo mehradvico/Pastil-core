@@ -5,6 +5,9 @@ namespace Application.Services.TripSrv.PetResanServiceSrv.Dto
 {
     public class PetResanServiceCreateDto
     {
+        // فهرست همه‌ی پت‌های سرویس (چند پت مجاز). خالی/نال ⇒ به UserPetId (قدیمی، یک پت) برمی‌گردیم؛
+        // اگر هر دو پر باشند UserPetIds اولویت دارد. همان قرارداد Trip.UserPetIds/UserPetId.
+        public List<long> UserPetIds { get; set; } = new List<long>();
         public long UserPetId { get; set; }
         public PointDto Origin { get; set; }
         public PointDto Destination { get; set; }

@@ -83,13 +83,35 @@ namespace Application.Services.Accounting.UserPerRecordSrv
 
         public async Task<bool> CanOperateOnPetAsync(long userPetId, long operatorUserId)
         {
-            return await _context.CompanionReserves.AsNoTracking().AnyAsync(r =>
+            var viaReserve = await _context.CompanionReserves.AsNoTracking().AnyAsync(r =>
                 r.IsReserved && !r.IsCancel &&
                 r.UserPets.Any(p => p.Id == userPetId) &&
                 ((r.CompanionAssistanceUser != null &&
                   r.CompanionAssistanceUser.Active && !r.CompanionAssistanceUser.Deleted &&
                   r.CompanionAssistanceUser.UserId == operatorUserId) ||
                  r.CompanionAssistance.Companion.OwnerId == operatorUserId));
+            if (viaReserve)
+                return true;
+
+            // مشاوره‌ی آنلاین هیچ شناسه‌ی پتی ندارد (طراحی: ONLINE_CONSULTATION_APP_FA.md)، پس نمی‌شود پرونده را
+            // به یک پت مشخص محدود کرد. به‌جایش: اگر صاحب همین پت با همین کلینیک یک مشاوره‌ی معتبر
+            // (پرداخت‌شده/در جریان/پایان‌یافته) داشته و درخواست‌دهنده همان نماینده‌ی شروع‌کننده یا مالک کلینیک
+            // باشد، نوشتن سابقه برای این پت مجاز است — نماینده خودش تشخیص می‌دهد سابقه مال کدام پت است.
+            var consultationStatuses = new[]
+            {
+                (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Paid,
+                (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Active,
+                (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Completed
+            };
+            return await (
+                from purchase in _context.ConsultationPurchases.AsNoTracking()
+                join pet in _context.UserPets.AsNoTracking() on purchase.UserId equals pet.UserId
+                where pet.Id == userPetId
+                   && consultationStatuses.Contains(purchase.Status)
+                   && ((purchase.AgentUserId.HasValue && purchase.AgentUserId == operatorUserId) ||
+                       purchase.Companion.OwnerId == operatorUserId)
+                select purchase.Id
+            ).AnyAsync();
         }
 
         public override async Task<BaseResultDto<UserPetRecordDto>> InsertAsyncDto(UserPetRecordDto dto)

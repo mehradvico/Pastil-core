@@ -7,6 +7,7 @@ using Persistence.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
 {
@@ -19,7 +20,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
             _context = context;
         }
 
-        public BaseResultDto<FinanceCompanionVDto> Search(FinanceCompanionInputDto dto)
+        public async Task<BaseResultDto<FinanceCompanionVDto>> SearchAsync(FinanceCompanionInputDto dto)
         {
             try
             {
@@ -141,6 +142,35 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                         Permitted = r.Permitted
                     })
                     .ToList();
+
+                // سفر پت‌رسانِ متصل به هر رزرو خدمت/پانسیون/مدرسه (اگر بود) — پرداختش جدا از رزرو است،
+                // فقط برای نمایش کنار هم در مدیریت مالی؛ چیزی در CompanionShare/SiteShare بالا تغییر نمی‌کند.
+                var companionTripMap = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForCompanionReservesAsync(
+                    _context, companionReserves.Select(r => long.Parse(r.ReserveId)));
+                foreach (var row in companionReserves)
+                {
+                    if (!companionTripMap.TryGetValue(long.Parse(row.ReserveId), out var trip)) continue;
+                    row.HasPetResan = true;
+                    row.PetResanPrice = trip.PaymentPrice > 0 ? trip.PaymentPrice : trip.Price;
+                }
+
+                var pansionTripMap = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForPansionReservesAsync(
+                    _context, pansionReserves.Select(r => long.Parse(r.ReserveId)));
+                foreach (var row in pansionReserves)
+                {
+                    if (!pansionTripMap.TryGetValue(long.Parse(row.ReserveId), out var trip)) continue;
+                    row.HasPetResan = true;
+                    row.PetResanPrice = trip.PaymentPrice > 0 ? trip.PaymentPrice : trip.Price;
+                }
+
+                var schoolTripMap = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForSchoolReservesAsync(
+                    _context, schools.Select(r => long.Parse(r.ReserveId)));
+                foreach (var row in schools)
+                {
+                    if (!schoolTripMap.TryGetValue(long.Parse(row.ReserveId), out var trip)) continue;
+                    row.HasPetResan = true;
+                    row.PetResanPrice = trip.PaymentPrice > 0 ? trip.PaymentPrice : trip.Price;
+                }
 
                 var list = companionReserves.Concat(pansionReserves).Concat(consultations).Concat(schools).ToList();
 

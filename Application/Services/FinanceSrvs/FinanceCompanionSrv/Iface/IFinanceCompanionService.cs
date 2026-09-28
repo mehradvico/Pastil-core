@@ -10,7 +10,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv.Iface
 {
     public interface IFinanceCompanionService
     {
-        BaseResultDto<FinanceCompanionVDto> Search(FinanceCompanionInputDto dto);
+        Task<BaseResultDto<FinanceCompanionVDto>> SearchAsync(FinanceCompanionInputDto dto);
 
     }
 }

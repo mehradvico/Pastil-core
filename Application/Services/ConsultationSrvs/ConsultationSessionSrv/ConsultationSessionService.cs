@@ -100,6 +100,23 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 var agentNames = (await _context.Users.AsNoTracking().Where(u => agentIds.Contains(u.Id)).ToListAsync())
                     .ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}".Trim());
 
+                // پت‌های همه‌ی مشتری‌های همین صف؛ خرید مشاوره خودش شناسه‌ی پت ندارد (طراحی مستندشده)، پس فهرست
+                // کامل پت‌های مشتری را می‌دهیم تا نماینده حین گفتگو انتخاب کند سابقه مال کدام پت است.
+                var customerUserIds = rows.Select(r => r.UserId).Distinct().ToList();
+                var customerPets = (await _context.UserPets.AsNoTracking()
+                        .Where(p => customerUserIds.Contains(p.UserId) && !p.Deleted)
+                        .Include(p => p.Pet)
+                        .Include(p => p.Picture)
+                        .ToListAsync())
+                    .GroupBy(p => p.UserId)
+                    .ToDictionary(g => g.Key, g => g.Select(p => new ConsultationCustomerPetVDto
+                    {
+                        UserPetId = p.Id,
+                        Name = p.Name,
+                        PetName = p.Pet?.Name,
+                        Picture = ToPictureVDto(p.Picture)
+                    }).ToList());
+
                 var list = rows.Select(s => new ConsultationAgentItemVDto
                 {
                     Id = s.Id,
@@ -127,6 +144,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     CanAssign = s.Status == paid && ownedIds.Contains(s.CompanionId) && ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now),
                     AssignableAgents = s.Status == paid && assignable.TryGetValue(s.CompanionId, out var al) ? al : null,
                     CanEnter = ConsultationPurchaseRules.CanAgentEnter(s.Status, s.ExpireDate, now, s.AgentUserId, agentUserId, ownedIds.Contains(s.CompanionId)),
+                    CustomerPets = customerPets.TryGetValue(s.UserId, out var pets) ? pets : new List<ConsultationCustomerPetVDto>(),
                     ServerNow = now
                 }).ToList();
 

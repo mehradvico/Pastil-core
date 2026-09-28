@@ -8,8 +8,10 @@ namespace Application.Services.TripSrv.PetResanServiceSrv.Dto
     public class PetResanServiceVDto
     {
         public long Id { get; set; }
+        // اولین پت (سازگاری با نسخه‌ی قبلی)؛ لیست کامل: UserPets
         public long UserPetId { get; set; }
         public string UserPetName { get; set; }
+        public List<PetResanServicePetVDto> UserPets { get; set; } = new List<PetResanServicePetVDto>();
         public PointDto Origin { get; set; }
         public PointDto Destination { get; set; }
         public string FromAddress { get; set; }

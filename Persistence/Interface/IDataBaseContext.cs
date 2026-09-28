@@ -147,6 +147,7 @@ namespace Persistence.Interface
         public DbSet<PansionReserve> PansionReserves { get; set; }
         public DbSet<PetResanService> PetResanServices { get; set; }
         public DbSet<PetResanServiceSchedule> PetResanServiceSchedules { get; set; }
+        public DbSet<Entities.Entities.PetResanServiceField.PetResanServicePet> PetResanServicePets { get; set; }
         public DbSet<School> Schools { get; set; }
         public DbSet<SchoolComment> SchoolComments { get; set; }
         public DbSet<SchoolCourse> SchoolCourses { get; set; }

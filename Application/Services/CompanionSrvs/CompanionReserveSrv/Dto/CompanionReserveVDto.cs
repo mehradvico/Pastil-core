@@ -17,6 +17,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv.Dto
 {
     public class CompanionReserveVDto : Id_FieldDto
     {
+        // سفر پت‌رسانِ متصل (اگر بود) و مبلغ کل قابل‌مشاهده (رزرو + پت‌رسان)؛ پرداختشان کاملاً جداست
+        public Application.Services.TripSrv.TripSrv.Dto.LinkedPetResanTripVDto PetResanTrip { get; set; }
+        public double TotalPrice { get; set; }
         public string ReserveCode { get; set; }
         public long BookerId { get; set; }
         public long? BatchId { get; set; }

@@ -28,9 +28,9 @@ namespace Api.Areas.Admin.Controllers
         /// <returns></returns> 
         [HttpGet]
         [ProducesResponseType(typeof(BaseResultDto<FinanceCompanionVDto>), 200)]
-        public IActionResult Get([FromQuery] FinanceCompanionInputDto dto)
+        public async System.Threading.Tasks.Task<IActionResult> Get([FromQuery] FinanceCompanionInputDto dto)
         {
-            var searchDto = _financeCompanionService.Search(dto);
+            var searchDto = await _financeCompanionService.SearchAsync(dto);
             return Ok(searchDto);
         }
     }

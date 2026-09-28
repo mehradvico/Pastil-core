@@ -1140,6 +1140,9 @@
   <data name="PetResanServiceAtLeastOneScheduleRequired" xml:space="preserve">
     <value>Pet Resan Service At Least One Schedule Required</value>
   </data>
+  <data name="PetResanServiceReturnTimeMustBeAfterDeparture" xml:space="preserve">
+    <value>Pet Resan Service Return Time Must Be After Departure</value>
+  </data>
   <data name="PetResanServiceInvalidTotalWeeks" xml:space="preserve">
     <value>Pet Resan Service Invalid Total Weeks</value>
   </data>

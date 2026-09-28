@@ -7,5 +7,6 @@ namespace Application.Services.TripSrv.PetResanServiceSrv.Dto
         public string WeekDayName { get; set; }
         public int WeekDayNumber { get; set; }
         public string Time { get; set; }
+        public string ReturnTime { get; set; }
     }
 }

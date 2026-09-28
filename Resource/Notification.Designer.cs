@@ -2431,6 +2431,15 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Pet Resan Service Return Time Must Be After Departure.
+        /// </summary>
+        public static string PetResanServiceReturnTimeMustBeAfterDeparture {
+            get {
+                return ResourceManager.GetString("PetResanServiceReturnTimeMustBeAfterDeparture", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Pet Resan Service Invalid Total Weeks.
         /// </summary>
         public static string PetResanServiceInvalidTotalWeeks {
