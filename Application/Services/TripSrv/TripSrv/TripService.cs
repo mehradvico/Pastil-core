@@ -112,7 +112,7 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task<BaseResultDto<TripVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.CancelReasonCode).Include(s => s.Driver).Include(s => s.TripPets).ThenInclude(tp => tp.UserPet).ThenInclude(up => up.Pet).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.CancelReasonCode).Include(s => s.Driver).ThenInclude(d => d.ProfilePicture).Include(s => s.TripPets).ThenInclude(tp => tp.UserPet).ThenInclude(up => up.Pet).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(item));
@@ -132,7 +132,7 @@ namespace Application.Services.TripSrv.TripSrv
 
         public TripSearchDto Search(TripInputDto baseSearchDto)
         {
-            var model = _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).Include(s => s.TripPets).Include(s => s.VehicleType).AsQueryable();
+            var model = _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).ThenInclude(d => d.ProfilePicture).Include(s => s.TripPets).Include(s => s.VehicleType).AsQueryable();
 
             if (baseSearchDto.FromCityId.HasValue)
             {
@@ -182,6 +182,11 @@ namespace Application.Services.TripSrv.TripSrv
             if (baseSearchDto.ToMinute != null)
             {
                 model = model.Where(s => s.CreateDate.AddMinutes(baseSearchDto.ToMinute.Value) < DateTime.Now);
+            }
+            if (baseSearchDto.ScheduledOrServiceOnly == true)
+            {
+                model = model.Where(s => s.CompanionReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
+                    || s.ScheduledDepartureAt != null || s.PetResanServiceScheduleId != null);
             }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
             {
@@ -431,21 +436,48 @@ namespace Application.Services.TripSrv.TripSrv
             return new BaseResultDto<TripVDto>(false, mapper.Map<TripVDto>(item));
         }
 
-        // «سفر جاری» کاربر = سفر تمام‌نشده (درخواست‌شده یا پذیرفته‌شده) که زمان حرکتش رسیده یا کمتر از ۳ ساعت مانده.
-        // سفر فوری همیشه همین قاعده را برآورده می‌کند چون TripStartDateTime‌اش همان لحظه‌ی ثبت است (هیچ‌وقت در
-        // آینده نیست)، پس رفتار قبلی برایش عوض نمی‌شود. سفر رزروی/زمان‌بندی‌شده‌ی چند روز/ساعت بعد دیگر جلوی سفر
-        // جدید را نمی‌گیرد — قبلاً چون این سفرها هم IsOnline=true دارند (برای Broadcast به راننده‌ها)، این شرط با
-        // آن‌ها همیشه true می‌شد و کاربری که مثلاً یک رزرو کلینیکِ هفته‌ی بعد با پت‌رسان داشت، تا آن موقع اصلاً
-        // نمی‌توانست هیچ سفر فوری دیگری بگیرد؛ حالا فقط وقتی سفرِ متصل به رزرو واقعاً نزدیک است (یا لغو نشده و
-        // هنوز راننده قبول نکرده) مسدود می‌کند.
+        // «سفر جاری» کاربر = سفر تمام‌نشده (درخواست‌شده یا پذیرفته‌شده) که مانع ثبت یک سفر جدید می‌شود.
+        // سه دسته‌ی متفاوت، سه قاعده‌ی متفاوت:
+        //  ۱) رزرو (متصل به رزرو کلینیک/پانسیون/مدرسه، یا سفر تاریخ‌دار مستقل CreateScheduledTripAsync):
+        //     همیشه مسدودکننده است، فارغ از اینکه چقدر تا زمان حرکتش مانده — کاربر تا وقتی این رزرو باز
+        //     است، حق ثبت سفر دیگری را ندارد.
+        //  ۲) سرویس هفتگی پت‌رسان: فقط وقتی واقعاً «در حال انجام» است (راننده پت را تحویل گرفته،
+        //     ProgressStageId >= PetPickedUp) مسدودکننده است. صرفِ داشتن سرویسِ فعال یا حتی سفرِ فردای
+        //     سرویس که هنوز پذیرفته/شروع نشده، کاربر را از گرفتن سفر فوری منع نمی‌کند.
+        //  ۳) سفر فوری معمولی (بدون هیچ اتصالی): طبق رفتار قبلی - بدون TripStartDateTime، یا کمتر از ۳
+        //     ساعت تا حرکتش مانده.
         private static System.Linq.Expressions.Expression<Func<Trip, bool>> TripCurrentForUser(long userId, DateTime now)
         {
             var requested = (long)TripStatusEnum.TripStatus_Requested;
             var accepted = (long)TripStatusEnum.TripStatus_Accepted;
             var soon = now.AddHours(3);
+            var petPickedUp = (int)TripProgressStageEnum.PetPickedUp;
             return s => s.UserId == userId
                 && (s.TripStatusId == requested || s.TripStatusId == accepted)
-                && (s.TripStartDateTime == null || s.TripStartDateTime <= soon);
+                && (
+                    s.CompanionReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
+                    || (s.ScheduledDepartureAt != null && s.PetResanServiceScheduleId == null)
+                    || (s.PetResanServiceScheduleId != null && s.ProgressStageId >= petPickedUp)
+                    || ((s.CompanionReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
+                         && s.PetResanServiceScheduleId == null && s.ScheduledDepartureAt == null)
+                        && (s.TripStartDateTime == null || s.TripStartDateTime <= soon))
+                );
+        }
+
+        // راننده‌ای که یک سفر رزروشده/سرویسِ پذیرفته‌شده دارد که کمتر از ۱ ساعت تا زمان حرکتش مانده، «مشغول»
+        // حساب می‌شود: نه چیز جدیدی می‌تواند Accept کند، نه در لیست TripAvailable چیزی می‌بیند — تا برای آن سفر
+        // آماده بماند. excludeTripId برای وقتی است که خودِ همین سفر در حال Accept شدن است (نباید خودش را
+        // مسدودکننده‌ی خودش حساب کند).
+        private async Task<bool> DriverIsInUpcomingBusyWindowAsync(long driverId, long? excludeTripId = null)
+        {
+            var accepted = (long)TripStatusEnum.TripStatus_Accepted;
+            var busyThreshold = DateTime.Now.AddHours(1);
+            return await _context.Trips.AnyAsync(t =>
+                t.DriverId == driverId
+                && (!excludeTripId.HasValue || t.Id != excludeTripId.Value)
+                && t.TripStatusId == accepted
+                && t.TripStartDateTime.HasValue
+                && t.TripStartDateTime <= busyThreshold);
         }
 
         public async Task<BaseResultDto<TripVDto>> GetDriverCurrentTrip(long driverId)
@@ -525,6 +557,13 @@ namespace Application.Services.TripSrv.TripSrv
 
             if (dto.DriverStatusId == (long)DriverStatusEnum.DriverStatus_Accepted)
             {
+                // راننده‌ای که یک سفر رزروشده/سرویسِ پذیرفته‌شده‌ی دیگر دارد و کمتر از ۱ ساعت تا حرکتش مانده،
+                // نمی‌تواند چیز جدیدی Accept کند — باید برای همان سفر آماده بماند.
+                if (await DriverIsInUpcomingBusyWindowAsync(dto.DriverId, dto.Id))
+                {
+                    return new BaseResultDto<TripDriverChangeStatusDto>(false, Resource.Notification.DriverHasUpcomingScheduledTrip, dto);
+                }
+
                 // آپدیت اتمیک با شرط DriverId == null در همون UPDATE — جلوگیری از race condition
                 // وقتی چند راننده هم‌زمان می‌زنن قبول؛ فقط اولی که واقعاً commit بشه برنده‌ست.
                 // راننده‌ای که قبلاً این سفر (یا نسخه‌ی قبلی‌اش) را رد/لغو کرده، دیگر نمی‌تواند آن را بپذیرد.
@@ -667,6 +706,9 @@ namespace Application.Services.TripSrv.TripSrv
             var driver = await _context.Drivers.FirstOrDefaultAsync(s => s.Id == dto.DriverId && !s.Deleted);
             if (driver == null || !driver.Active || driver.StatusId != (long)DriverRequestStatusEnum.DriverRequestStatus_Accepted)
                 return new BaseResultDto<TripAdminChooseDriverDto>(false, Resource.Notification.DriverRequesterUserInvalid, dto);
+
+            if (await DriverIsInUpcomingBusyWindowAsync(dto.DriverId, dto.Id))
+                return new BaseResultDto<TripAdminChooseDriverDto>(false, Resource.Notification.DriverHasUpcomingScheduledTrip, dto);
 
             var userPet = await _context.UserPets.Include(s => s.Pet).FirstOrDefaultAsync(s => s.Id == trip.UserPetId);
 
@@ -1256,6 +1298,11 @@ namespace Application.Services.TripSrv.TripSrv
         /// </summary>
         public async Task<BaseResultDto<List<TripVDto>>> GetAvailableTripsForDriverAsync(long driverId)
         {
+            // راننده‌ای که کمتر از ۱ ساعت تا سفر رزروشده/سرویسِ پذیرفته‌شده‌اش مانده، اصلاً چیز جدیدی
+            // نمی‌بیند — باید برای همان آماده بماند (سازگار با گاردِ Accept در UpdateTripDriverStatusAsync).
+            if (await DriverIsInUpcomingBusyWindowAsync(driverId))
+                return new BaseResultDto<List<TripVDto>>(true, new List<TripVDto>());
+
             // نوع خودروی همین راننده - برای فیلتر سفرهایی که کاربر صریحاً یک نوع خودرو
             // (سواری/وانت) درخواست کرده؛ سفرهای بدون نوع مشخص (VehicleTypeId == null)
             // برای همه‌ی راننده‌ها نمایش داده می‌شوند.
@@ -1281,6 +1328,82 @@ namespace Application.Services.TripSrv.TripSrv
                 .ToListAsync();
 
             return new BaseResultDto<List<TripVDto>>(true, mapper.Map<List<TripVDto>>(trips));
+        }
+
+        /// <summary>
+        /// سفرهای رزروشده/سرویسِ پذیرفته‌شده‌ی همین راننده که هنوز شروع نشده‌اند — برای بخش «سفرهای پیشِ‌رو»ی
+        /// اپ راننده، تا بین این کار و سفرهای فوری برنامه‌ریزی کند.
+        /// </summary>
+        public async Task<BaseResultDto<List<TripVDto>>> GetUpcomingTripsForDriverAsync(long driverId)
+        {
+            var accepted = (long)TripStatusEnum.TripStatus_Accepted;
+            var now = DateTime.Now;
+
+            var trips = await _context.Trips
+                .Where(t => t.DriverId == driverId
+                    && t.TripStatusId == accepted
+                    && t.TripStartDateTime.HasValue
+                    && t.TripStartDateTime > now)
+                .Include(s => s.TripStop)
+                .Include(s => s.TripOptions)
+                .Include(s => s.UserPet).ThenInclude(s => s.User)
+                .Include(s => s.TripPets).ThenInclude(s => s.UserPet)
+                .Include(s => s.DriverStatus)
+                .Include(s => s.TripStatus)
+                .Include(s => s.VehicleType)
+                .OrderBy(t => t.TripStartDateTime)
+                .ToListAsync();
+
+            return new BaseResultDto<List<TripVDto>>(true, mapper.Map<List<TripVDto>>(trips));
+        }
+
+        /// <summary>
+        /// Job زمان‌بندی‌شده (Hangfire، هر دقیقه): به راننده‌ای که یک سفر رزروشده/سرویسِ هفتگیِ پذیرفته‌شده دارد
+        /// و کمتر از ۳۰ دقیقه تا زمان حرکتش مانده، یک‌بار پوش یادآوری می‌فرستد (DriverReminderSentDate جلوی
+        /// ارسال تکراری را می‌گیرد).
+        /// </summary>
+        public async Task SendUpcomingTripReminderPushAsync()
+        {
+            var accepted = (long)TripStatusEnum.TripStatus_Accepted;
+            var now = DateTime.Now;
+            var windowEnd = now.AddMinutes(30);
+
+            var due = await _context.Trips
+                .Include(t => t.Driver)
+                .AsTracking()
+                .Where(t => t.DriverId != null
+                    && t.TripStatusId == accepted
+                    && t.DriverReminderSentDate == null
+                    && t.TripStartDateTime.HasValue
+                    && t.TripStartDateTime > now
+                    && t.TripStartDateTime <= windowEnd)
+                .ToListAsync();
+
+            if (due.Count == 0)
+                return;
+
+            foreach (var trip in due)
+            {
+                if (trip.Driver != null)
+                {
+                    try
+                    {
+                        var isService = trip.PetResanServiceScheduleId.HasValue;
+                        await _pushNotificationService.SendPushAsync(
+                            PushTypeEnum.PushTripDriverUpcomingReminder,
+                            trip.Driver.OwnerId,
+                            token1: isService ? "سرویس" : "سفر رزروشده",
+                            token2: trip.Id.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send upcoming-trip reminder push for trip {TripId}.", trip.Id);
+                    }
+                }
+                trip.DriverReminderSentDate = now;
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         /// <summary>
@@ -1999,7 +2122,7 @@ namespace Application.Services.TripSrv.TripSrv
         public async Task<BaseResultDto<TripVDto>> GetTripForReservationAsync(long companionReserveId, long userId)
         {
             var trip = await _context.Trips
-                .Include(s => s.Driver)
+                .Include(s => s.Driver).ThenInclude(d => d.ProfilePicture)
                 .Include(s => s.DriverStatus)
                 .Include(s => s.TripStatus)
                 .AsNoTracking()
@@ -2020,7 +2143,7 @@ namespace Application.Services.TripSrv.TripSrv
         public async Task<BaseResultDto<TripVDto>> GetTripForPansionReservationAsync(long pansionReserveId, long userId)
         {
             var trip = await _context.Trips
-                .Include(s => s.Driver)
+                .Include(s => s.Driver).ThenInclude(d => d.ProfilePicture)
                 .Include(s => s.DriverStatus)
                 .Include(s => s.TripStatus)
                 .AsNoTracking()
@@ -2115,24 +2238,19 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task<BaseResultDto<TripVDto>> GetTripForSchoolReservationAsync(long schoolReserveId, long userId)
         {
-            var trip = await _context.Trips.Include(t => t.Driver).Include(t => t.DriverStatus).Include(t => t.TripStatus).AsNoTracking()
+            var trip = await _context.Trips.Include(t => t.Driver).ThenInclude(d => d.ProfilePicture).Include(t => t.DriverStatus).Include(t => t.TripStatus).AsNoTracking()
                 .Where(t => t.SchoolReserveId == schoolReserveId && t.UserId == userId).OrderByDescending(t => t.Id).FirstOrDefaultAsync();
             return trip == null
                 ? new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null)
                 : new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(trip));
         }
 
-        /// <summary>
-        /// Job زمان‌بندی‌شده (Hangfire): دیگه خودکار نزدیک‌ترین راننده رو اختصاص نمی‌ده — چون سفرهای
-        /// رزرویی از همون لحظه‌ی ثبت (نه فقط لحظه‌ی حرکت) Broadcast می‌شن و راننده‌ها می‌تونن زودتر قبول
-        /// کنن (بخش CreateReservationLinkedTripAsync). این Job فقط برای سفرهایی که موعد حرکتشون رسیده
-        /// ولی هنوز *هیچ* راننده‌ای قبولشون نکرده، یک یادآوری به ادمین می‌ده تا از پنل (TripChooseDriver)
-        /// خودش یکی رو دستی انتخاب کنه.
-        /// </summary>
         // Job زمان‌بندی‌شده (Hangfire، روزی یک‌بار): برنامه‌های هفتگیِ فعالِ «سرویس پت‌رسان» رو می‌خونه
-        // و برای «فردا» (نه امروز — یک روز فاصله تا ادمین وقت تخصیص راننده داشته باشه) یک Trip واقعی
-        // می‌سازه، اگه از قبل برای همون تاریخ ساخته نشده باشه. برخلاف بقیه‌ی حالت‌های پت‌رسان، اصلاً
-        // Broadcast نمی‌زنه — فقط Notice برای ادمین می‌سازه، چون تخصیص راننده اینجا دستیِ پاستیله.
+        // و برای «فردا» یک Trip واقعی می‌سازه، اگه از قبل برای همون تاریخ ساخته نشده باشه. این Trip
+        // درست مثل بقیه‌ی حالت‌های پت‌رسان IsOnline=true و DriverId=null داره، پس از همون لحظه‌ی ساخت
+        // در GET /api/Driver/TripAvailable به همه‌ی رانندگان Broadcast می‌شه — هیچ تخصیص دستیِ اجباری
+        // در مسیر عادی نیست (اگه تا موعد حرکت هیچ راننده‌ای قبول نکنه، DispatchScheduledTripsAsync پایین‌تر
+        // به ادمین یادآوری می‌ده تا از پنل TripChooseDriver دستی انتخاب کنه — این فقط یک fallback است).
         // هزینه هم بلافاصله و خودکار از کیف‌پول کسر می‌شه؛ اگه موجودی کافی نبود، همون occurrence
         // کنسل می‌شه و به کاربر اطلاع داده می‌شه، بدون این‌که به بقیه‌ی سرویس آسیبی بزنه.
         private static readonly Dictionary<DayOfWeek, int> PetResanServiceWeekDayNumbers = new()
@@ -2342,13 +2460,54 @@ namespace Application.Services.TripSrv.TripSrv
             }
         }
 
+        /// <summary>
+        /// Job زمان‌بندی‌شده (Hangfire): دیگه خودکار نزدیک‌ترین راننده رو اختصاص نمی‌ده — چون سفرهای
+        /// رزرویی از همون لحظه‌ی ثبت (نه فقط لحظه‌ی حرکت) Broadcast می‌شن و راننده‌ها می‌تونن زودتر قبول
+        /// کنن (بخش CreateReservationLinkedTripAsync). این Job دو مرحله دارد، هر دو روی همه‌ی سفرهای
+        /// تاریخ‌دار (رزروی *و* نوبت‌های سرویس هفتگی پت‌رسان — هر دو از TripStartDateTime استفاده می‌کنند،
+        /// نه فقط ScheduledDepartureAt که سرویس هفتگی اصلاً پر نمی‌کند):
+        ///  ۱) هشدار زودهنگام: ۱ ساعت مانده به حرکت، اگر هنوز راننده‌ای قبول نکرده، یک‌بار به ادمین یادآوری
+        ///     می‌کند تا وقت کافی برای تخصیص دستی (پنل TripChooseDriver) داشته باشد.
+        ///     (این بخش قبلاً وجود نداشت.)
+        ///  ۲) هشدار نهایی: موعد حرکت رسیده و هنوز *هیچ* راننده‌ای قبول نکرده — همان رفتار قبلی، فقط حالا
+        ///     برای سرویس هفتگی هم اعمال می‌شود (قبلاً به‌خاطر تکیه بر ScheduledDepartureAt، نوبت‌های سرویس
+        ///     هفتگیِ بی‌راننده هرگز به ادمین گزارش نمی‌شدند).
+        /// </summary>
         public async Task DispatchScheduledTripsAsync()
         {
+            var now = DateTime.Now;
+            var earlyWarningThreshold = now.AddHours(1);
+            var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
+
+            // ۱) هشدار زودهنگام (۱ ساعت مانده) - فقط Notice/push (بدون SMS، بدون تغییر ScheduledDispatched)
+            var earlyWarningDue = await _context.Trips
+                .Where(t =>
+                    t.TripStartDateTime.HasValue &&
+                    t.TripStartDateTime > now &&
+                    t.TripStartDateTime <= earlyWarningThreshold &&
+                    t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested &&
+                    t.DriverId == null)
+                .AsNoTracking()
+                .ToListAsync();
+
+            foreach (var trip in earlyWarningDue)
+            {
+                try
+                {
+                    await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverSelectionRequired, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"EarlyDispatchWarning:{trip.Id}" });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Early admin warning for unaccepted scheduled/service trip {TripId} failed.", trip.Id);
+                }
+            }
+
+            // ۲) هشدار نهایی (موعد حرکت رسیده)
             var due = await _context.Trips
                 .Where(t =>
-                    t.ScheduledDepartureAt.HasValue &&
+                    t.TripStartDateTime.HasValue &&
                     !t.ScheduledDispatched &&
-                    t.ScheduledDepartureAt <= DateTime.Now &&
+                    t.TripStartDateTime <= now &&
                     t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested &&
                     t.DriverId == null)
                 .AsTracking()
@@ -2356,8 +2515,6 @@ namespace Application.Services.TripSrv.TripSrv
 
             if (due.Count == 0)
                 return;
-
-            var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
 
             foreach (var trip in due)
             {

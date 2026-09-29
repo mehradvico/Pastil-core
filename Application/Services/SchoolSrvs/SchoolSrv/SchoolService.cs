@@ -41,6 +41,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
                 .Include(s => s.Companion).ThenInclude(s => s.Owner)
                 .Include(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.SchoolCourses.Where(c => !c.Deleted))
+                .Include(s => s.SchoolPictures.Where(p => !p.Deleted)).ThenInclude(p => p.Picture)
                 .FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
                 return new BaseResultDto<SchoolVDto>(true, mapper.Map<SchoolVDto>(item));

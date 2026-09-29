@@ -583,6 +583,11 @@ recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITrip
     service => service.GeneratePetResanServiceTripsAsync(),
     "0 20 * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
+// به راننده‌ای که یک سفر رزروشده/سرویسِ پذیرفته‌شده دارد، ۳۰ دقیقه مانده به حرکت یک‌بار پوش یادآوری می‌فرستد.
+recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
+    "SendUpcomingTripReminderPush",
+    service => service.SendUpcomingTripReminderPushAsync(),
+    "* * * * *");
 
 // جاب‌های دسته‌ی دوم (SMS زمان‌بندی‌شده، بستن تیکت، انقضای تخفیف، یادآوری عدم‌پذیرش راننده) قبلاً فقط با یک
 // فراخوانی دستی GET api/BackgroundTask بعد از هر deploy ثبت می‌شدند؛ حالا در استارتاپ ثبت می‌شوند.

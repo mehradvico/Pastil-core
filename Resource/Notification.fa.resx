@@ -1134,6 +1134,9 @@
   <data name="TripPetDeliveryAlreadyExistsForReserve" xml:space="preserve">
     <value>برای این رزرو قبلاً یک سفر پت‌رسان ثبت شده است.</value>
   </data>
+  <data name="DriverHasUpcomingScheduledTrip" xml:space="preserve">
+    <value>شما یک سفر رزروشده یا سرویس نزدیک دارید و فعلاً نمی‌توانید سفر جدیدی بپذیرید.</value>
+  </data>
   <data name="PansionDropOffTimeRequired" xml:space="preserve">
     <value>برای رزرو شبانه/اقامتی، ساعت تحویل پت باید مشخص شود.</value>
   </data>

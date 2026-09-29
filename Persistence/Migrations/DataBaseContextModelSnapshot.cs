@@ -8046,6 +8046,37 @@ namespace Persistence.Migrations
                     b.ToTable("SchoolCourses");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCoursePet", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("PetBreedId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SchoolCourseId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetBreedId");
+
+                    b.HasIndex("PetId");
+
+                    b.HasIndex("SchoolCourseId");
+
+                    b.ToTable("SchoolCoursePets");
+                });
+
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseSession", b =>
                 {
                     b.Property<long>("Id")
@@ -9457,6 +9488,9 @@ namespace Persistence.Migrations
 
                     b.Property<long?>("DriverId")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DriverReminderSentDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<double>("DriverShare")
                         .HasColumnType("float");
@@ -13744,6 +13778,31 @@ namespace Persistence.Migrations
                     b.Navigation("PetBreed");
 
                     b.Navigation("School");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCoursePet", b =>
+                {
+                    b.HasOne("Entities.Entities.PetBreed", "PetBreed")
+                        .WithMany()
+                        .HasForeignKey("PetBreedId");
+
+                    b.HasOne("Entities.Entities.Pet", "Pet")
+                        .WithMany()
+                        .HasForeignKey("PetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourse", "SchoolCourse")
+                        .WithMany()
+                        .HasForeignKey("SchoolCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pet");
+
+                    b.Navigation("PetBreed");
+
+                    b.Navigation("SchoolCourse");
                 });
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseSession", b =>

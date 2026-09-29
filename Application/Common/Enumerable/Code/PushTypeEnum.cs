@@ -88,6 +88,8 @@ namespace Application.Common.Enumerable.Code
         PushTripNoDriverTryAnotherOption = 77,
         PushConsultationAssigned = 78,
         PushConsultationTakenByColleague = 79,
-        PushConsultationUnclaimed = 80
+        PushConsultationUnclaimed = 80,
+        /// <summary>به راننده: ۳۰ دقیقه به شروع یک سفر رزروشده/سرویس هفتگی‌ای که قبلاً قبول کرده مانده.</summary>
+        PushTripDriverUpcomingReminder = 81
     }
 }

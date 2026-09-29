@@ -4308,6 +4308,12 @@
             دوره‌های مدرسه
             </summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolCoursePetController">
+             <summary>
+             پت‌های مورد پذیرش هر دوره‌ی مدرسه
+             </summary>
+            
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.SchoolCourseSessionController">
             <summary>
             جلسات زنده‌ی دوره‌ی مدرسه
@@ -4317,6 +4323,37 @@
             <summary>
             ویدیوهای دوره‌ی مدرسه
             </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolPictureController">
+             <summary>
+             تصاویر گالری مدرسه
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SchoolPictureController.Get(System.Int64)">
+             <summary>
+             اطلاعات آیتم
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SchoolPictureController.Get(Application.Services.SchoolSrvs.SchoolPictureSrv.Dto.SchoolPictureInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SchoolPictureController.Post(Application.Services.SchoolSrvs.SchoolPictureSrv.Dto.SchoolPictureDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SchoolPictureController.Delete(System.Int64)">
+             <summary>
+             حذف آیتم
+             </summary>
+             <returns></returns>
+            
         </member>
         <member name="T:Api.Areas.Admin.Controllers.SchoolReserveCancelController">
             <summary>
@@ -6322,6 +6359,12 @@
             مدیریت دوره‌های مدرسه‌ی خودِ نماینده
             </summary>
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolCoursePetController">
+             <summary>
+             مدیریت پت‌های مورد پذیرش هر دوره (توسط خودِ نماینده)
+             </summary>
+            
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.SchoolCourseSessionController">
             <summary>
             جلسات زنده‌ی دوره‌ی مدرسه‌ی خودِ نماینده
@@ -6331,6 +6374,44 @@
             <summary>
             ویدیوهای دوره‌ی مدرسه‌ی خودِ نماینده
             </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolPictureController">
+             <summary>
+             مدیریت گالری عکس مدرسه (توسط خودِ نماینده)
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolPictureController.Get(System.Int64)">
+             <summary>
+             اطلاعات آیتم
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolPictureController.Get(Application.Services.SchoolSrvs.SchoolPictureSrv.Dto.SchoolPictureInputDto)">
+            <summary>
+            جستجو
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolPictureController.Post(Application.Services.SchoolSrvs.SchoolPictureSrv.Dto.SchoolPictureDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolPictureController.Put(Application.Services.SchoolSrvs.SchoolPictureSrv.Dto.SchoolPictureDto)">
+             <summary>
+             ویرایش آیتم
+             </summary>
+             <returns></returns>
+            
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolPictureController.Delete(System.Int64)">
+             <summary>
+             حذف آیتم
+             </summary>
+             <returns></returns>
+            
         </member>
         <member name="T:Api.Areas.Companion.Controllers.SchoolReserveController">
             <summary>
@@ -6628,6 +6709,11 @@
             <param name="id">شناسه خدمات</param>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.Driver.Controllers.TripUpcomingController">
+            <summary>
+            سفرهای رزروشده/سرویسِ پذیرفته‌شده‌ی این راننده که هنوز شروع نشده‌اند (پیشِ‌رو)
+            </summary>
         </member>
         <member name="T:Api.Areas.Driver.Controllers.UpdateTripDriverStatusController">
              <summary>

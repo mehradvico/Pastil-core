@@ -108,6 +108,8 @@ using Application.Services.PansionSrvs.PansionPictureSrv.Dto;
 using Application.Services.PansionSrvs.PansionReserveSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
 using Application.Services.SchoolSrvs.SchoolCourseSrv.Dto;
+using Application.Services.SchoolSrvs.SchoolCoursePetSrv.Dto;
+using Application.Services.SchoolSrvs.SchoolPictureSrv.Dto;
 using Application.Services.SchoolSrvs.SchoolReserveSrv.Dto;
 using Application.Services.SchoolSrvs.SchoolSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionReserveMessageAttachmentSrv.Dto;
@@ -613,6 +615,11 @@ namespace Application.Maping
             CreateMap<SchoolCourse, SchoolCourseVDto>();
             CreateMap<SchoolCourseSession, SchoolCourseSessionDto>().ReverseMap();
             CreateMap<SchoolCourseVideo, SchoolCourseVideoDto>().ReverseMap();
+            CreateMap<SchoolPictureDto, SchoolPicture>().ForMember(x => x.Id, opt => opt.Ignore()).ForMember(x => x.Picture, opt => opt.Ignore());
+            CreateMap<SchoolPicture, SchoolPictureDto>();
+            CreateMap<SchoolPicture, SchoolPictureVDto>();
+            CreateMap<SchoolCoursePet, SchoolCoursePetDto>().ReverseMap();
+            CreateMap<SchoolCoursePet, SchoolCoursePetVDto>();
 
             CreateMap<SchoolReserve, SchoolReserveDto>().ReverseMap();
             CreateMap<SchoolReserve, SchoolReserveVDto>();

@@ -68,6 +68,8 @@ namespace Entities.Entities
         public DateTime? ScheduledDepartureAt { get; set; }
         public bool OwnerRidesAlong { get; set; }
         public bool ScheduledDispatched { get; set; }
+        // دسته‌ی «۳۰ دقیقه مانده به حرکت» - پوش یادآوری به راننده فقط یک‌بار ارسال می‌شود (SendUpcomingTripReminderPushAsync).
+        public DateTime? DriverReminderSentDate { get; set; }
 
         // لغو سفر — چه کسی لغو کرد (TripCancelInitiatorEnum، Code-backed نیست، مثل ProgressStageId)، دلیل (Code-backed، قابل مدیریت در پنل) و توضیح آزاد.
         public int? CancelInitiatorId { get; set; }

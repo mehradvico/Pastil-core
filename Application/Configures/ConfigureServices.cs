@@ -563,6 +563,8 @@ public static class ConfigureServices
         services.AddScoped<ISchoolService, SchoolService>();
         services.AddScoped<ISchoolCourseService, SchoolCourseService>();
         services.AddScoped<ISchoolReserveService, SchoolReserveService>();
+        services.AddScoped<Application.Services.SchoolSrvs.SchoolPictureSrv.Iface.ISchoolPictureService, Application.Services.SchoolSrvs.SchoolPictureSrv.SchoolPictureService>();
+        services.AddScoped<Application.Services.SchoolSrvs.SchoolCoursePetSrv.Iface.ISchoolCoursePetService, Application.Services.SchoolSrvs.SchoolCoursePetSrv.SchoolCoursePetService>();
         services.AddScoped<IParkService, ParkService>();
         services.AddScoped<IParkPictureService, ParkPictureService>();
         services.AddScoped<IPastilMatchProfileService, PastilMatchProfileService>();

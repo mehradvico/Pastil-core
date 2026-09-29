@@ -62,5 +62,9 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto<List<TripVDto>>> GetAvailableTripsForDriverAsync(long driverId);
         Task<BaseResultDto<TripVDto>> CancelByDriverAsync(TripDriverCancelDto dto, long driverId);
         Task<BaseResultDto<TripVDto>> CancelByUserAsync(TripUserCancelDto dto, long userId);
+
+        // پت‌رسان — سفرهای رزروشده/سرویسِ پیشِ‌روی راننده + یادآوری ۳۰ دقیقه‌ی مانده
+        Task<BaseResultDto<List<TripVDto>>> GetUpcomingTripsForDriverAsync(long driverId);
+        Task SendUpcomingTripReminderPushAsync();
     }
 }

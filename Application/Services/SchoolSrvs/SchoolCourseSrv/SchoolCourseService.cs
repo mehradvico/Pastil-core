@@ -33,11 +33,38 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             return capacity - takenCount;
         }
 
+        // خلاصه‌ی «چند جلسه در هفته / کل دوره چند هفته طول می‌کشد» را از روی تاریخ واقعی
+        // جلسات (SchoolCourseSessions) حساب می‌کند، نه یک الگوی هفتگی فرضی - چون یک دوره
+        // می‌تواند نامنظم هم زمان‌بندی شده باشد. دوره‌ی تک‌جلسه‌ای (SessionCount==1) هفته/بازه ندارد.
+        private static void ApplySessionSummary(SchoolCourseVDto vdto, IEnumerable<SchoolCourseSession> sessions)
+        {
+            vdto.IsSingleSession = vdto.SessionCount <= 1;
+            var dates = sessions.Where(s => !s.Deleted).Select(s => s.SessionDate).OrderBy(d => d).ToList();
+            if (dates.Count == 0)
+                return;
+
+            vdto.FirstSessionDate = dates.First();
+            vdto.LastSessionDate = dates.Last();
+
+            if (dates.Count == 1)
+            {
+                vdto.TotalDurationWeeks = 0;
+                vdto.SessionsPerWeek = dates.Count;
+                return;
+            }
+
+            var spanDays = (dates.Last() - dates.First()).TotalDays;
+            var spanWeeks = spanDays / 7.0;
+            vdto.TotalDurationWeeks = System.Math.Round(spanWeeks, 1);
+            vdto.SessionsPerWeek = spanWeeks > 0 ? System.Math.Round(dates.Count / spanWeeks, 1) : dates.Count;
+        }
+
         public async Task<BaseResultDto<SchoolCourseVDto>> FindAsyncVDto(long id)
         {
             var item = await _context.SchoolCourses
                 .Include(c => c.Pet)
                 .Include(c => c.PetBreed)
+                .Include(c => c.School)
                 .Include(c => c.SchoolCourseSessions.Where(s => !s.Deleted))
                 .Include(c => c.SchoolCourseVideos.Where(v => !v.Deleted))
                 .FirstOrDefaultAsync(c => c.Id == id && !c.Deleted);
@@ -47,6 +74,14 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
 
             var vdto = mapper.Map<SchoolCourseVDto>(item);
             vdto.RemainingCapacity = await RemainingCapacityAsync(item.Id, item.Capacity);
+            ApplySessionSummary(vdto, item.SchoolCourseSessions ?? new List<SchoolCourseSession>());
+
+            var acceptedPets = await _context.SchoolCoursePets
+                .Include(p => p.Pet).Include(p => p.PetBreed)
+                .Where(p => p.SchoolCourseId == id && !p.Deleted)
+                .ToListAsync();
+            vdto.AcceptedPets = mapper.Map<List<Application.Services.SchoolSrvs.SchoolCoursePetSrv.Dto.SchoolCoursePetVDto>>(acceptedPets);
+
             return new BaseResultDto<SchoolCourseVDto>(true, vdto);
         }
 
@@ -88,10 +123,24 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
                 .Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionary(x => x.Key, x => x.Count);
 
+            var courseEntities = model.Where(c => courseIds.Contains(c.Id)).ToList();
+            var acceptedPetsByCourse = _context.SchoolCoursePets
+                .Include(p => p.Pet).Include(p => p.PetBreed)
+                .Where(p => courseIds.Contains(p.SchoolCourseId) && !p.Deleted)
+                .ToList()
+                .GroupBy(p => p.SchoolCourseId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             foreach (var item in result.List)
             {
                 takenCounts.TryGetValue(item.Id, out var taken);
                 item.RemainingCapacity = item.Capacity - taken;
+                var entity = courseEntities.FirstOrDefault(c => c.Id == item.Id);
+                ApplySessionSummary(item, entity?.SchoolCourseSessions ?? new List<SchoolCourseSession>());
+
+                item.AcceptedPets = acceptedPetsByCourse.TryGetValue(item.Id, out var acceptedPets)
+                    ? mapper.Map<List<Application.Services.SchoolSrvs.SchoolCoursePetSrv.Dto.SchoolCoursePetVDto>>(acceptedPets)
+                    : new List<Application.Services.SchoolSrvs.SchoolCoursePetSrv.Dto.SchoolCoursePetVDto>();
             }
 
             return result;

@@ -19,6 +19,7 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public double? ToMinute { get; set; }
+        public bool? ScheduledOrServiceOnly { get; set; }
 
     }
 }

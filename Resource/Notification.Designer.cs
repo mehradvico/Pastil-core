@@ -2413,6 +2413,15 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Driver Has Upcoming Scheduled Trip.
+        /// </summary>
+        public static string DriverHasUpcomingScheduledTrip {
+            get {
+                return ResourceManager.GetString("DriverHasUpcomingScheduledTrip", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Pansion Drop Off Time Required.
         /// </summary>
         public static string PansionDropOffTimeRequired {

@@ -28,5 +28,17 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Dto
 
         // ظرفیت باقی‌مانده - در سرویس محاسبه می‌شود (Capacity منهای تعداد ثبت‌نام‌های غیرلغوشده).
         public int RemainingCapacity { get; set; }
+
+        // پت‌های مورد پذیرش این دوره (چندبه‌چند - جایگزین/مکمل PetId/PetBreedId تکی بالا)
+        public List<Application.Services.SchoolSrvs.SchoolCoursePetSrv.Dto.SchoolCoursePetVDto> AcceptedPets { get; set; }
+
+        // خلاصه‌ی دوره - همگی در سرویس از روی SchoolCourseSessions محاسبه می‌شوند، ذخیره نمی‌شوند
+        public bool IsSingleSession { get; set; }
+        public System.DateTime? FirstSessionDate { get; set; }
+        public System.DateTime? LastSessionDate { get; set; }
+        // تعداد جلسات در هفته، از روی بازه‌ی واقعی جلسات (نه یک عدد فرضی)
+        public double SessionsPerWeek { get; set; }
+        // طول کل دوره به هفته، از اولین تا آخرین جلسه
+        public double TotalDurationWeeks { get; set; }
     }
 }

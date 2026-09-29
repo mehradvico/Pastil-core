@@ -31,5 +31,8 @@ namespace Application.Services.SchoolSrvs.SchoolSrv.Dto
         public CityVDto City { get; set; }
         public PictureVDto Picture { get; set; }
         public List<SchoolCourseDto> SchoolCourses { get; set; }
+
+        // گالری عکس مدرسه (مثل پانسیون)
+        public List<Application.Services.SchoolSrvs.SchoolPictureSrv.Dto.SchoolPictureVDto> SchoolPictures { get; set; }
     }
 }

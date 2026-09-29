@@ -17,7 +17,8 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public double? ToMinute { get; set; }
-
+        // فقط سفرهای رزروی (متصل به خدمت/پانسیون/مدرسه، یا تاریخ‌دار مستقل) یا نوبت‌های سرویس هفتگی پت‌رسان
+        public bool? ScheduledOrServiceOnly { get; set; }
 
     }
 }

@@ -154,6 +154,7 @@ namespace Persistence.Interface
         public DbSet<SchoolCourseSession> SchoolCourseSessions { get; set; }
         public DbSet<SchoolCourseVideo> SchoolCourseVideos { get; set; }
         public DbSet<SchoolPicture> SchoolPictures { get; set; }
+        public DbSet<SchoolCoursePet> SchoolCoursePets { get; set; }
         public DbSet<SchoolReserve> SchoolReserves { get; set; }
         public DbSet<Park> Parks { get; set; }
         public DbSet<ParkPicture> ParkPictures { get; set; }

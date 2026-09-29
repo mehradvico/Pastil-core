@@ -1134,6 +1134,9 @@
   <data name="TripPetDeliveryAlreadyExistsForReserve" xml:space="preserve">
     <value>Trip Pet Delivery Already Exists For Reserve</value>
   </data>
+  <data name="DriverHasUpcomingScheduledTrip" xml:space="preserve">
+    <value>Driver Has Upcoming Scheduled Trip</value>
+  </data>
   <data name="PansionDropOffTimeRequired" xml:space="preserve">
     <value>Pansion Drop Off Time Required</value>
   </data>
