@@ -517,6 +517,8 @@ recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.Consultati
     "ConsultationEndingSoon", x => x.NotifyEndingSoonAsync(), Cron.Minutely);
 recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService>(
     "ConsultationNotifyUnclaimed", x => x.NotifyUnclaimedAsync(), Cron.Minutely);
+recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService>(
+    "ConsultationBookingReminders", x => x.NotifyBookingRemindersAsync(), Cron.Minutely);
 var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
     OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
 // Removed: memory-reminder push is now sent from the panel's own push
@@ -576,6 +578,12 @@ recurringJobManager.AddOrUpdate<Application.Services.SchoolSrvs.SchoolReserveSrv
     service => service.SendClassStartingPushesAsync(CancellationToken.None),
     "*/5 * * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
+// ۵ دقیقه مانده به شروع یک جلسه‌ی زنده‌ی مدرسه، به همه‌ی ثبت‌نام‌کنندگان یادآوری می‌فرستد.
+recurringJobManager.AddOrUpdate<Application.Services.SchoolSrvs.SchoolCourseLiveSrv.Iface.ISchoolCourseLiveService>(
+    "SchoolClassReminderPush",
+    service => service.SendClassReminderPushesAsync(CancellationToken.None),
+    "*/1 * * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
 // هر شب ساعت ۲۰، سفرهای «فردا»ی سرویس‌های پت‌رسان هفتگی رو می‌سازه — تا صبح فردا ادمین وقت
 // تخصیص راننده داشته باشه (TripChooseDriver در پنل).
 recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
@@ -633,6 +641,7 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 app.MapControllers();
 app.MapHub<NoticeHub>("/hubs/notices");
 app.MapHub<CallHub>("/hubs/call");
+app.MapHub<Api.Hubs.SchoolLiveHub>("/hubs/schoolLive");
 app.MapHub<PushHub>("/hubs/push");
 app.UseSwaggerAccessControl();
 app.UseSwagger();

@@ -36,7 +36,7 @@ namespace Application.Services.PansionSrvs.PansionPictureSrv
 
         public PansionPictureSearchDto Search(PansionPictureInputDto searchDto)
         {
-            var model = _context.PansionPictures.Include(s => s.Picture).AsQueryable().Where(s => !s.Deleted);
+            var model = _context.PansionPictures.Include(s => s.Picture).AsQueryable().Where(s => !s.Deleted && !s.Pansion.Deleted);
             if (searchDto.PansionId.HasValue)
             {
                 model = model.Where(s => s.PansionId.Equals(searchDto.PansionId));

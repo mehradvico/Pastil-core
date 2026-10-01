@@ -27,5 +27,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Ifac
         // شبکه‌ی اطمینان (job): مشاوره‌ی پرداخت‌شده‌ای که چند دقیقه گذشته و کسی شروعش نکرده ⇒ یادآوری به همه‌ی نمایندگان مجاز
         // (اگر تخصیص دارد: به نماینده‌ی تخصیص‌یافته و مالک). تعداد خریدهای اعلان‌شده را برمی‌گرداند
         Task<int> NotifyUnclaimedAsync();
+
+        // رزرو ساعت‌دار: ۳۰ دقیقه به ساعت رزرو ⇒ یادآوری به کاربر و نمایندگان (job)؛ تعداد خریدهای اعلان‌شده را برمی‌گرداند
+        Task<int> NotifyBookingRemindersAsync();
     }
 }

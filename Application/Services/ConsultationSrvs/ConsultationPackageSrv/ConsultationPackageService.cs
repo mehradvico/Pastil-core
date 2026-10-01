@@ -59,6 +59,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                     DurationMinutes = dto.DurationMinutes,
                     Price = dto.Price,
                     Active = dto.Active,
+                    Bookable = dto.Bookable ?? false,
                     Name = ConsultationPackageRules.NormalizeName(dto.Name),
                     Description = ConsultationPackageRules.NormalizeDescription(dto.Description),
                     PictureId = dto.PictureId is > 0 ? dto.PictureId : null,
@@ -96,6 +97,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                 row.DurationMinutes = dto.DurationMinutes;
                 row.Price = dto.Price;
                 row.Active = dto.Active;
+                if (dto.Bookable.HasValue)
+                    row.Bookable = dto.Bookable.Value;
                 row.Name = ConsultationPackageRules.NormalizeName(dto.Name);
                 row.Description = ConsultationPackageRules.NormalizeDescription(dto.Description);
                 row.PictureId = dto.PictureId is > 0 ? dto.PictureId : null;
@@ -153,6 +156,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                         ChannelId = s.ChannelId,
                         DurationMinutes = s.DurationMinutes,
                         Price = s.Price,
+                        Bookable = s.Bookable,
                         Name = s.Name,
                         Description = s.Description,
                         SortOrder = s.SortOrder,
@@ -254,6 +258,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                 DurationMinutes = s.DurationMinutes,
                 Price = s.Price,
                 Active = s.Active,
+                Bookable = s.Bookable,
                 Name = s.Name,
                 Description = s.Description,
                 PictureId = s.PictureId,

@@ -17,9 +17,11 @@ namespace Api.Areas.Admin.Controllers
     public class PansionController : ControllerBase
     {
         private readonly IPansionService _PansionService;
-        public PansionController(IPansionService PansionService)
+        private readonly Application.Common.Interface.ICurrentUserHelper _currentUser;
+        public PansionController(IPansionService PansionService, Application.Common.Interface.ICurrentUserHelper currentUser)
         {
             this._PansionService = PansionService;
+            this._currentUser = currentUser;
         }
 
         /// <summary>
@@ -28,9 +30,10 @@ namespace Api.Areas.Admin.Controllers
         /// <returns></returns> 
         [HttpGet()]
         [ProducesResponseType(typeof(PansionSearchDto), 200)]
-        public IActionResult Get([FromQuery] PansionInputDto dto)
+        /// <param name="deleted">true = فقط پانسیون‌های حذف‌شده (حذف نرم)؛ پیش‌فرض: حذف‌شده‌ها نمایش داده نمی‌شوند</param>
+        public IActionResult Get([FromQuery] PansionInputDto dto, [FromQuery] bool? deleted = null)
         {
-            var search = _PansionService.Search(dto);
+            var search = _PansionService.Search(dto, onlyDeleted: deleted == true);
             return Ok(search);
         }
 
@@ -45,7 +48,8 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto<PansionDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var Pansion = await _PansionService.FindAsyncVDto(id);
+            // ادمین پانسیون حذف‌شده را هم می‌بیند (Deleted/DeleteDate در پاسخ)
+            var Pansion = await _PansionService.FindAsyncVDto(id, includeDeleted: true);
             return Ok(Pansion);
         }
 
@@ -69,10 +73,36 @@ namespace Api.Areas.Admin.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(PansionDto dto)
+        public async Task<IActionResult> Put(PansionDto dto)
         {
+            // UpdateDto عمومی کل ردیف را بازنویسی می‌کند و Deleted را false می‌کرد؛ پانسیون حذف‌شده را اول با Restore برگردانید
+            var existing = await _PansionService.FindAsyncVDto(dto.Id);
+            if (!existing.IsSuccess)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             var Pansion = _PansionService.UpdateDto(dto);
             return Ok(Pansion);
+        }
+
+        /// <summary>
+        /// حذف نرم پانسیون توسط ادمین (رزروها و گزارش مالی می‌مانند؛ با رزرو باز پرداخت‌شده حذف نمی‌شود)
+        /// </summary>
+        [HttpDelete]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Delete(long id)
+        {
+            var result = await _PansionService.SoftDeleteAsync(id, null, _currentUser.CurrentUser.UserId);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// بازگردانی پانسیون حذف‌شده (غیرفعال و منتشرنشده برمی‌گردد)
+        /// </summary>
+        [HttpPut("Restore")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Restore(long id)
+        {
+            var result = await _PansionService.RestoreAsync(id);
+            return Ok(result);
         }
     }
 }

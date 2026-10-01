@@ -14,9 +14,12 @@ namespace Entities.Entities.SchoolField
         public string EndTime { get; set; }
         public string MeetingUrl { get; set; }
         public DateTime? StartingPushSentDate { get; set; }
+        // یادآوری «۵ دقیقه مانده» - جدا از StartingPushSentDate (که سرِ لحظه‌ی شروع می‌رود)
+        public DateTime? ReminderPushSentDate { get; set; }
         public bool Active { get; set; }
         public bool Deleted { get; set; }
 
         public SchoolCourse SchoolCourse { get; set; }
+        public SchoolCourseLiveSession LiveSession { get; set; }
     }
 }

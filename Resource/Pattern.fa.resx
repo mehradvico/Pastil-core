@@ -354,6 +354,12 @@
   <data name="PushSchoolClassStarting" xml:space="preserve">
     <value>کلاس «{0}» به‌زودی شروع می‌شود.</value>
   </data>
+  <data name="PushTripDriverUpcomingReminder" xml:space="preserve">
+    <value>{0} شما تا ۳۰ دقیقه‌ی دیگر شروع می‌شود.</value>
+  </data>
+  <data name="PushSchoolClassReminder5Min" xml:space="preserve">
+    <value>کلاس «{0}» تا ۵ دقیقه‌ی دیگر شروع می‌شود.</value>
+  </data>
   <data name="PushCompanionReserveNewMessage" xml:space="preserve">
     <value>پیام جدید از {0}: {1}</value>
   </data>
@@ -407,5 +413,14 @@
   </data>
   <data name="PushConsultationUnclaimed" xml:space="preserve">
     <value>مشاوره‌ی {0} بعد از {2} دقیقه هنوز کسی جواب نداده.</value>
+  </data>
+  <data name="PushConsultationBookedAgent" xml:space="preserve">
+    <value>{0} یک مشاوره‌ی {2} برای {3} رزرو کرده است.</value>
+  </data>
+  <data name="PushConsultationBookedUser" xml:space="preserve">
+    <value>مشاوره‌ی شما در {0} برای {2} ثبت شد؛ در همان ساعت نماینده با شما ارتباط می‌گیرد.</value>
+  </data>
+  <data name="PushConsultationBookingReminder" xml:space="preserve">
+    <value>مشاوره‌ی {0} تا ۳۰ دقیقه‌ی دیگر شروع می‌شود.</value>
   </data>
 </root>

@@ -44,6 +44,21 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
 
             var buyerName = FullName(purchase.User);
             var channelLabel = ChannelLabel(purchase.ChannelId);
+
+            // رزرو ساعت‌دار: پوش «برای ساعت X رزرو شد» (نه «بیا ارتباط را برقرار کن»)
+            if (purchase.ScheduledStart.HasValue)
+            {
+                var when = FormatScheduled(purchase.ScheduledStart.Value);
+                foreach (var agentId in await AgentUserIdsAsync(purchase.CompanionId))
+                {
+                    await SendOnceAsync(PushTypeEnum.PushConsultationBookedAgent, agentId, purchase.Id,
+                        buyerName, purchase.Id.ToString(), channelLabel, when);
+                }
+                await SendOnceAsync(PushTypeEnum.PushConsultationBookedUser, purchase.UserId, purchase.Id,
+                    purchase.Companion?.Name ?? string.Empty, purchase.Id.ToString(), when);
+                return;
+            }
+
             foreach (var agentId in await AgentUserIdsAsync(purchase.CompanionId))
             {
                 await SendOnceAsync(PushTypeEnum.PushConsultationPurchasedAgent, agentId, purchase.Id,
@@ -52,6 +67,46 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
 
             await SendOnceAsync(PushTypeEnum.PushConsultationPurchasedUser, purchase.UserId, purchase.Id,
                 purchase.Companion?.Name ?? string.Empty, purchase.Id.ToString());
+        }
+
+        public async Task<int> NotifyBookingRemindersAsync()
+        {
+            var now = DateTime.Now;
+            var paid = (int)ConsultationPurchaseStatusEnum.Paid;
+            var until = now + ConsultationRules.BookingReminderLead;
+            var rows = await _context.ConsultationPurchases.AsNoTracking()
+                .Where(s => s.Status == paid && s.ScheduledStart != null && s.ScheduledStart > now && s.ScheduledStart <= until)
+                .Include(s => s.User)
+                .Include(s => s.Companion)
+                .OrderBy(s => s.ScheduledStart)
+                .Take(BatchSize)
+                .ToListAsync();
+
+            var notified = 0;
+            foreach (var purchase in rows)
+            {
+                try
+                {
+                    // کاربر: با نام کلینیک؛ نمایندگان: با نام کاربر. مقصد کلیک: صفحه‌ی مشاوره‌های هر طرف
+                    await SendOnceAsync(PushTypeEnum.PushConsultationBookingReminder, purchase.UserId, purchase.Id,
+                        purchase.Companion?.Name ?? string.Empty, purchase.Id.ToString(), UserPagePath);
+
+                    // اگر مشاوره به نماینده‌ای تخصیص دارد: او و مالک؛ وگرنه همه‌ی نمایندگان مجاز
+                    var owners = await _context.Companions.AsNoTracking()
+                        .Where(c => c.Id == purchase.CompanionId && !c.Deleted).Select(c => c.OwnerId).ToListAsync();
+                    var recipients = purchase.AgentUserId.HasValue
+                        ? owners.Append(purchase.AgentUserId.Value).Distinct().ToList()
+                        : await AgentUserIdsAsync(purchase.CompanionId);
+                    foreach (var agentId in recipients)
+                    {
+                        await SendOnceAsync(PushTypeEnum.PushConsultationBookingReminder, agentId, purchase.Id,
+                            FullName(purchase.User), purchase.Id.ToString(), AgentPagePath);
+                    }
+                    notified++;
+                }
+                catch { /* اجرای بعدی دوباره تلاش می‌کند */ }
+            }
+            return notified;
         }
 
         public async Task NotifyExpiredRefundAsync(long purchaseId)
@@ -70,6 +125,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
             var paid = (int)ConsultationPurchaseStatusEnum.Paid;
             var active = (int)ConsultationPurchaseStatusEnum.Active;
             var purchasedUserType = (long)PushTypeEnum.PushConsultationPurchasedUser;
+            var bookedUserType = (long)PushTypeEnum.PushConsultationBookedUser;
             var since = now.AddDays(-1);
             var settle = now.AddSeconds(-10);
 
@@ -77,7 +133,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
             var ids = await _context.ConsultationPurchases.AsNoTracking()
                 .Where(s => (s.Status == paid || s.Status == active) && s.PaidDate != null && s.PaidDate > since && s.PaidDate < settle &&
                             !_context.PushNotifications.Any(n => n.UserId == s.UserId && n.Token2 == s.Id.ToString() &&
-                                                                 n.PushPattern.PushTypeId == purchasedUserType))
+                                                                 n.PushPattern.PushTypeId == (s.ScheduledStart == null ? purchasedUserType : bookedUserType)))
                 .OrderBy(s => s.Id)
                 .Select(s => s.Id)
                 .Take(BatchSize)
@@ -170,7 +226,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
             var before = now - UnclaimedAfter;
             var rows = await _context.ConsultationPurchases.AsNoTracking()
                 .Where(s => s.Status == paid && s.PaidDate != null && s.PaidDate <= before &&
-                            (s.StartDeadline == null || s.StartDeadline > now))
+                            (s.StartDeadline == null || s.StartDeadline > now) &&
+                            // رزرو ساعت‌دار: «هنوز کسی جواب نداده» فقط وقتی ساعت رزرو نزدیک/رسیده است، نه روزها قبل
+                            (s.ScheduledStart == null || s.ScheduledStart <= now + ConsultationRules.BookingEarlyStart))
                 .Include(s => s.User)
                 .OrderBy(s => s.PaidDate)
                 .Take(BatchSize)
@@ -234,6 +292,14 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
                 return;
 
             await _push.SendPushAsync(type, userId, token1, token2, token3, token4);
+        }
+
+        // «۱۴۰۵/۰۷/۱۱ ساعت ۱۶:۰۰» (تاریخ شمسی)
+        private static string FormatScheduled(DateTime when)
+        {
+            var calendar = new PersianCalendar();
+            return string.Create(CultureInfo.InvariantCulture,
+                $"{calendar.GetYear(when)}/{calendar.GetMonth(when):D2}/{calendar.GetDayOfMonth(when):D2} ساعت {when:HH:mm}");
         }
 
         private static string FullName(Entities.Entities.Security.User user) =>

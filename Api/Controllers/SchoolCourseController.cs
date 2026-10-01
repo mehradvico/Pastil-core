@@ -39,7 +39,7 @@ namespace Api.Controllers
         }
 
         [HttpGet("remainingCapacity/{id}")]
-        [ProducesResponseType(typeof(int), 200)]
+        [ProducesResponseType(typeof(int?), 200)]
         public async Task<IActionResult> GetRemainingCapacity(long id)
         {
             var remaining = await _schoolReserveService.GetRemainingCapacityAsync(id);

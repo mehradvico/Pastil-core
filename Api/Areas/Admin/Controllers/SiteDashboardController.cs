@@ -52,7 +52,7 @@ namespace Api.Areas.Admin.Controllers
                 GalleryCount = await _context.Galleries.AsNoTracking().CountAsync(item => !item.Deleted && item.Active),
                 CompanionCount = await _context.Companions.AsNoTracking().CountAsync(item => !item.Deleted && item.ShowToSite),
                 AssistanceCount = await _context.Assistances.AsNoTracking().CountAsync(item => !item.Deleted && item.ShowToSite),
-                PansionCount = await _context.Pansions.AsNoTracking().CountAsync(item => item.ShowToSite),
+                PansionCount = await _context.Pansions.AsNoTracking().CountAsync(item => item.ShowToSite && !item.Deleted),
                 StoreCount = await _context.Stores.AsNoTracking().CountAsync(item => !item.Deleted && item.ShowToSite),
                 RecentPosts = await posts
                     .OrderByDescending(item => item.PublishDate)

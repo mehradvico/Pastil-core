@@ -215,6 +215,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<OnlineSessionMessage> OnlineSessionMessages { get; set; }
         public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
         public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
+        public DbSet<ConsultationAvailability> ConsultationAvailabilities { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
         public DbSet<CompanionReserveComment> CompanionReserveComments { get; set; }
         public DbSet<CompanionReserveCommentRate> CompanionReserveCommentRates { get; set; }
@@ -284,6 +285,8 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<SchoolCourseVideo> SchoolCourseVideos { get; set; }
         public DbSet<SchoolPicture> SchoolPictures { get; set; }
         public DbSet<SchoolCoursePet> SchoolCoursePets { get; set; }
+        public DbSet<SchoolCourseLiveSession> SchoolCourseLiveSessions { get; set; }
+        public DbSet<SchoolLiveComment> SchoolLiveComments { get; set; }
         public DbSet<Entities.Entities.PrescriptionField.OnlinePrescription> OnlinePrescriptions { get; set; }
         public DbSet<Entities.Entities.PrescriptionField.OnlinePrescriptionPicture> OnlinePrescriptionPictures { get; set; }
         public DbSet<SchoolReserve> SchoolReserves { get; set; }
@@ -466,6 +469,13 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasIndex(item => new { item.CompanionId, item.Status });
                 entity.HasIndex(item => new { item.Status, item.StartDeadline });
                 entity.HasIndex(item => new { item.Status, item.ExpireDate });
+                // شمارش هم‌پوشانی اسلات‌های رزرو یک کلینیک
+                entity.HasIndex(item => new { item.CompanionId, item.ScheduledStart });
+            });
+            modelBuilder.Entity<ConsultationAvailability>(entity =>
+            {
+                entity.HasOne(item => item.Companion).WithMany().HasForeignKey(item => item.CompanionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => new { item.CompanionId, item.WeekDayId });
             });
             modelBuilder.Entity<OnlineSessionMessage>(entity =>
             {

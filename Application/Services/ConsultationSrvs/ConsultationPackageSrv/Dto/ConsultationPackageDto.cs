@@ -12,6 +12,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto
         public int DurationMinutes { get; set; }
         public double Price { get; set; }
         public bool Active { get; set; }
+        // «قابل رزرو»: true ⇒ کاربر هنگام خرید ساعت انتخاب می‌کند (بازه‌های کاری: /api/Companion/ConsultationAvailability).
+        // در ورودی null یعنی «تغییر نده» (ویرایش) / false (ساخت)؛ در خروجی همیشه true/false است.
+        public bool? Bookable { get; set; }
         // نام پکیج (الزامی، ۲ تا ۱۰۰ کاراکتر)، توضیح اختیاری (تا ۵۰۰ کاراکتر)
         public string Name { get; set; }
         public string Description { get; set; }
@@ -36,5 +39,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto
         public int SortOrder { get; set; }
         // true اگر همین الان حداقل یک نفر از تیم کلینیک «آنلاینم» را زده باشد (چراغ سبز مشاوره)
         public bool CompanionOnline { get; set; }
+        // true ⇒ باید برای خرید ساعت انتخاب شود (GET /api/EndUser/ConsultationBooking/Days و /Slots) و ScheduledStart در خرید ارسال شود
+        public bool Bookable { get; set; }
     }
 }

@@ -18,6 +18,9 @@ namespace Entities.Entities
         public long? PictureId { get; set; }
         public int SortOrder { get; set; }
         public double Price { get; set; }
+        // true = «قابل رزرو»: کاربر هنگام خرید ساعت انتخاب می‌کند (ConsultationAvailability) و مشاوره در همان ساعت انجام می‌شود.
+        // false = رفتار قبلی: خرید فوری و شروع توسط نماینده.
+        public bool Bookable { get; set; }
         public bool Active { get; set; }
         public bool Deleted { get; set; }
         public DateTime CreateDate { get; set; }

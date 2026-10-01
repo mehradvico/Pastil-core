@@ -12,16 +12,16 @@ namespace Application.Services.CompanionSrvs.ConsultationOnlineSrv
     {
         public bool Online { get; set; }
         public DateTime? ExpiresAt { get; set; }
-        // فقط در پاسخ عمومی (نمای کاربر): چند نفر از تیم همین کلینیک الان آنلاین‌اند
+        // فقط در پاسخ عمومی (نمای کاربر): چند نفر از تیم همین کلینیک/مدرسه الان آنلاین‌اند
         public int OnlineStaffCount { get; set; }
     }
 
     public interface IConsultationOnlineService
     {
-        // وضعیت من (کاربر جاری) در یک کلینیک؛ اگر عضو فعال چند کلینیک باشد companionId الزامی است
+        // وضعیت من (کاربر جاری) در یک کلینیک/مدرسه؛ اگر عضو فعال چند کلینیک باشد companionId الزامی است
         Task<BaseResultDto<ConsultationOnlineStatusDto>> GetMineAsync(long userId, long? companionId);
         Task<BaseResultDto<ConsultationOnlineStatusDto>> SetMineAsync(long userId, long? companionId, bool online);
-        // وضعیت عمومی یک کلینیک برای صفحه‌ی خرید مشاوره
+        // وضعیت عمومی یک کلینیک/مدرسه برای صفحه‌ی خرید مشاوره
         Task<ConsultationOnlineStatusDto> GetPublicAsync(long companionId);
     }
 
@@ -39,6 +39,10 @@ namespace Application.Services.CompanionSrvs.ConsultationOnlineSrv
                 s.UserId == userId && !s.Deleted && s.Active && s.UserAccept == true &&
                 (companionId == null || s.CompanionId == companionId.Value));
 
+        // مالک کلینیک/مدرسه («مربی»)؛ اگر عضویتی در CompanionUsers نداشته باشد هم باید بتواند روشن/خاموش کند
+        private Task<bool> IsOwnerAsync(long userId, long companionId) =>
+            _context.Companions.AsNoTracking().AnyAsync(s => s.Id == companionId && s.OwnerId == userId && !s.Deleted);
+
         public async Task<BaseResultDto<ConsultationOnlineStatusDto>> GetMineAsync(long userId, long? companionId)
         {
             try
@@ -47,8 +51,15 @@ namespace Application.Services.CompanionSrvs.ConsultationOnlineSrv
                 var rows = await MyMemberships(userId, companionId).AsNoTracking()
                     .Select(s => new { s.ConsultationOnline, s.ConsultationOnlineExpiresAt })
                     .ToListAsync();
+
                 if (rows.Count == 0)
+                {
+                    // مالک بدون عضویتِ صریح در CompanionUsers («مربی» تازه‌کار بدون همکار): پیش‌فرض آفلاین، نه خطا
+                    if (companionId.HasValue && await IsOwnerAsync(userId, companionId.Value))
+                        return new BaseResultDto<ConsultationOnlineStatusDto>(true, new ConsultationOnlineStatusDto { Online = false, ExpiresAt = null });
+
                     return new BaseResultDto<ConsultationOnlineStatusDto>(false, Resource.Notification.AccessDenied, null);
+                }
 
                 var online = rows.Any(r => ConsultationOnlineRules.IsOnline(r.ConsultationOnline, r.ConsultationOnlineExpiresAt, now));
                 var expiresAt = rows.Where(r => ConsultationOnlineRules.IsOnline(r.ConsultationOnline, r.ConsultationOnlineExpiresAt, now))
@@ -74,7 +85,29 @@ namespace Application.Services.CompanionSrvs.ConsultationOnlineSrv
                         .SetProperty(s => s.ConsultationOnlineExpiresAt, expiresAt));
 
                 if (affected == 0)
-                    return new BaseResultDto<ConsultationOnlineStatusDto>(false, Resource.Notification.AccessDenied, null);
+                {
+                    // مالک بدون عضویتِ صریح («مربی» مدرسه معمولاً همین حالت است): بدون تغییر schema، یک ردیفِ
+                    // خودمالکی در CompanionUsers می‌سازیم تا این و دفعات بعد از همان مسیر معمولی آپدیت شود.
+                    if (!companionId.HasValue || !await IsOwnerAsync(userId, companionId.Value))
+                        return new BaseResultDto<ConsultationOnlineStatusDto>(false, Resource.Notification.AccessDenied, null);
+
+                    var hasInactiveRow = await _context.CompanionUsers.AnyAsync(s =>
+                        s.UserId == userId && s.CompanionId == companionId.Value && !s.Deleted);
+                    if (hasInactiveRow)
+                        // ردیفی هست ولی Active/UserAccept نیست؛ عمداً غیرفعال شده - دخالت نکن
+                        return new BaseResultDto<ConsultationOnlineStatusDto>(false, Resource.Notification.AccessDenied, null);
+
+                    await _context.CompanionUsers.AddAsync(new Entities.Entities.CompanionField.CompanionUser
+                    {
+                        CompanionId = companionId.Value,
+                        UserId = userId,
+                        Active = true,
+                        UserAccept = true,
+                        ConsultationOnline = online,
+                        ConsultationOnlineExpiresAt = expiresAt
+                    });
+                    await _context.SaveChangesAsync();
+                }
 
                 return new BaseResultDto<ConsultationOnlineStatusDto>(true, new ConsultationOnlineStatusDto { Online = online, ExpiresAt = expiresAt });
             }

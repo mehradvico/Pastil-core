@@ -165,7 +165,7 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
         {
             var companionOwners = _context.Companions.Where(c => !c.Deleted).Select(c => c.OwnerId);
             var companionStaff = _context.CompanionUsers.Where(u => u.Active && !u.Deleted).Select(u => u.UserId);
-            var pansionOwners = _context.Pansions.Where(p => p.Active).Select(p => p.Companion.OwnerId);
+            var pansionOwners = _context.Pansions.Where(p => p.Active && !p.Deleted).Select(p => p.Companion.OwnerId);
 
             switch (type)
             {

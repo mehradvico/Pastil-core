@@ -76,7 +76,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             purchase.PaymentId = paymentId;
             purchase.Status = (int)ConsultationPurchaseStatusEnum.Paid;
             purchase.PaidDate = now;
-            purchase.StartDeadline = ConsultationPurchaseRules.ComputeStartDeadline(now);
+            // رزرو ساعت‌دار: مهلت = ساعت رزرو + ۱۵ دقیقه (بعدش لغو خودکار و بازپرداخت)؛ خرید فوری: ۲۴ ساعت بعد از پرداخت
+            purchase.StartDeadline = purchase.ScheduledStart.HasValue
+                ? ConsultationBookingSrv.ConsultationBookingRules.StartDeadline(purchase.ScheduledStart.Value)
+                : ConsultationPurchaseRules.ComputeStartDeadline(now);
             // کارمزد پاستیل ۰٪ (تصمیم محصول): کل مبلغ پرداخت‌شده سهم کلینیک
             purchase.CompanionShare = purchase.PaymentPrice;
             purchase.SiteShare = 0;

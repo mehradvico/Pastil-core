@@ -620,6 +620,7 @@ namespace Application.Maping
             CreateMap<SchoolPicture, SchoolPictureVDto>();
             CreateMap<SchoolCoursePet, SchoolCoursePetDto>().ReverseMap();
             CreateMap<SchoolCoursePet, SchoolCoursePetVDto>();
+            CreateMap<SchoolCourseLiveSession, Application.Services.SchoolSrvs.SchoolCourseLiveSrv.Dto.SchoolCourseLiveSessionVDto>();
 
             CreateMap<SchoolReserve, SchoolReserveDto>().ReverseMap();
             CreateMap<SchoolReserve, SchoolReserveVDto>();

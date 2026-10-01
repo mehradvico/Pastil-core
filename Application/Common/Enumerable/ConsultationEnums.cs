@@ -32,5 +32,24 @@ namespace Application.Common.Enumerable
         // مهلت شروع نماینده بعد از پرداخت؛ بعد از آن لغو خودکار و بازپرداخت
         public static readonly System.TimeSpan StartDeadlineAfterPayment = System.TimeSpan.FromHours(24);
 
+        // ---- پکیج «قابل رزرو» (کاربر ساعت انتخاب می‌کند). طراحی: backend/Docs/ONLINE_CONSULTATION_BOOKING_FA.md
+        // شروع هر اسلات روی این شبکه‌ی دقیقه‌ای می‌نشیند (مثلاً ۱۶:۰۰، ۱۶:۱۵، …)
+        public const int BookingSlotStepMinutes = 15;
+        // نزدیک‌ترین زمان قابل رزرو از «الان» (تا نماینده فرصت آماده‌شدن داشته باشد)
+        public static readonly System.TimeSpan BookingMinLead = System.TimeSpan.FromMinutes(30);
+        // دورترین روز قابل رزرو (روز)
+        public const int BookingMaxDaysAhead = 14;
+        // نماینده از این مدت قبل از ساعت رزرو می‌تواند «شروع» را بزند
+        public static readonly System.TimeSpan BookingEarlyStart = System.TimeSpan.FromMinutes(10);
+        // مهلت دیرکرد نماینده بعد از ساعت رزرو؛ بعد از آن لغو خودکار و بازپرداخت
+        public static readonly System.TimeSpan BookingStartGrace = System.TimeSpan.FromMinutes(15);
+        // لغو آزاد توسط کاربر تا این مدت قبل از ساعت رزرو (با بازپرداخت کامل)؛ بعد از آن لغو کاربر ممکن نیست
+        public static readonly System.TimeSpan BookingFreeCancelBefore = System.TimeSpan.FromHours(2);
+        // رزروِ در انتظار پرداخت تا این مدت ظرفیت اسلات را نگه می‌دارد
+        public static readonly System.TimeSpan BookingPendingHold = System.TimeSpan.FromMinutes(20);
+        // یادآوری به هر دو طرف این مدت قبل از ساعت رزرو
+        public static readonly System.TimeSpan BookingReminderLead = System.TimeSpan.FromMinutes(30);
+        // سقف هم‌زمانی قابل تعریف برای یک بازه‌ی کاری
+        public const int BookingMaxCapacity = 20;
     }
 }

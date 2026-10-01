@@ -34,7 +34,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             this._logger = logger;
         }
 
-        public async Task<BaseResultDto<SchoolVDto>> FindAsyncVDto(long id)
+        public async Task<BaseResultDto<SchoolVDto>> FindAsyncVDto(long id, bool includeDeleted = false)
         {
             var item = await _context.Schools
                 .Include(s => s.Picture)
@@ -42,19 +42,21 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
                 .Include(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.SchoolCourses.Where(c => !c.Deleted))
                 .Include(s => s.SchoolPictures.Where(p => !p.Deleted)).ThenInclude(p => p.Picture)
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.Id == id && (includeDeleted || !s.Deleted));
             if (item != null)
                 return new BaseResultDto<SchoolVDto>(true, mapper.Map<SchoolVDto>(item));
             return new BaseResultDto<SchoolVDto>(false, mapper.Map<SchoolVDto>(item));
         }
 
-        public SchoolSearchDto Search(SchoolInputDto baseSearchDto)
+        public SchoolSearchDto Search(SchoolInputDto baseSearchDto, bool onlyDeleted = false)
         {
             var model = _context.Schools
                 .Include(s => s.Picture)
                 .Include(s => s.Companion)
                 .Include(s => s.City).ThenInclude(s => s.State)
                 .AsQueryable();
+            // حذف‌شده‌ها فقط وقتی ادمین صریحاً بخواهد (onlyDeleted) دیده می‌شوند؛ برای بقیه‌ی فراخوان‌ها هرگز.
+            model = onlyDeleted ? model.Where(s => s.Deleted) : model.Where(s => !s.Deleted);
 
             if (baseSearchDto.CompanionId.HasValue)
                 model = model.Where(s => s.CompanionId == baseSearchDto.CompanionId.Value);
@@ -110,7 +112,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
 
         public BaseResultDto UpdateSchoolActiveDto(SchoolActiveDto dto, long? companionId = null)
         {
-            var item = _context.Schools.FirstOrDefault(s => s.Id == dto.Id);
+            var item = _context.Schools.FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (companionId.HasValue && item.CompanionId != companionId.Value)
@@ -130,7 +132,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             var item = await _context.Schools
                 .Include(s => s.Companion)
                 .AsTracking()
-                .FirstOrDefaultAsync(s => s.Id == dto.Id);
+                .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
             if (item?.Companion == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
@@ -151,7 +153,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
         public async Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite)
         {
             var affectedRows = await _context.Schools
-                .Where(x => x.Id == id)
+                .Where(x => x.Id == id && !x.Deleted)
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(x => x.ShowToSite, showToSite));
 
@@ -161,11 +163,72 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             return new BaseResultDto(true);
         }
 
+        // حذف نرم توسط مالک کلینیک (companionId = کلینیک جاری کاربر) یا ادمین (companionId = null).
+        // ردیف و دوره‌ها پاک نمی‌شوند: رزروها، تسویه‌ها و گزارش مالی می‌مانند؛ مدرسه از فهرست‌ها، جستجو و رزرو جدید حذف می‌شود.
+        // تا وقتی ثبت‌نام «باز» (پرداخت‌شده، لغو/تکمیل‌نشده) دارد حذف نمی‌شود.
+        public async Task<BaseResultDto> SoftDeleteAsync(long id, long? companionId, long actorUserId)
+        {
+            try
+            {
+                var item = await _context.Schools.AsNoTracking()
+                    .Where(s => s.Id == id && !s.Deleted)
+                    .Select(s => new { s.Id, s.CompanionId })
+                    .FirstOrDefaultAsync();
+                if (item == null)
+                    return new BaseResultDto(false, Resource.Notification.NothingFound);
+                if (companionId.HasValue && item.CompanionId != companionId.Value)
+                    return new BaseResultDto(false, Resource.Notification.AccessDenied);
+                // حذف توسط نماینده فقط برای «مالک» همان کلینیک (نه اعضای تیم)
+                if (companionId.HasValue &&
+                    !await _context.Companions.AsNoTracking().AnyAsync(c => c.Id == companionId.Value && c.OwnerId == actorUserId && !c.Deleted))
+                    return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+                var paid = (int)SchoolReserveStatusEnum.Paid;
+                var hasOpenReserve = await _context.SchoolReserves.AsNoTracking().AnyAsync(r =>
+                    r.SchoolCourse.SchoolId == id && !r.IsCancel && r.IsReserved && r.StatusId == paid);
+                if (hasOpenReserve)
+                    return new BaseResultDto(false, Resource.Notification.SchoolDeleteHasOpenReserves);
+
+                var now = DateTime.Now;
+                var affected = await _context.Schools
+                    .Where(s => s.Id == id && !s.Deleted)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(s => s.Deleted, true)
+                        .SetProperty(s => s.DeleteDate, (DateTime?)now)
+                        .SetProperty(s => s.DeletedByUserId, (long?)actorUserId)
+                        .SetProperty(s => s.Active, false)
+                        .SetProperty(s => s.ShowToSite, false)
+                        .SetProperty(s => s.Suggested, false));
+                return affected == 0
+                    ? new BaseResultDto(false, Resource.Notification.NothingFound)
+                    : new BaseResultDto(true, Resource.Notification.Success);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Soft-deleting school {SchoolId} failed.", id);
+                return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
+            }
+        }
+
+        // بازگردانی (فقط ادمین): مدرسه «غیرفعال و منتشرنشده» برمی‌گردد تا دوباره فعال شود
+        public async Task<BaseResultDto> RestoreAsync(long id)
+        {
+            var affected = await _context.Schools
+                .Where(s => s.Id == id && s.Deleted)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(s => s.Deleted, false)
+                    .SetProperty(s => s.DeleteDate, (DateTime?)null)
+                    .SetProperty(s => s.DeletedByUserId, (long?)null));
+            return affected == 0
+                ? new BaseResultDto(false, Resource.Notification.NothingFound)
+                : new BaseResultDto(true, Resource.Notification.Success);
+        }
+
         public async Task<List<SearchSchoolDto>> SearchMinAsync(SearchRequestDto request)
         {
             var predicate = SearchQueryHelper.ContainsAny<Entities.Entities.SchoolField.School>(request.SearchTerms,
                 item => item.Name, item => item.Discription, item => item.AddressValue, item => item.City.Name, item => item.State.Name);
-            var query = _context.Schools.AsNoTracking().Where(s => s.Active && s.Approve && s.ShowToSite);
+            var query = _context.Schools.AsNoTracking().Where(s => s.Active && s.Approve && s.ShowToSite && !s.Deleted);
             return await query.Where(predicate)
                 .OrderByDescending(s => s.RateAvg)
                 .Take(SearchQueryHelper.CandidateCount(request.SchoolCount))

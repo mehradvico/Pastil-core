@@ -292,6 +292,72 @@ echo '--> DOCKER-USER rules for port 1433 after update:'
     if ($code -ne 0) { Stop-WithError "Remote iptables update failed (exit code $code)" }
     Write-Ok "$myIp is now whitelisted for port 1433 (any previous IP from this tool was removed)"
 
+    # -----------------------------------------------------------------------
+    # Verify from THIS machine that port 1433 is really reachable now.
+    # A green "whitelisted" line used to be the last thing printed even when
+    # SQL Server was still unreachable (e.g. the container down or not
+    # listening -> "actively refused", error 10061). Say which it is.
+    # -----------------------------------------------------------------------
+
+    Write-Step "Verifying TCP ${ServerHost}:1433 from this machine"
+
+    function Test-TcpPort {
+        param([string]$HostName, [int]$Port, [int]$TimeoutMs = 8000)
+        $client = New-Object System.Net.Sockets.TcpClient
+        try {
+            $task = $client.ConnectAsync($HostName, $Port)
+            if ($task.Wait($TimeoutMs) -and $client.Connected) { return 'open' }
+            return 'timeout'
+        } catch {
+            $inner = $_.Exception
+            while ($inner.InnerException) { $inner = $inner.InnerException }
+            if ($inner -is [System.Net.Sockets.SocketException] -and $inner.SocketErrorCode -eq 'ConnectionRefused') { return 'refused' }
+            return "error: $($inner.Message)"
+        } finally {
+            $client.Dispose()
+        }
+    }
+
+    $tcp = Test-TcpPort -HostName $ServerHost -Port 1433
+    if ($tcp -eq 'open') {
+        Write-Ok "Port 1433 is reachable from this machine. SQL Server connections should work now."
+    } else {
+        Write-Host ("      !   Port 1433 is NOT reachable from this machine: {0}" -f $tcp) -ForegroundColor Yellow
+        switch -Wildcard ($tcp) {
+            'refused' {
+                Write-Host '          "refused" = the packet reached the server and was rejected, so the IP whitelist is not the problem:' -ForegroundColor Gray
+                Write-Host '          nothing is listening on 1433 (SQL Server container stopped/crashed) or a REJECT rule/other firewall answers it.' -ForegroundColor Gray
+            }
+            'timeout' {
+                Write-Host '          "timeout" = packets are silently dropped: the whitelist rule is not matching your traffic' -ForegroundColor Gray
+                Write-Host '          (VPN / proxy / a different outgoing IP than the one detected above, or a provider-level firewall).' -ForegroundColor Gray
+            }
+        }
+        Write-Host ''
+        Write-Host '      Server-side diagnostics (read-only):' -ForegroundColor Cyan
+
+        $diagScript = @"
+echo '--- docker daemon / all containers'
+(systemctl is-active docker 2>&1 | sed 's/^/docker service: /')
+docker ps -a --format '{{.Names}} | {{.Status}} | {{.Ports}}' 2>&1 | head -30
+echo '--- sqlservr process / mssql service'
+(ps -eo pid,etime,cmd 2>/dev/null | grep -i '[s]qlservr' | head -3) || true
+(systemctl list-units --all 2>/dev/null | grep -i -E 'mssql|sql' | head -5) || true
+echo '--- server uptime'
+uptime
+echo '--- listening sockets on :1433'
+(ss -ltn 2>/dev/null | grep -E ':1433\b') || echo '(nothing listening on 1433)'
+echo '--- DOCKER-USER rules for 1433'
+/usr/sbin/iptables -S DOCKER-USER 2>&1 | grep 1433 || echo '(none)'
+echo '--- INPUT rules for 1433'
+/usr/sbin/iptables -S INPUT 2>&1 | grep 1433 || echo '(none)'
+"@
+        [void](Invoke-NativeStreaming -Exe $plinkExe -Arguments @(
+            '-batch', '-ssh', '-l', $ServerUser, '-pwfile', $pwFile, $ServerHost, $diagScript))
+        Write-Host ''
+        Write-Host '      If the SQL container is not "Up", start it on the server (docker start <name>) - this tool does not restart services.' -ForegroundColor Gray
+    }
+
     $elapsed = (Get-Date) - $script:StartTime
     Write-Host ''
     Write-Host ("  Done in {0:mm\:ss}." -f $elapsed) -ForegroundColor Green

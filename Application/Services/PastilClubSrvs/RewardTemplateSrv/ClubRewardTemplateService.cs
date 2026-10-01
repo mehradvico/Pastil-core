@@ -227,7 +227,7 @@ namespace Application.Services.PastilClubSrvs.RewardTemplateSrv
                 ClubRewardTargetTypeEnum.Companion => await _context.Companions.AsNoTracking().AnyAsync(item => item.Id == id, cancellationToken),
                 ClubRewardTargetTypeEnum.Assistance => await _context.Assistances.AsNoTracking().AnyAsync(item => item.Id == id, cancellationToken),
                 ClubRewardTargetTypeEnum.CompanionPackage => await _context.CompanionAssistancePackages.AsNoTracking().AnyAsync(item => item.Id == id, cancellationToken),
-                ClubRewardTargetTypeEnum.Pansion => await _context.Pansions.AsNoTracking().AnyAsync(item => item.Id == id, cancellationToken),
+                ClubRewardTargetTypeEnum.Pansion => await _context.Pansions.AsNoTracking().AnyAsync(item => item.Id == id && !item.Deleted, cancellationToken),
                 ClubRewardTargetTypeEnum.PastilAIPlan => await _context.PastilAiPlans.AsNoTracking().AnyAsync(item => item.Id == id, cancellationToken),
                 ClubRewardTargetTypeEnum.City => await _context.Cities.AsNoTracking().AnyAsync(item => item.Id == id, cancellationToken),
                 _ => false

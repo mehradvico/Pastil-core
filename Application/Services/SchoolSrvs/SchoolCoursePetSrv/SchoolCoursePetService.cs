@@ -33,7 +33,7 @@ namespace Application.Services.SchoolSrvs.SchoolCoursePetSrv
         public SchoolCoursePetSearchDto Search(SchoolCoursePetInputDto baseSearchDto)
         {
             var model = _context.SchoolCoursePets.Include(s => s.Pet).Include(s => s.PetBreed).Include(s => s.SchoolCourse).ThenInclude(s => s.School)
-                .AsQueryable().Where(s => !s.Deleted);
+                .AsQueryable().Where(s => !s.Deleted && !s.SchoolCourse.School.Deleted);
 
             if (baseSearchDto.SchoolCourseId.HasValue)
                 model = model.Where(s => s.SchoolCourseId == baseSearchDto.SchoolCourseId.Value);

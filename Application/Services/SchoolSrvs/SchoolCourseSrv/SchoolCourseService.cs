@@ -27,10 +27,12 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             this.mapper = mapper;
         }
 
-        private async Task<int> RemainingCapacityAsync(long courseId, int capacity)
+        private async Task<int?> RemainingCapacityAsync(long courseId, int? capacity)
         {
+            if (!capacity.HasValue)
+                return null;
             var takenCount = await _context.SchoolReserves.CountAsync(r => r.SchoolCourseId == courseId && !r.IsCancel);
-            return capacity - takenCount;
+            return capacity.Value - takenCount;
         }
 
         // خلاصه‌ی «چند جلسه در هفته / کل دوره چند هفته طول می‌کشد» را از روی تاریخ واقعی
@@ -134,7 +136,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             foreach (var item in result.List)
             {
                 takenCounts.TryGetValue(item.Id, out var taken);
-                item.RemainingCapacity = item.Capacity - taken;
+                item.RemainingCapacity = item.Capacity.HasValue ? item.Capacity.Value - taken : (int?)null;
                 var entity = courseEntities.FirstOrDefault(c => c.Id == item.Id);
                 ApplySessionSummary(item, entity?.SchoolCourseSessions ?? new List<SchoolCourseSession>());
 
@@ -150,18 +152,23 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Name))
                 return new BaseResultDto<SchoolCourseDto>(false, Resource.Notification.PleaseEnterTheName, dto);
-            if (!await _context.Schools.AnyAsync(s => s.Id == dto.SchoolId))
+            if (!await _context.Schools.AnyAsync(s => s.Id == dto.SchoolId && !s.Deleted))
                 return new BaseResultDto<SchoolCourseDto>(false, Resource.Notification.NothingFound, dto);
             if (dto.Price <= 0)
                 return new BaseResultDto<SchoolCourseDto>(false, Resource.Notification.InvalidData, dto);
             if (dto.SessionCount <= 0)
                 return new BaseResultDto<SchoolCourseDto>(false, Resource.Notification.InvalidData, dto);
-            if (dto.Capacity <= 0)
+            // Capacity=null یعنی نامحدود - مجاز است؛ فقط مقدار صفر/منفیِ صریح رد می‌شود
+            if (dto.Capacity.HasValue && dto.Capacity <= 0)
                 return new BaseResultDto<SchoolCourseDto>(false, Resource.Notification.InvalidData, dto);
             if (dto.CourseTypeId != (int)SchoolCourseTypeEnum.Video &&
                 dto.CourseTypeId != (int)SchoolCourseTypeEnum.Live &&
                 dto.CourseTypeId != (int)SchoolCourseTypeEnum.InPerson)
                 return new BaseResultDto<SchoolCourseDto>(false, Resource.Notification.InvalidData, dto);
+            // بخش «آنلاین» مدرسه فعلاً غیرفعال است (Application.Common.FeatureFlags.SchoolOnlineCoursesEnabled) -
+            // کد کامل است و حذف نشده، فقط ساخت دوره‌ی جدید از این نوع مسدود است.
+            if (dto.CourseTypeId == (int)SchoolCourseTypeEnum.Live && !Application.Common.FeatureFlags.SchoolOnlineCoursesEnabled)
+                return new BaseResultDto<SchoolCourseDto>(false, Resource.Notification.FeatureTemporarilyDisabled, dto);
 
             var item = mapper.Map<SchoolCourse>(dto);
             item.Active = true;
@@ -286,7 +293,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             var predicate = SearchQueryHelper.ContainsAny<SchoolCourse>(request.SearchTerms,
                 item => item.Name, item => item.Discription, item => item.School.Name);
             var query = _context.SchoolCourses.AsNoTracking()
-                .Where(c => c.Active && !c.Deleted && c.School.Active && c.School.Approve && c.School.ShowToSite);
+                .Where(c => c.Active && !c.Deleted && !c.School.Deleted && c.School.Active && c.School.Approve && c.School.ShowToSite);
             return await query.Where(predicate)
                 .Take(SearchQueryHelper.CandidateCount(request.SchoolCourseCount))
                 .Select(c => new SearchSchoolCourseDto

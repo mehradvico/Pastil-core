@@ -33,6 +33,9 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
         public int RateCount { get; set; }
         public long? PictureId { get; set; }
         public bool Suggested { get; set; }
+        // حذف نرم (فقط ادمین فهرست حذف‌شده‌ها را می‌بیند)
+        public bool Deleted { get; set; }
+        public System.DateTime? DeleteDate { get; set; }
         public bool IsInfectious { get; set; }
         public double PansionPrice { get; set; }
         public double SchoolPrice { get; set; }

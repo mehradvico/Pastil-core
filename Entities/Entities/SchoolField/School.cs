@@ -23,6 +23,11 @@ namespace Entities.Entities.SchoolField
         public int RateCount { get; set; }
         public long? PictureId { get; set; }
         public bool Suggested { get; set; }
+        // حذف نرم: ردیف پاک نمی‌شود (رزروها و گزارش مالی می‌مانند) ولی از همه‌ی فهرست‌ها، جستجو و رزرو جدید حذف می‌شود.
+        // حذف توسط مالک کلینیک یا ادمین؛ فقط ادمین می‌تواند بازگرداند.
+        public bool Deleted { get; set; }
+        public System.DateTime? DeleteDate { get; set; }
+        public long? DeletedByUserId { get; set; }
         public string Regulations { get; set; }
 
         public Companion Companion { get; set; }

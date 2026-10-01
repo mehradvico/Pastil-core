@@ -14,7 +14,8 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Dto
         public double Price { get; set; }
         public int SessionCount { get; set; }
         public int SessionDurationMinutes { get; set; }
-        public int Capacity { get; set; }
+        // null = ظرفیت نامحدود
+        public int? Capacity { get; set; }
         public long? PetId { get; set; }
         public long? PetBreedId { get; set; }
         public decimal CommissionPercent { get; set; }
@@ -27,7 +28,8 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Dto
         public List<SchoolCourseVideoDto> SchoolCourseVideos { get; set; }
 
         // ظرفیت باقی‌مانده - در سرویس محاسبه می‌شود (Capacity منهای تعداد ثبت‌نام‌های غیرلغوشده).
-        public int RemainingCapacity { get; set; }
+        // null یعنی دوره ظرفیت نامحدود دارد.
+        public int? RemainingCapacity { get; set; }
 
         // پت‌های مورد پذیرش این دوره (چندبه‌چند - جایگزین/مکمل PetId/PetBreedId تکی بالا)
         public List<Application.Services.SchoolSrvs.SchoolCoursePetSrv.Dto.SchoolCoursePetVDto> AcceptedPets { get; set; }

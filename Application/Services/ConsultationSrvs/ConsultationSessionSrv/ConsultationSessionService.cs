@@ -81,7 +81,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     .Include(s => s.User).ThenInclude(u => u.Picture)
                     .Include(s => s.Companion)
                     .OrderBy(s => s.Status == active ? 0 : 1)
-                    .ThenBy(s => s.PaidDate)
+                    .ThenBy(s => s.ScheduledStart ?? s.PaidDate)
                     .Take(100)
                     .ToListAsync();
 
@@ -129,6 +129,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     Status = s.Status,
                     PaidDate = s.PaidDate,
                     StartDeadline = s.StartDeadline,
+                    ScheduledStart = s.ScheduledStart,
+                    ScheduledEnd = s.ScheduledEnd,
                     StartDate = s.StartDate,
                     ExpireDate = s.ExpireDate,
                     OnlineSessionId = s.OnlineSessionId,
@@ -139,7 +141,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     AgentUserId = s.AgentUserId,
                     AgentName = s.AgentUserId.HasValue && agentNames.TryGetValue(s.AgentUserId.Value, out var an) ? an : null,
                     // تخصیص‌یافته به دیگری ⇒ فقط او یا مالک «شروع» را می‌بیند
-                    CanStart = ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now) &&
+                    CanStart = ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now, s.ScheduledStart) &&
                                (!s.AgentUserId.HasValue || s.AgentUserId == agentUserId || ownedIds.Contains(s.CompanionId)),
                     CanAssign = s.Status == paid && ownedIds.Contains(s.CompanionId) && ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now),
                     AssignableAgents = s.Status == paid && assignable.TryGetValue(s.CompanionId, out var al) ? al : null,
@@ -181,6 +183,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     return Fail(Resource.Notification.InvalidData);
                 if (!ConsultationPurchaseRules.CanStart(purchase.Status, purchase.StartDeadline, now))
                     return Fail(Resource.Notification.ConsultationStartDeadlinePassed);
+                // رزرو ساعت‌دار: قبل از ۱۰ دقیقه مانده به ساعت رزرو شروع نمی‌شود (کاربر هنوز منتظر ساعت خودش است)
+                if (!Application.Services.ConsultationSrvs.ConsultationBookingSrv.ConsultationBookingRules.IsStartAllowed(purchase.ScheduledStart, now))
+                    return Fail(Resource.Notification.ConsultationBookingTooEarly);
 
                 var expire = ConsultationPurchaseRules.ComputeExpireDate(now, purchase.DurationMinutes);
 

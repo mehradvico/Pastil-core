@@ -159,7 +159,7 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
 
         private IQueryable<PansionComment> BaseSaerch(PansionCommentInputDto searchDto)
         {
-            var query = _context.PansionComments.Include(s => s.Pansion).Include(s => s.User).AsQueryable();
+            var query = _context.PansionComments.Include(s => s.Pansion).Include(s => s.User).AsQueryable().Where(s => !s.Pansion.Deleted);
             if (searchDto.PansionId.HasValue)
                 query = query.Where(s => s.PansionId == searchDto.PansionId);
             if (searchDto.UserId.HasValue)

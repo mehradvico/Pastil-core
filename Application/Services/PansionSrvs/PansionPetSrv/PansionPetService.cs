@@ -40,7 +40,7 @@ namespace Application.Services.PansionSrvs.PansionPetSrv
 
         public PansionPetSearchDto Search(PansionPetInputDto baseSearchDto)
         {
-            var model = _context.PansionPets.Include(s => s.Pet).Include(s => s.Pansion).ThenInclude(s => s.Companion).AsQueryable().Where(s => !s.Deleted);
+            var model = _context.PansionPets.Include(s => s.Pet).Include(s => s.Pansion).ThenInclude(s => s.Companion).AsQueryable().Where(s => !s.Deleted && !s.Pansion.Deleted);
 
             if (baseSearchDto.CompanionId.HasValue)
             {

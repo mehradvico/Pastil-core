@@ -165,7 +165,8 @@ namespace Utility.Reflection
             [
                 "User",
                 "UserPet",
-                "UserMemory"
+                "UserMemory",
+                "UserStats"
             ]);
 
             AddGroup(result, "PetManagement",
@@ -231,7 +232,9 @@ namespace Utility.Reflection
                 "SchoolApprove",
                 "SchoolCourse",
                 "SchoolCourseSession",
-                "SchoolCourseVideo"
+                "SchoolCourseVideo",
+                "SchoolPicture",
+                "SchoolCoursePet"
             ]);
 
             AddGroup(result, "ShopManagement",
@@ -319,6 +322,7 @@ namespace Utility.Reflection
                 "FinanceCompanionAssistance",
                 "ProductOrderChangeState",
                 "CompanionReserve",
+                "CompanionReserveUnified",
                 "CompanionReserveCancel",
                 "PansionReserveChangeStatus",
                 "FinancePansion",
@@ -335,6 +339,7 @@ namespace Utility.Reflection
                 "CompanionReserveChangeState",
                 "CompanionReserveExcel",
                 "FinanceCompanion",
+                "FinanceDriver",
                 "ManualTripPayment",
                 "ManualPayment",
                 "ProductOrderStore",

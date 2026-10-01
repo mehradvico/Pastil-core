@@ -446,6 +446,13 @@ public static class ConfigureServices
         services.AddOptions<ShippingOptions>()
             .Configure<IConfiguration>((options, configuration) =>
                 configuration.GetSection(ShippingOptions.SectionName).Bind(options));
+        services.AddOptions<Application.Services.SchoolSrvs.SchoolCourseLiveSrv.LiveKitOptions>()
+            .Configure<IConfiguration>((options, configuration) =>
+                configuration.GetSection(Application.Services.SchoolSrvs.SchoolCourseLiveSrv.LiveKitOptions.SectionName).Bind(options));
+        services.AddOptions<Application.Common.Storage.ObjectStorageOptions>()
+            .Configure<IConfiguration>((options, configuration) =>
+                configuration.GetSection(Application.Common.Storage.ObjectStorageOptions.SectionName).Bind(options));
+        services.AddSingleton<Application.Common.Storage.IObjectStorageService, Application.Common.Storage.ObjectStorageService>();
         services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IAdminSettingHelper, AdminSettingHelper>();
         services.AddScoped<IAdminSettingService, AdminSettingService>();
@@ -565,6 +572,13 @@ public static class ConfigureServices
         services.AddScoped<ISchoolReserveService, SchoolReserveService>();
         services.AddScoped<Application.Services.SchoolSrvs.SchoolPictureSrv.Iface.ISchoolPictureService, Application.Services.SchoolSrvs.SchoolPictureSrv.SchoolPictureService>();
         services.AddScoped<Application.Services.SchoolSrvs.SchoolCoursePetSrv.Iface.ISchoolCoursePetService, Application.Services.SchoolSrvs.SchoolCoursePetSrv.SchoolCoursePetService>();
+        services.AddScoped<Application.Services.SchoolSrvs.SchoolCourseLiveSrv.Iface.ISchoolCourseLiveService, Application.Services.SchoolSrvs.SchoolCourseLiveSrv.SchoolCourseLiveService>();
+        services.AddScoped<Application.Services.SchoolSrvs.SchoolCourseLiveSrv.Iface.ILiveKitService, Application.Services.SchoolSrvs.SchoolCourseLiveSrv.LiveKitService>();
+        // SchoolCourseLiveService depends on this - must be registered for every service that pulls in
+        // ISchoolCourseLiveService (all of them, via this shared registration), not just Api. Was previously
+        // only registered in Api/Program.cs, which meant File/Payment/RealTime crashed on startup validation
+        // the moment they were redeployed after Pastil Live shipped.
+        services.AddSingleton<Application.Services.SchoolSrvs.SchoolCourseLiveSrv.SchoolLiveParticipantTracker>();
         services.AddScoped<IParkService, ParkService>();
         services.AddScoped<IParkPictureService, ParkPictureService>();
         services.AddScoped<IPastilMatchProfileService, PastilMatchProfileService>();
@@ -580,6 +594,7 @@ public static class ConfigureServices
         services.AddScoped<IPastilMatchMessageReactionService, PastilMatchMessageReactionService>();
         services.AddScoped<ICompanionReserveMessageService, CompanionReserveMessageService>();
         services.AddScoped<Application.Services.ConsultationSrvs.ConsultationPackageSrv.Iface.IConsultationPackageService, Application.Services.ConsultationSrvs.ConsultationPackageSrv.ConsultationPackageService>();
+        services.AddScoped<Application.Services.ConsultationSrvs.ConsultationBookingSrv.Iface.IConsultationBookingService, Application.Services.ConsultationSrvs.ConsultationBookingSrv.ConsultationBookingService>();
         services.AddScoped<Application.Services.CompanionSrvs.OnlineSessionSrv.Iface.IOnlineSessionService, Application.Services.CompanionSrvs.OnlineSessionSrv.OnlineSessionService>();
         services.AddScoped<ICompanionReserveMessageAttachmentService, CompanionReserveMessageAttachmentService>();
         services.AddScoped<ICompanionReserveMessageReactionService, CompanionReserveMessageReactionService>();

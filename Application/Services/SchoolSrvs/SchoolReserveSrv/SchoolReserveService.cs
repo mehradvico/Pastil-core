@@ -55,12 +55,14 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
         }
         private readonly Application.Services.TripSrv.TripSrv.Iface.ITripService _tripService;
 
-        public async Task<int> GetRemainingCapacityAsync(long schoolCourseId)
+        // null یعنی ظرفیت نامحدود
+        public async Task<int?> GetRemainingCapacityAsync(long schoolCourseId)
         {
             var course = await _context.SchoolCourses.AsNoTracking().FirstOrDefaultAsync(c => c.Id == schoolCourseId);
             if (course == null) return 0;
+            if (!course.Capacity.HasValue) return null;
             var taken = await _context.SchoolReserves.CountAsync(r => r.SchoolCourseId == schoolCourseId && !r.IsCancel);
-            return Math.Max(course.Capacity - taken, 0);
+            return Math.Max(course.Capacity.Value - taken, 0);
         }
 
         public async Task<BaseResultDto<SchoolReserveVDto>> FindAsyncVDto(long id)
@@ -126,7 +128,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.UnpaidDebtLocked, dto);
 
                 var course = await _context.SchoolCourses.Include(c => c.School)
-                    .FirstOrDefaultAsync(c => c.Id == dto.SchoolCourseId && !c.Deleted && c.Active);
+                    .FirstOrDefaultAsync(c => c.Id == dto.SchoolCourseId && !c.Deleted && c.Active && !c.School.Deleted);
                 if (course == null)
                 {
                     return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.NothingFound, dto);
@@ -145,10 +147,13 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.HaveBeenReserved, dto);
                 }
 
-                var takenCount = await _context.SchoolReserves.CountAsync(r => r.SchoolCourseId == dto.SchoolCourseId && !r.IsCancel);
-                if (takenCount >= course.Capacity)
+                if (course.Capacity.HasValue)
                 {
-                    return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCourseCapacityFull, dto);
+                    var takenCount = await _context.SchoolReserves.CountAsync(r => r.SchoolCourseId == dto.SchoolCourseId && !r.IsCancel);
+                    if (takenCount >= course.Capacity.Value)
+                    {
+                        return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCourseCapacityFull, dto);
+                    }
                 }
 
                 var item = mapper.Map<SchoolReserve>(dto);

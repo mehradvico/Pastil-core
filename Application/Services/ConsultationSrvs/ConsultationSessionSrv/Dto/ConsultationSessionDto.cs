@@ -17,6 +17,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto
         public int Status { get; set; }
         public DateTime? PaidDate { get; set; }
         public DateTime? StartDeadline { get; set; }
+        // رزرو ساعت‌دار: ساعت رزرو کاربر (خرید فوری: null). نماینده از ۱۰ دقیقه قبل از آن می‌تواند «شروع» را بزند.
+        public DateTime? ScheduledStart { get; set; }
+        public DateTime? ScheduledEnd { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? ExpireDate { get; set; }
         public long? OnlineSessionId { get; set; }

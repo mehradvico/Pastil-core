@@ -84,6 +84,7 @@ namespace Persistence.Interface
         public DbSet<OnlineSessionMessage> OnlineSessionMessages { get; set; }
         public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
         public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
+        public DbSet<ConsultationAvailability> ConsultationAvailabilities { get; set; }
         public DbSet<Entities.Entities.PrescriptionField.OnlinePrescription> OnlinePrescriptions { get; set; }
         public DbSet<Entities.Entities.PrescriptionField.OnlinePrescriptionPicture> OnlinePrescriptionPictures { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
@@ -155,6 +156,8 @@ namespace Persistence.Interface
         public DbSet<SchoolCourseVideo> SchoolCourseVideos { get; set; }
         public DbSet<SchoolPicture> SchoolPictures { get; set; }
         public DbSet<SchoolCoursePet> SchoolCoursePets { get; set; }
+        public DbSet<SchoolCourseLiveSession> SchoolCourseLiveSessions { get; set; }
+        public DbSet<SchoolLiveComment> SchoolLiveComments { get; set; }
         public DbSet<SchoolReserve> SchoolReserves { get; set; }
         public DbSet<Park> Parks { get; set; }
         public DbSet<ParkPicture> ParkPictures { get; set; }

@@ -303,6 +303,12 @@
   <data name="PushSchoolClassStarting" xml:space="preserve">
     <value>Your {0} class starts soon.</value>
   </data>
+  <data name="PushTripDriverUpcomingReminder" xml:space="preserve">
+    <value>Your {0} starts in 30 minutes.</value>
+  </data>
+  <data name="PushSchoolClassReminder5Min" xml:space="preserve">
+    <value>Class {0} starts in 5 minutes.</value>
+  </data>
   <data name="PushCompanionReserveNewMessage" xml:space="preserve">
     <value>{0}: {1}</value>
   </data>
@@ -356,5 +362,14 @@
   </data>
   <data name="PushConsultationUnclaimed" xml:space="preserve">
     <value>Consultation from {0} still unclaimed after {2} min.</value>
+  </data>
+  <data name="PushConsultationBookedAgent" xml:space="preserve">
+    <value>{0} booked a {2} consultation for {3}.</value>
+  </data>
+  <data name="PushConsultationBookedUser" xml:space="preserve">
+    <value>Your consultation at {0} is booked for {2}; the agent will contact you at that time.</value>
+  </data>
+  <data name="PushConsultationBookingReminder" xml:space="preserve">
+    <value>Your consultation with {0} starts in 30 minutes.</value>
   </data>
 </root>

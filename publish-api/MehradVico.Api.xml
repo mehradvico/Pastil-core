@@ -2544,7 +2544,7 @@
             </summary>
             
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.PansionController.Get(Application.Services.PansionSrvs.PansionSrv.Dto.PansionInputDto)">
+        <member name="M:Api.Areas.Admin.Controllers.PansionController.Get(Application.Services.PansionSrvs.PansionSrv.Dto.PansionInputDto,System.Nullable{System.Boolean})">
             <summary>
             جستجو
             </summary>
@@ -2570,6 +2570,16 @@
             </summary>
             <returns>
             </returns>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PansionController.Delete(System.Int64)">
+            <summary>
+            حذف نرم پانسیون توسط ادمین (رزروها و گزارش مالی می‌مانند؛ با رزرو باز پرداخت‌شده حذف نمی‌شود)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PansionController.Restore(System.Int64)">
+            <summary>
+            بازگردانی پانسیون حذف‌شده (غیرفعال و منتشرنشده برمی‌گردد)
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionPetController">
             <summary>
@@ -4301,6 +4311,16 @@
         <member name="T:Api.Areas.Admin.Controllers.SchoolController">
             <summary>
             مدرسه ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SchoolController.Delete(System.Int64)">
+            <summary>
+            حذف نرم مدرسه توسط ادمین (دوره‌ها، رزروها و گزارش مالی می‌مانند؛ با ثبت‌نام باز پرداخت‌شده حذف نمی‌شود)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SchoolController.Restore(System.Int64)">
+            <summary>
+            بازگردانی مدرسه‌ی حذف‌شده (غیرفعال و منتشرنشده برمی‌گردد)
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.SchoolCourseController">
@@ -6150,6 +6170,17 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.ConsultationAvailabilityController">
+            <summary>
+            ساعت‌های کاری هفتگی کلینیک برای «مشاوره آنلاین قابل‌رزرو» توسط مالک کلینیک
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationAvailabilityController.Get">
+            <summary>برنامه‌ی هفتگی کلینیک من (WeekDayId ۱ شنبه … ۷ جمعه، ساعت «HH:mm»)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationAvailabilityController.Put(System.Collections.Generic.List{Application.Services.ConsultationSrvs.ConsultationBookingSrv.Dto.ConsultationAvailabilityWindowDto})">
+            <summary>جایگزینی کل برنامه‌ی هفتگی (لیست خالی = رزرو بسته). رزروهای قبلی دست نمی‌خورند.</summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.ConsultationOnlineController">
             <summary>
             «من آنلاینم» برای مشاوره آنلاین
@@ -6268,6 +6299,13 @@
             <returns>
             </returns>
         </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionController.Delete(System.Int64)">
+            <summary>
+            حذف نرم پانسیون/مهد پت من (فقط مالک کلینیک). رزروها و گزارش مالی می‌مانند؛ با رزرو باز پرداخت‌شده
+            حذف نمی‌شود. بازگردانی فقط توسط ادمین.
+            </summary>
+            <param name="id">شناسه پانسیون</param>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.PansionPetController">
              <summary>
              مدیریت پت های پانسیون
@@ -6354,10 +6392,28 @@
             مدیریت مدرسه‌ی خودِ نماینده (مربی)
             </summary>
         </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolController.Delete(System.Int64)">
+            <summary>
+            حذف نرم مدرسه‌ی من (فقط مالک کلینیک). دوره‌ها، رزروها و گزارش مالی می‌مانند؛ با ثبت‌نام باز
+            پرداخت‌شده حذف نمی‌شود. بازگردانی فقط توسط ادمین.
+            </summary>
+            <param name="id">شناسه مدرسه</param>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.SchoolCourseController">
             <summary>
             مدیریت دوره‌های مدرسه‌ی خودِ نماینده
             </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolCourseLiveController">
+            <summary>
+            مدیریت «پاستیل لایو» یک جلسه‌ی دوره‌ی زنده‌ی مدرسه، توسط مربی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolCourseLiveController.GetForSession(System.Int64)">
+            <summary>وضعیت فعلی لایوِ یک جلسه (اگر وجود نداشته باشد، ساخته می‌شود - هنوز شروع نشده)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolCourseLiveController.GetParticipants(System.Int64)">
+            <summary>مشخصات پت‌های ثبت‌نام‌شده در دوره + این‌که الان در لایو حاضرند یا غایب</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.SchoolCoursePetController">
              <summary>
@@ -7386,6 +7442,17 @@
             تایید یا رد درخواست عضویت در نمایندگی
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ConsultationBookingController">
+            <summary>
+            ساعت‌های قابل رزرو برای پکیج‌های «مشاوره آنلاین قابل‌رزرو» (Bookable). فقط خواندنی؛ خرید با ConsultationPurchase و ScheduledStart.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ConsultationBookingController.Days(System.Int64)">
+            <summary>روزهای ۱۴ روز آینده با تعداد ساعت خالی؛ برای انتخابگر تاریخ</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ConsultationBookingController.Slots(System.Int64,System.DateTime)">
+            <summary>ساعت‌های شروع یک روز (date به‌صورت yyyy-MM-dd)؛ available=false یعنی ظرفیت پر است</summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.ConsultationOnlineController">
             <summary>
             وضعیت آنلاین‌بودن کلینیک برای مشاوره آنلاین (عمومی)
@@ -8382,6 +8449,17 @@
              حذف آیتم
              </summary>
             
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.SchoolCourseLiveController">
+            <summary>
+            ورود کاربر به «پاستیل لایو» یک جلسه‌ی دوره‌ی زنده‌ی مدرسه (فقط تماشا)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.SchoolCourseLiveController.GetForSession(System.Int64)">
+            <summary>از schoolCourseSessionId (چیزی که پوش «شروع شد» می‌دهد) به liveSessionId می‌رسد.</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.SchoolCourseLiveController.GetToken(System.Int64)">
+            <summary>توکن ورود LiveKit (فقط تماشا) - اگر مربی هنوز شروع نکرده، StatusId=۱ برمی‌گردد؛ صفحه باید منتظر بماند.</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.SchoolReserveCancelController">
             <summary>
@@ -10829,6 +10907,14 @@
             مشاهده‌ی عمومی دوره‌های مدرسه (شامل ظرفیت باقی‌مانده)
             </summary>
         </member>
+        <member name="T:Api.Controllers.SchoolLiveWebhookController">
+            <summary>
+            وب‌هوک LiveKit Egress - وقتی ضبط یک پخش زنده‌ی مدرسه تمام می‌شود (موفق یا ناموفق) اینجا خبر می‌رسد.
+            این آدرس باید در تنظیمات پروژه‌ی LiveKit Cloud (Webhooks) با همین مسیر ثبت شود؛ بدون [Authorize]
+            چون کاربرِ لاگین‌شده در کار نیست - امنیتش با اعتبارسنجی JWT هدر Authorization (طبق مستندات
+            LiveKit) تأمین می‌شود، نه احراز هویت معمول اپلیکیشن.
+            </summary>
+        </member>
         <member name="T:Api.Controllers.SearchController">
             <summary>
             مدیریت جستجو
@@ -11036,6 +11122,12 @@
             <summary>
             کانال زنده‌ی پوش برای اپ فلاتر ویندوز — هر کاربر لاگین‌کرده به گروه اختصاصی خودش اضافه می‌شود
             تا PushNotificationService بتواند مستقیم برایش پیام بفرستد، بدون نیاز به توکن ذخیره‌شده.
+            </summary>
+        </member>
+        <member name="T:Api.Hubs.SchoolLiveHub">
+            <summary>
+            کانال زنده‌ی «پاستیل لایو» مدرسه: فقط سیگنال‌های سبک (کامنت، حضور بینندگان) - خودِ جریان
+            تصویر مستقیماً بین کلاینت‌ها و LiveKit Cloud برقرار می‌شود، نه از این هاب.
             </summary>
         </member>
         <member name="T:Api.Middleware.BffClientIpMiddleware">

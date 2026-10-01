@@ -36,20 +36,26 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
         private readonly IWalletService _walletService;
         private readonly IRebateService _rebateService;
         private readonly IPaymentService _paymentService;
+        private readonly Application.Services.CompanionSrvs.ConsultationOnlineSrv.IConsultationOnlineService _onlineService;
         private readonly IConsultationNotificationService _notifications;
+        private readonly Application.Services.ConsultationSrvs.ConsultationBookingSrv.Iface.IConsultationBookingService _booking;
 
         public ConsultationPurchaseService(
             IDataBaseContext context,
             IWalletService walletService,
             IRebateService rebateService,
             IPaymentService paymentService,
-            IConsultationNotificationService notifications)
+            IConsultationNotificationService notifications,
+            Application.Services.CompanionSrvs.ConsultationOnlineSrv.IConsultationOnlineService onlineService,
+            Application.Services.ConsultationSrvs.ConsultationBookingSrv.Iface.IConsultationBookingService booking)
         {
             _notifications = notifications;
             _context = context;
             _walletService = walletService;
             _rebateService = rebateService;
             _paymentService = paymentService;
+            _onlineService = onlineService;
+            _booking = booking;
         }
 
         public async Task<BaseResultDto> PurchaseAsync(long userId, ConsultationPurchaseCreateDto dto)
@@ -72,28 +78,52 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                 if (!clinicOpen)
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
 
+                // پکیج «قابل رزرو»: ساعت الزامی است و آنلاین‌بودن نماینده «همین الان» شرط نیست (مشاوره در ساعت رزرو انجام می‌شود)
+                var bookable = package.Bookable;
+                DateTime? scheduledStart = null;
+                if (bookable)
+                {
+                    if (!dto.ScheduledStart.HasValue)
+                        return new BaseResultDto(false, Resource.Notification.ConsultationBookingTimeRequired);
+                    // ساعت دیواری سرور (ایران). اگر کلاینت با Z/UTC فرستاده باشد به ساعت محلی سرور تبدیل می‌شود؛ بدون آفست همان ساعت دیواری است.
+                    var requested = dto.ScheduledStart.Value;
+                    scheduledStart = DateTime.SpecifyKind(requested.Kind == DateTimeKind.Utc ? requested.ToLocalTime() : requested, DateTimeKind.Unspecified);
+                }
+                else
+                {
+                    // الان هیچ نماینده/مربی‌ای آنلاین نیست: نمی‌توان پکیج آنلاین این کلینیک/مدرسه را خرید
+                    // (اجباری سمت سرور؛ فرانت هم باید صفحه‌ی پکیج را وقتی آفلاین است پیش‌تر مسدود کند)
+                    var companionOnline = await _onlineService.GetPublicAsync(package.CompanionId);
+                    if (!companionOnline.Online)
+                        return new BaseResultDto(false, Resource.Notification.ConsultationCompanionOffline);
+                }
+
                 var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(s => s.Id == userId && !s.Deleted && !s.Locked);
                 if (user == null)
                     return new BaseResultDto(false, Resource.Notification.UserNotFound);
 
-                // خرید تکراری اشتباهی: همان کلینیک و همان کانال، در حالی که یکی پرداخت‌شده/در جریان دارد
                 var paid = (int)ConsultationPurchaseStatusEnum.Paid;
                 var active = (int)ConsultationPurchaseStatusEnum.Active;
-                var alreadyHasOne = await _context.ConsultationPurchases.AsNoTracking().AnyAsync(s =>
-                    s.UserId == userId && s.CompanionId == package.CompanionId && s.ChannelId == package.ChannelId &&
-                    (s.Status == paid || s.Status == active));
-                if (alreadyHasOne)
-                    return new BaseResultDto(false, Resource.Notification.ConsultationAlreadyInProgress);
+                if (!bookable)
+                {
+                    // خرید تکراری اشتباهی: همان کلینیک و همان کانال، در حالی که یکی پرداخت‌شده/در جریان دارد
+                    // (رزروهای ساعت‌دار آینده مانع خرید فوری نیستند؛ فقط خرید فوریِ باز حساب می‌شود)
+                    var alreadyHasOne = await _context.ConsultationPurchases.AsNoTracking().AnyAsync(s =>
+                        s.UserId == userId && s.CompanionId == package.CompanionId && s.ChannelId == package.ChannelId &&
+                        s.ScheduledStart == null && (s.Status == paid || s.Status == active));
+                    if (alreadyHasOne)
+                        return new BaseResultDto(false, Resource.Notification.ConsultationAlreadyInProgress);
 
-                // تا وقتی زمانِ یک مشاوره‌ی خریداری‌شده تمام نشده (منتظر شروع و در مهلت، یا در جریان و پنجره‌اش باز)،
-                // کاربر مشاوره‌ی دیگری — با هر کلینیک یا روشی — نمی‌تواند بخرد.
-                var nowForBlock = DateTime.Now;
-                var hasLiveConsultation = await _context.ConsultationPurchases.AsNoTracking().AnyAsync(s =>
-                    s.UserId == userId &&
-                    ((s.Status == paid && (s.StartDeadline == null || s.StartDeadline > nowForBlock)) ||
-                     (s.Status == active && (s.ExpireDate == null || s.ExpireDate > nowForBlock))));
-                if (hasLiveConsultation)
-                    return new BaseResultDto(false, Resource.Notification.ConsultationAlreadyInProgress);
+                    // تا وقتی زمانِ یک مشاوره‌ی فوریِ خریداری‌شده تمام نشده (منتظر شروع و در مهلت، یا در جریان و پنجره‌اش باز)،
+                    // کاربر مشاوره‌ی فوریِ دیگری — با هر کلینیک یا روشی — نمی‌تواند بخرد.
+                    var nowForBlock = DateTime.Now;
+                    var hasLiveConsultation = await _context.ConsultationPurchases.AsNoTracking().AnyAsync(s =>
+                        s.UserId == userId && s.ScheduledStart == null &&
+                        ((s.Status == paid && (s.StartDeadline == null || s.StartDeadline > nowForBlock)) ||
+                         (s.Status == active && (s.ExpireDate == null || s.ExpireDate > nowForBlock))));
+                    if (hasLiveConsultation)
+                        return new BaseResultDto(false, Resource.Notification.ConsultationAlreadyInProgress);
+                }
 
                 // خرید در انتظار پرداختِ در جریان (درگاه باز است) دوباره ساخته نمی‌شود؛ بدون پرداخت‌های قدیمی همین پکیج کنار گذاشته می‌شوند
                 var pending = (int)ConsultationPurchaseStatusEnum.PendingPayment;
@@ -136,8 +166,35 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                 if (!typeId.HasValue)
                     return new BaseResultDto(false, Resource.Notification.PaymentTypeNotConfiguredInSystem);
 
+                // رزرو ساعت‌دار: بررسی ظرفیت اسلات و ساخت خرید در «یک» تراکنش Serializable تا دو کاربر هم‌زمان یک اسلات آخر را نگیرند.
+                // تراکنش قبل از StartPayment commit می‌شود (ظرفیت با وضعیت PendingPayment تا BookingPendingHold نگه داشته می‌شود).
+                await using var bookingTransaction = bookable && _context.CurrentTransaction == null
+                    ? await _context.BeginTransactionAsync(System.Data.IsolationLevel.Serializable)
+                    : null;
+                if (bookable)
+                {
+                    var now = DateTime.Now;
+                    var end = scheduledStart.Value.AddMinutes(package.DurationMinutes);
+                    var problem = await _booking.CheckSlotAsync(package.CompanionId, package.DurationMinutes, scheduledStart.Value, now);
+                    switch (problem)
+                    {
+                        case ConsultationBookingSrv.ConsultationBookingRules.SlotProblem.None:
+                            break;
+                        case ConsultationBookingSrv.ConsultationBookingRules.SlotProblem.TooSoon:
+                            return new BaseResultDto(false, Resource.Notification.ConsultationSlotTooSoon);
+                        case ConsultationBookingSrv.ConsultationBookingRules.SlotProblem.Full:
+                            return new BaseResultDto(false, Resource.Notification.ConsultationSlotFull);
+                        default:
+                            return new BaseResultDto(false, Resource.Notification.ConsultationSlotInvalid);
+                    }
+                    if (await _booking.UserHasOverlapAsync(userId, scheduledStart.Value, end, now))
+                        return new BaseResultDto(false, Resource.Notification.ConsultationBookingUserBusy);
+                }
+
                 var purchase = new ConsultationPurchase
                 {
+                    ScheduledStart = scheduledStart,
+                    ScheduledEnd = scheduledStart?.AddMinutes(package.DurationMinutes),
                     UserId = userId,
                     ConsultationPackageId = package.Id,
                     CompanionId = package.CompanionId,
@@ -156,6 +213,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                 };
                 if (!await TryInsertWithUniqueCodeAsync(purchase))
                     return new BaseResultDto(false, Resource.Notification.Unsuccess);
+                if (bookingTransaction != null)
+                    await bookingTransaction.CommitAsync();
 
                 var paymentDto = new PaymentStartDto
                 {
@@ -246,6 +305,14 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
         {
             try
             {
+                // رزرو ساعت‌دار: لغو آزاد فقط تا ۲ ساعت قبل از ساعت رزرو (خرید فوری: scheduledStart = null ⇒ محدودیتی نیست)
+                var scheduledStart = await _context.ConsultationPurchases.AsNoTracking()
+                    .Where(s => s.Id == id && s.UserId == userId)
+                    .Select(s => s.ScheduledStart)
+                    .FirstOrDefaultAsync();
+                if (!ConsultationBookingSrv.ConsultationBookingRules.IsUserCancelAllowed(scheduledStart, DateTime.Now))
+                    return new BaseResultDto(false, Resource.Notification.ConsultationBookingCancelTooLate);
+
                 await using var transaction = _context.CurrentTransaction == null
                     ? await _context.BeginTransactionAsync(System.Data.IsolationLevel.Serializable)
                     : null;
@@ -507,6 +574,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             CreateDate = s.CreateDate,
             PaidDate = s.PaidDate,
             StartDeadline = s.StartDeadline,
+            ScheduledStart = s.ScheduledStart,
+            ScheduledEnd = s.ScheduledEnd,
+            CancelAllowedUntil = s.ScheduledStart?.Subtract(ConsultationRules.BookingFreeCancelBefore),
             StartDate = s.StartDate,
             ExpireDate = s.ExpireDate,
             OnlineSessionId = s.OnlineSessionId,

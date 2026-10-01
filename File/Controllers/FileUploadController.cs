@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Storage;
 using Application.Services.Filing.FileSrv.Dto;
 using Application.Services.Filing.FileSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -25,9 +26,11 @@ namespace File.Controllers
         private const string AllowedPdfContentType = "application/pdf";
 
         private readonly IFileService fileService;
-        public FileUploadController(IFileService fileService)
+        private readonly IObjectStorageService objectStorageService;
+        public FileUploadController(IFileService fileService, IObjectStorageService objectStorageService)
         {
             this.fileService = fileService;
+            this.objectStorageService = objectStorageService;
         }
 
         [HttpPost]
@@ -59,13 +62,22 @@ namespace File.Controllers
             var now = DateTime.Now;
             var extention = extentionCheck;
             var fileName = Guid.NewGuid().ToString("N") + extention;
+            var relativeDir = string.Join('/', "StaticFile", now.Year.ToString(), now.Month.ToString(), now.Day.ToString());
 
-            string filePath = Path.Combine("wwwroot", "StaticFile", now.Year.ToString(), now.Month.ToString(), now.Day.ToString());
-            Directory.CreateDirectory(filePath);
-
-            await using (var stream = System.IO.File.Create(Path.Combine(filePath, fileName)))
+            if (objectStorageService.IsConfigured)
             {
-                await file.CopyToAsync(stream);
+                await using var uploadStream = file.OpenReadStream();
+                await objectStorageService.UploadAsync($"{relativeDir}/{fileName}", uploadStream, file.ContentType, HttpContext.RequestAborted);
+            }
+            else
+            {
+                string filePath = Path.Combine("wwwroot", "StaticFile", now.Year.ToString(), now.Month.ToString(), now.Day.ToString());
+                Directory.CreateDirectory(filePath);
+
+                await using (var stream = System.IO.File.Create(Path.Combine(filePath, fileName)))
+                {
+                    await file.CopyToAsync(stream);
+                }
             }
 
             FileDto fileDto = new FileDto()
@@ -75,7 +87,7 @@ namespace File.Controllers
                 CreateDate = now,
                 Extension = extention,
                 Name = fileName,
-                Url = filePath.Replace("wwwroot", "").Replace("\\", "/")
+                Url = "/" + relativeDir
             };
 
             var result = await fileService.InsertAsyncDto(fileDto);

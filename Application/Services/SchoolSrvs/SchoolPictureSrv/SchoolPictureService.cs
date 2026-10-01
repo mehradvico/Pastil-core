@@ -31,7 +31,7 @@ namespace Application.Services.SchoolSrvs.SchoolPictureSrv
 
         public SchoolPictureSearchDto Search(SchoolPictureInputDto searchDto)
         {
-            var model = _context.SchoolPictures.Include(s => s.Picture).AsQueryable().Where(s => !s.Deleted);
+            var model = _context.SchoolPictures.Include(s => s.Picture).AsQueryable().Where(s => !s.Deleted && !s.School.Deleted);
             if (searchDto.SchoolId.HasValue)
             {
                 model = model.Where(s => s.SchoolId.Equals(searchDto.SchoolId));

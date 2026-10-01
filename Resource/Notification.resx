@@ -1137,6 +1137,12 @@
   <data name="DriverHasUpcomingScheduledTrip" xml:space="preserve">
     <value>Driver Has Upcoming Scheduled Trip</value>
   </data>
+  <data name="SchoolLiveRecordingNameRequired" xml:space="preserve">
+    <value>School Live Recording Name Required</value>
+  </data>
+  <data name="FeatureTemporarilyDisabled" xml:space="preserve">
+    <value>Feature Temporarily Disabled</value>
+  </data>
   <data name="PansionDropOffTimeRequired" xml:space="preserve">
     <value>Pansion Drop Off Time Required</value>
   </data>
@@ -1519,6 +1525,9 @@
   <data name="ConsultationAlreadyInProgress" xml:space="preserve">
     <value>You already have an online consultation in progress. You cannot buy another one until its time ends.</value>
   </data>
+  <data name="ConsultationCompanionOffline" xml:space="preserve">
+    <value>Nobody from the team is online right now; you cannot buy an online package at the moment.</value>
+  </data>
   <data name="UnpaidDebtLocked" xml:space="preserve">
     <value>Your account is locked for new bookings because a service fee has been unpaid for over 7 days. Please pay it first.</value>
   </data>
@@ -1527,5 +1536,35 @@
   </data>
   <data name="UnpaidDebtWalletInsufficient" xml:space="preserve">
     <value>Your wallet balance is not enough. Please top up your wallet first.</value>
+  </data>
+  <data name="ConsultationAvailabilityInvalid" xml:space="preserve">
+    <value>The working-hours schedule is invalid (times must be on quarter hours, end after start, and windows of one day must not overlap).</value>
+  </data>
+  <data name="ConsultationSlotInvalid" xml:space="preserve">
+    <value>This time is not valid for booking or is outside the clinic working hours.</value>
+  </data>
+  <data name="ConsultationSlotTooSoon" xml:space="preserve">
+    <value>This time is too soon; a booking must be at least 30 minutes ahead.</value>
+  </data>
+  <data name="ConsultationSlotFull" xml:space="preserve">
+    <value>This time slot is full; please pick another time.</value>
+  </data>
+  <data name="ConsultationBookingUserBusy" xml:space="preserve">
+    <value>You already have another consultation booked at this time.</value>
+  </data>
+  <data name="ConsultationBookingCancelTooLate" xml:space="preserve">
+    <value>A booking can only be cancelled up to 2 hours before the consultation.</value>
+  </data>
+  <data name="ConsultationBookingTimeRequired" xml:space="preserve">
+    <value>You must choose a consultation time for this package.</value>
+  </data>
+  <data name="ConsultationBookingTooEarly" xml:space="preserve">
+    <value>It is too early; a consultation can be started only from 10 minutes before the booked time.</value>
+  </data>
+  <data name="PansionDeleteHasOpenReserves" xml:space="preserve">
+    <value>This pansion has active paid reservations; complete or cancel them before deleting.</value>
+  </data>
+  <data name="SchoolDeleteHasOpenReserves" xml:space="preserve">
+    <value>This school has active paid enrollments; complete or cancel them before deleting.</value>
   </data>
 </root>

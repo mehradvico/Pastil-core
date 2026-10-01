@@ -227,6 +227,7 @@ public class AnonymousExposureTests
         "MapSearchController.Post",            // جستجوی مکان (rate-limit شده)
         "DayToDateController.Post",            // تبدیل تاریخ (بدون داده)
         "MiareWebhookController.Receive",      // وب‌هوک با کلید مشترک
+        "SchoolLiveWebhookController.Handle",  // وب‌هوک LiveKit Egress - امضای JWT هدر Authorization به‌جای [Authorize] معمول اپلیکیشن بررسی می‌شود
         "PushController.Subscribe",            // ثبت اشتراک پوش قبل از لاگین
         "PushController.SubscribeFcm",
     };

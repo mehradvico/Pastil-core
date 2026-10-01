@@ -38,6 +38,11 @@ namespace Entities.Entities
         // true وقتی این خرید (بعد از تکمیل) داخل یک تسویه‌ی نماینده آمده است (مثل Permitted در رزرو)
         public bool Permitted { get; set; }
 
+        // ---- رزرو ساعت‌دار (فقط برای پکیج Bookable؛ در خرید فوری null است)
+        // ScheduledEnd = ScheduledStart + DurationMinutes؛ برای شمارش هم‌پوشانی اسلات ذخیره می‌شود
+        public DateTime? ScheduledStart { get; set; }
+        public DateTime? ScheduledEnd { get; set; }
+
         // ---- شروع و پنجره‌ی زمانی
         public DateTime? StartDeadline { get; set; }
         public long? AgentUserId { get; set; }

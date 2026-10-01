@@ -178,7 +178,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         item.IsReserved = false;
                     }
                     var pansion = await _context.Pansions.FirstOrDefaultAsync(s =>
-                        s.Id == dto.PansionId && s.Active && s.Approve);
+                        s.Id == dto.PansionId && s.Active && s.Approve && !s.Deleted);
                     var userPet = await _context.UserPets.FirstOrDefaultAsync(s =>
                         s.Id == dto.UserPetId && s.UserId == dto.BookerId);
                     if (pansion == null || userPet == null)

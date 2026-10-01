@@ -103,7 +103,7 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                     With = g.Count(x => x.CommissionPercent > 0)
                 }).ToList().ToDictionary(x => x.CompanionId);
 
-            var pansionStats = _context.Pansions.Where(p => companionIds.Contains(p.CompanionId)).GroupBy(p => p.CompanionId).Select(g => new
+            var pansionStats = _context.Pansions.Where(p => !p.Deleted && companionIds.Contains(p.CompanionId)).GroupBy(p => p.CompanionId).Select(g => new
                 {
                     CompanionId = g.Key,
                     Has = 1,
@@ -191,7 +191,7 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
             if (companion == null) 
                 return null;
 
-            var pansions = _context.Pansions.Include(p => p.Picture).Where(p => p.CompanionId == companionId).ToList();
+            var pansions = _context.Pansions.Include(p => p.Picture).Where(p => p.CompanionId == companionId && !p.Deleted).ToList();
 
             var assistances = _context.CompanionAssistances.Include(a => a.Assistance).Where(a => a.CompanionId == companionId && !a.Deleted).ToList();
 

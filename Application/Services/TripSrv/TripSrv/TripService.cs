@@ -112,7 +112,11 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task<BaseResultDto<TripVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.CancelReasonCode).Include(s => s.Driver).ThenInclude(d => d.ProfilePicture).Include(s => s.TripPets).ThenInclude(tp => tp.UserPet).ThenInclude(up => up.Pet).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.CancelReasonCode)
+                .Include(s => s.Driver).ThenInclude(d => d.ProfilePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.CertificatePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.VehicleCardPicture)
+                .Include(s => s.TripPets).ThenInclude(tp => tp.UserPet).ThenInclude(up => up.Pet).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(item));
@@ -132,7 +136,11 @@ namespace Application.Services.TripSrv.TripSrv
 
         public TripSearchDto Search(TripInputDto baseSearchDto)
         {
-            var model = _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).ThenInclude(d => d.ProfilePicture).Include(s => s.TripPets).Include(s => s.VehicleType).AsQueryable();
+            var model = _context.Trips.Include(s => s.FromCity).Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.User).Include(s => s.UserPet).ThenInclude(s => s.Pet).Include(s => s.UserPet).ThenInclude(s => s.User).Include(s => s.DriverStatus).Include(s => s.TripStatus)
+                .Include(s => s.Driver).ThenInclude(d => d.ProfilePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.CertificatePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.VehicleCardPicture)
+                .Include(s => s.TripPets).Include(s => s.VehicleType).AsQueryable();
 
             if (baseSearchDto.FromCityId.HasValue)
             {
@@ -395,7 +403,10 @@ namespace Application.Services.TripSrv.TripSrv
                 await _context.Trips.AddAsync(trip);
 
             await _context.SaveChangesAsync();
-            trip = await _context.Trips.Include(t => t.Driver).ThenInclude(t => t.ProfilePicture).Include(t => t.UserPet).Include(t => t.DriverStatus)
+            trip = await _context.Trips.Include(t => t.Driver).ThenInclude(t => t.ProfilePicture)
+                                       .Include(t => t.Driver).ThenInclude(t => t.CertificatePicture)
+                                       .Include(t => t.Driver).ThenInclude(t => t.VehicleCardPicture)
+                                       .Include(t => t.UserPet).Include(t => t.DriverStatus)
                                        .Include(t => t.TripStatus).Include(t => t.TripStop).Include(t => t.TripOptions).FirstOrDefaultAsync(t => t.Id == trip.Id);
 
             if (!isUpdate && trip.IsOnline)
@@ -424,7 +435,10 @@ namespace Application.Services.TripSrv.TripSrv
         public async Task<BaseResultDto<TripVDto>> GetUserCurrentTrip(long userId)
         {
             var item = await _context.Trips.Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.UserPet).ThenInclude(s => s.User)
-                .Include(s => s.DriverStatus).Include(s => s.TripStatus).Include(s => s.Driver).ThenInclude(t => t.ProfilePicture)
+                .Include(s => s.DriverStatus).Include(s => s.TripStatus)
+                .Include(s => s.Driver).ThenInclude(t => t.ProfilePicture)
+                .Include(s => s.Driver).ThenInclude(t => t.CertificatePicture)
+                .Include(s => s.Driver).ThenInclude(t => t.VehicleCardPicture)
                 .Where(TripCurrentForUser(userId, DateTime.Now))
                 .OrderByDescending(s => s.IsOnline)
                 .ThenBy(s => s.TripStartDateTime)
@@ -2123,6 +2137,8 @@ namespace Application.Services.TripSrv.TripSrv
         {
             var trip = await _context.Trips
                 .Include(s => s.Driver).ThenInclude(d => d.ProfilePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.CertificatePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.VehicleCardPicture)
                 .Include(s => s.DriverStatus)
                 .Include(s => s.TripStatus)
                 .AsNoTracking()
@@ -2144,6 +2160,8 @@ namespace Application.Services.TripSrv.TripSrv
         {
             var trip = await _context.Trips
                 .Include(s => s.Driver).ThenInclude(d => d.ProfilePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.CertificatePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.VehicleCardPicture)
                 .Include(s => s.DriverStatus)
                 .Include(s => s.TripStatus)
                 .AsNoTracking()
@@ -2238,7 +2256,10 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task<BaseResultDto<TripVDto>> GetTripForSchoolReservationAsync(long schoolReserveId, long userId)
         {
-            var trip = await _context.Trips.Include(t => t.Driver).ThenInclude(d => d.ProfilePicture).Include(t => t.DriverStatus).Include(t => t.TripStatus).AsNoTracking()
+            var trip = await _context.Trips.Include(t => t.Driver).ThenInclude(d => d.ProfilePicture)
+                .Include(t => t.Driver).ThenInclude(d => d.CertificatePicture)
+                .Include(t => t.Driver).ThenInclude(d => d.VehicleCardPicture)
+                .Include(t => t.DriverStatus).Include(t => t.TripStatus).AsNoTracking()
                 .Where(t => t.SchoolReserveId == schoolReserveId && t.UserId == userId).OrderByDescending(t => t.Id).FirstOrDefaultAsync();
             return trip == null
                 ? new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null)

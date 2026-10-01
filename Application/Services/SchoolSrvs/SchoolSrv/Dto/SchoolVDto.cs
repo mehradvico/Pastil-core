@@ -24,6 +24,9 @@ namespace Application.Services.SchoolSrvs.SchoolSrv.Dto
         public int RateCount { get; set; }
         public long? PictureId { get; set; }
         public bool Suggested { get; set; }
+        // حذف نرم (فقط ادمین فهرست حذف‌شده‌ها را می‌بیند)
+        public bool Deleted { get; set; }
+        public System.DateTime? DeleteDate { get; set; }
         public string Regulations { get; set; }
 
         public CompanionMinVDto Companion { get; set; }

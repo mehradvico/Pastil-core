@@ -1137,6 +1137,12 @@
   <data name="DriverHasUpcomingScheduledTrip" xml:space="preserve">
     <value>شما یک سفر رزروشده یا سرویس نزدیک دارید و فعلاً نمی‌توانید سفر جدیدی بپذیرید.</value>
   </data>
+  <data name="SchoolLiveRecordingNameRequired" xml:space="preserve">
+    <value>برای ذخیره‌ی لایو، نام دوره را وارد کنید.</value>
+  </data>
+  <data name="FeatureTemporarilyDisabled" xml:space="preserve">
+    <value>این بخش فعلاً غیرفعال است.</value>
+  </data>
   <data name="PansionDropOffTimeRequired" xml:space="preserve">
     <value>برای رزرو شبانه/اقامتی، ساعت تحویل پت باید مشخص شود.</value>
   </data>
@@ -1519,6 +1525,9 @@
   <data name="ConsultationAlreadyInProgress" xml:space="preserve">
     <value>شما یک مشاوره‌ی آنلاین فعال دارید؛ تا پایان زمان آن نمی‌توانید مشاوره‌ی دیگری بخرید.</value>
   </data>
+  <data name="ConsultationCompanionOffline" xml:space="preserve">
+    <value>الان هیچ‌کس از تیم آنلاین نیست؛ فعلاً نمی‌توانید پکیج آنلاین بخرید.</value>
+  </data>
   <data name="UnpaidDebtLocked" xml:space="preserve">
     <value>حساب شما برای رزرو جدید قفل است؛ هزینه‌ی یک خدمت بیش از ۷ روز پرداخت نشده. ابتدا آن را پرداخت کنید.</value>
   </data>
@@ -1527,5 +1536,35 @@
   </data>
   <data name="UnpaidDebtWalletInsufficient" xml:space="preserve">
     <value>موجودی کیف پول کافی نیست؛ ابتدا کیف پول را شارژ کنید.</value>
+  </data>
+  <data name="ConsultationAvailabilityInvalid" xml:space="preserve">
+    <value>برنامه‌ی ساعت‌های کاری نامعتبر است (ساعت‌ها باید روی ربع ساعت باشند، پایان بعد از شروع، و بازه‌های یک روز هم‌پوشان نباشند).</value>
+  </data>
+  <data name="ConsultationSlotInvalid" xml:space="preserve">
+    <value>این ساعت برای رزرو معتبر نیست یا خارج از ساعت‌های کاری کلینیک است.</value>
+  </data>
+  <data name="ConsultationSlotTooSoon" xml:space="preserve">
+    <value>این ساعت خیلی نزدیک است؛ رزرو باید دست‌کم ۳۰ دقیقه جلوتر باشد.</value>
+  </data>
+  <data name="ConsultationSlotFull" xml:space="preserve">
+    <value>ظرفیت این ساعت پر شده است؛ لطفاً ساعت دیگری انتخاب کنید.</value>
+  </data>
+  <data name="ConsultationBookingUserBusy" xml:space="preserve">
+    <value>شما در همین ساعت مشاوره‌ی دیگری رزرو کرده‌اید.</value>
+  </data>
+  <data name="ConsultationBookingCancelTooLate" xml:space="preserve">
+    <value>رزرو فقط تا ۲ ساعت قبل از ساعت مشاوره قابل لغو است.</value>
+  </data>
+  <data name="ConsultationBookingTimeRequired" xml:space="preserve">
+    <value>برای این پکیج باید ساعت مشاوره را انتخاب کنید.</value>
+  </data>
+  <data name="ConsultationBookingTooEarly" xml:space="preserve">
+    <value>هنوز زود است؛ شروع مشاوره فقط از ۱۰ دقیقه قبل از ساعت رزرو ممکن است.</value>
+  </data>
+  <data name="PansionDeleteHasOpenReserves" xml:space="preserve">
+    <value>این پانسیون رزرو فعال (پرداخت‌شده و انجام‌نشده) دارد؛ ابتدا آن رزروها را تکمیل یا لغو کنید و بعد حذف کنید.</value>
+  </data>
+  <data name="SchoolDeleteHasOpenReserves" xml:space="preserve">
+    <value>این مدرسه ثبت‌نام فعال (پرداخت‌شده و انجام‌نشده) دارد؛ ابتدا آن ثبت‌نام‌ها را تکمیل یا لغو کنید و بعد حذف کنید.</value>
   </data>
 </root>

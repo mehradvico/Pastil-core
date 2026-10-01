@@ -2422,6 +2422,24 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to School Live Recording Name Required.
+        /// </summary>
+        public static string SchoolLiveRecordingNameRequired {
+            get {
+                return ResourceManager.GetString("SchoolLiveRecordingNameRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Feature Temporarily Disabled.
+        /// </summary>
+        public static string FeatureTemporarilyDisabled {
+            get {
+                return ResourceManager.GetString("FeatureTemporarilyDisabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Pansion Drop Off Time Required.
         /// </summary>
         public static string PansionDropOffTimeRequired {
@@ -2544,6 +2562,72 @@ namespace Resource {
         public static string ConsultationAlreadyInProgress {
             get {
                 return ResourceManager.GetString("ConsultationAlreadyInProgress", resourceCulture);
+            }
+        }
+
+        public static string ConsultationAvailabilityInvalid {
+            get {
+                return ResourceManager.GetString("ConsultationAvailabilityInvalid", resourceCulture);
+            }
+        }
+
+        public static string ConsultationSlotInvalid {
+            get {
+                return ResourceManager.GetString("ConsultationSlotInvalid", resourceCulture);
+            }
+        }
+
+        public static string ConsultationSlotTooSoon {
+            get {
+                return ResourceManager.GetString("ConsultationSlotTooSoon", resourceCulture);
+            }
+        }
+
+        public static string ConsultationSlotFull {
+            get {
+                return ResourceManager.GetString("ConsultationSlotFull", resourceCulture);
+            }
+        }
+
+        public static string ConsultationBookingUserBusy {
+            get {
+                return ResourceManager.GetString("ConsultationBookingUserBusy", resourceCulture);
+            }
+        }
+
+        public static string ConsultationBookingCancelTooLate {
+            get {
+                return ResourceManager.GetString("ConsultationBookingCancelTooLate", resourceCulture);
+            }
+        }
+
+        public static string ConsultationBookingTimeRequired {
+            get {
+                return ResourceManager.GetString("ConsultationBookingTimeRequired", resourceCulture);
+            }
+        }
+
+        public static string ConsultationBookingTooEarly {
+            get {
+                return ResourceManager.GetString("ConsultationBookingTooEarly", resourceCulture);
+            }
+        }
+
+        public static string PansionDeleteHasOpenReserves {
+            get {
+                return ResourceManager.GetString("PansionDeleteHasOpenReserves", resourceCulture);
+            }
+        }
+
+        public static string SchoolDeleteHasOpenReserves {
+            get {
+                return ResourceManager.GetString("SchoolDeleteHasOpenReserves", resourceCulture);
+            }
+        }
+
+        public static string ConsultationCompanionOffline {
+            get {
+                return ResourceManager.GetString("ConsultationCompanionOffline", resourceCulture);
             }
         }
 

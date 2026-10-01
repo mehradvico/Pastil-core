@@ -56,7 +56,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
         {
             var item = await _context.Companions.Include(s => s.Picture).Include(s => s.Icon).Include(s => s.CompanionPets).Include(s => s.BackgroundPicture).Include(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.CompanionTypes).Include(s => s.CompanionZones).ThenInclude(s => s.City).ThenInclude(s => s.State)
-                .Include(s => s.CompanionZones).ThenInclude(s => s.Neighborhood).Include(s => s.Pansions).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+                .Include(s => s.CompanionZones).ThenInclude(s => s.Neighborhood).Include(s => s.Pansions.Where(p => !p.Deleted)).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
                 return new BaseResultDto<CompanionVDto>(true, mapper.Map<CompanionVDto>(item));
@@ -142,7 +142,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                 .Include(x => x.Picture)
                 .Include(x => x.City)
                 .Include(x => x.Neighborhood)
-                .Include(x => x.Pansions)
+                .Include(x => x.Pansions.Where(p => !p.Deleted))
                 .Where(x => companionIds.Contains(x.Id))
                 .ToListAsync();
             var companionById = companionItems.ToDictionary(x => x.Id);
@@ -173,7 +173,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
         {
             var item = await _context.Companions.Include(s => s.Picture).Include(s => s.Icon).Include(s => s.CompanionPets).Include(s => s.BackgroundPicture).Include(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.CompanionTypes).Include(s => s.CompanionZones).ThenInclude(s => s.City).ThenInclude(s => s.State)
-                .Include(s => s.CompanionZones).ThenInclude(s => s.Neighborhood).Include(s => s.Pansions).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+                .Include(s => s.CompanionZones).ThenInclude(s => s.Neighborhood).Include(s => s.Pansions.Where(p => !p.Deleted)).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
                 return new BaseResultDto<CompanionDto>(true, mapper.Map<CompanionDto>(item));

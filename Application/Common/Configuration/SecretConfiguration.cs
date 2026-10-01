@@ -44,6 +44,13 @@ namespace Application.Common.Configuration
             Override(configuration, "Shipping:Miare:ApiKey", "PASTIL_SHIPPING_MIARE_API_KEY");
             Override(configuration, "Shipping:Miare:AccountingBaseUrl", "PASTIL_SHIPPING_MIARE_ACCOUNTING_BASE_URL");
 
+            // Liara Object Storage (S3-compatible) - فقط سرویس File واقعاً از این استفاده می‌کند؛
+            // بدون این متغیرها ObjectStorageService.IsConfigured=false می‌ماند و آپلود جدید و fallback سرو محلی همچنان از دیسک کار می‌کنند
+            Override(configuration, "ObjectStorage:Endpoint", "PASTIL_OBJECT_STORAGE_ENDPOINT");
+            Override(configuration, "ObjectStorage:AccessKey", "PASTIL_OBJECT_STORAGE_ACCESS_KEY");
+            Override(configuration, "ObjectStorage:SecretKey", "PASTIL_OBJECT_STORAGE_SECRET_KEY");
+            Override(configuration, "ObjectStorage:BucketName", "PASTIL_OBJECT_STORAGE_BUCKET");
+
             // کلید رمزنگاری ستونی شماره کارت/شبا؛ بدون کلید معتبر مقدارهای جدید بدون رمز ذخیره می‌شوند (هشدار در استارتاپ)
             Persistence.Security.SensitiveDataProtector.Configure(configuration["Security:BankCardEncryptionKey"]);
 

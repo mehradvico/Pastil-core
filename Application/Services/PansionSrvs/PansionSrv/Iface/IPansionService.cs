@@ -14,8 +14,11 @@ namespace Application.Services.PansionSrvs.PansionSrv.Iface
 {
     public interface IPansionService : ICommonSrv<Pansion, PansionDto>
     {
-        PansionSearchDto Search(PansionInputDto baseSearchDto);
-        Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id);
+        PansionSearchDto Search(PansionInputDto baseSearchDto, bool onlyDeleted = false);
+        Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id, bool includeDeleted = false);
+        // حذف نرم (companionId = مالک کلینیک؛ null = ادمین) و بازگردانی (ادمین)
+        Task<BaseResultDto> SoftDeleteAsync(long id, long? companionId, long actorUserId);
+        Task<BaseResultDto> RestoreAsync(long id);
         Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
         BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto, long? companionId = null);
         Task<BaseResultDto> UpdatePansionApproveAsyncDto(PansionApproveDto dto);

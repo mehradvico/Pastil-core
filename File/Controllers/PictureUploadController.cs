@@ -1,5 +1,6 @@
 ﻿using AngleSharp.Dom;
 using Application.Common.Dto.Result;
+using Application.Common.Storage;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.Filing.PictureSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -22,9 +23,28 @@ namespace File.Controllers
     public class PictureUploadController : ControllerBase
     {
         private readonly IPictureService pictureService;
-        public PictureUploadController(IPictureService pictureService)
+        private readonly IObjectStorageService objectStorageService;
+        public PictureUploadController(IPictureService pictureService, IObjectStorageService objectStorageService)
         {
             this.pictureService = pictureService;
+            this.objectStorageService = objectStorageService;
+        }
+
+        private async Task SaveAsync(string relativeDir, string fileName, Stream content, string contentType, CancellationToken cancellationToken)
+        {
+            if (objectStorageService.IsConfigured)
+            {
+                content.Position = 0;
+                await objectStorageService.UploadAsync($"{relativeDir}/{fileName}", content, contentType, cancellationToken);
+            }
+            else
+            {
+                var diskDir = Path.Combine("wwwroot", relativeDir.Replace('/', Path.DirectorySeparatorChar));
+                Directory.CreateDirectory(diskDir);
+                content.Position = 0;
+                await using var fs = System.IO.File.Create(Path.Combine(diskDir, fileName));
+                await content.CopyToAsync(fs, cancellationToken);
+            }
         }
 
         [HttpPost]
@@ -66,15 +86,14 @@ namespace File.Controllers
 
             var originalName = Path.GetFileName(PictureFile.FileName);
             var guid = Guid.NewGuid().ToString("N");
-
-            string filePath = Path.Combine("wwwroot", "Media", now.Year.ToString(), now.Month.ToString(), now.Day.ToString());
-            Directory.CreateDirectory(filePath);
+            var relativeDir = string.Join('/', "Media", now.Year.ToString(), now.Month.ToString(), now.Day.ToString());
 
             if (allowVideoExtensions.Contains(extension))
             {
-                var videoPath = Path.Combine(filePath, guid + extension);
-                await using var vs = System.IO.File.Create(videoPath);
-                await PictureFile.CopyToAsync(vs);
+                await using (var vs = PictureFile.OpenReadStream())
+                {
+                    await SaveAsync(relativeDir, guid + extension, vs, PictureFile.ContentType, HttpContext.RequestAborted);
+                }
 
                 var dtoVideo = new PictureDto
                 {
@@ -84,7 +103,7 @@ namespace File.Controllers
                     Extension = extension,
                     Name = guid + extension,
                     GuidName = guid,
-                    Url = filePath.Replace("wwwroot", "").Replace("\\", "/"),
+                    Url = "/" + relativeDir,
                     OrginalName = originalName
                 };
 
@@ -112,8 +131,10 @@ namespace File.Controllers
                 ? new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { FileFormat = SixLabors.ImageSharp.Formats.Webp.WebpFileFormatType.Lossless }
                 : new SixLabors.ImageSharp.Formats.Webp.WebpEncoder { Quality = 85 };
 
-            var mainPath = Path.Combine(filePath, guid + ".webp");
-            await image.SaveAsync(mainPath, encoder);
+            using var mainBuffer = new MemoryStream();
+            await image.SaveAsync(mainBuffer, encoder);
+            var mainSize = mainBuffer.Length;
+            await SaveAsync(relativeDir, guid + ".webp", mainBuffer, "image/webp", HttpContext.RequestAborted);
 
             foreach (var s in sizes)
             {
@@ -131,11 +152,10 @@ namespace File.Controllers
                 }
 
                 using var clone = image.Clone(x => x.Resize(width, height));
-                var thumbPath = Path.Combine(filePath, $"{guid}-{s.Key}.webp");
-                await clone.SaveAsync(thumbPath, encoder);
+                using var thumbBuffer = new MemoryStream();
+                await clone.SaveAsync(thumbBuffer, encoder);
+                await SaveAsync(relativeDir, $"{guid}-{s.Key}.webp", thumbBuffer, "image/webp", HttpContext.RequestAborted);
             }
-
-            var mainSize = new FileInfo(mainPath).Length;
 
             var dto = new PictureDto
             {
@@ -145,7 +165,7 @@ namespace File.Controllers
                 Extension = ".webp",
                 Name = guid + ".webp",
                 GuidName = guid,
-                Url = filePath.Replace("wwwroot", "").Replace("\\", "/"),
+                Url = "/" + relativeDir,
                 OrginalName = originalName
             };
 

@@ -205,6 +205,39 @@ app.UseStaticFiles(new StaticFileOptions
     // فایل‌های آپلودی روی origin عمومی سرو می‌شوند؛ مرورگر نباید نوع محتوا را حدس بزند (MIME sniffing → اجرای HTML/JS)
     OnPrepareResponse = ctx => ctx.Context.Response.Headers["X-Content-Type-Options"] = "nosniff"
 });
+// Fallback برای فایل‌هایی که فقط روی Object Storage هستند (آپلودهای بعد از مهاجرت فاز ۳):
+// اگر UseStaticFiles چیزی روی دیسک محلی پیدا نکرد (404)، همان مسیر نسبی را به‌عنوان
+// key از باکت لیارا می‌خواند - فایل‌های قدیمی که هنوز روی دیسک هستند از این مسیر رد نمی‌شوند.
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode != StatusCodes.Status404NotFound
+        || !HttpMethods.IsGet(context.Request.Method))
+        return;
+
+    var path = context.Request.Path.Value?.TrimStart('/');
+    if (string.IsNullOrEmpty(path)
+        || !(path.StartsWith("StaticFile/", StringComparison.OrdinalIgnoreCase)
+             || path.StartsWith("Media/", StringComparison.OrdinalIgnoreCase)))
+        return;
+
+    var storage = context.RequestServices.GetRequiredService<Application.Common.Storage.IObjectStorageService>();
+    if (!storage.IsConfigured)
+        return;
+
+    var file = await storage.TryGetAsync(path, context.RequestAborted);
+    if (file == null)
+        return;
+
+    await using (file.Content)
+    {
+        context.Response.StatusCode = StatusCodes.Status200OK;
+        context.Response.ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        await file.Content.CopyToAsync(context.Response.Body, context.RequestAborted);
+    }
+});
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("TrustedOrigins");

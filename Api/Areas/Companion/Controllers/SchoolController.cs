@@ -84,5 +84,21 @@ namespace Api.Areas.Companion.Controllers
             var result = _schoolService.UpdateDto(dto);
             return Ok(result);
         }
+
+        /// <summary>
+        /// حذف نرم مدرسه‌ی من (فقط مالک کلینیک). دوره‌ها، رزروها و گزارش مالی می‌مانند؛ با ثبت‌نام باز
+        /// پرداخت‌شده حذف نمی‌شود. بازگردانی فقط توسط ادمین.
+        /// </summary>
+        /// <param name="id">شناسه مدرسه</param>
+        [HttpDelete]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Delete(long id)
+        {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var result = await _schoolService.SoftDeleteAsync(
+                id, _currentUser.CurrentUser.CompanionId.Value, _currentUser.CurrentUser.UserId);
+            return Ok(result);
+        }
     }
 }

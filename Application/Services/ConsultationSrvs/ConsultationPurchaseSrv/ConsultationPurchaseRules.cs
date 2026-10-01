@@ -27,7 +27,15 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
         // لغو توسط کاربر فقط بعد از پرداخت و قبل از «شروع»
         public static bool CanUserCancel(int status) => S(status) == ConsultationPurchaseStatusEnum.Paid;
 
+        // رزرو ساعت‌دار: لغو کاربر فقط تا ۲ ساعت قبل از ساعت رزرو؛ خرید فوری (scheduledStart = null) مثل قبل
+        public static bool CanUserCancel(int status, DateTime? scheduledStart, DateTime now) =>
+            CanUserCancel(status) && Application.Services.ConsultationSrvs.ConsultationBookingSrv.ConsultationBookingRules.IsUserCancelAllowed(scheduledStart, now);
+
         // شروع توسط نماینده فقط از «پرداخت‌شده» و تا مهلت
+        // scheduledStart: رزرو ساعت‌دار؛ شروع فقط از ۱۰ دقیقه قبل از ساعت رزرو (null = خرید فوری، بدون محدودیت)
+        public static bool CanStart(int status, DateTime? startDeadline, DateTime now, DateTime? scheduledStart) =>
+            CanStart(status, startDeadline, now) && Application.Services.ConsultationSrvs.ConsultationBookingSrv.ConsultationBookingRules.IsStartAllowed(scheduledStart, now);
+
         public static bool CanStart(int status, DateTime? startDeadline, DateTime now) =>
             S(status) == ConsultationPurchaseStatusEnum.Paid && (!startDeadline.HasValue || now <= startDeadline.Value);
 

@@ -90,6 +90,14 @@ namespace Application.Common.Enumerable.Code
         PushConsultationTakenByColleague = 79,
         PushConsultationUnclaimed = 80,
         /// <summary>به راننده: ۳۰ دقیقه به شروع یک سفر رزروشده/سرویس هفتگی‌ای که قبلاً قبول کرده مانده.</summary>
-        PushTripDriverUpcomingReminder = 81
+        PushTripDriverUpcomingReminder = 81,
+        /// <summary>به کاربر: ۵ دقیقه به شروع یک جلسه‌ی زنده‌ی مدرسه (پاستیل لایو) مانده.</summary>
+        PushSchoolClassReminder5Min = 82,
+        /// <summary>به نماینده‌ها: کاربری یک مشاوره‌ی ساعت‌دار (قابل رزرو) را برای ساعت مشخصی رزرو کرد.</summary>
+        PushConsultationBookedAgent = 83,
+        /// <summary>به کاربر: رزرو مشاوره‌ی ساعت‌دار ثبت شد.</summary>
+        PushConsultationBookedUser = 84,
+        /// <summary>به کاربر و نماینده: ۳۰ دقیقه به ساعت رزرو مشاوره مانده.</summary>
+        PushConsultationBookingReminder = 85
     }
 }

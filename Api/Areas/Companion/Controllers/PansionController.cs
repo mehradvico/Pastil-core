@@ -91,5 +91,21 @@ namespace Api.Areas.Companion.Controllers
                 _currentUser.CurrentUser.UserId);
             return Ok(Pansion);
         }
+
+        /// <summary>
+        /// حذف نرم پانسیون/مهد پت من (فقط مالک کلینیک). رزروها و گزارش مالی می‌مانند؛ با رزرو باز پرداخت‌شده
+        /// حذف نمی‌شود. بازگردانی فقط توسط ادمین.
+        /// </summary>
+        /// <param name="id">شناسه پانسیون</param>
+        [HttpDelete]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Delete(long id)
+        {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var result = await _PansionService.SoftDeleteAsync(
+                id, _currentUser.CurrentUser.CompanionId.Value, _currentUser.CurrentUser.UserId);
+            return Ok(result);
+        }
     }
 }

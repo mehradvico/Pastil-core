@@ -10,6 +10,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto
         public bool FromWallet { get; set; }
         public long? MerchantId { get; set; }
         public string RebateCode { get; set; }
+        // فقط برای پکیج «قابل رزرو» (Bookable) و الزامی؛ ساعت شروع مشاوره (ساعت سرور/ایران، روی شبکه‌ی ۱۵ دقیقه‌ای، مثلاً 2026-10-03T16:00:00).
+        // برای پکیج فوری نادیده گرفته می‌شود.
+        public DateTime? ScheduledStart { get; set; }
     }
 
     public class ConsultationPurchaseVDto
@@ -30,6 +33,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto
         public DateTime CreateDate { get; set; }
         public DateTime? PaidDate { get; set; }
         public DateTime? StartDeadline { get; set; }
+        // رزرو ساعت‌دار (خرید فوری: null)؛ آخرین زمان لغو آزاد = ScheduledStart − ۲ ساعت
+        public DateTime? ScheduledStart { get; set; }
+        public DateTime? ScheduledEnd { get; set; }
+        public DateTime? CancelAllowedUntil { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? ExpireDate { get; set; }
         public long? OnlineSessionId { get; set; }

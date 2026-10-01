@@ -46,16 +46,16 @@ namespace Application.Services.PansionSrvs.PansionSrv
         public BaseResultDto GetSiteMap()
         {
             var list = _context.Pansions.AsNoTracking()
-                .Where(s => s.Active && s.ShowToSite)
+                .Where(s => s.Active && s.ShowToSite && !s.Deleted)
                 .Select(s => new PansionSiteMapDto { Id = s.Id, Name = s.Name })
                 .ToList();
             return new BaseResultDto<List<PansionSiteMapDto>>(true, list);
         }
 
-        public async Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id)
+        public async Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id, bool includeDeleted = false)
         {
             var item = await _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.City).ThenInclude(s => s.State)
-                .Include(s => s.PansionPets).ThenInclude(s => s.Pet).Include(s => s.PansionComments).Include(s => s.PansionPictures).ThenInclude(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id);
+                .Include(s => s.PansionPets).ThenInclude(s => s.Pet).Include(s => s.PansionComments).Include(s => s.PansionPictures).ThenInclude(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id && (includeDeleted || !s.Deleted));
             if (item != null)
             {
                 return new BaseResultDto<PansionVDto>(true, mapper.Map<PansionVDto>(item));
@@ -66,7 +66,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
         public async Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite)
         {
             var affectedRows = await _context.Pansions
-                .Where(x => x.Id == id)
+                .Where(x => x.Id == id && !x.Deleted)
                 .ExecuteUpdateAsync(setters => setters
                     .SetProperty(x => x.ShowToSite, showToSite));
 
@@ -76,10 +76,12 @@ namespace Application.Services.PansionSrvs.PansionSrv
             return new BaseResultDto(true);
         }
 
-        public PansionSearchDto Search(PansionInputDto baseSearchDto)
+        public PansionSearchDto Search(PansionInputDto baseSearchDto, bool onlyDeleted = false)
         {
             var model = _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.Companion).ThenInclude(s => s.Neighborhood).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.PansionComments)
                 .Include(s => s.PansionPictures).ThenInclude(s => s.Picture).AsQueryable();
+            // حذف‌شده‌ها فقط وقتی ادمین صریحاً بخواهد (onlyDeleted) دیده می‌شوند؛ برای بقیه‌ی فراخوان‌ها هرگز.
+            model = onlyDeleted ? model.Where(s => s.Deleted) : model.Where(s => !s.Deleted);
 
             if (baseSearchDto.Available.HasValue)
             {
@@ -259,7 +261,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
         }
         public BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto, long? companionId = null)
         {
-            var item = _context.Pansions.FirstOrDefault(s => s.Id == dto.Id);
+            var item = _context.Pansions.FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (companionId.HasValue && item.CompanionId != companionId.Value)
@@ -290,7 +292,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
 
             var item = await _context.Pansions
                 .AsTracking()
-                .FirstOrDefaultAsync(s => s.Id == dto.Id && s.CompanionId == companionId);
+                .FirstOrDefaultAsync(s => s.Id == dto.Id && s.CompanionId == companionId && !s.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
@@ -326,7 +328,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
             var item = await _context.Pansions
                 .Include(s => s.Companion)
                 .AsTracking()
-                .FirstOrDefaultAsync(s => s.Id == dto.Id);
+                .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
             if (item?.Companion == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
@@ -384,10 +386,73 @@ namespace Application.Services.PansionSrvs.PansionSrv
             _context.SaveChanges();
         }
 
+        // حذف نرم توسط مالک کلینیک (companionId = کلینیک جاری کاربر) یا ادمین (companionId = null).
+        // ردیف پاک نمی‌شود: رزروها، تسویه‌ها و گزارش مالی همان‌طور می‌مانند؛ فقط از فهرست‌ها، جستجو و رزرو جدید حذف می‌شود.
+        // تا وقتی رزرو «باز» (پرداخت‌شده، لغو/تکمیل‌نشده) دارد حذف نمی‌شود تا مشتری بی‌خدمت نماند.
+        public async Task<BaseResultDto> SoftDeleteAsync(long id, long? companionId, long actorUserId)
+        {
+            try
+            {
+                var item = await _context.Pansions.AsNoTracking()
+                    .Where(s => s.Id == id && !s.Deleted)
+                    .Select(s => new { s.Id, s.CompanionId })
+                    .FirstOrDefaultAsync();
+                if (item == null)
+                    return new BaseResultDto(false, Resource.Notification.NothingFound);
+                if (companionId.HasValue && item.CompanionId != companionId.Value)
+                    return new BaseResultDto(false, Resource.Notification.AccessDenied);
+                // حذف توسط نماینده فقط برای «مالک» همان کلینیک (نه اعضای تیم)
+                if (companionId.HasValue &&
+                    !await _context.Companions.AsNoTracking().AnyAsync(c => c.Id == companionId.Value && c.OwnerId == actorUserId && !c.Deleted))
+                    return new BaseResultDto(false, Resource.Notification.AccessDenied);
+
+                var complete = (long)PansionReserveStatusEnum.PansionReserveState_Complete;
+                var registered = (long)PansionReserveStatusEnum.PansionReserveState_Registered;
+                var hasOpenReserve = await _context.PansionReserves.AsNoTracking().AnyAsync(r =>
+                    r.PansionId == id && !r.IsCancel && r.IsReserved && r.StatusId != complete && r.StatusId != registered);
+                if (hasOpenReserve)
+                    return new BaseResultDto(false, Resource.Notification.PansionDeleteHasOpenReserves);
+
+                var now = DateTime.Now;
+                var affected = await _context.Pansions
+                    .Where(s => s.Id == id && !s.Deleted)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(s => s.Deleted, true)
+                        .SetProperty(s => s.DeleteDate, (DateTime?)now)
+                        .SetProperty(s => s.DeletedByUserId, (long?)actorUserId)
+                        // از همه‌ی نمایش‌ها هم بیرون برود: اگر بعداً بازگردانده شد، دوباره باید فعال/منتشر شود
+                        .SetProperty(s => s.Active, false)
+                        .SetProperty(s => s.ShowToSite, false)
+                        .SetProperty(s => s.Suggested, false));
+                return affected == 0
+                    ? new BaseResultDto(false, Resource.Notification.NothingFound)
+                    : new BaseResultDto(true, Resource.Notification.Success);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Soft-deleting pansion {PansionId} failed.", id);
+                return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
+            }
+        }
+
+        // بازگردانی (فقط ادمین): پانسیون به حالت «غیرفعال و منتشرنشده» برمی‌گردد تا ادمین/مالک دوباره فعالش کنند
+        public async Task<BaseResultDto> RestoreAsync(long id)
+        {
+            var affected = await _context.Pansions
+                .Where(s => s.Id == id && s.Deleted)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(s => s.Deleted, false)
+                    .SetProperty(s => s.DeleteDate, (DateTime?)null)
+                    .SetProperty(s => s.DeletedByUserId, (long?)null));
+            return affected == 0
+                ? new BaseResultDto(false, Resource.Notification.NothingFound)
+                : new BaseResultDto(true, Resource.Notification.Success);
+        }
+
         public async Task<List<SearchPansionDto>> SearchMinAsync(SearchRequestDto request)
         {
             var predicate = SearchQueryHelper.ContainsAny<Pansion>(request.SearchTerms, item => item.Name, item => item.Discription, item => item.AddressValue, item => item.City.Name, item => item.State.Name);
-            var query = _context.Pansions.Where(p => p.Active && p.Approve);
+            var query = _context.Pansions.Where(p => p.Active && p.Approve && !p.Deleted);
             return await query.Where(predicate).OrderByDescending(p => p.RateAvg)
                 .Take(SearchQueryHelper.CandidateCount(request.PansionCount))
                 .ProjectTo<SearchPansionDto>(mapper.ConfigurationProvider).ToListAsync();
