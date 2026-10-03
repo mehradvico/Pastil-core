@@ -18,6 +18,8 @@ namespace Entities.Entities
         public long? PictureId { get; set; }
         public int SortOrder { get; set; }
         public double Price { get; set; }
+        // درصد سهم سایت از هر خرید این پکیج (فقط ادمین از حسابداری نماینده تنظیم می‌کند؛ پیش‌فرض ۰ = همه‌ی مبلغ سهم کلینیک)
+        public decimal CommissionPercent { get; set; }
         // true = «قابل رزرو»: کاربر هنگام خرید ساعت انتخاب می‌کند (ConsultationAvailability) و مشاوره در همان ساعت انجام می‌شود.
         // false = رفتار قبلی: خرید فوری و شروع توسط نماینده.
         public bool Bookable { get; set; }

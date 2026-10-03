@@ -2108,6 +2108,18 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.FinanceConsultationPackageController">
+             <summary>
+             حسابداری پکیج‌های مشاوره‌ی آنلاین (درصد سهم سایت)
+             </summary>
+            
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinanceConsultationPackageController.Put(Application.Services.FinanceSrvs.FinanceSrv.Dto.FinanceConsultationPackageDto)">
+            <summary>
+             ویرایش درصد کمیسیون یک پکیج مشاوره (فقط خریدهای بعدی)
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.FinanceController">
              <summary>
              حسابداری ها

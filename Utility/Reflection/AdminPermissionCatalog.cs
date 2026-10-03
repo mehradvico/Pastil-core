@@ -320,6 +320,7 @@ namespace Utility.Reflection
                 "ProductOrder",
                 "ProductOrderChangeDescriptions",
                 "FinanceCompanionAssistance",
+                "FinanceConsultationPackage",
                 "ProductOrderChangeState",
                 "CompanionReserve",
                 "CompanionReserveUnified",

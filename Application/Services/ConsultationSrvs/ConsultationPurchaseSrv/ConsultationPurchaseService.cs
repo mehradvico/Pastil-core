@@ -202,6 +202,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     DurationMinutes = package.DurationMinutes,
                     PackageName = package.Name,
                     Price = package.Price,
+                    CommissionPercent = package.CommissionPercent,
                     Status = pending,
                     FromWallet = dto.FromWallet,
                     WalletPrice = amounts.Wallet,

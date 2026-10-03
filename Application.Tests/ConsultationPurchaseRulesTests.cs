@@ -67,6 +67,23 @@ public class ConsultationPurchaseRulesTests
     }
 
     [Theory]
+    [InlineData(200_000, 0, 0, 200_000)]            // پیش‌فرض ۰٪: همه‌ی مبلغ سهم کلینیک
+    [InlineData(200_000, 10, 20_000, 180_000)]
+    [InlineData(150_000, 12.5, 18_750, 131_250)]
+    [InlineData(100_000, 100, 100_000, 0)]
+    [InlineData(100_000, 250, 100_000, 0)]          // درصد خارج از بازه به ۱۰۰ بریده می‌شود
+    [InlineData(100_000, -5, 0, 100_000)]           // درصد منفی به ۰ بریده می‌شود
+    [InlineData(0, 30, 0, 0)]                       // تخفیف ۱۰۰٪: چیزی پرداخت نشده، سهمی هم نیست
+    public void Shares_split_the_paid_amount_by_the_commission_percent(double paid, double percent, double site, double companion)
+    {
+        var s = ConsultationPurchaseRules.ComputeShares(paid, (decimal)percent);
+
+        Assert.Equal(site, s.Site, 6);
+        Assert.Equal(companion, s.Companion, 6);
+        Assert.Equal(paid, s.Site + s.Companion, 6);
+    }
+
+    [Theory]
     [InlineData(Paid, true)]
     [InlineData(Pending, false)]
     [InlineData(Active, false)]      // بعد از شروع لغو کاربر ممکن نیست

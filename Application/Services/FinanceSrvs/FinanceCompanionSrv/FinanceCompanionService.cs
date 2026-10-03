@@ -103,7 +103,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                         ReserveCode = p.PurchaseCode,
                         BookerFullName = ((p.User.FirstName ?? "") + " " + (p.User.LastName ?? "")).Trim(),
                         PaymentPrice = p.PaymentPrice,
-                        CommissionPercent = p.PaymentPrice > 0 ? (decimal)(p.SiteShare / p.PaymentPrice * 100) : 0,
+                        CommissionPercent = p.CommissionPercent,
                         CompanionShare = p.CompanionShare,
                         SiteShare = p.SiteShare,
                         StatusLabel = null,

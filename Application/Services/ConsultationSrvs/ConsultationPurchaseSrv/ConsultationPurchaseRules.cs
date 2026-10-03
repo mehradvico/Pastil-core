@@ -22,6 +22,18 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             return new Amounts(price, rebate, payable, wallet, gateway);
         }
 
+        public readonly record struct Shares(double Site, double Companion);
+
+        // سهم سایت = مبلغ پرداخت‌شده (بعد از تخفیف) × درصد؛ باقی‌مانده سهم کلینیک. درصد بیرون ۰..۱۰۰ بریده می‌شود
+        // و جمع دو سهم همیشه دقیقاً برابر مبلغ پرداخت‌شده است (مثل رزرو خدمت/پانسیون)
+        public static Shares ComputeShares(double paymentPrice, decimal commissionPercent)
+        {
+            var total = Math.Max(0, paymentPrice);
+            var percent = Math.Min(Math.Max(commissionPercent, 0m), 100m);
+            var site = (double)((decimal)total * percent / 100m);
+            return new Shares(site, total - site);
+        }
+
         private static ConsultationPurchaseStatusEnum S(int status) => (ConsultationPurchaseStatusEnum)status;
 
         // لغو توسط کاربر فقط بعد از پرداخت و قبل از «شروع»

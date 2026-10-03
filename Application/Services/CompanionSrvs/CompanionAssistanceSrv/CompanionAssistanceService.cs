@@ -162,7 +162,10 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
             try
             {
 
-                var item = await _context.CompanionAssistances.Include(s => s.Codes).AsNoTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
+                // Codes عمداً Include نمی‌شود: Update(item) پایین کل گراف را track می‌کرد و ردیف‌های مشترک جدول Codes (و ردیف‌های
+                // جدول واسط CodeCompanionAssistance) را Modified می‌کرد؛ با حذف SQL خام بالا و Clear() داخل InsertOrUpdateAsync
+                // تداخل می‌خورد و ویرایش هر خدمت موجود با «اشکالی در فرایند به وجود آمده است» شکست می‌خورد.
+                var item = await _context.CompanionAssistances.AsNoTracking().FirstOrDefaultAsync(s => s.Id == dto.Id);
                 if (item == null)
                     return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.NothingFound, dto);
                 if (companionId.HasValue && item.CompanionId != companionId.Value)

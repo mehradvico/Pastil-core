@@ -558,6 +558,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             modelBuilder.Entity<SchoolCourse>()
                 .Property(item => item.CommissionPercent)
                 .HasPrecision(18, 2);
+            modelBuilder.Entity<ConsultationPackage>()
+                .Property(item => item.CommissionPercent)
+                .HasPrecision(5, 2);
+            modelBuilder.Entity<ConsultationPurchase>()
+                .Property(item => item.CommissionPercent)
+                .HasPrecision(5, 2);
             modelBuilder.Entity<Companion>(entity =>
             {
                 entity.Property(item => item.ReferralCode)

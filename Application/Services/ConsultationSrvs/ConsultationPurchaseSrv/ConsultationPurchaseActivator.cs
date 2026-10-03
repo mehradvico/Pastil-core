@@ -80,9 +80,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             purchase.StartDeadline = purchase.ScheduledStart.HasValue
                 ? ConsultationBookingSrv.ConsultationBookingRules.StartDeadline(purchase.ScheduledStart.Value)
                 : ConsultationPurchaseRules.ComputeStartDeadline(now);
-            // کارمزد پاستیل ۰٪ (تصمیم محصول): کل مبلغ پرداخت‌شده سهم کلینیک
-            purchase.CompanionShare = purchase.PaymentPrice;
-            purchase.SiteShare = 0;
+            // درصد کارمزد همان لحظه‌ی خرید از پکیج کپی شده؛ پیش‌فرض ۰٪ ⇒ کل مبلغ سهم کلینیک
+            var shares = ConsultationPurchaseRules.ComputeShares(purchase.PaymentPrice, purchase.CommissionPercent);
+            purchase.SiteShare = shares.Site;
+            purchase.CompanionShare = shares.Companion;
 
             if (purchase.Rebate != null)
                 _rebateService.IncreaseUseCount(purchase.Rebate, purchase.UserId, purchase.RebatePrice);

@@ -32,7 +32,9 @@ namespace Entities.Entities
         public long? PaymentId { get; set; }
         public DateTime? PaidDate { get; set; }
 
-        // ---- سهم درآمد (فعلاً کارمزد ۰٪: همه‌ی مبلغ سهم کلینیک)
+        // ---- سهم درآمد: CommissionPercent لحظه‌ی خرید از پکیج کپی می‌شود (تغییر بعدی درصد اثری ندارد)
+        // و موقع پرداخت: SiteShare = PaymentPrice × درصد، CompanionShare = باقی‌مانده
+        public decimal CommissionPercent { get; set; }
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
         // true وقتی این خرید (بعد از تکمیل) داخل یک تسویه‌ی نماینده آمده است (مثل Permitted در رزرو)

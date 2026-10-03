@@ -312,6 +312,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
                 RebatePrice = s.RebatePrice,
                 WalletPrice = s.WalletPrice,
                 PaymentPrice = s.PaymentPrice,
+                CommissionPercent = s.CommissionPercent,
                 CompanionShare = s.CompanionShare,
                 SiteShare = s.SiteShare,
                 NetPaid = ConsultationAdminReport.NetPaid(s.Status, s.PaymentPrice),

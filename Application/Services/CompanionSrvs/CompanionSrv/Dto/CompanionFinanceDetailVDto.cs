@@ -1,4 +1,5 @@
 ﻿using Application.Services.CompanionSrvs.CompanionAssistanceSrv.Dto;
+using Application.Services.FinanceSrvs.FinanceSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
 using System;
 using System.Collections.Generic;
@@ -12,5 +13,6 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
     {
         public List<PansionFinanceVDto> Pansions { get; set; }
         public List<CompanionAssistanceFinanceVDto> CompanionAssistances { get; set; }
+        public List<ConsultationPackageFinanceVDto> ConsultationPackages { get; set; }
     }
 }

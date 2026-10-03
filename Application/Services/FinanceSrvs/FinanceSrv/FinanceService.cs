@@ -198,6 +198,22 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
             var result = mapper.Map<CompanionFinanceDetailVDto>(companion);
             result.Pansions = pansions.Select(p => mapper.Map<PansionFinanceVDto>(p)).ToList();
             result.CompanionAssistances = assistances.Select(a => mapper.Map<CompanionAssistanceFinanceVDto>(a)).ToList();
+            result.ConsultationPackages = _context.ConsultationPackages
+                .Where(p => p.CompanionId == companionId && !p.Deleted)
+                .OrderBy(p => p.ChannelId).ThenBy(p => p.SortOrder).ThenBy(p => p.DurationMinutes).ThenBy(p => p.Id)
+                .Select(p => new ConsultationPackageFinanceVDto
+                {
+                    Id = p.Id,
+                    CompanionId = p.CompanionId,
+                    Name = p.Name,
+                    ChannelId = p.ChannelId,
+                    DurationMinutes = p.DurationMinutes,
+                    Price = p.Price,
+                    Active = p.Active,
+                    Bookable = p.Bookable,
+                    CommissionPercent = p.CommissionPercent
+                })
+                .ToList();
 
             var pansionHas = result.Pansions != null && result.Pansions.Count > 0 ? 1 : 0;
             var pansionWith = (pansionHas == 1 && result.Pansions.Any(p => p.DailyCommissionPercent > 0 && p.HourlyCommissionPercent > 0)) ? 1 : 0;
@@ -257,6 +273,31 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 _context.CompanionAssistances.Update(item);
                 await _context.SaveChangesAsync();
                 return new BaseResultDto(isSuccess: true);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
+            }
+        }
+
+
+        public async Task<BaseResultDto> UpdateConsultationPackageCommissionAsyncDto(FinanceConsultationPackageDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.ConsultationPackageId <= 0 || dto.CommissionPercent < 0 || dto.CommissionPercent > 100)
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
+
+                // فقط خریدهای بعدی اثر می‌گیرند؛ خریدهای انجام‌شده درصد لحظه‌ی خریدشان را نگه می‌دارند
+                var affected = await _context.ConsultationPackages
+                    .Where(x => x.Id == dto.ConsultationPackageId && !x.Deleted)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(x => x.CommissionPercent, dto.CommissionPercent)
+                        .SetProperty(x => x.UpdateDate, (DateTime?)DateTime.Now));
+
+                return affected == 0
+                    ? new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound)
+                    : new BaseResultDto(isSuccess: true);
             }
             catch (Exception ex)
             {

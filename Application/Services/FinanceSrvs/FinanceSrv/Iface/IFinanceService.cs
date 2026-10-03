@@ -16,5 +16,6 @@ namespace Application.Services.FinanceSrvs.FinanceSrv.Iface
         Task<BaseResultDto> UpdateStoreCommissionAsyncDto(FinanceStoreDto dto);
         Task<BaseResultDto> UpdateCompanionAssistanceCommissionAsyncDto(FinanceCompanionAssistanceDto dto);
         Task<BaseResultDto> UpdatePansionCommissionAsyncDto(FinancePansionDto dto);
+        Task<BaseResultDto> UpdateConsultationPackageCommissionAsyncDto(FinanceConsultationPackageDto dto);
     }
 }

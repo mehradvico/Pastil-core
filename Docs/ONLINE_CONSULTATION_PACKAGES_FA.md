@@ -12,7 +12,7 @@
 | مقدار اولیه‌ی پکیج‌ها | برای همه‌ی کلینیک‌های فعال ۸ پکیج (۴ کانال × ۲ مدت) **غیرفعال با قیمت ۰**؛ کلینیک قیمت می‌گذارد و فعال می‌کند |
 | بعد از پایان پنجره | چت فقط‌خواندنی (تاریخچه برای هر دو)، تماس بسته؛ عدم شروع نماینده ⇒ لغو خودکار + بازپرداخت به کیف پول |
 | اعلان به نماینده | با خرید موفق برای نماینده(ها) نوتیف «رزرو مشاوره داری؛ بیا ارتباط را برقرار کن» می‌رود |
-| کارمزد پاستیل | **۰٪** (تمام مبلغ سهم کلینیک؛ `CommissionPercent` فعلاً نادیده گرفته می‌شود و بعداً قابل فعال‌سازی است) |
+| کارمزد پاستیل | **درصد روی هر پکیج** (`ConsultationPackage.CommissionPercent`، پیش‌فرض ۰٪ = تمام مبلغ سهم کلینیک). فقط ادمین از «حسابداری ← نماینده ← درصد کمیسیون مشاوره آنلاین» (`PUT /api/Admin/FinanceConsultationPackage`) تنظیم می‌کند؛ کلینیک نمی‌تواند. درصد لحظه‌ی خرید روی `ConsultationPurchase.CommissionPercent` کپی می‌شود |
 | تخفیف | **بله، مثل رزرو فعلی** (Rebate: نوع جدید `RebateType`، اعتبارسنجی، SetRebate/RemoveRebate) |
 | مهلت شروع / لغو | ۲۴ ساعت بعد از پرداخت؛ لغو آزاد کاربر قبل از «شروع» با بازپرداخت کامل |
 | نمایندگان مجاز | مالک کلینیک + کاربران تخصیص‌یافته روی خدمت ۱۵ (`CompanionAssistanceUsers`) |
@@ -187,5 +187,6 @@ PendingPayment ──(پرداخت موفق)──▶ Paid ──(نماینده
 - **ادمین:** `GET/POST/PUT/DELETE /api/Admin/ConsultationPackage/{companionId}`، `GET /api/Admin/ConsultationPurchase/Summary` (خلاصه‌ی مالی/مدت با همان فیلترهای جستجو).
 - **خرید:** `ConsultationPurchase.PackageName` نام پکیج را در لحظه‌ی خرید ذخیره می‌کند (تغییر/حذف بعدی پکیج روی خریدهای قبلی اثر ندارد).
 - **مدت:** مدت خریداری‌شده = `DurationMinutes`. مدت واقعی فقط برای تماس درون‌برنامه‌ای (صوتی/تصویری) از `CallHub` اندازه‌گیری و در `OnlineSession.CallSeconds/CallStartDate/CallEndDate` جمع می‌شود؛ چت: تعداد پیام؛ تلفنی: اندازه‌گیری نمی‌شود.
-- **حسابداری:** فقط Paid/Active/Completed درآمد حساب می‌شوند؛ فقط Completed قابل تسویه است (`Permitted` + `SettlementCompanion.ConsultationPurchaseId`)؛ با بازپرداخت، `CompanionShare` و `SiteShare` صفر می‌شوند؛ کمیسیون همچنان ۰٪.
+- **حسابداری:** فقط Paid/Active/Completed درآمد حساب می‌شوند؛ فقط Completed قابل تسویه است (`Permitted` + `SettlementCompanion.ConsultationPurchaseId`)؛ با بازپرداخت، `CompanionShare` و `SiteShare` صفر می‌شوند.
+- **کمیسیون (مهاجرت `ConsultationCommissionPercent`):** موقع پرداخت (`ConsultationPurchaseActivator`) `SiteShare = PaymentPrice × CommissionPercent ÷ ۱۰۰` و `CompanionShare = PaymentPrice − SiteShare` (`ConsultationPurchaseRules.ComputeShares`؛ مبنا مبلغ بعد از تخفیف، جمع دو سهم همیشه برابر پرداختی). تغییر درصد فقط خریدهای بعدی را اثر می‌دهد. خریدها و پکیج‌های قبل از مهاجرت ۰٪ می‌مانند. تسویه (`SettlementService`) همان `CompanionShare` را پرداخت می‌کند؛ صفحه‌ی «ثبت تسویه» پنل درصد و سهم دو طرف هر مورد را نشان می‌دهد و گزارش مالی کلی (`FinanceReportService`) `SiteShare` مشاوره‌ها را جمع می‌زند. درصد در `hasCommission` (کمیسیون کامل/ناقص نماینده) حساب نمی‌شود.
 - **مهاجرت:** `ConsultationNamedPackagesAndAccounting` (نام پیش‌فرض برای پکیج‌های قدیمی و `PackageName` برای خریدهای قدیمی را پر می‌کند).

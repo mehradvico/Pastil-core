@@ -34,6 +34,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto
         public double RebatePrice { get; set; }
         public double WalletPrice { get; set; }
         public double PaymentPrice { get; set; }
+        public decimal CommissionPercent { get; set; }
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
         // مبلغی که واقعاً برای پاستیل ماند: پرداختیِ خریدهای پرداخت‌شده/فعال/تکمیل‌شده، وگرنه ۰ (لغو/منقضی/بازپرداخت‌شده)
