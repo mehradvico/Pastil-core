@@ -3403,6 +3403,20 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PetMicrochipRequestController">
+            <summary>
+            درخواست‌های جستجوی میکروچیپ و پیگیری توسط پاستیل (ادمین مشخصات مالک پت را می‌بیند)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetMicrochipRequestController.Get(Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipRequestInputDto)">
+            <summary>فهرست؛ پیش‌فرض فقط درخواست‌های پیگیری</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetMicrochipRequestController.Get(System.Int64)">
+            <summary>جزئیات: پروفایل پت + مالک + درخواست‌دهنده</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetMicrochipRequestController.Put(System.Int64,Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipRequestUpdateDto)">
+            <summary>تغییر وضعیت و یادداشت ادمین</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PetTagController">
             <summary>
             کیوآر کد
@@ -10672,6 +10686,17 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Controllers.PetMicrochipController">
+            <summary>
+            جستجوی پت با کد میکروچیپ (بخش «ارتباط با ما») و درخواست پیگیری توسط پاستیل؛ بدون هیچ مشخصات مالک
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.PetMicrochipController.Search(Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipSearchDto)">
+            <summary>جستجوی پت با میکروچیپ؛ پروفایل عمومی پت (بدون اطلاعات مالک) + توکن درخواست پیگیری</summary>
+        </member>
+        <member name="M:Api.Controllers.PetMicrochipController.FollowUp(Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipFollowUpDto)">
+            <summary>دکمه‌ی «درخواست پیگیری توسط پاستیل»</summary>
         </member>
         <member name="T:Api.Controllers.PetTagPublicController">
             <summary>
