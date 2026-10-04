@@ -216,6 +216,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
         public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
         public DbSet<ConsultationAvailability> ConsultationAvailabilities { get; set; }
+        public DbSet<PetMicrochipRequest> PetMicrochipRequests { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
         public DbSet<CompanionReserveComment> CompanionReserveComments { get; set; }
         public DbSet<CompanionReserveCommentRate> CompanionReserveCommentRates { get; set; }
@@ -472,6 +473,22 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 // شمارش هم‌پوشانی اسلات‌های رزرو یک کلینیک
                 entity.HasIndex(item => new { item.CompanionId, item.ScheduledStart });
             });
+            modelBuilder.Entity<PetMicrochipRequest>(entity =>
+            {
+                entity.Property(item => item.MicrochipCode).HasMaxLength(20);
+                entity.Property(item => item.PublicToken).HasMaxLength(40);
+                entity.Property(item => item.ClientIp).HasMaxLength(64);
+                entity.Property(item => item.FullName).HasMaxLength(100);
+                entity.Property(item => item.Mobile).HasMaxLength(20);
+                entity.Property(item => item.Email).HasMaxLength(200);
+                entity.Property(item => item.Message).HasMaxLength(1000);
+                entity.Property(item => item.AdminNote).HasMaxLength(1000);
+                entity.HasIndex(item => item.PublicToken).IsUnique();
+                entity.HasIndex(item => new { item.Status, item.CreateDate });
+                entity.HasIndex(item => item.MicrochipCode);
+                entity.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.FoundUserPet).WithMany().HasForeignKey(item => item.FoundUserPetId).OnDelete(DeleteBehavior.Restrict);
+            });
             modelBuilder.Entity<ConsultationAvailability>(entity =>
             {
                 entity.HasOne(item => item.Companion).WithMany().HasForeignKey(item => item.CompanionId).OnDelete(DeleteBehavior.Restrict);
@@ -541,6 +558,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             modelBuilder.Entity<ProductOrder>(entity =>
             {
                 entity.Property(item => item.OrderCode).HasMaxLength(40);
+                entity.Property(item => item.UserReceiveNote).HasMaxLength(500);
                 entity.HasIndex(item => item.OrderCode).IsUnique().HasFilter("[OrderCode] IS NOT NULL");
             });
 

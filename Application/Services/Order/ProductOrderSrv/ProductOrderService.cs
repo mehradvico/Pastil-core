@@ -207,6 +207,19 @@ namespace Application.Services.Order.ProductOrderSrv
             {
                 query = query.Where(s => s.ProductOrderStatus.Label.Equals(baseSearchDto.ProductOrderStatusEnum.ToString()));
             }
+            if (baseSearchDto.UserDelivery.HasValue)
+            {
+                // 0 = منتظر پاسخ کاربر (ارسال‌شده، پرداخت‌شده، لغو نشده و هنوز پاسخ نداده)، 1 = تحویل گرفته، 2 = تحویل نگرفته
+                var sendLabel = ProductOrderStatusEnum.ProductOrderStatus_Send.ToString();
+                var canceledLabel = ProductOrderStateEnum.ProductOrderState_Canceled.ToString();
+                query = baseSearchDto.UserDelivery.Value switch
+                {
+                    0 => query.Where(s => s.IsPaid && s.UserReceived == null && s.ProductOrderStatus.Label == sendLabel && s.ProductOrderState.Label != canceledLabel),
+                    1 => query.Where(s => s.UserReceived == true),
+                    2 => query.Where(s => s.UserReceived == false),
+                    _ => query
+                };
+            }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
             {
                 var queryText = baseSearchDto.Q.Trim();
@@ -438,12 +451,29 @@ namespace Application.Services.Order.ProductOrderSrv
             if (!await _context.Codes.AnyAsync(c => c.Id == dto.ProductOrderStatusId && statusLabels.Contains(c.Label)))
                 return new BaseResultDto(false, Resource.Notification.InvalidData);
 
+            // «تحویل داده شد» (نهایی‌شدن سفارش) فقط با تأیید خود کاربر ثبت می‌شود؛ فروشگاه/ادمین نمی‌توانند آن را بزنند
+            // (ConfirmDeliveryAsync / PUT api/EndUser/ProductOrderDelivery). سفارشی که کاربر «تحویل گرفتم» زده هم دیگر عوض نمی‌شود.
+            var deliveredId = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Delivered.ToString());
+            if (dto.ProductOrderStatusId == deliveredId && item.ProductOrderStatusId != deliveredId)
+                return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveredOnlyByUser);
+            if (!ProductOrderDeliveryRules.StaffMayChangeStatus(item.ProductOrderStatusId, dto.ProductOrderStatusId, deliveredId, item.UserReceived))
+                return new BaseResultDto(false, Resource.Notification.ProductOrderStatusLockedByUserConfirmation);
+
+            var previousStatusId = item.ProductOrderStatusId;
             item.ProductOrderStatus = null;
             item.ProductOrderStatusId = dto.ProductOrderStatusId;
             var statusProccess = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Proccess.ToString());
             var statusSend = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Send.ToString());
             var statusDelivered = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Delivered.ToString());
             var canceledState = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
+            // مبنای تأیید خودکار ۷ روزه: لحظه‌ی ورود به «ارسال شده» (ثبت دوباره‌ی همان وضعیت ساعت را عوض نمی‌کند؛ خروج از آن پاکش می‌کند)
+            if (dto.ProductOrderStatusId == statusSend)
+            {
+                if (previousStatusId != statusSend || item.SentDate == null)
+                    item.SentDate = DateTime.Now;
+            }
+            else
+                item.SentDate = null;
             if (dto.ProductOrderStatusId == statusProccess)
             {
                 await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushProccessOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
@@ -463,6 +493,207 @@ namespace Application.Services.Order.ProductOrderSrv
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderChangeStatus, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: item.User.FirstName, token2: item.OrderCode);
             return new BaseResultDto(true);
         }
+        // تحویل‌گیری توسط خود کاربر (طراحی: backend/Docs/PRODUCT_ORDER_USER_DELIVERY_FA.md)
+        public async Task<BaseResultDto> ConfirmDeliveryAsync(string orderId, long userId, bool received, string note)
+        {
+            try
+            {
+                note = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+                if (note != null && note.Length > 500)
+                    note = note.Substring(0, 500);
+
+                var canceledLabel = ProductOrderStateEnum.ProductOrderState_Canceled.ToString();
+                var sendLabel = ProductOrderStatusEnum.ProductOrderStatus_Send.ToString();
+                var order = await _context.ProductOrders.AsNoTracking()
+                    .Where(o => o.Id == orderId && o.UserId == userId && !o.Deleted)
+                    .Select(o => new
+                    {
+                        o.IsPaid,
+                        o.UserReceived,
+                        o.ProductOrderStatusId,
+                        StatusLabel = o.ProductOrderStatus.Label,
+                        StateLabel = o.ProductOrderState.Label
+                    })
+                    .FirstOrDefaultAsync();
+                if (order == null)
+                    return new BaseResultDto(false, Resource.Notification.NothingFound);
+                switch (ProductOrderDeliveryRules.Decide(order.IsPaid, order.StatusLabel, order.StateLabel, order.UserReceived))
+                {
+                    case ProductOrderDeliveryRules.Decision.AlreadyConfirmed:
+                        return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveryAlreadyConfirmed);
+                    case ProductOrderDeliveryRules.Decision.NotAllowed:
+                        return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveryNotAllowed);
+                }
+
+                var now = DateTime.Now;
+                int affected;
+                if (received)
+                {
+                    var deliveredId = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Delivered.ToString());
+                    // گذار اتمی: فقط از «ارسال‌شده» و تا وقتی نهایی نشده؛ دوبار کلیک یا هم‌زمانی دوباره چیزی عوض نمی‌کند
+                    affected = await _context.ProductOrders
+                        .Where(o => o.Id == orderId && o.UserId == userId && o.UserReceived != true && o.ProductOrderStatusId == order.ProductOrderStatusId)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(o => o.UserReceived, (bool?)true)
+                            .SetProperty(o => o.UserReceivedDate, (DateTime?)now)
+                            .SetProperty(o => o.UserReceiveNote, (string)null)
+                            .SetProperty(o => o.ProductOrderStatusId, deliveredId));
+                    if (affected == 0)
+                        return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveryNotAllowed);
+
+                    // همان اثر جانبی «تحویل داده شد» که قبلاً ChangeStatusAsync داشت (امتیاز باشگاه)؛ خطا نباید تأیید کاربر را خراب کند
+                    try { await _clubPointIntegrationService.ProductOrderCompletedAsync(userId, orderId); }
+                    catch { /* در اجرای بعدی/پشتیبانی جبران می‌شود */ }
+                }
+                else
+                {
+                    affected = await _context.ProductOrders
+                        .Where(o => o.Id == orderId && o.UserId == userId && o.UserReceived != true && o.ProductOrderStatusId == order.ProductOrderStatusId)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(o => o.UserReceived, (bool?)false)
+                            .SetProperty(o => o.UserReceivedDate, (DateTime?)now)
+                            .SetProperty(o => o.UserReceiveNote, note));
+                    if (affected == 0)
+                        return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveryNotAllowed);
+                    await NotifyStoresNotReceivedAsync(orderId);
+                }
+                return new BaseResultDto(true, Resource.Notification.Success);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
+            }
+        }
+
+        // پوش به همه‌ی کاربران فروشگاه(های) سفارش وقتی مشتری «تحویل نگرفتم» می‌زند؛ یک‌بار برای هر سفارش و هر گیرنده.
+        // خطا هرگز ثبت پاسخ مشتری را خراب نمی‌کند.
+        private async Task NotifyStoresNotReceivedAsync(string orderId)
+        {
+            try
+            {
+                var info = await _context.ProductOrders.AsNoTracking()
+                    .Where(o => o.Id == orderId)
+                    .Select(o => new
+                    {
+                        o.OrderCode,
+                        CustomerName = (o.User.FirstName + " " + o.User.LastName).Trim(),
+                        StoreIds = o.ProductOrderStores.Where(s => !s.Deleted).Select(s => s.StoreId).ToList()
+                    })
+                    .FirstOrDefaultAsync();
+                if (info == null || info.StoreIds.Count == 0)
+                    return;
+
+                var recipients = await _context.Stores.AsNoTracking()
+                    .Where(s => info.StoreIds.Contains(s.Id))
+                    .SelectMany(s => s.Users)
+                    .Select(u => u.Id)
+                    .Distinct()
+                    .ToListAsync();
+
+                var key = ProductOrderDeliveryRules.NotReceivedKey(orderId);
+                var typeId = (long)PushTypeEnum.PushProductOrderNotReceivedStore;
+                foreach (var userId in recipients)
+                {
+                    try
+                    {
+                        var already = await _context.PushNotifications.AsNoTracking()
+                            .AnyAsync(n => n.UserId == userId && n.Token2 == key && n.PushPattern.PushTypeId == typeId);
+                        if (already)
+                            continue;
+                        await _pushNotificationService.SendPushAsync(PushTypeEnum.PushProductOrderNotReceivedStore, userId,
+                            token1: info.CustomerName, token2: key, token3: info.OrderCode);
+                    }
+                    catch { /* یک گیرنده‌ی خراب بقیه را متوقف نکند */ }
+                }
+            }
+            catch { /* اعلان فروشگاه best-effort است */ }
+        }
+
+        // job (هر ساعت): تأیید خودکار تحویل بعد از ۷ روز بدون پاسخ کاربر + هشدار ۲ روز قبل. طراحی: backend/Docs/PRODUCT_ORDER_USER_DELIVERY_FA.md
+        // «تحویل نگرفتم» هرگز خودکار تأیید نمی‌شود. تعداد سفارش‌های خودکار تأییدشده را برمی‌گرداند.
+        public async Task<int> AutoConfirmDeliveriesAsync()
+        {
+            var now = DateTime.Now;
+            var sendId = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Send.ToString());
+            var deliveredId = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Delivered.ToString());
+            var canceledId = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
+
+            // ۱) سفارش‌های قدیمیِ «ارسال شده» که زمان ارسالشان ثبت نشده: ساعت از همین لحظه شروع می‌شود تا روز اول دیپلوی هیچ سفارشی یک‌جا خودکار تأیید نشود
+            await _context.ProductOrders
+                .Where(o => !o.Deleted && o.ProductOrderStatusId == sendId && o.SentDate == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(o => o.SentDate, (DateTime?)now));
+
+            var dueBefore = now.AddDays(-ProductOrderDeliveryRules.AutoConfirmAfterDays);
+            var warnBefore = now.AddDays(-ProductOrderDeliveryRules.WarnAfterDays);
+
+            // ۲) هشدار (فقط یک‌بار برای هر سفارش): از روز پنجم تا قبل از تأیید خودکار، برای کسی که هنوز پاسخ نداده
+            var toWarn = await _context.ProductOrders.AsNoTracking()
+                .Where(o => !o.Deleted && o.IsPaid && o.UserReceived == null && o.ProductOrderStatusId == sendId && o.ProductOrderStateId != canceledId &&
+                            o.SentDate != null && o.SentDate > dueBefore && o.SentDate <= warnBefore)
+                .OrderBy(o => o.SentDate)
+                .Select(o => new { o.Id, o.UserId, o.OrderCode, SentDate = o.SentDate.Value })
+                .Take(200)
+                .ToListAsync();
+            foreach (var order in toWarn)
+            {
+                try
+                {
+                    var key = ProductOrderDeliveryRules.WarnKey(order.Id);
+                    var typeId = (long)PushTypeEnum.PushProductOrderAutoDeliveryWarning;
+                    var already = await _context.PushNotifications.AsNoTracking()
+                        .AnyAsync(n => n.UserId == order.UserId && n.Token2 == key && n.PushPattern.PushTypeId == typeId);
+                    if (already)
+                        continue;
+                    var calendar = new System.Globalization.PersianCalendar();
+                    var at = ProductOrderDeliveryRules.AutoConfirmDate(order.SentDate);
+                    var atText = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                        $"{calendar.GetYear(at)}/{calendar.GetMonth(at):D2}/{calendar.GetDayOfMonth(at):D2}");
+                    await _pushNotificationService.SendPushAsync(PushTypeEnum.PushProductOrderAutoDeliveryWarning, order.UserId,
+                        token1: null, token2: key, token3: order.OrderCode, token4: atText);
+                }
+                catch { /* اجرای بعدی دوباره تلاش می‌کند */ }
+            }
+
+            // ۳) تأیید خودکار: گذار اتمی فقط برای «بدون پاسخ» و «ارسال شده»؛ «تحویل نگرفتم» (UserReceived=false) را لمس نمی‌کند
+            var due = await _context.ProductOrders.AsNoTracking()
+                .Where(o => !o.Deleted && o.IsPaid && o.UserReceived == null && o.ProductOrderStatusId == sendId && o.ProductOrderStateId != canceledId &&
+                            o.SentDate != null && o.SentDate <= dueBefore)
+                .OrderBy(o => o.SentDate)
+                .Select(o => new { o.Id, o.UserId, o.OrderCode })
+                .Take(100)
+                .ToListAsync();
+
+            var confirmed = 0;
+            foreach (var order in due)
+            {
+                try
+                {
+                    var affected = await _context.ProductOrders
+                        .Where(o => o.Id == order.Id && o.UserReceived == null && o.ProductOrderStatusId == sendId)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(o => o.UserReceived, (bool?)true)
+                            .SetProperty(o => o.UserReceivedDate, (DateTime?)now)
+                            .SetProperty(o => o.UserReceivedAuto, true)
+                            .SetProperty(o => o.UserReceiveNote, (string)null)
+                            .SetProperty(o => o.ProductOrderStatusId, deliveredId));
+                    if (affected == 0)
+                        continue;
+                    confirmed++;
+
+                    try { await _clubPointIntegrationService.ProductOrderCompletedAsync(order.UserId, order.Id); } catch { }
+                    try
+                    {
+                        var key = ProductOrderDeliveryRules.AutoKey(order.Id);
+                        await _pushNotificationService.SendPushAsync(PushTypeEnum.PushProductOrderAutoDelivered, order.UserId,
+                            token1: null, token2: key, token3: order.OrderCode);
+                    }
+                    catch { }
+                }
+                catch { /* اجرای بعدی دوباره تلاش می‌کند */ }
+            }
+            return confirmed;
+        }
+
         public async Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto)
         {
             var item = await _context.ProductOrders.FirstOrDefaultAsync(s => s.Id == dto.Id);

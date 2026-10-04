@@ -98,6 +98,16 @@ namespace Application.Common.Enumerable.Code
         /// <summary>به کاربر: رزرو مشاوره‌ی ساعت‌دار ثبت شد.</summary>
         PushConsultationBookedUser = 84,
         /// <summary>به کاربر و نماینده: ۳۰ دقیقه به ساعت رزرو مشاوره مانده.</summary>
-        PushConsultationBookingReminder = 85
+        PushConsultationBookingReminder = 85,
+        /// <summary>به کاربر: بدهی پرداخت‌نشده‌ی خدمت به کلینیک دارد و کیف پولش برای کسر خودکار کافی نیست (حداکثر ۳ بار در روز).</summary>
+        PushCompanionDebtReminder = 86,
+        /// <summary>به کاربر: بدهی خدمت به کلینیک به‌صورت خودکار از کیف پولش کسر شد.</summary>
+        PushCompanionDebtCollected = 87,
+        /// <summary>به کاربر: ۲ روز مانده به تأیید خودکار تحویل سفارش فروشگاهی (۵ روز بعد از ارسال و بدون پاسخ).</summary>
+        PushProductOrderAutoDeliveryWarning = 88,
+        /// <summary>به کاربر: سفارش فروشگاهی چون ۷ روز بدون پاسخ ماند، خودکار «تحویل داده شد» ثبت شد.</summary>
+        PushProductOrderAutoDelivered = 89,
+        /// <summary>به کاربران فروشگاه: مشتری «تحویل نگرفتم» را ثبت کرد (یک‌بار برای هر سفارش).</summary>
+        PushProductOrderNotReceivedStore = 90
     }
 }

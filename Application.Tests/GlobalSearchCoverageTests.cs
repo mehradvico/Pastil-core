@@ -38,6 +38,59 @@ public class GlobalSearchCoverageTests
     }
 
     [Fact]
+    public void A_two_letter_query_is_still_scored_against_itself_not_only_its_synonym()
+    {
+        // «سگ» ۲ حرفی است؛ قبلاً از امتیازدهی حذف می‌شد و فقط مترادفش «هاپو» می‌ماند (فقط برند هاپومیل می‌آمد)
+        var q = SearchNormalizeHelper.Normalize("سگ");
+        var terms = SearchNormalizeHelper.BuildTerms(q, enableFuzzy: true);
+
+        var scoring = SearchNormalizeHelper.ScoringTerms(q, terms);
+
+        Assert.Contains("سگ", scoring);
+        Assert.Contains("هاپو", scoring);
+    }
+
+    [Fact]
+    public void Fuzzy_bigrams_of_a_longer_query_stay_out_of_scoring()
+    {
+        var q = SearchNormalizeHelper.Normalize("قلاده");
+        var terms = SearchNormalizeHelper.BuildTerms(q, enableFuzzy: true);
+
+        var scoring = SearchNormalizeHelper.ScoringTerms(q, terms);
+
+        Assert.All(scoring, term => Assert.True(term.Length >= 3));
+        Assert.Contains("قلاده", scoring);
+    }
+
+    [Fact]
+    public void Scoring_falls_back_to_the_query_when_no_term_qualifies()
+    {
+        Assert.Equal(new[] { "اب" }, SearchNormalizeHelper.ScoringTerms("اب", new[] { "x" }));
+    }
+
+    [Fact]
+    public void Synonyms_are_not_offered_as_did_you_mean_when_the_search_found_results()
+    {
+        var q = SearchNormalizeHelper.Normalize("سگ");
+        var terms = SearchNormalizeHelper.BuildTerms(q, enableFuzzy: true);
+
+        Assert.Empty(SearchNormalizeHelper.BuildSuggestions(q, terms, totalCount: 42));
+    }
+
+    [Fact]
+    public void Suggestions_are_offered_only_when_there_were_no_results_and_never_repeat_the_query()
+    {
+        var q = SearchNormalizeHelper.Normalize("کلینیک");
+        var terms = SearchNormalizeHelper.BuildTerms(q, enableFuzzy: false);
+
+        var suggestions = SearchNormalizeHelper.BuildSuggestions(q, terms, totalCount: 0);
+
+        Assert.DoesNotContain(q, suggestions);
+        Assert.Contains("دامپزشک", suggestions);
+        Assert.True(suggestions.Count <= 5);
+    }
+
+    [Fact]
     public void Every_search_item_type_has_a_distinct_value()
     {
         var values = System.Enum.GetValues<SearchItemType>();

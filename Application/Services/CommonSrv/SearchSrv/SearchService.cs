@@ -168,11 +168,7 @@ namespace Application.Services.CommonSrv.SearchSrv
             result.Schools = RankGroup(result.Schools, rankedItems, SearchItemType.School, request.SchoolCount, item => item.Id);
             result.SchoolCourses = RankGroup(result.SchoolCourses, rankedItems, SearchItemType.SchoolCourse, request.SchoolCourseCount, item => item.Id);
             result.ConsultationPackages = RankGroup(result.ConsultationPackages, rankedItems, SearchItemType.ConsultationPackage, request.ConsultationPackageCount, item => item.Id);
-            result.Suggestions = request.SearchTerms
-                .Where(term => !term.Equals(request.Q, StringComparison.OrdinalIgnoreCase))
-                .Where(term => term.Length >= 3)
-                .Take(5)
-                .ToList();
+            result.Suggestions = SearchNormalizeHelper.BuildSuggestions(request.Q, request.SearchTerms, result.TotalCount);
             stopwatch.Stop();
             result.TookMilliseconds = stopwatch.ElapsedMilliseconds;
 

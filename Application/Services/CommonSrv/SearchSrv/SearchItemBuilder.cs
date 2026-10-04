@@ -215,9 +215,7 @@ namespace Application.Services.CommonSrv.SearchSrv
 
         private static double Score(SearchRequestDto request, string title, params string[] secondaryTexts)
         {
-            var terms = request.SearchTerms
-                .Where(term => term.Length >= 3)
-                .DefaultIfEmpty(request.Q);
+            var terms = SearchNormalizeHelper.ScoringTerms(request.Q, request.SearchTerms);
 
             return terms.Max(term =>
             {

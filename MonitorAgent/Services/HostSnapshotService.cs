@@ -9,6 +9,9 @@ public sealed class HostSnapshotService : IDisposable
     private const string HostProcDirectory = "/host/proc";
     private readonly HttpClient _dockerClient;
 
+    /// <summary>Shared Docker-socket client (also used by <see cref="ContainerControlService"/>).</summary>
+    public HttpClient DockerClient => _dockerClient;
+
     public HostSnapshotService()
     {
         var handler = new SocketsHttpHandler

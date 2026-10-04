@@ -40,6 +40,15 @@ namespace Entities.Entities
         public double ClubDeliveryDiscount { get; set; }
 
         public DateTime? ReserveDate { get; set; }
+        // تحویل‌گیری: نهایی‌شدن سفارش دست خود «کاربر» است (نه فروشگاه/ادمین). null = هنوز پاسخ نداده؛ true = تحویل گرفتم (وضعیت سفارش همان لحظه «تحویل داده شد» می‌شود)؛
+        // false = تحویل نگرفتم (وضعیت در «ارسال‌شده» می‌ماند تا فروشگاه/ادمین پیگیری کنند؛ کاربر تا نهایی‌شدن می‌تواند پاسخش را عوض کند).
+        public bool? UserReceived { get; set; }
+        public DateTime? UserReceivedDate { get; set; }
+        public string UserReceiveNote { get; set; }
+        // true = «تحویل گرفتم» را سیستم خودکار ثبت کرد (کاربر ۷ روز بعد از ارسال هیچ پاسخی نداد)
+        public bool UserReceivedAuto { get; set; }
+        // لحظه‌ای که وضعیت سفارش «ارسال شده» شد؛ مبنای تأیید خودکار ۷ روزه (null برای سفارش‌های قدیمی تا job اولین‌بار آن‌ها را مهر کند)
+        public DateTime? SentDate { get; set; }
         public Rebate Rebate { get; set; }
         public User User { get; set; }
         public Address Address { get; set; }

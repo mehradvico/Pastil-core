@@ -3403,6 +3403,20 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PetMicrochipRequestController">
+            <summary>
+            درخواست‌های جستجوی میکروچیپ و پیگیری توسط پاستیل (ادمین مشخصات مالک پت را می‌بیند)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetMicrochipRequestController.Get(Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipRequestInputDto)">
+            <summary>فهرست؛ پیش‌فرض فقط درخواست‌های پیگیری</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetMicrochipRequestController.Get(System.Int64)">
+            <summary>جزئیات: پروفایل پت + مالک + درخواست‌دهنده</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetMicrochipRequestController.Put(System.Int64,Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipRequestUpdateDto)">
+            <summary>تغییر وضعیت و یادداشت ادمین</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PetTagController">
             <summary>
             کیوآر کد
@@ -4424,6 +4438,28 @@
             Gets a current server snapshot. Intended for a low-frequency (for
             example, every three seconds) authenticated monitoring poll.
             </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ServerMonitoringController.GetContainers(System.Threading.CancellationToken)">
+            <summary>All containers (running or stopped) and whether control is enabled on the agent.</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ServerMonitoringController.ControlContainer(System.String,System.String,Api.Areas.Admin.Controllers.ServerMonitoringController.ContainerControlRequest,System.Threading.CancellationToken)">
+            <summary>
+            Starts, stops or restarts one container. The body must echo the container name in
+            <c>confirm</c> (guards against a mis-targeted or replayed call). Every attempt is audited.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ServerMonitoringController.ContainerNameRegex">
+            <remarks>
+            Pattern:<br/>
+            <code>^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$</code><br/>
+            Explanation:<br/>
+            <code>
+            ○ Match if at the beginning of the string.<br/>
+            ○ Match a character in the set [0-9A-Za-z].<br/>
+            ○ Match a character in the set [-.0-9A-Z_a-z] atomically at most 127 times.<br/>
+            ○ Match if at the end of the string or if before an ending newline.<br/>
+            </code>
+            </remarks>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.SettlementController">
              <summary>
@@ -5784,6 +5820,17 @@
             <summary>
             ویرایش نظرات
             </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionDayScheduleController">
+            <summary>
+            برنامه‌ی یک روز نماینده/کلینیک: رزروهای خدمت و مشاوره‌های ساعت‌دار به ترتیب ساعت، با مشتری و پت و ساعت کاری همان روز
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionDayScheduleController.Get(System.Nullable{System.Int64},System.Nullable{System.DateTime},System.Boolean,System.Boolean)">
+            <param name="companionId">کلینیک؛ خالی = کلینیک خودم (مالک) یا اولین کلینیکی که عضو آن هستم. فهرست کلینیک‌ها در پاسخ (availableClinics) است</param>
+            <param name="date">روز (yyyy-MM-dd)؛ خالی = امروز (به ساعت سرور)</param>
+            <param name="includeCancelled">true = لغو/بازپرداخت‌شده‌ها هم بیایند (پیش‌فرض false)</param>
+            <param name="mineOnly">true = فقط رزروهای تخصیص‌یافته به خودم (مالک به‌صورت پیش‌فرض همه‌ی کلینیک را می‌بیند)</param>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionInsuranceManualPayController">
              <summary>
@@ -8379,6 +8426,11 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ProductOrderDeliveryController">
+            <summary>
+            تحویل‌گیری سفارش فروشگاهی توسط خود کاربر: «تحویل گرفتم» سفارش را نهایی می‌کند، «تحویل نگرفتم» فقط ثبت می‌شود و به فروشگاه و ادمین نمایش داده می‌شود
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.ProductOrderStoreController">
              <summary>
              مدیریت  آیتم سفارش ها
@@ -10635,6 +10687,17 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Controllers.PetMicrochipController">
+            <summary>
+            جستجوی پت با کد میکروچیپ (بخش «ارتباط با ما») و درخواست پیگیری توسط پاستیل؛ بدون هیچ مشخصات مالک
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.PetMicrochipController.Search(Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipSearchDto)">
+            <summary>جستجوی پت با میکروچیپ؛ پروفایل عمومی پت (بدون اطلاعات مالک) + توکن درخواست پیگیری</summary>
+        </member>
+        <member name="M:Api.Controllers.PetMicrochipController.FollowUp(Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipFollowUpDto)">
+            <summary>دکمه‌ی «درخواست پیگیری توسط پاستیل»</summary>
+        </member>
         <member name="T:Api.Controllers.PetTagPublicController">
             <summary>
             استعلام عمومی کد قلاده (بدون نیاز به ورود)
@@ -11197,11 +11260,65 @@
             exhausting the process and the external model at the same time.
             </summary>
         </member>
+        <member name="T:Api.Services.ServerMonitoring.ServerAlertBackgroundService">
+            <summary>
+            هر چند ثانیه یک‌بار snapshot عامل مانیتورینگ را می‌خواند، با <see cref="T:Application.Services.ServerMonitoringAlerts.ServerAlertEvaluator"/> بررسی
+            می‌کند و در صورت لزوم هشدار پوش به اپ Pastil Monitor می‌فرستد. وضعیت هشدارها فقط در حافظه است؛
+            با ری‌استارت API، هشدارهای فعال دوباره از صفر شمرده می‌شوند.
+            </summary>
+        </member>
         <member name="T:Api.Services.ServerMonitoring.ServerMonitoringAgentClient">
             <summary>
             Reads a snapshot from the private monitoring agent. The agent token is
             server-only and is never returned to a browser or mobile application.
             </summary>
+        </member>
+        <member name="M:Api.Services.ServerMonitoring.ServerMonitoringAgentClient.ListContainersAsync(System.Threading.CancellationToken)">
+            <summary>Lists every container (running or not) with the agent's control flags.</summary>
+        </member>
+        <member name="M:Api.Services.ServerMonitoring.ServerMonitoringAgentClient.ControlContainerAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>Runs start/stop/restart on one container. Returns the HTTP status and the agent's outcome.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ContainerNameRegex_0">
+            <summary>Custom <see cref="T:System.Text.RegularExpressions.Regex"/>-derived type for the ContainerNameRegex method.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.ContainerNameRegex_0.Instance">
+            <summary>Cached, thread-safe singleton instance.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ContainerNameRegex_0.#ctor">
+            <summary>Initializes the instance.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ContainerNameRegex_0.RunnerFactory">
+            <summary>Provides a factory for creating <see cref="T:System.Text.RegularExpressions.RegexRunner"/> instances to be used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ContainerNameRegex_0.RunnerFactory.CreateInstance">
+            <summary>Creates an instance of a <see cref="T:System.Text.RegularExpressions.RegexRunner"/> used by methods on <see cref="T:System.Text.RegularExpressions.Regex"/>.</summary>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.ContainerNameRegex_0.RunnerFactory.Runner">
+            <summary>Provides the runner that contains the custom logic implementing the specified regular expression.</summary>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ContainerNameRegex_0.RunnerFactory.Runner.Scan(System.ReadOnlySpan{System.Char})">
+            <summary>Scan the <paramref name="inputSpan"/> starting from base.runtextstart for the next match.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ContainerNameRegex_0.RunnerFactory.Runner.TryFindNextPossibleStartingPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Search <paramref name="inputSpan"/> starting from base.runtextpos for the next location a match could possibly start.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if a possible match was found; false if no more matches are possible.</returns>
+        </member>
+        <member name="M:System.Text.RegularExpressions.Generated.ContainerNameRegex_0.RunnerFactory.Runner.TryMatchAtCurrentPosition(System.ReadOnlySpan{System.Char})">
+            <summary>Determine whether <paramref name="inputSpan"/> at base.runtextpos is a match for the regular expression.</summary>
+            <param name="inputSpan">The text being scanned by the regular expression.</param>
+            <returns>true if the regular expression matches at the current position; otherwise, false.</returns>
+        </member>
+        <member name="T:System.Text.RegularExpressions.Generated.Utilities">
+            <summary>Helper methods used by generated <see cref="T:System.Text.RegularExpressions.Regex"/>-derived implementations.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout">
+            <summary>Default timeout value set in <see cref="T:System.AppContext"/>, or <see cref="F:System.Text.RegularExpressions.Regex.InfiniteMatchTimeout"/> if none was set.</summary>
+        </member>
+        <member name="F:System.Text.RegularExpressions.Generated.Utilities.s_hasTimeout">
+            <summary>Whether <see cref="F:System.Text.RegularExpressions.Generated.Utilities.s_defaultTimeout"/> is non-infinite.</summary>
         </member>
     </members>
 </doc>

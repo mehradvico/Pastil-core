@@ -103,6 +103,17 @@ builder.Services.AddRateLimiter(options =>
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 AutoReplenishment = true
             }));
+    // Container start/stop/restart: a human tapping buttons, never a poll loop.
+    options.AddPolicy("ServerControl", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }));
     options.AddPolicy("Search", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -217,6 +228,18 @@ builder.Services.AddRateLimiter(options =>
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 AutoReplenishment = true
             }));
+    // جستجوی میکروچیپ پروفایل پت را نشان می‌دهد؛ جلوی حدس‌زدن انبوه کدها گرفته می‌شود.
+    options.AddPolicy("MicrochipLookup", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = IpLimit(10, 1000),
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            }));
     options.AddPolicy("MapSearch", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -297,8 +320,12 @@ builder.Services.AddSingleton<CallDurationRecorder>();
 builder.Services.AddSingleton<CallWindowScheduler>();
 builder.Services.AddSingleton<Api.Services.AiProductMatch.AiProductMatchExecutionGate>();
 builder.Services.AddHttpClient(Api.Services.ServerMonitoring.ServerMonitoringAgentClient.HttpClientName,
-    client => client.Timeout = TimeSpan.FromSeconds(5));
+    client => client.Timeout = TimeSpan.FromSeconds(8));
 builder.Services.AddScoped<Api.Services.ServerMonitoring.ServerMonitoringAgentClient>();
+builder.Services.Configure<Application.Services.ServerMonitoringAlerts.ServerAlertOptions>(
+    builder.Configuration.GetSection(Application.Services.ServerMonitoringAlerts.ServerAlertOptions.SectionName));
+builder.Services.AddScoped<Application.Services.ServerMonitoringAlerts.IServerAlertPushSender, Application.Services.ServerMonitoringAlerts.ServerAlertPushSender>();
+builder.Services.AddHostedService<Api.Services.ServerMonitoring.ServerAlertBackgroundService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, Api.Authorization.AdminAreaAuthorizationHandler>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, Api.Authorization.AreaMembershipAuthorizationHandler>();
 builder.Services.AddAuthorization(options =>
@@ -519,6 +546,14 @@ recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.Consultati
     "ConsultationNotifyUnclaimed", x => x.NotifyUnclaimedAsync(), Cron.Minutely);
 recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService>(
     "ConsultationBookingReminders", x => x.NotifyBookingRemindersAsync(), Cron.Minutely);
+// بدهی پرداخت‌نشده‌ی خدمت: کسر خودکار از کیف پول (هر ۵ دقیقه) و یادآوری روزی ۳ بار برای کسانی که کیف پولشان کافی نیست (job هر ۱۵ دقیقه؛ بازه‌ها در CompanionReserveDebtRules)
+recurringJobManager.AddOrUpdate<Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ICompanionReserveDebtService>(
+    "CompanionDebtAutoCollect", x => x.AutoCollectAsync(), "*/5 * * * *");
+recurringJobManager.AddOrUpdate<Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ICompanionReserveDebtService>(
+    "CompanionDebtReminders", x => x.SendDebtRemindersAsync(), "*/15 * * * *");
+// تأیید خودکار تحویل سفارش فروشگاهی بعد از ۷ روز بدون پاسخ کاربر (و هشدار ۲ روز قبل)؛ «تحویل نگرفتم» خودکار تأیید نمی‌شود
+recurringJobManager.AddOrUpdate<Application.Services.Order.ProductOrderSrv.Iface.IProductOrderService>(
+    "ProductOrderAutoDelivery", x => x.AutoConfirmDeliveriesAsync(), Cron.Hourly);
 var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
     OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
 // Removed: memory-reminder push is now sent from the panel's own push

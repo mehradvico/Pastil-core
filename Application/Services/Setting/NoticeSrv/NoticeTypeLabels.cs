@@ -30,6 +30,7 @@ namespace Application.Services.Setting.NoticeSrv
         public const string UserBankCardUpdated = "UserBankCard.Updated";
         public const string TripDriverRequested = "Trip.DriverRequested";
         public const string TripDriverSelectionRequired = "Trip.DriverSelectionRequired";
+        public const string PetMicrochipFollowUpRequested = "PetMicrochip.FollowUpRequested";
         public const string TripCancelledByUser = "Trip.CancelledByUser";
         public const string TripPetPickedUp = "Trip.PetPickedUp";
         public const string TripArrivedDestination = "Trip.ArrivedDestination";

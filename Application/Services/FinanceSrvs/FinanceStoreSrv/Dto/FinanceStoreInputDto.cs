@@ -11,5 +11,7 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv.Dto
     {
         public long StoreId { get; set; }
         public bool? Permitted { get; set; }
+        // فیلتر تحویل‌گیری مشتری: 0 = منتظر پاسخ (ارسال‌شده و بی‌پاسخ)، 1 = تحویل گرفته، 2 = تحویل نگرفته
+        public int? UserDelivery { get; set; }
     }
 }

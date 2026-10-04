@@ -2625,6 +2625,30 @@ namespace Resource {
             }
         }
 
+        public static string ProductOrderDeliveredOnlyByUser {
+            get {
+                return ResourceManager.GetString("ProductOrderDeliveredOnlyByUser", resourceCulture);
+            }
+        }
+
+        public static string ProductOrderStatusLockedByUserConfirmation {
+            get {
+                return ResourceManager.GetString("ProductOrderStatusLockedByUserConfirmation", resourceCulture);
+            }
+        }
+
+        public static string ProductOrderDeliveryNotAllowed {
+            get {
+                return ResourceManager.GetString("ProductOrderDeliveryNotAllowed", resourceCulture);
+            }
+        }
+
+        public static string ProductOrderDeliveryAlreadyConfirmed {
+            get {
+                return ResourceManager.GetString("ProductOrderDeliveryAlreadyConfirmed", resourceCulture);
+            }
+        }
+
         public static string ConsultationCompanionOffline {
             get {
                 return ResourceManager.GetString("ConsultationCompanionOffline", resourceCulture);
@@ -4346,6 +4370,192 @@ namespace Resource {
         public static string NoVarietyChangeNeeded {
             get {
                 return ResourceManager.GetString("NoVarietyChangeNeeded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertAgentDownName.
+        /// </summary>
+        public static string MonitorAlertAgentDownName {
+            get {
+                return ResourceManager.GetString("MonitorAlertAgentDownName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertAgentDownBody.
+        /// </summary>
+        public static string MonitorAlertAgentDownBody {
+            get {
+                return ResourceManager.GetString("MonitorAlertAgentDownBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertContainerDownName.
+        /// </summary>
+        public static string MonitorAlertContainerDownName {
+            get {
+                return ResourceManager.GetString("MonitorAlertContainerDownName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertContainerDownBody.
+        /// </summary>
+        public static string MonitorAlertContainerDownBody {
+            get {
+                return ResourceManager.GetString("MonitorAlertContainerDownBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertHighMemoryName.
+        /// </summary>
+        public static string MonitorAlertHighMemoryName {
+            get {
+                return ResourceManager.GetString("MonitorAlertHighMemoryName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertHighMemoryBody.
+        /// </summary>
+        public static string MonitorAlertHighMemoryBody {
+            get {
+                return ResourceManager.GetString("MonitorAlertHighMemoryBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertHighDiskName.
+        /// </summary>
+        public static string MonitorAlertHighDiskName {
+            get {
+                return ResourceManager.GetString("MonitorAlertHighDiskName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertHighDiskBody.
+        /// </summary>
+        public static string MonitorAlertHighDiskBody {
+            get {
+                return ResourceManager.GetString("MonitorAlertHighDiskBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertHighLoadName.
+        /// </summary>
+        public static string MonitorAlertHighLoadName {
+            get {
+                return ResourceManager.GetString("MonitorAlertHighLoadName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertHighLoadBody.
+        /// </summary>
+        public static string MonitorAlertHighLoadBody {
+            get {
+                return ResourceManager.GetString("MonitorAlertHighLoadBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertContainerMemoryName.
+        /// </summary>
+        public static string MonitorAlertContainerMemoryName {
+            get {
+                return ResourceManager.GetString("MonitorAlertContainerMemoryName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertContainerMemoryBody.
+        /// </summary>
+        public static string MonitorAlertContainerMemoryBody {
+            get {
+                return ResourceManager.GetString("MonitorAlertContainerMemoryBody", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertResolvedName.
+        /// </summary>
+        public static string MonitorAlertResolvedName {
+            get {
+                return ResourceManager.GetString("MonitorAlertResolvedName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAlertResolvedBody.
+        /// </summary>
+        public static string MonitorAlertResolvedBody {
+            get {
+                return ResourceManager.GetString("MonitorAlertResolvedBody", resourceCulture);
+            }
+        }
+
+        public static string MicrochipInvalid {
+            get {
+                return ResourceManager.GetString("MicrochipInvalid", resourceCulture);
+            }
+        }
+
+        public static string MicrochipTokenInvalid {
+            get {
+                return ResourceManager.GetString("MicrochipTokenInvalid", resourceCulture);
+            }
+        }
+
+        public static string MicrochipFollowUpAlready {
+            get {
+                return ResourceManager.GetString("MicrochipFollowUpAlready", resourceCulture);
+            }
+        }
+
+        public static string MicrochipFollowUpNameRequired {
+            get {
+                return ResourceManager.GetString("MicrochipFollowUpNameRequired", resourceCulture);
+            }
+        }
+
+        public static string MicrochipMobileInvalid {
+            get {
+                return ResourceManager.GetString("MicrochipMobileInvalid", resourceCulture);
+            }
+        }
+
+        public static string MicrochipFollowUpLimit {
+            get {
+                return ResourceManager.GetString("MicrochipFollowUpLimit", resourceCulture);
+            }
+        }
+
+        public static string MicrochipFollowUpDone {
+            get {
+                return ResourceManager.GetString("MicrochipFollowUpDone", resourceCulture);
+            }
+        }
+
+        public static string MicrochipRequestNotFound {
+            get {
+                return ResourceManager.GetString("MicrochipRequestNotFound", resourceCulture);
+            }
+        }
+
+        public static string MicrochipStatusInvalid {
+            get {
+                return ResourceManager.GetString("MicrochipStatusInvalid", resourceCulture);
+            }
+        }
+
+        public static string MicrochipStatusTransitionNotAllowed {
+            get {
+                return ResourceManager.GetString("MicrochipStatusTransitionNotAllowed", resourceCulture);
             }
         }
     }

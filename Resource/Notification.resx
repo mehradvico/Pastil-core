@@ -1567,4 +1567,88 @@
   <data name="SchoolDeleteHasOpenReserves" xml:space="preserve">
     <value>This school has active paid enrollments; complete or cancel them before deleting.</value>
   </data>
+  <data name="MonitorAlertAgentDownName" xml:space="preserve">
+    <value>Monitoring agent unreachable</value>
+  </data>
+  <data name="MonitorAlertAgentDownBody" xml:space="preserve">
+    <value>The API could not read a snapshot from the monitoring agent for several checks in a row.</value>
+  </data>
+  <data name="MonitorAlertContainerDownName" xml:space="preserve">
+    <value>Container down: {0}</value>
+  </data>
+  <data name="MonitorAlertContainerDownBody" xml:space="preserve">
+    <value>{0} is no longer running on the server.</value>
+  </data>
+  <data name="MonitorAlertHighMemoryName" xml:space="preserve">
+    <value>High server memory</value>
+  </data>
+  <data name="MonitorAlertHighMemoryBody" xml:space="preserve">
+    <value>Server memory usage is {0}% ({1} MB of {2} MB).</value>
+  </data>
+  <data name="MonitorAlertHighDiskName" xml:space="preserve">
+    <value>Disk almost full</value>
+  </data>
+  <data name="MonitorAlertHighDiskBody" xml:space="preserve">
+    <value>Server disk usage is {0}% ({1} of {2}).</value>
+  </data>
+  <data name="MonitorAlertHighLoadName" xml:space="preserve">
+    <value>High server CPU load</value>
+  </data>
+  <data name="MonitorAlertHighLoadBody" xml:space="preserve">
+    <value>1-minute load average is {0} on {1} core(s) ({2}% of capacity).</value>
+  </data>
+  <data name="MonitorAlertContainerMemoryName" xml:space="preserve">
+    <value>High container memory: {0}</value>
+  </data>
+  <data name="MonitorAlertContainerMemoryBody" xml:space="preserve">
+    <value>{0} is using {1}% of its memory limit ({2}).</value>
+  </data>
+  <data name="MonitorAlertResolvedName" xml:space="preserve">
+    <value>Recovered: {0}</value>
+  </data>
+  <data name="MonitorAlertResolvedBody" xml:space="preserve">
+    <value>This condition is back to normal.</value>
+  </data>
+  <data name="ProductOrderDeliveredOnlyByUser" xml:space="preserve">
+    <value>The 'Delivered' status can only be set by the customer; stores and admins cannot change it.</value>
+  </data>
+  <data name="ProductOrderStatusLockedByUserConfirmation" xml:space="preserve">
+    <value>The customer has confirmed delivery of this order; its status can no longer be changed.</value>
+  </data>
+  <data name="ProductOrderDeliveryNotAllowed" xml:space="preserve">
+    <value>Delivery can only be recorded for a paid, non-cancelled order whose status is 'Sent'.</value>
+  </data>
+  <data name="ProductOrderDeliveryAlreadyConfirmed" xml:space="preserve">
+    <value>You have already confirmed the delivery of this order.</value>
+  </data>
+  <data name="MicrochipInvalid" xml:space="preserve">
+    <value>کد میکروچیپ معتبر نیست؛ کد باید بین ۹ تا ۱۵ رقم باشد.</value>
+  </data>
+  <data name="MicrochipTokenInvalid" xml:space="preserve">
+    <value>درخواست پیگیری معتبر نیست یا مهلت آن (۲۴ ساعت) تمام شده است؛ لطفاً دوباره جستجو کنید.</value>
+  </data>
+  <data name="MicrochipFollowUpAlready" xml:space="preserve">
+    <value>درخواست پیگیری برای این جستجو قبلاً ثبت شده است.</value>
+  </data>
+  <data name="MicrochipFollowUpNameRequired" xml:space="preserve">
+    <value>نام و نام‌خانوادگی را وارد کنید.</value>
+  </data>
+  <data name="MicrochipMobileInvalid" xml:space="preserve">
+    <value>شماره موبایل معتبر نیست.</value>
+  </data>
+  <data name="MicrochipFollowUpLimit" xml:space="preserve">
+    <value>تعداد درخواست‌های پیگیری شما در ۲۴ ساعت گذشته به سقف مجاز رسیده است.</value>
+  </data>
+  <data name="MicrochipFollowUpDone" xml:space="preserve">
+    <value>درخواست پیگیری ثبت شد؛ همکاران پاستیل در اولین فرصت با شما تماس می‌گیرند.</value>
+  </data>
+  <data name="MicrochipRequestNotFound" xml:space="preserve">
+    <value>درخواست یافت نشد.</value>
+  </data>
+  <data name="MicrochipStatusInvalid" xml:space="preserve">
+    <value>وضعیت نامعتبر است.</value>
+  </data>
+  <data name="MicrochipStatusTransitionNotAllowed" xml:space="preserve">
+    <value>تغییر به این وضعیت از وضعیت فعلی مجاز نیست.</value>
+  </data>
 </root>

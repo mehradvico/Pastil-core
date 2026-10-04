@@ -15,6 +15,12 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
         Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false);
         Task<BaseResultDto> FindAsyncVDto(string id, long? userId = null);
         Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto);
+
+        // کاربر تحویل‌گیری را ثبت می‌کند: received=true ⇒ سفارش «تحویل داده شد» و نهایی می‌شود؛ false ⇒ «تحویل نگرفتم» (وضعیت «ارسال‌شده» می‌ماند)
+        Task<BaseResultDto> ConfirmDeliveryAsync(string orderId, long userId, bool received, string note);
+
+        // job: تأیید خودکار تحویل بعد از ۷ روز بدون پاسخ کاربر (و هشدار ۲ روز قبل)؛ تعداد سفارش‌های تأییدشده را برمی‌گرداند
+        Task<int> AutoConfirmDeliveriesAsync();
         Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto);
         Task<BaseResultDto> ChangeTrackingCode(ProductOrderDto order);
         Task<BaseResultDto> ChangeDescriptions(ProductOrderDto order);

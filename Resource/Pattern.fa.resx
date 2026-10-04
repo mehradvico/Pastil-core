@@ -423,4 +423,19 @@
   <data name="PushConsultationBookingReminder" xml:space="preserve">
     <value>مشاوره‌ی {0} تا ۳۰ دقیقه‌ی دیگر شروع می‌شود.</value>
   </data>
+  <data name="PushCompanionDebtReminder" xml:space="preserve">
+    <value>شما {0} تومان بابت خدمات دریافت‌شده بدهکار هستید و موجودی کیف پولتان برای پرداخت کافی نیست. لطفاً کیف پول را شارژ و بدهی را پرداخت کنید.</value>
+  </data>
+  <data name="PushProductOrderAutoDeliveryWarning" xml:space="preserve">
+    <value>سفارش {2} را تحویل گرفته‌اید؟ اگر تا {3} در «سفارش‌های من» پاسخ ندهید، به‌صورت خودکار «تحویل گرفته شد» ثبت می‌شود.</value>
+  </data>
+  <data name="PushProductOrderAutoDelivered" xml:space="preserve">
+    <value>۷ روز از ارسال سفارش {2} گذشت و پاسخی ثبت نشد؛ سفارش به‌صورت خودکار «تحویل داده شد» ثبت شد. اگر بسته را دریافت نکرده‌اید، با پشتیبانی تماس بگیرید.</value>
+  </data>
+  <data name="PushProductOrderNotReceivedStore" xml:space="preserve">
+    <value>مشتری ({0}) سفارش {2} را تحویل نگرفته است. لطفاً با مشتری تماس بگیرید و پیگیری کنید.</value>
+  </data>
+  <data name="PushCompanionDebtCollected" xml:space="preserve">
+    <value>{0} تومان بابت خدمات «{2}» از کیف پول شما کسر شد و بدهی‌تان پرداخت شد.</value>
+  </data>
 </root>

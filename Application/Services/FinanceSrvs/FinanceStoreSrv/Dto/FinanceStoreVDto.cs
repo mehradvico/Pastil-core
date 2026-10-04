@@ -12,6 +12,9 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv.Dto
         public int ProductOrderCount { get; set; }
         public double TotalStoreShare { get; set; }
         public double TotalSiteShare { get; set; }
+        // شمار سفارش‌هایی که مشتری «تحویل نگرفتم» زده (پیش از تسویه بررسی شوند) / «تحویل گرفتم» (یا تأیید خودکار) زده
+        public int NotReceivedCount { get; set; }
+        public int ReceivedCount { get; set; }
         public List<FinanceProductOrderVDto> FinanceProductOrders { get; set; }
     }
 }

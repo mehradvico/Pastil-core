@@ -1567,4 +1567,88 @@
   <data name="SchoolDeleteHasOpenReserves" xml:space="preserve">
     <value>این مدرسه ثبت‌نام فعال (پرداخت‌شده و انجام‌نشده) دارد؛ ابتدا آن ثبت‌نام‌ها را تکمیل یا لغو کنید و بعد حذف کنید.</value>
   </data>
+  <data name="MonitorAlertAgentDownName" xml:space="preserve">
+    <value>عامل مانیتورینگ در دسترس نیست</value>
+  </data>
+  <data name="MonitorAlertAgentDownBody" xml:space="preserve">
+    <value>API چند بار پشت‌سر‌هم نتوانست اطلاعات را از عامل مانیتورینگ بخواند.</value>
+  </data>
+  <data name="MonitorAlertContainerDownName" xml:space="preserve">
+    <value>کانتینر متوقف شد: {0}</value>
+  </data>
+  <data name="MonitorAlertContainerDownBody" xml:space="preserve">
+    <value>کانتینر {0} دیگر روی سرور در حال اجرا نیست.</value>
+  </data>
+  <data name="MonitorAlertHighMemoryName" xml:space="preserve">
+    <value>مصرف بالای حافظه سرور</value>
+  </data>
+  <data name="MonitorAlertHighMemoryBody" xml:space="preserve">
+    <value>مصرف حافظه سرور {0}% است ({1} از {2} مگابایت).</value>
+  </data>
+  <data name="MonitorAlertHighDiskName" xml:space="preserve">
+    <value>پر شدن دیسک سرور</value>
+  </data>
+  <data name="MonitorAlertHighDiskBody" xml:space="preserve">
+    <value>مصرف دیسک سرور {0}% است ({1} از {2}).</value>
+  </data>
+  <data name="MonitorAlertHighLoadName" xml:space="preserve">
+    <value>بار پردازنده سرور بالاست</value>
+  </data>
+  <data name="MonitorAlertHighLoadBody" xml:space="preserve">
+    <value>میانگین بار ۱ دقیقه‌ای {0} روی {1} هسته است ({2}% ظرفیت).</value>
+  </data>
+  <data name="MonitorAlertContainerMemoryName" xml:space="preserve">
+    <value>مصرف بالای حافظه کانتینر: {0}</value>
+  </data>
+  <data name="MonitorAlertContainerMemoryBody" xml:space="preserve">
+    <value>کانتینر {0} {1}% از سقف حافظه‌اش را مصرف می‌کند ({2}).</value>
+  </data>
+  <data name="MonitorAlertResolvedName" xml:space="preserve">
+    <value>برطرف شد: {0}</value>
+  </data>
+  <data name="MonitorAlertResolvedBody" xml:space="preserve">
+    <value>این وضعیت به حالت عادی برگشت.</value>
+  </data>
+  <data name="ProductOrderDeliveredOnlyByUser" xml:space="preserve">
+    <value>وضعیت «تحویل داده شد» فقط با تأیید خود مشتری ثبت می‌شود؛ فروشگاه و ادمین نمی‌توانند آن را تغییر دهند.</value>
+  </data>
+  <data name="ProductOrderStatusLockedByUserConfirmation" xml:space="preserve">
+    <value>مشتری تحویل این سفارش را تأیید کرده است و وضعیت آن دیگر قابل تغییر نیست.</value>
+  </data>
+  <data name="ProductOrderDeliveryNotAllowed" xml:space="preserve">
+    <value>تحویل‌گیری فقط برای سفارش پرداخت‌شده‌ی لغو‌نشده‌ای که وضعیتش «ارسال شده» است قابل ثبت است.</value>
+  </data>
+  <data name="ProductOrderDeliveryAlreadyConfirmed" xml:space="preserve">
+    <value>تحویل این سفارش قبلاً توسط شما تأیید شده است.</value>
+  </data>
+  <data name="MicrochipInvalid" xml:space="preserve">
+    <value>کد میکروچیپ معتبر نیست؛ کد باید بین ۹ تا ۱۵ رقم باشد.</value>
+  </data>
+  <data name="MicrochipTokenInvalid" xml:space="preserve">
+    <value>درخواست پیگیری معتبر نیست یا مهلت آن (۲۴ ساعت) تمام شده است؛ لطفاً دوباره جستجو کنید.</value>
+  </data>
+  <data name="MicrochipFollowUpAlready" xml:space="preserve">
+    <value>درخواست پیگیری برای این جستجو قبلاً ثبت شده است.</value>
+  </data>
+  <data name="MicrochipFollowUpNameRequired" xml:space="preserve">
+    <value>نام و نام‌خانوادگی را وارد کنید.</value>
+  </data>
+  <data name="MicrochipMobileInvalid" xml:space="preserve">
+    <value>شماره موبایل معتبر نیست.</value>
+  </data>
+  <data name="MicrochipFollowUpLimit" xml:space="preserve">
+    <value>تعداد درخواست‌های پیگیری شما در ۲۴ ساعت گذشته به سقف مجاز رسیده است.</value>
+  </data>
+  <data name="MicrochipFollowUpDone" xml:space="preserve">
+    <value>درخواست پیگیری ثبت شد؛ همکاران پاستیل در اولین فرصت با شما تماس می‌گیرند.</value>
+  </data>
+  <data name="MicrochipRequestNotFound" xml:space="preserve">
+    <value>درخواست یافت نشد.</value>
+  </data>
+  <data name="MicrochipStatusInvalid" xml:space="preserve">
+    <value>وضعیت نامعتبر است.</value>
+  </data>
+  <data name="MicrochipStatusTransitionNotAllowed" xml:space="preserve">
+    <value>تغییر به این وضعیت از وضعیت فعلی مجاز نیست.</value>
+  </data>
 </root>

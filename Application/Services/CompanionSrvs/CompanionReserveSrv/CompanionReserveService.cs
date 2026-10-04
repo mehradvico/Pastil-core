@@ -60,14 +60,17 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         private readonly ILogger<CompanionReserveService> _logger;
         private readonly IPaymentTestModeService _paymentTestModeService;
         private readonly Application.Services.TripSrv.TripSrv.Iface.ITripService _tripService;
+        private readonly Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ICompanionReserveDebtService _debtService;
         public CompanionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper,
             ICompanionReservePackageService companionReservePackageService, ICompanionReserveUserPetService companionReserveUserPetService,
             IWalletService walletService, IRebateService rebateService, IAdminSettingHelper adminSettingHelper, ICodeService codeService,
             IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService,
             IClubPointIntegrationService clubPointIntegrationService, ILogger<CompanionReserveService> logger,
-            IPaymentTestModeService paymentTestModeService, Application.Services.TripSrv.TripSrv.Iface.ITripService tripService) : base(_context, mapper)
+            IPaymentTestModeService paymentTestModeService, Application.Services.TripSrv.TripSrv.Iface.ITripService tripService,
+            Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ICompanionReserveDebtService debtService) : base(_context, mapper)
         {
             this._tripService = tripService;
+            this._debtService = debtService;
             this._context = _context;
             this.mapper = mapper;
             this._codeService = codeService;
@@ -1898,6 +1901,16 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     false,
                     Resource.Notification.Unsuccess,
                     dto);
+            }
+
+            // بدهی پرداخت‌نشده ثبت شد: بلافاصله از کیف پول کاربر کسر می‌شود (اگر موجودی کافی نباشد، job دوره‌ای هر ۵ دقیقه و
+            // یادآوری روزی ۳ بار کار را دنبال می‌کنند). طراحی: backend/Docs/COMPANION_DEBT_AUTO_COLLECT_FA.md
+            if (item.OperatorUnpaid && item.OperatorDebtPaidDate == null)
+            {
+                await RunPostCommitActionAsync(
+                    () => _debtService.CollectForUserAsync(item.BookerId),
+                    item.Id,
+                    "unpaid debt auto collect");
             }
 
             if (dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete)

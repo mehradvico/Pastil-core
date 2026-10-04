@@ -31,6 +31,16 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public long? ClubFreeDeliveryBenefitId { get; set; }
         public double ClubDeliveryDiscount { get; set; }
         public string TrackingCode { get; set; }
+        // تحویل‌گیری توسط کاربر: null = هنوز پاسخ نداده، true = تحویل گرفتم (سفارش نهایی شد)، false = تحویل نگرفتم
+        public bool? UserReceived { get; set; }
+        public System.DateTime? UserReceivedDate { get; set; }
+        public string UserReceiveNote { get; set; }
+        // true = تحویل‌گیری را سیستم خودکار (بعد از ۷ روز بدون پاسخ) ثبت کرده است
+        public bool UserReceivedAuto { get; set; }
+        // زمانی که اگر کاربر پاسخ ندهد سفارش خودکار «تحویل گرفته» می‌شود (فقط وقتی هنوز منتظر پاسخ است؛ برای شمارش معکوس)
+        public System.DateTime? AutoConfirmDate { get; set; }
+        // true = کاربر همین الان می‌تواند «تحویل گرفتم/نگرفتم» را ثبت کند (پرداخت‌شده، وضعیت «ارسال‌شده»، لغو نشده، هنوز نهایی نشده)
+        public bool CanConfirmDelivery { get; set; }
         public DateTime? CancelRequest { get; set; }
 
         public List<ProductOrderStoreDto> ProductOrderStores { get; set; }

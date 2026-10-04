@@ -16,5 +16,7 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
         public bool? HasParentOrderId { get; set; }
         public bool? HasChildOrderId { get; set; }
         public bool? HasReserveDate { get; set; }
+        // فیلتر تحویل‌گیری کاربر: 0 = منتظر پاسخ کاربر (ارسال‌شده و هنوز پاسخ نداده)، 1 = تحویل گرفته، 2 = تحویل نگرفته
+        public int? UserDelivery { get; set; }
     }
 }

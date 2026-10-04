@@ -372,4 +372,19 @@
   <data name="PushConsultationBookingReminder" xml:space="preserve">
     <value>Your consultation with {0} starts in 30 minutes.</value>
   </data>
+  <data name="PushCompanionDebtReminder" xml:space="preserve">
+    <value>You owe {0} for services received and your wallet balance is not enough. Please top up your wallet and pay the debt.</value>
+  </data>
+  <data name="PushProductOrderAutoDeliveryWarning" xml:space="preserve">
+    <value>Did you receive order {2}? If you do not answer in "My orders" by {3}, it will be marked as received automatically.</value>
+  </data>
+  <data name="PushProductOrderAutoDelivered" xml:space="preserve">
+    <value>7 days passed since order {2} was sent with no answer; it was marked as delivered automatically. If you did not receive it, please contact support.</value>
+  </data>
+  <data name="PushProductOrderNotReceivedStore" xml:space="preserve">
+    <value>Customer ({0}) reported they did not receive order {2}. Please contact the customer and follow up.</value>
+  </data>
+  <data name="PushCompanionDebtCollected" xml:space="preserve">
+    <value>{0} was deducted from your wallet for "{2}" and your debt is paid.</value>
+  </data>
 </root>

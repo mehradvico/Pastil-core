@@ -222,6 +222,8 @@ public class AnonymousExposureTests
     {
         "AccountController.*",                 // ورود/ثبت‌نام/OTP/بازیابی (rate-limit شده)
         "ContactUsController.Post",            // فرم تماس (rate-limit شده)
+        "PetMicrochipController.Search",       // جستجوی میکروچیپ (rate-limit شده؛ بدون اطلاعات مالک)
+        "PetMicrochipController.FollowUp",     // درخواست پیگیری میکروچیپ (توکن یک‌بارمصرف + rate-limit)
         "NewsletterController.Post",           // عضویت خبرنامه (rate-limit شده)
         "SearchController.Post",               // جستجو (rate-limit شده)
         "MapSearchController.Post",            // جستجوی مکان (rate-limit شده)

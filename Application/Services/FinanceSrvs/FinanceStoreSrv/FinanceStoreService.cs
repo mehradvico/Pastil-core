@@ -39,6 +39,18 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv
                 if (dto.Permitted.HasValue)
                     baseQ = baseQ.Where(o => o.Permitted == dto.Permitted.Value);
 
+                if (dto.UserDelivery.HasValue)
+                {
+                    var sendLabel = Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Send.ToString();
+                    baseQ = dto.UserDelivery.Value switch
+                    {
+                        0 => baseQ.Where(o => o.IsPaid && o.UserReceived == null && o.ProductOrderStatus.Label == sendLabel),
+                        1 => baseQ.Where(o => o.UserReceived == true),
+                        2 => baseQ.Where(o => o.UserReceived == false),
+                        _ => baseQ
+                    };
+                }
+
                 var list = baseQ
                     .OrderByDescending(o => o.CreateDate)
                     .Select(o => new FinanceProductOrderVDto
@@ -56,7 +68,11 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv
                         StoreShare = o.StoreShare,
                         SiteShare = o.SiteShare,
                         StatusLabel = o.ProductOrderStatus != null ? o.ProductOrderStatus.Name : null,
-                        Permitted = o.Permitted
+                        Permitted = o.Permitted,
+                        UserReceived = o.UserReceived,
+                        UserReceivedDate = o.UserReceivedDate,
+                        UserReceivedAuto = o.UserReceivedAuto,
+                        UserReceiveNote = o.UserReceiveNote
                     })
                     .ToList();
 
@@ -66,6 +82,8 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv
                     ProductOrderCount = list.Count,
                     TotalStoreShare = list.Sum(x => x.StoreShare),
                     TotalSiteShare = list.Sum(x => x.SiteShare),
+                    NotReceivedCount = list.Count(x => x.UserReceived == false),
+                    ReceivedCount = list.Count(x => x.UserReceived == true),
                     FinanceProductOrders = list ?? new List<FinanceProductOrderVDto>()
                 };
 

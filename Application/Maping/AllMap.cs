@@ -812,10 +812,34 @@ namespace Application.Maping
 
 
             //ProductOrder
-            CreateMap<ProductOrder, ProductOrderDto>();
+            // تحویل‌گیری توسط کاربر: کلاینت هرگز نمی‌تواند این فیلدها را روی سفارش بنویسد (فقط ConfirmDeliveryAsync)
+            CreateMap<ProductOrder, ProductOrderDto>()
+                .ForMember(x => x.CanConfirmDelivery, o => o.MapFrom(s =>
+                    s.IsPaid && !s.Deleted && s.UserReceived != true &&
+                    s.ProductOrderStatus != null && s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Send) &&
+                    (s.ProductOrderState == null || s.ProductOrderState.Label != nameof(Application.Common.Enumerable.ProductOrderStateEnum.ProductOrderState_Canceled))))
+                .ForMember(x => x.AutoConfirmDate, o => o.MapFrom(s =>
+                    s.UserReceived == null && s.IsPaid && !s.Deleted && s.SentDate != null &&
+                    s.ProductOrderStatus != null && s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Send)
+                        ? s.SentDate.Value.AddDays(Application.Services.Order.ProductOrderSrv.ProductOrderDeliveryRules.AutoConfirmAfterDays)
+                        : (System.DateTime?)null));
             CreateMap<ProductOrderDto, ProductOrder>()
-                .ForMember(x => x.OrderCode, y => y.Ignore());
-            CreateMap<ProductOrder, ProductOrderVDto>();
+                .ForMember(x => x.OrderCode, y => y.Ignore())
+                .ForMember(x => x.UserReceived, y => y.Ignore())
+                .ForMember(x => x.UserReceivedDate, y => y.Ignore())
+                .ForMember(x => x.UserReceiveNote, y => y.Ignore())
+                .ForMember(x => x.UserReceivedAuto, y => y.Ignore())
+                .ForMember(x => x.SentDate, y => y.Ignore());
+            CreateMap<ProductOrder, ProductOrderVDto>()
+                .ForMember(x => x.CanConfirmDelivery, o => o.MapFrom(s =>
+                    s.IsPaid && !s.Deleted && s.UserReceived != true &&
+                    s.ProductOrderStatus != null && s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Send) &&
+                    (s.ProductOrderState == null || s.ProductOrderState.Label != nameof(Application.Common.Enumerable.ProductOrderStateEnum.ProductOrderState_Canceled))))
+                .ForMember(x => x.AutoConfirmDate, o => o.MapFrom(s =>
+                    s.UserReceived == null && s.IsPaid && !s.Deleted && s.SentDate != null &&
+                    s.ProductOrderStatus != null && s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Send)
+                        ? s.SentDate.Value.AddDays(Application.Services.Order.ProductOrderSrv.ProductOrderDeliveryRules.AutoConfirmAfterDays)
+                        : (System.DateTime?)null));
             CreateMap<ProductOrderStore, ProductOrderStoreDto>().ReverseMap();
             CreateMap<ProductOrderStore, ProductOrderStoreVDto>();
             CreateMap<ProductOrderItem, ProductOrderItemDto>().ReverseMap();

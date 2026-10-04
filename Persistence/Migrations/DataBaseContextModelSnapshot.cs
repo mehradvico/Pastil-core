@@ -6334,6 +6334,90 @@ namespace Persistence.Migrations
                     b.ToTable("PetBreedCharacteristics");
                 });
 
+            modelBuilder.Entity("Entities.Entities.PetMicrochipRequest", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AdminNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ClientIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("ClosedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("FollowUpDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("FollowUpRequested")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("FoundUserPetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long?>("HandledByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("MatchCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("MicrochipCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Mobile")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PublicToken")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoundUserPetId");
+
+                    b.HasIndex("MicrochipCode");
+
+                    b.HasIndex("PublicToken")
+                        .IsUnique()
+                        .HasFilter("[PublicToken] IS NOT NULL");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Status", "CreateDate");
+
+                    b.ToTable("PetMicrochipRequests");
+                });
+
             modelBuilder.Entity("Entities.Entities.PetResanServiceField.PetResanService", b =>
                 {
                     b.Property<long>("Id")
@@ -7239,6 +7323,9 @@ namespace Persistence.Migrations
                     b.Property<DateTime?>("ReserveDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("SentDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<double>("SiteShare")
                         .HasColumnType("float");
 
@@ -7256,6 +7343,19 @@ namespace Persistence.Migrations
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("UserReceiveNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool?>("UserReceived")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("UserReceivedAuto")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("UserReceivedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<double>("WalletPrice")
                         .HasColumnType("float");
@@ -13224,6 +13324,23 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("PetBreed");
+                });
+
+            modelBuilder.Entity("Entities.Entities.PetMicrochipRequest", b =>
+                {
+                    b.HasOne("Entities.Entities.UserPet", "FoundUserPet")
+                        .WithMany()
+                        .HasForeignKey("FoundUserPetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("FoundUserPet");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Entities.Entities.PetResanServiceField.PetResanService", b =>

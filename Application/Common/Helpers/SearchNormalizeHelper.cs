@@ -86,6 +86,31 @@ namespace Application.Common.Helpers
             return values.Where(value => value.Length >= 2).Take(20).ToArray();
         }
 
+        // عبارت‌هایی که امتیازدهی با آن‌ها انجام می‌شود: فقط عبارت‌های ≥۳ حرفی (بیگرام‌های فازی نویز هستند)، ولی خودِ
+        // عبارت کاربر همیشه می‌ماند. قبلاً «سگ» (۲ حرفی) حذف می‌شد و فقط مترادفش «هاپو» امتیاز می‌گرفت، پس تنها
+        // برند «هاپومیل» می‌آمد و هر نتیجه‌ی حاوی «سگ» امتیاز ۰ می‌گرفت و حذف می‌شد.
+        public static IReadOnlyList<string> ScoringTerms(string normalizedQuery, IEnumerable<string> searchTerms)
+        {
+            var terms = searchTerms
+                .Where(term => term.Length >= 3 || term.Equals(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            return terms.Count > 0 ? terms : [normalizedQuery];
+        }
+
+        // «شاید منظورتان بود»: فقط وقتی جستجو هیچ نتیجه‌ای نداشته. مترادف‌ها (سگ ← هاپو)، خودِ کلمه‌ها و نسخه‌ی بدون فاصله
+        // تصحیح املایی نیستند؛ وقتی نتیجه هست پیشنهاد دادنشان فقط گمراه‌کننده است («سگ» را درست نوشته و «هاپو» می‌پرسد).
+        public static List<string> BuildSuggestions(string normalizedQuery, IEnumerable<string> searchTerms, int totalCount)
+        {
+            if (totalCount > 0)
+                return new List<string>();
+
+            return searchTerms
+                .Where(term => !term.Equals(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+                .Where(term => term.Length >= 3)
+                .Take(5)
+                .ToList();
+        }
+
         private static void AddSynonyms(string value, ISet<string> values)
         {
             if (!Synonyms.TryGetValue(value, out var synonyms))

@@ -1,5 +1,7 @@
 using Application.Common.Dto.Result;
+using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Microsoft.EntityFrameworkCore;
@@ -42,17 +44,30 @@ namespace Application.Services.CompanionSrvs.CompanionReserveDebtSrv
         Task<BaseResultDto<ReserveDebtSummaryDto>> GetMyDebtsAsync(long userId);
         Task<BaseResultDto> PayFromWalletAsync(long userId, long reserveId);
         Task<BaseResultDto> MarkPaidByClinicAsync(long ownerUserId, long reserveId);
+
+        // کسر خودکار از کیف پول: بدهی‌های باز یک کاربر را از قدیمی‌ترین شروع می‌کند و تا جایی که کیف پول کافی است می‌پردازد.
+        // تعداد بدهی‌های پرداخت‌شده را برمی‌گرداند. بعد از ثبت بدهی (بلافاصله) و در job دوره‌ای صدا زده می‌شود.
+        Task<int> CollectForUserAsync(long userId);
+
+        // job: کسر خودکار برای همه‌ی کاربرانِ دارای بدهی باز؛ تعداد بدهی‌های پرداخت‌شده را برمی‌گرداند
+        Task<int> AutoCollectAsync();
+
+        // job: یادآوری روزی ۳ بار به کاربرانی که بدهی باز دارند و کیف پولشان کافی نیست؛ تعداد کاربران اعلان‌شده را برمی‌گرداند
+        Task<int> SendDebtRemindersAsync();
     }
 
     public class CompanionReserveDebtService : ICompanionReserveDebtService
     {
         private readonly IDataBaseContext _context;
         private readonly IWalletService _walletService;
+        private readonly IPushNotificationService _push;
+        private const int UserBatchSize = 200;
 
-        public CompanionReserveDebtService(IDataBaseContext context, IWalletService walletService)
+        public CompanionReserveDebtService(IDataBaseContext context, IWalletService walletService, IPushNotificationService push)
         {
             _context = context;
             _walletService = walletService;
+            _push = push;
         }
 
         public async Task<BaseResultDto<ReserveDebtSummaryDto>> GetMyDebtsAsync(long userId)
@@ -156,6 +171,107 @@ namespace Application.Services.CompanionSrvs.CompanionReserveDebtSrv
                 return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
             }
         }
+
+        // ---- کسر خودکار از کیف پول + یادآوری (طراحی: backend/Docs/COMPANION_DEBT_AUTO_COLLECT_FA.md)
+        private static readonly System.Globalization.CultureInfo Persian = new("fa");
+
+        private IQueryable<Entities.Entities.CompanionReserve> OpenDebts() =>
+            _context.CompanionReserves.AsNoTracking().Where(r =>
+                r.OperatorUnpaid && r.OperatorDebtPaidDate == null && !r.IsCancel &&
+                r.OperatorUnpaidDate != null && r.OperatorUnpaidAmount > 0);
+
+        public async Task<int> CollectForUserAsync(long userId)
+        {
+            if (userId <= 0)
+                return 0;
+
+            var debts = await OpenDebts()
+                .Where(r => r.BookerId == userId)
+                .OrderBy(r => r.OperatorUnpaidDate).ThenBy(r => r.Id)
+                .Select(r => new { r.Id, Amount = r.OperatorUnpaidAmount, Companion = r.CompanionAssistance.Companion.Name })
+                .ToListAsync();
+
+            var collected = 0;
+            foreach (var debt in debts)
+            {
+                // از قدیمی‌ترین شروع می‌کنیم؛ به محض اینکه کیف پول یک بدهی را پوشش نداد می‌ایستیم (ترتیب پرداخت حفظ می‌شود)
+                var balance = await _walletService.GetAmountValueAsync(userId);
+                if (!CompanionReserveDebtRules.WalletCovers(balance, debt.Amount))
+                    break;
+
+                var paid = await PayFromWalletAsync(userId, debt.Id);
+                if (!paid.IsSuccess)
+                    break;
+
+                collected++;
+                await SendOnceAsync(PushTypeEnum.PushCompanionDebtCollected, userId, CompanionReserveDebtRules.CollectedKey(debt.Id),
+                    FormatAmount(debt.Amount), debt.Companion);
+            }
+            return collected;
+        }
+
+        public async Task<int> AutoCollectAsync()
+        {
+            var userIds = await OpenDebts().Select(r => r.BookerId).Distinct().OrderBy(id => id).Take(1000).ToListAsync();
+            var collected = 0;
+            foreach (var userId in userIds)
+            {
+                try { collected += await CollectForUserAsync(userId); }
+                catch { /* خطا روی یک کاربر بقیه را متوقف نکند؛ اجرای بعدی دوباره تلاش می‌کند */ }
+            }
+            return collected;
+        }
+
+        public async Task<int> SendDebtRemindersAsync()
+        {
+            var now = DateTime.Now;
+            var slot = CompanionReserveDebtRules.CurrentReminderSlot(now);
+            if (!slot.HasValue)
+                return 0;
+
+            var key = CompanionReserveDebtRules.ReminderKey(now, slot.Value);
+            var typeId = (long)PushTypeEnum.PushCompanionDebtReminder;
+            var userIds = await OpenDebts().Select(r => r.BookerId).Distinct().OrderBy(id => id).Take(1000).ToListAsync();
+
+            var notified = 0;
+            foreach (var userId in userIds)
+            {
+                try
+                {
+                    var already = await _context.PushNotifications.AsNoTracking()
+                        .AnyAsync(n => n.UserId == userId && n.Token2 == key && n.PushPattern.PushTypeId == typeId);
+                    if (already)
+                        continue;
+
+                    // یک بار دیگر کسر خودکار را امتحان می‌کنیم (شاید کیف پول تازه شارژ شده)؛ اگر همه‌ی بدهی پرداخت شد، پوشی نمی‌رود
+                    await CollectForUserAsync(userId);
+                    var remaining = await OpenDebts().Where(r => r.BookerId == userId).SumAsync(r => (double?)r.OperatorUnpaidAmount) ?? 0;
+                    if (remaining <= 0)
+                        continue;
+
+                    await _push.SendPushAsync(PushTypeEnum.PushCompanionDebtReminder, userId, token1: FormatAmount(remaining), token2: key);
+                    notified++;
+                }
+                catch { /* اجرای بعدی (۱۵ دقیقه بعد، همان بازه) دوباره تلاش می‌کند */ }
+            }
+            return notified;
+        }
+
+        // هر (کاربر، نوع، کلید) فقط یک‌بار پوش می‌گیرد: token2 همیشه کلید یکتاست
+        private async Task SendOnceAsync(PushTypeEnum type, long userId, string key, string token1, string token3 = null)
+        {
+            try
+            {
+                var typeId = (long)type;
+                var already = await _context.PushNotifications.AsNoTracking()
+                    .AnyAsync(n => n.UserId == userId && n.Token2 == key && n.PushPattern.PushTypeId == typeId);
+                if (!already)
+                    await _push.SendPushAsync(type, userId, token1: token1, token2: key, token3: token3);
+            }
+            catch { /* اعلان نباید روی پرداخت اثر بگذارد */ }
+        }
+
+        private static string FormatAmount(double amount) => Math.Round(amount).ToString("N0", Persian);
 
         // کلینیک تأیید می‌کند مبلغ را مستقیم از کاربر گرفته است (بدهی بسته می‌شود، بدون تغییر در حسابداری پاستیل)
         public async Task<BaseResultDto> MarkPaidByClinicAsync(long ownerUserId, long reserveId)

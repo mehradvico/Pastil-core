@@ -85,6 +85,7 @@ namespace Persistence.Interface
         public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
         public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
         public DbSet<ConsultationAvailability> ConsultationAvailabilities { get; set; }
+        public DbSet<PetMicrochipRequest> PetMicrochipRequests { get; set; }
         public DbSet<Entities.Entities.PrescriptionField.OnlinePrescription> OnlinePrescriptions { get; set; }
         public DbSet<Entities.Entities.PrescriptionField.OnlinePrescriptionPicture> OnlinePrescriptionPictures { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
