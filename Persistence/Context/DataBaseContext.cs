@@ -217,6 +217,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
         public DbSet<ConsultationAvailability> ConsultationAvailabilities { get; set; }
         public DbSet<PetMicrochipRequest> PetMicrochipRequests { get; set; }
+        public DbSet<CompanionReservePackageItem> CompanionReservePackageItems { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
         public DbSet<CompanionReserveComment> CompanionReserveComments { get; set; }
         public DbSet<CompanionReserveCommentRate> CompanionReserveCommentRates { get; set; }
@@ -231,6 +232,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<Country> Countries { get; set; }
         public DbSet<Delivery> Deliveries { get; set; }
         public DbSet<ShippingQuote> ShippingQuotes { get; set; }
+        public DbSet<ShippingSlot> ShippingSlots { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<DeliveryDistance> DeliveryDistances { get; set; }
         public DbSet<Detail> Details { get; set; }
@@ -472,6 +474,15 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasIndex(item => new { item.Status, item.ExpireDate });
                 // شمارش هم‌پوشانی اسلات‌های رزرو یک کلینیک
                 entity.HasIndex(item => new { item.CompanionId, item.ScheduledStart });
+            });
+            modelBuilder.Entity<CompanionReservePackageItem>(entity =>
+            {
+                entity.Property(item => item.PackageName).HasMaxLength(300);
+                entity.Property(item => item.StatusReason).HasMaxLength(1000);
+                entity.HasIndex(item => new { item.CompanionReserveId, item.CompanionAssistancePackageId });
+                entity.HasOne(item => item.CompanionReserve).WithMany().HasForeignKey(item => item.CompanionReserveId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.CompanionAssistancePackage).WithMany().HasForeignKey(item => item.CompanionAssistancePackageId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.StatusChangedByUser).WithMany().HasForeignKey(item => item.StatusChangedByUserId).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<PetMicrochipRequest>(entity =>
             {
@@ -1579,8 +1590,14 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                     .HasForeignKey(item => item.DeliveryId)
                     .OnDelete(DeleteBehavior.NoAction);
             });
+            modelBuilder.Entity<ShippingSlot>(entity =>
+            {
+                entity.Property(item => item.DayOfWeek).HasConversion<int>();
+                entity.HasIndex(item => new { item.DayOfWeek, item.StartTime, item.EndTime });
+            });
             modelBuilder.Entity<CartStore>(entity =>
             {
+                entity.Property(item => item.ShippingSlotDate).HasColumnType("date");
                 entity.HasOne(item => item.ShippingQuote)
                     .WithMany()
                     .HasForeignKey(item => item.ShippingQuoteId)
@@ -1588,6 +1605,8 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             });
             modelBuilder.Entity<ProductOrderStore>(entity =>
             {
+                entity.Property(item => item.ShippingSlotDate).HasColumnType("date");
+                entity.HasIndex(item => new { item.ShippingSlotId, item.ShippingSlotDate });
                 entity.HasOne(item => item.ShippingQuote)
                     .WithMany()
                     .HasForeignKey(item => item.ShippingQuoteId)
@@ -1598,6 +1617,8 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.Property(item => item.ExternalShipmentId).HasMaxLength(250);
                 entity.Property(item => item.TrackingCode).HasMaxLength(250);
                 entity.Property(item => item.FailureReason).HasMaxLength(1000);
+                entity.Property(item => item.DeliveryCode).HasMaxLength(10);
+                entity.HasIndex(item => new { item.Status, item.SellerConfirmDeadlineUtc });
                 entity.HasIndex(item => item.ProductOrderStoreId).IsUnique();
                 entity.HasIndex(item => new { item.Provider, item.Status });
                 entity.HasOne(item => item.ProductOrderStore)

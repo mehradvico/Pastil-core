@@ -63,10 +63,16 @@ namespace Application.Tests.Reminder
         public void UserReminderToday_IsAppendedAfterAllPreviousMessageTypes_NeverRenumberingThem()
         {
             // این enum ordinal تلویحی است؛ اگر یک روز مقداری وسط لیست اضافه شود همه‌ی مقادیر بعدی جابه‌جا می‌شوند.
-            // این تست فقط تضمین می‌کند UserReminderToday آخرین مقدار enum است.
+            // این تست تضمین می‌کند UserReminderToday همچنان درست بعد از مقادیر قبلی و قبل از UserAbandonedCart (که بعدتر append شد) است.
             var names = System.Enum.GetNames(typeof(Application.Common.Enumerable.Message.MessageTypeEnum));
 
-            Assert.Equal("UserReminderToday", names[^1]);
+            Assert.Equal("UserReminderToday", names[^14]);
+            Assert.Equal("UserAbandonedCart", names[^13]);
+            Assert.Equal("ProductOrderShippedMiare", names[^12]);
+            Assert.Equal("ProductOrderShippedPost", names[^11]);
+            Assert.Equal("ProductOrderReceivedAdmin", names[^10]);
+            Assert.Equal("ProductOrderReceivedStore", names[^9]);
+            Assert.Equal("ProductOrderNotReceivedAdmin", names[^8]);
         }
     }
 }

@@ -8,6 +8,10 @@ namespace Entities.Entities
     {
         public string Id { get; set; }
         public string OrderCode { get; set; }
+        /// <summary>پیامک «تحویل پست داده شد» فقط یک‌بار برای هر سفارش.</summary>
+        public System.DateTime? PostShippedNotifiedAtUtc { get; set; }
+        /// <summary>پوش «آیا سفارش را تحویل گرفتید؟» (راس پایان بازه‌ی تحویل میاره) فقط یک‌بار برای هر سفارش.</summary>
+        public System.DateTime? ReceiptAskedAtUtc { get; set; }
         public long UserId { get; set; }
         public long? AddressId { get; set; }
         public long PaymentTypeId { get; set; }

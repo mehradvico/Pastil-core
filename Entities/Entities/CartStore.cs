@@ -18,6 +18,8 @@ namespace Entities.Entities
         public ShippingProviderEnum? ShippingProvider { get; set; }
         public ShippingPaymentModeEnum? ShippingPaymentMode { get; set; }
         public double ShippingQuotedPrice { get; set; }
+        public long? ShippingSlotId { get; set; }
+        public System.DateTime? ShippingSlotDate { get; set; }
         public double PaymentPrice { get; set; }
         public bool Active { get; set; }
         public Store Store { get; set; }

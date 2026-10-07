@@ -4558,5 +4558,482 @@ namespace Resource {
                 return ResourceManager.GetString("MicrochipStatusTransitionNotAllowed", resourceCulture);
             }
         }
+
+        public static string CompanionReservePackageNotFound {
+            get {
+                return ResourceManager.GetString("CompanionReservePackageNotFound", resourceCulture);
+            }
+        }
+
+        public static string CompanionReservePackageNotModifiable {
+            get {
+                return ResourceManager.GetString("CompanionReservePackageNotModifiable", resourceCulture);
+            }
+        }
+
+        public static string CompanionReservePackageStatusInvalid {
+            get {
+                return ResourceManager.GetString("CompanionReservePackageStatusInvalid", resourceCulture);
+            }
+        }
+
+        public static string CompanionReservePackageNeedsPaidReserve {
+            get {
+                return ResourceManager.GetString("CompanionReservePackageNeedsPaidReserve", resourceCulture);
+            }
+        }
+
+        public static string CompanionReservePackageRemoveOnlyUnpaid {
+            get {
+                return ResourceManager.GetString("CompanionReservePackageRemoveOnlyUnpaid", resourceCulture);
+            }
+        }
+
+        public static string CompanionReservePackageLastRemain {
+            get {
+                return ResourceManager.GetString("CompanionReservePackageLastRemain", resourceCulture);
+            }
+        }
+
+        public static string CompanionReservePackageAlreadyActive {
+            get {
+                return ResourceManager.GetString("CompanionReservePackageAlreadyActive", resourceCulture);
+            }
+        }
+
+        public static string CompanionReservePackageSingleOnly {
+            get {
+                return ResourceManager.GetString("CompanionReservePackageSingleOnly", resourceCulture);
+            }
+        }
+
+        public static string CompanionReservePackageRefundFailed {
+            get {
+                return ResourceManager.GetString("CompanionReservePackageRefundFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil friend.
+        /// </summary>
+        public static string AbandonedCartDefaultCustomerName {
+            get {
+                return ResourceManager.GetString("AbandonedCartDefaultCustomerName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to your cart items.
+        /// </summary>
+        public static string AbandonedCartDefaultProductName {
+            get {
+                return ResourceManager.GetString("AbandonedCartDefaultProductName", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select a delivery day and time slot..
+        /// </summary>
+        public static string ShippingSlotRequired {
+            get {
+                return ResourceManager.GetString("ShippingSlotRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This delivery slot is no longer available. Choose another one..
+        /// </summary>
+        public static string ShippingSlotUnavailable {
+            get {
+                return ResourceManager.GetString("ShippingSlotUnavailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This delivery slot is full. Choose another one..
+        /// </summary>
+        public static string ShippingSlotFull {
+            get {
+                return ResourceManager.GetString("ShippingSlotFull", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Delivery slot not found..
+        /// </summary>
+        public static string ShippingSlotNotFound {
+            get {
+                return ResourceManager.GetString("ShippingSlotNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Start time must be before end time (HH:mm)..
+        /// </summary>
+        public static string ShippingSlotInvalidTimes {
+            get {
+                return ResourceManager.GetString("ShippingSlotInvalidTimes", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Capacity must be between 1 and 10,000..
+        /// </summary>
+        public static string ShippingSlotInvalidCapacity {
+            get {
+                return ResourceManager.GetString("ShippingSlotInvalidCapacity", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This slot overlaps another slot on the same day..
+        /// </summary>
+        public static string ShippingSlotOverlap {
+            get {
+                return ResourceManager.GetString("ShippingSlotOverlap", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This order is not awaiting seller confirmation..
+        /// </summary>
+        public static string ShipmentConfirmNotAllowed {
+            get {
+                return ResourceManager.GetString("ShipmentConfirmNotAllowed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The confirmation deadline for this order has passed..
+        /// </summary>
+        public static string ShipmentConfirmExpired {
+            get {
+                return ResourceManager.GetString("ShipmentConfirmExpired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pickup time must be between now and shortly before the customer delivery window ends..
+        /// </summary>
+        public static string ShipmentPickupTimeInvalid {
+            get {
+                return ResourceManager.GetString("ShipmentPickupTimeInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Preparation confirmed and a Miare courier was requested..
+        /// </summary>
+        public static string ShipmentConfirmedSuccessfully {
+            get {
+                return ResourceManager.GetString("ShipmentConfirmedSuccessfully", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Courier request failed. Try again or contact support..
+        /// </summary>
+        public static string ShipmentCourierRequestFailed {
+            get {
+                return ResourceManager.GetString("ShipmentCourierRequestFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The seller did not confirm preparation in time (auto cancel request; needs review and refund)..
+        /// </summary>
+        public static string ShipmentSellerConfirmExpiredNote {
+            get {
+                return ResourceManager.GetString("ShipmentSellerConfirmExpiredNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} to {1}.
+        /// </summary>
+        public static string ShipmentSlotRangeFormat {
+            get {
+                return ResourceManager.GetString("ShipmentSlotRangeFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Miare shipping is recorded automatically when the courier picks up the goods..
+        /// </summary>
+        public static string ShipmentMiareManualShipBlocked {
+            get {
+                return ResourceManager.GetString("ShipmentMiareManualShipBlocked", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The Miare courier was cancelled because of delay; waiting for the seller to confirm again..
+        /// </summary>
+        public static string ShipmentCourierCanceledNote {
+            get {
+                return ResourceManager.GetString("ShipmentCourierCanceledNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The goods were not delivered and the courier is returning them (needs follow-up and refund)..
+        /// </summary>
+        public static string ShipmentReturningNote {
+            get {
+                return ResourceManager.GetString("ShipmentReturningNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The Miare trip was cancelled and there is no time left to request again (needs review and refund)..
+        /// </summary>
+        public static string ShipmentCourierFailedNote {
+            get {
+                return ResourceManager.GetString("ShipmentCourierFailedNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to For postal orders, enter the tracking code first..
+        /// </summary>
+        public static string ProductOrderPostTrackingRequiredHint {
+            get {
+                return ResourceManager.GetString("ProductOrderPostTrackingRequiredHint", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Order accepted. Tap "ready for courier" when the goods are ready..
+        /// </summary>
+        public static string ShipmentAcceptedSuccessfully {
+            get {
+                return ResourceManager.GetString("ShipmentAcceptedSuccessfully", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This order is not in the preparing state..
+        /// </summary>
+        public static string ShipmentReadyNotAllowed {
+            get {
+                return ResourceManager.GetString("ShipmentReadyNotAllowed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The ready-for-courier deadline for this order has passed..
+        /// </summary>
+        public static string ShipmentReadyExpired {
+            get {
+                return ResourceManager.GetString("ShipmentReadyExpired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The seller did not mark the goods ready for the courier in time (auto cancel request; needs review and refund)..
+        /// </summary>
+        public static string ShipmentNotReadyExpiredNote {
+            get {
+                return ResourceManager.GetString("ShipmentNotReadyExpiredNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Order or item not found..
+        /// </summary>
+        public static string OrderAdjustNotFound {
+            get {
+                return ResourceManager.GetString("OrderAdjustNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This order can no longer be cancelled or edited (shipped, delivered or already cancelled)..
+        /// </summary>
+        public static string OrderAdjustNotAllowedShipped {
+            get {
+                return ResourceManager.GetString("OrderAdjustNotAllowedShipped", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A courier was requested for this order; contact Pastil support to cancel it..
+        /// </summary>
+        public static string OrderAdjustSellerCourierRequested {
+            get {
+                return ResourceManager.GetString("OrderAdjustSellerCourierRequested", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This order has several stores; you can only reduce or remove your own items..
+        /// </summary>
+        public static string OrderAdjustMultiStoreSeller {
+            get {
+                return ResourceManager.GetString("OrderAdjustMultiStoreSeller", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The new count must be between 0 and less than the current count..
+        /// </summary>
+        public static string OrderAdjustInvalidCount {
+            get {
+                return ResourceManager.GetString("OrderAdjustInvalidCount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refund to the customer wallet failed; try again..
+        /// </summary>
+        public static string OrderAdjustRefundFailed {
+            get {
+                return ResourceManager.GetString("OrderAdjustRefundFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the cancellation reason..
+        /// </summary>
+        public static string OrderAdjustReasonRequired {
+            get {
+                return ResourceManager.GetString("OrderAdjustReasonRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This would remove all items of one store from a multi-store order; contact support..
+        /// </summary>
+        public static string OrderAdjustStoreWouldBeEmpty {
+            get {
+                return ResourceManager.GetString("OrderAdjustStoreWouldBeEmpty", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Not provided.
+        /// </summary>
+        public static string OrderAdjustNoReason {
+            get {
+                return ResourceManager.GetString("OrderAdjustNoReason", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Order cancelled and the amount was refunded to the customer wallet..
+        /// </summary>
+        public static string OrderCancelledSuccessfully {
+            get {
+                return ResourceManager.GetString("OrderCancelledSuccessfully", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Order updated and the reduced amount was refunded to the customer wallet..
+        /// </summary>
+        public static string OrderItemAdjustedSuccessfully {
+            get {
+                return ResourceManager.GetString("OrderItemAdjustedSuccessfully", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: the Miare trip was not cancelled automatically; follow up in the Miare panel..
+        /// </summary>
+        public static string OrderCancelMiareWarning {
+            get {
+                return ResourceManager.GetString("OrderCancelMiareWarning", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to count reduced from {0} to {1}.
+        /// </summary>
+        public static string OrderItemDetailReduced {
+            get {
+                return ResourceManager.GetString("OrderItemDetailReduced", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to removed from the order.
+        /// </summary>
+        public static string OrderItemDetailRemoved {
+            get {
+                return ResourceManager.GetString("OrderItemDetailRemoved", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to was reduced.
+        /// </summary>
+        public static string OrderItemActionReducedAdmin {
+            get {
+                return ResourceManager.GetString("OrderItemActionReducedAdmin", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to was removed.
+        /// </summary>
+        public static string OrderItemActionRemovedAdmin {
+            get {
+                return ResourceManager.GetString("OrderItemActionRemovedAdmin", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to reduced.
+        /// </summary>
+        public static string OrderItemActionReducedStore {
+            get {
+                return ResourceManager.GetString("OrderItemActionReducedStore", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to removed.
+        /// </summary>
+        public static string OrderItemActionRemovedStore {
+            get {
+                return ResourceManager.GetString("OrderItemActionRemovedStore", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select the exact location of the pansion on the map..
+        /// </summary>
+        public static string PansionPleaseSelectLocation {
+            get {
+                return ResourceManager.GetString("PansionPleaseSelectLocation", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The pansion location coordinates are not valid..
+        /// </summary>
+        public static string PansionLocationCoordinatesNotValid {
+            get {
+                return ResourceManager.GetString("PansionLocationCoordinatesNotValid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select the exact location of the school on the map..
+        /// </summary>
+        public static string SchoolPleaseSelectLocation {
+            get {
+                return ResourceManager.GetString("SchoolPleaseSelectLocation", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The school location coordinates are not valid..
+        /// </summary>
+        public static string SchoolLocationCoordinatesNotValid {
+            get {
+                return ResourceManager.GetString("SchoolLocationCoordinatesNotValid", resourceCulture);
+            }
+        }
     }
 }

@@ -29,7 +29,9 @@ namespace Entities.Entities
         public int CommentCount { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
-        public decimal CommissionPercent { get; set; } 
+        public decimal CommissionPercent { get; set; }
+        /// <summary>حداکثر زمان آماده‌سازی سفارش این فروشگاه (دقیقه). بازه‌های تحویل میاره بر اساس همین زمان برای مشتری نمایش داده می‌شوند.</summary>
+        public int MaxPreparationMinutes { get; set; } = 120;
         public Picture Picture { get; set; }
         public Picture Icon { get; set; }
         public Code Type { get; set; }

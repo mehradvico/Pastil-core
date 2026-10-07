@@ -27,6 +27,7 @@ using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
+using Entities.Entities.ShippingField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PersianDate.Standard;
@@ -87,13 +88,23 @@ namespace Application.Services.Order.ProductOrderSrv
         {
             var query = _context.ProductOrders.Include(s => s.User).Include(s => s.Address).Include(s => s.ProductOrderState)
                 .Include(s => s.ProductOrderStatus).Include(s => s.PaymentType).Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems)
-                .Include(s => s.ProductOrderStores).ThenInclude(s => s.Delivery).Where(s => s.Id == id && !s.Deleted);
+                .Include(s => s.ProductOrderStores).ThenInclude(s => s.Delivery)
+                .Include(s => s.ProductOrderStores).ThenInclude(s => s.Shipment)
+                // لینک پیامک با شماره‌ی سفارش ساخته می‌شود (محدودیت توکن‌های کاوه‌نگار)؛ جست‌وجوی با کد فقط برای خودِ مشتری
+                .Where(s => !s.Deleted && (s.Id == id || (userId != null && s.OrderCode == id)));
             if (userId.HasValue)
                 query = query.Where(s => s.UserId == userId.Value);
             var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
-                return new BaseResultDto<ProductOrderVDto>(true, data: mapper.Map<ProductOrderVDto>(item));
+                var vdto = mapper.Map<ProductOrderVDto>(item);
+                // کد تحویل فقط به خودِ مشتری نشان داده می‌شود؛ فروشنده/ادمین (userId == null) نباید آن را ببینند
+                // و حتی برای مشتری، فقط بعد از تحویل کالا به پیک (ShipmentLifecycleRules.IsCodeVisible)
+                if (vdto.ProductOrderStores != null)
+                    foreach (var orderStore in vdto.ProductOrderStores)
+                        if (!userId.HasValue || !Application.Services.Order.ShippingSrv.ShipmentLifecycleRules.IsCodeVisible(orderStore.ShipmentStatus))
+                            orderStore.ShipmentDeliveryCode = null;
+                return new BaseResultDto<ProductOrderVDto>(true, data: vdto);
             }
             return new BaseResultDto(false, val: Resource.Notification.ResourceNotFind);
         }
@@ -382,9 +393,12 @@ namespace Application.Services.Order.ProductOrderSrv
             }
             var orderUrl = productOrder.Id;
 
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.OrderCode, token3: orderUrl);
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.OrderCode);
-            await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushRegisterOrderUser, userId: productOrder.UserId, token1: nameText, token2: productOrder.OrderCode);
+            // ثبت سفارش: ایمیل نمی‌رود (فقط پیامک). نام فروشگاه(ها) در token4 (= %token10 کاوه‌نگار) برای کاربر و ادمین؛
+            // پیامک فروشگاه فقط نام کاربر و شماره سفارش دارد و فقط یک‌بار به هر شماره‌ی موبایل می‌رود.
+            var storeNamesText = RegisterOrderStoreNames(productOrder);
+            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: null, token1: nameText, token2: productOrder.OrderCode, token3: orderUrl, token4: storeNamesText);
+            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: null, token1: nameText, token2: productOrder.OrderCode, token4: storeNamesText);
+            await SendRegisterOrderPushesAsync(productOrder, nameText);
             var orderId = long.Parse(productOrder.Id);
             await _notificationService.CreateAsync(new NoticeCreateDto
             {
@@ -396,15 +410,69 @@ namespace Application.Services.Order.ProductOrderSrv
                 Metadata = new Dictionary<string, string> { { "userName", $"{productOrder.User.FirstName} {productOrder.User.LastName}".Trim() }, { "orderId", productOrder.Id }, { "mobile", productOrder.User.Mobile } }
             });
 
-            foreach (var productOrderStore in productOrder.ProductOrderStores)
+            // پیامک فقط به شماره‌ی خودِ فروشگاه (مالک) و یک‌بار برای هر شماره، حتی اگر چند فروشگاه سفارش یک شماره دارند
+            var storeMobiles = productOrder.ProductOrderStores
+                .Select(productOrderStore => productOrderStore.Store?.Mobile?.Trim())
+                .Where(mobile => !string.IsNullOrEmpty(mobile))
+                .Distinct();
+            foreach (var mobile in storeMobiles)
             {
-                var store = productOrderStore.Store;
-                if (store != null)
-                {
-                    await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.StoreRegisterOrder, mobileReceptor: store.Mobile, emailReceptor: store.Email, token1: nameText, token2: productOrder.OrderCode);
-                }
+                await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.StoreRegisterOrder, mobileReceptor: mobile, emailReceptor: null, token1: nameText, token2: productOrder.OrderCode);
             }
             return new BaseResultDto(true);
+        }
+
+        // نام فروشگاه(های) سفارش برای توکن پیامک: توکن‌های کاوه‌نگار فاصله نمی‌پذیرند و SmsService فاصله را «_» می‌کند؛
+        // پس فاصله‌ها از قبل با نیم‌فاصله (ZWNJ) عوض می‌شوند. چند فروشگاه با «،» جدا می‌شوند.
+        private static string RegisterOrderStoreNames(ProductOrder productOrder)
+        {
+            var names = productOrder.ProductOrderStores
+                .Select(productOrderStore => productOrderStore.Store?.Name?.Trim())
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Distinct();
+            var text = string.Join("،", names).Replace(' ', '‌');
+            return text.Length > 100 ? text.Substring(0, 100) : text;
+        }
+
+        // پوش ثبت سفارش فقط برای فروشگاه (کاربران همان فروشگاه‌ها) و ادمین؛ برای مشتری پوش نمی‌رود.
+        private async Task SendRegisterOrderPushesAsync(ProductOrder productOrder, string nameText)
+        {
+            try
+            {
+                var storeIds = productOrder.ProductOrderStores.Select(productOrderStore => productOrderStore.StoreId).Distinct().ToList();
+                var storeUserIds = await _context.Stores.AsNoTracking()
+                    .Where(store => storeIds.Contains(store.Id))
+                    .SelectMany(store => store.Users)
+                    .Where(user => !user.Deleted && !user.Locked)
+                    .Select(user => user.Id)
+                    .Distinct()
+                    .ToListAsync();
+                var adminUserIds = await _context.Users.AsNoTracking()
+                    .Where(user => user.RoleId == (long)RoleEnum.Admin && !user.Deleted && !user.Locked)
+                    .Select(user => user.Id)
+                    .ToListAsync();
+
+                foreach (var userId in storeUserIds)
+                    await SendOrderPushSafeAsync(PushTypeEnum.PushRegisterOrderStore, userId, nameText, productOrder.OrderCode);
+                foreach (var userId in adminUserIds.Except(storeUserIds))
+                    await SendOrderPushSafeAsync(PushTypeEnum.PushRegisterOrderAdmin, userId, nameText, productOrder.OrderCode);
+            }
+            catch
+            {
+                // پوش فروشگاه/ادمین best-effort است؛ ثبت سفارش نباید به‌خاطرش خراب شود.
+            }
+        }
+
+        private async Task SendOrderPushSafeAsync(PushTypeEnum pushType, long userId, string nameText, string orderCode)
+        {
+            try
+            {
+                await _pushNotificationService.SendPushAsync(pushType, userId, token1: nameText, token2: orderCode);
+            }
+            catch
+            {
+                // یک گیرنده‌ی خراب بقیه را متوقف نکند.
+            }
         }
 
         public Task UpdateProductOrderCommissionDto(ProductOrder order)
@@ -440,7 +508,7 @@ namespace Application.Services.Order.ProductOrderSrv
 
             return Task.CompletedTask;
         }
-        public async Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto)
+        public async Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto, bool allowMiareOverride = false)
         {
             var item = await _context.ProductOrders.AsTracking().Include(s => s.User).FirstOrDefaultAsync(s => s.Id == dto.Id);
             if (item == null)
@@ -458,6 +526,13 @@ namespace Application.Services.Order.ProductOrderSrv
                 return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveredOnlyByUser);
             if (!ProductOrderDeliveryRules.StaffMayChangeStatus(item.ProductOrderStatusId, dto.ProductOrderStatusId, deliveredId, item.UserReceived))
                 return new BaseResultDto(false, Resource.Notification.ProductOrderStatusLockedByUserConfirmation);
+
+            // «ارسال» برای سفارش میاره خودکار و با تحویل واقعی کالا به پیک (وب‌هوک) ثبت می‌شود؛ فروشنده نمی‌تواند زودتر دستی بزند
+            // (وگرنه مشتری پیامک «تحویل میاره شد» می‌گیرد در حالی که پیک هنوز نیامده).
+            var sendStatusId = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Send.ToString());
+            if (!allowMiareOverride && dto.ProductOrderStatusId == sendStatusId && item.ProductOrderStatusId != sendStatusId &&
+                await _context.ProductOrderStores.AnyAsync(os => os.ProductOrderId == item.Id && !os.Deleted && os.ShippingProvider == ShippingProviderEnum.Miare))
+                return new BaseResultDto(false, Resource.Notification.ShipmentMiareManualShipBlocked);
 
             var previousStatusId = item.ProductOrderStatusId;
             item.ProductOrderStatus = null;
@@ -478,10 +553,7 @@ namespace Application.Services.Order.ProductOrderSrv
             {
                 await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushProccessOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
             }
-            if (dto.ProductOrderStatusId == statusSend)
-            {
-                await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushSentOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.OrderCode);
-            }
+            // پوش «ارسال شد» عمومی حذف شد: میاره پوش کد تحویل دارد (ShipmentService) و پست پوش ندارد.
             _context.ProductOrders.Update(item);
             await _context.SaveChangesAsync();
 
@@ -490,7 +562,11 @@ namespace Application.Services.Order.ProductOrderSrv
                 item.IsPaid)
                 await _clubPointIntegrationService.ProductOrderCompletedAsync(item.UserId, item.Id);
 
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderChangeStatus, mobileReceptor: item.User.Mobile, emailReceptor: item.User.Email, token1: item.User.FirstName, token2: item.OrderCode);
+            // «ارسال» با پست: پیامک اختصاصی (فقط یک‌بار، با شماره‌ی پیگیری) جای پیامک عمومی تغییر وضعیت می‌نشیند
+            var dedicatedShippedSms = dto.ProductOrderStatusId == statusSend && previousStatusId != statusSend
+                && await TrySendPostShippedAsync(item.Id);
+            if (!dedicatedShippedSms)
+            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderChangeStatus, mobileReceptor: item.User.Mobile, emailReceptor: null, token1: item.User.FirstName, token2: item.OrderCode);
             return new BaseResultDto(true);
         }
         // تحویل‌گیری توسط خود کاربر (طراحی: backend/Docs/PRODUCT_ORDER_USER_DELIVERY_FA.md)
@@ -510,6 +586,7 @@ namespace Application.Services.Order.ProductOrderSrv
                     {
                         o.IsPaid,
                         o.UserReceived,
+                        ReceiptAsked = o.ReceiptAskedAtUtc != null,
                         o.ProductOrderStatusId,
                         StatusLabel = o.ProductOrderStatus.Label,
                         StateLabel = o.ProductOrderState.Label
@@ -517,7 +594,21 @@ namespace Application.Services.Order.ProductOrderSrv
                     .FirstOrDefaultAsync();
                 if (order == null)
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
-                switch (ProductOrderDeliveryRules.Decide(order.IsPaid, order.StatusLabel, order.StateLabel, order.UserReceived))
+                // سفارش میاره با اعلام کد خودکار «تحویل شد» می‌شود؛ ولی پیک گاهی بدون گرفتن کد تحویل صوری می‌زند. تا ۳ ساعت بعد از
+                // تحویل (مهلت گزارش مشکل در میاره) مشتری هنوز می‌تواند «تحویل نگرفتم» بزند.
+                if (!received && order.UserReceived == true &&
+                    order.StatusLabel == ProductOrderStatusEnum.ProductOrderStatus_Delivered.ToString() &&
+                    order.StateLabel != canceledLabel)
+                {
+                    var deliveredAt = await _context.Shipments.AsNoTracking()
+                        .Where(sh => sh.ProductOrderStore.ProductOrderId == orderId && sh.Provider == ShippingProviderEnum.Miare && sh.Status == ShipmentStatusEnum.Delivered)
+                        .OrderByDescending(sh => sh.DeliveredAtUtc)
+                        .Select(sh => sh.DeliveredAtUtc)
+                        .FirstOrDefaultAsync();
+                    if (Application.Services.Order.ShippingSrv.ShipmentLifecycleRules.InDisputeWindow(deliveredAt, DateTime.UtcNow))
+                        return await DisputeCourierDeliveryAsync(orderId, userId, note);
+                }
+                switch (ProductOrderDeliveryRules.Decide(order.IsPaid, order.StatusLabel, order.StateLabel, order.UserReceived, order.ReceiptAsked))
                 {
                     case ProductOrderDeliveryRules.Decision.AlreadyConfirmed:
                         return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveryAlreadyConfirmed);
@@ -542,6 +633,7 @@ namespace Application.Services.Order.ProductOrderSrv
                         return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveryNotAllowed);
 
                     // همان اثر جانبی «تحویل داده شد» که قبلاً ChangeStatusAsync داشت (امتیاز باشگاه)؛ خطا نباید تأیید کاربر را خراب کند
+                    await NotifyOrderReceivedAsync(orderId); // پیامک/پوش به ادمین و فروشنده
                     try { await _clubPointIntegrationService.ProductOrderCompletedAsync(userId, orderId); }
                     catch { /* در اجرای بعدی/پشتیبانی جبران می‌شود */ }
                 }
@@ -556,6 +648,8 @@ namespace Application.Services.Order.ProductOrderSrv
                     if (affected == 0)
                         return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveryNotAllowed);
                     await NotifyStoresNotReceivedAsync(orderId);
+                    if (order.UserReceived != false)
+                        await NotifyAdminsNotReceivedAsync(orderId);
                 }
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
@@ -724,14 +818,11 @@ namespace Application.Services.Order.ProductOrderSrv
                 productOrder.TrackingCode = order.TrackingCode;
                 _context.ProductOrders.Update(productOrder);
                 _context.SaveChanges();
-                if (!string.IsNullOrEmpty(productOrder.TrackingCode) && productOrder.DeliveryTypeId.HasValue)
-                {
-                    {
-                        string nameText = string.Format("{0}_{1}", productOrder.User.FirstName, productOrder.User.LastName).Replace(" ", "_");
-                        string trackingText = string.Format(Resource.Pattern.ProductOrderTrakingCode, productOrder.DeliveryType.Name, productOrder.TrackingCode);
-                        await _messageSenderService.SendMessageAsync(messageType: Common.Enumerable.Message.MessageTypeEnum.TrackingCode, mobileReceptor: productOrder.User.Mobile, emailReceptor: productOrder.User.Email, token1: nameText, token2: productOrder.OrderCode, token5: trackingText, sendDate: DateTime.Now);
-                    }
-                }
+                // پیامک رهگیری جدا حذف شد: «تحویل پست داده شد» (ProductOrderShippedPost) فقط یک‌بار و فقط وقتی وضعیت «ارسال» است
+                // می‌رود؛ اگر کد رهگیری بعد از زدن «ارسال» ثبت شود، همین‌جا ارسال می‌شود.
+                var sendId = await _codeService.GetIdByLabelAsync(ProductOrderStatusEnum.ProductOrderStatus_Send.ToString());
+                if (!string.IsNullOrEmpty(productOrder.TrackingCode) && productOrder.ProductOrderStatusId == sendId)
+                    await TrySendPostShippedAsync(productOrder.Id);
             }
             return new BaseResultDto(true);
         }
@@ -844,6 +935,188 @@ namespace Application.Services.Order.ProductOrderSrv
             _context.ProductOrders.Update(item);
             await _context.SaveChangesAsync();
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
+        }
+
+        // پیامک «تحویل پست داده شد»: فقط یک‌بار برای هر سفارش، فقط وقتی کد رهگیری ثبت شده و فروشگاهی با ارسال غیرمیاره دارد.
+        // (فروشگاه‌های میاره پیام ارسال خودشان را از ShipmentService می‌گیرند.) true یعنی پیامک اختصاصی فرستاده شد.
+        private async Task<bool> TrySendPostShippedAsync(string orderId)
+        {
+            try
+            {
+                var order = await _context.ProductOrders.AsNoTracking()
+                    .Where(o => o.Id == orderId)
+                    .Select(o => new { o.OrderCode, o.TrackingCode, o.PostShippedNotifiedAtUtc, o.User.FirstName, o.User.Mobile })
+                    .FirstOrDefaultAsync();
+                if (order == null || order.PostShippedNotifiedAtUtc != null || string.IsNullOrWhiteSpace(order.TrackingCode) || string.IsNullOrEmpty(order.Mobile))
+                    return false;
+
+                var storeNames = await _context.ProductOrderStores.AsNoTracking()
+                    .Where(os => os.ProductOrderId == orderId && !os.Deleted && os.ShippingProvider != ShippingProviderEnum.Miare)
+                    .Select(os => os.Store.Name)
+                    .ToListAsync();
+                if (storeNames.Count == 0)
+                    return false;
+
+                // اول claim (گذار اتمی) تا دوبار کلیک/دوبار ثبت کد رهگیری دو پیامک نسازد
+                var now = DateTime.UtcNow;
+                var claimed = await _context.ProductOrders
+                    .Where(o => o.Id == orderId && o.PostShippedNotifiedAtUtc == null)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(o => o.PostShippedNotifiedAtUtc, (DateTime?)now));
+                if (claimed == 0)
+                    return false;
+
+                // قالب کاوه‌نگار: %token = نام، %token2 = شماره سفارش (متن و لینک)، %token3 = شماره پیگیری، %token10 = فروشگاه
+                await _messageSenderService.SendMessageAsync(
+                    messageType: MessageTypeEnum.ProductOrderShippedPost,
+                    mobileReceptor: order.Mobile,
+                    emailReceptor: null,
+                    token1: Application.Services.Order.CartSrv.AbandonedCartReminderRules.FirstNameOnly(order.FirstName) ?? Resource.Notification.AbandonedCartDefaultCustomerName,
+                    token2: order.OrderCode,
+                    token3: order.TrackingCode.Trim(),
+                    token4: Application.Services.Order.ShippingSrv.ShipmentLifecycleRules.ForSmsToken(string.Join("،", storeNames.Distinct())));
+                return true;
+            }
+            catch
+            {
+                return false; // پیامک best-effort است؛ تغییر وضعیت نباید به‌خاطرش خراب شود
+            }
+        }
+
+        // «تحویل نگرفتم» بعد از تحویل میاره (داخل ۳ ساعت): سفارش به «ارسال» برمی‌گردد، امتیاز باشگاه برگشت می‌خورد، فروشگاه و ادمین خبر می‌شوند.
+        private async Task<BaseResultDto> DisputeCourierDeliveryAsync(string orderId, long userId, string note)
+        {
+            var sendLabel = ProductOrderStatusEnum.ProductOrderStatus_Send.ToString();
+            var deliveredLabel = ProductOrderStatusEnum.ProductOrderStatus_Delivered.ToString();
+            var ids = await _context.Codes.AsNoTracking()
+                .Where(c => c.Label == sendLabel || c.Label == deliveredLabel)
+                .ToDictionaryAsync(c => c.Label, c => c.Id);
+            var sendId = ids.GetValueOrDefault(sendLabel);
+            var deliveredId = ids.GetValueOrDefault(deliveredLabel);
+            var now = DateTime.Now;
+            var affected = await _context.ProductOrders
+                .Where(o => o.Id == orderId && o.UserId == userId && o.UserReceived == true && o.ProductOrderStatusId == deliveredId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(o => o.UserReceived, (bool?)false)
+                    .SetProperty(o => o.UserReceivedDate, (DateTime?)now)
+                    .SetProperty(o => o.UserReceiveNote, note)
+                    .SetProperty(o => o.ProductOrderStatusId, sendId));
+            if (affected == 0)
+                return new BaseResultDto(false, Resource.Notification.ProductOrderDeliveryNotAllowed);
+
+            try { await _clubPointIntegrationService.ProductOrderReversedAsync(userId, orderId); }
+            catch { /* در پیگیری پشتیبانی جبران می‌شود */ }
+            await NotifyStoresNotReceivedAsync(orderId);
+            await NotifyAdminsNotReceivedAsync(orderId);
+            try { await _shipmentService.ReportNotReceivedAsync(orderId); }
+            catch { /* اعلان ادمین best-effort است */ }
+            return new BaseResultDto(true, Resource.Notification.Success);
+        }
+
+        private sealed class OrderPartyInfo
+        {
+            public string OrderCode { get; init; }
+            public string CustomerName { get; init; }
+            public List<(long Id, string Name, string Mobile)> Stores { get; init; }
+        }
+
+        private async Task<OrderPartyInfo> LoadOrderPartyInfoAsync(string orderId)
+        {
+            var info = await _context.ProductOrders.AsNoTracking()
+                .Where(o => o.Id == orderId)
+                .Select(o => new
+                {
+                    o.OrderCode,
+                    First = o.User.FirstName,
+                    Last = o.User.LastName,
+                    Stores = o.ProductOrderStores.Where(s => !s.Deleted).Select(s => new { s.Store.Id, s.Store.Name, s.Store.Mobile }).ToList()
+                })
+                .FirstOrDefaultAsync();
+            if (info == null)
+                return null;
+            return new OrderPartyInfo
+            {
+                OrderCode = info.OrderCode,
+                CustomerName = Application.Services.Order.ShippingSrv.ShipmentLifecycleRules.ForSmsToken($"{info.First} {info.Last}"),
+                Stores = info.Stores.GroupBy(s => s.Id).Select(g => (g.Key, g.First().Name, g.First().Mobile)).ToList()
+            };
+        }
+
+        private async Task PushToOrderStaffAsync(OrderPartyInfo info, string orderId, PushTypeEnum storeType, PushTypeEnum adminType)
+        {
+            var storeIds = info.Stores.Select(s => s.Id).ToList();
+            var storeUserIds = await _context.Stores.AsNoTracking()
+                .Where(store => storeIds.Contains(store.Id))
+                .SelectMany(store => store.Users)
+                .Where(user => !user.Deleted && !user.Locked)
+                .Select(user => user.Id)
+                .Distinct()
+                .ToListAsync();
+            var adminUserIds = await _context.Users.AsNoTracking()
+                .Where(user => user.RoleId == (long)RoleEnum.Admin && !user.Deleted && !user.Locked)
+                .Select(user => user.Id)
+                .ToListAsync();
+            foreach (var userId in storeUserIds)
+                await SendStaffPushSafeAsync(storeType, userId, info.OrderCode);
+            foreach (var userId in adminUserIds.Except(storeUserIds))
+                await SendStaffPushSafeAsync(adminType, userId, info.OrderCode);
+        }
+
+        private async Task SendStaffPushSafeAsync(PushTypeEnum type, long userId, string orderCode)
+        {
+            try { await _pushNotificationService.SendPushAsync(type, userId, token1: orderCode); }
+            catch { /* یک گیرنده‌ی خراب بقیه را متوقف نکند */ }
+        }
+
+        // مشتری «تحویل گرفتم» زد (وضعیت سفارش همان لحظه «تحویل شد/تکمیل‌شده» شده): پیامک به ادمین (برای هر فروشگاه) و به مالک فروشگاه،
+        // و پوش «سفارش ... با موفقیت به کاربر تحویل داده شد» به کاربران فروشگاه و ادمین‌ها. best-effort: خطا پاسخ مشتری را خراب نمی‌کند.
+        private async Task NotifyOrderReceivedAsync(string orderId)
+        {
+            try
+            {
+                var info = await LoadOrderPartyInfoAsync(orderId);
+                if (info == null || info.Stores.Count == 0)
+                    return;
+                var adminMobiles = _adminSettingHelperService.BaseAdminSetting?.AdminMobiles;
+                foreach (var store in info.Stores)
+                {
+                    var storeName = Application.Services.Order.ShippingSrv.ShipmentLifecycleRules.ForSmsToken(store.Name);
+                    // قالب کاوه‌نگار ProductOrderReceivedAdmin: %token = شماره سفارش، %token10 = نام فروشگاه
+                    if (!string.IsNullOrWhiteSpace(adminMobiles))
+                        await _messageSenderService.SendMessageAsync(MessageTypeEnum.ProductOrderReceivedAdmin, adminMobiles, null,
+                            token1: info.OrderCode, token4: storeName);
+                    // قالب ProductOrderReceivedStore: %token = نام کاربر، %token2 = شماره سفارش
+                    if (!string.IsNullOrWhiteSpace(store.Mobile))
+                        await _messageSenderService.SendMessageAsync(MessageTypeEnum.ProductOrderReceivedStore, store.Mobile.Trim(), null,
+                            token1: info.CustomerName, token2: info.OrderCode);
+                }
+                await PushToOrderStaffAsync(info, orderId, PushTypeEnum.PushOrderReceivedStore, PushTypeEnum.PushOrderReceivedAdmin);
+            }
+            catch { /* اعلان‌ها best-effort است */ }
+        }
+
+        // مشتری «تحویل نگرفتم» زد: پیامک به ادمین (برای هر فروشگاه) و پوش «سفارش ... در ساعت مقرر به کاربر نرسیده است» به ادمین‌ها.
+        private async Task NotifyAdminsNotReceivedAsync(string orderId)
+        {
+            try
+            {
+                var info = await LoadOrderPartyInfoAsync(orderId);
+                if (info == null)
+                    return;
+                var adminMobiles = _adminSettingHelperService.BaseAdminSetting?.AdminMobiles;
+                if (!string.IsNullOrWhiteSpace(adminMobiles))
+                    foreach (var store in info.Stores)
+                        // قالب ProductOrderNotReceivedAdmin: %token = نام کاربر، %token2 = شماره سفارش، %token10 = نام فروشگاه
+                        await _messageSenderService.SendMessageAsync(MessageTypeEnum.ProductOrderNotReceivedAdmin, adminMobiles, null,
+                            token1: info.CustomerName, token2: info.OrderCode,
+                            token4: Application.Services.Order.ShippingSrv.ShipmentLifecycleRules.ForSmsToken(store.Name));
+                var adminUserIds = await _context.Users.AsNoTracking()
+                    .Where(user => user.RoleId == (long)RoleEnum.Admin && !user.Deleted && !user.Locked)
+                    .Select(user => user.Id)
+                    .ToListAsync();
+                foreach (var userId in adminUserIds)
+                    await SendStaffPushSafeAsync(PushTypeEnum.PushShipmentNotReceivedAdmin, userId, info.OrderCode);
+            }
+            catch { /* اعلان‌ها best-effort است */ }
         }
     }
 }

@@ -45,6 +45,8 @@ namespace Api.Areas.EndUser.Controllers
             return Ok(await _shippingQuoteService.SelectQuoteAsync(
                 userId,
                 dto.QuoteToken,
+                dto.SlotId,
+                dto.SlotDate,
                 cancellationToken));
         }
     }

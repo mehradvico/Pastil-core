@@ -1334,6 +1334,23 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionReservePackageController">
+            <summary>
+            پکیج‌های یک رزرو و وضعیتشان (در انتظار / تأییدشده / لغوشده)؛ تأیید یا لغوِ تکی، افزودن و حذف (رزرو پرداخت‌نشده)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionReservePackageController.Get(System.Int64)">
+            <summary>فهرست پکیج‌ها با وضعیت و مبلغ برگشتی</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionReservePackageController.Put(System.Int64,System.Int64,Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.Dto.CompanionReservePackageStatusDto)">
+            <summary>تأیید (Status=2) یا لغو (Status=3 + Reason) یک پکیج؛ لغو، سهم پرداختی را به کیف پول کاربر برمی‌گرداند</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionReservePackageController.Post(System.Int64,Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.Dto.CompanionReservePackageAddDto)">
+            <summary>افزودن پکیج به رزرو</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CompanionReservePackageController.Delete(System.Int64,System.Int64)">
+            <summary>حذف پکیج از رزرو پرداخت‌نشده (برای پرداخت‌شده از لغو استفاده شود)</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionReserveUnifiedController">
             <summary>
             لیست یکپارچه‌ی رزروهای خدمت و خریدهای مشاوره آنلاین نمایندگان
@@ -3912,6 +3929,16 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProductOrderItemAdjustController">
+            <summary>
+            کم یا حذف کردن یک کالا از سفارش توسط ادمین (قبل از ارسال)؛ هزینه‌ی کم‌شده به کیف پول کاربر برمی‌گردد
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProductOrderItemAdjustController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderItemAdjustInputDto,System.Threading.CancellationToken)">
+            <summary>
+            NewCount = تعداد جدید (۰ = حذف) و باید کمتر از تعداد فعلی باشد. پیامک به فروشگاه و کاربر، پوش به فروشگاه
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderItemController">
              <summary>
              آیتم های سفارش
@@ -4485,6 +4512,31 @@
             <summary>
             آیتم جدید
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ShippingSlotController">
+            <summary>
+            مدیریت بازه‌های زمانی تحویل (روز هفته، ساعت، ظرفیت)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ShippingSlotController.Get(System.Threading.CancellationToken)">
+            <summary>
+            همه‌ی بازه‌ها (به‌ترتیب روز هفته و ساعت)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ShippingSlotController.Post(Application.Services.Order.ShippingSrv.Dto.ShippingSlotDto,System.Threading.CancellationToken)">
+            <summary>
+            ثبت بازه‌ی جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ShippingSlotController.Put(Application.Services.Order.ShippingSrv.Dto.ShippingSlotDto,System.Threading.CancellationToken)">
+            <summary>
+            ویرایش بازه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ShippingSlotController.Delete(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            حذف بازه (حذف نرم؛ سفارش‌های قبلی تأثیر نمی‌پذیرند)
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.SiteAssistanceController">
             <summary>
@@ -5167,6 +5219,20 @@
             <summary>
              حذف آیتم 
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.UserDebtController">
+            <summary>
+            بدهی‌های پرداخت‌نشده‌ی کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserDebtController.Get(System.Int64)">
+            <summary>بدهی‌های باز کاربر + موجودی کیف پول</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserDebtController.WriteOff(System.Int64)">
+            <summary>صفر کردن بدهی یک رزرو</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.UserDebtController.WriteOffAll(System.Int64)">
+            <summary>صفر کردن همه‌ی بدهی‌های باز کاربر</summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserMemoryController">
             <summary>
@@ -6061,6 +6127,23 @@
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionReserveDebtController.MarkPaid(Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ReserveDebtMarkPaidDto)">
             <summary>دریافت مستقیم مبلغ از کاربر تأیید شد</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReservePackageController">
+            <summary>
+            پکیج‌های یک رزرو و وضعیتشان (در انتظار / تأییدشده / لغوشده)؛ تأیید یا لغوِ تکی، افزودن و حذف (رزرو پرداخت‌نشده)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReservePackageController.Get(System.Int64)">
+            <summary>فهرست پکیج‌ها با وضعیت و مبلغ برگشتی</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReservePackageController.Put(System.Int64,System.Int64,Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.Dto.CompanionReservePackageStatusDto)">
+            <summary>تأیید (Status=2) یا لغو (Status=3 + Reason) یک پکیج؛ لغو، سهم پرداختی را به کیف پول کاربر برمی‌گرداند</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReservePackageController.Post(System.Int64,Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.Dto.CompanionReservePackageAddDto)">
+            <summary>افزودن پکیج به رزرو</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReservePackageController.Delete(System.Int64,System.Int64)">
+            <summary>حذف پکیج از رزرو پرداخت‌نشده (برای پرداخت‌شده از لغو استفاده شود)</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionTimeController">
              <summary>
@@ -7415,6 +7498,11 @@
         <member name="M:Api.Areas.EndUser.Controllers.CompanionReserveDebtController.Pay(Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ReserveDebtPayDto)">
             <summary>پرداخت یک بدهی از کیف پول</summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CompanionReservePackageController">
+            <summary>
+            پکیج‌های رزرو من و وضعیتشان (در انتظار تأیید نماینده / تأییدشده / لغوشده + مبلغ برگشتی به کیف پول)
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionReservePaymentController">
             <summary>
             مدیریت پرداخت رزرو خدمات ها
@@ -8580,6 +8668,16 @@
             اعمال Quote معتبر روی سبد
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ShippingSlotController">
+            <summary>
+            روزها و بازه‌های تحویل قابل انتخاب (ارسال با میاره)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ShippingSlotController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            روزهای آینده و بازه‌های هر روز برای یک فروشگاه (storeId)، متناسب با حداکثر زمان آماده‌سازی همان فروشگاه، به‌همراه ظرفیت باقی‌مانده. Date و SlotId همین پاسخ باید هنگام انتخاب ارسال (ShippingSelection) فرستاده شود.
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.StoreCommentController">
             <summary>
             مرتبط با فروشگاه ها
@@ -9530,6 +9628,16 @@
             ویرایش و اضافه تنوع
             </summary>
         </member>
+        <member name="T:Api.Areas.Seller.Controllers.ProductOrderCancelController">
+            <summary>
+            لغو کامل سفارش توسط فروشنده (فقط سفارش تک‌فروشگاهی خودش و قبل از ارسال)؛ مبلغ به کیف پول کاربر برمی‌گردد
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ProductOrderCancelController.Post(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderCancelInputDto,System.Threading.CancellationToken)">
+            <summary>
+            لغو کامل سفارش. Reason الزامی است (به ادمین گزارش می‌شود). پیامک به ادمین و کاربر، پوش به ادمین
+            </summary>
+        </member>
         <member name="T:Api.Areas.Seller.Controllers.ProductOrderCancelRequestController">
              <summary>
              مدیریت سفارش ها
@@ -9626,6 +9734,16 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.Seller.Controllers.ProductOrderItemAdjustController">
+            <summary>
+            کم یا حذف کردن کالای فروشگاه خودش از سفارش (قبل از ارسال)؛ هزینه‌ی کم‌شده به کیف پول کاربر برمی‌گردد
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ProductOrderItemAdjustController.Put(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderItemAdjustInputDto,System.Threading.CancellationToken)">
+            <summary>
+            NewCount = تعداد جدید (۰ = حذف) و باید کمتر از تعداد فعلی باشد. پیامک به کاربر (عذرخواهی)، پوش به ادمین
+            </summary>
+        </member>
         <member name="T:Api.Areas.Seller.Controllers.ProductOrderStoreController">
              <summary>
              مدیریت  آیتم سفارش ها
@@ -9691,6 +9809,27 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Seller.Controllers.ShipmentController">
+            <summary>
+            تأیید آماده‌سازی سفارش‌های ارسال با میاره توسط فروشنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ShipmentController.GetAwaiting(System.Threading.CancellationToken)">
+            <summary>
+            سفارش‌های این فروشگاه که منتظر اقدام فروشنده‌اند: Step=1 تأیید سفارش، Step=2 «آماده تحویل به پیک» (با مهلت‌ها)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ShipmentController.Confirm(Application.Services.Order.ShippingSrv.Dto.ShipmentConfirmDto,System.Threading.CancellationToken)">
+            <summary>
+            مرحله‌ی ۱: تأیید سفارش (در حال آماده‌سازی). سفر میاره هنوز ساخته نمی‌شود.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ShipmentController.Ready(Application.Services.Order.ShippingSrv.Dto.ShipmentConfirmDto,System.Threading.CancellationToken)">
+            <summary>
+            مرحله‌ی ۲: «آماده تحویل به پیک». همین لحظه پیک میاره درخواست می‌شود تا کالا را از فروشگاه بگیرد.
+            این وضعیت برای مشتری نمایش داده نمی‌شود.
+            </summary>
         </member>
         <member name="T:Api.Areas.Seller.Controllers.StoreCommentController">
              <summary>
@@ -10998,6 +11137,16 @@
         <member name="M:Api.Controllers.SearchController.Post(Application.Services.CommonSrv.SearchSrv.Dto.SearchRequestDto,System.Threading.CancellationToken)">
             <summary>
             جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.SearchController.Suggest(System.String,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            پیشنهاد عبارت جستجوی فروشگاه؛ فقط عبارت‌هایی که حتماً در لیست محصولات نتیجه دارند
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.SearchController.Popular(System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            پرتکرارترین جستجوهای کاربران (مثلاً channel=Shop برای جستجوی فروشگاه)
             </summary>
         </member>
         <member name="T:Api.Controllers.Site.SiteAssistanceController">

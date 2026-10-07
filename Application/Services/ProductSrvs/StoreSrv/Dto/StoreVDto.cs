@@ -33,6 +33,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
         public string ApprovalValue { get; set; }
         public bool ShowToSite { get; set; }
         public decimal CommissionPercent { get; set; }
+        public int MaxPreparationMinutes { get; set; }
         public PointDto Location { get; set; }
         public PictureVDto Picture { get; set; }
         public PictureVDto Icon { get; set; }

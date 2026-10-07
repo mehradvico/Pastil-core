@@ -169,3 +169,10 @@ dotnet tool run dotnet-ef database update --project Persistence --startup-projec
 ```
 
 اگر API قبل از اجرای migration بالا بیاید، اصل جستجو همچنان کار می‌کند و فقط ثبت آمار تا زمان اجرای migration انجام نمی‌شود.
+
+## جستجوی فروشگاه (Channel) و پرجستجوها
+
+- `SearchRequestDto.Channel` اختیاری است. فقط مقدار `Shop` (بدون حساسیت به حروف) شناخته می‌شود و در `SearchQueryLogs.Channel` ثبت می‌شود؛ هر مقدار دیگر یا خالی مثل قبل `App` ثبت می‌شود. پنل فروشگاه وب‌اپ (`ShopSearchOverlay.vue`) با `channel: "Shop"` و شمارنده‌ی ۰ برای همه‌ی دسته‌ها به‌جز محصول، برند، دسته‌بندی و فروشگاه صدا می‌زند.
+- `GET /api/Search/Popular?channel=Shop&days=30&take=10` (عمومی، همان Rate Limit جستجو) پرتکرارترین عبارت‌های **دارای نتیجه** آن کانال را به‌صورت `BaseResultDto<List<string>>` برمی‌گرداند (`days` ۱ تا ۳۶۵، `take` ۱ تا ۲۰). تا وقتی چند جستجو با `Shop` ثبت نشده، لیست خالی است و ردیف «جستجوهای پرطرفدار» در وب‌اپ پنهان می‌ماند.
+- نیاز به migration ندارد (ستون `Channel` از قبل هست). BFF وب‌اپ: `app/server/api/search/popular.get.ts` (کش ۵ دقیقه‌ای).
+- بنر پنل: در پنل ادمین بنری با label `shop-search-banner` بسازید (`shopSearchBanner` در `stores/useBanner.ts`، یک بنر).

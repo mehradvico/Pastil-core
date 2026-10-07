@@ -49,6 +49,23 @@
         PansionReserveForAdmin,
         PansionReserveCancelForAdmin,
         // اضافه‌شده به انتهای enum عمداً؛ این enum به‌صورت ordinal تلویحی است و مقادیر قبلی نباید جابه‌جا شوند.
-        UserReminderToday
+        UserReminderToday,
+        // پیامک سبد خرید رها شده (الگوی کاوه‌نگار با همین نام: UserAbandonedCart)
+        UserAbandonedCart,
+        // پیامک ارسال سفارش: میاره (با کد تحویل) و پست (با شماره پیگیری)
+        ProductOrderShippedMiare,
+        ProductOrderShippedPost,
+        // مشتری «تحویل گرفتم» زد: پیامک به ادمین و فروشنده؛ «تحویل نگرفتم»: پیامک به ادمین
+        ProductOrderReceivedAdmin,
+        ProductOrderReceivedStore,
+        ProductOrderNotReceivedAdmin,
+        // لغو کامل سفارش / کم یا حذف کردن کالا توسط ادمین یا فروشگاه (مبلغ به کیف پول مشتری برمی‌گردد)
+        ProductOrderCancelledByAdminStore,
+        ProductOrderCancelledByAdminUser,
+        ProductOrderCancelledByStoreAdmin,
+        ProductOrderCancelledByStoreUser,
+        ProductOrderItemChangedByAdminStore,
+        ProductOrderItemChangedByAdminUser,
+        ProductOrderItemChangedByStoreUser
     }
 }

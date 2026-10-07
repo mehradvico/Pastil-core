@@ -556,6 +556,23 @@ recurringJobManager.AddOrUpdate<Application.Services.Order.ProductOrderSrv.Iface
     "ProductOrderAutoDelivery", x => x.AutoConfirmDeliveriesAsync(), Cron.Hourly);
 var tehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
     OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
+// یادآوری سبد خرید رها شده: پوش روزی ساعت ۱۸ و پیامک روزی ساعت ۲۴ (به وقت تهران)؛ حداکثر ۲ بار از هر کانال برای هر سبد،
+// و فقط اگر کاربر الان واقعاً کالایی در سبد دارد. طراحی: backend/Docs/ABANDONED_CART_REMINDER_FA.md
+// ارسال با میاره: مرسوله‌ی منتظر تأیید فروشنده - یادآوری ۱۵ دقیقه مانده به مهلت و شکست بعد از مهلت. طراحی: backend/Docs/MIARE_SHIPPING_SLOTS_FA.md
+recurringJobManager.AddOrUpdate<Application.Services.Order.ShippingSrv.Iface.IShipmentService>(
+    "ShipmentSellerConfirmSweep",
+    service => service.ProcessUnconfirmedAsync(CancellationToken.None),
+    "*/5 * * * *");
+recurringJobManager.AddOrUpdate<Application.Services.Order.CartSrv.Iface.IAbandonedCartReminderService>(
+    "AbandonedCartPush",
+    service => service.SendPushRemindersAsync(CancellationToken.None),
+    "0 18 * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
+recurringJobManager.AddOrUpdate<Application.Services.Order.CartSrv.Iface.IAbandonedCartReminderService>(
+    "AbandonedCartSms",
+    service => service.SendSmsRemindersAsync(CancellationToken.None),
+    "0 0 * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
 // Removed: memory-reminder push is now sent from the panel's own push
 // message flow instead of this backend job — see PushMessage/PushBroadcastSrv.
 recurringJobManager.RemoveIfExists("MemoryDailyReminder");
@@ -568,6 +585,11 @@ recurringJobManager.AddOrUpdate<Application.Services.CommonSrv.PushNotificationS
     "PushNotificationDispatch",
     service => service.SendPushGroupAsync(100),
     "*/5 * * * *");
+// اعلان ماندگار «سفر در جریان است» برای مسافر (بعد از سوار شدن پت تا پایان سفر)؛ طراحی: backend/Docs/TRIP_ONGOING_NOTIFICATION_FA.md
+recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripOngoingSrv.ITripOngoingNotificationService>(
+    "TripOngoingNotification",
+    service => service.SyncAsync(CancellationToken.None),
+    "* * * * *");
 recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
     "DispatchScheduledTrips",
     service => service.DispatchScheduledTripsAsync(),

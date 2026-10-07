@@ -2,6 +2,7 @@ using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.TripSrv.PetResanServiceSrv.Dto;
 using Application.Services.TripSrv.PetResanServiceSrv.Iface;
+using Application.Services.TripSrv.TripSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -19,11 +20,19 @@ namespace Api.Areas.EndUser.Controllers
     {
         private readonly IPetResanServiceService _service;
         private readonly ICurrentUserHelper _currentUser;
+        private readonly ITripService _tripService;
+        private readonly ILogger<PetResanServiceController> _logger;
 
-        public PetResanServiceController(IPetResanServiceService service, ICurrentUserHelper currentUser)
+        public PetResanServiceController(
+            IPetResanServiceService service,
+            ICurrentUserHelper currentUser,
+            ITripService tripService,
+            ILogger<PetResanServiceController> logger)
         {
             _service = service;
             _currentUser = currentUser;
+            _tripService = tripService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -48,6 +57,18 @@ namespace Api.Areas.EndUser.Controllers
             [FromHeader(Name = "Idempotency-Key")] string idempotencyKey)
         {
             var result = await _service.InsertAsyncDto(dto, _currentUser.CurrentUser.UserId, idempotencyKey);
+            if (result.IsSuccess && result.Data != null)
+            {
+                // سرویسی که بعد از ساعت job روزانه ثبت می‌شود، نوبت فردایش را همین حالا می‌گیرد (وگرنه یک هفته دیر می‌شد)
+                try
+                {
+                    await _tripService.GeneratePetResanServiceTripsForNewServiceAsync(result.Data.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Generating first occurrences for new PetResan service {ServiceId} failed.", result.Data.Id);
+                }
+            }
             return Ok(result);
         }
 

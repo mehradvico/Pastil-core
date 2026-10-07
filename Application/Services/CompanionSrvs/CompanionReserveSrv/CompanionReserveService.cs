@@ -60,6 +60,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         private readonly ILogger<CompanionReserveService> _logger;
         private readonly IPaymentTestModeService _paymentTestModeService;
         private readonly Application.Services.TripSrv.TripSrv.Iface.ITripService _tripService;
+        private readonly Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.Iface.ICompanionReservePackageItemService _packageItemService;
         private readonly Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ICompanionReserveDebtService _debtService;
         public CompanionReserveService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IMapper mapper,
             ICompanionReservePackageService companionReservePackageService, ICompanionReserveUserPetService companionReserveUserPetService,
@@ -67,9 +68,11 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             IMessageSenderService messageSender, ICurrentUserHelper currentUser, INoticeService notificationService, IScoreTransactionService scoreService,
             IClubPointIntegrationService clubPointIntegrationService, ILogger<CompanionReserveService> logger,
             IPaymentTestModeService paymentTestModeService, Application.Services.TripSrv.TripSrv.Iface.ITripService tripService,
-            Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ICompanionReserveDebtService debtService) : base(_context, mapper)
+            Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ICompanionReserveDebtService debtService,
+            Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.Iface.ICompanionReservePackageItemService packageItemService) : base(_context, mapper)
         {
             this._tripService = tripService;
+            this._packageItemService = packageItemService;
             this._debtService = debtService;
             this._context = _context;
             this.mapper = mapper;
@@ -111,6 +114,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         {
             var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForCompanionReservesAsync(_context, new[] { vdto.Id });
             vdto.PetResanTrip = trips.TryGetValue(vdto.Id, out var trip) ? trip : null;
+            vdto.PackageItems = await _packageItemService.GetViewAsync(vdto.Id);
             vdto.TotalPrice = vdto.PaymentPrice + (vdto.PetResanTrip?.PaymentPrice > 0 ? vdto.PetResanTrip.PaymentPrice : vdto.PetResanTrip?.Price ?? 0);
         }
 
@@ -118,6 +122,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
         {
             var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForCompanionReservesAsync(_context, new[] { vdto.Id });
             vdto.PetResanTrip = trips.TryGetValue(vdto.Id, out var trip) ? trip : null;
+            vdto.PackageItems = await _packageItemService.GetViewAsync(vdto.Id);
             vdto.TotalPrice = vdto.PaymentPrice + (vdto.PetResanTrip?.PaymentPrice > 0 ? vdto.PetResanTrip.PaymentPrice : vdto.PetResanTrip?.Price ?? 0);
         }
 
@@ -1361,8 +1366,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     Resource.Notification.NothingFound,
                     null);
             }
-
-            return new BaseResultDto<CompanionReserveVDto>(true, mapper.Map<CompanionReserveVDto>(item));
+            var operatorVDto = mapper.Map<CompanionReserveVDto>(item);
+            operatorVDto.PackageItems = await _packageItemService.GetViewAsync(operatorVDto.Id);
+            return new BaseResultDto<CompanionReserveVDto>(true, operatorVDto);
         }
 
         private async Task<bool> HasAssigneeScheduleConflictAsync(

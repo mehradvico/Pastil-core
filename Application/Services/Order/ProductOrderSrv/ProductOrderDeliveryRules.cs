@@ -18,11 +18,15 @@ namespace Application.Services.Order.ProductOrderSrv
 
         // کاربر فقط وقتی می‌تواند پاسخ بدهد که سفارش پرداخت‌شده، لغو‌نشده و در وضعیت «ارسال‌شده» باشد و هنوز «تحویل گرفتم» نزده باشد.
         // «تحویل نگرفتم» را تا وقتی نهایی نشده می‌شود عوض کرد.
-        public static Decision Decide(bool isPaid, string statusLabel, string stateLabel, bool? userReceived)
+        public static Decision Decide(bool isPaid, string statusLabel, string stateLabel, bool? userReceived, bool receiptAsked = false)
         {
             if (userReceived == true)
                 return Decision.AlreadyConfirmed;
-            if (!isPaid || statusLabel != SendLabel || stateLabel == CanceledLabel)
+            // وقتی راس پایان بازه‌ی تحویل میاره از مشتری پرسیده شده («آیا تحویل گرفتید؟»)، مشتری می‌تواند جواب بدهد حتی اگر وضعیت هنوز «ارسال» نشده
+            // (مثلاً پیک نیامده؛ «تحویل نگرفتم» دقیقاً همین حالت را به ادمین خبر می‌دهد).
+            var statusOk = statusLabel == SendLabel
+                || (receiptAsked && (statusLabel == ProductOrderStatusEnum.ProductOrderStatus_Insert.ToString() || statusLabel == ProductOrderStatusEnum.ProductOrderStatus_Proccess.ToString()));
+            if (!isPaid || !statusOk || stateLabel == CanceledLabel)
                 return Decision.NotAllowed;
             return Decision.Allowed;
         }

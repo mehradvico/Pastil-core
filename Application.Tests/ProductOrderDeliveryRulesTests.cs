@@ -11,6 +11,18 @@ public class ProductOrderDeliveryRulesTests
     private const string Canceled = "ProductOrderState_Canceled";
 
     [Fact]
+    public void After_the_slot_end_question_the_customer_can_answer_even_before_the_courier_picked_up()
+    {
+        const string Insert = "ProductOrderStatus_Insert";
+        const string Proccess = "ProductOrderStatus_Proccess";
+        Assert.Equal(Decision.NotAllowed, Decide(true, Insert, Normal, null));                       // بدون پرسش: مثل قبل نه
+        Assert.Equal(Decision.Allowed, Decide(true, Insert, Normal, null, receiptAsked: true));
+        Assert.Equal(Decision.Allowed, Decide(true, Proccess, Normal, null, receiptAsked: true));
+        Assert.Equal(Decision.NotAllowed, Decide(true, Insert, Canceled, null, receiptAsked: true)); // لغوشده نه
+        Assert.Equal(Decision.NotAllowed, Decide(false, Insert, Normal, null, receiptAsked: true));  // پرداخت‌نشده نه
+    }
+
+    [Fact]
     public void A_paid_sent_non_cancelled_order_can_be_answered()
         => Assert.Equal(Decision.Allowed, Decide(true, Send, Normal, null));
 

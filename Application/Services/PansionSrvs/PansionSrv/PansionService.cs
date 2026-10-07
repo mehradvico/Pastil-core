@@ -242,6 +242,10 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 errors.Add(Tuple.Create(Resource.Notification.PansionSelectedCityNotInState, nameof(dto.CityId)));
             if (string.IsNullOrWhiteSpace(dto.AddressValue))
                 errors.Add(Tuple.Create(Resource.Notification.PansionPleaseEnterAddress, nameof(dto.AddressValue)));
+            if (dto.Location == null)
+                errors.Add(Tuple.Create(Resource.Notification.PansionPleaseSelectLocation, nameof(dto.Location)));
+            else if (dto.Location.x < -180 || dto.Location.x > 180 || dto.Location.y < -90 || dto.Location.y > 90)
+                errors.Add(Tuple.Create(Resource.Notification.PansionLocationCoordinatesNotValid, nameof(dto.Location)));
             if (string.IsNullOrWhiteSpace(dto.OpenHour))
                 errors.Add(Tuple.Create(Resource.Notification.PansionPleaseEnterOpenHour, nameof(dto.OpenHour)));
             if (string.IsNullOrWhiteSpace(dto.CloseHour))

@@ -7,6 +7,9 @@ services:
       - "5000:8080"
     env_file:
       - .env
+    # ساعت دیواری ایران: کد از DateTime.Now استفاده می‌کند و وب‌اپ/اپ‌ها زمان‌ها را به وقت تهران می‌فرستند و نشان می‌دهند. بدون این، کانتینر UTC است و همه‌ی ساعت‌ها ۳:۳۰ جابه‌جا می‌شوند.
+    environment:
+      TZ: Asia/Tehran
     depends_on:
       - pastil-file
       - pastil-payment
@@ -15,6 +18,8 @@ services:
     build:
       context: .
       dockerfile: File/Dockerfile
+    environment:
+      TZ: Asia/Tehran
     ports:
       - "5001:8081"
 
@@ -22,5 +27,7 @@ services:
     build:
       context: .
       dockerfile: Payment/Dockerfile
+    environment:
+      TZ: Asia/Tehran
     ports:
       - "5002:8082"

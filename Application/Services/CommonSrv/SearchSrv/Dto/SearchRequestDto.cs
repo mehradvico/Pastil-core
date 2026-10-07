@@ -27,6 +27,12 @@ namespace Application.Services.CommonSrv.SearchSrv.Dto
 
         public bool EnableFuzzy { get; set; } = true;
 
+        /// <summary>
+        /// مبدأ جستجو برای آمار؛ فقط مقدار «Shop» (جستجوی فروشگاه) شناخته می‌شود و بقیه «App» ثبت می‌شوند.
+        /// </summary>
+        [StringLength(20)]
+        public string Channel { get; set; }
+
         [Required]
         [StringLength(100, MinimumLength = 2)]
         public string Q { get; set; }

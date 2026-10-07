@@ -30,7 +30,7 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(ProductOrderDto productOrderDto)
         {
-            var dto = await _productOrderService.ChangeStatusAsync(productOrderDto);
+            var dto = await _productOrderService.ChangeStatusAsync(productOrderDto, allowMiareOverride: true);
             return Ok(dto);
         }
 

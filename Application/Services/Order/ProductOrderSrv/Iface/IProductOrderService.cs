@@ -14,7 +14,8 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
         ProductOrderSearchDto Search(ProductOrderInputDto baseSearchDto);
         Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false);
         Task<BaseResultDto> FindAsyncVDto(string id, long? userId = null);
-        Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto);
+        // allowMiareOverride: فقط ادمین (کنترلر Admin) می‌تواند وضعیت «ارسال» سفارش میاره را دستی بزند؛ فروشنده نه.
+        Task<BaseResultDto> ChangeStatusAsync(ProductOrderDto dto, bool allowMiareOverride = false);
 
         // کاربر تحویل‌گیری را ثبت می‌کند: received=true ⇒ سفارش «تحویل داده شد» و نهایی می‌شود؛ false ⇒ «تحویل نگرفتم» (وضعیت «ارسال‌شده» می‌ماند)
         Task<BaseResultDto> ConfirmDeliveryAsync(string orderId, long userId, bool received, string note);

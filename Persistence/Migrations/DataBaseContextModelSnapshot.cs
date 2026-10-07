@@ -818,6 +818,12 @@ namespace Persistence.Migrations
                     b.Property<double>("ShippingQuotedPrice")
                         .HasColumnType("float");
 
+                    b.Property<DateTime?>("ShippingSlotDate")
+                        .HasColumnType("date");
+
+                    b.Property<long?>("ShippingSlotId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("StoreId")
                         .HasColumnType("bigint");
 
@@ -2246,6 +2252,72 @@ namespace Persistence.Migrations
                     b.HasIndex("ReactorUserId");
 
                     b.ToTable("CompanionReserveMessageReactions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionReservePackageItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("AddedAfterPayment")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("CompanionAssistancePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CompanionReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PackageName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("PetCount")
+                        .HasColumnType("int");
+
+                    b.Property<double>("PrePaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<double>("RefundAmount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("RefundDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("StatusChangedByAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("StatusChangedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("StatusChangedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StatusReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionAssistancePackageId");
+
+                    b.HasIndex("StatusChangedByUserId");
+
+                    b.HasIndex("CompanionReserveId", "CompanionAssistancePackageId");
+
+                    b.ToTable("CompanionReservePackageItems");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionTime", b =>
@@ -4192,6 +4264,9 @@ namespace Persistence.Migrations
 
                     b.Property<bool>("IsInfectious")
                         .HasColumnType("bit");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -7302,6 +7377,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Permitted")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("PostShippedNotifiedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
@@ -7316,6 +7394,9 @@ namespace Persistence.Migrations
 
                     b.Property<double>("RebatePrice")
                         .HasColumnType("float");
+
+                    b.Property<DateTime?>("ReceiptAskedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ReferralCode")
                         .HasColumnType("nvarchar(max)");
@@ -7482,6 +7563,12 @@ namespace Persistence.Migrations
                     b.Property<double>("ShippingQuotedPrice")
                         .HasColumnType("float");
 
+                    b.Property<DateTime?>("ShippingSlotDate")
+                        .HasColumnType("date");
+
+                    b.Property<long?>("ShippingSlotId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("StoreId")
                         .HasColumnType("bigint");
 
@@ -7494,6 +7581,8 @@ namespace Persistence.Migrations
                     b.HasIndex("ShippingQuoteId");
 
                     b.HasIndex("StoreId");
+
+                    b.HasIndex("ShippingSlotId", "ShippingSlotDate");
 
                     b.ToTable("ProductOrderStores");
                 });
@@ -8125,6 +8214,9 @@ namespace Persistence.Migrations
 
                     b.Property<string>("Discription")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography");
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
@@ -9000,10 +9092,20 @@ namespace Persistence.Migrations
                     b.Property<double>("ChargedPrice")
                         .HasColumnType("float");
 
+                    b.Property<int>("CourierRetryCount")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DeliveredAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeliveryCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime?>("DisputeReportedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ExternalShipmentId")
@@ -9014,8 +9116,14 @@ namespace Persistence.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<DateTime?>("LateNotifiedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("PaymentMode")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("PickupDeadlineUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("ProductOrderStoreId")
                         .HasColumnType("bigint");
@@ -9029,11 +9137,38 @@ namespace Persistence.Migrations
                     b.Property<double>("QuotedPrice")
                         .HasColumnType("float");
 
+                    b.Property<DateTime?>("ReadyAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReadyDeadlineUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReadyReminderSentAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("RequestedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SellerConfirmDeadlineUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SellerConfirmedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SellerReminderSentAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ShippedNotifiedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<long?>("ShippingQuoteId")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("SlotEndUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SlotStartUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -9050,6 +9185,8 @@ namespace Persistence.Migrations
                     b.HasIndex("ShippingQuoteId");
 
                     b.HasIndex("Provider", "Status");
+
+                    b.HasIndex("Status", "SellerConfirmDeadlineUtc");
 
                     b.ToTable("Shipments");
                 });
@@ -9131,6 +9268,42 @@ namespace Persistence.Migrations
                     b.HasIndex("UserId", "CartStoreId", "Status");
 
                     b.ToTable("ShippingQuotes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ShippingField.ShippingSlot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DayOfWeek", "StartTime", "EndTime");
+
+                    b.ToTable("ShippingSlots");
                 });
 
             modelBuilder.Entity("Entities.Entities.Sms", b =>
@@ -9402,6 +9575,9 @@ namespace Persistence.Migrations
                         .HasColumnType("geography");
 
                     b.Property<int>("MaxDiscountPercent")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxPreparationMinutes")
                         .HasColumnType("int");
 
                     b.Property<string>("Mobile")
@@ -11749,6 +11925,32 @@ namespace Persistence.Migrations
                     b.Navigation("CompanionReserveMessage");
 
                     b.Navigation("ReactorUser");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionReservePackageItem", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionAssistancePackage", "CompanionAssistancePackage")
+                        .WithMany()
+                        .HasForeignKey("CompanionAssistancePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionReserve", "CompanionReserve")
+                        .WithMany()
+                        .HasForeignKey("CompanionReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "StatusChangedByUser")
+                        .WithMany()
+                        .HasForeignKey("StatusChangedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CompanionAssistancePackage");
+
+                    b.Navigation("CompanionReserve");
+
+                    b.Navigation("StatusChangedByUser");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionTime", b =>

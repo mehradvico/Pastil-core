@@ -2287,6 +2287,22 @@ namespace Application.Services.TripSrv.TripSrv
 
         public async Task GeneratePetResanServiceTripsAsync()
         {
+            await GeneratePetResanTripsCoreAsync(null);
+        }
+
+        public async Task<int> GeneratePetResanServiceTripsForNewServiceAsync(long serviceId)
+        {
+            // قبل از ساعت job روزانه لازم نیست: خودِ job امشب نوبت فردای این سرویس را هم می‌سازد
+            if (!PetResanServiceTripRules.DailyJobHasRun(PetResanServiceTripRules.TehranNow(DateTime.UtcNow)))
+                return 0;
+            return await GeneratePetResanTripsCoreAsync(serviceId);
+        }
+
+        // مشترک بین job روزانه (همه‌ی سرویس‌ها) و ثبت سرویس جدید (فقط همان سرویس). ساخت تکراری با
+        // alreadyGenerated و ایندکس یکتا جلوگیری می‌شود. بعد از ساخت، یک پوش تجمیعی به رانندگان می‌رود.
+        private async Task<int> GeneratePetResanTripsCoreAsync(long? onlyServiceId)
+        {
+            var runStart = DateTime.Now;
             var tomorrow = DateTime.Today.AddDays(1);
             var tomorrowDayNumber = PetResanServiceWeekDayNumbers[tomorrow.DayOfWeek];
 
@@ -2297,6 +2313,7 @@ namespace Application.Services.TripSrv.TripSrv
                 .Where(s => s.Active
                     && s.WeekDay.Number == tomorrowDayNumber
                     && s.PetResanService.Active
+                    && (onlyServiceId == null || s.PetResanServiceId == onlyServiceId)
                     && (s.PetResanService.EndDate == null || s.PetResanService.EndDate >= tomorrow))
                 .AsNoTracking()
                 .ToListAsync();
@@ -2340,6 +2357,41 @@ namespace Application.Services.TripSrv.TripSrv
                         service.ToAddress, service.FromAddress,
                         roundTrip: false, isReturnLeg: true);
                 }
+            }
+
+            // فقط نوبت‌هایی که الان واقعاً در TripAvailable قابل قبول‌اند (پرداخت‌شده/لغو‌نشده، بدون راننده)
+            var created = await _context.Trips.AsNoTracking().CountAsync(t =>
+                t.PetResanServiceScheduleId != null
+                && t.CreateDate >= runStart
+                && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
+                && t.DriverId == null);
+            if (created > 0)
+                await BroadcastServiceOccurrencesAsync(created);
+            return created;
+        }
+
+        // یک پوش تجمیعی «N سفر جدید» به همه‌ی رانندگان فعال (نه یک پوش برای هر نوبت)؛ نوبت‌های سرویس هفتگی نوع
+        // خودرو ندارند و مستثنی‌سازی راننده هم ندارند، پس همه‌ی رانندگان تأییدشده مخاطب‌اند.
+        private async Task BroadcastServiceOccurrencesAsync(int count)
+        {
+            try
+            {
+                var ownerIds = await _context.Drivers.AsNoTracking()
+                    .Where(d => d.Deleted == false && d.Active && d.Approved)
+                    .Select(d => d.OwnerId)
+                    .Distinct()
+                    .ToListAsync();
+
+                foreach (var ownerId in ownerIds)
+                {
+                    await _pushNotificationService.SendPushAsync(
+                        PushTypeEnum.PushTripServiceOccurrencesAvailable, ownerId,
+                        token1: count.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Broadcasting {Count} weekly-service trips to drivers failed.", count);
             }
         }
 

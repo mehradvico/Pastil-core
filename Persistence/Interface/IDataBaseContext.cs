@@ -86,6 +86,7 @@ namespace Persistence.Interface
         public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
         public DbSet<ConsultationAvailability> ConsultationAvailabilities { get; set; }
         public DbSet<PetMicrochipRequest> PetMicrochipRequests { get; set; }
+        public DbSet<CompanionReservePackageItem> CompanionReservePackageItems { get; set; }
         public DbSet<Entities.Entities.PrescriptionField.OnlinePrescription> OnlinePrescriptions { get; set; }
         public DbSet<Entities.Entities.PrescriptionField.OnlinePrescriptionPicture> OnlinePrescriptionPictures { get; set; }
         public DbSet<CompanionReserveBatch> CompanionReserveBatches { get; set; }
@@ -103,6 +104,7 @@ namespace Persistence.Interface
         public DbSet<Delivery> Deliveries { get; set; }
         public DbSet<DeliveryDistance> DeliveryDistances { get; set; }
         public DbSet<ShippingQuote> ShippingQuotes { get; set; }
+        public DbSet<ShippingSlot> ShippingSlots { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<Detail> Details { get; set; }
         public DbSet<Discount> Discounts { get; set; }

@@ -17,6 +17,8 @@ namespace Application.Services.Order.ShippingSrv.Iface
         Task<BaseResultDto> SelectQuoteAsync(
             long userId,
             Guid quoteToken,
+            long? slotId = null,
+            DateTime? slotDate = null,
             CancellationToken cancellationToken = default);
         Task<BaseResultDto> ValidateSelectionAsync(
             CartStore cartStore,

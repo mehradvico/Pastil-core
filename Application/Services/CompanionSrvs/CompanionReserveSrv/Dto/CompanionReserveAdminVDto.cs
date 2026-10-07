@@ -60,6 +60,8 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
         public double RebatePrice { get; set; }
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
+        // وضعیت هر پکیج رزرو (در انتظار/تأییدشده/لغوشده + مبلغ برگشتی)؛ نمای مجازی برای رزروهای قدیمی
+        public Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.Dto.CompanionReservePackageItemsVDto PackageItems { get; set; }
         public UserMinVDto Booker { get; set; }
         public CompanionAssistanceVDto CompanionAssistance { get; set; }
         public CompanionAssistanceTimeVDto CompanionAssistanceTime { get; set; }

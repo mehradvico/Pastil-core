@@ -86,10 +86,32 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             return new SchoolSearchDto(baseSearchDto, model, mapper);
         }
 
+        // موقعیت دقیق مدرسه الزامی است (ثبت و ویرایش)؛ null یعنی معتبر
+        private static string ValidateLocation(SchoolDto dto)
+        {
+            if (dto?.Location == null)
+                return Resource.Notification.SchoolPleaseSelectLocation;
+            if (dto.Location.x < -180 || dto.Location.x > 180 || dto.Location.y < -90 || dto.Location.y > 90)
+                return Resource.Notification.SchoolLocationCoordinatesNotValid;
+            return null;
+        }
+
+        public override BaseResultDto UpdateDto(SchoolDto dto)
+        {
+            var locationError = ValidateLocation(dto);
+            if (locationError != null)
+                return new BaseResultDto(false, locationError);
+            return base.UpdateDto(dto);
+        }
+
         public override async Task<BaseResultDto<SchoolDto>> InsertAsyncDto(SchoolDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Name))
                 return new BaseResultDto<SchoolDto>(false, Resource.Notification.PleaseEnterTheName, dto);
+
+            var locationError = ValidateLocation(dto);
+            if (locationError != null)
+                return new BaseResultDto<SchoolDto>(false, locationError, dto);
 
             var companion = await _context.Companions.FirstOrDefaultAsync(s => s.Id == dto.CompanionId && !s.Deleted && s.Active && s.Approved);
             if (companion == null)

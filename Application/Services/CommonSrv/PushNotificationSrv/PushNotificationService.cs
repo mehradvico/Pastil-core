@@ -258,6 +258,30 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                     };
                 }
 
+                // پوش «آیا سفارش را تحویل گرفتید؟»: دکمه‌های بله/خیر روی خود پوش. service-worker صفحه‌ی سفارش را با ?delivery=received
+                // یا ?delivery=not باز می‌کند و همان صفحه پاسخ را به سرور می‌فرستد (مثل پوش تأیید رزرو).
+                if (pattern.PushTypeId == (long)PushTypeEnum.PushOrderAskReceived)
+                {
+                    payloadDto.RequireInteraction = true;
+                    payloadDto.Actions = new List<PushActionDto>
+                    {
+                        new PushActionDto { Action = "deliveryReceived", Title = "بله، تحویل گرفتم" },
+                        new PushActionDto { Action = "deliveryNotReceived", Title = "خیر، تحویل نگرفتم" }
+                    };
+                }
+
+                // اعلان ماندگار سفر: تا کاربر نبندد روی صفحه می‌ماند و با tag ثابت جایگزین می‌شود (بدون صدا/ویبره‌ی تکراری)؛
+                // اعلان پایان همان tag را جایگزین می‌کند و service-worker بعد از چند ثانیه آن را می‌بندد.
+                if (pattern.PushTypeId == (long)PushTypeEnum.PushTripOngoing)
+                {
+                    payloadDto.Type = "tripOngoing";
+                    payloadDto.RequireInteraction = true;
+                }
+                else if (pattern.PushTypeId == (long)PushTypeEnum.PushTripOngoingEnd)
+                {
+                    payloadDto.Type = "tripOngoingEnd";
+                }
+
                 var payload = JsonSerializer.Serialize(payloadDto, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

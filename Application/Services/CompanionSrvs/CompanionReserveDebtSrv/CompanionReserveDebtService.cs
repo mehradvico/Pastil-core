@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
@@ -44,6 +44,10 @@ namespace Application.Services.CompanionSrvs.CompanionReserveDebtSrv
         Task<BaseResultDto<ReserveDebtSummaryDto>> GetMyDebtsAsync(long userId);
         Task<BaseResultDto> PayFromWalletAsync(long userId, long reserveId);
         Task<BaseResultDto> MarkPaidByClinicAsync(long ownerUserId, long reserveId);
+
+        // ادمین: صفر کردن بدهی (یک رزرو یا همه‌ی بدهی‌های باز یک کاربر)؛ بدون تغییر در کیف پول و حسابداری
+        Task<BaseResultDto> WriteOffAsync(long reserveId);
+        Task<BaseResultDto> WriteOffAllForUserAsync(long userId);
 
         // کسر خودکار از کیف پول: بدهی‌های باز یک کاربر را از قدیمی‌ترین شروع می‌کند و تا جایی که کیف پول کافی است می‌پردازد.
         // تعداد بدهی‌های پرداخت‌شده را برمی‌گرداند. بعد از ثبت بدهی (بلافاصله) و در job دوره‌ای صدا زده می‌شود.
@@ -281,6 +285,44 @@ namespace Application.Services.CompanionSrvs.CompanionReserveDebtSrv
                 var marked = await _context.CompanionReserves
                     .Where(r => r.Id == reserveId && r.OperatorUnpaid && r.OperatorDebtPaidDate == null
                         && r.CompanionAssistance.Companion.OwnerId == ownerUserId)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(r => r.OperatorDebtPaidDate, (DateTime?)DateTime.Now)
+                        .SetProperty(r => r.OperatorDebtPaidByWallet, false));
+                return marked == 0
+                    ? new BaseResultDto(false, Resource.Notification.UnpaidDebtNotFound)
+                    : new BaseResultDto(true, Resource.Notification.Success);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
+            }
+        }
+
+        public async Task<BaseResultDto> WriteOffAsync(long reserveId)
+        {
+            try
+            {
+                var marked = await _context.CompanionReserves
+                    .Where(r => r.Id == reserveId && r.OperatorUnpaid && r.OperatorDebtPaidDate == null)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(r => r.OperatorDebtPaidDate, (DateTime?)DateTime.Now)
+                        .SetProperty(r => r.OperatorDebtPaidByWallet, false));
+                return marked == 0
+                    ? new BaseResultDto(false, Resource.Notification.UnpaidDebtNotFound)
+                    : new BaseResultDto(true, Resource.Notification.Success);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
+            }
+        }
+
+        public async Task<BaseResultDto> WriteOffAllForUserAsync(long userId)
+        {
+            try
+            {
+                var marked = await _context.CompanionReserves
+                    .Where(r => r.BookerId == userId && r.OperatorUnpaid && r.OperatorDebtPaidDate == null)
                     .ExecuteUpdateAsync(s => s
                         .SetProperty(r => r.OperatorDebtPaidDate, (DateTime?)DateTime.Now)
                         .SetProperty(r => r.OperatorDebtPaidByWallet, false));

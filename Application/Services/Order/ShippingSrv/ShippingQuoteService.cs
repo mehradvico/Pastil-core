@@ -23,6 +23,7 @@ namespace Application.Services.Order.ShippingSrv
     {
         private readonly IDataBaseContext _context;
         private readonly IDeliveryService _deliveryService;
+        private readonly IShippingSlotService _slotService;
         private readonly IReadOnlyDictionary<ShippingProviderEnum, IShippingProvider> _providers;
         private readonly ShippingOptions _options;
         private readonly ILogger<ShippingQuoteService> _logger;
@@ -30,12 +31,14 @@ namespace Application.Services.Order.ShippingSrv
         public ShippingQuoteService(
             IDataBaseContext context,
             IDeliveryService deliveryService,
+            IShippingSlotService slotService,
             IEnumerable<IShippingProvider> providers,
             IOptions<ShippingOptions> options,
             ILogger<ShippingQuoteService> logger)
         {
             _context = context;
             _deliveryService = deliveryService;
+            _slotService = slotService;
             _providers = providers.ToDictionary(item => item.Provider);
             _options = options.Value;
             _logger = logger;
@@ -72,9 +75,23 @@ namespace Application.Services.Order.ShippingSrv
 
             var now = DateTime.UtcNow;
             var results = new List<ShippingQuoteVDto>();
-            foreach (var delivery in deliveries)
+            // MiareOnly: اگر میاره آدرس را پوشش بدهد فقط میاره (با روز و بازه) نمایش داده می‌شود؛ در غیر این صورت
+            // (خارج از محدوده‌ی میاره یا خطای استعلام) روش‌های دیگر فروشگاه (مثلاً پست) بدون زمان‌بندی می‌آیند.
+            var deliveryGroups = _options.MiareOnly
+                ? new[]
+                {
+                    deliveries.Where(item => item.ShippingProvider == ShippingProviderEnum.Miare).ToList(),
+                    deliveries.Where(item => item.ShippingProvider != ShippingProviderEnum.Miare).ToList()
+                }
+                : new[] { deliveries };
+            foreach (var deliveryGroup in deliveryGroups)
             {
-                if (!delivery.LivePricing || delivery.ShippingProvider == ShippingProviderEnum.None)
+            if (_options.MiareOnly && results.Any())
+                break;
+            foreach (var delivery in deliveryGroup)
+            {
+                // میاره همیشه با برآورد زنده‌ی خودش قیمت می‌گیرد؛ اگر ردیف ارسال فروشگاه LivePricing=false باشد، قبلاً قیمت ثابت (BasePrice، معمولاً ۰) و «رایگان» می‌شد.
+                if (delivery.ShippingProvider != ShippingProviderEnum.Miare && (!delivery.LivePricing || delivery.ShippingProvider == ShippingProviderEnum.None))
                 {
                     var staticDelivery = _deliveryService.GetDelivery(cart, delivery, storeId);
                     if (staticDelivery == null)
@@ -105,6 +122,22 @@ namespace Application.Services.Order.ShippingSrv
                     continue;
                 }
 
+                // میاره: مقصد خارج از محدوده (مثلاً شهر دیگر) اصلاً استعلام نمی‌شود؛ area_coverage میاره فقط مبدأ را می‌سنجد
+                var maxDistanceKm = GetMaxDistanceKm(delivery.ShippingProvider);
+                if (maxDistanceKm > 0)
+                {
+                    var distanceKm = ShippingGeoRules.DistanceKm(
+                        cartStore.Store.Location.Y, cartStore.Store.Location.X,
+                        cart.Address.Location.Y, cart.Address.Location.X);
+                    if (!ShippingGeoRules.IsWithinRange(distanceKm, maxDistanceKm))
+                    {
+                        _logger.LogInformation(
+                            "ShippingQuote: {Provider} skipped for Delivery {DeliveryId}, Store {StoreId} - address is {Distance:F0} km away (limit {Limit} km).",
+                            delivery.ShippingProvider, delivery.Id, storeId, distanceKm, maxDistanceKm);
+                        continue;
+                    }
+                }
+
                 var request = CreateProviderRequest(cart, cartStore, delivery.ShippingProvider);
                 var providerResult = await provider.GetQuoteAsync(request, cancellationToken);
                 if (!providerResult.IsSuccess)
@@ -124,6 +157,7 @@ namespace Application.Services.Order.ShippingSrv
                         ShippingPaymentModeEnum.ReceiverPays, providerResult.Price,
                         providerResult.ExternalQuoteId, now, cancellationToken));
             }
+            }
 
             await _context.SaveChangesAsync(cancellationToken);
             return results.Any()
@@ -134,6 +168,8 @@ namespace Application.Services.Order.ShippingSrv
         public async Task<BaseResultDto> SelectQuoteAsync(
             long userId,
             Guid quoteToken,
+            long? slotId = null,
+            DateTime? slotDate = null,
             CancellationToken cancellationToken = default)
         {
             var quote = await _context.ShippingQuotes
@@ -147,6 +183,17 @@ namespace Application.Services.Order.ShippingSrv
                 return new BaseResultDto(false, Resource.Notification.ShippingQuoteExpiredRefetch);
             if (quote.CartStore?.Cart?.AddressId != quote.AddressId)
                 return new BaseResultDto(false, Resource.Notification.ShippingCartAddressChangedRefetchQuote);
+
+            // ارسال با میاره بدون روز و بازه‌ی معتبر انتخاب نمی‌شود؛ روش‌های دیگر (پست و ...) زمان‌بندی ندارند
+            var requiresSlot = quote.Provider == ShippingProviderEnum.Miare;
+            if (requiresSlot)
+            {
+                if (!slotId.HasValue || !slotDate.HasValue)
+                    return new BaseResultDto(false, Resource.Notification.ShippingSlotRequired);
+                var slotValidation = await _slotService.ValidateSelectionAsync(quote.CartStore.StoreId, slotId.Value, slotDate.Value, cancellationToken);
+                if (!slotValidation.IsSuccess)
+                    return slotValidation;
+            }
 
             var previousQuotes = await _context.ShippingQuotes
                 .Where(item => item.CartStoreId == quote.CartStoreId &&
@@ -162,6 +209,8 @@ namespace Application.Services.Order.ShippingSrv
             quote.CartStore.ShippingProvider = quote.Provider;
             quote.CartStore.ShippingPaymentMode = quote.PaymentMode;
             quote.CartStore.ShippingQuotedPrice = quote.Price;
+            quote.CartStore.ShippingSlotId = requiresSlot ? slotId : null;
+            quote.CartStore.ShippingSlotDate = requiresSlot ? slotDate?.Date : null;
             quote.CartStore.DeliveryPrice = quote.PaymentMode == ShippingPaymentModeEnum.Prepaid
                 ? quote.Price
                 : 0;
@@ -184,8 +233,17 @@ namespace Application.Services.Order.ShippingSrv
                     item.StoreId == cartStore.StoreId && item.Active && !item.Deleted, cancellationToken);
             if (delivery == null)
                 return new BaseResultDto(false, Resource.Notification.ShippingSelectedMethodNoLongerActive);
-            if (!delivery.LivePricing || delivery.ShippingProvider == ShippingProviderEnum.None)
+            if (delivery.ShippingProvider != ShippingProviderEnum.Miare && (!delivery.LivePricing || delivery.ShippingProvider == ShippingProviderEnum.None))
                 return new BaseResultDto(true);
+            if (delivery.ShippingProvider == ShippingProviderEnum.Miare)
+            {
+                if (!cartStore.ShippingSlotId.HasValue || !cartStore.ShippingSlotDate.HasValue)
+                    return new BaseResultDto(false, Resource.Notification.ShippingSlotRequired);
+                var slotValidation = await _slotService.ValidateSelectionAsync(
+                    cartStore.StoreId, cartStore.ShippingSlotId.Value, cartStore.ShippingSlotDate.Value, cancellationToken);
+                if (!slotValidation.IsSuccess)
+                    return slotValidation;
+            }
             if (!cartStore.ShippingQuoteId.HasValue || !addressId.HasValue)
                 return new BaseResultDto(false, Resource.Notification.ShippingLiveQuoteRequiredForMethod);
 
@@ -211,6 +269,15 @@ namespace Application.Services.Order.ShippingSrv
                 ? new BaseResultDto(true)
                 : new BaseResultDto(false, Resource.Notification.ShippingCartAmountInvalid);
         }
+
+        private double GetMaxDistanceKm(ShippingProviderEnum provider) => provider switch
+        {
+            ShippingProviderEnum.Miare => _options.Miare.MaxDistanceKm,
+            ShippingProviderEnum.AloPeyk => _options.AloPeyk.MaxDistanceKm,
+            ShippingProviderEnum.Tipax => _options.Tipax.MaxDistanceKm,
+            ShippingProviderEnum.SnappBox => _options.SnappBox.MaxDistanceKm,
+            _ => 0
+        };
 
         private ShippingProviderQuoteRequest CreateProviderRequest(
             Cart cart,
@@ -282,7 +349,8 @@ namespace Application.Services.Order.ShippingSrv
                 PayableDeliveryPrice = paymentMode == ShippingPaymentModeEnum.Prepaid ? quote.Price : 0,
                 PayAtDestination = paymentMode == ShippingPaymentModeEnum.ReceiverPays,
                 Currency = quote.Currency,
-                ExpiresAtUtc = quote.ExpiresAtUtc
+                ExpiresAtUtc = quote.ExpiresAtUtc,
+                RequiresSlot = delivery.ShippingProvider == ShippingProviderEnum.Miare
             };
         }
 

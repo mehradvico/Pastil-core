@@ -17,6 +17,16 @@ namespace Application.Services.Order.ShippingSrv.Provider
         // به مختصات دقیق مبدا/مقصد و مشخصات فروشگاه (به‌عنوان محل تحویل‌گیری) نیاز دارند.
         public string PickupName { get; set; }
         public string PickupPhone { get; set; }
+        public string PickupAddress { get; set; }
+
+        /// <summary>شماره‌ی تکی روی قبض/سفر؛ برای میاره باید در بین سفرهای فعال یکتا باشد.</summary>
+        public string BillNumber { get; set; }
+
+        /// <summary>ساعتی که پیک باید به فروشگاه برسد (UTC)؛ میاره: pickup.deadline.</summary>
+        public System.DateTime? PickupDeadlineUtc { get; set; }
+
+        /// <summary>کد ۵ رقمی تحویل (PoD)؛ پیک بدون این کد از مشتری نمی‌تواند تحویل را ثبت کند.</summary>
+        public string DeliveryCode { get; set; }
         public double? OriginLatitude { get; set; }
         public double? OriginLongitude { get; set; }
         public double? DestinationLatitude { get; set; }

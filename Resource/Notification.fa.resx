@@ -1651,4 +1651,172 @@
   <data name="MicrochipStatusTransitionNotAllowed" xml:space="preserve">
     <value>تغییر به این وضعیت از وضعیت فعلی مجاز نیست.</value>
   </data>
+  <data name="CompanionReservePackageNotFound" xml:space="preserve">
+    <value>این پکیج در رزرو پیدا نشد.</value>
+  </data>
+  <data name="CompanionReservePackageNotModifiable" xml:space="preserve">
+    <value>این رزرو لغو، کامل یا نهایی شده و پکیج‌هایش دیگر قابل تغییر نیست.</value>
+  </data>
+  <data name="CompanionReservePackageStatusInvalid" xml:space="preserve">
+    <value>تغییر وضعیت این پکیج مجاز نیست.</value>
+  </data>
+  <data name="CompanionReservePackageNeedsPaidReserve" xml:space="preserve">
+    <value>تأیید یا لغو پکیج فقط برای رزرو پرداخت‌شده ممکن است.</value>
+  </data>
+  <data name="CompanionReservePackageRemoveOnlyUnpaid" xml:space="preserve">
+    <value>برای رزرو پرداخت‌شده پکیج را حذف نکنید؛ آن را لغو کنید تا مبلغش به کیف پول کاربر برگردد.</value>
+  </data>
+  <data name="CompanionReservePackageLastRemain" xml:space="preserve">
+    <value>حداقل یک پکیج باید در رزرو بماند؛ برای لغو کل رزرو از لغو رزرو استفاده کنید.</value>
+  </data>
+  <data name="CompanionReservePackageAlreadyActive" xml:space="preserve">
+    <value>این پکیج هم‌اکنون در رزرو فعال است.</value>
+  </data>
+  <data name="CompanionReservePackageSingleOnly" xml:space="preserve">
+    <value>این خدمت فقط یک پکیج می‌پذیرد.</value>
+  </data>
+  <data name="CompanionReservePackageRefundFailed" xml:space="preserve">
+    <value>بازگشت مبلغ به کیف پول کاربر انجام نشد؛ دوباره تلاش کنید.</value>
+  </data>
+  <data name="AbandonedCartDefaultCustomerName" xml:space="preserve">
+    <value>دوست پاستیلی</value>
+  </data>
+  <data name="AbandonedCartDefaultProductName" xml:space="preserve">
+    <value>کالاهای سبدت</value>
+  </data>
+  <data name="ShippingSlotRequired" xml:space="preserve">
+    <value>روز و بازه‌ی تحویل را انتخاب کنید.</value>
+  </data>
+  <data name="ShippingSlotUnavailable" xml:space="preserve">
+    <value>این روز و بازه‌ی تحویل دیگر قابل انتخاب نیست؛ بازه‌ی دیگری انتخاب کنید.</value>
+  </data>
+  <data name="ShippingSlotFull" xml:space="preserve">
+    <value>ظرفیت این بازه‌ی تحویل پر شده است؛ بازه‌ی دیگری انتخاب کنید.</value>
+  </data>
+  <data name="ShippingSlotNotFound" xml:space="preserve">
+    <value>بازه‌ی تحویل پیدا نشد.</value>
+  </data>
+  <data name="ShippingSlotInvalidTimes" xml:space="preserve">
+    <value>ساعت شروع باید قبل از ساعت پایان باشد (قالب HH:mm).</value>
+  </data>
+  <data name="ShippingSlotInvalidCapacity" xml:space="preserve">
+    <value>ظرفیت باید بین ۱ تا ۱۰٬۰۰۰ باشد.</value>
+  </data>
+  <data name="ShippingSlotOverlap" xml:space="preserve">
+    <value>این بازه با بازه‌ی دیگری در همان روز هم‌پوشانی دارد.</value>
+  </data>
+  <data name="ShipmentConfirmNotAllowed" xml:space="preserve">
+    <value>این سفارش در وضعیت «منتظر تأیید فروشنده» نیست.</value>
+  </data>
+  <data name="ShipmentConfirmExpired" xml:space="preserve">
+    <value>مهلت تأیید این سفارش تمام شده است.</value>
+  </data>
+  <data name="ShipmentPickupTimeInvalid" xml:space="preserve">
+    <value>ساعت تحویل به پیک باید از الان تا اندکی قبل از پایان بازه‌ی تحویل مشتری باشد.</value>
+  </data>
+  <data name="ShipmentConfirmedSuccessfully" xml:space="preserve">
+    <value>آماده‌سازی تأیید شد و پیک میاره درخواست شد.</value>
+  </data>
+  <data name="ShipmentCourierRequestFailed" xml:space="preserve">
+    <value>درخواست پیک انجام نشد؛ دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.</value>
+  </data>
+  <data name="ShipmentSellerConfirmExpiredNote" xml:space="preserve">
+    <value>فروشنده در مهلت مقرر آماده‌سازی سفارش را تأیید نکرد (لغو خودکار؛ نیاز به بررسی و استرداد).</value>
+  </data>
+  <data name="ShipmentSlotRangeFormat" xml:space="preserve">
+    <value>{0} تا {1}</value>
+  </data>
+  <data name="ShipmentMiareManualShipBlocked" xml:space="preserve">
+    <value>ارسال با میاره خودکار و هنگام تحویل کالا به پیک ثبت می‌شود؛ وضعیت را دستی تغییر ندهید.</value>
+  </data>
+  <data name="ShipmentCourierCanceledNote" xml:space="preserve">
+    <value>پیک میاره به‌خاطر تأخیر لغو شد؛ منتظر «آماده تحویل به پیک» دوباره‌ی فروشنده.</value>
+  </data>
+  <data name="ShipmentReturningNote" xml:space="preserve">
+    <value>کالا به مشتری تحویل داده نشد و پیک میاره آن را برمی‌گرداند (نیاز به پیگیری و استرداد).</value>
+  </data>
+  <data name="ShipmentCourierFailedNote" xml:space="preserve">
+    <value>سفر میاره لغو شد و زمان کافی برای درخواست دوباره نمانده است (نیاز به بررسی و استرداد).</value>
+  </data>
+  <data name="ProductOrderPostTrackingRequiredHint" xml:space="preserve">
+    <value>برای سفارش‌های ارسال با پست، ابتدا کد رهگیری را ثبت کنید.</value>
+  </data>
+  <data name="ShipmentAcceptedSuccessfully" xml:space="preserve">
+    <value>سفارش تأیید شد. وقتی کالا آماده تحویل به پیک شد، «آماده تحویل به پیک» را بزنید.</value>
+  </data>
+  <data name="ShipmentReadyNotAllowed" xml:space="preserve">
+    <value>این سفارش در وضعیت «در حال آماده‌سازی» نیست.</value>
+  </data>
+  <data name="ShipmentReadyExpired" xml:space="preserve">
+    <value>مهلت آماده تحویل به پیک برای این سفارش تمام شده است.</value>
+  </data>
+  <data name="ShipmentNotReadyExpiredNote" xml:space="preserve">
+    <value>فروشنده تا مهلت مقرر کالا را آماده‌ی تحویل به پیک نکرد (لغو خودکار؛ نیاز به بررسی و استرداد).</value>
+  </data>
+  <data name="OrderAdjustNotFound" xml:space="preserve">
+    <value>سفارش یا کالا پیدا نشد.</value>
+  </data>
+  <data name="OrderAdjustNotAllowedShipped" xml:space="preserve">
+    <value>این سفارش دیگر قابل لغو یا ویرایش نیست (ارسال، تحویل یا لغو شده است).</value>
+  </data>
+  <data name="OrderAdjustSellerCourierRequested" xml:space="preserve">
+    <value>پیک برای این سفارش درخواست شده است؛ برای لغو با پشتیبانی پاستیل تماس بگیرید.</value>
+  </data>
+  <data name="OrderAdjustMultiStoreSeller" xml:space="preserve">
+    <value>این سفارش چند فروشگاه دارد؛ فقط می‌توانید کالاهای فروشگاه خودتان را کم یا حذف کنید.</value>
+  </data>
+  <data name="OrderAdjustInvalidCount" xml:space="preserve">
+    <value>تعداد جدید باید بین ۰ و کمتر از تعداد فعلی باشد (افزایش تعداد مجاز نیست).</value>
+  </data>
+  <data name="OrderAdjustRefundFailed" xml:space="preserve">
+    <value>بازگشت مبلغ به کیف پول کاربر انجام نشد؛ دوباره تلاش کنید.</value>
+  </data>
+  <data name="OrderAdjustReasonRequired" xml:space="preserve">
+    <value>دلیل لغو را وارد کنید.</value>
+  </data>
+  <data name="OrderAdjustStoreWouldBeEmpty" xml:space="preserve">
+    <value>با این تغییر همه‌ی کالاهای این فروشگاه از سفارش چندفروشگاهی حذف می‌شود؛ برای این کار با پشتیبانی تماس بگیرید.</value>
+  </data>
+  <data name="OrderAdjustNoReason" xml:space="preserve">
+    <value>ثبت نشده</value>
+  </data>
+  <data name="OrderCancelledSuccessfully" xml:space="preserve">
+    <value>سفارش لغو و مبلغ آن به کیف پول کاربر برگشت داده شد.</value>
+  </data>
+  <data name="OrderItemAdjustedSuccessfully" xml:space="preserve">
+    <value>سفارش ویرایش شد و مبلغ کاسته‌شده به کیف پول کاربر برگشت داده شد.</value>
+  </data>
+  <data name="OrderCancelMiareWarning" xml:space="preserve">
+    <value>هشدار: سفر میاره خودکار لغو نشد؛ در پنل میاره پیگیری کنید.</value>
+  </data>
+  <data name="OrderItemDetailReduced" xml:space="preserve">
+    <value>تعداد از {0} به {1} کاهش یافت</value>
+  </data>
+  <data name="OrderItemDetailRemoved" xml:space="preserve">
+    <value>از سفارش حذف شد</value>
+  </data>
+  <data name="OrderItemActionReducedAdmin" xml:space="preserve">
+    <value>کاهش یافت</value>
+  </data>
+  <data name="OrderItemActionRemovedAdmin" xml:space="preserve">
+    <value>حذف شد</value>
+  </data>
+  <data name="OrderItemActionReducedStore" xml:space="preserve">
+    <value>کاهش داد</value>
+  </data>
+  <data name="OrderItemActionRemovedStore" xml:space="preserve">
+    <value>حذف کرد</value>
+  </data>
+  <data name="PansionPleaseSelectLocation" xml:space="preserve">
+    <value>موقعیت دقیق پانسیون را روی نقشه مشخص کنید.</value>
+  </data>
+  <data name="PansionLocationCoordinatesNotValid" xml:space="preserve">
+    <value>مختصات موقعیت پانسیون معتبر نیست.</value>
+  </data>
+  <data name="SchoolPleaseSelectLocation" xml:space="preserve">
+    <value>موقعیت دقیق مدرسه را روی نقشه مشخص کنید.</value>
+  </data>
+  <data name="SchoolLocationCoordinatesNotValid" xml:space="preserve">
+    <value>مختصات موقعیت مدرسه معتبر نیست.</value>
+  </data>
 </root>

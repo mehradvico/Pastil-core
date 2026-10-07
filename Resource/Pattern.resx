@@ -387,4 +387,73 @@
   <data name="PushCompanionDebtCollected" xml:space="preserve">
     <value>{0} was deducted from your wallet for "{2}" and your debt is paid.</value>
   </data>
+  <data name="PushCompanionReservePackageApproved" xml:space="preserve">
+    <value>The agent approved package "{0}" of your reservation.</value>
+  </data>
+  <data name="PushCompanionReservePackageCancelled" xml:space="preserve">
+    <value>Package "{0}" of your reservation was cancelled and {3} was refunded to your wallet.</value>
+  </data>
+  <data name="PushAbandonedCart" xml:space="preserve">
+    <value>{0} is still available! Complete your order before it sells out.</value>
+  </data>
+  <data name="PushShipmentAwaitingSeller" xml:space="preserve">
+    <value>Order {0} with delivery window {2} was placed. Confirm preparation by {1}.</value>
+  </data>
+  <data name="PushShipmentSellerReminder" xml:space="preserve">
+    <value>Reminder: order {0} is not confirmed yet. You have until {1}, otherwise it will be cancelled.</value>
+  </data>
+  <data name="PushShipmentSellerExpiredUser" xml:space="preserve">
+    <value>The seller did not confirm order {0} in time. Pastil support will follow up on cancellation and refund.</value>
+  </data>
+  <data name="PushShipmentCourierCanceled" xml:space="preserve">
+    <value>The Miare courier for order {0} was cancelled. Mark it ready for the courier again by {1}.</value>
+  </data>
+  <data name="PushShipmentReturning" xml:space="preserve">
+    <value>Order {0} was not delivered and the courier is returning it. Contact support.</value>
+  </data>
+  <data name="PushShipmentDelayedUser" xml:space="preserve">
+    <value>Delivery of order {0} is running late. We are following up.</value>
+  </data>
+  <data name="PushShipmentShippedUser" xml:space="preserve">
+    <value>Your delivery code: {0}, for order {1}</value>
+  </data>
+  <data name="PushShipmentLateAdmin" xml:space="preserve">
+    <value>Delivery of order {0} is past its delivery window.</value>
+  </data>
+  <data name="PushShipmentNotReceivedAdmin" xml:space="preserve">
+    <value>Order {0} was not delivered to the customer in the agreed window.</value>
+  </data>
+  <data name="PushShipmentReadyReminder" xml:space="preserve">
+    <value>Order {0} must be marked ready for the courier by {1}, otherwise it will be cancelled.</value>
+  </data>
+  <data name="PushOrderAskReceived" xml:space="preserve">
+    <value>Did you receive order {0}?</value>
+  </data>
+  <data name="PushOrderReceivedStore" xml:space="preserve">
+    <value>Order {0} was successfully delivered to the customer.</value>
+  </data>
+  <data name="PushOrderReceivedAdmin" xml:space="preserve">
+    <value>Order {0} was successfully delivered to the customer.</value>
+  </data>
+  <data name="PushOrderCancelledByAdminStore" xml:space="preserve">
+    <value>Order {0} was cancelled by Pastil.</value>
+  </data>
+  <data name="PushOrderCancelledByStoreAdmin" xml:space="preserve">
+    <value>Order {0} was cancelled by store {1}.</value>
+  </data>
+  <data name="PushOrderChangedByAdminStore" xml:space="preserve">
+    <value>Order {0} was changed by Pastil.</value>
+  </data>
+  <data name="PushOrderChangedByStoreAdmin" xml:space="preserve">
+    <value>The seller changed order {0}.</value>
+  </data>
+  <data name="PushTripOngoing" xml:space="preserve">
+    <value>{0} is on the way. Estimated time to arrive: {1}</value>
+  </data>
+  <data name="PushTripOngoingEnd" xml:space="preserve">
+    <value>The trip for {0} has ended.</value>
+  </data>
+  <data name="PushTripServiceOccurrencesAvailable" xml:space="preserve">
+    <value>{0} new weekly service trips are available for tomorrow</value>
+  </data>
 </root>

@@ -597,6 +597,7 @@ public static class ConfigureServices
         services.AddScoped<Application.Services.ConsultationSrvs.ConsultationBookingSrv.Iface.IConsultationBookingService, Application.Services.ConsultationSrvs.ConsultationBookingSrv.ConsultationBookingService>();
         services.AddScoped<Application.Services.CompanionSrvs.CompanionDayScheduleSrv.Iface.ICompanionDayScheduleService, Application.Services.CompanionSrvs.CompanionDayScheduleSrv.CompanionDayScheduleService>();
         services.AddScoped<Application.Services.Accounting.PetMicrochipSrv.Iface.IPetMicrochipService, Application.Services.Accounting.PetMicrochipSrv.PetMicrochipService>();
+        services.AddScoped<Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.Iface.ICompanionReservePackageItemService, Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.CompanionReservePackageItemService>();
         services.AddScoped<Application.Services.CompanionSrvs.OnlineSessionSrv.Iface.IOnlineSessionService, Application.Services.CompanionSrvs.OnlineSessionSrv.OnlineSessionService>();
         services.AddScoped<ICompanionReserveMessageAttachmentService, CompanionReserveMessageAttachmentService>();
         services.AddScoped<ICompanionReserveMessageReactionService, CompanionReserveMessageReactionService>();
@@ -631,6 +632,10 @@ public static class ConfigureServices
         services.AddScoped<IProductStockAlertService, ProductStockAlertService>();
         services.AddScoped<IProductOrderItemService, ProductOrderItemService>();
         services.AddScoped<IProductOrderService, ProductOrderService>();
+        services.AddScoped<Application.Services.Order.ProductOrderSrv.Iface.IProductOrderAdjustmentService, Application.Services.Order.ProductOrderSrv.ProductOrderAdjustmentService>();
+        services.AddScoped<Application.Services.Order.ShippingSrv.Iface.IShippingSlotService, Application.Services.Order.ShippingSrv.ShippingSlotService>();
+        services.AddScoped<Application.Services.TripSrv.TripOngoingSrv.ITripOngoingNotificationService, Application.Services.TripSrv.TripOngoingSrv.TripOngoingNotificationService>();
+        services.AddScoped<Application.Services.Order.CartSrv.Iface.IAbandonedCartReminderService, Application.Services.Order.CartSrv.AbandonedCartReminderService>();
         services.AddScoped<IProductOrderStoreService, ProductOrderStoreService>();
         services.AddScoped<IProductPictureService, ProductPictureService>();
         services.AddScoped<IProductRelateService, ProductRelateService>();

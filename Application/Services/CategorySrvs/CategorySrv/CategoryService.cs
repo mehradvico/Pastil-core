@@ -340,7 +340,10 @@ WHERE ct.Id IS NOT NULL;  -- اطمینان از وجود رکوردها
 
         private CategoryChildrenMinVDto BuildTree(List<CategoryChildrenMinVDto> categories, long parentId)
         {
-            var parentCategory = categories.SingleOrDefault(c => c.Id == parentId);
+            // JOINهای چندزبانه‌ی SeoFieldLang می‌توانند یک دسته را چند ردیف کنند؛ SingleOrDefault روی ردیف تکراری
+            // exception می‌داد و کل منو «SomethingWentWrong» می‌شد. هر دسته فقط یک‌بار (اولین ردیف) می‌ماند.
+            categories = categories.GroupBy(c => c.Id).Select(g => g.First()).ToList();
+            var parentCategory = categories.FirstOrDefault(c => c.Id == parentId);
             if (parentCategory != null)
             {
                 AddChildrenToParent(parentCategory, categories);

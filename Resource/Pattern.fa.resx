@@ -438,4 +438,73 @@
   <data name="PushCompanionDebtCollected" xml:space="preserve">
     <value>{0} تومان بابت خدمات «{2}» از کیف پول شما کسر شد و بدهی‌تان پرداخت شد.</value>
   </data>
+  <data name="PushCompanionReservePackageApproved" xml:space="preserve">
+    <value>نماینده پکیج «{0}» رزرو شما را تأیید کرد.</value>
+  </data>
+  <data name="PushCompanionReservePackageCancelled" xml:space="preserve">
+    <value>پکیج «{0}» رزرو شما لغو شد و {3} تومان به کیف پول شما برگشت داده شد.</value>
+  </data>
+  <data name="PushAbandonedCart" xml:space="preserve">
+    <value>{0} هنوز موجوده! قبل از اینکه تموم بشه سفارشت رو کامل کن.</value>
+  </data>
+  <data name="PushShipmentAwaitingSeller" xml:space="preserve">
+    <value>سفارش {0} با بازه‌ی تحویل {2} ثبت شد. تا ساعت {1} آماده‌سازی را تأیید کنید.</value>
+  </data>
+  <data name="PushShipmentSellerReminder" xml:space="preserve">
+    <value>یادآوری: سفارش {0} هنوز تأیید نشده است. تا ساعت {1} مهلت دارید، وگرنه سفارش لغو می‌شود.</value>
+  </data>
+  <data name="PushShipmentSellerExpiredUser" xml:space="preserve">
+    <value>فروشنده سفارش {0} را در مهلت مقرر تأیید نکرد. پشتیبانی پاستیل لغو سفارش و بازگشت مبلغ را پیگیری می‌کند.</value>
+  </data>
+  <data name="PushShipmentCourierCanceled" xml:space="preserve">
+    <value>پیک میاره برای سفارش {0} لغو شد. تا ساعت {1} دوباره «آماده تحویل به پیک» را بزنید.</value>
+  </data>
+  <data name="PushShipmentReturning" xml:space="preserve">
+    <value>سفارش {0} به مشتری تحویل داده نشد و پیک آن را برمی‌گرداند. با پشتیبانی هماهنگ کنید.</value>
+  </data>
+  <data name="PushShipmentDelayedUser" xml:space="preserve">
+    <value>تحویل سفارش {0} کمی از بازه‌ی انتخابی شما عقب افتاده است. در حال پیگیری هستیم.</value>
+  </data>
+  <data name="PushShipmentShippedUser" xml:space="preserve">
+    <value>کد تحویل شما: {0} ، برای سفارش {1}</value>
+  </data>
+  <data name="PushShipmentLateAdmin" xml:space="preserve">
+    <value>تحویل سفارش {0} از بازه‌ی انتخابی مشتری عقب افتاده است.</value>
+  </data>
+  <data name="PushShipmentNotReceivedAdmin" xml:space="preserve">
+    <value>سفارش {0} در ساعت مقرر به کاربر نرسیده است.</value>
+  </data>
+  <data name="PushShipmentReadyReminder" xml:space="preserve">
+    <value>سفارش {0} باید تا ساعت {1} «آماده تحویل به پیک» شود، وگرنه لغو می‌شود.</value>
+  </data>
+  <data name="PushOrderAskReceived" xml:space="preserve">
+    <value>آیا سفارش {0} را تحویل گرفتید؟</value>
+  </data>
+  <data name="PushOrderReceivedStore" xml:space="preserve">
+    <value>سفارش {0} با موفقیت به کاربر تحویل داده شد.</value>
+  </data>
+  <data name="PushOrderReceivedAdmin" xml:space="preserve">
+    <value>سفارش {0} با موفقیت به کاربر تحویل داده شد.</value>
+  </data>
+  <data name="PushOrderCancelledByAdminStore" xml:space="preserve">
+    <value>سفارش {0} توسط پاستیل لغو شد.</value>
+  </data>
+  <data name="PushOrderCancelledByStoreAdmin" xml:space="preserve">
+    <value>سفارش {0} توسط فروشگاه {1} لغو شد.</value>
+  </data>
+  <data name="PushOrderChangedByAdminStore" xml:space="preserve">
+    <value>سفارش {0} توسط پاستیل تغییر کرد.</value>
+  </data>
+  <data name="PushOrderChangedByStoreAdmin" xml:space="preserve">
+    <value>فروشنده سفارش {0} را تغییر داد.</value>
+  </data>
+  <data name="PushTripOngoing" xml:space="preserve">
+    <value>{0} در مسیر مقصد است. زمان تقریبی رسیدن به مقصد {1}</value>
+  </data>
+  <data name="PushTripOngoingEnd" xml:space="preserve">
+    <value>سفر {0} به پایان رسید.</value>
+  </data>
+  <data name="PushTripServiceOccurrencesAvailable" xml:space="preserve">
+    <value>{0} سفر جدید سرویس هفتگی برای فردا در دسترس است</value>
+  </data>
 </root>

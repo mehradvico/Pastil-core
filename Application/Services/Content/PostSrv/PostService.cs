@@ -69,7 +69,7 @@ namespace Application.Services.Content.PostSrv
         }
         private IQueryable<Post> BaseSaerch(PostInputDto searchDto)
         {
-            var query = _context.Posts.Include(s => s.Category).Include(s => s.User).Include(s => s.Admin).Include(s => s.Categories).Include(s => s.Hashtags).Include(s => s.Picture).Where(s => s.ParentId == null && s.Active && s.Deleted == false).IgnoreQueryFilters().AsQueryable();
+            var query = _context.Posts.Include(s => s.Category).Include(s => s.User).Include(s => s.Admin).Include(s => s.Categories).Include(s => s.Hashtags).Include(s => s.Picture).Where(s => s.ParentId == null && s.Deleted == false).IgnoreQueryFilters().AsQueryable();
             DateTime now = DateTime.Now;
 
             if (searchDto.Available == true)
@@ -562,7 +562,8 @@ namespace Application.Services.Content.PostSrv
         }
         public BaseResultDto GetSiteMap()
         {
-            string sqlQuery = $"SELECT dbo.Posts.Id, dbo.Posts.Name,dbo.Posts.UpdateDate, dbo.Categories.Label As CategoryName FROM dbo.Posts INNER JOIN dbo.Categories ON dbo.Posts.CategoryId = dbo.Categories.Id WHERE dbo.Posts.Active = 1 and dbo.Posts.Deleted=0";
+            // فقط پست‌هایی که صفحه‌شان واقعاً عمومی است (همان شرط FindAsyncVDto): فعال، تأییدشده و زمان انتشارشان رسیده
+            string sqlQuery = $"SELECT dbo.Posts.Id, dbo.Posts.Name, dbo.Posts.Slug, dbo.Posts.UpdateDate, dbo.Categories.Label As CategoryName FROM dbo.Posts INNER JOIN dbo.Categories ON dbo.Posts.CategoryId = dbo.Categories.Id WHERE dbo.Posts.Active = 1 and dbo.Posts.Deleted=0 and dbo.Posts.AdminConfirm = 1 and dbo.Posts.PublishDate < GETDATE()";
             //var list = _context.Posts.Include(s => s.Category).Where(s => s.Deleted == false && s.Active && s.AdminConfirm == true).Select(s => new PostSiteMapDto() { Id = s.Id, Name = s.Name, CategoryName = s.Category.Label,UpdateDate=s.PublishDate }).ToList();
             var connection = new SqlConnection(connectionString);
             var posts = connection.Query<PostSiteMapDto>(sqlQuery).ToList();

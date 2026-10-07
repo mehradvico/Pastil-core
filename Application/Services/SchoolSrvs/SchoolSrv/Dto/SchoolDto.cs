@@ -1,3 +1,4 @@
+using Application.Common.Dto.LocationPoint;
 using Application.Common.Dto.Field;
 
 namespace Application.Services.SchoolSrvs.SchoolSrv.Dto
@@ -13,6 +14,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv.Dto
         public long CityId { get; set; }
         public string Discription { get; set; }
         public string AddressValue { get; set; }
+        public PointDto Location { get; set; }
         public int CommentCount { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }

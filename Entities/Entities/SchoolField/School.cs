@@ -1,6 +1,7 @@
 using Entities.Entities.CommonField;
 using Entities.Entities.CompanionField;
 using Entities.Entities.LocationField;
+using NetTopologySuite.Geometries;
 using System.Collections.Generic;
 
 namespace Entities.Entities.SchoolField
@@ -18,6 +19,8 @@ namespace Entities.Entities.SchoolField
         public long CityId { get; set; }
         public string Discription { get; set; }
         public string AddressValue { get; set; }
+        // موقعیت دقیق خود مدرسه روی نقشه (نه موقعیت مربی)
+        public Point Location { get; set; }
         public int CommentCount { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }

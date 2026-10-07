@@ -19,6 +19,9 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
         public long CityId { get; set; }
         public long? IconId { get; set; }
         public int MaxDiscountPercent { get; set; }
+
+        /// <summary>حداکثر زمان آماده‌سازی سفارش (دقیقه، ۰ تا ۱۰۰۸۰). ندادن مقدار یعنی بدون تغییر.</summary>
+        public int? MaxPreparationMinutes { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
         public bool Active { get; set; }

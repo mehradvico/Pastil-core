@@ -30,16 +30,11 @@ namespace Application.Services.Order.ProductOrderItemItemSrv
             var item = _context.ProductOrderItems.AsTracking().FirstOrDefault(s => s.Id == dto.Id);
             if (item != null)
             {
+                // فقط توضیحات: تعداد/حذف بدون محاسبه‌ی مبلغ، موجودی و برگشت پول مبلغ سفارش را ناهماهنگ می‌کرد؛
+                // کم/حذف کردن کالا فقط از مسیر Admin|Seller ProductOrderItemAdjust (با برگشت پول به کیف پول) انجام می‌شود.
                 item.Description = dto.Description;
-                if (item.Count != dto.Count || dto.Deleted)
-                {
-                    item.Count = dto.Count;
-                    item.Deleted = dto.Deleted;
-                    item.Edited = true;
-                }
                 _context.ProductOrderItems.Update(item);
                 _context.SaveChanges();
-                _productOrderStoreService.UpdateDto(new ProductOrderStoreSrv.Dto.ProductOrderStoreDto() { Id = item.ProductOrderStoreId, Edited = true });
 
             }
             return new BaseResultDto(true);

@@ -816,7 +816,12 @@ namespace Application.Maping
             CreateMap<ProductOrder, ProductOrderDto>()
                 .ForMember(x => x.CanConfirmDelivery, o => o.MapFrom(s =>
                     s.IsPaid && !s.Deleted && s.UserReceived != true &&
-                    s.ProductOrderStatus != null && s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Send) &&
+                    s.ProductOrderStatus != null &&
+                    // «ارسال» یا (بعد از پرسش «آیا تحویل گرفتید؟» راس پایان بازه‌ی میاره) حتی قبل از ارسال
+                    (s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Send) ||
+                     (s.ReceiptAskedAtUtc != null &&
+                      (s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Insert) ||
+                       s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Proccess)))) &&
                     (s.ProductOrderState == null || s.ProductOrderState.Label != nameof(Application.Common.Enumerable.ProductOrderStateEnum.ProductOrderState_Canceled))))
                 .ForMember(x => x.AutoConfirmDate, o => o.MapFrom(s =>
                     s.UserReceived == null && s.IsPaid && !s.Deleted && s.SentDate != null &&
@@ -833,7 +838,12 @@ namespace Application.Maping
             CreateMap<ProductOrder, ProductOrderVDto>()
                 .ForMember(x => x.CanConfirmDelivery, o => o.MapFrom(s =>
                     s.IsPaid && !s.Deleted && s.UserReceived != true &&
-                    s.ProductOrderStatus != null && s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Send) &&
+                    s.ProductOrderStatus != null &&
+                    // «ارسال» یا (بعد از پرسش «آیا تحویل گرفتید؟» راس پایان بازه‌ی میاره) حتی قبل از ارسال
+                    (s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Send) ||
+                     (s.ReceiptAskedAtUtc != null &&
+                      (s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Insert) ||
+                       s.ProductOrderStatus.Label == nameof(Application.Common.Enumerable.ProductOrderStatusEnum.ProductOrderStatus_Proccess)))) &&
                     (s.ProductOrderState == null || s.ProductOrderState.Label != nameof(Application.Common.Enumerable.ProductOrderStateEnum.ProductOrderState_Canceled))))
                 .ForMember(x => x.AutoConfirmDate, o => o.MapFrom(s =>
                     s.UserReceived == null && s.IsPaid && !s.Deleted && s.SentDate != null &&
@@ -940,7 +950,7 @@ namespace Application.Maping
 
             //Store
             CreateMap<Store, StoreDto>();
-            CreateMap<StoreDto, Store>().ForMember(x => x.Users, opt => opt.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.MaxDiscountPercent, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.Icon, y => y.Ignore()).ForMember(x => x.ReferralCode, y => y.Ignore());
+            CreateMap<StoreDto, Store>().ForMember(x => x.MaxPreparationMinutes, o => { o.PreCondition(src => src.MaxPreparationMinutes.HasValue); o.MapFrom(src => Math.Clamp(src.MaxPreparationMinutes.Value, 0, 10080)); }).ForMember(x => x.Users, opt => opt.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.MaxDiscountPercent, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.Icon, y => y.Ignore()).ForMember(x => x.ReferralCode, y => y.Ignore());
             CreateMap<Store, StoreMinVDto>().ForMember(x => x.StoreId, o => o.MapFrom(m => m.Id));
             CreateMap<Store, StoreVDto>();
             CreateMap<Store, StoreFinanceVDto>().ForMember(d => d.HasCommission, o => o.MapFrom(s => s.CommissionPercent != 0));

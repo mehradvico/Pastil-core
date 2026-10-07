@@ -373,6 +373,8 @@ namespace Application.Services.Order.CartSrv
             foreach (var cartStore in cart.CartStores)
             {
                 cartStore.ShippingQuoteId = null;
+                cartStore.ShippingSlotId = null;
+                cartStore.ShippingSlotDate = null;
                 cartStore.ShippingProvider = null;
                 cartStore.ShippingPaymentMode = null;
                 cartStore.ShippingQuotedPrice = 0;
@@ -472,6 +474,8 @@ namespace Application.Services.Order.CartSrv
                 cart.Delivery = null;
                 cartStore.DeliveryPrice = delivery.DeliveryPrice;
                 cartStore.ShippingQuoteId = null;
+                cartStore.ShippingSlotId = null;
+                cartStore.ShippingSlotDate = null;
                 cartStore.ShippingProvider = null;
                 cartStore.ShippingPaymentMode = null;
                 cartStore.ShippingQuotedPrice = 0;
@@ -512,6 +516,8 @@ namespace Application.Services.Order.CartSrv
                     s.Delivery = null;
                     s.DeliveryPrice = 0;
                     s.ShippingQuoteId = null;
+                    s.ShippingSlotId = null;
+                    s.ShippingSlotDate = null;
                     s.ShippingProvider = null;
                     s.ShippingPaymentMode = null;
                     s.ShippingQuotedPrice = 0;

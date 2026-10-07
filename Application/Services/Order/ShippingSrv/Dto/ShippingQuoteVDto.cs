@@ -15,5 +15,8 @@ namespace Application.Services.Order.ShippingSrv.Dto
         public bool PayAtDestination { get; set; }
         public string Currency { get; set; }
         public DateTime ExpiresAtUtc { get; set; }
+
+        /// <summary>true یعنی کاربر باید روز و بازه‌ی تحویل را هم انتخاب کند (میاره)؛ false (مثلاً پست) بدون زمان‌بندی است.</summary>
+        public bool RequiresSlot { get; set; }
     }
 }

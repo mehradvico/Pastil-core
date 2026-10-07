@@ -36,6 +36,7 @@ using System.Linq;
 using Application.Common.Enumerable;
 using Persistence.Interface;
 using Entities.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Services.CommonSrv.SearchSrv
@@ -172,13 +173,14 @@ namespace Application.Services.CommonSrv.SearchSrv
             stopwatch.Stop();
             result.TookMilliseconds = stopwatch.ElapsedMilliseconds;
 
+            var channel = NormalizeChannel(request.Channel);
             try
             {
                 _context.SearchQueryLogs.Add(new SearchQueryLog
                 {
                     Query = originalQuery,
                     NormalizedQuery = request.Q,
-                    Channel = "App",
+                    Channel = channel,
                     ResultCount = result.TotalCount,
                     TookMilliseconds = result.TookMilliseconds,
                     CreateDateUtc = DateTime.UtcNow
@@ -191,6 +193,98 @@ namespace Application.Services.CommonSrv.SearchSrv
             }
 
             return new BaseResultDto<SearchDto>(true, data: result);
+        }
+
+        private const string ShopChannel = "Shop";
+        private const string AppChannel = "App";
+
+        private static string NormalizeChannel(string channel) =>
+            string.Equals(channel?.Trim(), ShopChannel, StringComparison.OrdinalIgnoreCase) ? ShopChannel : AppChannel;
+
+        public async Task<BaseResultDto<List<string>>> GetPopularAsync(string channel, int days, int take, CancellationToken cancellationToken = default)
+        {
+            channel = NormalizeChannel(channel);
+            days = Math.Clamp(days, 1, 365);
+            take = Math.Clamp(take, 1, 20);
+            var fromDate = DateTime.UtcNow.AddDays(-days);
+
+            var terms = await _context.SearchQueryLogs
+                .AsNoTracking()
+                .Where(item => item.Channel == channel && item.CreateDateUtc >= fromDate && item.ResultCount > 0)
+                .GroupBy(item => item.NormalizedQuery)
+                .OrderByDescending(group => group.Count())
+                .ThenByDescending(group => group.Max(item => item.CreateDateUtc))
+                .Select(group => group.Key)
+                .Take(take)
+                .ToListAsync(cancellationToken);
+
+            return new BaseResultDto<List<string>>(true, data: terms);
+        }
+
+        /// <summary>
+        /// پیشنهاد عبارت جستجوی فروشگاه: عبارت‌ها فقط از نام محصولاتی ساخته می‌شوند که لیست فروشگاه
+        /// (Active، غیر پیش‌نویس، Name/SecondName شامل Q) همان‌ها را نشان می‌دهد؛ پس هر پیشنهاد حتماً نتیجه دارد.
+        /// عبارت = از ابتدای کلمه‌ی منطبق تا انتهای همان کلمه، و یک نسخه با کلمه‌ی بعدی؛ مرتب بر اساس تکرار.
+        /// </summary>
+        public async Task<BaseResultDto<List<string>>> SuggestAsync(string q, int take, CancellationToken cancellationToken = default)
+        {
+            q = (q ?? string.Empty).Trim();
+            take = Math.Clamp(take, 1, 20);
+            if (q.Length < 2 || q.Length > 100)
+                return new BaseResultDto<List<string>>(true, data: new List<string>());
+
+            // دقیقاً همان فیلتری که لیست محصولات فروشگاه (ProductService.BaseSaerch با Available=true) اعمال می‌کند،
+            // از جمله !Deleted؛ بدون آن محصول حذف‌شده پیشنهاد می‌شد ولی در لیست نبود.
+            var availableLabel = ProductStatusEnum.ProductStatus_Available.ToString();
+            var products = await _context.Products
+                .AsNoTracking()
+                .Where(p => !p.Deleted && p.Active && p.StatusId != (long)ProductStatusEnum.ProductStatus_Draft
+                            && (p.Name.Contains(q) || p.SecondName.Contains(q)))
+                .OrderByDescending(p => p.Status.Label == availableLabel)
+                .ThenByDescending(p => p.SellCount)
+                .Select(p => new { p.Name, InStock = p.Status.Label == availableLabel })
+                .Take(300)
+                .ToListAsync(cancellationToken);
+
+            // امتیاز: محصولِ موجود ۳، ناموجود ۱؛ عبارت‌های پرتکرار و موجود بالاتر می‌آیند
+            var score = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            foreach (var product in products)
+            {
+                var name = product.Name;
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                var weight = product.InStock ? 3 : 1;
+                var from = 0;
+                while (from < name.Length)
+                {
+                    var idx = name.IndexOf(q, from, StringComparison.OrdinalIgnoreCase);
+                    if (idx < 0) break;
+                    from = idx + 1;
+                    if (idx > 0 && name[idx - 1] != ' ') continue; // فقط ابتدای کلمه
+                    // عبارت‌ها عیناً زیررشته‌ی نام می‌مانند (بدون نرمال‌سازی فاصله) تا Contains لیست حتماً پیدایشان کند
+                    var end = name.IndexOf(' ', idx + q.Length);
+                    if (end < 0) end = name.Length;
+                    var one = name[idx..end].Trim();
+                    if (!string.Equals(one, q, StringComparison.OrdinalIgnoreCase))
+                        score[one] = score.GetValueOrDefault(one) + weight;
+                    if (end < name.Length - 1 && name[end + 1] != ' ')
+                    {
+                        var end2 = name.IndexOf(' ', end + 1);
+                        if (end2 < 0) end2 = name.Length;
+                        var two = name[idx..end2].Trim();
+                        score[two] = score.GetValueOrDefault(two) + weight;
+                    }
+                    break;
+                }
+            }
+
+            var suggestions = score
+                .OrderByDescending(kv => kv.Value)
+                .ThenBy(kv => kv.Key.Length)
+                .Take(take)
+                .Select(kv => kv.Key)
+                .ToList();
+
+            return new BaseResultDto<List<string>>(true, data: suggestions);
         }
 
         private static List<T> RankGroup<T>(

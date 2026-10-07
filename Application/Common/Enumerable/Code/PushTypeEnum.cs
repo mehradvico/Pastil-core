@@ -108,6 +108,52 @@ namespace Application.Common.Enumerable.Code
         /// <summary>به کاربر: سفارش فروشگاهی چون ۷ روز بدون پاسخ ماند، خودکار «تحویل داده شد» ثبت شد.</summary>
         PushProductOrderAutoDelivered = 89,
         /// <summary>به کاربران فروشگاه: مشتری «تحویل نگرفتم» را ثبت کرد (یک‌بار برای هر سفارش).</summary>
-        PushProductOrderNotReceivedStore = 90
+        PushProductOrderNotReceivedStore = 90,
+        /// <summary>به کاربر: نماینده یک پکیج رزروش را تأیید کرد.</summary>
+        PushCompanionReservePackageApproved = 91,
+        /// <summary>به کاربر: نماینده/ادمین یک پکیج رزروش را لغو کرد و سهم پرداختی به کیف پول برگشت.</summary>
+        PushCompanionReservePackageCancelled = 92,
+        /// <summary>به کاربر: سبد خرید فروشگاه رها شده (روزی ساعت ۱۸، حداکثر ۲ بار برای هر سبد).</summary>
+        PushAbandonedCart = 93,
+        /// <summary>به فروشنده: سفارش با ارسال میاره پرداخت شد؛ باید تا مهلت آماده‌سازی را تأیید کند.</summary>
+        PushShipmentAwaitingSeller = 94,
+        /// <summary>به فروشنده: ۱۵ دقیقه به پایان مهلت تأیید مانده.</summary>
+        PushShipmentSellerReminder = 95,
+        /// <summary>به مشتری: فروشنده در مهلت تأیید نکرد؛ پشتیبانی لغو و استرداد را پیگیری می‌کند.</summary>
+        PushShipmentSellerExpiredUser = 96,
+        /// <summary>به فروشنده: پیک میاره به‌خاطر تأخیر لغو شد؛ یک‌بار دیگر می‌تواند تأیید کند.</summary>
+        PushShipmentCourierCanceled = 97,
+        /// <summary>به فروشنده: کالا تحویل مشتری نشد و پیک آن را برمی‌گرداند.</summary>
+        PushShipmentReturning = 98,
+        /// <summary>به مشتری: تحویل از بازه‌ی انتخابی‌اش عقب افتاده.</summary>
+        PushShipmentDelayedUser = 99,
+        /// <summary>به مشتری: سفارش میاره تحویل پیک شد؛ کد تحویل.</summary>
+        PushShipmentShippedUser = 100,
+        /// <summary>به ادمین: تحویل یک سفارش از بازه‌اش عقب افتاده.</summary>
+        PushShipmentLateAdmin = 101,
+        /// <summary>به ادمین: مشتری بعد از تحویل میاره «تحویل نگرفتم» زد (فرصت گزارش به میاره ۳ ساعت).</summary>
+        PushShipmentNotReceivedAdmin = 102,
+        /// <summary>به فروشنده: نزدیک پایان مهلت «آماده تحویل به پیک».</summary>
+        PushShipmentReadyReminder = 103,
+        /// <summary>به مشتری: راس پایان بازه‌ی تحویل «آیا سفارش را تحویل گرفتید؟» با دکمه‌های بله/خیر روی خود پوش.</summary>
+        PushOrderAskReceived = 104,
+        /// <summary>به فروشنده: مشتری تحویل گرفتم زد.</summary>
+        PushOrderReceivedStore = 105,
+        /// <summary>به ادمین: مشتری تحویل گرفتم زد.</summary>
+        PushOrderReceivedAdmin = 106,
+        /// <summary>به فروشگاه: ادمین کل سفارش را لغو کرد.</summary>
+        PushOrderCancelledByAdminStore = 107,
+        /// <summary>به ادمین: فروشگاه کل سفارش را لغو کرد.</summary>
+        PushOrderCancelledByStoreAdmin = 108,
+        /// <summary>به فروشگاه: ادمین کالایی را از سفارش کم/حذف کرد.</summary>
+        PushOrderChangedByAdminStore = 109,
+        /// <summary>به ادمین: فروشگاه کالایی را از سفارش کم/حذف کرد.</summary>
+        PushOrderChangedByStoreAdmin = 110,
+        /// <summary>به مسافر: سفر پت‌رسان فعال است و پت سوار شده؛ اعلان ماندگار با زمان تقریبی رسیدن (با tag ثابت جایگزین می‌شود).</summary>
+        PushTripOngoing = 111,
+        /// <summary>به مسافر: پایان/لغو سفر؛ اعلان ماندگار قبلی را جایگزین و بعد از چند ثانیه بسته می‌شود.</summary>
+        PushTripOngoingEnd = 112,
+        /// <summary>به رانندگان: چند نوبت جدید سرویس هفتگی پت‌رسان ساخته شد (یک پوش تجمیعی، نه یک پوش برای هر نوبت). Token1 = تعداد.</summary>
+        PushTripServiceOccurrencesAvailable = 113
     }
 }

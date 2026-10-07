@@ -95,6 +95,12 @@ namespace Application.Services.Order.ShippingSrv.Provider
                 // نمایش در وب‌اپ) هم همون عدد تومان رو بدون تبدیل به عنوان Price نگه می‌داره و نشون می‌ده،
                 // پس اینجا هم نباید ضربدر ۱۰ بشه.
                 var priceToman = priceProp.GetDouble();
+                // میاره هیچ‌وقت ارسال رایگان نیست؛ قیمت صفر یعنی برآورد معتبر نیست (مثلاً محیط تست/آدرس نامعتبر) و به‌جای «رایگان» استعلام شکست می‌خورد.
+                if (priceToman <= 0)
+                {
+                    _logger.LogWarning("Miare GetQuoteAsync: estimate returned a non-positive price ({Price}).", priceToman);
+                    return ShippingProviderQuoteResult.Failed(Resource.Notification.ShippingQuoteCurrentlyUnavailable);
+                }
                 return new ShippingProviderQuoteResult
                 {
                     IsSuccess = true,
@@ -152,19 +158,24 @@ namespace Application.Services.Order.ShippingSrv.Provider
                     {
                         Name = string.IsNullOrWhiteSpace(request.PickupName) ? "فروشگاه" : request.PickupName,
                         PhoneNumber = request.PickupPhone,
-                        Address = request.RecipientAddress,
+                        // آدرس فروشگاه (محل تحویل‌گیری)، نه آدرس گیرنده؛ اگر ثبت نشده بود به آدرس گیرنده برمی‌گردد
+                        Address = string.IsNullOrWhiteSpace(request.PickupAddress) ? request.RecipientAddress : request.PickupAddress,
                         Location = new MiareLocation
                         {
                             Latitude = request.OriginLatitude.Value,
                             Longitude = request.OriginLongitude.Value
                         },
-                        Deadline = DateTimeOffset.Now.AddMinutes(30).ToString("yyyy-MM-ddTHH:mm:sszzz")
+                        // ساعت تحویل به پیک را فروشنده تعیین می‌کند؛ بدون آن (مسیر قدیمی) ۳۰ دقیقه بعد
+                        Deadline = (request.PickupDeadlineUtc.HasValue
+                            ? new DateTimeOffset(DateTime.SpecifyKind(request.PickupDeadlineUtc.Value, DateTimeKind.Utc))
+                            : DateTimeOffset.UtcNow.AddMinutes(30)).ToString("yyyy-MM-ddTHH:mm:ssK")
                     },
                     Courses = new[]
                     {
                         new MiareCourse
                         {
-                            BillNumber = request.OrderId,
+                            BillNumber = string.IsNullOrWhiteSpace(request.BillNumber) ? request.OrderId : request.BillNumber,
+                            DeliveryCode = string.IsNullOrWhiteSpace(request.DeliveryCode) ? null : request.DeliveryCode,
                             Name = request.RecipientName,
                             PhoneNumber = request.RecipientMobile,
                             Address = request.RecipientAddress,
@@ -316,6 +327,10 @@ namespace Application.Services.Order.ShippingSrv.Provider
 
             [JsonPropertyName("address")]
             public string Address { get; set; }
+
+            [JsonPropertyName("delivery_code")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string DeliveryCode { get; set; }
 
             [JsonPropertyName("location")]
             public MiareLocation Location { get; set; }

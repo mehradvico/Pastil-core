@@ -48,6 +48,9 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForSchoolAsync(TripSchoolReservationCreateDto dto, long userId);
         Task<BaseResultDto<TripVDto>> GetTripForSchoolReservationAsync(long schoolReserveId, long userId);
         Task GeneratePetResanServiceTripsAsync();
+        // بعد از ثبت یک سرویس هفتگی: اگر job روزانه‌ی امروز قبلاً اجرا شده، نوبت‌های فردای همین سرویس همان لحظه ساخته می‌شود
+        // (وگرنه تا job فردا که فقط «پس‌فردا» را می‌سازد از دست می‌رفت). تعداد نوبت‌های ساخته‌شده را برمی‌گرداند.
+        Task<int> GeneratePetResanServiceTripsForNewServiceAsync(long serviceId);
         Task DispatchScheduledTripsAsync();
         Task AutoCancelUnansweredInstantTripsAsync();
         Task<BaseResultDto<TripVDto>> RequestAdminDriverSelectionAsync(long tripId, long userId);

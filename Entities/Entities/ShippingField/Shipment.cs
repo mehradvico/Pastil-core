@@ -20,6 +20,33 @@ namespace Entities.Entities.ShippingField
         public DateTime? RequestedAtUtc { get; set; }
         public DateTime? DeliveredAtUtc { get; set; }
 
+        // بازه‌ی تحویل انتخاب‌شده‌ی مشتری (snapshot به UTC؛ ویرایش بعدی بازه‌ها روی مرسوله‌ی ثبت‌شده اثر ندارد)
+        public DateTime? SlotStartUtc { get; set; }
+        public DateTime? SlotEndUtc { get; set; }
+        /// <summary>مهلت تأیید فروشنده؛ بعد از آن سفارش خودکار لغو می‌شود.</summary>
+        public DateTime? SellerConfirmDeadlineUtc { get; set; }
+        public DateTime? SellerConfirmedAtUtc { get; set; }
+        /// <summary>ساعتی که فروشنده گفته کالا آماده‌ی تحویل به پیک است (= pickup.deadline میاره).</summary>
+        public DateTime? PickupDeadlineUtc { get; set; }
+        public DateTime? SellerReminderSentAtUtc { get; set; }
+        /// <summary>کد ۵ رقمی تحویل (PoD)؛ مشتری در اپ می‌بیند و به پیک می‌گوید.</summary>
+        public string DeliveryCode { get; set; }
+
+        /// <summary>لحظه‌ی «تحویل پیک شد»؛ پیامک/پوش ارسال فقط یک‌بار (وب‌هوک میاره تکرار می‌شود).</summary>
+        public DateTime? ShippedNotifiedAtUtc { get; set; }
+        /// <summary>چند بار بعد از لغو سفر (تأخیر) دوباره از فروشنده تأیید گرفته شده؛ حداکثر ۱ بار.</summary>
+        public int CourierRetryCount { get; set; }
+        /// <summary>هشدار تأخیر نسبت به بازه‌ی تحویل فقط یک‌بار.</summary>
+        public DateTime? LateNotifiedAtUtc { get; set; }
+        /// <summary>مشتری بعد از تحویل میاره «تحویل نگرفتم» زده و به ادمین اطلاع داده شده.</summary>
+        public DateTime? DisputeReportedAtUtc { get; set; }
+
+        /// <summary>آخرین ساعتی که فروشنده باید «آماده تحویل به پیک» بزند تا هنوز وقت رساندن داخل بازه باشد.</summary>
+        public DateTime? ReadyDeadlineUtc { get; set; }
+        /// <summary>لحظه‌ای که فروشنده «آماده تحویل به پیک» زد (همان لحظه سفر میاره ساخته می‌شود).</summary>
+        public DateTime? ReadyAtUtc { get; set; }
+        public DateTime? ReadyReminderSentAtUtc { get; set; }
+
         public ProductOrderStore ProductOrderStore { get; set; }
         public ShippingQuote ShippingQuote { get; set; }
     }
