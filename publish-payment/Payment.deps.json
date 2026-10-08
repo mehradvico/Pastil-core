@@ -46,6 +46,25 @@
           }
         }
       },
+      "AWSSDK.Core/3.7.402.2": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.402.2"
+          }
+        }
+      },
+      "AWSSDK.S3/3.7.415.1": {
+        "dependencies": {
+          "AWSSDK.Core": "3.7.402.2"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.S3.dll": {
+            "assemblyVersion": "3.3.0.0",
+            "fileVersion": "3.7.415.1"
+          }
+        }
+      },
       "Azure.Core/1.38.0": {
         "dependencies": {
           "Microsoft.Bcl.AsyncInterfaces": "6.0.0",
@@ -735,6 +754,14 @@
           }
         }
       },
+      "SixLabors.ImageSharp/3.1.12": {
+        "runtime": {
+          "lib/net6.0/SixLabors.ImageSharp.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.1.12.0"
+          }
+        }
+      },
       "System.ClientModel/1.0.0": {
         "dependencies": {
           "System.Memory.Data": "1.0.2"
@@ -1189,6 +1216,7 @@
       },
       "Application/1.0.0": {
         "dependencies": {
+          "AWSSDK.S3": "3.7.415.1",
           "AutoMapper": "15.1.3",
           "ClosedXML": "0.104.2",
           "Dapper": "2.1.35",
@@ -1204,6 +1232,7 @@
           "QRCoder": "1.8.0",
           "Resource": "1.0.0",
           "RestSharp": "112.1.0",
+          "SixLabors.ImageSharp": "3.1.12",
           "System.Security.Cryptography.Xml": "9.0.18",
           "System.ServiceModel.Http": "8.1.2",
           "System.ServiceModel.NetTcp": "8.1.2",
@@ -1309,6 +1338,20 @@
       "sha512": "sha512-PEvv0zFa2qpsCqQQt2mmjXKaKaSff70Nrdu2vo953XtMke2ZASM9KDwlrKcH9xWOUFcR0IOaLXyL/aNnuhyTFQ==",
       "path": "automapper/15.1.3",
       "hashPath": "automapper.15.1.3.nupkg.sha512"
+    },
+    "AWSSDK.Core/3.7.402.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-LfyHBmlMimkqhOpQCUDLUAd42MC3ah6MtQAp3cFdVtGpIkUJks7fbSY1tREMd7VSXkZtGaAauy38VwHGv4mp+A==",
+      "path": "awssdk.core/3.7.402.2",
+      "hashPath": "awssdk.core.3.7.402.2.nupkg.sha512"
+    },
+    "AWSSDK.S3/3.7.415.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-qOKDVV3sK53OmJ4SDwXOYEhZovN0DQutkp2/0bIxyTRyrwPG+K8U2vWNBOQ5QVzdmSwdINOKRReZBK4PzgMu7Q==",
+      "path": "awssdk.s3/3.7.415.1",
+      "hashPath": "awssdk.s3.3.7.415.1.nupkg.sha512"
     },
     "Azure.Core/1.38.0": {
       "type": "package",
@@ -1708,6 +1751,13 @@
       "sha512": "sha512-LFQsCZlV0xlUyXAOMUo5kkSl+8zAQXXbbdwWchtk0B4o7zotZhQsQOcJUELGHdfPfm/xDAsz6hONAuV25bJaAg==",
       "path": "sixlabors.fonts/1.0.0",
       "hashPath": "sixlabors.fonts.1.0.0.nupkg.sha512"
+    },
+    "SixLabors.ImageSharp/3.1.12": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-iAg6zifihXEFS/t7fiHhZBGAdCp3FavsF4i2ZIDp0JfeYeDVzvmlbY1CNhhIKimaIzrzSi5M/NBFcWvZT2rB/A==",
+      "path": "sixlabors.imagesharp/3.1.12",
+      "hashPath": "sixlabors.imagesharp.3.1.12.nupkg.sha512"
     },
     "System.ClientModel/1.0.0": {
       "type": "package",
