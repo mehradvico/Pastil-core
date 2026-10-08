@@ -1819,4 +1819,28 @@
   <data name="SchoolLocationCoordinatesNotValid" xml:space="preserve">
     <value>The school location coordinates are not valid.</value>
   </data>
+  <data name="PansionReserveApprovedSuccessfully" xml:space="preserve">
+    <value>Reservation approved.</value>
+  </data>
+  <data name="PansionReserveRejectedSuccessfully" xml:space="preserve">
+    <value>Reservation cancelled and the amount was refunded to the customer wallet.</value>
+  </data>
+  <data name="PansionReserveRejectReasonRequired" xml:space="preserve">
+    <value>Enter the rejection reason.</value>
+  </data>
+  <data name="PansionReserveRefundFailed" xml:space="preserve">
+    <value>Refund to the customer wallet failed; try again.</value>
+  </data>
+  <data name="PansionReserveApprovalNotPending" xml:space="preserve">
+    <value>This reservation is not awaiting approval.</value>
+  </data>
+  <data name="PansionReserveAwaitingOwnerApproval" xml:space="preserve">
+    <value>This reservation has not been approved by the center yet.</value>
+  </data>
+  <data name="PansionReserveExpiredReason" xml:space="preserve">
+    <value>The center did not respond within the deadline.</value>
+  </data>
+  <data name="SessionEndedSignInAgain" xml:space="preserve">
+    <value>Your session has ended (signed out or signed in on another device); please sign in again.</value>
+  </data>
 </root>

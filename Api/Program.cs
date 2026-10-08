@@ -585,6 +585,11 @@ recurringJobManager.AddOrUpdate<Application.Services.CommonSrv.PushNotificationS
     "PushNotificationDispatch",
     service => service.SendPushGroupAsync(100),
     "*/5 * * * *");
+// رزرو پانسیون/مهد: مرکز در مهلت (پیش‌فرض ۱۲ ساعت) تأیید/رد نکند → لغو خودکار و برگشت کل مبلغ به کیف پول. طراحی: backend/Docs/PANSION_RESERVE_OWNER_APPROVAL_FA.md
+recurringJobManager.AddOrUpdate<Application.Services.PansionSrvs.PansionReserveSrv.Iface.IPansionReserveApprovalService>(
+    "PansionReserveExpireOverdue",
+    service => service.ExpireOverdueAsync(CancellationToken.None),
+    "*/5 * * * *");
 // اعلان ماندگار «سفر در جریان است» برای مسافر (بعد از سوار شدن پت تا پایان سفر)؛ طراحی: backend/Docs/TRIP_ONGOING_NOTIFICATION_FA.md
 recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripOngoingSrv.ITripOngoingNotificationService>(
     "TripOngoingNotification",
@@ -647,6 +652,12 @@ recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITrip
     "GeneratePetResanServiceTrips",
     service => service.GeneratePetResanServiceTripsAsync(),
     "0 20 * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
+// هر روز ساعت ۱۸ (۲ ساعت قبل از ساخت نوبت‌های فردا): اگر موجودی کیف پول برای کسر نوبت‌های فردای سرویس هفتگی کافی نیست، پوش شارژ می‌فرستد.
+recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
+    "PetResanWalletTopUpReminder",
+    service => service.SendPetResanWalletTopUpRemindersAsync(),
+    "0 18 * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
 // به راننده‌ای که یک سفر رزروشده/سرویسِ پذیرفته‌شده دارد، ۳۰ دقیقه مانده به حرکت یک‌بار پوش یادآوری می‌فرستد.
 recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(

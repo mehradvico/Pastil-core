@@ -151,10 +151,26 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 // (شامل همان توکن تازه‌ی معتبر) نابود می‌شد. اگر جایگزینِ همین توکن ظرف چند
                 // ثانیه‌ی اخیر ساخته شده، این را یک رقابت بی‌ضرر در نظر می‌گیریم، نه سرقت
                 // واقعی — و به‌جای نابودی سشن، یک توکن تازه‌ی دیگر (هم‌زنجیره) صادر می‌کنیم.
-                var wasRotatedWithinGracePeriod = await _context.UserTokens
+                var wasRotated = await _context.UserTokens
+                    .AnyAsync(s => s.RotatedFromTokenId == rotatedAway.Id);
+                var wasRotatedWithinGracePeriod = wasRotated && await _context.UserTokens
                     .AnyAsync(s => s.RotatedFromTokenId == rotatedAway.Id &&
                                    s.CreateDate >= DateTime.UtcNow - TokenRotationPolicy.GracePeriod);
-                if (wasRotatedWithinGracePeriod && PanelSessionDevice.Matches(rotatedAway.DeviceName, refreshToken.DeviceId))
+                var outcome = RefreshReuseRules.Classify(
+                    wasRotated,
+                    wasRotatedWithinGracePeriod,
+                    PanelSessionDevice.Matches(rotatedAway.DeviceName, refreshToken.DeviceId));
+
+                // ردیف Deleted بدون جانشین = نشستی که با خروج یا ورودِ دستگاه دیگر بسته شده، نه رفرش‌توکن rotate‌شده. این «سرقت» نیست؛
+                // قبلاً همین حالت کل نشست‌های کاربر (از جمله نشست تازه‌ی دستگاه دوم) را هم می‌کُشت. فقط همین درخواست رد می‌شود.
+                if (outcome == RefreshReuseOutcome.SessionEnded)
+                {
+                    await transaction.RollbackAsync();
+                    _audit.Failure("RefreshToken", rotatedAway.UserId, detail: "session_already_ended_no_successor");
+                    return new BaseResultDto(false, val: Resource.Notification.SessionEndedSignInAgain);
+                }
+
+                if (outcome == RefreshReuseOutcome.Reissue)
                 {
                     var owner = await _context.Users
                         .Include(s => s.Role)

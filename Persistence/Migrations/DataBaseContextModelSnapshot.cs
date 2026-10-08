@@ -4416,6 +4416,18 @@ namespace Persistence.Migrations
                     b.Property<bool>("IsReserved")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("OwnerApprovalDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OwnerDecision")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("OwnerDecisionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OwnerDecisionReason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<long>("PansionId")
                         .HasColumnType("bigint");
 

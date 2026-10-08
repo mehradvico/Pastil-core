@@ -154,6 +154,16 @@ namespace Application.Common.Enumerable.Code
         /// <summary>به مسافر: پایان/لغو سفر؛ اعلان ماندگار قبلی را جایگزین و بعد از چند ثانیه بسته می‌شود.</summary>
         PushTripOngoingEnd = 112,
         /// <summary>به رانندگان: چند نوبت جدید سرویس هفتگی پت‌رسان ساخته شد (یک پوش تجمیعی، نه یک پوش برای هر نوبت). Token1 = تعداد.</summary>
-        PushTripServiceOccurrencesAvailable = 113
+        PushTripServiceOccurrencesAvailable = 113,
+        /// <summary>به مرکز: رزروی پرداخت شد و منتظر تأیید شماست.</summary>
+        PushPansionReserveApprovalRequired = 114,
+        /// <summary>به کاربر: مرکز رزرو را تأیید کرد.</summary>
+        PushPansionReserveApproved = 115,
+        /// <summary>به کاربر: مرکز رزرو را رد کرد و مبلغ به کیف پول برگشت. Token2 = دلیل.</summary>
+        PushPansionReserveRejected = 116,
+        /// <summary>به کاربر: مرکز در مهلت پاسخ نداد؛ رزرو لغو و مبلغ برگشت.</summary>
+        PushPansionReserveExpired = 117,
+        /// <summary>به کاربر: موجودی کیف پول برای کسر نوبت‌های سرویس هفتگی پت‌رسان کافی نیست. Token1 = مبلغ کسری (تومان).</summary>
+        PushTripServiceWalletTopUp = 118
     }
 }

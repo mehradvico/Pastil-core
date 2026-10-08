@@ -2370,6 +2370,111 @@ namespace Application.Services.TripSrv.TripSrv
             return created;
         }
 
+        // Job روزانه (۲ ساعت قبل از job ساخت نوبت‌ها): نوبت‌های فردای سرویس‌های هفتگی‌ای که قرار است از کیف پول
+        // کسر شوند (یعنی در همان سرویس قبلاً یک سفر پرداخت‌شده هست) را جمع می‌زند و اگر موجودی کیف پول کاربر
+        // کمتر از مجموع است، یک پوش «کیف پول را شارژ کنید» می‌فرستد — تا نوبت به‌خاطر کمبود موجودی لغو نشود.
+        // مجموع بر اساس کاربر است (چند سرویس یک کیف پول مشترک دارند). اولین پرداخت هر سرویس با خود کاربر است و اینجا نمی‌آید.
+        public async Task SendPetResanWalletTopUpRemindersAsync()
+        {
+            var tomorrow = DateTime.Today.AddDays(1);
+            var tomorrowDayNumber = PetResanServiceWeekDayNumbers[tomorrow.DayOfWeek];
+
+            var schedules = await _context.PetResanServiceSchedules
+                .Include(s => s.WeekDay)
+                .Include(s => s.PetResanService).ThenInclude(service => service.TripOptions)
+                .Where(s => s.Active
+                    && s.WeekDay.Number == tomorrowDayNumber
+                    && s.PetResanService.Active
+                    && (s.PetResanService.EndDate == null || s.PetResanService.EndDate >= tomorrow))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var neededByUser = new Dictionary<long, double>();
+            var paidServiceCache = new Dictionary<long, bool>();
+
+            foreach (var schedule in schedules)
+            {
+                var service = schedule.PetResanService;
+
+                if (!paidServiceCache.TryGetValue(service.Id, out var hasPaid))
+                {
+                    hasPaid = await _context.Trips.AnyAsync(t =>
+                        t.PetResanServiceSchedule.PetResanServiceId == service.Id && t.IsPaid);
+                    paidServiceCache[service.Id] = hasPaid;
+                }
+                if (!hasPaid)
+                    continue;
+
+                var hasReturn = !string.IsNullOrWhiteSpace(schedule.ReturnTime);
+                var legs = new List<(string Time, bool Reverse, bool RoundTrip)> { (schedule.Time, false, !hasReturn) };
+                if (hasReturn)
+                    legs.Add((schedule.ReturnTime, true, false));
+
+                foreach (var leg in legs)
+                {
+                    if (!ReservationScheduleValidator.TryGetServiceStartDateTime(tomorrow, leg.Time, out var at))
+                        continue;
+
+                    if (await _context.Trips.AnyAsync(t => t.PetResanServiceScheduleId == schedule.Id && t.TripStartDateTime == at))
+                        continue;
+
+                    try
+                    {
+                        var from = leg.Reverse ? service.Destination : service.Origin;
+                        var to = leg.Reverse ? service.Origin : service.Destination;
+                        var price = await _priceCalculationService.CalculateTripPrice(new TripDto
+                        {
+                            Origin = new Application.Common.Dto.LocationPoint.PointDto(from.X, from.Y),
+                            Destination = new Application.Common.Dto.LocationPoint.PointDto(to.X, to.Y),
+                            FromAddress = leg.Reverse ? service.ToAddress : service.FromAddress,
+                            ToAddress = leg.Reverse ? service.FromAddress : service.ToAddress,
+                            TripStartDateTime = at,
+                            RoundTrip = leg.RoundTrip,
+                            TripOptionIds = service.TripOptions?.Select(option => option.Id).ToList() ?? new List<long>()
+                        });
+                        if (price > 0)
+                            neededByUser[service.UserId] = neededByUser.GetValueOrDefault(service.UserId) + price;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Pricing PetResan service {ServiceId} leg for wallet top-up reminder failed.", service.Id);
+                    }
+                }
+            }
+
+            foreach (var (userId, needed) in neededByUser)
+            {
+                try
+                {
+                    var balance = await _walletService.GetAmountValueAsync(userId);
+                    if (balance >= needed)
+                        continue;
+
+                    await SendPetResanWalletTopUpPushOnceAsync(userId, needed - balance);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Sending PetResan wallet top-up reminder to user {UserId} failed.", userId);
+                }
+            }
+        }
+
+        // حداکثر یک پوش «شارژ کیف پول» در روز برای هر کاربر (هم از job یادآوری و هم از لغوِ کمبود موجودی).
+        private async Task SendPetResanWalletTopUpPushOnceAsync(long userId, double shortfall)
+        {
+            var today = DateTime.Today;
+            var alreadySent = await _context.PushNotifications.AnyAsync(p =>
+                p.UserId == userId
+                && p.PushPattern.PushTypeId == (long)PushTypeEnum.PushTripServiceWalletTopUp
+                && p.CreateDate >= today);
+            if (alreadySent)
+                return;
+
+            await _pushNotificationService.SendPushAsync(
+                PushTypeEnum.PushTripServiceWalletTopUp, userId,
+                token1: Math.Ceiling(shortfall).ToString("N0", System.Globalization.CultureInfo.InvariantCulture));
+        }
+
         // یک پوش تجمیعی «N سفر جدید» به همه‌ی رانندگان فعال (نه یک پوش برای هر نوبت)؛ نوبت‌های سرویس هفتگی نوع
         // خودرو ندارند و مستثنی‌سازی راننده هم ندارند، پس همه‌ی رانندگان تأییدشده مخاطب‌اند.
         private async Task BroadcastServiceOccurrencesAsync(int count)
@@ -2471,6 +2576,11 @@ namespace Application.Services.TripSrv.TripSrv
                 : new List<long> { service.UserPetId };
             ApplyTripPets(trip, servicePetIds, null);
 
+            // اولین پرداخت هر سرویس را خود کاربر انجام می‌دهد (بعد از قبول راننده، مثل بقیه‌ی حالت‌های پت‌رسان)؛
+            // فقط نوبت‌های بعدی، وقتی پرداختِ قبلی در همین سرویس وجود دارد، از کیف پول کسر می‌شوند.
+            var hasPaidTripBefore = await _context.Trips.AnyAsync(t =>
+                t.PetResanServiceSchedule.PetResanServiceId == service.Id && t.IsPaid);
+
             await _context.Trips.AddAsync(trip);
             try
             {
@@ -2483,6 +2593,18 @@ namespace Application.Services.TripSrv.TripSrv
                     "Skipped duplicate PetResan service occurrence for schedule {ScheduleId} at {OccurrenceAt}.",
                     schedule.Id,
                     occurrenceAt);
+                return;
+            }
+
+            if (!hasPaidTripBefore)
+            {
+                await _noticeService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.TripDriverSelectionRequired,
+                    ReferenceType = "Trip",
+                    ReferenceId = trip.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.TripDriverSelectionRequired}:{trip.Id}"
+                });
                 return;
             }
 
@@ -2521,6 +2643,16 @@ namespace Application.Services.TripSrv.TripSrv
                 trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.System;
                 trip.CancelReasonDetail = "موجودی کیف پول برای سرویس پت‌رسان هفتگی کافی نبود.";
                 await _context.SaveChangesAsync();
+
+                try
+                {
+                    var balance = await _walletService.GetAmountValueAsync(service.UserId);
+                    await SendPetResanWalletTopUpPushOnceAsync(service.UserId, Math.Max(trip.Price - balance, 0));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Sending wallet top-up push after insufficient-balance cancel (trip {TripId}) failed.", trip.Id);
+                }
 
                 await _noticeService.CreateAsync(new NoticeCreateDto
                 {

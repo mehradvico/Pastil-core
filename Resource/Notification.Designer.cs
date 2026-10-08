@@ -5035,5 +5035,77 @@ namespace Resource {
                 return ResourceManager.GetString("SchoolLocationCoordinatesNotValid", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reservation approved..
+        /// </summary>
+        public static string PansionReserveApprovedSuccessfully {
+            get {
+                return ResourceManager.GetString("PansionReserveApprovedSuccessfully", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reservation cancelled and the amount was refunded to the customer wallet..
+        /// </summary>
+        public static string PansionReserveRejectedSuccessfully {
+            get {
+                return ResourceManager.GetString("PansionReserveRejectedSuccessfully", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the rejection reason..
+        /// </summary>
+        public static string PansionReserveRejectReasonRequired {
+            get {
+                return ResourceManager.GetString("PansionReserveRejectReasonRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refund to the customer wallet failed; try again..
+        /// </summary>
+        public static string PansionReserveRefundFailed {
+            get {
+                return ResourceManager.GetString("PansionReserveRefundFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This reservation is not awaiting approval..
+        /// </summary>
+        public static string PansionReserveApprovalNotPending {
+            get {
+                return ResourceManager.GetString("PansionReserveApprovalNotPending", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This reservation has not been approved by the center yet..
+        /// </summary>
+        public static string PansionReserveAwaitingOwnerApproval {
+            get {
+                return ResourceManager.GetString("PansionReserveAwaitingOwnerApproval", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The center did not respond within the deadline..
+        /// </summary>
+        public static string PansionReserveExpiredReason {
+            get {
+                return ResourceManager.GetString("PansionReserveExpiredReason", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your session has ended (signed out or signed in on another device); please sign in again..
+        /// </summary>
+        public static string SessionEndedSignInAgain {
+            get {
+                return ResourceManager.GetString("SessionEndedSignInAgain", resourceCulture);
+            }
+        }
     }
 }

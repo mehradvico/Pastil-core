@@ -59,6 +59,9 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public long? CompanionReserveId { get; set; }
         public long? PansionReserveId { get; set; }
         public long? SchoolReserveId { get; set; }
+        // نوبتی از «سرویس پت‌رسان هفتگی» (job شبانه می‌سازد). اپ راننده «سرویس دوره‌ای» بودن را از همین فیلد تشخیص می‌دهد؛
+        // این نوبت‌ها ScheduledDepartureAt ندارند (فقط TripStartDateTime) و به هیچ رزروی هم وصل نیستند.
+        public long? PetResanServiceScheduleId { get; set; }
         public int? ScheduledLeadMinutes { get; set; }
         public DateTime? ScheduledDepartureAt { get; set; }
         public bool OwnerRidesAlong { get; set; }

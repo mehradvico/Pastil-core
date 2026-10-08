@@ -19,10 +19,8 @@ namespace Application.Services.ProductSrvs.AiProductMatchSrv.Iface
 
     public interface IAiProductMatchGeminiClient
     {
-        // بررسی این‌که Provider جیمینای فعال و کلیدش تنظیم شده — بدون هیچ فراخوانی واقعی HTTP
         bool IsAvailable(out string providerName);
 
-        // فراخوانی عمومی Gemini با درخواست صریح پاسخ JSON؛ images می‌تواند خالی باشد (فقط متن)
         Task<AiProductMatchGeminiCallResult> GenerateJsonAsync(
             string systemInstruction,
             string userText,

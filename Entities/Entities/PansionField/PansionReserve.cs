@@ -39,6 +39,13 @@ namespace Entities.Entities.PansionField
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
         public bool Permitted { get; set; }
+
+        // تأیید مرکز بعد از پرداخت (PansionReserveOwnerDecisionEnum): ۰ نیاز نیست (رزروهای قدیمی/پرداخت‌نشده)، ۱ منتظر پاسخ،
+        // ۲ تأیید، ۳ رد، ۴ بی‌پاسخ ماند (لغو خودکار). رد یا بی‌پاسخی = لغو + برگشت کل مبلغ به کیف پول کاربر.
+        public int OwnerDecision { get; set; }
+        public DateTime? OwnerDecisionDate { get; set; }
+        public string OwnerDecisionReason { get; set; }
+        public DateTime? OwnerApprovalDeadline { get; set; }
         public Pansion Pansion { get; set; }
         public UserPet UserPet { get; set; }
         public Code Status { get; set; }

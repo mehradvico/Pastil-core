@@ -507,4 +507,19 @@
   <data name="PushTripServiceOccurrencesAvailable" xml:space="preserve">
     <value>{0} سفر جدید سرویس هفتگی برای فردا در دسترس است</value>
   </data>
+  <data name="PushTripServiceWalletTopUp" xml:space="preserve">
+    <value>برای کسر خودکار سفرهای سرویس هفتگی پت‌رسان، حدود {0} تومان به کیف پول شما کم است. لطفاً کیف پول را شارژ کنید.</value>
+  </data>
+  <data name="PushPansionReserveApprovalRequired" xml:space="preserve">
+    <value>رزرو جدید {1} در {0} منتظر تأیید شماست.</value>
+  </data>
+  <data name="PushPansionReserveApproved" xml:space="preserve">
+    <value>رزرو {1} در {0} توسط مرکز تأیید شد.</value>
+  </data>
+  <data name="PushPansionReserveRejected" xml:space="preserve">
+    <value>رزرو شما در {0} توسط مرکز رد شد و مبلغ به کیف پول شما برگشت. دلیل: {1}</value>
+  </data>
+  <data name="PushPansionReserveExpired" xml:space="preserve">
+    <value>مرکز {0} در مهلت مقرر به رزرو شما پاسخ نداد؛ رزرو لغو و مبلغ به کیف پول شما برگشت.</value>
+  </data>
 </root>

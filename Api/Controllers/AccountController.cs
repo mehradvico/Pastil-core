@@ -1,4 +1,5 @@
 ﻿using Application.Common.Enumerable.Message;
+using Application.Common.Dto.Result;
 using Application.Services.Accounting.OtpVerifySrv.Dto;
 using Application.Services.Accounting.OtpVerifySrv.Iface;
 using Application.Services.Accounting.UserSrv.Dto;
@@ -143,7 +144,15 @@ namespace Api.Controllers
         [EnableRateLimiting("RefreshToken")]
         public async Task<IActionResult> Post(RefreshTokenDto dto)
         {
+            // بدنه‌ی ناقص خطای درخواست است (نه توکن نامعتبر)؛ قبلاً با NullReference به ۵۰۰ می‌رسید
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Token) || string.IsNullOrWhiteSpace(dto.RefreshToken))
+                return BadRequest(new BaseResultDto(false, Resource.Notification.InvalidData));
+
             var reset = await userTokenService.RefreshTokenAsync(dto);
+            // اعتبارنامه‌ی refresh باطل/منقضی/استفاده‌شده/متعلق به نشست بسته‌شده = ۴۰۱ (قبلاً ۲۰۰ با isSuccess:false)؛ بدنه همان BaseResultDto
+            // می‌ماند تا کلاینت‌هایی که بدنه را می‌خوانند بشکنند. خطای موقت سرور به ۵۰۰ می‌رود، نه اینجا.
+            if (!reset.IsSuccess)
+                return Unauthorized(reset);
             return Ok(reset);
         }
 

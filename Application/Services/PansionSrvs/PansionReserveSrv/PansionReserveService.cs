@@ -412,6 +412,15 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             }
         }
 
+        // زمان شروع رزرو (برای سقف مهلت پاسخ مرکز): پانسیون = FromDate، مهد = روز + ساعت شروع
+        private static DateTime? ReserveStartAt(PansionReserve reserve)
+        {
+            if (reserve.Pansion?.IsDaycare == true && reserve.SchoolCreateDate.HasValue &&
+                ReservationScheduleValidator.TryGetServiceStartDateTime(reserve.SchoolCreateDate.Value, reserve.StartTime, out var startAt))
+                return startAt;
+            return reserve.FromDate;
+        }
+
         private async Task RunPostCommitActionAsync(Func<Task> action, long reserveId, string actionName)
         {
             try
@@ -498,6 +507,12 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 var paidStatus = await _codeService.GetIdByLabelAsync(PansionReserveStatusEnum.PansionReserveState_Paid.ToString());
                 reserve.StatusId = paidStatus;
 
+                // از این به بعد رزرو باید توسط مرکز تأیید شود؛ بی‌پاسخی تا مهلت = لغو خودکار و برگشت پول (PansionReserveApprovalService)
+                reserve.OwnerDecision = (int)PansionReserveOwnerDecisionEnum.Pending;
+                reserve.OwnerDecisionDate = null;
+                reserve.OwnerDecisionReason = null;
+                reserve.OwnerApprovalDeadline = PansionReserveApprovalRules.Deadline(DateTime.Now, ReserveStartAt(reserve));
+
                 await UpdatePansionReserveCommissionDto(reserve);
 
                 double scoreRatio = 10000;
@@ -514,6 +529,20 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 }
 
                 await _context.SaveChangesAsync();
+
+                var approvalReserveId = reserve.Id;
+                var approvalPansionId = reserve.PansionId;
+                var approvalPetId = reserve.UserPetId;
+                await RunPostCommitActionAsync(async () =>
+                {
+                    var ownerId = await _context.Pansions.AsNoTracking()
+                        .Where(p => p.Id == approvalPansionId).Select(p => (long?)p.Companion.OwnerId).FirstOrDefaultAsync();
+                    var petName = await _context.UserPets.AsNoTracking()
+                        .Where(p => p.Id == approvalPetId).Select(p => p.Pet.Name).FirstOrDefaultAsync();
+                    if (ownerId.HasValue)
+                        await _pushNotificationService.SendPushAsync(PushTypeEnum.PushPansionReserveApprovalRequired, ownerId.Value,
+                            token1: reserve.Pansion?.Name, token2: petName, token3: approvalReserveId.ToString());
+                }, reserve.Id, "pansion reserve approval request push");
 
                 return new BaseResultDto(true, Resource.Notification.Success);
             }
@@ -626,6 +655,11 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             if (item.PaymentPrice == 0)
             {
                 return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.TheFinalPriceHasNotYetBeenRecordedForThisReserve, dto);
+            }
+            if (dto.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete &&
+                !PansionReserveApprovalRules.CanComplete(item.OwnerDecision))
+            {
+                return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.PansionReserveAwaitingOwnerApproval, dto);
             }
             var wasComplete = item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete;
             item.StatusId = dto.StatusId;

@@ -46,6 +46,12 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv.Dto
         public int HourCount { get; set; }
         public int DayCount { get; set; }
 
+        // تأیید مرکز: ۰ نیاز نیست، ۱ منتظر پاسخ مرکز، ۲ تأیید، ۳ رد، ۴ بی‌پاسخ ماند (لغو خودکار)
+        public int OwnerDecision { get; set; }
+        public DateTime? OwnerDecisionDate { get; set; }
+        public string OwnerDecisionReason { get; set; }
+        public DateTime? OwnerApprovalDeadline { get; set; }
+
         public double CompanionShare { get; set; }
         public double SiteShare { get; set; }
 

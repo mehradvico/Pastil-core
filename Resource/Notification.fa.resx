@@ -1819,4 +1819,28 @@
   <data name="SchoolLocationCoordinatesNotValid" xml:space="preserve">
     <value>مختصات موقعیت مدرسه معتبر نیست.</value>
   </data>
+  <data name="PansionReserveApprovedSuccessfully" xml:space="preserve">
+    <value>رزرو تأیید شد.</value>
+  </data>
+  <data name="PansionReserveRejectedSuccessfully" xml:space="preserve">
+    <value>رزرو لغو و مبلغ آن به کیف پول کاربر برگشت داده شد.</value>
+  </data>
+  <data name="PansionReserveRejectReasonRequired" xml:space="preserve">
+    <value>دلیل رد رزرو را وارد کنید.</value>
+  </data>
+  <data name="PansionReserveRefundFailed" xml:space="preserve">
+    <value>برگشت مبلغ به کیف پول کاربر انجام نشد؛ دوباره تلاش کنید.</value>
+  </data>
+  <data name="PansionReserveApprovalNotPending" xml:space="preserve">
+    <value>این رزرو منتظر تأیید نیست (قبلاً پاسخ داده شده، لغو شده یا پرداخت نشده است).</value>
+  </data>
+  <data name="PansionReserveAwaitingOwnerApproval" xml:space="preserve">
+    <value>این رزرو هنوز توسط مرکز تأیید نشده است.</value>
+  </data>
+  <data name="PansionReserveExpiredReason" xml:space="preserve">
+    <value>مرکز در مهلت مقرر به رزرو پاسخ نداد.</value>
+  </data>
+  <data name="SessionEndedSignInAgain" xml:space="preserve">
+    <value>نشست شما پایان یافته است (خروج یا ورود از دستگاه دیگر)؛ دوباره وارد شوید.</value>
+  </data>
 </root>

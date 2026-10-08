@@ -456,4 +456,19 @@
   <data name="PushTripServiceOccurrencesAvailable" xml:space="preserve">
     <value>{0} new weekly service trips are available for tomorrow</value>
   </data>
+  <data name="PushTripServiceWalletTopUp" xml:space="preserve">
+    <value>Your wallet is about {0} short for the automatic charge of your weekly Pet-Rasan service trips. Please top up your wallet.</value>
+  </data>
+  <data name="PushPansionReserveApprovalRequired" xml:space="preserve">
+    <value>A new reservation for {1} at {0} is waiting for your approval.</value>
+  </data>
+  <data name="PushPansionReserveApproved" xml:space="preserve">
+    <value>Your reservation for {1} at {0} was approved.</value>
+  </data>
+  <data name="PushPansionReserveRejected" xml:space="preserve">
+    <value>Your reservation at {0} was rejected and the amount was refunded to your wallet. Reason: {1}</value>
+  </data>
+  <data name="PushPansionReserveExpired" xml:space="preserve">
+    <value>Center {0} did not respond in time; the reservation was cancelled and refunded to your wallet.</value>
+  </data>
 </root>

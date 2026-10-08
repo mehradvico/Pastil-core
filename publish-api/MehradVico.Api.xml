@@ -2672,6 +2672,11 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PansionReserveApproveController">
+            <summary>
+            تأیید رزرو پانسیون/مهد به‌جای مرکز (ادمین)
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionReserveCancelController">
             <summary>
             لغو رزرو پانسیون
@@ -2730,6 +2735,11 @@
             </summary>
             <returns>
             </returns>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.PansionReserveRejectController">
+            <summary>
+            رد رزرو پانسیون/مهد به‌جای مرکز (ادمین): لغو + برگشت کل مبلغ به کیف پول کاربر
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ParkController">
              <summary>
@@ -6523,6 +6533,22 @@
              </summary>
              <returns></returns>
             
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.PansionReserveApproveController">
+            <summary>
+            تأیید رزروِ پرداخت‌شده‌ی پانسیون/مهد توسط مرکز. بدون پاسخ تا مهلت = لغو خودکار و برگشت پول به کاربر.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionReserveApproveController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveDecisionDto)">
+            <summary>تأیید رزرو (فقط مرکزِ مالک)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.PansionReserveRejectController">
+            <summary>
+            رد رزروِ پرداخت‌شده‌ی پانسیون/مهد توسط مرکز: رزرو لغو و کل مبلغ به کیف پول کاربر برمی‌گردد.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionReserveRejectController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveDecisionDto)">
+            <summary>رد رزرو با دلیل (الزامی؛ برای کاربر ارسال می‌شود)</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.SchoolActiveController">
             <summary>

@@ -8,6 +8,7 @@
     ViewData["Title"] = "بازگشت از پرداخت";
     var isSuccess = Model?.IsSuccess == true;
     var returnUrl = TempData["ReturnToSiteUrl"]?.ToString() ?? AppSettingsHelper.BaseUrl;
+    var ordersUrl = returnUrl.TrimEnd('/') + "/orders";
     var payment = Model?.Data;
     var targetType = payment?.CallBackTypeLabel;
     var targetCode = payment?.ReferenceCode;
@@ -94,6 +95,10 @@
         <a class="btn-return" href="@returnUrl">
             <span>بازگشت به اپ پاستیل</span>
             <span class="return-arrow" aria-hidden="true">←</span>
+        </a>
+
+        <a class="btn-orders" href="@ordersUrl">
+            <span>مشاهده سفارش‌ها</span>
         </a>
 
         <footer class="security-note">پرداخت امن پاستیل</footer>
