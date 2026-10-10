@@ -1769,12 +1769,16 @@ namespace Application.Services.TripSrv.TripSrv
                 return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetDestination, null);
 
             var reserve = await _context.CompanionReserves.AsNoTracking()
+                .Include(s => s.CompanionTime)
+                .Include(s => s.CompanionAssistanceTime)
                 .FirstOrDefaultAsync(s => s.Id == dto.CompanionReserveId && s.BookerId == userId);
 
             if (reserve == null)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
 
-            var scheduledDepartureAt = reserve.DoDate.AddMinutes(-dto.ScheduledLeadMinutes);
+            // DoDate فقط «روز» رزرو است (۰۰:۰۰)؛ ساعت واقعی از بازه‌ی رزرو می‌آید. قبلاً حرکت از نیمه‌شب حساب می‌شد.
+            var reserveStartAt = Application.Services.CompanionSrvs.CompanionReserveSrv.CompanionReserveRescheduleRules.StartAt(reserve) ?? reserve.DoDate;
+            var scheduledDepartureAt = reserveStartAt.AddMinutes(-dto.ScheduledLeadMinutes);
             if (scheduledDepartureAt <= DateTime.Now)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.TripInsufficientTimeToAppointmentForInterval, null);
 

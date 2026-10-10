@@ -562,11 +562,18 @@ namespace Application.Services.Content.PostSrv
         }
         public BaseResultDto GetSiteMap()
         {
-            // فقط پست‌هایی که صفحه‌شان واقعاً عمومی است (همان شرط FindAsyncVDto): فعال، تأییدشده و زمان انتشارشان رسیده
-            string sqlQuery = $"SELECT dbo.Posts.Id, dbo.Posts.Name, dbo.Posts.Slug, dbo.Posts.UpdateDate, dbo.Categories.Label As CategoryName FROM dbo.Posts INNER JOIN dbo.Categories ON dbo.Posts.CategoryId = dbo.Categories.Id WHERE dbo.Posts.Active = 1 and dbo.Posts.Deleted=0 and dbo.Posts.AdminConfirm = 1 and dbo.Posts.PublishDate < GETDATE()";
-            //var list = _context.Posts.Include(s => s.Category).Where(s => s.Deleted == false && s.Active && s.AdminConfirm == true).Select(s => new PostSiteMapDto() { Id = s.Id, Name = s.Name, CategoryName = s.Category.Label,UpdateDate=s.PublishDate }).ToList();
-            var connection = new SqlConnection(connectionString);
-            var posts = connection.Query<PostSiteMapDto>(sqlQuery).ToList();
+            // فقط پست‌هایی که صفحه‌شان واقعاً عمومی است (همان شرط FindAsyncVDto): فعال، تأییدشده و زمان انتشارشان رسیده.
+            // زمان با DateTime.Now همین سرور API (Asia/Tehran) مقایسه می‌شود نه GETDATE() دیتابیس، تا اگر ساعت SQL Server
+            // منطقهٔ دیگری باشد مقالهٔ زمان‌بندی‌شده دقیقاً هم‌زمان با صفحه‌اش وارد سایت‌مپ شود (نه زودتر، نه چند ساعت دیرتر).
+            // LEFT JOIN: پست بدون دسته هم صفحهٔ عمومی دارد. noindex ها در سایت‌مپ نمی‌آیند.
+            // UpdateDate برای lastmod: دیرترینِ زمان انتشار و آخرین ویرایش (پستِ ویرایش‌نشده UpdateDate خالی/0001 دارد).
+            const string sqlQuery = @"SELECT p.Id, p.Name, p.Slug,
+                CASE WHEN p.UpdateDate > p.PublishDate THEN p.UpdateDate ELSE p.PublishDate END AS UpdateDate,
+                c.Label AS CategoryName
+                FROM dbo.Posts p LEFT JOIN dbo.Categories c ON p.CategoryId = c.Id
+                WHERE p.Active = 1 AND p.Deleted = 0 AND p.AdminConfirm = 1 AND p.SeoNoIndex = 0 AND p.PublishDate < @Now";
+            using var connection = new SqlConnection(connectionString);
+            var posts = connection.Query<PostSiteMapDto>(sqlQuery, new { Now = DateTime.Now }).ToList();
             return new BaseResultDto<List<PostSiteMapDto>>(true, posts);
         }
 

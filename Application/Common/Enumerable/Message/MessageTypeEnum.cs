@@ -66,6 +66,9 @@
         ProductOrderCancelledByStoreUser,
         ProductOrderItemChangedByAdminStore,
         ProductOrderItemChangedByAdminUser,
-        ProductOrderItemChangedByStoreUser
+        ProductOrderItemChangedByStoreUser,
+        // تغییر زمان رزرو (کلینیک/مربی/آرایشگاه) توسط نماینده یا ادمین: پیامک به کاربر و به راننده‌ی سفر پت‌رسانِ متصل
+        CompanionReserveRescheduledUser,
+        CompanionReserveRescheduledDriver
     }
 }

@@ -471,4 +471,10 @@
   <data name="PushPansionReserveExpired" xml:space="preserve">
     <value>Center {0} did not respond in time; the reservation was cancelled and refunded to your wallet.</value>
   </data>
+  <data name="PushCompanionReserveRescheduledUser" xml:space="preserve">
+    <value>Your reservation at {0} was moved to {1} at {2}. Reason: {3}</value>
+  </data>
+  <data name="PushCompanionReserveRescheduledDriver" xml:space="preserve">
+    <value>The pet-taxi trip for {2} was rescheduled. New departure: {0} at {1}</value>
+  </data>
 </root>

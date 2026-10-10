@@ -38,6 +38,40 @@
 - برگشت پول **یک‌بار** انجام می‌شود (دفتر کیف پول با نام یکتا `PansionReserveRefund:{id}`)؛ تکرار درخواست پول دوباره برنمی‌گرداند.
 - خواندن رزروها همان endpointهای قبلی است و `ownerDecision` را برمی‌گردانند: `GET api/Companion/PansionReserve`، `GET api/EndUser/PansionReserve` و ...
 
+## قرارداد دقیق برای اپ نماینده
+
+> **هشدار املا:** مسیر خواندنِ رزروهای نماینده در بک‌اند با غلط املایی `Comapnion` ثبت شده است؛ مسیرهای تأیید/رد با املای درست `Companion` هستند. هر دو را دقیقاً همین‌طور صدا بزنید.
+
+```
+GET  api/Comapnion/PansionReserve           ← لیست (املای Comapnion)
+GET  api/Comapnion/PansionReserve/{id}      ← جزئیات
+PUT  api/Companion/PansionReserveApprove    body: { "id": 123 }
+PUT  api/Companion/PansionReserveReject     body: { "id": 123, "reason": "ظرفیت تکمیل است" }
+```
+
+- پاسخ approve/reject: `{ "isSuccess": bool, "messages": [...] }`. بک‌اند همیشه HTTP 200 برمی‌گرداند؛ فقط `isSuccess` را چک کنید.
+- `reason` در رد الزامی است؛ خالی = «دلیل رد رزرو را وارد کنید».
+- مسیر ناموجود هم HTTP 200 با `isSuccess:false` می‌دهد؛ پس از روی پاسخ نمی‌توان وجود یک مسیر را از بیرون فهمید.
+- `website/swagger.json` (تاریخ ۲۰ آگوست) قدیمی است و این مسیرها در آن نیست؛ به آن تکیه نکنید.
+
+شکل فیلدهای مهم پاسخ رزرو (`PansionReserveVDto`، camelCase، از روی کد استخراج شده):
+
+```json
+{
+  "id": 123, "reserveCode": "...", "pansionId": 5, "userPetId": 9,
+  "statusId": 47, "isReserved": true, "isCancel": false, "cancelDetail": null,
+  "price": 0, "paymentPrice": 0,
+  "fromDate": "2026-10-10T00:00:00", "toDate": "2026-10-12T00:00:00",
+  "startTime": null, "endTime": null, "schoolCreateDate": null,
+  "ownerDecision": 1,
+  "ownerApprovalDeadline": "2026-10-09T10:00:00",
+  "ownerDecisionDate": null,
+  "ownerDecisionReason": null
+}
+```
+
+`ownerDecision`: `0` نیاز ندارد · `1` منتظر مرکز · `2` تأیید · `3` رد · `4` بی‌پاسخ (لغو خودکار). تاریخ‌ها ساعت تهران و بدون offset هستند.
+
 ## پوش‌ها
 | نوع | گیرنده | متن |
 |---|---|---|

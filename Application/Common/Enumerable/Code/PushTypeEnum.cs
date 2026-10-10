@@ -164,6 +164,10 @@ namespace Application.Common.Enumerable.Code
         /// <summary>به کاربر: مرکز در مهلت پاسخ نداد؛ رزرو لغو و مبلغ برگشت.</summary>
         PushPansionReserveExpired = 117,
         /// <summary>به کاربر: موجودی کیف پول برای کسر نوبت‌های سرویس هفتگی پت‌رسان کافی نیست. Token1 = مبلغ کسری (تومان).</summary>
-        PushTripServiceWalletTopUp = 118
+        PushTripServiceWalletTopUp = 118,
+        /// <summary>به کاربر: زمان رزرو (کلینیک/مربی/آرایشگاه) توسط مرکز یا ادمین تغییر کرد.</summary>
+        PushCompanionReserveRescheduledUser = 119,
+        /// <summary>به راننده‌ی پذیرنده‌ی سفر پت‌رسانِ متصل: زمان حرکت عوض شد.</summary>
+        PushCompanionReserveRescheduledDriver = 120
     }
 }

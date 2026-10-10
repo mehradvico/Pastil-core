@@ -370,6 +370,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<TripDriverExclusion> TripDriverExclusions { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<UserCurrentLocation> UserCurrentLocations { get; set; }
+        public DbSet<CompanionReserveReschedule> CompanionReserveReschedules { get; set; }
         public DbSet<UserBankCard> UserBankCards { get; set; }
         public DbSet<UserCategory> UserCategories { get; set; }
         public DbSet<UserPet> UserPets { get; set; }

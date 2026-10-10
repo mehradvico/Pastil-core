@@ -64,6 +64,9 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv.Dto
         public Application.Services.CompanionSrvs.CompanionReservePackageItemSrv.Dto.CompanionReservePackageItemsVDto PackageItems { get; set; }
         public UserMinVDto Booker { get; set; }
         public CompanionAssistanceVDto CompanionAssistance { get; set; }
+        // زمان رزرو بر اساس ساعت کاری مرکز (رزروهای جدید)؛ CompanionAssistanceTime فقط برای رزروهای قدیمی است
+        public long? CompanionTimeId { get; set; }
+        public Application.Services.CompanionSrv.CompanionTimeSrv.Dto.CompanionTimeVDto CompanionTime { get; set; }
         public CompanionAssistanceTimeVDto CompanionAssistanceTime { get; set; }
         public CompanionAssistanceUserVDto CompanionAssistanceUser { get; set; }
         public CompanionAssistancePackageOnlineSelectionVDto CompanionAssistancePackageOnlineSelection { get; set; }

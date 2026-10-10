@@ -1843,4 +1843,25 @@
   <data name="SessionEndedSignInAgain" xml:space="preserve">
     <value>Your session has ended (signed out or signed in on another device); please sign in again.</value>
   </data>
+  <data name="CompanionReserveRescheduleNotAllowed" xml:space="preserve">
+    <value>This reservation cannot be rescheduled (unpaid, cancelled, done, or instant online).</value>
+  </data>
+  <data name="CompanionReserveRescheduleCurrentSlot" xml:space="preserve">
+    <value>Current reservation time</value>
+  </data>
+  <data name="CompanionReserveRescheduleSlotTooSoon" xml:space="preserve">
+    <value>The time must be at least 30 minutes from now.</value>
+  </data>
+  <data name="CompanionReserveRescheduleSlotFull" xml:space="preserve">
+    <value>This slot is full on that day.</value>
+  </data>
+  <data name="CompanionReserveRescheduleReasonRequired" xml:space="preserve">
+    <value>Enter the reason for the change.</value>
+  </data>
+  <data name="CompanionReserveRescheduleSameSlot" xml:space="preserve">
+    <value>The new time is the same as the current one.</value>
+  </data>
+  <data name="CompanionReserveRescheduledSuccessfully" xml:space="preserve">
+    <value>Reservation time changed and the customer was notified.</value>
+  </data>
 </root>

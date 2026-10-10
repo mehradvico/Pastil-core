@@ -1843,4 +1843,25 @@
   <data name="SessionEndedSignInAgain" xml:space="preserve">
     <value>نشست شما پایان یافته است (خروج یا ورود از دستگاه دیگر)؛ دوباره وارد شوید.</value>
   </data>
+  <data name="CompanionReserveRescheduleNotAllowed" xml:space="preserve">
+    <value>این رزرو قابل تغییر زمان نیست (پرداخت نشده، لغو یا انجام شده، یا آنلاین فوری است).</value>
+  </data>
+  <data name="CompanionReserveRescheduleCurrentSlot" xml:space="preserve">
+    <value>زمان فعلی رزرو</value>
+  </data>
+  <data name="CompanionReserveRescheduleSlotTooSoon" xml:space="preserve">
+    <value>زمان باید حداقل ۳۰ دقیقه بعد از الان باشد.</value>
+  </data>
+  <data name="CompanionReserveRescheduleSlotFull" xml:space="preserve">
+    <value>ظرفیت این بازه در این روز پر است.</value>
+  </data>
+  <data name="CompanionReserveRescheduleReasonRequired" xml:space="preserve">
+    <value>دلیل تغییر زمان را وارد کنید.</value>
+  </data>
+  <data name="CompanionReserveRescheduleSameSlot" xml:space="preserve">
+    <value>زمان جدید با زمان فعلی یکی است.</value>
+  </data>
+  <data name="CompanionReserveRescheduledSuccessfully" xml:space="preserve">
+    <value>زمان رزرو تغییر کرد و به کاربر اطلاع داده شد.</value>
+  </data>
 </root>

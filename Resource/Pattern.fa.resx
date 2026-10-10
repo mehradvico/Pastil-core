@@ -522,4 +522,10 @@
   <data name="PushPansionReserveExpired" xml:space="preserve">
     <value>مرکز {0} در مهلت مقرر به رزرو شما پاسخ نداد؛ رزرو لغو و مبلغ به کیف پول شما برگشت.</value>
   </data>
+  <data name="PushCompanionReserveRescheduledUser" xml:space="preserve">
+    <value>زمان رزرو شما در {0} به {1} ساعت {2} تغییر کرد. علت: {3}</value>
+  </data>
+  <data name="PushCompanionReserveRescheduledDriver" xml:space="preserve">
+    <value>زمان سفر پت‌رسان رزرو {2} تغییر کرد. زمان جدید حرکت: {0} ساعت {1}</value>
+  </data>
 </root>

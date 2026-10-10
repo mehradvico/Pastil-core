@@ -1,4 +1,4 @@
-﻿BEGIN TRANSACTION;
+BEGIN TRANSACTION;
 IF NOT EXISTS (
     SELECT * FROM [__EFMigrationsHistory]
     WHERE [MigrationId] = N'20261007110445_AddPansionReserveOwnerApproval'

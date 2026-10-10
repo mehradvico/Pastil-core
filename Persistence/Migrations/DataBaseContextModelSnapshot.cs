@@ -2320,6 +2320,63 @@ namespace Persistence.Migrations
                     b.ToTable("CompanionReservePackageItems");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CompanionReserveReschedule", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("ActorKind")
+                        .HasColumnType("int");
+
+                    b.Property<long>("ActorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CompanionReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("DriverNotified")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("LinkedTripId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("NewCompanionTimeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("NewDoDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NewStartAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("OldCompanionTimeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("OldDoDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("OldStartAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("UserNotified")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanionReserveId");
+
+                    b.ToTable("CompanionReserveReschedules");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionTime", b =>
                 {
                     b.Property<long>("Id")
@@ -11963,6 +12020,17 @@ namespace Persistence.Migrations
                     b.Navigation("CompanionReserve");
 
                     b.Navigation("StatusChangedByUser");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionReserveReschedule", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionReserve", "CompanionReserve")
+                        .WithMany()
+                        .HasForeignKey("CompanionReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CompanionReserve");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionTime", b =>

@@ -5107,5 +5107,68 @@ namespace Resource {
                 return ResourceManager.GetString("SessionEndedSignInAgain", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This reservation cannot be rescheduled (unpaid, cancelled, done, or instant online)..
+        /// </summary>
+        public static string CompanionReserveRescheduleNotAllowed {
+            get {
+                return ResourceManager.GetString("CompanionReserveRescheduleNotAllowed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Current reservation time.
+        /// </summary>
+        public static string CompanionReserveRescheduleCurrentSlot {
+            get {
+                return ResourceManager.GetString("CompanionReserveRescheduleCurrentSlot", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The time must be at least 30 minutes from now..
+        /// </summary>
+        public static string CompanionReserveRescheduleSlotTooSoon {
+            get {
+                return ResourceManager.GetString("CompanionReserveRescheduleSlotTooSoon", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This slot is full on that day..
+        /// </summary>
+        public static string CompanionReserveRescheduleSlotFull {
+            get {
+                return ResourceManager.GetString("CompanionReserveRescheduleSlotFull", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the reason for the change..
+        /// </summary>
+        public static string CompanionReserveRescheduleReasonRequired {
+            get {
+                return ResourceManager.GetString("CompanionReserveRescheduleReasonRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The new time is the same as the current one..
+        /// </summary>
+        public static string CompanionReserveRescheduleSameSlot {
+            get {
+                return ResourceManager.GetString("CompanionReserveRescheduleSameSlot", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reservation time changed and the customer was notified..
+        /// </summary>
+        public static string CompanionReserveRescheduledSuccessfully {
+            get {
+                return ResourceManager.GetString("CompanionReserveRescheduledSuccessfully", resourceCulture);
+            }
+        }
     }
 }

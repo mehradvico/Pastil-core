@@ -146,31 +146,6 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             }
         }
 
-        public async Task SendNoticeToAdminsAsync(long noticeId, string title, string body, string url)
-        {
-            title = PersianPushTextHelper.EnsurePersian(title, PersianPushTextHelper.DefaultTitle);
-            body = PersianPushTextHelper.EnsurePersian(body, PersianPushTextHelper.DefaultBody);
-
-            var subscriptions = await _context.PushSubscriptions.Include(x => x.User).Where(x => x.IsActive && x.UserId.HasValue && x.User.RoleId == (long)RoleEnum.Admin).AsTracking().ToListAsync();
-            if (subscriptions.Count == 0)
-                return;
-            var payload = JsonSerializer.Serialize(new PushPayloadDto { Title = title, Body = body, Url = url, Tag = $"notice-{noticeId}" }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-            var client = new WebPushClient();
-            var vapid = new VapidDetails("mailto:admin@pastil.pet", _vapid.PublicKey, _vapid.PrivateKey);
-            var invalidSubscriptions = new List<Entities.Entities.PushSubscription>();
-            foreach (var subscription in subscriptions)
-            {
-                var result = await TrySendAsync(client, vapid, payload, subscription);
-                if (result == PushSendResult.Success)
-                    subscription.LastSeen = DateTime.UtcNow;
-                else if (result == PushSendResult.Expired)
-                    invalidSubscriptions.Add(subscription);
-            }
-            if (invalidSubscriptions.Count > 0)
-                _context.PushSubscriptions.RemoveRange(invalidSubscriptions);
-            await _context.SaveChangesAsync();
-        }
-
         private async Task<PushPattern> GetActivePatternAsync(PushTypeEnum pushType)
         {
             var pushTypeId = (long)pushType;

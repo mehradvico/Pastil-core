@@ -715,6 +715,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     .ThenInclude(s => s.CompanionAssistancePackageOnline)
                     .Include(s => s.CompanionAssistancePackageOnlineSelection)
                     .ThenInclude(s => s.CompanionAssistancePackage)
+                    .Include(s => s.CompanionTime)
+                    .Include(s => s.CompanionAssistanceTime)
                     .FirstOrDefaultAsync(s => s.Id == reserveId);
 
                 if (reserve?.Booker == null ||
@@ -800,7 +802,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     var onlineTypeName = reserve.CompanionAssistancePackageOnlineSelection.CompanionAssistancePackageOnline?.Name ?? "";
                     var packageName = reserve.CompanionAssistancePackageOnlineSelection.CompanionAssistancePackage?.Name ?? assistance.Name;
                     var isInstant = reserve.CompanionAssistancePackageOnlineSelection.CompanionAssistancePackageOnline?.IsInstant == true;
-                    var doDateText = reserve.DoDate.ToString("yyyy/MM/dd HH:mm");
+                    // DoDate فقط روز است؛ ساعت واقعی از بازه‌ی رزرو (بدون بازه، همان DoDate مثل قبل)
+                    var reserveStartAt = Application.Services.CompanionSrvs.CompanionReserveSrv.CompanionReserveRescheduleRules.StartAt(reserve) ?? reserve.DoDate;
+                    var doDateText = reserveStartAt.ToString("yyyy/MM/dd HH:mm");
                     var reminderTargetUserId = reserve.CompanionAssistanceUser?.User?.Id ?? companion.Owner.Id;
 
                     await RunPostCommitActionAsync(
@@ -837,7 +841,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                                 token2: packageName,
                                 token3: onlineTypeName,
                                 token4: reserveId.ToString(),
-                                sendDate: reserve.DoDate.AddMinutes(-10)),
+                                sendDate: reserveStartAt.AddMinutes(-10)),
                             reserveId,
                             "companion online reserve reminder (before) push");
 
@@ -849,7 +853,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                                 token2: packageName,
                                 token3: onlineTypeName,
                                 token4: reserveId.ToString(),
-                                sendDate: reserve.DoDate),
+                                sendDate: reserveStartAt),
                             reserveId,
                             "companion online reserve reminder (at time) push");
                     }

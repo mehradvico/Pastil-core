@@ -1351,6 +1351,11 @@
         <member name="M:Api.Areas.Admin.Controllers.CompanionReservePackageController.Delete(System.Int64,System.Int64)">
             <summary>حذف پکیج از رزرو پرداخت‌نشده (برای پرداخت‌شده از لغو استفاده شود)</summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.CompanionReserveRescheduleController">
+            <summary>
+            تغییر زمان رزرو (کلینیک / مربی / آرایشگاه) توسط ادمین
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionReserveUnifiedController">
             <summary>
             لیست یکپارچه‌ی رزروهای خدمت و خریدهای مشاوره آنلاین نمایندگان
@@ -6154,6 +6159,20 @@
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CompanionReservePackageController.Delete(System.Int64,System.Int64)">
             <summary>حذف پکیج از رزرو پرداخت‌نشده (برای پرداخت‌شده از لغو استفاده شود)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CompanionReserveRescheduleController">
+            <summary>
+            تغییر زمان رزرو (کلینیک / مربی / آرایشگاه) توسط نماینده. به کاربر (و راننده‌ی سفر پت‌رسانِ متصل) پیامک می‌رود.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveRescheduleController.Slots(System.Int64,System.DateTime)">
+            <summary>بازه‌های ساعتیِ قابل انتخاب برای یک روز (با ظرفیت باقی‌مانده و دلیل غیرقابل‌انتخاب بودن)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveRescheduleController.Put(Application.Services.CompanionSrvs.CompanionReserveSrv.Dto.CompanionReserveRescheduleDto)">
+            <summary>تغییر زمان رزرو (روز + بازه‌ی ساعتی + دلیل الزامی)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CompanionReserveRescheduleController.History(System.Int64)">
+            <summary>تاریخچه‌ی تغییر زمان یک رزرو</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionTimeController">
              <summary>

@@ -103,16 +103,8 @@ namespace Application.Services.Setting.NoticeSrv
             {
                 _logger.LogError(ex, "Realtime notice delivery failed for NoticeId {NoticeId}", notice.Id);
             }
-            if (notice.NoticeType.Importance != NoticeImportance.Critical)
-                return;
-            try
-            {
-                await _pushNotificationService.SendNoticeToAdminsAsync(notice.Id, notice.Title, notice.Message, notice.NavigationUrl);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Push notice delivery failed for NoticeId {NoticeId}", notice.Id);
-            }
+            // اعلان‌های ادمین فقط درون‌برنامه‌ای (پنل باز) نمایش داده می‌شوند؛ Push سیستمی عمداً ارسال نمی‌شود
+            // تا وقتی ادمین روی دسکتاپ فعال است روی گوشی‌اش نوتیف نرود.
         }
 
         private IQueryable<Notice> NoticeQuery()
