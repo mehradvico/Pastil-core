@@ -69,6 +69,9 @@
         ProductOrderItemChangedByStoreUser,
         // تغییر زمان رزرو (کلینیک/مربی/آرایشگاه) توسط نماینده یا ادمین: پیامک به کاربر و به راننده‌ی سفر پت‌رسانِ متصل
         CompanionReserveRescheduledUser,
-        CompanionReserveRescheduledDriver
+        CompanionReserveRescheduledDriver,
+        // ارسال اکسپرس (میاره + Boost): پیامک فوری به فروشگاه («همین الان پیک بگیرید») و پیامک ثبت به مشتری («۲ تا ۳ ساعت کاری»)
+        ProductOrderExpressStore,
+        ProductOrderExpressUser
     }
 }

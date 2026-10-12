@@ -217,7 +217,25 @@ namespace Application.Services.ProductSrvs.ProductSrv
         public ProductSearchDto Search(ProductInputDto baseSearchDto)
         {
             var model = BaseSaerch(baseSearchDto);
-            return new ProductSearchDto(baseSearchDto, model, mapper);
+            var result = new ProductSearchDto(baseSearchDto, model, mapper);
+            MarkExpressShipping(result.List);
+            return result;
+        }
+
+        // نشان «ارسال اکسپرس»: با یک کوئری برای کل صفحه (نه به‌ازای هر محصول)
+        private void MarkExpressShipping(List<ProductVDto> list)
+        {
+            if (list == null || list.Count == 0)
+                return;
+            var ids = list.Select(item => item.Id).ToList();
+            var express = _context.ProductItems.AsNoTracking()
+                .Where(item => ids.Contains(item.ProductId) && item.Active && item.SystemActive && !item.Deleted && item.Quantity > 0
+                               && item.Store.ExpressShippingEnabled && item.Store.Active && !item.Store.Deleted)
+                .Select(item => item.ProductId)
+                .Distinct()
+                .ToHashSet();
+            foreach (var item in list)
+                item.ExpressShipping = express.Contains(item.Id);
         }
         public async Task<BaseResultDto<ProductDto>> FindAsyncDto(long id, long? storeId = null)
         {

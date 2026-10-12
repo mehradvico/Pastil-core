@@ -25,6 +25,7 @@ namespace Application.Services.TripSrv.TripSrv.Dto
             IsPaid = dto.IsPaid;
             ManualPay = dto.ManualPay;
             ScheduledOrServiceOnly = dto.ScheduledOrServiceOnly;
+            TripKind = dto.TripKind;
         }
 
         public long? FromCityId { get; set; }
@@ -40,6 +41,7 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public DateTime? ToDate { get; set; }
         public double? ToMinute { get; set; }
         public bool? ScheduledOrServiceOnly { get; set; }
+        public string TripKind { get; set; }
 
     }
 }

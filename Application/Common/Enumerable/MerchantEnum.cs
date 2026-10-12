@@ -5,6 +5,7 @@
         zarinpal = 1,
         parsian = 2,
         mellat = 3,
-        samanKish = 4
+        samanKish = 4,
+        pastilTest = 5
     }
 }

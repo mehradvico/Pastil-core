@@ -203,10 +203,8 @@ namespace Application.Services.Content.CargoSrv
                 await _context.SaveChangesAsync();
 
                 var user = _context.UserPets.Include(s => s.User).FirstOrDefault(s => s.Id == item.UserPetId);
-                var admin = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
 
                 await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.CargoUser, mobileReceptor: user.User.Mobile, emailReceptor: null, token1: user.User.FirstName);
-                await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.CargoAdmin, mobileReceptor: admin, emailReceptor: null, token1: user.User.Mobile);
 
 
                 return new BaseResultDto<CargoDto>(true, mapper.Map<CargoDto>(item));
@@ -284,8 +282,9 @@ namespace Application.Services.Content.CargoSrv
             {
                 return new BaseResultDto<CargoSetRebateCodeDto>(false, Resource.Notification.NothingFound, dto);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.CargoPaymentStartedFinancialDataLocked);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (item.Price == 0)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.FinalPriceIsNotAvailable);
@@ -317,8 +316,9 @@ namespace Application.Services.Content.CargoSrv
                 s.Id == id && s.UserPet.UserId == _currentUser.CurrentUser.UserId && !s.IsPaid);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.CargoPaymentStartedFinancialDataLocked);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -339,8 +339,9 @@ namespace Application.Services.Content.CargoSrv
             {
                 return new BaseResultDto<CargoSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.CargoPaymentStartedFinancialDataLocked);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (dto.FromWallet)
             {
                 item.FromWallet = true;
@@ -356,13 +357,13 @@ namespace Application.Services.Content.CargoSrv
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
 
-        private Task<bool> HasActivePaymentAsync(long id)
+        // تغییر کیف پول/تخفیف توسط خود کاربر: تلاش درگاهِ رهاشده (برگشت بدون پرداخت / نرسیدن به درگاه) دیگر قفل نمی‌کند و
+        // کنار گذاشته می‌شود؛ فقط پرداخت موفق («قبلاً پرداخت شده») یا callbackِ در حال verify جلوی تغییر مبلغ را می‌گیرد.
+        private Task<BaseResultDto> GuardFinancialChangeAsync(long id)
         {
-            var callbackId = id.ToString();
-            return _context.Payments.AsNoTracking().AnyAsync(s =>
-                s.CallBackTypeLabel == PaymentCallbackTypeEnum.Cargo.ToString() &&
-                s.CallBackId == callbackId &&
-                (s.IsSuccess == null || s.IsSuccess == true));
+            return Application.Services.Order.PaymentSrv.PaymentAttemptRules.GuardUserRetryAsync(
+                _context, PaymentCallbackTypeEnum.Cargo.ToString(), id.ToString(),
+                Resource.Notification.PaymentCargoRequestAlreadyPaid);
         }
     }
 }

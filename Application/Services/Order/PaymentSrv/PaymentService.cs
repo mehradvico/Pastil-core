@@ -179,6 +179,23 @@ namespace Application.Services.Order.PaymentSrv
                     }
                 }
 
+                if (!string.IsNullOrWhiteSpace(dto.CallBackTypeLabel) &&
+                    !string.IsNullOrWhiteSpace(dto.CallBackId))
+                {
+                    // تلاش نیمه‌کاره‌ی قبلی همین هدف (برگشت از درگاه بدون پرداخت / نرسیدن به درگاه) کاربر را قفل نمی‌کند:
+                    // کنار گذاشته می‌شود و پرداخت تازه با لینک درگاه تازه ساخته می‌شود. (تکرار همان درخواست با همان
+                    // Idempotency-Key بالاتر همان لینک قبلی را برمی‌گرداند و به این‌جا نمی‌رسد.)
+                    // فقط پرداخت موفق («قبلاً پرداخت شده») یا callbackِ در حال verify (چند ثانیه) جلوی تلاش تازه را می‌گیرد.
+                    var targetState = await PaymentAttemptRules.ReleaseForRetryAsync(_context, dto.CallBackTypeLabel, dto.CallBackId);
+                    if (targetState != PaymentAttemptRules.TargetState.Free)
+                    {
+                        await createTransaction.RollbackAsync();
+                        return targetState == PaymentAttemptRules.TargetState.Paid
+                            ? PaymentAttemptRules.AlreadyPaid(Resource.Notification.PaymentTargetAlreadyPaid, dto.CallBackTypeLabel, dto.CallBackId)
+                            : new BaseResultDto(false, Resource.Notification.PaymentPreviousAttemptVerifying);
+                    }
+                }
+
                 if (dto.RebateId.HasValue)
                 {
                     var now = DateTime.Now;
@@ -208,17 +225,6 @@ namespace Application.Services.Order.PaymentSrv
                         await createTransaction.RollbackAsync();
                         return new BaseResultDto(false, Resource.Notification.TheLimitUsesDiscountCodeReached);
                     }
-                }
-                if (!string.IsNullOrWhiteSpace(dto.CallBackTypeLabel) &&
-                    !string.IsNullOrWhiteSpace(dto.CallBackId) &&
-                    await _context.Payments.AsNoTracking().AnyAsync(s =>
-                        s.UserId == dto.UserId.Value &&
-                        s.CallBackTypeLabel == dto.CallBackTypeLabel &&
-                        s.CallBackId == dto.CallBackId &&
-                        (s.IsSuccess == null || s.IsSuccess == true)))
-                {
-                    await createTransaction.RollbackAsync();
-                    return new BaseResultDto(false, Resource.Notification.PaymentActiveOrSuccessfulPaymentAlreadyExistsForTarget);
                 }
 
                 item = mapper.Map<Payment>(dto);
@@ -468,7 +474,7 @@ namespace Application.Services.Order.PaymentSrv
                     return new BaseResultDto<PaymentDto>(true, await MapPaymentForDisplayAsync(payment));
                 }
 
-                if (payment.IsSuccess == null && payment.CreateDate < DateTime.Now.AddMinutes(-30))
+                if (payment.IsSuccess == null && payment.CreateDate < DateTime.Now - PaymentAttemptRules.PendingAttemptLifetime)
                 {
                     payment.IsSuccess = false;
                     payment.GatewayStatus = "EXPIRED";
@@ -478,22 +484,56 @@ namespace Application.Services.Order.PaymentSrv
 
                 if (payment.IsSuccess == false)
                 {
+                    // درگاهِ یک تلاش کنارگذاشته‌شده پرداخت شد: verify نمی‌شود تا بانک مبلغ را برگرداند؛ کاربر باید دلیلش را بداند
+                    var failMessage = payment.GatewayStatus == PaymentAttemptRules.SupersededGatewayStatus
+                        ? Resource.Notification.PaymentAttemptSuperseded
+                        : Resource.Notification.Unsuccess;
                     return new BaseResultDto<PaymentDto>(
                         false,
-                        Resource.Notification.Unsuccess,
+                        failMessage,
                         await MapPaymentForDisplayAsync(payment));
                 }
 
                 if (payment.IsSuccess != true)
                 {
-                    var callbackResult = await _merchantService.CallbackAsync(payment);
-                    if (!callbackResult.IsSuccess)
+                    // قبل از verify با بانک «در حال تأیید» علامت می‌خورد تا تلاش تازه‌ی هم‌زمانِ کاربر این پرداخت را کنار نگذارد
+                    // (وگرنه بانک پول را قطعی می‌کرد و پرداختِ کنارگذاشته روی رزرو/سفارش اعمال نمی‌شد).
+                    if (!await PaymentAttemptRules.TryMarkVerifyingAsync(_context, payment.Id))
                     {
-                        await HandleFailedPaymentAsync(payment);
-                        return new BaseResultDto<PaymentDto>(
-                            false,
-                            callbackResult.Messages,
-                            await MapPaymentForDisplayAsync(payment));
+                        // بین خواندن و علامت‌زدن، تلاش تازه‌ی کاربر این پرداخت را کنار گذاشت یا callback دیگری نتیجه را ثبت کرد
+                        await _context.Entry(payment).ReloadAsync();
+                        if (payment.AppliedDate.HasValue)
+                            return new BaseResultDto<PaymentDto>(true, await MapPaymentForDisplayAsync(payment));
+                        if (payment.IsSuccess != true)
+                        {
+                            return new BaseResultDto<PaymentDto>(
+                                false,
+                                payment.GatewayStatus == PaymentAttemptRules.SupersededGatewayStatus
+                                    ? Resource.Notification.PaymentAttemptSuperseded
+                                    : Resource.Notification.Unsuccess,
+                                await MapPaymentForDisplayAsync(payment));
+                        }
+                    }
+                    else
+                    {
+                        BaseResultDto callbackResult;
+                        try
+                        {
+                            callbackResult = await _merchantService.CallbackAsync(payment);
+                        }
+                        finally
+                        {
+                            // اگر نتیجه‌ای ثبت نشد (خطای تنظیمات/exception)، علامت برداشته می‌شود تا تلاش بعدی کاربر قفل نماند
+                            await PaymentAttemptRules.ClearVerifyingAsync(_context, payment.Id);
+                        }
+                        if (!callbackResult.IsSuccess)
+                        {
+                            await HandleFailedPaymentAsync(payment);
+                            return new BaseResultDto<PaymentDto>(
+                                false,
+                                callbackResult.Messages,
+                                await MapPaymentForDisplayAsync(payment));
+                        }
                     }
                 }
 
@@ -682,8 +722,16 @@ namespace Application.Services.Order.PaymentSrv
             var reservedetail = await _context.CompanionReserves.Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == dto.CompanionReserveId);
             if (reservedetail == null || reservedetail.BookerId != dto.UserId)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (reservedetail.IsReserved || reservedetail.IsCancel)
-                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var reserveBlocked = await GuardRetryAsync(
+                reservedetail.IsCancel, reservedetail.IsReserved, Resource.Notification.PaymentReserveAlreadyPaid,
+                PaymentCallbackTypeEnum.CompanionReserve, reservedetail.Id.ToString());
+            // عضو یک سبد: پرداخت سبدیِ رهاشده هم کنار گذاشته می‌شود تا دو پرداخت هم‌زمان برای یک رزرو باز نماند
+            if (reserveBlocked == null && reservedetail.BatchId.HasValue)
+                reserveBlocked = await PaymentAttemptRules.GuardUserRetryAsync(
+                    _context, PaymentCallbackTypeEnum.CompanionReserveBatch.ToString(), reservedetail.BatchId.Value.ToString(),
+                    Resource.Notification.PaymentReserveAlreadyPaid);
+            if (reserveBlocked != null)
+                return reserveBlocked;
             var reserveRebateValidation = ValidateAppliedRebate(
                 reservedetail.Rebate,
                 reservedetail.PrePaymentPrice + reservedetail.RebatePrice,
@@ -756,8 +804,11 @@ namespace Application.Services.Order.PaymentSrv
             var reservedetail = await _context.PansionReserves.Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == dto.PansionReserveId);
             if (reservedetail == null || reservedetail.BookerId != dto.UserId)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (reservedetail.IsReserved || reservedetail.IsCancel)
-                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var pansionBlocked = await GuardRetryAsync(
+                reservedetail.IsCancel, reservedetail.IsReserved, Resource.Notification.PaymentReserveAlreadyPaid,
+                PaymentCallbackTypeEnum.PansionReserve, reservedetail.Id.ToString());
+            if (pansionBlocked != null)
+                return pansionBlocked;
             var pansionRebateValidation = ValidateAppliedRebate(
                 reservedetail.Rebate,
                 reservedetail.PaymentPrice + reservedetail.RebatePrice,
@@ -826,8 +877,11 @@ namespace Application.Services.Order.PaymentSrv
             var reservedetail = await _context.SchoolReserves.Include(s => s.Rebate).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.SchoolReserveId);
             if (reservedetail == null || reservedetail.BookerId != dto.UserId)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (reservedetail.IsReserved || reservedetail.IsCancel)
-                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var schoolBlocked = await GuardRetryAsync(
+                reservedetail.IsCancel, reservedetail.IsReserved, Resource.Notification.PaymentReserveAlreadyPaid,
+                PaymentCallbackTypeEnum.SchoolReserve, reservedetail.Id.ToString());
+            if (schoolBlocked != null)
+                return schoolBlocked;
             var schoolRebateValidation = ValidateAppliedRebate(
                 reservedetail.Rebate,
                 reservedetail.PaymentPrice + reservedetail.RebatePrice,
@@ -904,8 +958,21 @@ namespace Application.Services.Order.PaymentSrv
 
             if (!members.Any() || members.Any(s => s.BookerId != dto.UserId))
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (members.Any(s => s.IsReserved || s.IsCancel))
-                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            // اعضای سبد با یک پرداخت واحد پرداخت می‌شوند؛ پس پرداخت‌شدنِ هر عضو یعنی پرداخت‌شدنِ سبد
+            var batchBlocked = await GuardRetryAsync(
+                members.Any(s => s.IsCancel), members.Any(s => s.IsReserved), Resource.Notification.PaymentReserveAlreadyPaid,
+                PaymentCallbackTypeEnum.CompanionReserveBatch, dto.CompanionReserveBatchId.ToString());
+            // پرداخت تکیِ رهاشده‌ی هر عضو هم کنار گذاشته می‌شود
+            foreach (var member in members)
+            {
+                if (batchBlocked != null)
+                    break;
+                batchBlocked = await PaymentAttemptRules.GuardUserRetryAsync(
+                    _context, PaymentCallbackTypeEnum.CompanionReserve.ToString(), member.Id.ToString(),
+                    Resource.Notification.PaymentReserveAlreadyPaid);
+            }
+            if (batchBlocked != null)
+                return batchBlocked;
 
             var totalPrePayment = members.Sum(s => s.PrePaymentPrice);
             var totalRebate = members.Sum(s => s.RebatePrice);
@@ -969,8 +1036,11 @@ namespace Application.Services.Order.PaymentSrv
             var tripdetail = await _context.Trips.Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == dto.TripId);
             if (tripdetail == null || tripdetail.UserId != dto.UserId)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (tripdetail.IsPaid)
-                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var tripBlocked = await GuardRetryAsync(
+                false, tripdetail.IsPaid, Resource.Notification.PaymentTripAlreadyPaid,
+                PaymentCallbackTypeEnum.Trip, tripdetail.Id.ToString());
+            if (tripBlocked != null)
+                return tripBlocked;
             var tripRebateValidation = ValidateAppliedRebate(
                 tripdetail.Rebate, tripdetail.Price, tripdetail.UserId, RebateTypeLabels.Trip, tripdetail.RebatePrice);
             if (!tripRebateValidation.IsSuccess)
@@ -1036,8 +1106,11 @@ namespace Application.Services.Order.PaymentSrv
             var cargodetail = await _context.Cargoes.Include(s => s.UserPet).Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == dto.CargoId);
             if (cargodetail == null || cargodetail.UserPet?.UserId != dto.UserId)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (cargodetail.IsPaid)
-                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var cargoBlocked = await GuardRetryAsync(
+                false, cargodetail.IsPaid, Resource.Notification.PaymentCargoRequestAlreadyPaid,
+                PaymentCallbackTypeEnum.Cargo, cargodetail.Id.ToString());
+            if (cargoBlocked != null)
+                return cargoBlocked;
             var cargoRebateValidation = ValidateAppliedRebate(
                 cargodetail.Rebate, cargodetail.Price, cargodetail.UserPet.UserId, RebateTypeLabels.Cargo, cargodetail.RebatePrice);
             if (!cargoRebateValidation.IsSuccess)
@@ -1102,8 +1175,11 @@ namespace Application.Services.Order.PaymentSrv
             var insuranceDetail = await _context.CompanionInsurancePackageSales.Include(s => s.UserPet).Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == dto.CompanionInsurancePackageSaleId);
             if (insuranceDetail == null || insuranceDetail.UserPet?.UserId != dto.UserId)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (insuranceDetail.IsPaid)
-                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var insuranceBlocked = await GuardRetryAsync(
+                false, insuranceDetail.IsPaid, Resource.Notification.PaymentInsuranceAlreadyPaid,
+                PaymentCallbackTypeEnum.Insurance, insuranceDetail.Id.ToString());
+            if (insuranceBlocked != null)
+                return insuranceBlocked;
             var insuranceRebateValidation = ValidateAppliedRebate(
                 insuranceDetail.Rebate,
                 insuranceDetail.Price,
@@ -1174,6 +1250,19 @@ namespace Application.Services.Order.PaymentSrv
         public async Task<Payment> FindAsync(long id)
         {
             return await _context.Payments.Include(s => s.User).Include(s => s.Type).Include(s => s.ProductOrder).Include(s => s.Merchant).ThenInclude(s => s.Bank).AsTracking().SingleOrDefaultAsync(s => s.Id == id);
+        }
+
+        // ورودی مشترک پرداخت هر هدف: لغوشده ⇒ پیام لغو؛ پرداخت‌شده ⇒ «قبلاً پرداخت شده» (کد ۲۰)؛ وگرنه تلاش‌های رهاشده‌ی قبلی
+        // همین‌جا (قبل از بازمحاسبه‌ی سهم کیف پول روی خود هدف) کنار گذاشته می‌شوند. null یعنی پرداخت تازه می‌تواند شروع شود.
+        private async Task<BaseResultDto> GuardRetryAsync(
+            bool isCancelled, bool isPaid, string alreadyPaidMessage, PaymentCallbackTypeEnum target, string callBackId)
+        {
+            if (isCancelled)
+                return new BaseResultDto(false, Resource.Notification.PaymentTargetCancelled);
+            var label = target.ToString();
+            if (isPaid)
+                return PaymentAttemptRules.AlreadyPaid(alreadyPaidMessage, label, callBackId);
+            return await PaymentAttemptRules.GuardUserRetryAsync(_context, label, callBackId, alreadyPaidMessage);
         }
 
         private BaseResultDto ValidateAppliedRebate(

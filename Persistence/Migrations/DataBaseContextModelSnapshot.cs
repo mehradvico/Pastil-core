@@ -806,6 +806,9 @@ namespace Persistence.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("float");
 
+                    b.Property<bool>("ShippingIsExpress")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("ShippingPaymentMode")
                         .HasColumnType("int");
 
@@ -7620,6 +7623,9 @@ namespace Persistence.Migrations
                     b.Property<string>("ProductOrderId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool>("ShippingIsExpress")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("ShippingPaymentMode")
                         .HasColumnType("int");
 
@@ -9158,6 +9164,12 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<double?>("BoostAmount")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("BoostLevel")
+                        .HasColumnType("int");
+
                     b.Property<double>("ChargedPrice")
                         .HasColumnType("float");
 
@@ -9177,6 +9189,9 @@ namespace Persistence.Migrations
                     b.Property<DateTime?>("DisputeReportedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<double>("ExpressSurcharge")
+                        .HasColumnType("float");
+
                     b.Property<string>("ExternalShipmentId")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
@@ -9184,6 +9199,9 @@ namespace Persistence.Migrations
                     b.Property<string>("FailureReason")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsExpress")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("LateNotifiedAtUtc")
                         .HasColumnType("datetime2");
@@ -9222,6 +9240,9 @@ namespace Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("SellerConfirmedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SellerNotReadyAdminNotifiedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("SellerReminderSentAtUtc")
@@ -9288,9 +9309,15 @@ namespace Persistence.Migrations
                     b.Property<DateTime>("ExpiresAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<double>("ExpressSurcharge")
+                        .HasColumnType("float");
+
                     b.Property<string>("ExternalQuoteId")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
+
+                    b.Property<bool>("IsExpress")
+                        .HasColumnType("bit");
 
                     b.Property<int>("PaymentMode")
                         .HasColumnType("int");
@@ -9636,6 +9663,9 @@ namespace Persistence.Migrations
 
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ExpressShippingEnabled")
+                        .HasColumnType("bit");
 
                     b.Property<long?>("IconId")
                         .HasColumnType("bigint");

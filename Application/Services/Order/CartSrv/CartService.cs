@@ -375,6 +375,7 @@ namespace Application.Services.Order.CartSrv
                 cartStore.ShippingQuoteId = null;
                 cartStore.ShippingSlotId = null;
                 cartStore.ShippingSlotDate = null;
+                cartStore.ShippingIsExpress = false;
                 cartStore.ShippingProvider = null;
                 cartStore.ShippingPaymentMode = null;
                 cartStore.ShippingQuotedPrice = 0;
@@ -476,6 +477,7 @@ namespace Application.Services.Order.CartSrv
                 cartStore.ShippingQuoteId = null;
                 cartStore.ShippingSlotId = null;
                 cartStore.ShippingSlotDate = null;
+                cartStore.ShippingIsExpress = false;
                 cartStore.ShippingProvider = null;
                 cartStore.ShippingPaymentMode = null;
                 cartStore.ShippingQuotedPrice = 0;
@@ -518,6 +520,7 @@ namespace Application.Services.Order.CartSrv
                     s.ShippingQuoteId = null;
                     s.ShippingSlotId = null;
                     s.ShippingSlotDate = null;
+                    s.ShippingIsExpress = false;
                     s.ShippingProvider = null;
                     s.ShippingPaymentMode = null;
                     s.ShippingQuotedPrice = 0;

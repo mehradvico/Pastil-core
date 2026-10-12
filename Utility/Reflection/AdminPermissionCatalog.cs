@@ -1,4 +1,4 @@
-namespace Utility.Reflection
+﻿namespace Utility.Reflection
 {
     internal sealed record PermissionParentDefinition(
         long Id,
@@ -9,7 +9,14 @@ namespace Utility.Reflection
     internal sealed record ControllerPermissionDefinition(
         PermissionParentDefinition Parent,
         int Priority,
-        bool IsMenu);
+        bool IsMenu,
+        string HostController);
+
+    // یک «بخش» پنل: کنترلر اصلی + کنترلرهای کمکی‌اش (فعال‌سازی، تأیید، تغییر وضعیت، تصاویر، اکسل و…).
+    // کنترلرهای کمکی در درخت دسترسی زیر همان بخش می‌نشینند، نه هم‌سطح آن زیر گروه.
+    internal sealed record PermissionSectionDefinition(
+        string Controller,
+        IReadOnlyList<string> Children);
 
     internal static class AdminPermissionCatalog
     {
@@ -139,314 +146,225 @@ namespace Utility.Reflection
 
             AddGroup(result, "Settings",
             [
-                "Role",
-                "Permission",
-                "PermissionSync",
-                "Category",
-                "Ticket",
-                "PushMessage",
-                "PushBroadcast",
-                "PushDiagnostics",
-                "RolePermission",
-                "CodeGroup",
-                "Code",
-                "TicketChangeImportant",
-                "TicketAdmin",
-                "TicketChangeStatus",
-                "Bank",
-                "TicketChangeAdmin",
-                "TicketMessage",
-                "BaseDetail",
-                "ClubReward",
-                "NotifyMessage",
-                "SearchAnalytics",
-                "ServerMonitoring",
+                S("Role", "RolePermission"),
+                S("Permission", "PermissionSync"),
+                S("Category", "CategoryFeature", "CategoryLanguage", "CategoryVariety"),
+                S("Ticket", "TicketAdmin", "TicketMessage", "TicketChangeStatus", "TicketChangeImportant", "TicketChangeAdmin"),
+                S("PushMessage", "PushBroadcast", "PushDiagnostics", "NotifyMessage"),
+                S("CodeGroup", "Code"),
+                S("Bank"),
+                S("BaseDetail"),
+                S("ClubReward"),
+                S("SearchAnalytics"),
+                S("ServerMonitoring"),
             ]);
 
             AddGroup(result, "UserManager",
             [
-                "User",
-                "UserPet",
-                "UserMemory",
-                "UserStats"
+                S("User", "UserStats", "UserDebt"),
+                S("UserPet", "UserPetRecord", "UserPetPicture"),
+                S("UserMemory"),
             ]);
 
             AddGroup(result, "PetManagement",
             [
-                "Pet",
-                "PetBreed",
-                "PetBreedCharacteristic",
-                "PetTag",
-                "PetTagExcel",
-                "UserPetPicture",
-                "UserPetRecord"
+                S("Pet"),
+                S("PetBreed", "PetBreedCharacteristic"),
+                S("PetTag", "PetTagExcel"),
+                S("PetMicrochipRequest"),
             ]);
 
             AddGroup(result, "CompanionManagement",
             [
-                "Companion",
-                "CompanionInsurancePackage",
-                "CompanionInsuranceManualPay",
-                "PansionPet",
-                "PansionPicture",
-                "CompanionUserAvailable",
-                "CompanionReport",
-                "Assistance",
-                "AssistanceGroup",
-                "Expertise",
-                "AssistanceExpertise",
-                "PansionActive",
-                "CompanionActivation",
-                "CompanionReserveAssign",
-                "CompanionReserveAssignee",
-                "CompanionAssistance",
-                "CompanionAssistancePackageActivation",
-                "CompanionAssistanceUserActivation",
-                "CompanionInsurancePackageActivation",
-                "PansionApprove",
-                "CompanionAssistanceReport",
-                "CompanionUpdateGoldAccount",
-                "CompanionInsurancePackageSale",
-                "ConsultationPurchase",
-                "ConsultationPackage",
-                "CompanionAssistanceTime",
-                "CompanionTime",
-                "CompanionUpdateSilverAccount",
-                "Pansion",
-                "CompanionAssistancePackage",
-                "CompanionAssistancePackageOnline",
-                "CompanionAssistancePackageOnlineSelection",
-                "CompanionAssistancePackageOnlineSelectionActivation",
-                "PansionComment",
-                "CompanionAssistanceUser",
-                "CompanionZone",
-                "CompanionUser",
-                "CompanionReserveComment",
-                "Notice",
-                "AssistanceQuestionnaire",
-                "CompanionAssistanceActivation",
-                "CompanionAssistancePackagePicture",
-                "CompanionComment",
-                "CompanionPet",
-                "CompanionType",
-                "School",
-                "SchoolActive",
-                "SchoolApprove",
-                "SchoolCourse",
-                "SchoolCourseSession",
-                "SchoolCourseVideo",
-                "SchoolPicture",
-                "SchoolCoursePet"
+                S("Companion",
+                    "CompanionActivation", "CompanionUpdateGoldAccount", "CompanionUpdateSilverAccount",
+                    "CompanionPet", "CompanionTime", "CompanionZone", "CompanionComment", "CompanionReport"),
+                S("CompanionUser", "CompanionUserAvailable"),
+                S("CompanionType"),
+                S("Assistance", "AssistanceExpertise"),
+                S("AssistanceGroup"),
+                S("Expertise"),
+                S("AssistanceQuestionnaire"),
+                S("CompanionAssistance",
+                    "CompanionAssistanceActivation", "CompanionAssistanceTime", "CompanionAssistanceReport"),
+                S("CompanionAssistanceUser", "CompanionAssistanceUserActivation"),
+                S("CompanionAssistancePackage",
+                    "CompanionAssistancePackageActivation", "CompanionAssistancePackagePicture"),
+                S("CompanionAssistancePackageOnline",
+                    "CompanionAssistancePackageOnlineSelection", "CompanionAssistancePackageOnlineSelectionActivation"),
+                S("CompanionInsurancePackage",
+                    "CompanionInsurancePackageActivation", "CompanionInsurancePackageSale", "CompanionInsuranceManualPay"),
+                S("Pansion", "PansionActive", "PansionApprove", "PansionPet", "PansionPicture", "PansionComment"),
+                S("School",
+                    "SchoolActive", "SchoolApprove", "SchoolPicture",
+                    "SchoolCourse", "SchoolCourseSession", "SchoolCourseVideo", "SchoolCoursePet"),
+                S("Notice"),
             ]);
 
             AddGroup(result, "ShopManagement",
             [
-                "Store",
-                "StoreApproval",
-                "Product",
-                "Brand",
-                "BrandLanguage",
-                "Variety",
-                "VarietyLanguage",
-                "Feature",
-                "Delivery",
-                "Discount",
-                "DiscussionQuestion",
-                "StoreComment",
-                "ProductReport",
-                "DiscussionAnswer",
-                "ProductComment",
-                "Cargo",
-                "ProductFile",
-                "DiscountGroup",
-                "CategoryLanguage",
-                "ProductPicture",
-                "BrandCategory",
-                "CategoryFeature",
-                "DeliveryDistance",
-                "DiscussionAnswerActive",
-                "FeatureItem",
-                "ProductChangeVariety",
-                "ProductFeatureValue",
-                "ProductItem",
-                "ProductRelate",
-                "ProductsExcel",
-                "StoreUser",
-                "UpdateCargoStatus",
-                "VarietyItem",
-                "MissingProduct",
+                S("Store", "StoreApproval", "StoreUser", "StoreComment"),
+                S("Product",
+                    "ProductPicture", "ProductFile", "ProductItem", "ProductRelate", "ProductFeatureValue",
+                    "ProductChangeVariety", "ProductVariety", "ProductsExcel", "ProductComment", "ProductReport"),
+                S("MissingProduct"),
+                S("Brand", "BrandLanguage", "BrandCategory"),
+                S("Variety", "VarietyLanguage", "VarietyItem"),
+                S("Feature", "FeatureItem"),
+                S("Delivery", "DeliveryDistance", "ShippingSlot"),
+                S("Cargo", "UpdateCargoStatus"),
+                S("Discount"),
+                S("DiscountGroup"),
+                S("DiscussionQuestion", "DiscussionAnswer", "DiscussionAnswerActive"),
             ]);
 
             AddGroup(result, "PastilAIManagement",
             [
-                "PastilAI"
+                S("PastilAI"),
             ]);
 
             AddGroup(result, "ContentManagement",
             [
-                "StoryItem",
-                "StoryGroup",
-                "WeekDay",
-                "Post",
-                "PostFile",
-                "Banner",
-                "StaticPage",
-                "PostComment",
-                "ContactUsGroup",
-                "ContactUs",
-                "PetMicrochipRequest",
-                "Detail",
-                "Gallery",
-                "GalleryItem",
-                "File",
-                "Picture",
-                "Hashtag",
-                "PostProduct",
-                "PostPicture",
-                "Newsletter"
+                S("StoryGroup", "StoryItem"),
+                S("Post", "PostFile", "PostPicture", "PostProduct", "PostComment", "Hashtag"),
+                S("Banner"),
+                S("StaticPage"),
+                S("Detail"),
+                S("Gallery", "GalleryItem"),
+                S("ContactUs", "ContactUsGroup"),
+                S("Newsletter"),
+                S("WeekDay"),
+                S("File"),
+                S("Picture"),
             ]);
 
             AddGroup(result, "ReminderManagement",
             [
-                "Reminder",
-                "ReminderType",
-                "ReminderCycle"
+                S("Reminder"),
+                S("ReminderType"),
+                S("ReminderCycle"),
             ]);
 
             AddGroup(result, "FinancialManagement",
             [
-                "ProductOrderCancelRequest",
-                "Finance",
-                "FinanceReport",
-                "FinanceStore",
-                "UserBankCard",
-                "ProductOrder",
-                "ProductOrderChangeDescriptions",
-                "FinanceCompanionAssistance",
-                "FinanceConsultationPackage",
-                "ProductOrderChangeState",
-                "CompanionReserve",
-                "CompanionReservePackage",
-                "CompanionReserveUnified",
-                "CompanionReserveCancel",
-                "PansionReserveChangeStatus",
-                "FinancePansion",
-                "ProductOrderChangeStatus",
-                "PansionReserve",
-                "PansionReserveCancel",
-                "SchoolReserve",
-                "SchoolReserveCancel",
-                "SchoolReserveChangeStatus",
-                "ProductOrderTrackingCode",
-                "Merchant",
-                "ProductOrderItem",
-                "BankCard",
-                "CompanionReserveChangeState",
-                "CompanionReserveExcel",
-                "FinanceCompanion",
-                "FinanceDriver",
-                "ManualTripPayment",
-                "ManualPayment",
-                "ProductOrderStore",
-                "Settlement",
-                "UserBankCardApprove",
-                "Wallet"
+                S("Finance",
+                    "FinanceStore", "FinanceCompanion", "FinanceCompanionAssistance", "FinanceConsultationPackage",
+                    "FinancePansion", "FinanceDriver", "Settlement", "ManualPayment", "ManualTripPayment"),
+                S("FinanceReport"),
+                S("ProductOrder",
+                    "ProductOrderItem", "ProductOrderItemAdjust", "ProductOrderStore", "ProductOrderChangeStatus",
+                    "ProductOrderChangeState", "ProductOrderChangeDescriptions", "ProductOrderTrackingCode",
+                    "ProductOrderCancelRequest"),
+                // رزرو نمایندگان + هرچه به رزرو و مشاوره‌ی آنلاین مربوط است؛ مشاوره‌ها فقط این‌جا هستند، نه زیر «مدیریت نمایندگان».
+                S("CompanionReserve",
+                    "CompanionReserveUnified", "CompanionReserveAssign", "CompanionReserveAssignee",
+                    "CompanionReserveChangeState", "CompanionReserveReschedule", "CompanionReserveCancel",
+                    "CompanionReserveExcel", "CompanionReserveComment",
+                    "ConsultationPurchase", "ConsultationPackage"),
+                S("CompanionReservePackage"),
+                S("PansionReserve",
+                    "PansionReserveApprove", "PansionReserveReject", "PansionReserveChangeStatus", "PansionReserveCancel"),
+                S("SchoolReserve", "SchoolReserveChangeStatus", "SchoolReserveCancel"),
+                S("Wallet"),
+                S("UserBankCard", "UserBankCardApprove", "BankCard"),
+                S("Merchant"),
             ]);
 
             AddGroup(result, "LocationManagement",
             [
-                "Country",
-                "State",
-                "City",
-                "CityLanguage",
-                "ParkPicture",
-                "Park",
-                "Neighborhood",
-                "Address"
+                S("Country"),
+                S("State"),
+                S("City", "CityLanguage"),
+                S("Neighborhood"),
+                S("Park", "ParkPicture"),
+                S("Address"),
             ]);
 
             AddGroup(result, "PastilMatchManagement",
             [
-                "PastilMatchProfile",
-                "PastilMatchProfileVerification",
-                "PastilMatchProfileGoal",
-                "PastilMatchReportReview",
-                "PastilMatchProfileActive",
-                "PastilMatchMessageAttachment",
-                "PastilMatchRequest",
-                "PastilMatch",
-                "PastilMatchBlock",
-                "PastilMatchReportReasonActive",
-                "PastilMatchMessageReaction",
-                "PastilMatchReport",
-                "PastilMatchReportReason",
-                "PastilMatchMessage"
+                S("PastilMatchProfile",
+                    "PastilMatchProfileActive", "PastilMatchProfileVerification", "PastilMatchProfileGoal"),
+                S("PastilMatchRequest"),
+                S("PastilMatch"),
+                S("PastilMatchBlock"),
+                S("PastilMatchMessage", "PastilMatchMessageAttachment", "PastilMatchMessageReaction"),
+                S("PastilMatchReport", "PastilMatchReportReview"),
+                S("PastilMatchReportReason", "PastilMatchReportReasonActive"),
             ]);
 
             AddGroup(result, "SiteManagement",
             [
-                "SiteDashboard",
-                "SitePost",
-                "SiteGallery",
-                "SiteBanner",
-                "SiteCompanion",
-                "SiteAssistance",
-                "SitePansion",
-                "SiteStore",
-                "SiteSchool"
+                S("SiteDashboard"),
+                S("SitePost"),
+                S("SiteGallery"),
+                S("SiteBanner"),
+                S("SiteCompanion"),
+                S("SiteAssistance"),
+                S("SitePansion"),
+                S("SiteStore"),
+                S("SiteSchool"),
             ]);
 
             AddGroup(result, "PastilClubManagement",
             [
-                "PastilClubPointRule",
-                "PastilClubPointTransaction",
-                "PastilClubPointIncrease",
-                "PastilClubPointDecrease",
-                "PastilClubRewardTemplate",
-                "PastilClubRewardOffer",
-                "PastilClubRewardRedemption",
-                "PastilClubRewardApprove",
-                "PastilClubRewardReject",
-                "PastilClubRewardBulkApprove",
-                "PastilClubRewardBulkReject",
-                "Rebate"
+                S("PastilClubPointRule"),
+                S("PastilClubPointTransaction", "PastilClubPointIncrease", "PastilClubPointDecrease"),
+                S("PastilClubRewardTemplate"),
+                S("PastilClubRewardOffer"),
+                S("PastilClubRewardRedemption",
+                    "PastilClubRewardApprove", "PastilClubRewardReject",
+                    "PastilClubRewardBulkApprove", "PastilClubRewardBulkReject"),
+                S("Rebate"),
             ]);
 
             AddGroup(result, "TripManagement",
             [
-                "Driver",
-                "DriverUpdateStatus",
-                "Trip",
-                "TripLive",
-                "TripOption",
-                "TripStop",
-                "TripAddress",
-                "TripChangeStatus",
-                "TripChooseDriver",
-                "TripShare",
-                "PriceCalculation"
+                S("Driver", "DriverUpdateStatus"),
+                S("Trip", "TripLive", "TripAddress", "TripChangeStatus", "TripChooseDriver", "TripShare"),
+                S("TripOption"),
+                S("TripStop"),
+                S("PriceCalculation"),
             ]);
 
             return result;
         }
 
+        private static PermissionSectionDefinition S(string controller, params string[] children) =>
+            new(controller, children);
+
+        // اولویت زیربخش‌ها بعد از actionهای خودِ بخش است تا در درخت دسترسی زیر «مشاهده/افزودن/ویرایش/حذف» بیایند.
+        internal const int ChildControllerPriorityOffset = 100;
+
         private static void AddGroup(
             IDictionary<string, ControllerPermissionDefinition> target,
             string parentLabel,
-            IReadOnlyList<string> controllers)
+            IReadOnlyList<PermissionSectionDefinition> sections)
         {
             var parent = Parents.Single(x =>
                 x.Label.Equals(parentLabel, StringComparison.OrdinalIgnoreCase));
 
-            for (var index = 0; index < controllers.Count; index++)
+            for (var index = 0; index < sections.Count; index++)
             {
-                var controller = controllers[index];
+                var section = sections[index];
                 target.Add(
-                    controller,
+                    section.Controller,
                     new ControllerPermissionDefinition(
                         parent,
                         index + 1,
-                        MenuControllers.Contains(controller)));
+                        MenuControllers.Contains(section.Controller),
+                        null));
+
+                for (var childIndex = 0; childIndex < section.Children.Count; childIndex++)
+                {
+                    var child = section.Children[childIndex];
+                    target.Add(
+                        child,
+                        new ControllerPermissionDefinition(
+                            parent,
+                            ChildControllerPriorityOffset + childIndex + 1,
+                            MenuControllers.Contains(child),
+                            section.Controller));
+                }
             }
         }
     }

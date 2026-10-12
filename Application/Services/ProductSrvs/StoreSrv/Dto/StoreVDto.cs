@@ -34,6 +34,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
         public bool ShowToSite { get; set; }
         public decimal CommissionPercent { get; set; }
         public int MaxPreparationMinutes { get; set; }
+        public bool ExpressShippingEnabled { get; set; }
         public PointDto Location { get; set; }
         public PictureVDto Picture { get; set; }
         public PictureVDto Icon { get; set; }

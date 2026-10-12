@@ -5,6 +5,7 @@ using Application.Common.Helpers;
 using Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface;
 using Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto;
 using Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface;
+using Application.Services.Order.PaymentSrv;
 using Application.Services.Order.PaymentSrv.Dto;
 using Application.Services.Order.PaymentSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
@@ -30,6 +31,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
         private const string CancelReasonAdmin = "AdminCancelled";
         private const string CancelReasonPaymentFailed = "PaymentFailed";
         private const string CancelReasonStartDeadline = "StartDeadlineExpired";
+        private const string CancelReasonSuperseded = "Superseded";
         private const int ExpireBatchSize = 100;
 
         private readonly IDataBaseContext _context;
@@ -104,41 +106,74 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
 
                 var paid = (int)ConsultationPurchaseStatusEnum.Paid;
                 var active = (int)ConsultationPurchaseStatusEnum.Active;
-                if (!bookable)
+                var purchaseLabel = PaymentCallbackTypeEnum.ConsultationPurchase.ToString();
+                // هر مورد «قبلاً خریداری‌شده» با کد ۲۰ و شناسه‌ی همان خرید برمی‌گردد تا فرانت به‌جای خطا جزئیاتش را نشان دهد
+                if (bookable)
+                {
+                    // همین پکیج و همین ساعت قبلاً پرداخت شده (مثلاً کاربر بعد از پرداخت موفق دوباره «خرید» را زد)
+                    var samePurchaseId = await _context.ConsultationPurchases.AsNoTracking()
+                        .Where(s => s.UserId == userId && s.ConsultationPackageId == package.Id &&
+                                    s.ScheduledStart == scheduledStart && (s.Status == paid || s.Status == active))
+                        .Select(s => (long?)s.Id)
+                        .FirstOrDefaultAsync();
+                    if (samePurchaseId.HasValue)
+                        return PaymentAttemptRules.AlreadyPaid(Resource.Notification.ConsultationAlreadyPurchased, purchaseLabel, samePurchaseId.Value.ToString());
+                }
+                else
                 {
                     // خرید تکراری اشتباهی: همان کلینیک و همان کانال، در حالی که یکی پرداخت‌شده/در جریان دارد
                     // (رزروهای ساعت‌دار آینده مانع خرید فوری نیستند؛ فقط خرید فوریِ باز حساب می‌شود)
-                    var alreadyHasOne = await _context.ConsultationPurchases.AsNoTracking().AnyAsync(s =>
-                        s.UserId == userId && s.CompanionId == package.CompanionId && s.ChannelId == package.ChannelId &&
-                        s.ScheduledStart == null && (s.Status == paid || s.Status == active));
-                    if (alreadyHasOne)
-                        return new BaseResultDto(false, Resource.Notification.ConsultationAlreadyInProgress);
+                    var sameChannelId = await _context.ConsultationPurchases.AsNoTracking()
+                        .Where(s => s.UserId == userId && s.CompanionId == package.CompanionId && s.ChannelId == package.ChannelId &&
+                                    s.ScheduledStart == null && (s.Status == paid || s.Status == active))
+                        .Select(s => (long?)s.Id)
+                        .FirstOrDefaultAsync();
+                    if (sameChannelId.HasValue)
+                        return PaymentAttemptRules.AlreadyPaid(Resource.Notification.ConsultationAlreadyInProgress, purchaseLabel, sameChannelId.Value.ToString());
 
                     // تا وقتی زمانِ یک مشاوره‌ی فوریِ خریداری‌شده تمام نشده (منتظر شروع و در مهلت، یا در جریان و پنجره‌اش باز)،
                     // کاربر مشاوره‌ی فوریِ دیگری — با هر کلینیک یا روشی — نمی‌تواند بخرد.
                     var nowForBlock = DateTime.Now;
-                    var hasLiveConsultation = await _context.ConsultationPurchases.AsNoTracking().AnyAsync(s =>
-                        s.UserId == userId && s.ScheduledStart == null &&
-                        ((s.Status == paid && (s.StartDeadline == null || s.StartDeadline > nowForBlock)) ||
-                         (s.Status == active && (s.ExpireDate == null || s.ExpireDate > nowForBlock))));
-                    if (hasLiveConsultation)
-                        return new BaseResultDto(false, Resource.Notification.ConsultationAlreadyInProgress);
+                    var liveConsultationId = await _context.ConsultationPurchases.AsNoTracking()
+                        .Where(s => s.UserId == userId && s.ScheduledStart == null &&
+                                    ((s.Status == paid && (s.StartDeadline == null || s.StartDeadline > nowForBlock)) ||
+                                     (s.Status == active && (s.ExpireDate == null || s.ExpireDate > nowForBlock))))
+                        .Select(s => (long?)s.Id)
+                        .FirstOrDefaultAsync();
+                    if (liveConsultationId.HasValue)
+                        return PaymentAttemptRules.AlreadyPaid(Resource.Notification.ConsultationAlreadyInProgress, purchaseLabel, liveConsultationId.Value.ToString());
                 }
 
-                // خرید در انتظار پرداختِ در جریان (درگاه باز است) دوباره ساخته نمی‌شود؛ بدون پرداخت‌های قدیمی همین پکیج کنار گذاشته می‌شوند
+                // خریدهای «در انتظار پرداخت» قبلی همین کاربر (برگشت از درگاه بدون پرداخت، نرسیدن به درگاه، قطع شبکه) دیگر قفل نمی‌کنند:
+                // تلاش درگاهشان کنار گذاشته و خودشان لغو می‌شوند (ظرفیت ساعتی که نگه داشته بودند هم آزاد می‌شود) و خرید تازه ساخته می‌شود.
+                // فقط اگر پرداخت یکی از آن‌ها واقعاً موفق شده یا callbackش همین الان در حال verify است، کاربر متوقف می‌شود.
                 var pending = (int)ConsultationPurchaseStatusEnum.PendingPayment;
-                var recentWithPayment = DateTime.Now.AddMinutes(-15);
-                var inProgress = await _context.ConsultationPurchases.AsNoTracking().AnyAsync(s =>
-                    s.UserId == userId && s.ConsultationPackageId == package.Id && s.Status == pending &&
-                    s.PaymentId != null && s.CreateDate > recentWithPayment);
-                if (inProgress)
-                    return new BaseResultDto(false, Resource.Notification.CompanionPaymentStartedFinancialDataLocked);
-                await _context.ConsultationPurchases
-                    .Where(s => s.UserId == userId && s.ConsultationPackageId == package.Id && s.Status == pending && s.PaymentId == null)
-                    .ExecuteUpdateAsync(setters => setters
-                        .SetProperty(s => s.Status, (int)ConsultationPurchaseStatusEnum.Cancelled)
-                        .SetProperty(s => s.CancelDate, (DateTime?)DateTime.Now)
-                        .SetProperty(s => s.CancelReason, "Superseded"));
+                var stalePendingIds = await _context.ConsultationPurchases.AsNoTracking()
+                    .Where(s => s.UserId == userId && s.Status == pending)
+                    .Select(s => s.Id)
+                    .ToListAsync();
+                if (stalePendingIds.Count > 0)
+                {
+                    await PaymentAttemptRules.SupersedeUserPendingAsync(_context, userId, purchaseLabel);
+                    var staleKeys = stalePendingIds.Select(id => id.ToString()).ToList();
+                    var unfinished = await _context.Payments.AsNoTracking()
+                        .Where(s => s.UserId == userId && s.CallBackTypeLabel == purchaseLabel && staleKeys.Contains(s.CallBackId) &&
+                                    (s.IsSuccess == true || s.IsSuccess == null && s.AppliedDate == null))
+                        .Select(s => new { s.CallBackId, s.IsSuccess })
+                        .ToListAsync();
+                    var paidAttempt = unfinished.FirstOrDefault(s => s.IsSuccess == true);
+                    if (paidAttempt != null)
+                        return PaymentAttemptRules.AlreadyPaid(Resource.Notification.ConsultationAlreadyPurchased, purchaseLabel, paidAttempt.CallBackId);
+                    if (unfinished.Count > 0)
+                        return new BaseResultDto(false, Resource.Notification.PaymentPreviousAttemptVerifying);
+
+                    await _context.ConsultationPurchases
+                        .Where(s => stalePendingIds.Contains(s.Id) && s.Status == pending)
+                        .ExecuteUpdateAsync(setters => setters
+                            .SetProperty(s => s.Status, (int)ConsultationPurchaseStatusEnum.Cancelled)
+                            .SetProperty(s => s.CancelDate, (DateTime?)DateTime.Now)
+                            .SetProperty(s => s.CancelReason, CancelReasonSuperseded));
+                }
 
                 double rebateDiscount = 0;
                 long? rebateId = null;

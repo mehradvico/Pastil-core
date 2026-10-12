@@ -477,4 +477,19 @@
   <data name="PushCompanionReserveRescheduledDriver" xml:space="preserve">
     <value>The pet-taxi trip for {2} was rescheduled. New departure: {0} at {1}</value>
   </data>
+  <data name="PushShipmentExpressAwaitingSeller" xml:space="preserve">
+    <value>Express order {0} placed; prepare it and request the courier now (by {1}).</value>
+  </data>
+  <data name="PushOrderExpressUser" xml:space="preserve">
+    <value>Express order {0} placed; delivery within {1}.</value>
+  </data>
+  <data name="PushShipmentSellerNotReadyAdmin" xml:space="preserve">
+    <value>Seller {1} has not prepared order {0} yet (deadline {2}); please follow up.</value>
+  </data>
+  <data name="PushTripServiceReminderDriver" xml:space="preserve">
+    <value>Your weekly Pet-Rasan service starts at {0}. Please be ready on time.</value>
+  </data>
+  <data name="PushTripServiceReminderUser" xml:space="preserve">
+    <value>Your weekly Pet-Rasan service starts at {0}. Please have your pet ready.</value>
+  </data>
 </root>

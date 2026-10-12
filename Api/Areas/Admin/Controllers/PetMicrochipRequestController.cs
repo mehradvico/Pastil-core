@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.Accounting.PetMicrochipSrv.Dto;
 using Application.Services.Accounting.PetMicrochipSrv.Iface;
@@ -8,8 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// درخواست‌های جستجوی میکروچیپ و پیگیری توسط پاستیل (ادمین مشخصات مالک پت را می‌بیند)
+    /// پت های گمشده
     /// </summary>
+    /// <remarks>
+    /// درخواست‌های جستجوی میکروچیپ و پیگیری توسط پاستیل (ادمین مشخصات مالک پت را می‌بیند).
+    /// متن summary نام این بخش در منو و درخت دسترسی‌هاست (permission sync).
+    /// </remarks>
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]

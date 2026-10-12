@@ -373,18 +373,15 @@ namespace Application.Services.CompanionSrvs.CompanionReservePackageItemSrv
                 s.CompanionId == companion.Id && s.UserId == actorUserId && !s.Deleted && s.Active && s.UserAccept == true);
         }
 
-        private Task<bool> HasActivePaymentAsync(CompanionReserve reserve)
+        // تغییر سمت نماینده/ادمین: فقط تلاشی که کاربر ممکن است همین الان روی درگاهش باشد (یا پرداخت موفق) قفل می‌کند؛
+        // تلاش رهاشده‌ی قدیمی‌تر از عمر درگاه دیگر هرگز اعمال نمی‌شود و نباید رزرو را برای همیشه قفل کند.
+        private async Task<bool> HasActivePaymentAsync(CompanionReserve reserve)
         {
-            var callbackId = reserve.Id.ToString();
-            var batchCallbackId = reserve.BatchId?.ToString();
-            return _context.Payments.AsNoTracking().AnyAsync(s =>
-                (s.IsSuccess == null || s.IsSuccess == true) &&
-                (
-                    s.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserve.ToString() && s.CallBackId == callbackId ||
-                    batchCallbackId != null &&
-                        s.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserveBatch.ToString() &&
-                        s.CallBackId == batchCallbackId
-                ));
+            if (await Application.Services.Order.PaymentSrv.PaymentAttemptRules.HasLiveAttemptAsync(
+                    _context, PaymentCallbackTypeEnum.CompanionReserve.ToString(), reserve.Id.ToString()))
+                return true;
+            return reserve.BatchId.HasValue && await Application.Services.Order.PaymentSrv.PaymentAttemptRules.HasLiveAttemptAsync(
+                _context, PaymentCallbackTypeEnum.CompanionReserveBatch.ToString(), reserve.BatchId.Value.ToString());
         }
 
         // برای رزروهای قدیمی (و هر پکیجی که ردیف ندارد) ردیف می‌سازد؛ داخل تراکنش صدا زده می‌شود و ردیف‌های tracked را برمی‌گرداند.

@@ -155,6 +155,27 @@ namespace Application.Services.PastilAISrv
             if (!typeId.HasValue)
                 return new BaseResultDto(false, Resource.Notification.PastilAiPaymentTypeNotConfigured);
 
+            // خریدهای «در انتظار پرداخت» قبلیِ رهاشده (برگشت از درگاه بدون پرداخت) کنار گذاشته می‌شوند تا کاربر با برگشتن به
+            // درگاه قدیمی، دو اشتراک نخرد؛ فقط callbackِ در حال verify (چند ثانیه) خرید تازه را متوقف می‌کند.
+            var pastilAiLabel = PaymentCallbackTypeEnum.PastilAI.ToString();
+            await PaymentAttemptRules.SupersedeUserPendingAsync(_context, userId, pastilAiLabel);
+            var stalePendingIds = await _context.PastilAiSubscriptions.AsNoTracking()
+                .Where(x => x.UserId == userId && x.Status == PastilAiSubscriptionStatus.PendingPayment)
+                .Select(x => x.Id)
+                .ToListAsync(cancellationToken);
+            if (stalePendingIds.Count > 0)
+            {
+                var staleKeys = stalePendingIds.Select(id => id.ToString()).ToList();
+                var verifying = await _context.Payments.AsNoTracking().AnyAsync(x =>
+                    x.UserId == userId && x.CallBackTypeLabel == pastilAiLabel && staleKeys.Contains(x.CallBackId) &&
+                    (x.IsSuccess == true || x.IsSuccess == null && x.AppliedDate == null), cancellationToken);
+                if (verifying)
+                    return new BaseResultDto(false, Resource.Notification.PaymentPreviousAttemptVerifying);
+                await _context.PastilAiSubscriptions
+                    .Where(x => stalePendingIds.Contains(x.Id) && x.Status == PastilAiSubscriptionStatus.PendingPayment)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Status, PastilAiSubscriptionStatus.PaymentFailed), cancellationToken);
+            }
+
             var subscription = new PastilAiSubscription
             {
                 UserId = userId,

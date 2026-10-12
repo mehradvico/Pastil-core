@@ -752,16 +752,6 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     "companion SMS");
 
                 await RunPostCommitActionAsync(
-                    () => _messageSender.SendMessageAsync(
-                        MessageTypeEnum.CompanionReserveForAdmin,
-                        _adminSettingHelper.BaseAdminSetting?.AdminMobiles,
-                        null,
-                        token1: assistance.Name,
-                        token2: companion.Name),
-                    reserveId,
-                    "admin SMS");
-
-                await RunPostCommitActionAsync(
                     () => _pushNotificationService.SendPushAsync(
                         PushTypeEnum.PushRegisterReserveUser,
                         booker.Id,
@@ -1993,18 +1983,6 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
 
             _context.CompanionReserves.Update(item);
             await _context.SaveChangesAsync();
-            if (dto.UserResponse == false)
-            {
-
-                await _messageSender.SendMessageAsync(
-        messageType: MessageTypeEnum.AdminNotifyUserResponse,
-        mobileReceptor: _adminSettingHelper.BaseAdminSetting.AdminMobiles,
-        emailReceptor: null,
-        token1: item.Booker.Mobile,
-        token2: item.CompanionAssistance.Companion.Name,
-        token3: item.PaymentPrice.ToString()
-    );
-            }
             return new BaseResultDto<CompanionReserveUserResponseDto>(true, mapper.Map<CompanionReserveUserResponseDto>(item));
         }
 
@@ -2025,8 +2003,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
-            if (await HasActivePaymentAsync(item))
-                return new BaseResultDto(false, Resource.Notification.CompanionReservePaymentStartedFinancialDataLocked);
+            var financialLock = await GuardFinancialChangeAsync(item);
+            if (financialLock != null)
+                return financialLock;
             var originalPrice = item.PrePaymentPrice + item.RebatePrice;
             item.PrePaymentPrice = originalPrice;
             var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
@@ -2060,8 +2039,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 s.Id == id && s.BookerId == _currentUser.CurrentUser.UserId && !s.IsReserved);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (await HasActivePaymentAsync(item))
-                return new BaseResultDto(false, Resource.Notification.CompanionReservePaymentStartedFinancialDataLocked);
+            var financialLock = await GuardFinancialChangeAsync(item);
+            if (financialLock != null)
+                return financialLock;
             if (!item.RebateId.HasValue)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -2086,8 +2066,9 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             {
                 return new BaseResultDto<CompanionReserveSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
-            if (await HasActivePaymentAsync(item))
-                return new BaseResultDto(false, Resource.Notification.CompanionReservePaymentStartedFinancialDataLocked);
+            var financialLock = await GuardFinancialChangeAsync(item);
+            if (financialLock != null)
+                return financialLock;
             if (item.StateId == (long)CompanionReserveStateEnum.CompanianReserveState_Complete)
             {
                 return new BaseResultDto<CompanionReserveSetWalletDto>(false, Resource.Notification.ThisReserveIsCompleted, dto);
@@ -2111,20 +2092,19 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
 
-        private Task<bool> HasActivePaymentAsync(CompanionReserve reserve)
+        // تغییر کیف پول/تخفیف توسط خود کاربر: تلاش درگاهِ رهاشده (برگشت بدون پرداخت / نرسیدن به درگاه) دیگر قفل نمی‌کند و
+        // کنار گذاشته می‌شود؛ فقط پرداخت موفق («قبلاً پرداخت شده») یا callbackِ در حال verify جلوی تغییر مبلغ را می‌گیرد.
+        // اگر این رزرو بخشی از یک سبد رزرو باشد، پرداخت آن زیر شناسه‌ی سبد ثبت می‌شود؛ پس هر دو حالت بررسی می‌شود.
+        private async Task<BaseResultDto> GuardFinancialChangeAsync(CompanionReserve reserve)
         {
-            var callbackId = reserve.Id.ToString();
-            // اگر این رزرو بخشی از یک سبد رزرو باشد، پرداخت فعال آن زیر شناسه‌ی سبد (نه خودِ رزرو) ثبت
-            // می‌شود؛ پس باید هر دو حالت را چک کنیم تا بعد از شروع پرداخت سبدی، داده‌ی مالی این عضو هم قفل شود.
-            var batchCallbackId = reserve.BatchId?.ToString();
-            return _context.Payments.AsNoTracking().AnyAsync(s =>
-                (s.IsSuccess == null || s.IsSuccess == true) &&
-                (
-                    s.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserve.ToString() && s.CallBackId == callbackId ||
-                    batchCallbackId != null &&
-                        s.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserveBatch.ToString() &&
-                        s.CallBackId == batchCallbackId
-                ));
+            var blocked = await PaymentAttemptRules.GuardUserRetryAsync(
+                _context, PaymentCallbackTypeEnum.CompanionReserve.ToString(), reserve.Id.ToString(),
+                Resource.Notification.PaymentReserveAlreadyPaid);
+            if (blocked == null && reserve.BatchId.HasValue)
+                blocked = await PaymentAttemptRules.GuardUserRetryAsync(
+                    _context, PaymentCallbackTypeEnum.CompanionReserveBatch.ToString(), reserve.BatchId.Value.ToString(),
+                    Resource.Notification.PaymentReserveAlreadyPaid);
+            return blocked;
         }
 
         private void UpdateCompanionReserveCommission(CompanionReserve item)

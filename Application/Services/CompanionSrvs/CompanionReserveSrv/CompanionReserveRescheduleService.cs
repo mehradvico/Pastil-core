@@ -199,7 +199,8 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv
             await transaction.CommitAsync(cancellationToken);
 
             // بعد از commit: پیامک به کاربر و راننده. شکست پیامک رزرو را برنمی‌گرداند؛ وضعیتش در تاریخچه ثبت می‌شود.
-            var centerName = ShipmentLifecycleRules.ForSmsToken(reserve.CompanionAssistance?.Companion?.Name, 60);
+            // فرمت توکن‌ها در CompanionReserveRescheduleRules.Sms*؛ سقف طول/فاصله را SmsService (KavenegarLookupToken) اعمال می‌کند
+            var centerName = CompanionReserveRescheduleRules.SmsText(reserve.CompanionAssistance?.Companion?.Name);
             var oldDateForSms = CompanionReserveRescheduleRules.JalaliDate((oldStartAt ?? oldDoDate));
             var newStart = newStartAt.Value;
 
@@ -212,7 +213,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv
                 token2: oldDateForSms,
                 token3: CompanionReserveRescheduleRules.JalaliDate(newStart),
                 token4: CompanionReserveRescheduleRules.SmsTime(newStart),
-                token5: ShipmentLifecycleRules.ForSmsToken(reason, CompanionReserveRescheduleRules.MaxReasonLength),
+                token5: CompanionReserveRescheduleRules.SmsText(reason),
                 reserveId: reserve.Id);
             var userNotified = userSms || userPushed;
 

@@ -3437,8 +3437,12 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PetMicrochipRequestController">
             <summary>
-            درخواست‌های جستجوی میکروچیپ و پیگیری توسط پاستیل (ادمین مشخصات مالک پت را می‌بیند)
+            پت های گمشده
             </summary>
+            <remarks>
+            درخواست‌های جستجوی میکروچیپ و پیگیری توسط پاستیل (ادمین مشخصات مالک پت را می‌بیند).
+            متن summary نام این بخش در منو و درخت دسترسی‌هاست (permission sync).
+            </remarks>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.PetMicrochipRequestController.Get(Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipRequestInputDto)">
             <summary>فهرست؛ پیش‌فرض فقط درخواست‌های پیگیری</summary>
@@ -8388,6 +8392,11 @@
              دریافت همه 
             </summary>
         </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PermissionMenuController.Actions">
+            <summary>
+             دسترسی‌های action ناحیه Admin برای نقش کاربر جاری
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.PetResanServiceController">
             <summary>
             سرویس پت‌رسان تکرارشونده‌ی هفتگی (رفت‌وبرگشت خودکار، تخصیص راننده با ادمین)
@@ -10698,7 +10707,7 @@
             مرتبط با بنر ها
             </summary>
         </member>
-        <member name="M:Api.Controllers.MerchantController.#ctor(Application.Services.Order.MerchantSrv.Iface.IMerchantService)">
+        <member name="M:Api.Controllers.MerchantController.#ctor(Application.Services.Order.MerchantSrv.Iface.IMerchantService,Application.Common.Interface.ICurrentUserHelper)">
             <summary>
             مرتبط با درگاه بانکی
             </summary>

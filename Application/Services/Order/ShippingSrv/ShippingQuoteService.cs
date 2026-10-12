@@ -156,6 +156,16 @@ namespace Application.Services.Order.ShippingSrv
                     results.Add(await SaveQuoteAsync(cart, cartStore, delivery,
                         ShippingPaymentModeEnum.ReceiverPays, providerResult.Price,
                         providerResult.ExternalQuoteId, now, cancellationToken));
+
+                // ارسال اکسپرس: فقط میاره، فقط فروشگاهی که فعالش کرده، فقط پیش‌پرداخت (اضافه‌ی اکسپرس باید همین حالا از مشتری گرفته شود)
+                if (delivery.ShippingProvider == ShippingProviderEnum.Miare && delivery.AllowPrepaid &&
+                    await IsExpressAvailableAsync(cartStore, cart, now, cancellationToken))
+                {
+                    var surcharge = await GetExpressSurchargeAsync(provider, cancellationToken);
+                    results.Add(await SaveQuoteAsync(cart, cartStore, delivery,
+                        ShippingPaymentModeEnum.Prepaid, ShippingExpressRules.ExpressPrice(providerResult.Price, surcharge),
+                        providerResult.ExternalQuoteId, now, cancellationToken, isExpress: true, expressSurcharge: surcharge));
+                }
             }
             }
 
@@ -185,7 +195,16 @@ namespace Application.Services.Order.ShippingSrv
                 return new BaseResultDto(false, Resource.Notification.ShippingCartAddressChangedRefetchQuote);
 
             // ارسال با میاره بدون روز و بازه‌ی معتبر انتخاب نمی‌شود؛ روش‌های دیگر (پست و ...) زمان‌بندی ندارند
-            var requiresSlot = quote.Provider == ShippingProviderEnum.Miare;
+            var requiresSlot = quote.Provider == ShippingProviderEnum.Miare && !quote.IsExpress;
+            if (quote.IsExpress)
+            {
+                // اکسپرس بدون روز/بازه است؛ ولی فقط در ساعت کاری و برای فروشگاهِ فعال‌کننده پذیرفته می‌شود
+                var expressStore = await _context.Stores.AsNoTracking()
+                    .FirstOrDefaultAsync(item => item.Id == quote.CartStore.StoreId, cancellationToken);
+                if (!ShippingExpressRules.IsOpen(DateTime.UtcNow, _options.Express.OpenTime, _options.Express.CloseTime) ||
+                    !_options.Express.Enabled || expressStore?.ExpressShippingEnabled != true)
+                    return new BaseResultDto(false, Resource.Notification.ShippingExpressNotAvailable);
+            }
             if (requiresSlot)
             {
                 if (!slotId.HasValue || !slotDate.HasValue)
@@ -211,6 +230,7 @@ namespace Application.Services.Order.ShippingSrv
             quote.CartStore.ShippingQuotedPrice = quote.Price;
             quote.CartStore.ShippingSlotId = requiresSlot ? slotId : null;
             quote.CartStore.ShippingSlotDate = requiresSlot ? slotDate?.Date : null;
+            quote.CartStore.ShippingIsExpress = quote.IsExpress;
             quote.CartStore.DeliveryPrice = quote.PaymentMode == ShippingPaymentModeEnum.Prepaid
                 ? quote.Price
                 : 0;
@@ -235,7 +255,14 @@ namespace Application.Services.Order.ShippingSrv
                 return new BaseResultDto(false, Resource.Notification.ShippingSelectedMethodNoLongerActive);
             if (delivery.ShippingProvider != ShippingProviderEnum.Miare && (!delivery.LivePricing || delivery.ShippingProvider == ShippingProviderEnum.None))
                 return new BaseResultDto(true);
-            if (delivery.ShippingProvider == ShippingProviderEnum.Miare)
+            if (delivery.ShippingProvider == ShippingProviderEnum.Miare && cartStore.ShippingIsExpress)
+            {
+                // اکسپرس: بدون بازه؛ ولی هنوز باید فعال و در ساعت کاری باشد
+                if (!_options.Express.Enabled || cartStore.Store?.ExpressShippingEnabled != true ||
+                    !ShippingExpressRules.IsOpen(DateTime.UtcNow, _options.Express.OpenTime, _options.Express.CloseTime))
+                    return new BaseResultDto(false, Resource.Notification.ShippingExpressNotAvailable);
+            }
+            else if (delivery.ShippingProvider == ShippingProviderEnum.Miare)
             {
                 if (!cartStore.ShippingSlotId.HasValue || !cartStore.ShippingSlotDate.HasValue)
                     return new BaseResultDto(false, Resource.Notification.ShippingSlotRequired);
@@ -268,6 +295,34 @@ namespace Application.Services.Order.ShippingSrv
             return cartStore.DeliveryPrice == expectedPayablePrice
                 ? new BaseResultDto(true)
                 : new BaseResultDto(false, Resource.Notification.ShippingCartAmountInvalid);
+        }
+
+        // اکسپرس: فعال بودن کلی + فروشگاه + ساعت کاری + فاصله‌ی مجاز (فروشگاه/آدرس باید مختصات داشته باشند)
+        private Task<bool> IsExpressAvailableAsync(CartStore cartStore, Cart cart, DateTime nowUtc, CancellationToken cancellationToken)
+        {
+            if (!_options.Express.Enabled || cartStore.Store?.ExpressShippingEnabled != true)
+                return Task.FromResult(false);
+            if (!ShippingExpressRules.IsOpen(nowUtc, _options.Express.OpenTime, _options.Express.CloseTime))
+                return Task.FromResult(false);
+            if (cartStore.Store.Location == null || cart.Address?.Location == null)
+                return Task.FromResult(false);
+            var distanceKm = ShippingGeoRules.DistanceKm(
+                cartStore.Store.Location.Y, cartStore.Store.Location.X,
+                cart.Address.Location.Y, cart.Address.Location.X);
+            return Task.FromResult(ShippingExpressRules.IsWithinDistance(distanceKm, _options.Express.MaxDistanceKm));
+        }
+
+        // اضافه‌ی اکسپرس = مبلغ سطح boost میاره (طبق GET /boost-levels/)؛ اگر Boost/سطحی نبود، مبلغ ثابت پاستیل
+        private async Task<double> GetExpressSurchargeAsync(IShippingProvider provider, CancellationToken cancellationToken)
+        {
+            (int Level, double Amount)? boost = null;
+            if (_options.Express.UseBoost && provider is IBoostCapableShippingProvider boostProvider)
+            {
+                var levels = await boostProvider.GetBoostLevelsAsync(cancellationToken);
+                boost = ShippingExpressRules.ChooseBoost(
+                    levels.Select(item => (item.Level, item.Amount)).ToList(), _options.Express.BoostLevel);
+            }
+            return ShippingExpressRules.Surcharge(boost, _options.Express.FallbackSurchargeToman);
         }
 
         private double GetMaxDistanceKm(ShippingProviderEnum provider) => provider switch
@@ -317,7 +372,9 @@ namespace Application.Services.Order.ShippingSrv
             double price,
             string externalQuoteId,
             DateTime now,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            bool isExpress = false,
+            double expressSurcharge = 0)
         {
             var quote = new ShippingQuote
             {
@@ -330,6 +387,8 @@ namespace Application.Services.Order.ShippingSrv
                 PaymentMode = paymentMode,
                 Status = ShippingQuoteStatusEnum.Active,
                 Price = Math.Max(0, price),
+                IsExpress = isExpress,
+                ExpressSurcharge = isExpress ? expressSurcharge : 0,
                 Currency = "IRR",
                 ExternalQuoteId = externalQuoteId,
                 RequestFingerprint = CreateFingerprint(cartStore, cart.AddressId.Value, delivery.Id),
@@ -350,7 +409,10 @@ namespace Application.Services.Order.ShippingSrv
                 PayAtDestination = paymentMode == ShippingPaymentModeEnum.ReceiverPays,
                 Currency = quote.Currency,
                 ExpiresAtUtc = quote.ExpiresAtUtc,
-                RequiresSlot = delivery.ShippingProvider == ShippingProviderEnum.Miare
+                RequiresSlot = delivery.ShippingProvider == ShippingProviderEnum.Miare && !isExpress,
+                IsExpress = isExpress,
+                ExpressSurcharge = isExpress ? expressSurcharge : 0,
+                ExpressText = isExpress ? ShippingExpressRules.DeliveryText(_options.Express.DeliveryMinHours, _options.Express.DeliveryMaxHours) : null
             };
         }
 

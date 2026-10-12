@@ -646,19 +646,11 @@ recurringJobManager.AddOrUpdate<Application.Services.SchoolSrvs.SchoolCourseLive
     service => service.SendClassReminderPushesAsync(CancellationToken.None),
     "*/1 * * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
-// هر شب ساعت ۲۰، سفرهای «فردا»ی سرویس‌های پت‌رسان هفتگی رو می‌سازه — تا صبح فردا ادمین وقت
-// تخصیص راننده داشته باشه (TripChooseDriver در پنل).
-recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
-    "GeneratePetResanServiceTrips",
-    service => service.GeneratePetResanServiceTripsAsync(),
-    "0 20 * * *",
-    new RecurringJobOptions { TimeZone = tehranTimeZone });
-// هر روز ساعت ۱۸ (۲ ساعت قبل از ساخت نوبت‌های فردا): اگر موجودی کیف پول برای کسر نوبت‌های فردای سرویس هفتگی کافی نیست، پوش شارژ می‌فرستد.
-recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
-    "PetResanWalletTopUpReminder",
-    service => service.SendPetResanWalletTopUpRemindersAsync(),
-    "0 18 * * *",
-    new RecurringJobOptions { TimeZone = tehranTimeZone });
+// سرویس هفتگی پت‌رسان دیگر job شبانه ندارد: سفر نوبت‌ها هنگام ثبت سرویس و با تکمیل/لغو نوبت قبلی ساخته می‌شود.
+// jobهای قدیمی از Hangfire حذف می‌شوند و یک بار پشتیبان، نوبتِ ردیف‌های بدون نوبت آینده را می‌سازد.
+recurringJobManager.RemoveIfExists("GeneratePetResanServiceTrips");
+recurringJobManager.RemoveIfExists("PetResanWalletTopUpReminder");
+Hangfire.BackgroundJob.Enqueue<Application.Services.TripSrv.TripSrv.Iface.ITripService>(service => service.GeneratePetResanServiceTripsAsync());
 // به راننده‌ای که یک سفر رزروشده/سرویسِ پذیرفته‌شده دارد، ۳۰ دقیقه مانده به حرکت یک‌بار پوش یادآوری می‌فرستد.
 recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
     "SendUpcomingTripReminderPush",

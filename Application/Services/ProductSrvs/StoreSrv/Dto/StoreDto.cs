@@ -22,6 +22,8 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
 
         /// <summary>حداکثر زمان آماده‌سازی سفارش (دقیقه، ۰ تا ۱۰۰۸۰). ندادن مقدار یعنی بدون تغییر.</summary>
         public int? MaxPreparationMinutes { get; set; }
+        /// <summary>فعال‌سازی ارسال اکسپرس؛ null = بدون تغییر (کلاینت‌های قدیمی مقدار را خاموش نمی‌کنند).</summary>
+        public bool? ExpressShippingEnabled { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
         public bool Active { get; set; }

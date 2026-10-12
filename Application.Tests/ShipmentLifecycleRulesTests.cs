@@ -73,6 +73,39 @@ public class ShipmentLifecycleRulesTests
         Assert.Equal(string.Empty, ShipmentLifecycleRules.ForSmsToken(null));
     }
 
+    // هشدار به ادمین: فروشنده ۳۰ دقیقه بعد از پرداخت هنوز «منتظر فروشنده» است؛ مهلت ۶۰ دقیقه‌ای
+    [Theory]
+    [InlineData(29, false)]   // هنوز زود است
+    [InlineData(30, true)]    // درست ۳۰ دقیقه بعد
+    [InlineData(45, true)]    // job دیرتر رسیده؛ هنوز قابل ارسال است
+    [InlineData(59, true)]
+    [InlineData(60, false)]   // مهلت تمام شد: مرسوله Failed می‌شود و سفارش وارد صف لغو ادمین، پیگیری جدا لازم نیست
+    [InlineData(90, false)]
+    public void Seller_not_ready_alert_fires_at_thirty_minutes_inside_the_sixty_minute_window(int minutesSincePayment, bool expected)
+    {
+        var paid = Now;
+        var deadline = paid.AddMinutes(60);
+        Assert.Equal(expected, ShipmentLifecycleRules.ShouldAlertSellerNotReady(paid, deadline, null, paid.AddMinutes(minutesSincePayment), 30));
+    }
+
+    [Fact]
+    public void Seller_not_ready_alert_is_sent_once_and_can_be_disabled()
+    {
+        var paid = Now;
+        var deadline = paid.AddMinutes(60);
+        var at40 = paid.AddMinutes(40);
+        Assert.False(ShipmentLifecycleRules.ShouldAlertSellerNotReady(paid, deadline, at40, at40.AddMinutes(5), 30));  // قبلاً فرستاده شده
+        Assert.False(ShipmentLifecycleRules.ShouldAlertSellerNotReady(paid, deadline, null, at40, 0));                // غیرفعال
+        Assert.False(ShipmentLifecycleRules.ShouldAlertSellerNotReady(paid, deadline, null, at40, -5));
+    }
+
+    [Fact]
+    public void Seller_not_ready_alert_without_a_deadline_still_fires_after_the_delay()
+    {
+        Assert.False(ShipmentLifecycleRules.ShouldAlertSellerNotReady(Now, null, null, Now.AddMinutes(10), 30));
+        Assert.True(ShipmentLifecycleRules.ShouldAlertSellerNotReady(Now, null, null, Now.AddMinutes(31), 30));
+    }
+
     [Fact]
     public void Slot_hours_are_short_for_round_hours()
     {

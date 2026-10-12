@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Xml.Linq;
 using Entities.Entities.Security;
 using Microsoft.EntityFrameworkCore;
@@ -69,9 +69,17 @@ namespace Utility.Reflection
                     .Include(x => x.Roles)
                     .ToListAsync(cancellationToken);
 
-                foreach (var controller in controllers)
+                // اول بخش‌های اصلی، بعد کنترلرهای کمکی تا anchor بخش اصلی برای والدشدن آماده باشد.
+                var anchors = new Dictionary<string, Permission>(StringComparer.OrdinalIgnoreCase);
+                foreach (var controller in controllers.OrderBy(x => x.HostController == null ? 0 : 1))
                 {
-                    SynchronizeController(controller, permissions, result);
+                    var host = controller.HostController != null
+                        ? anchors.GetValueOrDefault(controller.HostController)
+                        : null;
+
+                    var anchor = SynchronizeController(controller, host, permissions, result);
+                    if (anchor != null)
+                        anchors[controller.Name] = anchor;
                 }
 
                 EnsureUniquePermissionKeys(permissions, controllers);
@@ -130,6 +138,7 @@ namespace Utility.Reflection
                 Summary = summaries.GetValueOrDefault($"T:{controllerType.FullName}") ?? controllerName,
                 Parent = definition?.Parent.Label,
                 ParentId = definition?.Parent.Id ?? 0,
+                HostController = definition?.HostController,
                 IsMenu = definition?.IsMenu ?? false,
                 Priority = definition?.Priority ?? int.MaxValue,
                 Actions = actions
@@ -156,13 +165,14 @@ namespace Utility.Reflection
                 $"Duplicate admin permission display name detected for: {controllerNames}.");
         }
 
-        private void SynchronizeController(
+        private Permission SynchronizeController(
             ControllerActionInfoDto controller,
+            Permission host,
             List<Permission> permissions,
             PermissionSyncResultDto result)
         {
             if (controller.Actions.Count == 0)
-                return;
+                return null;
 
             var anchorAction = controller.Actions
                 .OrderBy(x => IsGetAction(x) ? 0 : 1)
@@ -176,12 +186,15 @@ namespace Utility.Reflection
                      string.Equals(x.Area, "Admin", StringComparison.OrdinalIgnoreCase)))
                 .ToList();
 
+            // والد anchor: یا گروه (بخش اصلی) یا anchor بخش اصلی (کنترلر کمکی). host تازه‌ساخته هنوز Id ندارد.
+            long? anchorParentId = host == null ? controller.ParentId : host.Id == 0 ? null : host.Id;
+
             var anchor = FindPermission(
                     controllerPermissions,
                     anchorAction.Name,
-                    controller.ParentId)
+                    anchorParentId)
                 ?? controllerPermissions
-                    .Where(x => x.ParentId is >= 1 and <= 13)
+                    .Where(x => controllerPermissions.All(own => own.Id != x.ParentId))
                     .OrderBy(x => x.Deleted)
                     .ThenBy(x => x.Id)
                     .FirstOrDefault();
@@ -216,7 +229,13 @@ namespace Utility.Reflection
                                 ? true
                                 : null,
                     controller.Priority,
-                    controller.ParentId);
+                    anchorParentId);
+
+            if (host != null && host.Id == 0 && anchor.Parent != host)
+            {
+                anchor.Parent = host;
+                anchorWasChanged = true;
+            }
 
             if (anchorWasChanged && anchor.Id != 0)
                 result.UpdatedCount++;
@@ -270,6 +289,8 @@ namespace Utility.Reflection
                 canonicalPermissions,
                 permissions,
                 result);
+
+            return anchor;
         }
 
         private static Permission FindPermission(

@@ -129,16 +129,11 @@ namespace Application.Services.Setting.SmsSrv
                 var request = new RestRequest("", Method.Get);
                 request.AddQueryParameter("receptor", sms.Receptor);
                 request.AddQueryParameter("template", template);
-                if (!string.IsNullOrWhiteSpace(sms.Token1))
-                    request.AddQueryParameter("token", sms.Token1.Replace(" ", "_"));
-                if (!string.IsNullOrWhiteSpace(sms.Token2))
-                    request.AddQueryParameter("token2", sms.Token2.Replace(" ", "_"));
-                if (!string.IsNullOrWhiteSpace(sms.Token3))
-                    request.AddQueryParameter("token3", sms.Token3.Replace(" ", "_"));
-                if (!string.IsNullOrWhiteSpace(sms.Token4))
-                    request.AddQueryParameter("token10", sms.Token4.Replace(" ", "_"));
-                if (!string.IsNullOrWhiteSpace(sms.Token5))
-                    request.AddQueryParameter("token20", sms.Token5.Replace(" ", "_"));
+                AddLookupToken(request, "token", sms.Token1);
+                AddLookupToken(request, "token2", sms.Token2);
+                AddLookupToken(request, "token3", sms.Token3);
+                AddLookupToken(request, "token10", sms.Token4);
+                AddLookupToken(request, "token20", sms.Token5);
                 var response = await client.ExecuteAsync(request);
                 dynamic result = JsonConvert.DeserializeObject(response.Content);
                 sms.StatusText = response.Content;
@@ -161,6 +156,13 @@ namespace Application.Services.Setting.SmsSrv
                 _context.Smses.Update(sms);
                 await _context.SaveChangesAsync();
             }
+        }
+
+        private static void AddLookupToken(RestRequest request, string name, string value)
+        {
+            var token = KavenegarLookupToken.Normalize(value);
+            if (token != null)
+                request.AddQueryParameter(name, token);
         }
     }
 }

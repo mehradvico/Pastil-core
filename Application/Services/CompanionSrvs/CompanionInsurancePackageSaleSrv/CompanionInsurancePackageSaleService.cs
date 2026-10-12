@@ -224,8 +224,9 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
             {
                 return new BaseResultDto<CompanionInsurancePackageSaleSetRebateCodeDto>(false, Resource.Notification.NothingFound, dto);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.CompanionPaymentStartedFinancialDataLocked);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (item.Price == 0)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.FinalPriceIsNotAvailable);
@@ -258,8 +259,9 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
                 s.Id == id && s.UserPet.UserId == _currentUser.CurrentUser.UserId && !s.IsPaid);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.CompanionPaymentStartedFinancialDataLocked);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -279,8 +281,9 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
             {
                 return new BaseResultDto<CompanionInsurancePackageSaleSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.CompanionPaymentStartedFinancialDataLocked);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (dto.FromWallet)
             {
                 item.FromWallet = true;
@@ -296,13 +299,13 @@ namespace Application.Services.CompanionSrvs.CompanionInsurancePackageSaleSrv
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
 
-        private Task<bool> HasActivePaymentAsync(long id)
+        // تغییر کیف پول/تخفیف توسط خود کاربر: تلاش درگاهِ رهاشده (برگشت بدون پرداخت / نرسیدن به درگاه) دیگر قفل نمی‌کند و
+        // کنار گذاشته می‌شود؛ فقط پرداخت موفق («قبلاً پرداخت شده») یا callbackِ در حال verify جلوی تغییر مبلغ را می‌گیرد.
+        private Task<BaseResultDto> GuardFinancialChangeAsync(long id)
         {
-            var callbackId = id.ToString();
-            return _context.Payments.AsNoTracking().AnyAsync(s =>
-                s.CallBackTypeLabel == PaymentCallbackTypeEnum.Insurance.ToString() &&
-                s.CallBackId == callbackId &&
-                (s.IsSuccess == null || s.IsSuccess == true));
+            return Application.Services.Order.PaymentSrv.PaymentAttemptRules.GuardUserRetryAsync(
+                _context, PaymentCallbackTypeEnum.Insurance.ToString(), id.ToString(),
+                Resource.Notification.PaymentInsuranceAlreadyPaid);
         }
     }
 }

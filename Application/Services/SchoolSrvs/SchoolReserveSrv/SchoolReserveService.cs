@@ -140,11 +140,42 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.InvalidData, dto);
                 }
 
-                var alreadyEnrolled = await _context.SchoolReserves.AnyAsync(r =>
+                var existing = await _context.SchoolReserves.AsTracking().FirstOrDefaultAsync(r =>
                     r.SchoolCourseId == dto.SchoolCourseId && r.UserPetId == dto.UserPetId && !r.IsCancel);
-                if (alreadyEnrolled)
+                if (existing != null)
                 {
-                    return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.HaveBeenReserved, dto);
+                    if (existing.IsReserved || existing.BookerId != dto.BookerId)
+                    {
+                        return new BaseResultDto<SchoolReserveDto>(
+                            false, Resource.Notification.PaymentReserveAlreadyPaid, mapper.Map<SchoolReserveDto>(existing),
+                            (int)ResultCodeEnum.PaymentAlreadyPaid);
+                    }
+
+                    // ثبت‌نامِ پرداخت‌نشده‌ی قبلی (کاربر از درگاه برگشت یا اصلاً به درگاه نرسید): به‌جای «قبلاً رزرو شده»
+                    // همان ثبت‌نام برای پرداخت دوباره برمی‌گردد. تلاش‌های درگاهِ رهاشده کنار گذاشته می‌شوند و مبلغ مثل یک
+                    // ثبت‌نام تازه از قیمت فعلی دوره شروع می‌شود (صفحه‌ی نهایی‌سازی کیف پول/تخفیف را دوباره اعمال می‌کند).
+                    var retryState = await PaymentAttemptRules.ReleaseForRetryAsync(
+                        _context, PaymentCallbackTypeEnum.SchoolReserve.ToString(), existing.Id.ToString());
+                    if (retryState == PaymentAttemptRules.TargetState.Paid)
+                    {
+                        return new BaseResultDto<SchoolReserveDto>(
+                            false, Resource.Notification.PaymentReserveAlreadyPaid, mapper.Map<SchoolReserveDto>(existing),
+                            (int)ResultCodeEnum.PaymentAlreadyPaid);
+                    }
+                    if (retryState == PaymentAttemptRules.TargetState.Verifying)
+                    {
+                        return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.PaymentPreviousAttemptVerifying, dto);
+                    }
+
+                    existing.Price = course.Price;
+                    existing.PaymentPrice = course.Price;
+                    existing.RebateId = null;
+                    existing.RebatePrice = 0;
+                    existing.FromWallet = false;
+                    existing.WalletPrice = 0;
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    return new BaseResultDto<SchoolReserveDto>(true, mapper.Map<SchoolReserveDto>(existing));
                 }
 
                 if (course.Capacity.HasValue)
@@ -270,8 +301,9 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.PansionReservePaymentAlreadyStartedCannotChangeFinancials);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
 
             var originalPrice = item.PaymentPrice + item.RebatePrice;
             item.Price = originalPrice;
@@ -305,8 +337,9 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                 s.Id == id && s.BookerId == _currentUser.CurrentUser.UserId && !s.IsReserved);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.PansionReservePaymentAlreadyStartedCannotChangeFinancials);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (!item.RebateId.HasValue)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -331,8 +364,9 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             {
                 return new BaseResultDto<SchoolReserveWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.PansionReservePaymentAlreadyStartedCannotChangeFinancials);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (item.IsReserved)
             {
                 return new BaseResultDto<SchoolReserveWalletDto>(false, Resource.Notification.ThisReserveIsPaid, dto);
@@ -352,13 +386,13 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
 
-        private Task<bool> HasActivePaymentAsync(long reserveId)
+        // تغییر کیف پول/تخفیف توسط خود کاربر: تلاش درگاهِ رهاشده (برگشت بدون پرداخت / نرسیدن به درگاه) دیگر قفل نمی‌کند و
+        // کنار گذاشته می‌شود؛ فقط پرداخت موفق («قبلاً پرداخت شده») یا callbackِ در حال verify جلوی تغییر مبلغ را می‌گیرد.
+        private Task<BaseResultDto> GuardFinancialChangeAsync(long reserveId)
         {
-            var callbackId = reserveId.ToString();
-            return _context.Payments.AsNoTracking().AnyAsync(s =>
-                s.CallBackTypeLabel == PaymentCallbackTypeEnum.SchoolReserve.ToString() &&
-                s.CallBackId == callbackId &&
-                (s.IsSuccess == null || s.IsSuccess == true));
+            return Application.Services.Order.PaymentSrv.PaymentAttemptRules.GuardUserRetryAsync(
+                _context, PaymentCallbackTypeEnum.SchoolReserve.ToString(), reserveId.ToString(),
+                Resource.Notification.PaymentReserveAlreadyPaid);
         }
 
         public async Task<BaseResultDto> UpdateCancelDto(SchoolReserveCancelDto dto)

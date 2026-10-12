@@ -528,4 +528,19 @@
   <data name="PushCompanionReserveRescheduledDriver" xml:space="preserve">
     <value>زمان سفر پت‌رسان رزرو {2} تغییر کرد. زمان جدید حرکت: {0} ساعت {1}</value>
   </data>
+  <data name="PushShipmentExpressAwaitingSeller" xml:space="preserve">
+    <value>سفارش اکسپرس {0} ثبت شد؛ همین الان کالا را آماده و «درخواست پیک» را بزنید (تا ساعت {1}).</value>
+  </data>
+  <data name="PushOrderExpressUser" xml:space="preserve">
+    <value>سفارش اکسپرس {0} ثبت شد؛ ظرف {1} تحویل می‌شود.</value>
+  </data>
+  <data name="PushShipmentSellerNotReadyAdmin" xml:space="preserve">
+    <value>فروشنده {1} هنوز سفارش {0} را آماده‌سازی نکرده است (مهلت تا ساعت {2})؛ لطفاً پیگیری کنید.</value>
+  </data>
+  <data name="PushTripServiceReminderDriver" xml:space="preserve">
+    <value>سرویس پت‌رسان شما ساعت {0} شروع می‌شود؛ لطفاً سر وقت آماده باشید.</value>
+  </data>
+  <data name="PushTripServiceReminderUser" xml:space="preserve">
+    <value>سرویس پت‌رسان شما ساعت {0} شروع می‌شود؛ لطفاً پت را آماده نگه دارید.</value>
+  </data>
 </root>

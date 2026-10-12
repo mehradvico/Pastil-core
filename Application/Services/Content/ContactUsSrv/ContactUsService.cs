@@ -231,8 +231,7 @@ namespace Application.Services.Content.ContactUsSrv
                 await transaction.CommitAsync();
 
                 var departmentName = string.IsNullOrWhiteSpace(group.Name) ? group.Label : group.Name;
-                var adminSmsUserName = await GetUserFullNameAsync(dto.UserId, dto.FullName);
-                await SendRegistrationSmsAsync(dto.FullName, adminSmsUserName, departmentName, dto.Mobile);
+                await SendRegistrationSmsAsync(dto.FullName, departmentName, dto.Mobile);
 
                 return new BaseResultDto(true);
             }
@@ -308,7 +307,6 @@ namespace Application.Services.Content.ContactUsSrv
 
         private async Task SendRegistrationSmsAsync(
             string userMessageName,
-            string adminMessageName,
             string departmentName,
             string userMobile)
         {
@@ -316,22 +314,6 @@ namespace Application.Services.Content.ContactUsSrv
                 MessageTypeEnum.UserContactUs,
                 userMobile,
                 userMessageName,
-                departmentName);
-
-            string adminMobiles = null;
-            try
-            {
-                adminMobiles = adminSettingHelper.BaseAdminSetting?.AdminMobiles;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Reading admin mobiles for contact-us SMS failed.");
-            }
-
-            await TrySendRegistrationSmsAsync(
-                MessageTypeEnum.AdminContactUs,
-                adminMobiles,
-                adminMessageName,
                 departmentName);
         }
 

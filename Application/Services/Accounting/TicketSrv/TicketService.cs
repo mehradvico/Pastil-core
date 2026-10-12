@@ -11,6 +11,7 @@ using Application.Services.Dto;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
 using AutoMapper;
+using Microsoft.Extensions.Configuration;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
@@ -29,8 +30,9 @@ namespace Application.Services.TicketSrv
         private readonly ICodeService _codeService;
         private readonly ITicketMessageService _ticketMessageService;
         private readonly IMessageSenderService _messageSenderService;
+        private readonly IConfiguration _configuration;
 
-        public TicketService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUserHelper, ICodeService codeService, ITicketMessageService ticketMessageService, IMessageSenderService messageSenderService)
+        public TicketService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUserHelper, ICodeService codeService, ITicketMessageService ticketMessageService, IMessageSenderService messageSenderService, IConfiguration configuration)
         {
             _context = context;
             this.mapper = mapper;
@@ -38,6 +40,7 @@ namespace Application.Services.TicketSrv
             _codeService = codeService;
             _ticketMessageService = ticketMessageService;
             _messageSenderService = messageSenderService;
+            _configuration = configuration;
         }
 
         public async Task<TicketSearchDto> SearchUserAsync(TicketInputDto dto, CancellationToken cancellationToken = default)
@@ -157,8 +160,50 @@ namespace Application.Services.TicketSrv
                 return new BaseResultDto<TicketVDto>(false, Resource.Notification.SomethingWentWrong, null);
             }
 
+            await AddAutoReplySafeAsync(ticket.Id, ticket.UserId, cancellationToken);
             await SendMessageSafeAsync(MessageTypeEnum.UserRegisterTicket, _currentUser.Mobile, _currentUser.Email, _currentUser.FullName, ticket.Id.ToString());
             return await FindUserAsync(ticket.Id, cancellationToken);
+        }
+
+        // پیام خودکار «درخواست شما در حال پیگیری است» از طرف پشتیبانی بعد از ثبت اولین تیکت کاربر.
+        // در UI کاربر فقط «پیام پشتیبانی» دیده می‌شود، نه نام ادمین؛ چون TicketItem.UserId اجباری است، فرستنده‌ی فنی
+        // Ticket:AutoReplyUserId (اگر تنظیم شده) یا آخرین کاربری است که در تیکتی به کاربر دیگری پاسخ پشتیبانی داده.
+        // پیدا نشود، پیامی ارسال نمی‌شود. وضعیت تیکت عوض نمی‌شود و خطا هرگز ثبت تیکت را خراب نمی‌کند.
+        private async Task AddAutoReplySafeAsync(long ticketId, long ticketUserId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var senderId = _configuration.GetValue<long>("Ticket:AutoReplyUserId");
+
+                if (senderId <= 0)
+                {
+                    senderId = await _context.TicketItems.AsNoTracking()
+                        .Where(s => s.UserId != s.Ticket.UserId && s.UserId != ticketUserId)
+                        .OrderByDescending(s => s.Id)
+                        .Select(s => s.UserId)
+                        .FirstOrDefaultAsync(cancellationToken);
+                }
+
+                if (senderId <= 0 || senderId == ticketUserId || !await _context.Users.AnyAsync(s => s.Id == senderId, cancellationToken))
+                {
+                    return;
+                }
+
+                await _context.TicketItems.AddAsync(new TicketItem
+                {
+                    TicketId = ticketId,
+                    UserId = senderId,
+                    Body = Resource.Notification.TicketAutoReplyMessage,
+                    CreateDate = DateTime.Now,
+                    IsSeen = false,
+                    Deleted = false
+                }, cancellationToken);
+
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch
+            {
+            }
         }
 
         public async Task<BaseResultDto<TicketVDto>> InsertAdminAsyncDto(CreateAdminTicketDto dto, CancellationToken cancellationToken = default)

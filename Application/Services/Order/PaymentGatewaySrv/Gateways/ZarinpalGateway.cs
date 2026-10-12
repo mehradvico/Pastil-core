@@ -1,4 +1,4 @@
-﻿using Application.Services.Order.PaymentGatewaySrv.Dto;
+using Application.Services.Order.PaymentGatewaySrv.Dto;
 using Application.Services.Order.PaymentGatewaySrv.Iface;
 using Application.Services.Order.PaymentSrv.Dto;
 using Application.Common.Enumerable;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Net.Http;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 
 namespace Application.Services.Order.PaymentGatewaySrv.Gateways
@@ -22,8 +23,11 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
         private const string ZarinPalApiUrl = "https://api.zarinpal.com/pg/v4/payment/request.json";
         private const string ZarinPalVerificationUrl = "https://api.zarinpal.com/pg/v4/payment/verify.json";
 
-        public ZarinPalGateway(HttpClient httpClient, IAdminSettingHelper adminSettingHelper)
+        private readonly ILogger<ZarinPalGateway> _logger;
+
+        public ZarinPalGateway(HttpClient httpClient, IAdminSettingHelper adminSettingHelper, ILogger<ZarinPalGateway> logger)
         {
+            _logger = logger;
             _httpClient = httpClient;
             _adminSettingHelper = adminSettingHelper;
         }
@@ -49,6 +53,12 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                 var response = await _httpClient.PostAsync(ZarinPalApiUrl, content);
                 var result = await response.Content.ReadAsStringAsync();
 
+                if (!response.IsSuccessStatusCode || !result.Contains("\"authority\""))
+                {
+                    _logger.LogError("ZarinPal request failed. HTTP {Status}. Body: {Body}", (int)response.StatusCode, result);
+                    return new GatewayStartResultDto { IsSuccess = false, ErrorMessage = $"ZarinPal HTTP {(int)response.StatusCode}: {result}" };
+                }
+
                 var jsonResponse = System.Text.Json.JsonSerializer.Deserialize<ZarinPalPaymentResponse>(result);
 
                 return new GatewayStartResultDto
@@ -59,9 +69,10 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                     Token = jsonResponse.data.authority
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return new GatewayStartResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.Unsuccess };
+                _logger.LogError(ex, "ZarinPal start threw an exception");
+                return new GatewayStartResultDto { IsSuccess = false, ErrorMessage = $"{Resource.Notification.Unsuccess} ({ex.GetType().Name}: {ex.Message})" };
             }
         }
 

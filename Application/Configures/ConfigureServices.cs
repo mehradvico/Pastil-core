@@ -606,6 +606,7 @@ public static class ConfigureServices
         services.AddScoped<IPaymentGateway, ParsianGateway>();
         services.AddScoped<IPaymentGateway, SamanKishGateway>();
         services.AddScoped<IPaymentGateway, ZarinPalGateway>();
+        services.AddScoped<IPaymentGateway, PastilTestGateway>();
         services.AddScoped<IPaymentGatewayResolver, PaymentGatewayResolver>();
         services.AddScoped<IPaymentTestModeService, PaymentTestModeService>();
         services.AddScoped<IPaymentService, PaymentService>();

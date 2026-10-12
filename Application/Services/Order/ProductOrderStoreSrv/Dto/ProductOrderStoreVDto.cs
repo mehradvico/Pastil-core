@@ -21,6 +21,7 @@ namespace Application.Services.Order.ProductOrderStoreSrv.Dto
         public long? ShippingQuoteId { get; set; }
         public long? ShippingSlotId { get; set; }
         public System.DateTime? ShippingSlotDate { get; set; }
+        public bool ShippingIsExpress { get; set; }
         public Entities.Entities.ShippingField.ShippingProviderEnum? ShippingProvider { get; set; }
         public Entities.Entities.ShippingField.ShippingPaymentModeEnum? ShippingPaymentMode { get; set; }
         public double ShippingQuotedPrice { get; set; }

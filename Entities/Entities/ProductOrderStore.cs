@@ -22,6 +22,8 @@ namespace Entities.Entities
         public double ShippingQuotedPrice { get; set; }
         public long? ShippingSlotId { get; set; }
         public System.DateTime? ShippingSlotDate { get; set; }
+        /// <summary>true = ارسال اکسپرس (بدون روز/بازه؛ پیک همان لحظه بعد از پرداخت و تأیید فروشنده).</summary>
+        public bool ShippingIsExpress { get; set; }
         public double PaymentPrice { get; set; }
         public Delivery Delivery { get; set; }
         public Store Store { get; set; }

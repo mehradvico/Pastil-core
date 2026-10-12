@@ -17,6 +17,9 @@ namespace Application.Services.Order.ShippingSrv.Dto
         public string OrderCode { get; set; }
         public ShipmentStatusEnum Status { get; set; }
 
+        /// <summary>ارسال اکسپرس: یک مرحله دارد؛ همین الان «درخواست پیک» بزنید (SellerConfirmDeadlineUtc مهلت آن است).</summary>
+        public bool IsExpress { get; set; }
+
         /// <summary>بازه‌ی تحویل به مشتری (UTC)</summary>
         public DateTime? SlotStartUtc { get; set; }
         public DateTime? SlotEndUtc { get; set; }

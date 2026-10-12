@@ -1747,6 +1747,51 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Payment Target Already Paid.
+        /// </summary>
+        public static string PaymentTargetAlreadyPaid {
+            get {
+                return ResourceManager.GetString("PaymentTargetAlreadyPaid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Attempt Superseded.
+        /// </summary>
+        public static string PaymentAttemptSuperseded {
+            get {
+                return ResourceManager.GetString("PaymentAttemptSuperseded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your previous payment is being verified by the bank; try again in a few seconds..
+        /// </summary>
+        public static string PaymentPreviousAttemptVerifying {
+            get {
+                return ResourceManager.GetString("PaymentPreviousAttemptVerifying", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This item has been cancelled and can no longer be paid..
+        /// </summary>
+        public static string PaymentTargetCancelled {
+            get {
+                return ResourceManager.GetString("PaymentTargetCancelled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This consultation has already been purchased..
+        /// </summary>
+        public static string ConsultationAlreadyPurchased {
+            get {
+                return ResourceManager.GetString("ConsultationAlreadyPurchased", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Payment Idempotency Key Header Must Be Valid Uuid.
         /// </summary>
         public static string PaymentIdempotencyKeyHeaderMustBeValidUuid {
@@ -1977,6 +2022,15 @@ namespace Resource {
         public static string UserExpertiseOnlyForCompanionOwnerOrApprovedMember {
             get {
                 return ResourceManager.GetString("UserExpertiseOnlyForCompanionOwnerOrApprovedMember", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ticket Auto Reply Message.
+        /// </summary>
+        public static string TicketAutoReplyMessage {
+            get {
+                return ResourceManager.GetString("TicketAutoReplyMessage", resourceCulture);
             }
         }
 
@@ -5168,6 +5222,24 @@ namespace Resource {
         public static string CompanionReserveRescheduledSuccessfully {
             get {
                 return ResourceManager.GetString("CompanionReserveRescheduledSuccessfully", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Express shipping is not available right now (outside working hours or disabled). Choose a delivery day instead..
+        /// </summary>
+        public static string ShippingExpressNotAvailable {
+            get {
+                return ResourceManager.GetString("ShippingExpressNotAvailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Express courier requested; the courier will arrive shortly..
+        /// </summary>
+        public static string ShipmentExpressRequested {
+            get {
+                return ResourceManager.GetString("ShipmentExpressRequested", resourceCulture);
             }
         }
     }

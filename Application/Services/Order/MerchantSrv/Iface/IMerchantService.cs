@@ -1,4 +1,4 @@
-﻿using Application.Common.Dto.Input;
+using Application.Common.Dto.Input;
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.Order.MerchantSrv.Dto;
@@ -10,7 +10,7 @@ namespace Application.Services.Order.MerchantSrv.Iface
 {
     public interface IMerchantService : ICommonSrv<Merchant, MerchantDto>
     {
-        BaseSearchDto<MerchantVDto> Search(BaseInputDto baseSearchDto);
+        BaseSearchDto<MerchantVDto> Search(BaseInputDto baseSearchDto, bool hideTestGateway = false);
         Task<BaseResultDto> StartAsync(PaymentStartDto dto);
         Task<BaseResultDto> CallbackAsync(Entities.Entities.Payment payment);
         Task<BaseResultDto> UpdateSecureAsyncDto(MerchantDto dto);

@@ -196,7 +196,11 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
                     return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.DuplicateValue, null);
             }
 
-            var startDate = DateTime.Now.Date;
+            var weekDayIds = dto.Schedules.Select(s => s.WeekDayId).Distinct().ToList();
+            if (await _context.WeekDays.AsNoTracking().CountAsync(w => weekDayIds.Contains(w.Id)) != weekDayIds.Count)
+                return new BaseResultDto<PetResanServiceVDto>(false, Resource.Notification.NothingFound, null);
+
+            var startDate = dto.StartDate.HasValue && dto.StartDate.Value.Date > DateTime.Now.Date ? dto.StartDate.Value.Date : DateTime.Now.Date;
             double price;
             try
             {

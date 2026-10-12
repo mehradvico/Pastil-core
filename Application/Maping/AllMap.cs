@@ -950,7 +950,7 @@ namespace Application.Maping
 
             //Store
             CreateMap<Store, StoreDto>();
-            CreateMap<StoreDto, Store>().ForMember(x => x.MaxPreparationMinutes, o => { o.PreCondition(src => src.MaxPreparationMinutes.HasValue); o.MapFrom(src => Math.Clamp(src.MaxPreparationMinutes.Value, 0, 10080)); }).ForMember(x => x.Users, opt => opt.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.MaxDiscountPercent, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.Icon, y => y.Ignore()).ForMember(x => x.ReferralCode, y => y.Ignore());
+            CreateMap<StoreDto, Store>().ForMember(x => x.ExpressShippingEnabled, o => { o.PreCondition(src => src.ExpressShippingEnabled.HasValue); o.MapFrom(src => src.ExpressShippingEnabled.Value); }).ForMember(x => x.MaxPreparationMinutes, o => { o.PreCondition(src => src.MaxPreparationMinutes.HasValue); o.MapFrom(src => Math.Clamp(src.MaxPreparationMinutes.Value, 0, 10080)); }).ForMember(x => x.Users, opt => opt.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.MaxDiscountPercent, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.Icon, y => y.Ignore()).ForMember(x => x.ReferralCode, y => y.Ignore());
             CreateMap<Store, StoreMinVDto>().ForMember(x => x.StoreId, o => o.MapFrom(m => m.Id));
             CreateMap<Store, StoreVDto>();
             CreateMap<Store, StoreFinanceVDto>().ForMember(d => d.HasCommission, o => o.MapFrom(s => s.CommissionPercent != 0));

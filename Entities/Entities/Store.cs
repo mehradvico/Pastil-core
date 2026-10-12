@@ -32,6 +32,8 @@ namespace Entities.Entities
         public decimal CommissionPercent { get; set; }
         /// <summary>حداکثر زمان آماده‌سازی سفارش این فروشگاه (دقیقه). بازه‌های تحویل میاره بر اساس همین زمان برای مشتری نمایش داده می‌شوند.</summary>
         public int MaxPreparationMinutes { get; set; } = 120;
+        /// <summary>فروشگاه «ارسال اکسپرس» (همان‌روز، ۲ تا ۳ ساعت کاری با پیک میاره + Boost) را فعال کرده است.</summary>
+        public bool ExpressShippingEnabled { get; set; }
         public Picture Picture { get; set; }
         public Picture Icon { get; set; }
         public Code Type { get; set; }

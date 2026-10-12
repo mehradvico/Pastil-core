@@ -15,6 +15,10 @@ namespace Entities.Entities.ShippingField
         public ShippingPaymentModeEnum PaymentMode { get; set; }
         public ShippingQuoteStatusEnum Status { get; set; }
         public double Price { get; set; }
+        /// <summary>true = گزینه‌ی «ارسال اکسپرس» (بدون بازه‌ی تحویل)</summary>
+        public bool IsExpress { get; set; }
+        /// <summary>اضافه‌ی اکسپرس داخل Price (مبلغ boost میاره یا مبلغ ثابت پاستیل)</summary>
+        public double ExpressSurcharge { get; set; }
         public string Currency { get; set; }
         public string ExternalQuoteId { get; set; }
         public string RequestFingerprint { get; set; }

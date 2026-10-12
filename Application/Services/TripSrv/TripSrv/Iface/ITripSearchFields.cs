@@ -19,6 +19,8 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         public double? ToMinute { get; set; }
         // فقط سفرهای رزروی (متصل به خدمت/پانسیون/مدرسه، یا تاریخ‌دار مستقل) یا نوبت‌های سرویس هفتگی پت‌رسان
         public bool? ScheduledOrServiceOnly { get; set; }
+        // نوع سفر: instant (فوری) | reserve (رزرو خدمت/پانسیون/مدرسه یا تاریخ‌دار) | service (نوبت سرویس هفتگی)؛ هم‌ترتیب با برچسب نوع سفر در پنل
+        public string TripKind { get; set; }
 
     }
 }

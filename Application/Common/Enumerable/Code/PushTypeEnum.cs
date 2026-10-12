@@ -168,6 +168,16 @@ namespace Application.Common.Enumerable.Code
         /// <summary>به کاربر: زمان رزرو (کلینیک/مربی/آرایشگاه) توسط مرکز یا ادمین تغییر کرد.</summary>
         PushCompanionReserveRescheduledUser = 119,
         /// <summary>به راننده‌ی پذیرنده‌ی سفر پت‌رسانِ متصل: زمان حرکت عوض شد.</summary>
-        PushCompanionReserveRescheduledDriver = 120
+        PushCompanionReserveRescheduledDriver = 120,
+        /// <summary>به فروشگاه: سفارش اکسپرس ثبت شد؛ همین الان «درخواست پیک» بزنید. Token1 = شماره سفارش، Token2 = مهلت (ساعت).</summary>
+        PushShipmentExpressAwaitingSeller = 121,
+        /// <summary>به مشتری: سفارش اکسپرس ثبت شد؛ ظرف ۲ تا ۳ ساعت کاری. Token1 = شماره سفارش، Token2 = متن زمان.</summary>
+        PushOrderExpressUser = 122,
+        /// <summary>به ادمین‌ها: فروشنده ۳۰ دقیقه بعد از پرداخت هنوز سفارش را آماده/تأیید نکرده (مهلت ۶۰ دقیقه). Token1 = شماره سفارش، Token2 = نام فروشگاه، Token3 = مهلت (ساعت).</summary>
+        PushShipmentSellerNotReadyAdmin = 123,
+        /// <summary>به راننده: یک ساعت به نوبت سرویس هفتگی پت‌رسان مانده؛ آماده باشید. Token1 = ساعت (HH:mm)، Token2 = شناسه‌ی سفر.</summary>
+        PushTripServiceReminderDriver = 124,
+        /// <summary>به کاربر: یک ساعت به نوبت سرویس هفتگی پت‌رسان مانده؛ آماده باشید. Token1 = ساعت (HH:mm)، Token2 = شناسه‌ی سفر.</summary>
+        PushTripServiceReminderUser = 125
     }
 }

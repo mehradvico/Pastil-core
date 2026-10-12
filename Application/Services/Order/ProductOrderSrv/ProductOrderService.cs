@@ -397,7 +397,6 @@ namespace Application.Services.Order.ProductOrderSrv
             // پیامک فروشگاه فقط نام کاربر و شماره سفارش دارد و فقط یک‌بار به هر شماره‌ی موبایل می‌رود.
             var storeNamesText = RegisterOrderStoreNames(productOrder);
             await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: null, token1: nameText, token2: productOrder.OrderCode, token3: orderUrl, token4: storeNamesText);
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.AdminRegisterOrder, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: null, token1: nameText, token2: productOrder.OrderCode, token4: storeNamesText);
             await SendRegisterOrderPushesAsync(productOrder, nameText);
             var orderId = long.Parse(productOrder.Id);
             await _notificationService.CreateAsync(new NoticeCreateDto
@@ -895,7 +894,6 @@ namespace Application.Services.Order.ProductOrderSrv
                     item.UserDescription = productOrder.UserDescription;
                     _context.ProductOrders.Update(item);
                     _context.SaveChanges();
-                    await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.ProductOrderCancelRequest, mobileReceptor: _adminSettingHelperService.BaseAdminSetting.AdminMobiles, emailReceptor: item.User.Email, token1: item.OrderCode);
 
                     return new BaseResultDto(true);
                 }
@@ -1067,7 +1065,7 @@ namespace Application.Services.Order.ProductOrderSrv
             catch { /* یک گیرنده‌ی خراب بقیه را متوقف نکند */ }
         }
 
-        // مشتری «تحویل گرفتم» زد (وضعیت سفارش همان لحظه «تحویل شد/تکمیل‌شده» شده): پیامک به ادمین (برای هر فروشگاه) و به مالک فروشگاه،
+        // مشتری «تحویل گرفتم» زد (وضعیت سفارش همان لحظه «تحویل شد/تکمیل‌شده» شده): پیامک به مالک فروشگاه،
         // و پوش «سفارش ... با موفقیت به کاربر تحویل داده شد» به کاربران فروشگاه و ادمین‌ها. best-effort: خطا پاسخ مشتری را خراب نمی‌کند.
         private async Task NotifyOrderReceivedAsync(string orderId)
         {
@@ -1076,14 +1074,8 @@ namespace Application.Services.Order.ProductOrderSrv
                 var info = await LoadOrderPartyInfoAsync(orderId);
                 if (info == null || info.Stores.Count == 0)
                     return;
-                var adminMobiles = _adminSettingHelperService.BaseAdminSetting?.AdminMobiles;
                 foreach (var store in info.Stores)
                 {
-                    var storeName = Application.Services.Order.ShippingSrv.ShipmentLifecycleRules.ForSmsToken(store.Name);
-                    // قالب کاوه‌نگار ProductOrderReceivedAdmin: %token = شماره سفارش، %token10 = نام فروشگاه
-                    if (!string.IsNullOrWhiteSpace(adminMobiles))
-                        await _messageSenderService.SendMessageAsync(MessageTypeEnum.ProductOrderReceivedAdmin, adminMobiles, null,
-                            token1: info.OrderCode, token4: storeName);
                     // قالب ProductOrderReceivedStore: %token = نام کاربر، %token2 = شماره سفارش
                     if (!string.IsNullOrWhiteSpace(store.Mobile))
                         await _messageSenderService.SendMessageAsync(MessageTypeEnum.ProductOrderReceivedStore, store.Mobile.Trim(), null,
@@ -1102,13 +1094,6 @@ namespace Application.Services.Order.ProductOrderSrv
                 var info = await LoadOrderPartyInfoAsync(orderId);
                 if (info == null)
                     return;
-                var adminMobiles = _adminSettingHelperService.BaseAdminSetting?.AdminMobiles;
-                if (!string.IsNullOrWhiteSpace(adminMobiles))
-                    foreach (var store in info.Stores)
-                        // قالب ProductOrderNotReceivedAdmin: %token = نام کاربر، %token2 = شماره سفارش، %token10 = نام فروشگاه
-                        await _messageSenderService.SendMessageAsync(MessageTypeEnum.ProductOrderNotReceivedAdmin, adminMobiles, null,
-                            token1: info.CustomerName, token2: info.OrderCode,
-                            token4: Application.Services.Order.ShippingSrv.ShipmentLifecycleRules.ForSmsToken(store.Name));
                 var adminUserIds = await _context.Users.AsNoTracking()
                     .Where(user => user.RoleId == (long)RoleEnum.Admin && !user.Deleted && !user.Locked)
                     .Select(user => user.Id)

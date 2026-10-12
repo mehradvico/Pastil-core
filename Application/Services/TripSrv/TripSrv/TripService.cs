@@ -196,6 +196,21 @@ namespace Application.Services.TripSrv.TripSrv
                 model = model.Where(s => s.CompanionReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
                     || s.ScheduledDepartureAt != null || s.PetResanServiceScheduleId != null);
             }
+            switch (baseSearchDto.TripKind?.Trim().ToLowerInvariant())
+            {
+                case "instant":
+                    model = model.Where(s => s.CompanionReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
+                        && s.PetResanServiceScheduleId == null && s.ScheduledDepartureAt == null);
+                    break;
+                case "reserve":
+                    model = model.Where(s => s.CompanionReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
+                        || (s.PetResanServiceScheduleId == null && s.ScheduledDepartureAt != null));
+                    break;
+                case "service":
+                    model = model.Where(s => s.PetResanServiceScheduleId != null
+                        && s.CompanionReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null);
+                    break;
+            }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
             {
                 model = model.Where(s => s.UserPet.User.FirstName.Contains(baseSearchDto.Q) || s.UserPet.User.LastName.Contains(baseSearchDto.Q) || s.UserPet.User.Mobile.Contains(baseSearchDto.Q));
@@ -682,18 +697,6 @@ namespace Application.Services.TripSrv.TripSrv
                 else
                 {
 
-                    var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
-
-                    await _messageSender.SendMessageAsync(
-                        messageType: MessageTypeEnum.AdminNotifyTrip,
-                        mobileReceptor: adminMobile,
-                        emailReceptor: null,
-                        token1: user.FirstName,
-                        token2: user.Mobile,
-                        sendDate: DateTime.Now
-
-                    );
-
                     await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverRequested, ActorUserId = trip.UserId, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}" });
                 }
             }
@@ -854,6 +857,8 @@ namespace Application.Services.TripSrv.TripSrv
                 _logger.LogError(ex, "Sending admin-cancel push for trip {TripId} failed.", trip.Id);
             }
 
+            if (trip.PetResanServiceScheduleId.HasValue)
+                await CreateNextServiceOccurrenceAsync(trip.Id);
             return await FindAsyncVDto(trip.Id);
         }
 
@@ -937,6 +942,8 @@ namespace Application.Services.TripSrv.TripSrv
                 _logger.LogError(ex, "Sending admin-complete push for trip {TripId} failed.", trip.Id);
             }
 
+            if (trip.PetResanServiceScheduleId.HasValue)
+                await CreateNextServiceOccurrenceAsync(trip.Id);
             return await FindAsyncVDto(trip.Id);
         }
 
@@ -945,56 +952,8 @@ namespace Application.Services.TripSrv.TripSrv
         // نسخه‌ی قبلی فیلتر وضعیت سفر نداشت و برای هر سفر قدیمی/لغوشده هم هر ۲۰ دقیقه دوباره پیامک می‌فرستاد؛
         // حالا: فقط سفرهای هنوز-درخواستی (TripStatus_Requested) و در ۲۴ ساعت اخیر، هر سفر فقط یک‌بار
         // (ردیف پیامک قبلی با همان سه توکن نشانه‌ی ارسال است — بدون نیاز به ستون جدید).
-        public async Task SyncDriverAcceptAsync()
-        {
-            var now = DateTime.Now;
-            var halfHourAgo = now.AddMinutes(-30);
-            var oldestAllowed = now.AddHours(-24);
-
-            var pendingTrips = await _context.Trips
-                .Where(t => t.IsOnline == true
-                    && t.DriverId.HasValue
-                    && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
-                    && t.DriverStatusId == (long)DriverStatusEnum.DriverStatus_Requested
-                    && t.CreateDate <= halfHourAgo
-                    && t.CreateDate >= oldestAllowed)
-                .ToListAsync();
-
-            if (pendingTrips.Count == 0)
-                return;
-
-            var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
-
-            foreach (var trip in pendingTrips)
-            {
-                try
-                {
-                    var driver = await _context.Drivers.FindAsync(trip.DriverId);
-                    if (driver == null)
-                        continue;
-
-                    var tripUser = await _context.Users
-                        .Where(u => u.Id == trip.UserId)
-                        .Select(u => u.Mobile)
-                        .FirstOrDefaultAsync();
-                    if (string.IsNullOrWhiteSpace(tripUser))
-                        continue;
-
-                    var tripIdToken = trip.Id.ToString();
-                    var alreadyNotified = await _context.Smses.AnyAsync(s =>
-                        s.Token1 == driver.Name && s.Token2 == tripUser && s.Token3 == tripIdToken);
-                    if (alreadyNotified)
-                        continue;
-
-                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.DriverNotAcceptedYet, mobileReceptor: adminMobile, emailReceptor: null, token1: driver.Name, token2: tripUser, token3: tripIdToken);
-                }
-                catch (Exception ex)
-                {
-                    // یک سفر خراب نباید بقیه‌ی سفرها را از اطلاع‌رسانی بیندازد.
-                    _logger.LogError(ex, "Notifying admin about driver {DriverId} not accepting trip {TripId} failed.", trip.DriverId, trip.Id);
-                }
-            }
-        }
+        // پیامک به ادمین حذف شد؛ job (DriverAccept) برای سازگاری با HangFire باقی مانده و فعلاً کاری انجام نمی‌دهد.
+        public Task SyncDriverAcceptAsync() => Task.CompletedTask;
 
         // Job هر دقیقه: سفرهای فوری Broadcast (بدون راننده‌ی از‌قبل‌انتخاب‌شده - DriverId خالی، برخلاف
         // SyncDriverAcceptAsync بالا که مخصوص انتخاب مستقیم راننده است) که مدتی است هیچ راننده‌ای قبولش
@@ -1014,6 +973,7 @@ namespace Application.Services.TripSrv.TripSrv
 
             var pendingTrips = await _context.Trips
                 .Where(t => !t.ScheduledDepartureAt.HasValue
+                    && t.PetResanServiceScheduleId == null
                     && !t.DriverId.HasValue
                     && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
                     && t.CreateDate <= noticeThreshold
@@ -1067,8 +1027,9 @@ namespace Application.Services.TripSrv.TripSrv
             {
                 return new BaseResultDto<TripSetRebateCodeDto>(false, Resource.Notification.NothingFound, dto);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.TripFinancialDataLockedAfterPaymentStarted);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (item.Price == 0)
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.FinalPriceIsNotAvailable);
@@ -1100,8 +1061,9 @@ namespace Application.Services.TripSrv.TripSrv
                 s.Id == id && s.UserId == _currentUser.CurrentUser.UserId && !s.IsPaid);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.TripFinancialDataLockedAfterPaymentStarted);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             item.RebateId = null;
             item.RebatePrice = 0;
             item.PaymentPrice = item.Price;
@@ -1120,8 +1082,9 @@ namespace Application.Services.TripSrv.TripSrv
             {
                 return new BaseResultDto<TripSetWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.TripFinancialDataLockedAfterPaymentStarted);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (dto.FromWallet)
             {
                 item.FromWallet = true;
@@ -1137,13 +1100,13 @@ namespace Application.Services.TripSrv.TripSrv
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
 
-        private Task<bool> HasActivePaymentAsync(long id)
+        // تغییر کیف پول/تخفیف توسط خود کاربر: تلاش درگاهِ رهاشده (برگشت بدون پرداخت / نرسیدن به درگاه) دیگر قفل نمی‌کند و
+        // کنار گذاشته می‌شود؛ فقط پرداخت موفق («قبلاً پرداخت شده») یا callbackِ در حال verify جلوی تغییر مبلغ را می‌گیرد.
+        private Task<BaseResultDto> GuardFinancialChangeAsync(long id)
         {
-            var callbackId = id.ToString();
-            return _context.Payments.AsNoTracking().AnyAsync(s =>
-                s.CallBackTypeLabel == PaymentCallbackTypeEnum.Trip.ToString() &&
-                s.CallBackId == callbackId &&
-                (s.IsSuccess == null || s.IsSuccess == true));
+            return Application.Services.Order.PaymentSrv.PaymentAttemptRules.GuardUserRetryAsync(
+                _context, PaymentCallbackTypeEnum.Trip.ToString(), id.ToString(),
+                Resource.Notification.PaymentTripAlreadyPaid);
         }
 
         public async Task<BaseResultDto<TripShareDto>> UpdateTripShareAsync(TripShareDto dto)
@@ -1380,7 +1343,9 @@ namespace Application.Services.TripSrv.TripSrv
         {
             var accepted = (long)TripStatusEnum.TripStatus_Accepted;
             var now = DateTime.Now;
-            var windowEnd = now.AddMinutes(30);
+            // نوبت‌های سرویس هفتگی ۶۰ دقیقه قبل (به راننده و کاربر)، بقیه‌ی سفرهای رزروی ۳۰ دقیقه قبل (فقط راننده)
+            var serviceWindowEnd = now.AddMinutes(ServiceReminderLeadMinutes);
+            var otherWindowEnd = now.AddMinutes(30);
 
             var due = await _context.Trips
                 .Include(t => t.Driver)
@@ -1390,7 +1355,7 @@ namespace Application.Services.TripSrv.TripSrv
                     && t.DriverReminderSentDate == null
                     && t.TripStartDateTime.HasValue
                     && t.TripStartDateTime > now
-                    && t.TripStartDateTime <= windowEnd)
+                    && t.TripStartDateTime <= serviceWindowEnd)
                 .ToListAsync();
 
             if (due.Count == 0)
@@ -1398,22 +1363,62 @@ namespace Application.Services.TripSrv.TripSrv
 
             foreach (var trip in due)
             {
+                var isService = trip.PetResanServiceScheduleId.HasValue;
+                if (!isService && trip.TripStartDateTime > otherWindowEnd)
+                    continue;
+
                 if (trip.Driver != null)
                 {
                     try
                     {
-                        var isService = trip.PetResanServiceScheduleId.HasValue;
-                        await _pushNotificationService.SendPushAsync(
-                            PushTypeEnum.PushTripDriverUpcomingReminder,
-                            trip.Driver.OwnerId,
-                            token1: isService ? "سرویس" : "سفر رزروشده",
-                            token2: trip.Id.ToString());
+                        if (isService)
+                        {
+                            await _pushNotificationService.SendPushAsync(
+                                PushTypeEnum.PushTripServiceReminderDriver,
+                                trip.Driver.OwnerId,
+                                token1: trip.TripStartDateTime.Value.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture),
+                                token2: trip.Id.ToString());
+                        }
+                        else
+                        {
+                            await _pushNotificationService.SendPushAsync(
+                                PushTypeEnum.PushTripDriverUpcomingReminder,
+                                trip.Driver.OwnerId,
+                                token1: "سفر رزروشده",
+                                token2: trip.Id.ToString());
+                        }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to send upcoming-trip reminder push for trip {TripId}.", trip.Id);
                     }
                 }
+
+                if (isService)
+                {
+                    try
+                    {
+                        // یادآوری کاربر هم یک‌بار برای هر نوبت (بدون ستون جدید: ردیف پوش قبلی با Token2 = شناسه‌ی سفر)
+                        var tripIdToken = trip.Id.ToString();
+                        var alreadySent = await _context.PushNotifications.AnyAsync(p =>
+                            p.UserId == trip.UserId
+                            && p.PushPattern.PushTypeId == (long)PushTypeEnum.PushTripServiceReminderUser
+                            && p.Token2 == tripIdToken);
+                        if (!alreadySent)
+                        {
+                            await _pushNotificationService.SendPushAsync(
+                                PushTypeEnum.PushTripServiceReminderUser,
+                                trip.UserId,
+                                token1: trip.TripStartDateTime.Value.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture),
+                                token2: tripIdToken);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send service reminder push to the user of trip {TripId}.", trip.Id);
+                    }
+                }
+
                 trip.DriverReminderSentDate = now;
             }
 
@@ -1486,6 +1491,8 @@ namespace Application.Services.TripSrv.TripSrv
                 DeduplicationKey = $"{NoticeTypeLabels.TripDriverCanceled}:{trip.Id}"
             });
 
+            if (trip.PetResanServiceScheduleId.HasValue)
+                await CreateNextServiceOccurrenceAsync(trip.Id);
             return await FindAsyncVDto(trip.Id);
         }
 
@@ -1546,6 +1553,8 @@ namespace Application.Services.TripSrv.TripSrv
                 DeduplicationKey = $"{NoticeTypeLabels.TripCancelledByUser}:{trip.Id}"
             });
 
+            if (trip.PetResanServiceScheduleId.HasValue)
+                await CreateNextServiceOccurrenceAsync(trip.Id);
             return await FindAsyncVDto(trip.Id);
         }
 
@@ -1627,6 +1636,8 @@ namespace Application.Services.TripSrv.TripSrv
                 }
             }
 
+            if (trip.PetResanServiceScheduleId.HasValue && trip.TripStatusId == (long)TripStatusEnum.TripStatus_Compeleted)
+                await CreateNextServiceOccurrenceAsync(trip.Id);
             return await FindAsyncVDto(trip.Id);
         }
 
@@ -2289,36 +2300,37 @@ namespace Application.Services.TripSrv.TripSrv
             [DayOfWeek.Friday] = 7
         };
 
+        // سرویس هفتگی بدون job شبانه: سفر نوبت‌ها هنگام «ثبت سرویس» ساخته می‌شود تا راننده‌ها همان لحظه قبول کنند؛
+        // نوبت هفته‌ی بعدِ هر ردیف هم با تکمیل/لغو نوبت قبلی ساخته می‌شود (CreateNextServiceOccurrenceAsync).
+        // حداقل فاصله‌ی زمانی تا حرکتِ اولین نوبت، برای فرصت قبول راننده.
+        private const int ServiceMinLeadMinutes = 60;
+        private const int ServiceReminderLeadMinutes = 60;
+
+        /// <summary>پشتیبان یک‌باره (و دستی): برای هر ردیف فعالی که هیچ نوبت آینده‌ای ندارد، نزدیک‌ترین نوبت را می‌سازد.</summary>
         public async Task GeneratePetResanServiceTripsAsync()
         {
-            await GeneratePetResanTripsCoreAsync(null);
+            await GenerateUpcomingOccurrencesAsync(null);
         }
 
         public async Task<int> GeneratePetResanServiceTripsForNewServiceAsync(long serviceId)
         {
-            // قبل از ساعت job روزانه لازم نیست: خودِ job امشب نوبت فردای این سرویس را هم می‌سازد
-            if (!PetResanServiceTripRules.DailyJobHasRun(PetResanServiceTripRules.TehranNow(DateTime.UtcNow)))
-                return 0;
-            return await GeneratePetResanTripsCoreAsync(serviceId);
+            return await GenerateUpcomingOccurrencesAsync(serviceId);
         }
 
-        // مشترک بین job روزانه (همه‌ی سرویس‌ها) و ثبت سرویس جدید (فقط همان سرویس). ساخت تکراری با
-        // alreadyGenerated و ایندکس یکتا جلوگیری می‌شود. بعد از ساخت، یک پوش تجمیعی به رانندگان می‌رود.
-        private async Task<int> GeneratePetResanTripsCoreAsync(long? onlyServiceId)
+        private async Task<int> GenerateUpcomingOccurrencesAsync(long? onlyServiceId)
         {
             var runStart = DateTime.Now;
-            var tomorrow = DateTime.Today.AddDays(1);
-            var tomorrowDayNumber = PetResanServiceWeekDayNumbers[tomorrow.DayOfWeek];
+            var today = DateTime.Today;
+            var earliest = runStart.AddMinutes(ServiceMinLeadMinutes);
 
             var schedules = await _context.PetResanServiceSchedules
                 .Include(s => s.WeekDay)
                 .Include(s => s.PetResanService).ThenInclude(service => service.TripOptions)
                 .Include(s => s.PetResanService).ThenInclude(service => service.Pets)
                 .Where(s => s.Active
-                    && s.WeekDay.Number == tomorrowDayNumber
                     && s.PetResanService.Active
                     && (onlyServiceId == null || s.PetResanServiceId == onlyServiceId)
-                    && (s.PetResanService.EndDate == null || s.PetResanService.EndDate >= tomorrow))
+                    && (s.PetResanService.EndDate == null || s.PetResanService.EndDate >= today))
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -2326,44 +2338,62 @@ namespace Application.Services.TripSrv.TripSrv
             {
                 var service = schedule.PetResanService;
 
-                // بدون ReturnTime: رفتار قدیمی — یک سفر «رفت‌وبرگشت» (قیمت شامل هر دو طرف، بدون سفر برگشت واقعی).
-                // با ReturnTime: دو سفر یک‌طرفه‌ی جدا — رفت (مبدا→مقصد) در Time، برگشت (مقصد→مبدا، IsReturnLeg=true) در ReturnTime.
-                if (string.IsNullOrWhiteSpace(schedule.ReturnTime))
-                {
-                    if (ReservationScheduleValidator.TryGetServiceStartDateTime(tomorrow, schedule.Time, out var occurrenceAt))
-                    {
-                        await GenerateOnePetResanTripAsync(
-                            schedule, service, tomorrow, occurrenceAt,
-                            new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 },
-                            new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 },
-                            service.FromAddress, service.ToAddress,
-                            roundTrip: true, isReturnLeg: false);
-                    }
+                if (await _context.Trips.AnyAsync(t => t.PetResanServiceScheduleId == schedule.Id && t.TripStartDateTime > runStart))
                     continue;
-                }
 
-                if (ReservationScheduleValidator.TryGetServiceStartDateTime(tomorrow, schedule.Time, out var departAt))
+                // نزدیک‌ترین تاریخِ همین روز هفته (از تاریخ شروع سرویس) که ساعت رفتش حداقل ServiceMinLeadMinutes بعد باشد
+                DateTime? date = null;
+                var from = service.StartDate.Date > today ? service.StartDate.Date : today;
+                for (var offset = 0; offset < 15; offset++)
                 {
-                    await GenerateOnePetResanTripAsync(
-                        schedule, service, tomorrow, departAt,
-                        new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 },
-                        new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 },
-                        service.FromAddress, service.ToAddress,
-                        roundTrip: false, isReturnLeg: false);
+                    var candidate = from.AddDays(offset);
+                    if (PetResanServiceWeekDayNumbers[candidate.DayOfWeek] != schedule.WeekDay.Number)
+                        continue;
+                    if (!ReservationScheduleValidator.TryGetServiceStartDateTime(candidate, schedule.Time, out var at) || at <= earliest)
+                        continue;
+                    date = candidate;
+                    break;
                 }
+                if (!date.HasValue || (service.EndDate.HasValue && date.Value > service.EndDate.Value.Date))
+                    continue;
 
-                if (ReservationScheduleValidator.TryGetServiceStartDateTime(tomorrow, schedule.ReturnTime, out var returnAt))
-                {
-                    await GenerateOnePetResanTripAsync(
-                        schedule, service, tomorrow, returnAt,
-                        new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 },
-                        new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 },
-                        service.ToAddress, service.FromAddress,
-                        roundTrip: false, isReturnLeg: true);
-                }
+                await GenerateScheduleOccurrencesAsync(schedule, service, date.Value);
             }
 
-            // فقط نوبت‌هایی که الان واقعاً در TripAvailable قابل قبول‌اند (پرداخت‌شده/لغو‌نشده، بدون راننده)
+            return await CountAndBroadcastNewOccurrencesAsync(runStart);
+        }
+
+        // رفت (و در صورت وجود ReturnTime برگشت) یک ردیف را برای یک تاریخ می‌سازد.
+        // بدون ReturnTime: یک سفر «رفت‌وبرگشت»؛ با ReturnTime: دو سفر یک‌طرفه‌ی جدا (برگشت با IsReturnLeg=true).
+        private async Task GenerateScheduleOccurrencesAsync(
+            Entities.Entities.PetResanServiceField.PetResanServiceSchedule schedule,
+            Entities.Entities.PetResanServiceField.PetResanService service,
+            DateTime date)
+        {
+            var origin = new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 };
+            var destination = new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 };
+            var hasReturn = !string.IsNullOrWhiteSpace(schedule.ReturnTime);
+
+            if (ReservationScheduleValidator.TryGetServiceStartDateTime(date, schedule.Time, out var departAt))
+            {
+                await GenerateOnePetResanTripAsync(
+                    schedule, service, date, departAt, origin, destination,
+                    service.FromAddress, service.ToAddress,
+                    roundTrip: !hasReturn, isReturnLeg: false);
+            }
+
+            if (hasReturn && ReservationScheduleValidator.TryGetServiceStartDateTime(date, schedule.ReturnTime, out var returnAt))
+            {
+                await GenerateOnePetResanTripAsync(
+                    schedule, service, date, returnAt, destination, origin,
+                    service.ToAddress, service.FromAddress,
+                    roundTrip: false, isReturnLeg: true);
+            }
+        }
+
+        // فقط نوبت‌هایی که الان واقعاً در TripAvailable قابل قبول‌اند؛ یک پوش تجمیعی به رانندگان می‌رود.
+        private async Task<int> CountAndBroadcastNewOccurrencesAsync(DateTime runStart)
+        {
             var created = await _context.Trips.AsNoTracking().CountAsync(t =>
                 t.PetResanServiceScheduleId != null
                 && t.CreateDate >= runStart
@@ -2372,6 +2402,48 @@ namespace Application.Services.TripSrv.TripSrv
             if (created > 0)
                 await BroadcastServiceOccurrencesAsync(created);
             return created;
+        }
+
+        // بعد از تکمیل یا لغو یک نوبتِ سرویس، همان ردیف/جهت را برای هفته‌ی بعد می‌سازد (جایگزین job شبانه).
+        // خطا هرگز مانع تکمیل/لغو خودِ سفر نمی‌شود.
+        private async Task CreateNextServiceOccurrenceAsync(long tripId)
+        {
+            try
+            {
+                var trip = await _context.Trips.AsNoTracking()
+                    .Include(t => t.PetResanServiceSchedule).ThenInclude(s => s.PetResanService).ThenInclude(s => s.TripOptions)
+                    .Include(t => t.PetResanServiceSchedule).ThenInclude(s => s.PetResanService).ThenInclude(s => s.Pets)
+                    .FirstOrDefaultAsync(t => t.Id == tripId);
+                var schedule = trip?.PetResanServiceSchedule;
+                var service = schedule?.PetResanService;
+                if (service == null || !trip.TripStartDateTime.HasValue || !schedule.Active || !service.Active)
+                    return;
+
+                var runStart = DateTime.Now;
+                var nextAt = trip.TripStartDateTime.Value.AddDays(7);
+                while (nextAt <= runStart.AddMinutes(ServiceMinLeadMinutes))
+                    nextAt = nextAt.AddDays(7);
+                if (service.EndDate.HasValue && nextAt.Date > service.EndDate.Value.Date)
+                    return;
+
+                var hasReturn = !string.IsNullOrWhiteSpace(schedule.ReturnTime);
+                var isReturnLeg = hasReturn && trip.IsReturnLeg && !trip.RoundTrip;
+                var origin = new Point(service.Origin.X, service.Origin.Y) { SRID = 4326 };
+                var destination = new Point(service.Destination.X, service.Destination.Y) { SRID = 4326 };
+
+                await GenerateOnePetResanTripAsync(
+                    schedule, service, nextAt.Date, nextAt,
+                    isReturnLeg ? destination : origin, isReturnLeg ? origin : destination,
+                    isReturnLeg ? service.ToAddress : service.FromAddress,
+                    isReturnLeg ? service.FromAddress : service.ToAddress,
+                    roundTrip: !hasReturn, isReturnLeg: isReturnLeg);
+
+                await CountAndBroadcastNewOccurrencesAsync(runStart);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Creating the next weekly-service occurrence after trip {TripId} failed.", tripId);
+            }
         }
 
         // Job روزانه (۲ ساعت قبل از job ساخت نوبت‌ها): نوبت‌های فردای سرویس‌های هفتگی‌ای که قرار است از کیف پول
@@ -2389,6 +2461,7 @@ namespace Application.Services.TripSrv.TripSrv
                 .Where(s => s.Active
                     && s.WeekDay.Number == tomorrowDayNumber
                     && s.PetResanService.Active
+                    && s.PetResanService.StartDate <= tomorrow
                     && (s.PetResanService.EndDate == null || s.PetResanService.EndDate >= tomorrow))
                 .AsNoTracking()
                 .ToListAsync();
@@ -2575,6 +2648,8 @@ namespace Application.Services.TripSrv.TripSrv
                 return;
             }
 
+            trip.PaymentPrice = trip.Price;
+
             var servicePetIds = (service.Pets != null && service.Pets.Any())
                 ? service.Pets.Select(p => p.UserPetId).Distinct().ToList()
                 : new List<long> { service.UserPetId };
@@ -2643,9 +2718,10 @@ namespace Application.Services.TripSrv.TripSrv
             }
             else
             {
-                trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
-                trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.System;
-                trip.CancelReasonDetail = "موجودی کیف پول برای سرویس پت‌رسان هفتگی کافی نبود.";
+                // موجودی کافی نیست: نوبت لغو نمی‌شود (وگرنه زنجیره‌ی نوبت‌های بعدی هم قطع می‌شد)؛ مثل اولین سفر پرداخت‌نشده
+                // برای رانندگان نمایش داده می‌شود و کاربر بعد از قبول راننده خودش پرداخت می‌کند. پوش شارژ کیف پول هم می‌رود.
+                trip.FromWallet = false;
+                trip.WalletPrice = 0;
                 await _context.SaveChangesAsync();
 
                 try
@@ -2686,8 +2762,6 @@ namespace Application.Services.TripSrv.TripSrv
         {
             var now = DateTime.Now;
             var earlyWarningThreshold = now.AddHours(1);
-            var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
-
             // ۱) هشدار زودهنگام (۱ ساعت مانده) - فقط Notice/push (بدون SMS، بدون تغییر ScheduledDispatched)
             var earlyWarningDue = await _context.Trips
                 .Where(t =>
@@ -2731,7 +2805,6 @@ namespace Application.Services.TripSrv.TripSrv
 
                 try
                 {
-                    await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.DriverNotAcceptedYet, mobileReceptor: adminMobile, emailReceptor: null, token1: "-", token2: "-", token3: trip.Id.ToString());
                     await _noticeService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.TripDriverSelectionRequired, ReferenceType = "Trip", ReferenceId = trip.Id, DeduplicationKey = $"ScheduledDispatchReminder:{trip.Id}" });
                 }
                 catch (Exception ex)
@@ -2757,6 +2830,7 @@ namespace Application.Services.TripSrv.TripSrv
             var due = await _context.Trips
                 .Where(t =>
                     !t.ScheduledDepartureAt.HasValue &&
+                    t.PetResanServiceScheduleId == null &&
                     t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested &&
                     t.DriverId == null &&
                     t.CreateDate <= cutoff)

@@ -22,11 +22,17 @@ namespace Application.Services.Order.ShippingSrv.Provider
         /// <summary>شماره‌ی تکی روی قبض/سفر؛ برای میاره باید در بین سفرهای فعال یکتا باشد.</summary>
         public string BillNumber { get; set; }
 
+        /// <summary>URL مطلق تصویر/لوگوی فروشگاه (میاره: pickup.image، الزامی)؛ خالی = تصویر پیش‌فرض تنظیمات</summary>
+        public string PickupImageUrl { get; set; }
+
         /// <summary>ساعتی که پیک باید به فروشگاه برسد (UTC)؛ میاره: pickup.deadline.</summary>
         public System.DateTime? PickupDeadlineUtc { get; set; }
 
         /// <summary>کد ۵ رقمی تحویل (PoD)؛ پیک بدون این کد از مشتری نمی‌تواند تحویل را ثبت کند.</summary>
         public string DeliveryCode { get; set; }
+
+        /// <summary>سطح boost میاره (اکسپرس)؛ null/۰ = بدون boost</summary>
+        public int? BoostLevel { get; set; }
         public double? OriginLatitude { get; set; }
         public double? OriginLongitude { get; set; }
         public double? DestinationLatitude { get; set; }

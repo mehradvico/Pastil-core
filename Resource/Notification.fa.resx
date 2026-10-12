@@ -912,6 +912,21 @@
   <data name="PaymentInsuranceAlreadyPaid" xml:space="preserve">
     <value>این بیمه قبلاً پرداخت شده است.</value>
   </data>
+  <data name="PaymentTargetAlreadyPaid" xml:space="preserve">
+    <value>پرداخت این مورد قبلاً انجام شده است.</value>
+  </data>
+  <data name="PaymentAttemptSuperseded" xml:space="preserve">
+    <value>این پرداخت با یک تلاش پرداخت جدیدتر جایگزین شده و تأیید نمی‌شود. اگر مبلغی از حساب شما کم شده، بانک آن را خودکار به حسابتان برمی‌گرداند.</value>
+  </data>
+  <data name="PaymentPreviousAttemptVerifying" xml:space="preserve">
+    <value>پرداخت قبلی شما همین الان در حال تأیید نهایی بانک است؛ چند ثانیه دیگر دوباره تلاش کنید.</value>
+  </data>
+  <data name="PaymentTargetCancelled" xml:space="preserve">
+    <value>این مورد لغو شده و دیگر قابل پرداخت نیست.</value>
+  </data>
+  <data name="ConsultationAlreadyPurchased" xml:space="preserve">
+    <value>این مشاوره قبلاً خریداری شده است.</value>
+  </data>
   <data name="PaymentIdempotencyKeyHeaderMustBeValidUuid" xml:space="preserve">
     <value>هدر Idempotency-Key باید یک UUID معتبر باشد.</value>
   </data>
@@ -1863,5 +1878,14 @@
   </data>
   <data name="CompanionReserveRescheduledSuccessfully" xml:space="preserve">
     <value>زمان رزرو تغییر کرد و به کاربر اطلاع داده شد.</value>
+  </data>
+  <data name="ShippingExpressNotAvailable" xml:space="preserve">
+    <value>ارسال اکسپرس در حال حاضر در دسترس نیست (خارج از ساعت کاری یا غیرفعال است). ارسال با انتخاب روز را انتخاب کنید.</value>
+  </data>
+  <data name="ShipmentExpressRequested" xml:space="preserve">
+    <value>درخواست پیک اکسپرس ثبت شد؛ پیک به‌زودی به فروشگاه می‌رسد.</value>
+  </data>
+  <data name="TicketAutoReplyMessage" xml:space="preserve">
+    <value>با سلام،&#10;درخواست شما توسط همکاران ما در پاستیل در حال پیگیری می‌باشد.&#10;شما در کوتاه‌ترین زمان ممکن به پشتیبان‌های پاستیل متصل خواهید شد.&#10;از صبوری و اعتماد شما متشکریم.</value>
   </data>
 </root>

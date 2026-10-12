@@ -9,5 +9,6 @@ namespace Application.Services.Accounting.PermissionSrv.Iface
     {
         PermissionSearchDto Search(PermissionInputDto searchDto);
         BaseResultDto Menu();
+        BaseResultDto MyAdminActions();
     }
 }

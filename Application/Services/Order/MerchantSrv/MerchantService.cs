@@ -85,12 +85,17 @@ namespace Application.Services.Order.MerchantSrv
             return new BaseResultDto(true);
         }
 
-        public BaseSearchDto<MerchantVDto> Search(BaseInputDto baseSearchDto)
+        public BaseSearchDto<MerchantVDto> Search(BaseInputDto baseSearchDto, bool hideTestGateway = false)
         {
             var query = _context.Merchants
                 .Include(s => s.Bank)
                 .ThenInclude(s => s.Picture)
                 .AsQueryable();
+
+            if (hideTestGateway)
+            {
+                query = query.Where(s => s.BankId != (long)MerchantEnum.pastilTest);
+            }
 
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
             {

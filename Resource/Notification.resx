@@ -912,6 +912,21 @@
   <data name="PaymentInsuranceAlreadyPaid" xml:space="preserve">
     <value>Payment Insurance Already Paid</value>
   </data>
+  <data name="PaymentTargetAlreadyPaid" xml:space="preserve">
+    <value>Payment Target Already Paid</value>
+  </data>
+  <data name="PaymentAttemptSuperseded" xml:space="preserve">
+    <value>Payment Attempt Superseded</value>
+  </data>
+  <data name="PaymentPreviousAttemptVerifying" xml:space="preserve">
+    <value>Your previous payment is being verified by the bank; try again in a few seconds.</value>
+  </data>
+  <data name="PaymentTargetCancelled" xml:space="preserve">
+    <value>This item has been cancelled and can no longer be paid.</value>
+  </data>
+  <data name="ConsultationAlreadyPurchased" xml:space="preserve">
+    <value>This consultation has already been purchased.</value>
+  </data>
   <data name="PaymentIdempotencyKeyHeaderMustBeValidUuid" xml:space="preserve">
     <value>Payment Idempotency Key Header Must Be Valid Uuid</value>
   </data>
@@ -1863,5 +1878,14 @@
   </data>
   <data name="CompanionReserveRescheduledSuccessfully" xml:space="preserve">
     <value>Reservation time changed and the customer was notified.</value>
+  </data>
+  <data name="ShippingExpressNotAvailable" xml:space="preserve">
+    <value>Express shipping is not available right now (outside working hours or disabled). Choose a delivery day instead.</value>
+  </data>
+  <data name="ShipmentExpressRequested" xml:space="preserve">
+    <value>Express courier requested; the courier will arrive shortly.</value>
+  </data>
+  <data name="TicketAutoReplyMessage" xml:space="preserve">
+    <value>Ticket Auto Reply Message</value>
   </data>
 </root>

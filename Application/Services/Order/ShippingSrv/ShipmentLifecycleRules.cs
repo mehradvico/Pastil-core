@@ -58,11 +58,23 @@ namespace Application.Services.Order.ShippingSrv
         public static bool ShouldAskReceived(IReadOnlyCollection<DateTime?> activeSlotEndsUtc, DateTime nowUtc) =>
             activeSlotEndsUtc.Count > 0 && activeSlotEndsUtc.All(end => end.HasValue && end.Value <= nowUtc);
 
+        // هشدار به ادمین: فروشنده بعد از alertMinutes دقیقه از ثبت مرسوله هنوز «منتظر فروشنده» است و مهلتش هنوز تمام نشده
+        // (بعد از مهلت، مرسوله Failed و سفارش وارد صف «درخواست لغو» می‌شود و دیگر پیگیری لازم نیست). فقط یک‌بار. alertMinutes <= 0 = غیرفعال.
+        public static bool ShouldAlertSellerNotReady(DateTime createdAtUtc, DateTime? deadlineUtc, DateTime? alreadyNotifiedAtUtc, DateTime nowUtc, int alertMinutes)
+        {
+            if (alertMinutes <= 0 || alreadyNotifiedAtUtc.HasValue)
+                return false;
+            if (deadlineUtc.HasValue && nowUtc >= deadlineUtc.Value)
+                return false;
+            return nowUtc >= createdAtUtc.AddMinutes(alertMinutes);
+        }
+
         // «۹ تا ۱۳»: ساعت‌های رُند بدون دقیقه (۹، ۱۳)، غیر رُند با دقیقه (۹:۳۰)
         public static string FormatHour(TimeSpan time) =>
             time.Minutes == 0 ? time.Hours.ToString() : $"{time.Hours}:{time.Minutes:D2}";
 
-        // توکن‌های کاوه‌نگار فاصله نمی‌پذیرند؛ فاصله با نیم‌فاصله (ZWNJ) عوض می‌شود.
+        // توکن‌های کاوه‌نگار فاصله نمی‌پذیرند. نیم‌فاصله (ZWNJ) هم ۴۳۱ می‌گیرد؛ SmsService (KavenegarLookupToken) هنگام ارسال
+        // هر فاصله/نیم‌فاصله را «_» می‌کند، پس این‌جا فقط جمع‌کردن فاصله‌ها و سقف طول مهم است.
         public static string ForSmsToken(string value, int maxLength = 100)
         {
             var clean = string.Join(' ', (value ?? string.Empty).Split((char[])null, StringSplitOptions.RemoveEmptyEntries)).Replace(' ', '‌');

@@ -38,5 +38,15 @@ namespace Api.Areas.EndUser.Controllers
             return Ok(menu);
         }
 
+
+        /// <summary>
+        ///  دسترسی‌های action ناحیه Admin برای نقش کاربر جاری
+        /// </summary>
+        [HttpGet("Actions")]
+        [ProducesResponseType(typeof(BaseResultDto<PermissionActionsDto>), 200)]
+        public IActionResult Actions()
+        {
+            return Ok(permissionService.MyAdminActions());
+        }
     }
 }

@@ -59,7 +59,26 @@ namespace Application.Services.CompanionSrvs.CompanionReserveSrv
 
         public static string Time(DateTime date) => date.ToString("HH:mm", CultureInfo.InvariantCulture);
 
-        // ساعت برای توکن پیامک کاوه‌نگار: بدون «:» (۴۳۱ «ساختار کد صحیح نمی‌باشد» برای HH:mm) → «14.00»
-        public static string SmsTime(DateTime date) => date.ToString("HH.mm", CultureInfo.InvariantCulture);
+        // ساعت برای توکن پیامک بدون «:» و «.» (پذیرششان در کاوه‌نگار ثابت نشده): «14» یا «9و30»
+        public static string SmsTime(DateTime date) =>
+            date.Minute == 0
+                ? date.Hour.ToString(CultureInfo.InvariantCulture)
+                : string.Create(CultureInfo.InvariantCulture, $"{date.Hour}و{date.Minute:D2}");
+
+        // متن آزاد (نام مرکز، دلیل) برای توکن پیامک: فقط حرف/عدد/اعراب/نیم‌فاصله می‌ماند، بقیه (، . ! ؟ / : ایموجی…) فاصله می‌شود.
+        // فاصله و نیم‌فاصله را SmsService (KavenegarLookupToken) هنگام ارسال «_» می‌کند.
+        public static string SmsText(string value)
+        {
+            var chars = (value ?? string.Empty).ToCharArray();
+            for (var i = 0; i < chars.Length; i++)
+            {
+                var c = chars[i];
+                var keep = char.IsLetterOrDigit(c) || c == '‌' ||
+                           CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark;
+                if (!keep)
+                    chars[i] = ' ';
+            }
+            return string.Join(' ', new string(chars).Split((char[])null, StringSplitOptions.RemoveEmptyEntries));
+        }
     }
 }

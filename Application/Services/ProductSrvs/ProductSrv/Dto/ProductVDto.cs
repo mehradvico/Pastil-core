@@ -47,6 +47,8 @@ namespace Application.Services.ProductSrvs.ProductSrv.Dto
         public decimal? ShippingHeightCm { get; set; }
         public bool Active { get; set; }
         public StoreMinVDto Store { get; set; }
+        /// <summary>حداقل یکی از فروشگاه‌های فعالِ دارای موجودی این محصول «ارسال اکسپرس» را فعال کرده است (برای نشان روی کارت محصول).</summary>
+        public bool ExpressShipping { get; set; }
         public PointDto Location { get; set; }
         public CategoryVDto Category { get; set; }
         public CodeDto Status { get; set; }

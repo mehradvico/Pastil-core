@@ -1,5 +1,7 @@
-﻿using Application.Common.Dto.Input;
+using Application.Common.Dto.Input;
 using Application.Common.Dto.Result;
+using Application.Common.Enumerable;
+using Application.Common.Interface;
 using Application.Services.Order.MerchantSrv.Dto;
 using Application.Services.Order.MerchantSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -16,11 +18,13 @@ namespace Api.Controllers
     public class MerchantController : ControllerBase
     {
         private IMerchantService MerchantService;
+        private readonly ICurrentUserHelper _currentUser;
         /// <summary>
         /// مرتبط با درگاه بانکی
         /// </summary>
-        public MerchantController(IMerchantService MerchantService)
+        public MerchantController(IMerchantService MerchantService, ICurrentUserHelper currentUser)
         {
+            _currentUser = currentUser;
             this.MerchantService = MerchantService;
         }
 
@@ -33,7 +37,7 @@ namespace Api.Controllers
         public IActionResult Get([FromQuery] BaseInputDto dto)
         {
             dto.Available = true;
-            var model = MerchantService.Search(dto);
+            var model = MerchantService.Search(dto, hideTestGateway: _currentUser.CurrentUser?.RoleEnum != RoleEnum.Admin.ToString());
             return Ok(model);
         }
     }

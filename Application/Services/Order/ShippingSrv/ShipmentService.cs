@@ -83,6 +83,11 @@ namespace Application.Services.Order.ShippingSrv
                         item => item.Id == orderStore.ShippingQuoteId.Value,
                         cancellationToken)
                     : null;
+                if (orderStore.ShippingProvider == ShippingProviderEnum.Miare && orderStore.ShippingIsExpress)
+                {
+                    await CreateAwaitingExpressShipmentAsync(productOrder, orderStore, quote, cancellationToken);
+                    continue;
+                }
                 if (orderStore.ShippingProvider == ShippingProviderEnum.Miare
                     && orderStore.ShippingSlotId.HasValue && orderStore.ShippingSlotDate.HasValue)
                 {
@@ -150,6 +155,19 @@ namespace Application.Services.Order.ShippingSrv
             await _context.SaveChangesAsync(cancellationToken);
         }
 
+        // آدرس مطلق تصویر فروشگاه (آیکن، وگرنه تصویر اصلی): {FileBaseUrl}{Url}/{GuidName}{Extension}؛ نبودن = null (تصویر پیش‌فرض)
+        private static string BuildStoreImageUrl(Store store)
+        {
+            var picture = store?.Icon ?? store?.Picture;
+            if (picture == null || string.IsNullOrWhiteSpace(picture.GuidName))
+                return null;
+            var fileBaseUrl = Application.Common.Helpers.AppSettingsHelper.FileBaseUrl?.TrimEnd('/');
+            if (string.IsNullOrWhiteSpace(fileBaseUrl))
+                return null;
+            var path = $"{picture.Url}/{picture.GuidName}{picture.Extension}".Replace("//", "/");
+            return $"{fileBaseUrl}{(path.StartsWith("/") ? path : "/" + path)}";
+        }
+
         private static string NewDeliveryCode() => RandomNumberGenerator.GetInt32(10000, 100000).ToString();
 
         private static string TehranHm(DateTime utc) => ShippingSlotRules.FormatTime(ShippingSlotRules.ToTehran(utc).TimeOfDay);
@@ -199,6 +217,69 @@ namespace Application.Services.Order.ShippingSrv
                 productOrder.OrderCode, TehranHm(deadline), slotText);
         }
 
+        // ارسال اکسپرس: پرداخت شد ← مرسوله «منتظر فروشنده» با مهلت کوتاه؛ فروشنده همین الان باید «درخواست پیک» بزند (یک مرحله، بدون روز/بازه).
+        // SlotStart/End = «قول تحویل» (از پرداخت تا ۳ ساعت) تا هشدار تأخیر و «آیا تحویل گرفتید؟» همان منطق بازه‌ای کار کند.
+        private async Task CreateAwaitingExpressShipmentAsync(
+            ProductOrder productOrder,
+            ProductOrderStore orderStore,
+            ShippingQuote quote,
+            CancellationToken cancellationToken)
+        {
+            var nowUtc = DateTime.UtcNow;
+            var express = _options.Express;
+            var deadline = ShippingExpressRules.SellerDeadline(nowUtc, express.SellerConfirmMinutes);
+            var shipment = new Shipment
+            {
+                ProductOrderStoreId = orderStore.Id,
+                ShippingQuoteId = orderStore.ShippingQuoteId,
+                Provider = ShippingProviderEnum.Miare,
+                PaymentMode = orderStore.ShippingPaymentMode ?? ShippingPaymentModeEnum.Prepaid,
+                Status = ShipmentStatusEnum.AwaitingSellerConfirm,
+                QuotedPrice = orderStore.ShippingQuotedPrice,
+                ChargedPrice = orderStore.DeliveryPrice,
+                CreatedAtUtc = nowUtc,
+                SlotStartUtc = nowUtc,
+                SlotEndUtc = ShippingExpressRules.PromiseEnd(nowUtc, express.DeliveryMaxHours),
+                SellerConfirmDeadlineUtc = deadline,
+                ReadyDeadlineUtc = deadline,
+                DeliveryCode = NewDeliveryCode(),
+                IsExpress = true,
+                ExpressSurcharge = quote?.ExpressSurcharge ?? 0
+            };
+            await _context.Shipments.AddAsync(shipment, cancellationToken);
+            if (quote != null)
+            {
+                quote.Status = ShippingQuoteStatusEnum.Used;
+                quote.UsedAtUtc = nowUtc;
+            }
+            await _context.SaveChangesAsync(cancellationToken);
+
+            var deadlineText = TehranHm(deadline);
+            var expressText = ShippingExpressRules.DeliveryText(express.DeliveryMinHours, express.DeliveryMaxHours);
+            await PushToStoreUsersAsync(orderStore.StoreId, PushTypeEnum.PushShipmentExpressAwaitingSeller,
+                productOrder.OrderCode, deadlineText, string.Empty);
+            try
+            {
+                var store = await _context.Stores.AsNoTracking().FirstOrDefaultAsync(item => item.Id == orderStore.StoreId, cancellationToken);
+                // قالب کاوه‌نگار فروشگاه: %token = شماره سفارش، %token2 = مهلت درخواست پیک (ساعت)
+                if (!string.IsNullOrWhiteSpace(store?.Mobile))
+                    await _messageSender.SendMessageAsync(MessageTypeEnum.ProductOrderExpressStore, store.Mobile.Trim(), null,
+                        token1: productOrder.OrderCode, token2: ShipmentLifecycleRules.ForSmsToken(deadlineText));
+                // قالب کاوه‌نگار مشتری: %token = نام، %token2 = شماره سفارش، %token3 = «۲ تا ۳ ساعت کاری»
+                var user = productOrder.User ?? await _context.Users.AsNoTracking().FirstOrDefaultAsync(item => item.Id == productOrder.UserId, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(user?.Mobile))
+                    await _messageSender.SendMessageAsync(MessageTypeEnum.ProductOrderExpressUser, user.Mobile, null,
+                        token1: Application.Services.Order.CartSrv.AbandonedCartReminderRules.FirstNameOnly(user.FirstName) ?? Resource.Notification.AbandonedCartDefaultCustomerName,
+                        token2: productOrder.OrderCode,
+                        token3: ShipmentLifecycleRules.ForSmsToken(expressText));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogWarning(exception, "Express order SMS failed for order {OrderId}.", productOrder.Id);
+            }
+            await PushToUserAsync(PushTypeEnum.PushOrderExpressUser, productOrder.UserId, productOrder.OrderCode, expressText);
+        }
+
         private async Task PushToStoreUsersAsync(long storeId, PushTypeEnum type, string token1, string token2, string token3)
         {
             try
@@ -236,6 +317,7 @@ namespace Application.Services.Order.ShippingSrv
                     item.ProductOrderStoreId,
                     item.ProductOrderStore.ProductOrderId,
                     item.ProductOrderStore.ProductOrder.OrderCode,
+                    item.IsExpress,
                     item.Status,
                     item.SlotStartUtc,
                     item.SlotEndUtc,
@@ -250,12 +332,15 @@ namespace Application.Services.Order.ShippingSrv
                 ProductOrderId = row.ProductOrderId,
                 OrderCode = row.OrderCode,
                 Status = row.Status,
+                IsExpress = row.IsExpress,
                 Step = row.Status == ShipmentStatusEnum.AwaitingSellerConfirm ? 1 : 2,
                 SlotStartUtc = row.SlotStartUtc,
                 SlotEndUtc = row.SlotEndUtc,
                 SellerConfirmDeadlineUtc = row.Status == ShipmentStatusEnum.AwaitingSellerConfirm ? row.SellerConfirmDeadlineUtc : null,
                 ReadyDeadlineUtc = row.ReadyDeadlineUtc ?? (row.SlotEndUtc.HasValue ? ShippingSlotRules.ReadyDeadline(row.SlotEndUtc.Value, _options.MinDeliveryMinutes) : null),
-                PlannedPickupUtc = ShippingSlotRules.DefaultPickup(row.SlotStartUtc ?? nowUtc, nowUtc, _options.PickupLeadMinutes)
+                PlannedPickupUtc = row.IsExpress
+                    ? nowUtc.AddMinutes(Math.Max(5, _options.Express.PickupLeadMinutes))
+                    : ShippingSlotRules.DefaultPickup(row.SlotStartUtc ?? nowUtc, nowUtc, _options.PickupLeadMinutes)
             }).ToList();
             return new BaseResultDto<List<SellerShipmentVDto>>(true, list);
         }
@@ -270,6 +355,8 @@ namespace Application.Services.Order.ShippingSrv
                 .AsTracking()
                 .FirstOrDefaultAsync(item => item.ProductOrderStoreId == productOrderStoreId
                                              && item.ProductOrderStore.StoreId == storeId, cancellationToken);
+            if (shipment != null && shipment.IsExpress && shipment.Status == ShipmentStatusEnum.AwaitingSellerConfirm)
+                return await MarkReadyBySellerAsync(storeId, productOrderStoreId, cancellationToken);
             if (shipment == null || shipment.Status != ShipmentStatusEnum.AwaitingSellerConfirm)
                 return new BaseResultDto(false, Resource.Notification.ShipmentConfirmNotAllowed);
 
@@ -300,18 +387,25 @@ namespace Application.Services.Order.ShippingSrv
                 .AsTracking()
                 .FirstOrDefaultAsync(item => item.ProductOrderStoreId == productOrderStoreId
                                              && item.ProductOrderStore.StoreId == storeId, cancellationToken);
-            if (shipment == null || shipment.Status != ShipmentStatusEnum.Preparing)
+            var isExpress = shipment != null && shipment.IsExpress;
+            if (shipment == null || !(shipment.Status == ShipmentStatusEnum.Preparing
+                                      || (isExpress && shipment.Status == ShipmentStatusEnum.AwaitingSellerConfirm)))
                 return new BaseResultDto(false, Resource.Notification.ShipmentReadyNotAllowed);
 
             var nowUtc = DateTime.UtcNow;
             var slotEnd = shipment.SlotEndUtc ?? nowUtc.AddHours(4);
             var slotStart = shipment.SlotStartUtc ?? nowUtc;
-            var readyDeadline = shipment.ReadyDeadlineUtc ?? ShippingSlotRules.ReadyDeadline(slotEnd, _options.MinDeliveryMinutes);
+            var readyDeadline = isExpress
+                ? shipment.SellerConfirmDeadlineUtc ?? ShippingExpressRules.SellerDeadline(shipment.CreatedAtUtc, _options.Express.SellerConfirmMinutes)
+                : shipment.ReadyDeadlineUtc ?? ShippingSlotRules.ReadyDeadline(slotEnd, _options.MinDeliveryMinutes);
             if (nowUtc > readyDeadline)
                 return new BaseResultDto(false, Resource.Notification.ShipmentReadyExpired);
 
-            var pickup = ShippingSlotRules.DefaultPickup(slotStart, nowUtc, _options.PickupLeadMinutes);
-            if (pickup > readyDeadline)
+            // اکسپرس: پیک بعد از PickupLeadMinutes (میاره pickup.deadline گذشته نمی‌پذیرد)؛ بازه‌ای: مثل قبل
+            var pickup = isExpress
+                ? nowUtc.AddMinutes(Math.Max(5, _options.Express.PickupLeadMinutes))
+                : ShippingSlotRules.DefaultPickup(slotStart, nowUtc, _options.PickupLeadMinutes);
+            if (!isExpress && pickup > readyDeadline)
                 return new BaseResultDto(false, Resource.Notification.ShipmentPickupTimeInvalid);
 
             if (!_providers.TryGetValue(shipment.Provider, out var provider))
@@ -319,13 +413,23 @@ namespace Application.Services.Order.ShippingSrv
 
             var orderStore = shipment.ProductOrderStore;
             var productOrder = orderStore.ProductOrder;
-            var store = await _context.Stores.AsNoTracking()
+            var store = await _context.Stores.AsNoTracking().Include(item => item.Icon).Include(item => item.Picture)
                 .FirstOrDefaultAsync(item => item.Id == orderStore.StoreId, cancellationToken);
+
+            // اکسپرس: سطح boost همین لحظه از میاره (GET /boost-levels/) گرفته می‌شود؛ بدون سطح/Boost غیرفعال = سفر بدون boost
+            (int Level, double Amount)? boost = null;
+            if (isExpress && _options.Express.UseBoost && provider is IBoostCapableShippingProvider boostProvider)
+            {
+                var levels = await boostProvider.GetBoostLevelsAsync(cancellationToken);
+                boost = ShippingExpressRules.ChooseBoost(levels.Select(item => (item.Level, item.Amount)).ToList(), _options.Express.BoostLevel);
+            }
             try
             {
                 var result = await provider.CreateShipmentAsync(new ShippingProviderShipmentRequest
                 {
                     OrderId = productOrder.Id,
+                    BoostLevel = boost?.Level,
+                    PickupImageUrl = BuildStoreImageUrl(store),
                     BillNumber = $"{productOrder.Id}-{orderStore.Id}",
                     StoreId = orderStore.StoreId,
                     Provider = shipment.Provider,
@@ -360,6 +464,14 @@ namespace Application.Services.Order.ShippingSrv
                 shipment.RequestedAtUtc = nowUtc;
                 shipment.ReadyAtUtc = nowUtc;
                 shipment.PickupDeadlineUtc = pickup;
+                if (isExpress)
+                {
+                    shipment.SellerConfirmedAtUtc = nowUtc;
+                    shipment.BoostLevel = result.BoostApplied ? boost?.Level : null;
+                    shipment.BoostAmount = result.BoostApplied ? boost?.Amount : null;
+                    if (boost.HasValue && !result.BoostApplied)
+                        _logger.LogWarning("Express shipment {ShipmentId}: Miare did not apply boost level {Level}; trip created without boost.", shipment.Id, boost.Value.Level);
+                }
                 await _context.SaveChangesAsync(cancellationToken);
                 return new BaseResultDto(true, Resource.Notification.ShipmentConfirmedSuccessfully);
             }
@@ -375,13 +487,16 @@ namespace Application.Services.Order.ShippingSrv
         private static string Truncate(string value) =>
             string.IsNullOrEmpty(value) || value.Length <= 1000 ? value : value[..1000];
 
-        // job: ۱۵ دقیقه مانده به مهلت یک‌بار یادآوری به فروشنده؛ بعد از مهلت، مرسوله Failed می‌شود و سفارش با «درخواست لغو»
+        // job: ۳۰ دقیقه بعد از پرداخت اگر فروشنده هنوز اقدام نکرده یک‌بار پوش به ادمین‌ها («فروشنده X هنوز سفارش Y را آماده نکرده»)؛
+        // ۱۵ دقیقه مانده به مهلت یک‌بار یادآوری به خود فروشنده؛ بعد از مهلت، مرسوله Failed می‌شود و سفارش با «درخواست لغو»
         // وارد صف ادمین می‌شود (استرداد پول همان جریان فعلی لغو سفارش است) و به مشتری پوش می‌رسد.
         public async Task<int> ProcessUnconfirmedAsync(CancellationToken cancellationToken = default)
         {
             var nowUtc = DateTime.UtcNow;
+            List<long> adminIds = null;
             var shipments = await _context.Shipments
                 .Include(item => item.ProductOrderStore).ThenInclude(item => item.ProductOrder)
+                .Include(item => item.ProductOrderStore).ThenInclude(item => item.Store)
                 .Where(item => item.Status == ShipmentStatusEnum.AwaitingSellerConfirm
                                && item.SellerConfirmDeadlineUtc != null)
                 .AsTracking()
@@ -410,12 +525,27 @@ namespace Application.Services.Order.ShippingSrv
                             token1: productOrder.OrderCode);
                         expired++;
                     }
-                    else if (shipment.SellerReminderSentAtUtc == null && deadline - nowUtc <= TimeSpan.FromMinutes(15))
+                    else
                     {
-                        shipment.SellerReminderSentAtUtc = nowUtc;
-                        await _context.SaveChangesAsync(cancellationToken);
-                        await PushToStoreUsersAsync(orderStore.StoreId, PushTypeEnum.PushShipmentSellerReminder,
-                            productOrder.OrderCode, TehranHm(deadline), string.Empty);
+                        if (ShipmentLifecycleRules.ShouldAlertSellerNotReady(shipment.CreatedAtUtc, deadline,
+                                shipment.SellerNotReadyAdminNotifiedAtUtc, nowUtc, _options.SellerNotReadyAdminAlertMinutes))
+                        {
+                            // ابتدا علامت و ذخیره (مثل هشدار تأخیر)، بعد پوش: شکست پوش باعث تکرار هر ۵ دقیقه نمی‌شود
+                            shipment.SellerNotReadyAdminNotifiedAtUtc = nowUtc;
+                            await _context.SaveChangesAsync(cancellationToken);
+                            adminIds ??= await GetAdminUserIdsAsync(cancellationToken);
+                            var storeName = string.IsNullOrWhiteSpace(orderStore.Store?.Name) ? $"#{orderStore.StoreId}" : orderStore.Store.Name.Trim();
+                            foreach (var adminId in adminIds)
+                                await PushToUserAsync(PushTypeEnum.PushShipmentSellerNotReadyAdmin, adminId,
+                                    productOrder.OrderCode, storeName, TehranHm(deadline));
+                        }
+                        if (shipment.SellerReminderSentAtUtc == null && deadline - nowUtc <= TimeSpan.FromMinutes(15))
+                        {
+                            shipment.SellerReminderSentAtUtc = nowUtc;
+                            await _context.SaveChangesAsync(cancellationToken);
+                            await PushToStoreUsersAsync(orderStore.StoreId, PushTypeEnum.PushShipmentSellerReminder,
+                                productOrder.OrderCode, TehranHm(deadline), string.Empty);
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -563,9 +693,9 @@ namespace Application.Services.Order.ShippingSrv
                 .Select(user => user.Id)
                 .ToListAsync(cancellationToken);
 
-        private async Task PushToUserAsync(PushTypeEnum type, long userId, string token1, string token2 = null)
+        private async Task PushToUserAsync(PushTypeEnum type, long userId, string token1, string token2 = null, string token3 = null)
         {
-            try { await _pushService.SendPushAsync(type, userId, token1: token1, token2: token2); }
+            try { await _pushService.SendPushAsync(type, userId, token1: token1, token2: token2, token3: token3); }
             catch (Exception exception) { _logger.LogWarning(exception, "Shipment push {Type} failed for user {UserId}.", type, userId); }
         }
 
@@ -765,7 +895,9 @@ namespace Application.Services.Order.ShippingSrv
             }
 
             var slotText = string.Empty;
-            if (shipment.SlotStartUtc.HasValue && shipment.SlotEndUtc.HasValue)
+            if (shipment.IsExpress)
+                slotText = ShippingExpressRules.DeliveryText(_options.Express.DeliveryMinHours, _options.Express.DeliveryMaxHours);
+            else if (shipment.SlotStartUtc.HasValue && shipment.SlotEndUtc.HasValue)
                 slotText = string.Format(Resource.Notification.ShipmentSlotRangeFormat,
                     ShipmentLifecycleRules.FormatHour(ShippingSlotRules.ToTehran(shipment.SlotStartUtc.Value).TimeOfDay),
                     ShipmentLifecycleRules.FormatHour(ShippingSlotRules.ToTehran(shipment.SlotEndUtc.Value).TimeOfDay));

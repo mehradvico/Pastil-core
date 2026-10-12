@@ -383,7 +383,6 @@ namespace Application.Services.Order.ProductOrderSrv
                 var code = OrderCode(order);
                 var stores = order.ProductOrderStores.Select(store => store.Store).Where(store => store != null).GroupBy(store => store.Id).Select(group => group.First()).ToList();
                 var storeUserIds = await StoreUserIdsAsync(stores.Select(store => store.Id), cancellationToken);
-                var adminMobiles = _adminSettings.BaseAdminSetting?.AdminMobiles;
                 var adminUserIds = await AdminUserIdsAsync(cancellationToken);
 
                 if (actor == OrderAdjustActor.Admin)
@@ -398,11 +397,6 @@ namespace Application.Services.Order.ProductOrderSrv
                 {
                     // ادمین: پیامک + پوش؛ کاربر: پیامک (عذرخواهی)
                     var storeName = ShipmentLifecycleRules.ForSmsToken(stores.FirstOrDefault()?.Name);
-                    var shownReason = string.IsNullOrWhiteSpace(reason) ? Resource.Notification.OrderAdjustNoReason : reason;
-                    if (!string.IsNullOrWhiteSpace(adminMobiles))
-                        await SmsAsync(MessageTypeEnum.ProductOrderCancelledByStoreAdmin, adminMobiles, token1: code,
-                            token2: ShipmentLifecycleRules.ForSmsToken($"{order.User?.FirstName} {order.User?.LastName}", 60),
-                            token4: storeName, token5: ShipmentLifecycleRules.ForSmsToken(shownReason));
                     await SmsAsync(MessageTypeEnum.ProductOrderCancelledByStoreUser, order.User?.Mobile, token1: FirstName(order), token2: code, token4: storeName);
                     await PushAsync(PushTypeEnum.PushOrderCancelledByStoreAdmin, adminUserIds.Except(storeUserIds), code, stores.FirstOrDefault()?.Name);
                 }

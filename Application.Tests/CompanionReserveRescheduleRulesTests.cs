@@ -96,4 +96,15 @@ public class CompanionReserveRescheduleRulesTests
         Assert.Equal("1405/07/18", CompanionReserveRescheduleRules.JalaliDate(new DateTime(2026, 10, 10)));
         Assert.Equal("09:05", CompanionReserveRescheduleRules.Time(new DateTime(2026, 10, 10, 9, 5, 0)));
     }
+
+    [Fact]
+    public void Sms_tokens_have_no_separators_that_kavenegar_rejects()
+    {
+        Assert.Equal("14", CompanionReserveRescheduleRules.SmsTime(new DateTime(2026, 10, 10, 14, 0, 0)));
+        Assert.Equal("9و30", CompanionReserveRescheduleRules.SmsTime(new DateTime(2026, 10, 10, 9, 30, 0)));
+        Assert.Equal("9و05", CompanionReserveRescheduleRules.SmsTime(new DateTime(2026, 10, 10, 9, 5, 0)));
+        Assert.Equal("کلینیک دکتر نیم‌فاصله", CompanionReserveRescheduleRules.SmsText(" کلینیک (دکتر)، نیم‌فاصله!"));
+        Assert.Equal("ساعت 14 30 بسته است", CompanionReserveRescheduleRules.SmsText("ساعت 14:30 بسته است.\n"));
+        Assert.Equal("", CompanionReserveRescheduleRules.SmsText(null));
+    }
 }

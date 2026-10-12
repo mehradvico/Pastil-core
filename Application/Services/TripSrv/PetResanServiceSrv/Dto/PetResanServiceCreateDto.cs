@@ -1,4 +1,5 @@
 using Application.Common.Dto.LocationPoint;
+using System;
 using System.Collections.Generic;
 
 namespace Application.Services.TripSrv.PetResanServiceSrv.Dto
@@ -16,6 +17,9 @@ namespace Application.Services.TripSrv.PetResanServiceSrv.Dto
 
         /// <summary>null یا خالی یعنی بی‌نهایت/باز، تا خودِ کاربر لغو کند.</summary>
         public int? TotalWeeks { get; set; }
+
+        /// <summary>تاریخ شروع سرویس (فقط روز). خالی یا گذشته = امروز؛ نوبت‌ها از روز قبلِ این تاریخ ساخته می‌شوند.</summary>
+        public DateTime? StartDate { get; set; }
 
         /// <summary>رفت‌وبرگشت؟ پیش‌فرض true (رفتار قبلی سرویس هفتگی)؛ false = فقط رفت. فرمول رفت‌وبرگشت همان PriceCalculationService (+۵۰٪ کل هزینه).</summary>
         public bool RoundTrip { get; set; } = true;

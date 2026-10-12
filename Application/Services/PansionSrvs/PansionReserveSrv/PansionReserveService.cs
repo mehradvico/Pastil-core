@@ -361,16 +361,6 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     "pansion SMS");
 
                 await RunPostCommitActionAsync(
-                    () => _messageSender.SendMessageAsync(
-                        MessageTypeEnum.PansionReserveForAdmin,
-                        _adminSettingHelper.BaseAdminSetting?.AdminMobiles,
-                        null,
-                        token1: booker.Id.ToString(),
-                        token2: pansion.Name),
-                    reserveId,
-                    "admin SMS");
-
-                await RunPostCommitActionAsync(
                     () => _pushNotificationService.SendPushAsync(
                         PushTypeEnum.PushRegisterPansionUser,
                         booker.Id,
@@ -631,11 +621,6 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 await _tripService.CancelLinkedTripForPansionReserveAsync(model.Id);
             }
 
-            var adminMobile = _adminSettingHelper.BaseAdminSetting.AdminMobiles;
-            var booker = _context.Users.FirstOrDefault(u => u.Id == model.BookerId);
-
-            var Pansion = _context.Pansions.Include(s => s.Companion).ThenInclude(s => s.Owner).FirstOrDefault(a => a.Id == model.PansionId);
-            await _messageSender.SendMessageAsync(messageType: MessageTypeEnum.PansionReserveCancelForAdmin, mobileReceptor: adminMobile, emailReceptor: null, token1: booker.Id.ToString(), token2: Pansion.Name);
             return new BaseResultDto<PansionReserveCancelDto>(true, mapper.Map<PansionReserveCancelDto>(model));
         }
 
@@ -705,8 +690,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.Unsuccess);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.PansionReservePaymentAlreadyStartedCannotChangeFinancials);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             var originalPrice = item.PaymentPrice + item.RebatePrice;
             item.Price = originalPrice;
             var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
@@ -740,8 +726,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 s.Id == id && s.BookerId == _currentUser.CurrentUser.UserId && !s.IsReserved);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.PansionReservePaymentAlreadyStartedCannotChangeFinancials);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (!item.RebateId.HasValue)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -766,8 +753,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             {
                 return new BaseResultDto<PansionReserveWalletDto>(false, Resource.Notification.NothingFound, dto);
             }
-            if (await HasActivePaymentAsync(item.Id))
-                return new BaseResultDto(false, Resource.Notification.PansionReservePaymentAlreadyStartedCannotChangeFinancials);
+            var financialLock = await GuardFinancialChangeAsync(item.Id);
+            if (financialLock != null)
+                return financialLock;
             if (item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete)
             {
                 return new BaseResultDto<PansionReserveWalletDto>(false, Resource.Notification.ThisReserveIsCompleted, dto);
@@ -791,13 +779,13 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             return new BaseResultDto(isSuccess: true, val: Resource.Notification.Success);
         }
 
-        private Task<bool> HasActivePaymentAsync(long reserveId)
+        // تغییر کیف پول/تخفیف توسط خود کاربر: تلاش درگاهِ رهاشده (برگشت بدون پرداخت / نرسیدن به درگاه) دیگر قفل نمی‌کند و
+        // کنار گذاشته می‌شود؛ فقط پرداخت موفق («قبلاً پرداخت شده») یا callbackِ در حال verify جلوی تغییر مبلغ را می‌گیرد.
+        private Task<BaseResultDto> GuardFinancialChangeAsync(long reserveId)
         {
-            var callbackId = reserveId.ToString();
-            return _context.Payments.AsNoTracking().AnyAsync(s =>
-                s.CallBackTypeLabel == PaymentCallbackTypeEnum.PansionReserve.ToString() &&
-                s.CallBackId == callbackId &&
-                (s.IsSuccess == null || s.IsSuccess == true));
+            return Application.Services.Order.PaymentSrv.PaymentAttemptRules.GuardUserRetryAsync(
+                _context, PaymentCallbackTypeEnum.PansionReserve.ToString(), reserveId.ToString(),
+                Resource.Notification.PaymentReserveAlreadyPaid);
         }
 
         public async Task<BaseResultDto<int>> ReserveCountAsync(long id)

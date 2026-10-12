@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RestSharp;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -15,8 +17,15 @@ namespace Application.Services.Order.ShippingSrv.Provider
     // GetQuoteAsync از endpoint استعلام قیمت میاره (روی Base URL جدای Accounting) استفاده می‌کند؛
     // این فقط یک برآورد است، نه مبلغ نهایی. مبلغ نهایی واقعی («delivery_cost») بعد از تحویل
     // از طریق Webhook میاره (MiareWebhookController) دریافت می‌شود.
-    public class MiareShippingProvider : IShippingProvider
+    public class MiareShippingProvider : IShippingProvider, IBoostCapableShippingProvider
     {
+        // سطوح boost کم‌تغییرند (مستند میاره: «به‌ندرت عوض می‌شوند؛ دوره‌ای بگیرید»)؛ بین درخواست‌ها چند دقیقه کش می‌شود
+        private static readonly object BoostCacheLock = new();
+        private static IReadOnlyList<ShippingBoostLevel> _boostCache;
+        private static DateTime _boostCacheExpiresUtc = DateTime.MinValue;
+        private static readonly TimeSpan BoostCacheTtl = TimeSpan.FromMinutes(10);
+        private static readonly TimeSpan BoostFailureCacheTtl = TimeSpan.FromMinutes(2);
+
         private readonly ShippingOptions _options;
         private readonly ILogger<MiareShippingProvider> _logger;
 
@@ -116,6 +125,63 @@ namespace Application.Services.Order.ShippingSrv.Provider
             }
         }
 
+        // pickup.deadline: UTC با «Z». میاره آفست با دونقطه («+00:00») را با parse_error رد می‌کند (تست staging)
+        public static string FormatDeadline(DateTime utc) =>
+            DateTime.SpecifyKind(utc, DateTimeKind.Utc).ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", System.Globalization.CultureInfo.InvariantCulture);
+
+        public async Task<IReadOnlyList<ShippingBoostLevel>> GetBoostLevelsAsync(CancellationToken cancellationToken = default)
+        {
+            lock (BoostCacheLock)
+            {
+                if (_boostCache != null && DateTime.UtcNow < _boostCacheExpiresUtc)
+                    return _boostCache;
+            }
+
+            IReadOnlyList<ShippingBoostLevel> levels = Array.Empty<ShippingBoostLevel>();
+            var ttl = BoostFailureCacheTtl;
+            var providerOptions = _options.Miare;
+            if (providerOptions.Enabled &&
+                !string.IsNullOrWhiteSpace(providerOptions.BaseUrl) && !string.IsNullOrWhiteSpace(providerOptions.ApiKey))
+            {
+                try
+                {
+                    var client = new RestClient(new RestClientOptions(providerOptions.BaseUrl.TrimEnd('/')));
+                    var request = new RestRequest("/boost-levels/", Method.Get);
+                    request.AddHeader("Authorization", $"Token {providerOptions.ApiKey}");
+                    var response = await client.ExecuteAsync(request, cancellationToken);
+                    if (response.IsSuccessful && !string.IsNullOrWhiteSpace(response.Content))
+                    {
+                        using var doc = JsonDocument.Parse(response.Content);
+                        if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                        {
+                            levels = doc.RootElement.EnumerateArray()
+                                .Where(item => item.TryGetProperty("level", out var level) && level.ValueKind == JsonValueKind.Number
+                                               && item.TryGetProperty("amount", out var amount) && amount.ValueKind == JsonValueKind.Number)
+                                .Select(item => new ShippingBoostLevel { Level = item.GetProperty("level").GetInt32(), Amount = item.GetProperty("amount").GetDouble() })
+                                .OrderBy(item => item.Level)
+                                .ToList();
+                            ttl = BoostCacheTtl;
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Miare boost-levels request failed: {Status} {Body}", (int)response.StatusCode, response.Content);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Miare boost-levels request failed.");
+                }
+            }
+
+            lock (BoostCacheLock)
+            {
+                _boostCache = levels;
+                _boostCacheExpiresUtc = DateTime.UtcNow + ttl;
+            }
+            return levels;
+        }
+
         public async Task<ShippingProviderShipmentResult> CreateShipmentAsync(
             ShippingProviderShipmentRequest request,
             CancellationToken cancellationToken = default)
@@ -148,14 +214,13 @@ namespace Application.Services.Order.ShippingSrv.Provider
             try
             {
                 var client = new RestClient(new RestClientOptions(providerOptions.BaseUrl.TrimEnd('/')));
-                var restRequest = new RestRequest("/trips/", Method.Post);
-                restRequest.AddHeader("Authorization", $"Token {providerOptions.ApiKey}");
-                restRequest.AddHeader("Content-Type", "application/json");
 
                 var body = new MiareCreateTripRequest
                 {
                     Pickup = new MiarePickup
                     {
+                        // pickup.image برای میاره الزامی است (بدون آن ساخت سفر ۴۰۰ می‌دهد)
+                        Image = string.IsNullOrWhiteSpace(request.PickupImageUrl) ? providerOptions.DefaultPickupImageUrl : request.PickupImageUrl,
                         Name = string.IsNullOrWhiteSpace(request.PickupName) ? "فروشگاه" : request.PickupName,
                         PhoneNumber = request.PickupPhone,
                         // آدرس فروشگاه (محل تحویل‌گیری)، نه آدرس گیرنده؛ اگر ثبت نشده بود به آدرس گیرنده برمی‌گردد
@@ -166,9 +231,8 @@ namespace Application.Services.Order.ShippingSrv.Provider
                             Longitude = request.OriginLongitude.Value
                         },
                         // ساعت تحویل به پیک را فروشنده تعیین می‌کند؛ بدون آن (مسیر قدیمی) ۳۰ دقیقه بعد
-                        Deadline = (request.PickupDeadlineUtc.HasValue
-                            ? new DateTimeOffset(DateTime.SpecifyKind(request.PickupDeadlineUtc.Value, DateTimeKind.Utc))
-                            : DateTimeOffset.UtcNow.AddMinutes(30)).ToString("yyyy-MM-ddTHH:mm:ssK")
+                        // فرمت زمان: میاره آفست با دونقطه («+00:00») را رد می‌کند (parse_error، تست staging) و فقط «Z» یا «+0000» را می‌پذیرد؛ UTC با «Z» می‌فرستیم
+                        Deadline = FormatDeadline(request.PickupDeadlineUtc ?? DateTime.UtcNow.AddMinutes(30))
                     },
                     Courses = new[]
                     {
@@ -188,8 +252,31 @@ namespace Application.Services.Order.ShippingSrv.Provider
                     }
                 };
 
-                restRequest.AddJsonBody(body);
-                var response = await client.ExecuteAsync(restRequest, cancellationToken);
+                // اکسپرس: boost.level (مستند میاره: اگر Boost برای حساب فعال نباشد درخواست boost رد/نادیده گرفته می‌شود)
+                var boostRequested = request.BoostLevel.GetValueOrDefault() > 0;
+                var boostApplied = boostRequested;
+                body.Boost = boostRequested ? new MiareBoost { Level = request.BoostLevel.Value } : null;
+
+                async Task<RestResponse> SendAsync()
+                {
+                    var restRequest = new RestRequest("/trips/", Method.Post);
+                    restRequest.AddHeader("Authorization", $"Token {providerOptions.ApiKey}");
+                    restRequest.AddHeader("Content-Type", "application/json");
+                    restRequest.AddJsonBody(body);
+                    return await client.ExecuteAsync(restRequest, cancellationToken);
+                }
+
+                var response = await SendAsync();
+                if (boostRequested && !response.IsSuccessful &&
+                    (response.Content ?? string.Empty).Contains("boost", StringComparison.OrdinalIgnoreCase))
+                {
+                    // سفر اکسپرس نباید به‌خاطر boost گیر کند؛ بدون boost دوباره می‌سازیم (پیک با اولویت عادی)
+                    _logger.LogWarning("Miare rejected boost level {Level}; creating the express trip without boost. Response: {Body}",
+                        request.BoostLevel, response.Content);
+                    body.Boost = null;
+                    boostApplied = false;
+                    response = await SendAsync();
+                }
 
                 if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
                     return new ShippingProviderShipmentResult
@@ -217,7 +304,8 @@ namespace Application.Services.Order.ShippingSrv.Provider
                 {
                     IsSuccess = true,
                     ExternalShipmentId = tripId,
-                    TrackingCode = string.IsNullOrWhiteSpace(trackingUrl) ? tripId : trackingUrl
+                    TrackingCode = string.IsNullOrWhiteSpace(trackingUrl) ? tripId : trackingUrl,
+                    BoostApplied = boostApplied && BoostWasApplied(root)
                 };
             }
             catch (Exception exception)
@@ -266,6 +354,15 @@ namespace Application.Services.Order.ShippingSrv.Provider
             }
         }
 
+        // پاسخ میاره: boost: null یعنی نادیده گرفته شد؛ شیء با level>0 یعنی اعمال شد؛ نبودن کلید = نامعلوم (اعمال‌شده فرض می‌شود)
+        private static bool BoostWasApplied(JsonElement root)
+        {
+            if (!root.TryGetProperty("boost", out var boost)) return true;
+            if (boost.ValueKind == JsonValueKind.Object)
+                return boost.TryGetProperty("level", out var level) && level.ValueKind == JsonValueKind.Number && level.GetInt32() > 0;
+            return boost.ValueKind != JsonValueKind.Null;
+        }
+
         private static string ExtractMiareError(string content)
         {
             if (string.IsNullOrWhiteSpace(content))
@@ -294,6 +391,16 @@ namespace Application.Services.Order.ShippingSrv.Provider
 
             [JsonPropertyName("courses")]
             public MiareCourse[] Courses { get; set; }
+
+            [JsonPropertyName("boost")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public MiareBoost Boost { get; set; }
+        }
+
+        private class MiareBoost
+        {
+            [JsonPropertyName("level")]
+            public int Level { get; set; }
         }
 
         private class MiarePickup
@@ -312,6 +419,10 @@ namespace Application.Services.Order.ShippingSrv.Provider
 
             [JsonPropertyName("deadline")]
             public string Deadline { get; set; }
+
+            [JsonPropertyName("image")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string Image { get; set; }
         }
 
         private class MiareCourse

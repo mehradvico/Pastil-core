@@ -38,6 +38,8 @@ namespace Entities.Entities.ShippingField
         public int CourierRetryCount { get; set; }
         /// <summary>هشدار تأخیر نسبت به بازه‌ی تحویل فقط یک‌بار.</summary>
         public DateTime? LateNotifiedAtUtc { get; set; }
+        /// <summary>پوش «فروشنده هنوز سفارش را آماده نکرده» به ادمین‌ها (۳۰ دقیقه بعد از پرداخت) فقط یک‌بار.</summary>
+        public DateTime? SellerNotReadyAdminNotifiedAtUtc { get; set; }
         /// <summary>مشتری بعد از تحویل میاره «تحویل نگرفتم» زده و به ادمین اطلاع داده شده.</summary>
         public DateTime? DisputeReportedAtUtc { get; set; }
 
@@ -46,6 +48,14 @@ namespace Entities.Entities.ShippingField
         /// <summary>لحظه‌ای که فروشنده «آماده تحویل به پیک» زد (همان لحظه سفر میاره ساخته می‌شود).</summary>
         public DateTime? ReadyAtUtc { get; set; }
         public DateTime? ReadyReminderSentAtUtc { get; set; }
+
+        /// <summary>ارسال اکسپرس: فروشنده فقط یک مرحله دارد («درخواست پیک») و سفر با Boost ساخته می‌شود.</summary>
+        public bool IsExpress { get; set; }
+        /// <summary>اضافه‌ی اکسپرس که از مشتری گرفته شد (مبلغ boost یا مبلغ ثابت پاستیل)</summary>
+        public double ExpressSurcharge { get; set; }
+        /// <summary>سطح و مبلغ boost که واقعاً روی سفر میاره اعمال شد؛ null = اعمال نشد (غیرفعال بودن Boost برای حساب و ...)</summary>
+        public int? BoostLevel { get; set; }
+        public double? BoostAmount { get; set; }
 
         public ProductOrderStore ProductOrderStore { get; set; }
         public ShippingQuote ShippingQuote { get; set; }

@@ -53,8 +53,24 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
                 ApplyIdentity(sub, userId, dto.DeviceKey);
             }
 
+            await DeactivateStaleSiblingsAsync(sub, PushProviderEnum.WebPush);
             await _context.SaveChangesAsync();
             return new BaseResultDto(true);
+        }
+
+        // یک نصب (DeviceKey) فقط یک اشتراک فعال از هر نوع دارد: وقتی توکن FCM یا endpoint وب‌پوش عوض می‌شود،
+        // ردیف قدیمی همان دستگاه فعال می‌ماند و هر پوش چند بار به همان گوشی می‌رسید.
+        private async Task DeactivateStaleSiblingsAsync(PushSubscription current, PushProviderEnum provider)
+        {
+            if (!current.DeviceKey.HasValue || current.DeviceKey.Value == Guid.Empty)
+                return;
+            var currentId = current.Id;
+            var stale = await _context.PushSubscriptions.AsTracking()
+                .Where(x => x.IsActive && x.DeviceKey == current.DeviceKey && x.Provider == (long)provider
+                    && x.Id != currentId)
+                .ToListAsync();
+            foreach (var item in stale)
+                item.IsActive = false;
         }
 
         // هویت ردیف در هر بار sync:
@@ -115,6 +131,7 @@ namespace Application.Services.CommonSrv.PushSubscriptionSrv
                 ApplyIdentity(sub, userId, dto.DeviceKey);
             }
 
+            await DeactivateStaleSiblingsAsync(sub, PushProviderEnum.Fcm);
             await _context.SaveChangesAsync();
             return new BaseResultDto(true);
         }
