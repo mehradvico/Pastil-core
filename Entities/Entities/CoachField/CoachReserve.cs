@@ -68,6 +68,9 @@ namespace Entities.Entities.CoachField
         public int RescheduleCount { get; set; }
         public DateTime? OriginalDoDate { get; set; }
         public DateTime? LastRescheduleDate { get; set; }
+        /// <summary>تماس تصویری/صوتی درون‌برنامه‌ای (فقط Mode=آنلاین): لحظه‌ی وصل‌شدن هر دو طرف و لحظه‌ی پایان.</summary>
+        public DateTime? CallStartDate { get; set; }
+        public DateTime? CallEndDate { get; set; }
         /// <summary>CoachReserveOwnerDecisionEnum: ۰ نیاز نیست، ۱ منتظر پاسخ، ۲ تأیید، ۳ رد، ۴ بی‌پاسخ (لغو خودکار).</summary>
         public int OwnerDecision { get; set; }
         public DateTime? OwnerDecisionDate { get; set; }

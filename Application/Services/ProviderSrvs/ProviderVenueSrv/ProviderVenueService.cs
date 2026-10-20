@@ -3,6 +3,7 @@ using Application.Services.ProviderSrvs.ProviderVenueSrv.Dto;
 using Application.Services.ProviderSrvs.ProviderVenueSrv.Iface;
 using Application.Services.ProviderSrvs.ProviderSubscriptionSyncSrv.Iface;
 using Microsoft.EntityFrameworkCore;
+using Entities.Entities.ProviderField;
 using Persistence.Interface;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,6 +20,15 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             this._context = _context;
             this._sync = sync;
         }
+
+        /// <summary>
+        /// هر مرکز فقط یک کارکرد دارد و ارائه‌دهنده برای هر کارکرد باید نقش تأییدشده‌ی همان کارکرد را داشته باشد
+        /// (Groomer/Clinic/Coach/Store در ProviderRoleLabels). مرکز بدون نقش مربوط وصل نمی‌شود.
+        /// </summary>
+        private Task<bool> HasRoleAsync(long providerId, string roleLabel) =>
+            _context.ProviderRoleAssignments.AsNoTracking().AnyAsync(a =>
+                a.ProviderId == providerId && a.Approved && !a.Deleted
+                && a.ProviderRole.Label == roleLabel && a.ProviderRole.Active && !a.ProviderRole.Deleted);
 
         public async Task<BaseResultDto<ProviderVenuesVDto>> GetVenuesAsync(long providerId)
         {
@@ -76,6 +86,8 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             var item = await _context.Groomers.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (!await HasRoleAsync(provider.Id, ProviderRoleLabels.Groomer))
+                return new BaseResultDto(false, Resource.Notification.ProviderRoleRequired);
             item.ProviderId = provider.Id;
             item.OwnerId = provider.UserId;
             await _context.SaveChangesAsync();
@@ -92,6 +104,8 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             var item = await _context.Clinics.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (!await HasRoleAsync(provider.Id, ProviderRoleLabels.Clinic))
+                return new BaseResultDto(false, Resource.Notification.ProviderRoleRequired);
             item.ProviderId = provider.Id;
             item.OwnerId = provider.UserId;
             await _context.SaveChangesAsync();
@@ -107,6 +121,8 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             var item = await _context.Coaches.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (!await HasRoleAsync(provider.Id, ProviderRoleLabels.Coach))
+                return new BaseResultDto(false, Resource.Notification.ProviderRoleRequired);
             item.ProviderId = provider.Id;
             item.OwnerId = provider.UserId;
             await _context.SaveChangesAsync();
@@ -121,6 +137,8 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             var item = await _context.Stores.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (!await HasRoleAsync(dto.ProviderId, ProviderRoleLabels.Store))
+                return new BaseResultDto(false, Resource.Notification.ProviderRoleRequired);
             item.ProviderId = dto.ProviderId;
             await _context.SaveChangesAsync();
             return new BaseResultDto(true);

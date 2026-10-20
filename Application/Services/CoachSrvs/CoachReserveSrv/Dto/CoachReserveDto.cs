@@ -71,6 +71,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Dto
     {
         public int RescheduleCount { get; set; }
         public DateTime? OriginalDoDate { get; set; }
+        public DateTime? CallStartDate { get; set; }
+        public DateTime? CallEndDate { get; set; }
         public List<CoachReserveItemVDto> Items { get; set; } = new List<CoachReserveItemVDto>();
         public long Id { get; set; }
         public string ReserveCode { get; set; }

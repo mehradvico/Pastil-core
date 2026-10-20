@@ -11367,6 +11367,32 @@
         <member name="M:Api.Controllers.CoachController.Services(System.Int64,System.String)">
             <summary>خدمات و بسته‌های قیمتی قابل رزرو؛ petSize (Small/Medium/Large) بسته‌ها را فیلتر می‌کند</summary>
         </member>
+        <member name="T:Api.Controllers.CoachReserveMessageAttachmentController">
+            <summary>
+            مدیریت فایل‌های پیام چت خدمات آنلاین
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CoachReserveMessageController">
+            <summary>
+            چت خدمات آنلاین (رزروکننده و نماینده) — بدون Area چون مجاز بودن رابطه‌محور است، نه نقش‌محور
+            (دقیقاً مثل Api/Hubs/CallHub.cs که هر دو طرف را از یک نقطه‌ی ورود سرویس می‌دهد).
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CoachReserveMessageDeliveredController">
+            <summary>
+            ثبت تحویل پیام چت خدمات آنلاین
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CoachReserveMessageReactionController">
+            <summary>
+            مدیریت ری‌اکشن‌های پیام چت خدمات آنلاین
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CoachReserveMessageReadController">
+            <summary>
+            ثبت خوانده شدن پیام‌های چت خدمات آنلاین
+            </summary>
+        </member>
         <member name="T:Api.Controllers.CoachReviewController">
             <summary>
             نظرهای تأییدشده‌ی مربی (عمومی)
@@ -12526,6 +12552,19 @@
         </member>
         <member name="M:Api.Hubs.CallHub.EndClinicReserveCall(System.Int64)">
             <summary>پایان تماس رزرو کلینیک با شناسه‌ی رزرو (idempotent؛ بعد از بررسی دسترسی همیشه CallEndDate ثبت می‌شود).</summary>
+        </member>
+        <member name="M:Api.Hubs.CallHub.JoinCoachCall(System.Int64)">
+            <summary>
+            تماس درون‌برنامه‌ای رزرو مربی (فقط نحوه‌ی ارائه‌ی آنلاین). سیگنالینگ همان جریان JoinCall است؛ برای استفاده‌ی مجدد از
+            SendSignal/EndCall و ردیاب، رزرو با کلید CoachCallRules.KeyFor(id) ثبت می‌شود تا با رزرو Companion و جلسه‌ی آنلاین تداخل نکند.
+            کلاینت برای SendSignal همین کلید را می‌فرستد (یا SendCoachSignal با شناسه‌ی رزرو).
+            </summary>
+        </member>
+        <member name="M:Api.Hubs.CallHub.SendCoachSignal(System.Int64,System.String,System.String)">
+            <summary>سیگنال WebRTC برای تماس رزرو مربی با شناسه‌ی رزرو (همان SendSignal با کلید مخصوص).</summary>
+        </member>
+        <member name="M:Api.Hubs.CallHub.EndCoachReserveCall(System.Int64)">
+            <summary>پایان تماس رزرو مربی با شناسه‌ی رزرو (idempotent؛ بعد از بررسی دسترسی همیشه CallEndDate ثبت می‌شود).</summary>
         </member>
         <member name="M:Api.Hubs.CallHub.EndReserveCall(System.Int64)">
             <summary>

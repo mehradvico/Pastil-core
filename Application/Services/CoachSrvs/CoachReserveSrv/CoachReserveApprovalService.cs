@@ -114,6 +114,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 return new BaseResultDto(false, Resource.Notification.CoachReserveRefundFailed);
             }
             await transaction.CommitAsync(cancellationToken);
+            await SafeAsync(() => Application.Services.CoachSrvs.CoachReserveReminders.RemoveAsync(_context, reserve.Id), reserve.Id, "reminders remove");
 
             if (reserve.IsReserved)
                 await _notifier.ReserveCancelledByBookerAsync(reserve.Id);
@@ -149,6 +150,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 return new BaseResultDto(false, Resource.Notification.CoachReserveRefundFailed);
             }
             await transaction.CommitAsync(cancellationToken);
+            await SafeAsync(() => Application.Services.CoachSrvs.CoachReserveReminders.RemoveAsync(_context, reserve.Id), reserve.Id, "reminders remove");
             if (reserve.IsReserved)
                 await _notifier.ReserveCancelledByAdminAsync(reserve.Id, reason);
             return new BaseResultDto(true, Resource.Notification.Success);
@@ -181,6 +183,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 return new BaseResultDto(false, Resource.Notification.CoachReserveRefundFailed);
             }
             await transaction.CommitAsync(ct);
+            await SafeAsync(() => Application.Services.CoachSrvs.CoachReserveReminders.RemoveAsync(_context, reserve.Id), reserve.Id, "reminders remove");
 
             if (decision == CoachReserveOwnerDecisionEnum.Rejected)
                 await _notifier.ReserveRejectedAsync(reserve.Id, reason);

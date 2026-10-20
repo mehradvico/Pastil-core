@@ -316,6 +316,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 // مهلت پاسخ مربی به نوبتِ جدید نسبت داده می‌شود.
                 if (CoachReserveRules.IsPending(reserve.OwnerDecision))
                     reserve.OwnerApprovalDeadline = CoachReserveRules.Deadline(now, start);
+                await CoachReserveReminders.ShiftAsync(_context, reserve.Id, start);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
@@ -860,6 +861,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 Permitted = r.Permitted,
                 RescheduleCount = r.RescheduleCount,
                 OriginalDoDate = r.OriginalDoDate,
+                CallStartDate = r.CallStartDate,
+                CallEndDate = r.CallEndDate,
                 Items = r.Items.OrderBy(i => i.Id).Select(i => new CoachReserveItemVDto
                 {
                     Id = i.Id,

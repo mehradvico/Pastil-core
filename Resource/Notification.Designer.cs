@@ -6865,5 +6865,53 @@ namespace Resource {
             }
         }
 
+        public static string CoachReserveMessageAttachmentNotAvailable {
+            get {
+                return ResourceManager.GetString("CoachReserveMessageAttachmentNotAvailable", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveMessageReactionRequired {
+            get {
+                return ResourceManager.GetString("CoachReserveMessageReactionRequired", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveMessageReactionTooLong {
+            get {
+                return ResourceManager.GetString("CoachReserveMessageReactionTooLong", resourceCulture);
+            }
+        }
+
+        public static string InvalidCoachReserveMessageType {
+            get {
+                return ResourceManager.GetString("InvalidCoachReserveMessageType", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveMessageContentRequired {
+            get {
+                return ResourceManager.GetString("CoachReserveMessageContentRequired", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveMessagePreviewImage {
+            get {
+                return ResourceManager.GetString("CoachReserveMessagePreviewImage", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveMessagePreviewNewMessage {
+            get {
+                return ResourceManager.GetString("CoachReserveMessagePreviewNewMessage", resourceCulture);
+            }
+        }
+
+        public static string ProviderRoleRequired {
+            get {
+                return ResourceManager.GetString("ProviderRoleRequired", resourceCulture);
+            }
+        }
+
     }
 }

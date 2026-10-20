@@ -696,4 +696,16 @@
   <data name="WalletTargetCoachReserve" xml:space="preserve">
     <value>coach reservation {0}</value>
   </data>
+  <data name="PushCoachReserveNewMessage" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="PushCoachInAppCallStarted" xml:space="preserve">
+    <value>{0} started an in-app call.</value>
+  </data>
+  <data name="PushCoachOnlineReserveReminderBefore" xml:space="preserve">
+    <value>Reminder: the {2} online service for {0} at {1} starts soon.</value>
+  </data>
+  <data name="PushCoachOnlineReserveReminderAtTime" xml:space="preserve">
+    <value>It is time to provide the {2} online service for {0} at {1}.</value>
+  </data>
 </root>

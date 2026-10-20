@@ -338,6 +338,133 @@ namespace Api.Hubs
             await FinalizeCallAsync(key);
         }
 
+        /// <summary>
+        /// تماس درون‌برنامه‌ای رزرو مربی (فقط نحوه‌ی ارائه‌ی آنلاین). سیگنالینگ همان جریان JoinCall است؛ برای استفاده‌ی مجدد از
+        /// SendSignal/EndCall و ردیاب، رزرو با کلید CoachCallRules.KeyFor(id) ثبت می‌شود تا با رزرو Companion و جلسه‌ی آنلاین تداخل نکند.
+        /// کلاینت برای SendSignal همین کلید را می‌فرستد (یا SendCoachSignal با شناسه‌ی رزرو).
+        /// </summary>
+        public async Task JoinCoachCall(long coachReserveId)
+        {
+            var userId = CurrentUserId;
+            if (!userId.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "احراز هویت نامعتبر است.");
+                return;
+            }
+
+            var reserve = await _context.CoachReserves
+                .Include(r => r.Coach)
+                .AsTracking()
+                .FirstOrDefaultAsync(r => r.Id == coachReserveId && !r.IsCancel);
+            if (reserve == null)
+            {
+                await Clients.Caller.SendAsync("callError", "رزرو یافت نشد.");
+                return;
+            }
+
+            var isBooker = reserve.BookerId == userId.Value;
+            var isCoachSide = reserve.Coach.OwnerId == userId.Value || reserve.AssigneeUserId == userId.Value;
+            if (!isBooker && !isCoachSide)
+            {
+                await Clients.Caller.SendAsync("callError", "شما دسترسی به این تماس ندارید.");
+                return;
+            }
+
+            if (reserve.CallEndDate.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "این تماس قبلاً پایان یافته است.");
+                return;
+            }
+
+            if (!Application.Services.CoachSrvs.CoachCallRules.CanJoin(
+                    reserve.Mode, reserve.IsReserved, reserve.IsCancel, reserve.OwnerDecision, reserve.DoDate, reserve.CallEndDate, DateTime.Now))
+            {
+                await Clients.Caller.SendAsync("callError", "تماس برای این رزرو هنوز باز نیست یا رزرو آنلاین/تأییدشده نیست.");
+                return;
+            }
+
+            var key = Application.Services.CoachSrvs.CoachCallRules.KeyFor(reserve.Id);
+            await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(key));
+            var participantCount = _tracker.Join(key, Context.ConnectionId, userId.Value, reserve.BookerId, reserve.Coach.Name);
+
+            if (participantCount <= 1)
+            {
+                await Clients.Caller.SendAsync("waitingForPeer");
+
+                // مربی/پزشک اولین نفری است که وصل شده: برای رزروکننده پوش فوری تا او هم وارد تماس شود.
+                if (!isBooker)
+                {
+                    try
+                    {
+                        await _pushNotificationService.SendPushAsync(
+                            PushTypeEnum.PushCoachInAppCallStarted,
+                            reserve.BookerId,
+                            token1: reserve.Coach.Name,
+                            token2: reserve.Id.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send in-app call start push for coach reserve {ReserveId}.", reserve.Id);
+                    }
+                }
+                return;
+            }
+
+            if (!reserve.CallStartDate.HasValue)
+            {
+                reserve.CallStartDate = DateTime.Now;
+                await _context.SaveChangesAsync();
+            }
+
+            await Clients.Caller.SendAsync("callConnected", true);
+            await Clients.OthersInGroup(GroupName(key)).SendAsync("callConnected", false);
+        }
+
+        /// <summary>سیگنال WebRTC برای تماس رزرو مربی با شناسه‌ی رزرو (همان SendSignal با کلید مخصوص).</summary>
+        public Task SendCoachSignal(long coachReserveId, string type, string payload) =>
+            SendSignal(Application.Services.CoachSrvs.CoachCallRules.KeyFor(coachReserveId), type, payload);
+
+        /// <summary>پایان تماس رزرو مربی با شناسه‌ی رزرو (idempotent؛ بعد از بررسی دسترسی همیشه CallEndDate ثبت می‌شود).</summary>
+        public async Task EndCoachReserveCall(long coachReserveId)
+        {
+            if (coachReserveId <= 0)
+                return;
+
+            var userId = CurrentUserId;
+            if (!userId.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "احراز هویت نامعتبر است.");
+                return;
+            }
+
+            var reserve = await _context.CoachReserves.AsNoTracking()
+                .Include(r => r.Coach)
+                .FirstOrDefaultAsync(r => r.Id == coachReserveId);
+            if (reserve == null)
+                return;
+
+            if (reserve.BookerId != userId.Value && reserve.Coach.OwnerId != userId.Value && reserve.AssigneeUserId != userId.Value)
+            {
+                await Clients.Caller.SendAsync("callError", "شما دسترسی به این تماس ندارید.");
+                return;
+            }
+
+            var key = Application.Services.CoachSrvs.CoachCallRules.KeyFor(reserve.Id);
+            var result = _tracker.Leave(Context.ConnectionId);
+            if (result.HasValue && result.Value.ReserveId == key)
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(key));
+                await Clients.OthersInGroup(GroupName(key)).SendAsync("callEnded");
+            }
+            else
+            {
+                _tracker.RemoveCall(key);
+                await Clients.Group(GroupName(key)).SendAsync("callEnded");
+            }
+
+            await FinalizeCallAsync(key);
+        }
+
         public async Task SendSignal(long reserveId, string type, string payload)
         {
             var userId = CurrentUserId;
@@ -474,6 +601,26 @@ namespace Api.Hubs
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to finalize call end time for clinic call key {Key}.", reserveId);
+                }
+                return;
+            }
+
+            // رزرو مربی: کلید = CoachCallKeyBase + شناسه‌ی رزرو
+            if (Application.Services.CoachSrvs.CoachCallRules.IsCoachKey(reserveId))
+            {
+                try
+                {
+                    var coachReserveId = Application.Services.CoachSrvs.CoachCallRules.ReserveIdOf(reserveId);
+                    var coachReserve = await _context.CoachReserves.AsTracking().FirstOrDefaultAsync(r => r.Id == coachReserveId);
+                    if (coachReserve != null && !coachReserve.CallEndDate.HasValue)
+                    {
+                        coachReserve.CallEndDate = DateTime.Now;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to finalize call end time for coach call key {Key}.", reserveId);
                 }
                 return;
             }

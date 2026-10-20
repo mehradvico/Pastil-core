@@ -47,7 +47,7 @@ namespace Application.Services.CoachSrvs
 
         private sealed record ReserveInfo(
             long Id, long CoachId, string CoachName, long OwnerId, string OwnerMobile, long BookerId, string BookerFirstName,
-            string BookerMobile, string PetName, DateTime DoDate, string ServiceName);
+            string BookerMobile, string PetName, DateTime DoDate, string ServiceName, int Mode, long? AssigneeUserId, string BookerName);
 
         public async Task CoachDecidedAsync(long coachId, bool approved, string reason)
         {
@@ -77,6 +77,18 @@ namespace Application.Services.CoachSrvs
                     token1: r.ServiceName);
                 await _sms.SendMessageAsync(MessageTypeEnum.CompanionReserveForCompanion, r.OwnerMobile, null,
                     token1: r.ServiceName, token2: r.BookerFirstName);
+
+                // رزرو آنلاین: دو یادآور زمان‌بندی‌شده (۱۰ دقیقه قبل و سر ساعت) برای مربی
+                if (r.Mode == (int)Entities.Entities.CoachField.CoachServiceModeEnum.Online)
+                {
+                    var targetUserId = r.AssigneeUserId ?? r.OwnerId;
+                    await _push.SendPushAsync(PushTypeEnum.PushCoachOnlineReserveReminderBefore, targetUserId,
+                        token1: r.BookerName, token2: r.ServiceName, token3: r.CoachName, token4: r.Id.ToString(),
+                        sendDate: CoachReserveReminders.BeforeAt(r.DoDate));
+                    await _push.SendPushAsync(PushTypeEnum.PushCoachOnlineReserveReminderAtTime, targetUserId,
+                        token1: r.BookerName, token2: r.ServiceName, token3: r.CoachName, token4: r.Id.ToString(),
+                        sendDate: r.DoDate);
+                }
 
             });
         }
@@ -180,7 +192,8 @@ namespace Application.Services.CoachSrvs
             _context.CoachReserves.AsNoTracking().Where(r => r.Id == reserveId)
                 .Select(r => new ReserveInfo(
                     r.Id, r.CoachId, r.Coach.Name, r.Coach.OwnerId, r.Coach.Owner.Mobile, r.BookerId,
-                    r.Booker.FirstName, r.Booker.Mobile, r.UserPet.Name, r.DoDate, r.CoachService.Assistance.Name))
+                    r.Booker.FirstName, r.Booker.Mobile, r.UserPet.Name, r.DoDate, r.CoachService.Assistance.Name,
+                    r.Mode, r.AssigneeUserId, (r.Booker.FirstName + " " + r.Booker.LastName).Trim()))
                 .FirstOrDefaultAsync();
 
         private async Task SafeAsync(string name, Func<Task> action)

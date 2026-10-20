@@ -2641,4 +2641,28 @@
   <data name="ClubPointCoachReserveCompletedDescription" xml:space="preserve">
     <value>Points for completing coach reservation {0}</value>
   </data>
+  <data name="CoachReserveMessageAttachmentNotAvailable" xml:space="preserve">
+    <value>CoachReserveMessageAttachmentNotAvailable</value>
+  </data>
+  <data name="CoachReserveMessageReactionRequired" xml:space="preserve">
+    <value>CoachReserveMessageReactionRequired</value>
+  </data>
+  <data name="CoachReserveMessageReactionTooLong" xml:space="preserve">
+    <value>CoachReserveMessageReactionTooLong</value>
+  </data>
+  <data name="InvalidCoachReserveMessageType" xml:space="preserve">
+    <value>InvalidCoachReserveMessageType</value>
+  </data>
+  <data name="CoachReserveMessageContentRequired" xml:space="preserve">
+    <value>CoachReserveMessageContentRequired</value>
+  </data>
+  <data name="CoachReserveMessagePreviewImage" xml:space="preserve">
+    <value>CoachReserveMessagePreviewImage</value>
+  </data>
+  <data name="CoachReserveMessagePreviewNewMessage" xml:space="preserve">
+    <value>CoachReserveMessagePreviewNewMessage</value>
+  </data>
+  <data name="ProviderRoleRequired" xml:space="preserve">
+    <value>The provider does not have the required approved role for this center type.</value>
+  </data>
 </root>

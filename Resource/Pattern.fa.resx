@@ -747,4 +747,16 @@
   <data name="WalletTargetCoachReserve" xml:space="preserve">
     <value>رزرو مربی {0}</value>
   </data>
+  <data name="PushCoachReserveNewMessage" xml:space="preserve">
+    <value>پیام جدید از {0}: {1}</value>
+  </data>
+  <data name="PushCoachInAppCallStarted" xml:space="preserve">
+    <value>{0} تماس درون‌برنامه‌ای را آغاز کرد.</value>
+  </data>
+  <data name="PushCoachOnlineReserveReminderBefore" xml:space="preserve">
+    <value>یادآوری: خدمت آنلاین {2} برای «{0}» در «{1}» به‌زودی شروع می‌شود.</value>
+  </data>
+  <data name="PushCoachOnlineReserveReminderAtTime" xml:space="preserve">
+    <value>وقت ارائه خدمت آنلاین {2} برای «{0}» در «{1}» فرا رسیده است.</value>
+  </data>
 </root>

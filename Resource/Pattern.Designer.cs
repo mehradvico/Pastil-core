@@ -830,5 +830,29 @@ namespace Resource {
             }
         }
 
+        public static string PushCoachReserveNewMessage {
+            get {
+                return ResourceManager.GetString("PushCoachReserveNewMessage", resourceCulture);
+            }
+        }
+
+        public static string PushCoachInAppCallStarted {
+            get {
+                return ResourceManager.GetString("PushCoachInAppCallStarted", resourceCulture);
+            }
+        }
+
+        public static string PushCoachOnlineReserveReminderBefore {
+            get {
+                return ResourceManager.GetString("PushCoachOnlineReserveReminderBefore", resourceCulture);
+            }
+        }
+
+        public static string PushCoachOnlineReserveReminderAtTime {
+            get {
+                return ResourceManager.GetString("PushCoachOnlineReserveReminderAtTime", resourceCulture);
+            }
+        }
+
     }
 }

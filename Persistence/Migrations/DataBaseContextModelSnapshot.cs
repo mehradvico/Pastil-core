@@ -2226,6 +2226,12 @@ namespace Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime?>("CallEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CallStartDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("CancelDate")
                         .HasColumnType("datetime2");
 
@@ -2428,6 +2434,131 @@ namespace Persistence.Migrations
                     b.HasIndex("CoachServicePackageId");
 
                     b.ToTable("CoachReserveItems");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserveMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CoachReserveMessageTypeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DeliveredDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ReplyToMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SenderUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachReserveId");
+
+                    b.HasIndex("CoachReserveMessageTypeId");
+
+                    b.HasIndex("ReplyToMessageId");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.ToTable("CoachReserveMessages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserveMessageAttachment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachReserveMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachReserveMessageId");
+
+                    b.ToTable("CoachReserveMessageAttachments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserveMessageReaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachReserveMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Reaction")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ReactorUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachReserveMessageId");
+
+                    b.HasIndex("ReactorUserId");
+
+                    b.ToTable("CoachReserveMessageReactions");
                 });
 
             modelBuilder.Entity("Entities.Entities.CoachField.CoachService", b =>
@@ -15111,6 +15242,67 @@ namespace Persistence.Migrations
                     b.Navigation("CoachServicePackage");
                 });
 
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserveMessage", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachReserve", "CoachReserve")
+                        .WithMany()
+                        .HasForeignKey("CoachReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Code", "CoachReserveMessageType")
+                        .WithMany()
+                        .HasForeignKey("CoachReserveMessageTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.CoachReserveMessage", "ReplyToMessage")
+                        .WithMany()
+                        .HasForeignKey("ReplyToMessageId");
+
+                    b.HasOne("Entities.Entities.Security.User", "SenderUser")
+                        .WithMany()
+                        .HasForeignKey("SenderUserId");
+
+                    b.Navigation("CoachReserve");
+
+                    b.Navigation("CoachReserveMessageType");
+
+                    b.Navigation("ReplyToMessage");
+
+                    b.Navigation("SenderUser");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserveMessageAttachment", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachReserveMessage", "CoachReserveMessage")
+                        .WithMany("Attachments")
+                        .HasForeignKey("CoachReserveMessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachReserveMessage");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserveMessageReaction", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachReserveMessage", "CoachReserveMessage")
+                        .WithMany("Reactions")
+                        .HasForeignKey("CoachReserveMessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "ReactorUser")
+                        .WithMany()
+                        .HasForeignKey("ReactorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachReserveMessage");
+
+                    b.Navigation("ReactorUser");
+                });
+
             modelBuilder.Entity("Entities.Entities.CoachField.CoachService", b =>
                 {
                     b.HasOne("Entities.Entities.Assistance", "Assistance")
@@ -20288,6 +20480,13 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.CoachField.CoachReserve", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserveMessage", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Reactions");
                 });
 
             modelBuilder.Entity("Entities.Entities.CoachField.CoachService", b =>

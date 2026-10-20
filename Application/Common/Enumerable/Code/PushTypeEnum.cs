@@ -257,5 +257,13 @@ namespace Application.Common.Enumerable.Code
         PushCoachStaffInvite = 163,
         /// <summary>به کاربر: رزرو توسط ادمین لغو شد. Token1 = نام مربی، Token2 = دلیل.</summary>
         PushCoachReserveCancelledByAdmin = 164,
+        /// <summary>پیام تازه در گفتگوی رزرو مربی. Token1 = نام فرستنده، Token2 = پیش‌نمایش، Token3 = شناسه‌ی رزرو مربی.</summary>
+        PushCoachReserveNewMessage = 165,
+        /// <summary>به کاربر: مربی تماس درون‌برنامه‌ای رزرو را شروع کرد. Token1 = نام مربی، Token2 = شناسه‌ی رزرو مربی.</summary>
+        PushCoachInAppCallStarted = 166,
+        /// <summary>به مربی/پزشک: ۱۰ دقیقه به رزرو آنلاین مانده. Token1 = نام مشتری، Token2 = بسته، Token3 = نحوه‌ی ارائه، Token4 = شناسه‌ی رزرو مربی.</summary>
+        PushCoachOnlineReserveReminderBefore = 167,
+        /// <summary>به مربی/پزشک: زمان رزرو آنلاین رسید. Token1 = نام مشتری، Token2 = بسته، Token3 = نحوه‌ی ارائه، Token4 = شناسه‌ی رزرو مربی.</summary>
+        PushCoachOnlineReserveReminderAtTime = 168,
     }
 }

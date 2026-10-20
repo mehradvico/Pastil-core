@@ -16,7 +16,7 @@ namespace Application.Services.ClinicSrvs
 
         public static long KeyFor(long clinicReserveId) => ClinicCallKeyBase + clinicReserveId;
 
-        public static bool IsClinicKey(long key) => key > ClinicCallKeyBase;
+        public static bool IsClinicKey(long key) => key > ClinicCallKeyBase && key < 2_000_000_000_000_000L;
 
         public static long ReserveIdOf(long key) => key - ClinicCallKeyBase;
 

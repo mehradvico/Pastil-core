@@ -3,6 +3,7 @@ using Application.Services.AgencySrvs.AgencySrv.Dto;
 using Entities.Entities;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Application.Services.AgencySrvs.AgencySrv
@@ -13,6 +14,23 @@ namespace Application.Services.AgencySrvs.AgencySrv
     /// </summary>
     public static class AgencyQueries
     {
+        public static IEnumerable<IQueryable<AgencyRow>> Sources(IDataBaseContext context, AgencyInputDto input)
+        {
+            var companionOnly = input.IsPersonal.HasValue || input.GoldAccount == true || input.SilverAccount == true;
+            bool Wants(AgencyKindEnum kind) => input.Kind == null || input.Kind == kind;
+
+            if (Wants(AgencyKindEnum.Companion)) yield return Companions(context, input);
+            if (Wants(AgencyKindEnum.Groomer)) yield return Groomers(context, input);
+            if (Wants(AgencyKindEnum.Clinic)) yield return Clinics(context, input);
+            if (Wants(AgencyKindEnum.Coach)) yield return Coaches(context, input);
+            if (!companionOnly)
+            {
+                if (Wants(AgencyKindEnum.Store)) yield return Stores(context, input);
+                if (Wants(AgencyKindEnum.Pansion)) yield return Pansions(context, input);
+                if (Wants(AgencyKindEnum.School)) yield return Schools(context, input);
+            }
+        }
+
         public static IQueryable<AgencyRow> Companions(IDataBaseContext context, AgencyInputDto input)
         {
             var model = context.Companions.Where(c => !c.Deleted);

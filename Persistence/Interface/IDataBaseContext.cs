@@ -83,10 +83,13 @@ namespace Persistence.Interface
         public DbSet<CompanionReserve> CompanionReserves { get; set; }
         public DbSet<CompanionReserveMessage> CompanionReserveMessages { get; set; }
         public DbSet<ClinicReserveMessage> ClinicReserveMessages { get; set; }
+        public DbSet<CoachReserveMessage> CoachReserveMessages { get; set; }
         public DbSet<CompanionReserveMessageAttachment> CompanionReserveMessageAttachments { get; set; }
         public DbSet<ClinicReserveMessageAttachment> ClinicReserveMessageAttachments { get; set; }
+        public DbSet<CoachReserveMessageAttachment> CoachReserveMessageAttachments { get; set; }
         public DbSet<CompanionReserveMessageReaction> CompanionReserveMessageReactions { get; set; }
         public DbSet<ClinicReserveMessageReaction> ClinicReserveMessageReactions { get; set; }
+        public DbSet<CoachReserveMessageReaction> CoachReserveMessageReactions { get; set; }
         public DbSet<OnlineSession> OnlineSessions { get; set; }
         public DbSet<OnlineSessionMessage> OnlineSessionMessages { get; set; }
         public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
