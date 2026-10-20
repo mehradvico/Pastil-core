@@ -28,6 +28,7 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto<Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceBulkCancelResultDto>> AdminCancelPetResanServicesAsync(Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceBulkCancelDto dto);
         Task<BaseResultDto<TripVDto>> AdminCancelAsync(TripAdminActionDto dto, Application.Common.Enumerable.TripCancelInitiatorEnum initiator = Application.Common.Enumerable.TripCancelInitiatorEnum.Admin);
         Task CancelLinkedTripForCompanionReserveAsync(long companionReserveId);
+        Task CancelLinkedTripForClinicReserveAsync(long clinicReserveId);
         Task CancelLinkedTripForPansionReserveAsync(long pansionReserveId);
         Task CancelLinkedTripForSchoolReserveAsync(long schoolReserveId);
         Task<BaseResultDto<TripVDto>> AdminCompleteAsync(TripAdminActionDto dto);
@@ -48,6 +49,8 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto<TripVDto>> GetTripForReservationAsync(long companionReserveId, long userId);
         Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForPansionAsync(TripPansionReservationCreateDto dto, long userId);
         Task<BaseResultDto<TripVDto>> GetTripForPansionReservationAsync(long pansionReserveId, long userId);
+        Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForClinicAsync(TripClinicReservationCreateDto dto, long userId);
+        Task<BaseResultDto<TripVDto>> GetTripForClinicReservationAsync(long clinicReserveId, long userId);
         Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForSchoolAsync(TripSchoolReservationCreateDto dto, long userId);
         Task<BaseResultDto<TripVDto>> GetTripForSchoolReservationAsync(long schoolReserveId, long userId);
         Task GeneratePetResanServiceTripsAsync();

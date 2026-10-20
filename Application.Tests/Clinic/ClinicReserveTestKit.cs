@@ -106,14 +106,16 @@ public static class ClinicReserveTestKit
             NullLogger<ClinicReserveService>.Instance);
 
     public static ClinicReserveApprovalService NewApprovalService(
-        ClinicLocalDbFixture fixture, IWalletService? wallet = null, IClinicNotifier? push = null) =>
-        NewApproval(fixture, wallet, push);
+        ClinicLocalDbFixture fixture, IWalletService? wallet = null, IClinicNotifier? push = null,
+        Application.Services.TripSrv.TripSrv.Iface.ITripService? trip = null) =>
+        NewApproval(fixture, wallet, push, trip);
 
-    private static ClinicReserveApprovalService NewApproval(ClinicLocalDbFixture fixture, IWalletService? wallet, IClinicNotifier? push)
+    private static ClinicReserveApprovalService NewApproval(ClinicLocalDbFixture fixture, IWalletService? wallet, IClinicNotifier? push,
+        Application.Services.TripSrv.TripSrv.Iface.ITripService? trip)
     {
         var context = fixture.NewContext();
         return new ClinicReserveApprovalService(context, wallet ?? NewWallet(fixture, true, context).Wallet, push ?? NewPush().Push,
-            NullLogger<ClinicReserveApprovalService>.Instance);
+            trip ?? FakeProxy<Application.Services.TripSrv.TripSrv.Iface.ITripService>.Create().Instance, NullLogger<ClinicReserveApprovalService>.Instance);
     }
 
     /// <summary>

@@ -240,6 +240,9 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                         PackagePrice = p.Price,
                         OnlineAmount = ClinicReserveRules.Deposit(p.Price, p.PrePaymentPrice),
                         DurationMinutes = ClinicReserveRules.EffectiveDuration(p.DurationMinutes),
+                        PackageName = p.Name,
+                        Status = (int)Application.Services.ClinicSrvs.ClinicReserveItemSrv.ClinicReserveItemStatusEnum.Pending,
+                        CreateDate = now,
                     }).ToList(),
                 };
                 reserve.ReserveCode = PaymentCodeGenerator.Create(
@@ -314,10 +317,14 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 // مهلت پاسخ کلینیک به نوبتِ جدید نسبت داده می‌شود.
                 if (ClinicReserveRules.IsPending(reserve.OwnerDecision))
                     reserve.OwnerApprovalDeadline = ClinicReserveRules.Deadline(now, start);
+                var linkedTrip = await AdjustLinkedTripAsync(reserve.Id, start, now);
+                await ClinicReserveReminders.ShiftAsync(_context, reserve.Id, start);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 await _notifier.ReserveRescheduledAsync(reserve.Id, byOwner: ownerUserId.HasValue, oldDoDate);
+                if (linkedTrip != null)
+                    await _notifier.TripRescheduledForDriverAsync(reserve.Id, linkedTrip.Id);
                 return await FindAsync(reserve.Id, null, ownerUserId);
             }
             catch (Exception ex)
@@ -325,6 +332,34 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 _logger.LogError(ex, "Rescheduling clinic reserve {ReserveId} failed.", id);
                 return Fail(Resource.Notification.Unsuccess);
             }
+        }
+
+        // سفر پت‌رسانِ متصل (قبل از «پت سوار شد») همراه رزرو جابه‌جا می‌شود: زمان حرکت = زمان جدید نوبت منهای فاصله‌ی انتخابیِ کاربر.
+        // قیمت سفر عوض نمی‌شود. راننده‌ی پذیرنده می‌ماند و خبر می‌گیرد؛ بدون راننده دوباره به صف اعزام برمی‌گردد.
+        private async Task<Entities.Entities.Trip> AdjustLinkedTripAsync(long reserveId, DateTime newStartAt, DateTime now)
+        {
+            var requested = (long)TripStatusEnum.TripStatus_Requested;
+            var accepted = (long)TripStatusEnum.TripStatus_Accepted;
+            var petPickedUp = (int)TripProgressStageEnum.PetPickedUp;
+
+            var trip = await _context.Trips.AsTracking()
+                .Where(t => t.ClinicReserveId == reserveId
+                            && (t.TripStatusId == requested || t.TripStatusId == accepted)
+                            && t.ProgressStageId < petPickedUp)
+                .OrderByDescending(t => t.Id)
+                .FirstOrDefaultAsync();
+            if (trip == null)
+                return null;
+
+            var departure = newStartAt.AddMinutes(-(trip.ScheduledLeadMinutes ?? 60));
+            if (departure < now)
+                departure = now;
+            trip.ScheduledDepartureAt = departure;
+            trip.TripStartDateTime = departure;
+            trip.DriverReminderSentDate = null;
+            if (!trip.DriverId.HasValue)
+                trip.ScheduledDispatched = false;
+            return trip;
         }
 
         // ------------------------------------------------------------------ جستجو و نمایش
@@ -384,6 +419,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             if (item == null)
                 return Fail(Resource.Notification.NothingFound);
             Finish(item, DateTime.Now);
+            var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForClinicReservesAsync(_context, new[] { item.Id });
+            item.PetResanTrip = trips.TryGetValue(item.Id, out var linkedTrip) ? linkedTrip : null;
             if (bookerId.HasValue)
             {
                 // کاربر سهم‌های حسابداری را نمی‌بیند.
@@ -666,7 +703,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
         private sealed record PackageInfo(
             long Id, long ClinicServiceId, long ClinicId, double Price, double PrePaymentPrice, string PetSize,
             int DurationMinutes, bool ServiceAtHome, bool ServiceInPerson, bool ServiceOnline,
-            int MaxConcurrentPets, long AssistanceId, long CityId, bool OfferedInMode);
+            int MaxConcurrentPets, long AssistanceId, long CityId, bool OfferedInMode, string Name);
 
         private async Task<PackageInfo> LoadBookablePackageAsync(long packageId, int? mode)
         {
@@ -676,7 +713,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                             && !p.ClinicService.Clinic.Deleted && p.ClinicService.Clinic.Active && p.ClinicService.Clinic.Approved)
                 .Select(p => new
                 {
-                    p.Id, p.ClinicServiceId, ClinicId = p.ClinicService.ClinicId, p.Price, p.PrePaymentPrice, p.PetSize,
+                    p.Id, p.Name, p.ClinicServiceId, ClinicId = p.ClinicService.ClinicId, p.Price, p.PrePaymentPrice, p.PetSize,
                     p.ClinicService.DurationMinutes, p.ClinicService.Clinic.ServiceAtHome, p.ClinicService.Clinic.ServiceInPerson,
                     p.ClinicService.Clinic.ServiceOnline, p.ClinicService.Clinic.MaxConcurrentPets,
                     p.ClinicService.AssistanceId, p.ClinicService.Clinic.CityId,
@@ -699,7 +736,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             }
             return new PackageInfo(
                 row.Id, row.ClinicServiceId, row.ClinicId, price, pre, row.PetSize, row.DurationMinutes,
-                row.ServiceAtHome, row.ServiceInPerson, row.ServiceOnline, row.MaxConcurrentPets, row.AssistanceId, row.CityId, offered);
+                row.ServiceAtHome, row.ServiceInPerson, row.ServiceOnline, row.MaxConcurrentPets, row.AssistanceId, row.CityId, offered, row.Name);
         }
 
         /// <summary>نحوه‌ی ارائه باید یکی از سه حالت باشد و کلینیک آن را ارائه دهد. null = معتبر.</summary>
@@ -858,6 +895,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 Permitted = r.Permitted,
                 RescheduleCount = r.RescheduleCount,
                 OriginalDoDate = r.OriginalDoDate,
+                CallStartDate = r.CallStartDate,
+                CallEndDate = r.CallEndDate,
                 Items = r.Items.OrderBy(i => i.Id).Select(i => new ClinicReserveItemVDto
                 {
                     Id = i.Id,
@@ -871,6 +910,10 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                     CommissionPercent = i.CommissionPercent,
                     ProviderShare = i.ProviderShare,
                     SiteShare = i.SiteShare,
+                    Status = i.Status,
+                    StatusReason = i.StatusReason,
+                    RefundAmount = i.RefundAmount,
+                    AddedAfterPayment = i.AddedAfterPayment,
                 }).ToList(),
             });
 

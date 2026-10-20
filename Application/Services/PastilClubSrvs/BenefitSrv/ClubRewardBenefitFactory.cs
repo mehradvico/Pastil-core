@@ -210,6 +210,7 @@ namespace Application.Services.PastilClubSrvs.BenefitSrv
             ClubRewardApplicationMethodEnum.PansionReservation => RebateTypeLabels.PansionReserve,
             ClubRewardApplicationMethodEnum.GroomerReservation => RebateTypeLabels.GroomerReserve,
             ClubRewardApplicationMethodEnum.ClinicReservation => RebateTypeLabels.ClinicReserve,
+            ClubRewardApplicationMethodEnum.CoachReservation => RebateTypeLabels.CoachReserve,
             ClubRewardApplicationMethodEnum.PastilAI => RebateTypeLabels.PastilAI,
             _ => throw new InvalidOperationException("CLUB_REWARD_APPLICATION_METHOD_INVALID")
         };

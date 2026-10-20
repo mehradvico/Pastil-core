@@ -17,6 +17,7 @@ using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
 using Application.Services.SchoolSrvs.SchoolReserveSrv.Iface;
 using Application.Services.GroomerSrvs.GroomerReserveSrv.Iface;
 using Application.Services.ClinicSrvs.ClinicReserveSrv.Iface;
+using Application.Services.CoachSrvs.CoachReserveSrv.Iface;
 using Application.Services.PastilAISrv.Iface;
 using Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
@@ -56,6 +57,7 @@ namespace Application.Services.Order.PaymentSrv
         private readonly ISchoolReserveService _schoolReserve;
         private readonly IGroomerReserveService _groomerReserve;
         private readonly IClinicReserveService _clinicReserve;
+        private readonly ICoachReserveService _coachReserve;
         private readonly IPastilAiSubscriptionActivator _pastilAiSubscriptionActivator;
         private readonly IConsultationPurchaseActivator _consultationPurchaseActivator;
         private readonly IRebateService _rebateService;
@@ -76,6 +78,7 @@ namespace Application.Services.Order.PaymentSrv
             ISchoolReserveService schoolReserve,
             IGroomerReserveService groomerReserve,
             IClinicReserveService clinicReserve,
+            ICoachReserveService coachReserve,
             IProductOrderService productOrderService,
             ICompanionReserveService companionReserveService,
             ITripService tripService,
@@ -107,6 +110,7 @@ namespace Application.Services.Order.PaymentSrv
             _schoolReserve = schoolReserve;
             _groomerReserve = groomerReserve;
             _clinicReserve = clinicReserve;
+            _coachReserve = coachReserve;
             _pastilAiSubscriptionActivator = pastilAiSubscriptionActivator;
             _consultationPurchaseActivator = consultationPurchaseActivator;
             _rebateService = rebateService;
@@ -882,6 +886,10 @@ namespace Application.Services.Order.PaymentSrv
                     await _context.ClinicReserves.Where(s => s.Id == targetId)
                         .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
                     break;
+                case nameof(PaymentCallbackTypeEnum.CoachReserve):
+                    await _context.CoachReserves.Where(s => s.Id == targetId)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
+                    break;
                 case nameof(PaymentCallbackTypeEnum.ConsultationPurchase):
                     await _context.ConsultationPurchases.Where(s => s.Id == targetId)
                         .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
@@ -923,6 +931,11 @@ namespace Application.Services.Order.PaymentSrv
                 nameof(PaymentCallbackTypeEnum.ClinicReserve) when long.TryParse(payment.CallBackId, out var clinicReserveId) =>
                     await _context.ClinicReserves.AsNoTracking()
                         .Where(item => item.Id == clinicReserveId)
+                        .Select(item => item.ReserveCode)
+                        .FirstOrDefaultAsync(),
+                nameof(PaymentCallbackTypeEnum.CoachReserve) when long.TryParse(payment.CallBackId, out var coachReserveId) =>
+                    await _context.CoachReserves.AsNoTracking()
+                        .Where(item => item.Id == coachReserveId)
                         .Select(item => item.ReserveCode)
                         .FirstOrDefaultAsync(),
                 nameof(PaymentCallbackTypeEnum.SchoolReserve) when long.TryParse(payment.CallBackId, out var schoolReserveId) =>
@@ -1310,6 +1323,71 @@ namespace Application.Services.Order.PaymentSrv
             dto.ProductOrderId = null;
             dto.TypeId = clinicTypeId;
             dto.CallBackTypeLabel = PaymentCallbackTypeEnum.ClinicReserve.ToString();
+            dto.CallBackId = reservedetail.Id.ToString();
+            return await StartPayment(dto);
+        }
+        public async Task<BaseResultDto> InsertCoachReservePaymentAsyncDto(PaymentStartDto dto)
+        {
+            var reservedetail = await _context.CoachReserves.Include(s => s.Rebate).Include(s => s.Coach).AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.CoachReserveId);
+            if (reservedetail == null || reservedetail.BookerId != dto.UserId)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            var coachBlocked = await GuardRetryAsync(
+                reservedetail.IsCancel, reservedetail.IsReserved, Resource.Notification.PaymentReserveAlreadyPaid,
+                PaymentCallbackTypeEnum.CoachReserve, reservedetail.Id.ToString());
+            if (coachBlocked != null)
+                return coachBlocked;
+            if (reservedetail.DoDate <= DateTime.Now)
+                return new BaseResultDto(false, Resource.Notification.CoachReserveDatePassed);
+            if (reservedetail.Coach == null || !reservedetail.Coach.Active || !reservedetail.Coach.Approved || reservedetail.Coach.Deleted)
+                return new BaseResultDto(false, Resource.Notification.CoachReserveCoachUnavailable);
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.CoachReserve, null);
+            var coachRebateValidation = ValidateAppliedRebate(
+                reservedetail.Rebate,
+                reservedetail.PaymentPrice + reservedetail.RebatePrice,
+                reservedetail.BookerId,
+                RebateTypeLabels.CoachReserve,
+                reservedetail.RebatePrice);
+            if (!coachRebateValidation.IsSuccess)
+                return coachRebateValidation;
+
+            dto.Amount = reservedetail.PaymentPrice;
+            dto.GrossAmount = reservedetail.PaymentPrice + reservedetail.RebatePrice;
+            dto.RebateAmount = reservedetail.RebatePrice;
+            dto.RebateId = reservedetail.RebateId;
+            dto.WalletAmount = 0;
+
+            if (dto.Amount < 0)
+            {
+                return new BaseResultDto(false, Resource.Notification.AmountNotCorrect);
+            }
+            else if (dto.Amount > 0 && dto.MerchantId == null && !reservedetail.FromWallet)
+            {
+                return new BaseResultDto(false, Resource.Notification.PleaseSelectTheMerchant);
+            }
+            var coachTypeId = await _codeService.GetIdByLabelAsync(PaymentTypeEnum.PaymentType_CoachReserve.ToString());
+            if (reservedetail.FromWallet)
+            {
+                var walletAmount = await _walletService.GetSpendableAmountValueAsync(
+                    reservedetail.BookerId,
+                    Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Coach,
+                    reservedetail.CoachId);
+                reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PaymentPrice);
+                dto.WalletAmount = reservedetail.WalletPrice;
+                await _context.SaveChangesAsync();
+
+                dto.Amount = walletAmount >= reservedetail.PaymentPrice ? 0 : reservedetail.PaymentPrice - reservedetail.WalletPrice;
+                dto.ProductOrderId = null;
+                dto.CallBackTypeLabel = PaymentCallbackTypeEnum.CoachReserve.ToString();
+                dto.CallBackId = reservedetail.Id.ToString();
+                dto.TypeId = coachTypeId;
+                return await StartPayment(dto);
+            }
+
+            dto.IsOnline = true;
+            dto.ProductOrderId = null;
+            dto.TypeId = coachTypeId;
+            dto.CallBackTypeLabel = PaymentCallbackTypeEnum.CoachReserve.ToString();
             dto.CallBackId = reservedetail.Id.ToString();
             return await StartPayment(dto);
         }
@@ -1843,6 +1921,21 @@ namespace Application.Services.Order.PaymentSrv
                     ? new BaseResultDto(true)
                     : new BaseResultDto(false, Resource.Notification.InvalidData);
             }
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CoachReserve.ToString())
+            {
+                var item = await _context.CoachReserves.AsNoTracking()
+                    .Where(s => s.Id == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
+                    .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
+                    .FirstOrDefaultAsync();
+                return item != null && SnapshotMatches(
+                    payment,
+                    item.PaymentPrice + item.RebatePrice,
+                    item.RebatePrice,
+                    item.WalletPrice,
+                    item.PaymentPrice - item.WalletPrice)
+                    ? new BaseResultDto(true)
+                    : new BaseResultDto(false, Resource.Notification.InvalidData);
+            }
 
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserveBatch.ToString())
             {
@@ -2019,6 +2112,10 @@ namespace Application.Services.Order.PaymentSrv
             {
                 return await _clinicReserve.ClinicReservePaymentCallback(referenceId, useWallet);
             }
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CoachReserve.ToString())
+            {
+                return await _coachReserve.CoachReservePaymentCallback(referenceId, useWallet);
+            }
 
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserveBatch.ToString())
             {
@@ -2168,6 +2265,26 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
             }
+            if (dto.TargetType == PaymentCallbackTypeEnum.CoachReserve)
+            {
+                var item = await _context.CoachReserves.AsNoTracking()
+                    .Where(s => s.Id == referenceId)
+                    .Select(s => new { s.BookerId, s.PaymentPrice, s.IsReserved, s.IsCancel })
+                    .FirstOrDefaultAsync();
+                if (item == null)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.NothingFound);
+                }
+                if (item.IsReserved)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentReserveAlreadyPaid);
+                }
+                if (item.IsCancel)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.CoachReserveCannotCancel);
+                }
+                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
+            }
 
             if (dto.TargetType == PaymentCallbackTypeEnum.SchoolReserve)
             {
@@ -2268,6 +2385,7 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentCallbackTypeEnum.SchoolReserve => PaymentTypeEnum.PaymentType_SchoolReserve.ToString(),
                 PaymentCallbackTypeEnum.GroomerReserve => PaymentTypeEnum.PaymentType_GroomerReserve.ToString(),
                 PaymentCallbackTypeEnum.ClinicReserve => PaymentTypeEnum.PaymentType_ClinicReserve.ToString(),
+                PaymentCallbackTypeEnum.CoachReserve => PaymentTypeEnum.PaymentType_CoachReserve.ToString(),
                 PaymentCallbackTypeEnum.Trip => PaymentTypeEnum.PaymentType_Trip.ToString(),
                 PaymentCallbackTypeEnum.Cargo => PaymentTypeEnum.PaymentType_Cargo.ToString(),
                 PaymentCallbackTypeEnum.Insurance => PaymentTypeEnum.PaymentType_Insurance.ToString(),

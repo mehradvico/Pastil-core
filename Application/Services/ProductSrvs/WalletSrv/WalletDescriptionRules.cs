@@ -19,12 +19,13 @@ namespace Application.Services.ProductSrvs.WalletSrv
         public long? SchoolReserveId { get; set; }
         public long? GroomerReserveId { get; set; }
         public long? ClinicReserveId { get; set; }
+        public long? CoachReserveId { get; set; }
         public long? ConsultationPurchaseId { get; set; }
 
         public bool HasReference =>
             !string.IsNullOrWhiteSpace(ProductOrderId) || CompanionReserveId.HasValue || PansionReserveId.HasValue ||
             TripId.HasValue || CargoId.HasValue || CompanionInsurancePackageSaleId.HasValue ||
-            PastilAiSubscriptionId.HasValue || SchoolReserveId.HasValue || GroomerReserveId.HasValue || ClinicReserveId.HasValue || ConsultationPurchaseId.HasValue;
+            PastilAiSubscriptionId.HasValue || SchoolReserveId.HasValue || GroomerReserveId.HasValue || ClinicReserveId.HasValue || CoachReserveId.HasValue || ConsultationPurchaseId.HasValue;
     }
 
     // کدهای قابل نمایش (RSV-... / ORD-... / PAY-...) که سرویس به‌صورت دسته‌ای از دیتابیس می‌خواند
@@ -35,10 +36,12 @@ namespace Application.Services.ProductSrvs.WalletSrv
         public Dictionary<long, string> OrderItems { get; } = new();
         public Dictionary<long, string> CompanionReserves { get; } = new();
         public Dictionary<long, (string ReserveCode, string PackageName)> CompanionPackageItems { get; } = new();
+        public Dictionary<long, (string ReserveCode, string PackageName)> ClinicPackageItems { get; } = new();
         public Dictionary<long, string> PansionReserves { get; } = new();
         public Dictionary<long, string> SchoolReserves { get; } = new();
         public Dictionary<long, string> GroomerReserves { get; } = new();
         public Dictionary<long, string> ClinicReserves { get; } = new();
+        public Dictionary<long, string> CoachReserves { get; } = new();
         public Dictionary<long, string> Consultations { get; } = new();
     }
 
@@ -51,8 +54,10 @@ namespace Application.Services.ProductSrvs.WalletSrv
         public const string PansionReserveRefundPrefix = "PansionReserveRefund:";
         public const string GroomerReserveRefundPrefix = "GroomerReserveRefund:";
         public const string ClinicReserveRefundPrefix = "ClinicReserveRefund:";
+        public const string CoachReserveRefundPrefix = "CoachReserveRefund:";
         public const string ConsultationRefundPrefix = "ConsultationRefund:";
         public const string CompanionPackageRefundPrefix = "CompanionPackageRefund:";
+        public const string ClinicPackageRefundPrefix = "ClinicPackageRefund:";
         public const string OrderCancelRefundPrefix = "OrderCancelRefund:";
         public const string OrderItemRefundPrefix = "OrderItemRefund:";
         public const string ReferralBonusPrefix = "ReferralBonus:";
@@ -82,8 +87,8 @@ namespace Application.Services.ProductSrvs.WalletSrv
         }
 
         public static bool IsLedgerKey(string name) =>
-            TryGetLedgerValue(name, PaymentRefundPrefix, out _) || TryGetLedgerValue(name, PansionReserveRefundPrefix, out _) || TryGetLedgerValue(name, GroomerReserveRefundPrefix, out _) || TryGetLedgerValue(name, ClinicReserveRefundPrefix, out _) ||
-            TryGetLedgerValue(name, ConsultationRefundPrefix, out _) || TryGetLedgerValue(name, CompanionPackageRefundPrefix, out _) ||
+            TryGetLedgerValue(name, PaymentRefundPrefix, out _) || TryGetLedgerValue(name, PansionReserveRefundPrefix, out _) || TryGetLedgerValue(name, GroomerReserveRefundPrefix, out _) || TryGetLedgerValue(name, ClinicReserveRefundPrefix, out _) || TryGetLedgerValue(name, CoachReserveRefundPrefix, out _) ||
+            TryGetLedgerValue(name, ConsultationRefundPrefix, out _) || TryGetLedgerValue(name, CompanionPackageRefundPrefix, out _) || TryGetLedgerValue(name, ClinicPackageRefundPrefix, out _) ||
             TryGetLedgerValue(name, OrderCancelRefundPrefix, out _) || TryGetLedgerValue(name, OrderItemRefundPrefix, out _) ||
             TryGetLedgerValue(name, ReferralBonusPrefix, out _) || TryGetLedgerValue(name, AdminManualPrefix, out _) ||
             TryGetLedgerValue(name, CompanionDebtPrefix, out _) || TryGetLedgerValue(name, TripCancelRefundPrefix, out _);
@@ -142,6 +147,10 @@ namespace Application.Services.ProductSrvs.WalletSrv
             if (id.HasValue)
                 return string.Format(Resource.Pattern.WalletReasonCancelRefundFor,
                     string.Format(Resource.Pattern.WalletTargetClinicReserve, Code(codes.ClinicReserves, id.Value)));
+            id = TryGetLedgerId(name, CoachReserveRefundPrefix);
+            if (id.HasValue)
+                return string.Format(Resource.Pattern.WalletReasonCancelRefundFor,
+                    string.Format(Resource.Pattern.WalletTargetCoachReserve, Code(codes.CoachReserves, id.Value)));
 
             id = TryGetLedgerId(name, PansionReserveRefundPrefix);
             if (id.HasValue)
@@ -162,6 +171,17 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 return string.Format(Resource.Pattern.WalletReasonCompanionPackageRefund,
                     string.Format(Resource.Pattern.WalletTargetCompanionReserve, string.IsNullOrWhiteSpace(item.ReserveCode) ? "#" + id.Value : item.ReserveCode),
                     string.IsNullOrWhiteSpace(item.PackageName) ? "#" + id.Value : item.PackageName);
+            }
+
+            id = TryGetLedgerId(name, ClinicPackageRefundPrefix);
+            if (id.HasValue)
+            {
+                (string ReserveCode, string PackageName) clinicItem = codes.ClinicPackageItems.TryGetValue(id.Value, out var foundClinic)
+                    ? foundClinic
+                    : (null, null);
+                return string.Format(Resource.Pattern.WalletReasonCompanionPackageRefund,
+                    string.Format(Resource.Pattern.WalletTargetClinicReserve, string.IsNullOrWhiteSpace(clinicItem.ReserveCode) ? "#" + id.Value : clinicItem.ReserveCode),
+                    string.IsNullOrWhiteSpace(clinicItem.PackageName) ? "#" + id.Value : clinicItem.PackageName);
             }
 
             if (TryGetLedgerValue(name, OrderCancelRefundPrefix, out var orderId))
@@ -203,6 +223,8 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 return string.Format(Resource.Pattern.WalletTargetGroomerReserve, Code(codes.GroomerReserves, wallet.GroomerReserveId.Value));
             if (wallet.ClinicReserveId.HasValue)
                 return string.Format(Resource.Pattern.WalletTargetClinicReserve, Code(codes.ClinicReserves, wallet.ClinicReserveId.Value));
+            if (wallet.CoachReserveId.HasValue)
+                return string.Format(Resource.Pattern.WalletTargetCoachReserve, Code(codes.CoachReserves, wallet.CoachReserveId.Value));
             if (wallet.SchoolReserveId.HasValue)
                 return string.Format(Resource.Pattern.WalletTargetSchoolReserve, Code(codes.SchoolReserves, wallet.SchoolReserveId.Value));
             if (wallet.ConsultationPurchaseId.HasValue)

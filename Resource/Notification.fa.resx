@@ -2407,4 +2407,238 @@
   <data name="ClinicRescheduleReasonBySupport" xml:space="preserve">
     <value>به درخواست پشتیبانی</value>
   </data>
+  <data name="ClinicReserveItemStatusInvalid" xml:space="preserve">
+    <value>تغییر وضعیت این بسته مجاز نیست.</value>
+  </data>
+  <data name="ClinicReserveItemNeedsPaidReserve" xml:space="preserve">
+    <value>ابتدا رزرو باید پرداخت شده باشد.</value>
+  </data>
+  <data name="ClinicReserveItemNotModifiable" xml:space="preserve">
+    <value>این رزرو دیگر قابل تغییر نیست.</value>
+  </data>
+  <data name="ClinicReserveItemNotFound" xml:space="preserve">
+    <value>این بسته در رزرو پیدا نشد.</value>
+  </data>
+  <data name="ClinicReserveItemRefundFailed" xml:space="preserve">
+    <value>برگشت مبلغ بسته به کیف پول انجام نشد.</value>
+  </data>
+  <data name="ClinicReserveTripNotAvailable" xml:space="preserve">
+    <value>سفر پت‌رسان فقط برای رزرو پرداخت‌شده‌ی «حضوری در کلینیک» ثبت می‌شود.</value>
+  </data>
+  <data name="ClinicReserveMessageAttachmentNotAvailable" xml:space="preserve">
+    <value>این نوع پیام امکان ضمیمه کردن فایل ندارد</value>
+  </data>
+  <data name="ClinicReserveMessageReactionRequired" xml:space="preserve">
+    <value>ری‌اکشن مشخص نشده است</value>
+  </data>
+  <data name="ClinicReserveMessageReactionTooLong" xml:space="preserve">
+    <value>ری‌اکشن انتخابی نامعتبر است</value>
+  </data>
+  <data name="InvalidClinicReserveMessageType" xml:space="preserve">
+    <value>نوع پیام ارسالی پیدا نشد</value>
+  </data>
+  <data name="ClinicReserveMessageContentRequired" xml:space="preserve">
+    <value>نمی‌توانید پیام خالی ارسال کنید</value>
+  </data>
+  <data name="ClinicReserveMessagePreviewImage" xml:space="preserve">
+    <value>تصویر</value>
+  </data>
+  <data name="ClinicReserveMessagePreviewNewMessage" xml:space="preserve">
+    <value>پیام جدید</value>
+  </data>
+  <data name="CoachProviderRequired" xml:space="preserve">
+    <value>هر مربی باید ارائه‌دهنده‌ی تأییدشده داشته باشد.</value>
+  </data>
+  <data name="CoachSelectedStateInvalid" xml:space="preserve">
+    <value>استان انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="CoachSelectedCityNotInState" xml:space="preserve">
+    <value>شهر انتخاب‌شده متعلق به استان انتخاب‌شده نیست.</value>
+  </data>
+  <data name="CoachPleaseEnterAddress" xml:space="preserve">
+    <value>لطفاً آدرس را وارد کنید.</value>
+  </data>
+  <data name="CoachPleaseSelectLocation" xml:space="preserve">
+    <value>لطفاً موقعیت را روی نقشه انتخاب کنید.</value>
+  </data>
+  <data name="CoachLocationCoordinatesNotValid" xml:space="preserve">
+    <value>مختصات موقعیت معتبر نیست.</value>
+  </data>
+  <data name="CoachPictureInvalid" xml:space="preserve">
+    <value>تصویر انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="CoachPleaseEnterPhone" xml:space="preserve">
+    <value>لطفاً شماره تماس را وارد کنید.</value>
+  </data>
+  <data name="CoachOwnerInvalid" xml:space="preserve">
+    <value>مالک مربی با ارائه‌دهنده‌ی آن یکی نیست.</value>
+  </data>
+  <data name="CoachValueOutOfRange" xml:space="preserve">
+    <value>یکی از مقدارهای عددی خارج از بازه‌ی مجاز است.</value>
+  </data>
+  <data name="CoachServiceAlreadyExists" xml:space="preserve">
+    <value>این خدمت قبلاً برای مربی تعریف شده است.</value>
+  </data>
+  <data name="CoachServiceAssistanceInvalid" xml:space="preserve">
+    <value>خدمت انتخاب‌شده در کاتالوگ وجود ندارد.</value>
+  </data>
+  <data name="CoachPackagePriceInvalid" xml:space="preserve">
+    <value>قیمت بسته باید بیشتر از صفر و کمتر از پیش‌پرداخت نباشد.</value>
+  </data>
+  <data name="CoachPackagePetSizeInvalid" xml:space="preserve">
+    <value>سایز حیوان باید Small، Medium یا Large باشد.</value>
+  </data>
+  <data name="CoachTimeInvalid" xml:space="preserve">
+    <value>بازه‌ی ساعت کاری معتبر نیست.</value>
+  </data>
+  <data name="CoachUserAlreadyExists" xml:space="preserve">
+    <value>این کاربر قبلاً پرسنل این مربی است.</value>
+  </data>
+  <data name="CoachCommentTextRequired" xml:space="preserve">
+    <value>لطفاً متن نظر را بنویسید.</value>
+  </data>
+  <data name="CoachReserveCoachUnavailable" xml:space="preserve">
+    <value>این مربی در حال حاضر قابل رزرو نیست.</value>
+  </data>
+  <data name="CoachReservePackageInvalid" xml:space="preserve">
+    <value>بسته‌ی انتخاب‌شده قابل رزرو نیست.</value>
+  </data>
+  <data name="CoachReservePetInvalid" xml:space="preserve">
+    <value>حیوان انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="CoachReservePetTypeNotAccepted" xml:space="preserve">
+    <value>این مربی این نوع حیوان را نمی‌پذیرد.</value>
+  </data>
+  <data name="CoachReservePetSizeMismatch" xml:space="preserve">
+    <value>این بسته برای سایز حیوان شما مناسب نیست.</value>
+  </data>
+  <data name="CoachReserveTimeInPast" xml:space="preserve">
+    <value>زمان نوبت باید در آینده باشد.</value>
+  </data>
+  <data name="CoachReserveOutsideWorkingHours" xml:space="preserve">
+    <value>زمان نوبت خارج از ساعت کاری مربی است.</value>
+  </data>
+  <data name="CoachReserveSlotFull" xml:space="preserve">
+    <value>ظرفیت این زمان تکمیل شده است؛ زمان دیگری انتخاب کنید.</value>
+  </data>
+  <data name="CoachReservePetBusy" xml:space="preserve">
+    <value>حیوان شما در این زمان نوبت دیگری دارد.</value>
+  </data>
+  <data name="CoachReserveHomeServiceUnavailable" xml:space="preserve">
+    <value>این مربی خدمات در محل ندارد.</value>
+  </data>
+  <data name="CoachReserveSalonServiceUnavailable" xml:space="preserve">
+    <value>این مربی فقط خدمات در محل ارائه می‌دهد.</value>
+  </data>
+  <data name="CoachReserveAddressRequired" xml:space="preserve">
+    <value>برای خدمات در محل آدرس را انتخاب کنید.</value>
+  </data>
+  <data name="CoachReserveAddressOutOfZone" xml:space="preserve">
+    <value>آدرس شما خارج از محدوده‌ی خدمات این مربی است.</value>
+  </data>
+  <data name="CoachReservePickupUnavailable" xml:space="preserve">
+    <value>این مربی خدمت دریافت و تحویل ندارد.</value>
+  </data>
+  <data name="CoachReserveAssigneeInvalid" xml:space="preserve">
+    <value>گرومر انتخاب‌شده برای این خدمت در دسترس نیست.</value>
+  </data>
+  <data name="CoachReserveDatePassed" xml:space="preserve">
+    <value>زمان این نوبت گذشته است.</value>
+  </data>
+  <data name="CoachReserveAwaitingOwnerApproval" xml:space="preserve">
+    <value>این رزرو منتظر تأیید مربی است.</value>
+  </data>
+  <data name="CoachReserveApprovalNotPending" xml:space="preserve">
+    <value>این رزرو منتظر تأیید نیست.</value>
+  </data>
+  <data name="CoachReserveRejectReasonRequired" xml:space="preserve">
+    <value>دلیل رد رزرو را وارد کنید.</value>
+  </data>
+  <data name="CoachReserveApprovedSuccessfully" xml:space="preserve">
+    <value>رزرو تأیید شد.</value>
+  </data>
+  <data name="CoachReserveRejectedSuccessfully" xml:space="preserve">
+    <value>رزرو لغو شد و مبلغ به کیف پول مشتری برگشت.</value>
+  </data>
+  <data name="CoachReserveRefundFailed" xml:space="preserve">
+    <value>برگشت وجه رزرو انجام نشد؛ رزرو لغو نشد.</value>
+  </data>
+  <data name="CoachReserveExpiredReason" xml:space="preserve">
+    <value>مربی در مهلت مقرر پاسخ نداد.</value>
+  </data>
+  <data name="CoachReserveCannotCancel" xml:space="preserve">
+    <value>این رزرو قابل لغو نیست.</value>
+  </data>
+  <data name="CoachReserveCancelledWithRefund" xml:space="preserve">
+    <value>رزرو لغو شد و مبلغ به کیف پول شما برگشت.</value>
+  </data>
+  <data name="CoachReserveCancelledNoRefund" xml:space="preserve">
+    <value>رزرو لغو شد. چون مهلت لغو رایگان گذشته، مبلغ برگشت داده نمی‌شود.</value>
+  </data>
+  <data name="CoachReserveNotStartedYet" xml:space="preserve">
+    <value>رزرو قبل از زمان نوبت قابل تکمیل نیست.</value>
+  </data>
+  <data name="CoachReserveAlreadyCompleted" xml:space="preserve">
+    <value>این رزرو قبلاً تکمیل شده است.</value>
+  </data>
+  <data name="CoachReserveNotPaid" xml:space="preserve">
+    <value>فقط رزرو پرداخت‌شده قابل تغییر است.</value>
+  </data>
+  <data name="CoachReviewNotAllowed" xml:space="preserve">
+    <value>فقط بعد از رزرو تکمیل‌شده می‌توانید برای مربی نظر ثبت کنید.</value>
+  </data>
+  <data name="CoachReviewAlreadyExists" xml:space="preserve">
+    <value>برای این رزرو قبلاً نظر ثبت کرده‌اید.</value>
+  </data>
+  <data name="CoachReviewRateInvalid" xml:space="preserve">
+    <value>امتیاز باید بین ۱ تا ۵ باشد.</value>
+  </data>
+  <data name="CoachReserveTooManyPackages" xml:space="preserve">
+    <value>هر رزرو حداکثر ۵ بسته می‌تواند داشته باشد.</value>
+  </data>
+  <data name="CoachReserveDuplicateService" xml:space="preserve">
+    <value>هر خدمت فقط یک‌بار در یک رزرو انتخاب می‌شود.</value>
+  </data>
+  <data name="CoachReserveTooLong" xml:space="preserve">
+    <value>مجموع مدت بسته‌های انتخابی برای یک نوبت زیاد است.</value>
+  </data>
+  <data name="CoachReserveRescheduleNotAllowed" xml:space="preserve">
+    <value>فقط رزرو پرداخت‌شده، فعال و تکمیل‌نشده قابل تغییر زمان است.</value>
+  </data>
+  <data name="CoachReserveRescheduleSameTime" xml:space="preserve">
+    <value>زمان جدید با زمان فعلی یکی است.</value>
+  </data>
+  <data name="CoachStaffInviteNotFound" xml:space="preserve">
+    <value>دعوت‌نامه پیدا نشد.</value>
+  </data>
+  <data name="CoachStaffInviteAnswered" xml:space="preserve">
+    <value>به این دعوت‌نامه قبلاً پاسخ داده شده است.</value>
+  </data>
+  <data name="CoachServiceNotGrooming" xml:space="preserve">
+    <value>این خدمت جزو خدمات گرومینگ نیست.</value>
+  </data>
+  <data name="CoachServiceIsGrooming" xml:space="preserve">
+    <value>خدمات گرومینگ فقط مخصوص آرایشگاه‌هاست و برای مربی قابل ثبت نیست.</value>
+  </data>
+  <data name="CoachPackageModeInvalid" xml:space="preserve">
+    <value>نحوه‌ی ارائه‌ی بسته نامعتبر یا تکراری است.</value>
+  </data>
+  <data name="CoachReserveModeInvalid" xml:space="preserve">
+    <value>نحوه‌ی ارائه‌ی انتخاب‌شده نامعتبر است.</value>
+  </data>
+  <data name="CoachReserveOnlineUnavailable" xml:space="preserve">
+    <value>این مربی خدمات آنلاین ندارد.</value>
+  </data>
+  <data name="CoachReservePackageNotOffered" xml:space="preserve">
+    <value>این بسته در نحوه‌ی ارائه‌ی انتخاب‌شده ارائه نمی‌شود.</value>
+  </data>
+  <data name="CoachRescheduleReasonByOwner" xml:space="preserve">
+    <value>به درخواست مربی</value>
+  </data>
+  <data name="CoachRescheduleReasonBySupport" xml:space="preserve">
+    <value>به درخواست پشتیبانی</value>
+  </data>
+  <data name="ClubPointCoachReserveCompletedDescription" xml:space="preserve">
+    <value>امتیاز تکمیل رزرو مربی {0}</value>
+  </data>
 </root>

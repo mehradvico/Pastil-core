@@ -89,6 +89,22 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                         }).ToListAsync());
                     break;
 
+                case SettlementKindEnum.Coach:
+                    items.AddRange(await _context.SettlementCoaches.AsNoTracking()
+                        .Where(l => l.SettlementId == settlementId)
+                        .OrderBy(l => l.Id)
+                        .Select(l => new SettlementItemVDto
+                        {
+                            Type = "Coach",
+                            Code = l.CoachReserve.ReserveCode,
+                            VenueName = l.CoachReserve.Coach.Name,
+                            BookerFullName = (l.CoachReserve.Booker.FirstName + " " + l.CoachReserve.Booker.LastName).Trim(),
+                            PaymentPrice = l.CoachReserve.PaymentPrice,
+                            SiteShare = l.CoachReserve.SiteShare,
+                            ProviderShare = l.CoachReserve.ProviderShare,
+                        }).ToListAsync());
+                    break;
+
                 case SettlementKindEnum.Store:
                     items.AddRange(await _context.SettlementStores.AsNoTracking()
                         .Where(l => l.SettlementId == settlementId)
@@ -215,6 +231,12 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 input.ProviderId = -1;
                 return Search(input);
             }
+            if (kind == SettlementKindEnum.Coach)
+            {
+                // مربی ستون قدیمی ندارد؛ بدون ارائه‌دهنده چیزی برای نمایش نیست.
+                input.ProviderId = -1;
+                return Search(input);
+            }
             if (kind == SettlementKindEnum.Companion)
                 input.CompanionId = venueId;
             else
@@ -266,6 +288,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 SettlementKindEnum.Companion => await _context.Companions.AsNoTracking().Where(c => c.Id == venueId).Select(c => c.ProviderId).FirstOrDefaultAsync(),
                 SettlementKindEnum.Groomer => await _context.Groomers.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
                 SettlementKindEnum.Clinic => await _context.Clinics.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
+                SettlementKindEnum.Coach => await _context.Coaches.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
                 _ => await _context.Stores.AsNoTracking().Where(s => s.Id == venueId).Select(s => s.ProviderId).FirstOrDefaultAsync(),
             };
         }
@@ -318,6 +341,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                     SettlementKindEnum.Companion => await SettleCompanionPoolAsync(item.Id, provider.Id),
                     SettlementKindEnum.Groomer => await SettleGroomerPoolAsync(item.Id, provider.Id),
                     SettlementKindEnum.Clinic => await SettleClinicPoolAsync(item.Id, provider.Id),
+                    SettlementKindEnum.Coach => await SettleCoachPoolAsync(item.Id, provider.Id),
                     _ => await SettleStorePoolAsync(item.Id, provider.Id),
                 };
 
@@ -434,6 +458,29 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
 
             var links = reserves.Select(x => new SettlementClinic { SettlementId = settlementId, ClinicReserveId = x.Id }).ToList();
             await _context.SettlementClinics.AddRangeAsync(links);
+            await _context.SaveChangesAsync();
+
+            return new PoolResult(reserves.Sum(x => x.ProviderShare), links.Count);
+        }
+        private async Task<PoolResult> SettleCoachPoolAsync(long settlementId, long providerId)
+        {
+            var coachIds = await _context.Coaches.AsNoTracking()
+                .Where(g => g.ProviderId == providerId)
+                .Select(g => g.Id)
+                .ToListAsync();
+            if (coachIds.Count == 0)
+                return new PoolResult(0, 0);
+
+            var reserves = await SettlementSources.CoachReserves(_context, coachIds)
+                .Where(r => !r.Permitted).Select(r => new { r.Id, r.ProviderShare }).ToListAsync();
+
+            var complete = (int)Application.Services.CoachSrvs.CoachReserveSrv.CoachReserveStatusEnum.Complete;
+            await MarkAsync(reserves.Select(x => x.Id), ids => _context.CoachReserves
+                .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && !r.IsCancel && r.Status == complete)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.Permitted, true)));
+
+            var links = reserves.Select(x => new SettlementCoach { SettlementId = settlementId, CoachReserveId = x.Id }).ToList();
+            await _context.SettlementCoaches.AddRangeAsync(links);
             await _context.SaveChangesAsync();
 
             return new PoolResult(reserves.Sum(x => x.ProviderShare), links.Count);

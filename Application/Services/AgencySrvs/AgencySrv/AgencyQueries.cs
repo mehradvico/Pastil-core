@@ -224,6 +224,60 @@ namespace Application.Services.AgencySrvs.AgencySrv
                 IconUrl = g.Icon == null ? null : g.Icon.Url + "/" + g.Icon.Name,
             });
         }
+        public static IQueryable<AgencyRow> Coaches(IDataBaseContext context, AgencyInputDto input)
+        {
+            var model = context.Coaches.Where(g => !g.Deleted);
+
+            if (!string.IsNullOrWhiteSpace(input.Q))
+            {
+                var q = input.Q.Trim();
+                model = model.Where(g => g.Name.Contains(q) || g.Phone == q);
+            }
+            if (input.Available.HasValue)
+                model = model.Where(g => g.Active == input.Available.Value);
+            if (input.Approved.HasValue)
+                model = model.Where(g => g.Approved == input.Approved.Value);
+            if (input.ProviderId.HasValue)
+                model = model.Where(g => g.ProviderId == input.ProviderId.Value);
+            if (input.ProviderRoleId.HasValue)
+                model = model.Where(g => g.Provider.RoleAssignments.Any(a => !a.Deleted && a.ProviderRoleId == input.ProviderRoleId.Value));
+            var now = DateTime.Now;
+            // مربی «شخصی» نیست.
+            if (input.IsPersonal == true)
+                model = model.Where(g => false);
+            if (input.GoldAccount == true && input.SilverAccount == true)
+                model = model.Where(g => (g.GoldAccountDate != null && g.GoldAccountDate >= now) || (g.SilverAccountDate != null && g.SilverAccountDate >= now));
+            else if (input.GoldAccount == true)
+                model = model.Where(g => g.GoldAccountDate != null && g.GoldAccountDate >= now);
+            else if (input.SilverAccount == true)
+                model = model.Where(g => g.SilverAccountDate != null && g.SilverAccountDate >= now);
+
+            return model.Select(g => new AgencyRow
+            {
+                Kind = (int)AgencyKindEnum.Coach,
+                Id = g.Id,
+                Name = g.Name,
+                Phone = g.Phone,
+                ProviderId = g.ProviderId,
+                Active = g.Active,
+                Approved = g.Approved,
+                ActivationValue = g.ActivationValue,
+                IsPersonal = false,
+                RateAvg = g.RateAvg,
+                RateCount = g.RateCount,
+                GoldAccountDate = g.GoldAccountDate,
+                SilverAccountDate = g.SilverAccountDate,
+                OwnerId = g.OwnerId,
+                OwnerFirstName = g.Owner.FirstName,
+                OwnerLastName = g.Owner.LastName,
+                OwnerMobile = g.Owner.Mobile,
+                CityName = g.City.Name,
+                StateName = g.City.State.Name,
+                NeighborhoodName = g.Neighborhood.Name,
+                PictureUrl = g.Picture == null ? null : g.Picture.Url + "/" + g.Picture.Name,
+                IconUrl = g.Icon == null ? null : g.Icon.Url + "/" + g.Icon.Name,
+            });
+        }
 
         // پانسیون و مدرسه زیر یک Companion هستند؛ ارائه‌دهنده و مالک از همان Companion می‌آید.
         public static IQueryable<AgencyRow> Pansions(IDataBaseContext context, AgencyInputDto input)
@@ -331,6 +385,7 @@ namespace Application.Services.AgencySrvs.AgencySrv
             // آرایشگاه هم مثل Companion «شخصی» و اشتراک دارد، پس فیلترهای مخصوص نمایندگی آن را حذف نمی‌کنند.
             if (Wants(AgencyKindEnum.Groomer)) Add(Groomers(context, input));
             if (Wants(AgencyKindEnum.Clinic)) Add(Clinics(context, input));
+            if (Wants(AgencyKindEnum.Coach)) Add(Coaches(context, input));
             if (!companionOnly)
             {
                 if (Wants(AgencyKindEnum.Store)) Add(Stores(context, input));

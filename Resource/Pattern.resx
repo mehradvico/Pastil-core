@@ -642,4 +642,58 @@
   <data name="PushClinicReserveCancelledByAdmin" xml:space="preserve">
     <value>Your reservation at {0} was cancelled by support. Reason: {1}</value>
   </data>
+  <data name="PushClinicReserveItemApproved" xml:space="preserve">
+    <value>The clinic approved package "{0}" of your reservation.</value>
+  </data>
+  <data name="PushClinicReserveItemCancelled" xml:space="preserve">
+    <value>Package "{0}" of your reservation was cancelled and {3} was refunded to your wallet.</value>
+  </data>
+  <data name="PushClinicReserveNewMessage" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="PushClinicInAppCallStarted" xml:space="preserve">
+    <value>{0} started an in-app call.</value>
+  </data>
+  <data name="PushClinicOnlineReserveReminderBefore" xml:space="preserve">
+    <value>Reminder: the {2} online service for {0} at {1} starts soon.</value>
+  </data>
+  <data name="PushClinicOnlineReserveReminderAtTime" xml:space="preserve">
+    <value>It is time to provide the {2} online service for {0} at {1}.</value>
+  </data>
+  <data name="PushCoachReserveApprovalRequired" xml:space="preserve">
+    <value>New reservation {1} at {0} is waiting for your approval.</value>
+  </data>
+  <data name="PushCoachReserveApproved" xml:space="preserve">
+    <value>Reservation {1} at {0} was approved by the coach.</value>
+  </data>
+  <data name="PushCoachReserveRejected" xml:space="preserve">
+    <value>Your reservation at {0} was rejected and the payment was refunded to your wallet. Reason: {1}</value>
+  </data>
+  <data name="PushCoachReserveExpired" xml:space="preserve">
+    <value>Coach {0} did not respond in time; the reservation was cancelled and refunded to your wallet.</value>
+  </data>
+  <data name="PushCoachReserveCancelledByBooker" xml:space="preserve">
+    <value>Reservation {0} on {1} was cancelled by the customer.</value>
+  </data>
+  <data name="PushCoachApproved" xml:space="preserve">
+    <value>Your coach {0} was approved and is now live.</value>
+  </data>
+  <data name="PushCoachRejected" xml:space="preserve">
+    <value>Your coach {0} was rejected. Reason: {1}</value>
+  </data>
+  <data name="PushCoachReserveRescheduled" xml:space="preserve">
+    <value>The time of your reservation at {0} changed to {1} at {2}.</value>
+  </data>
+  <data name="PushCoachReserveRescheduledForCoach" xml:space="preserve">
+    <value>The time of the reservation for {0} changed to {1} at {2}.</value>
+  </data>
+  <data name="PushCoachStaffInvite" xml:space="preserve">
+    <value>You were invited to join the staff of {0}. Open the app to accept.</value>
+  </data>
+  <data name="PushCoachReserveCancelledByAdmin" xml:space="preserve">
+    <value>Your reservation at {0} was cancelled by support. Reason: {1}</value>
+  </data>
+  <data name="WalletTargetCoachReserve" xml:space="preserve">
+    <value>coach reservation {0}</value>
+  </data>
 </root>

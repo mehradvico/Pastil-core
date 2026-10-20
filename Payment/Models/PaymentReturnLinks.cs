@@ -28,6 +28,8 @@ namespace Payment.Models
                     return new(hasId ? Url($"/groomer/reserve-{id}") : Url("/reserve?section=groomer"), isSuccess ? "مشاهده رزرو" : "بازگشت به رزرو و پرداخت دوباره", Url("/reserve?section=groomer"), "همه‌ی رزروها");
                 case "ClinicReserve":
                     return new(hasId ? Url($"/clinic/reserve-{id}") : Url("/reserve?section=clinic"), isSuccess ? "مشاهده رزرو" : "بازگشت به رزرو و پرداخت دوباره", Url("/reserve?section=clinic"), "همه‌ی رزروها");
+                case "CoachReserve":
+                    return new(hasId ? Url($"/coach/reserve-{id}") : Url("/reserve?section=coach"), isSuccess ? "مشاهده رزرو" : "بازگشت به رزرو و پرداخت دوباره", Url("/reserve?section=coach"), "همه‌ی رزروها");
                 case "SchoolReserve":
                     return new(hasId ? Url($"/school/reserve-{id}") : Url("/reserve?section=training"), isSuccess ? "مشاهده ثبت‌نام" : "بازگشت به ثبت‌نام و پرداخت دوباره", Url("/reserve?section=training"), "همه‌ی رزروها");
                 case "ConsultationPurchase":

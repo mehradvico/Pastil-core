@@ -57,10 +57,12 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv.Dto
         public int StoreCount { get; set; }
         public int GroomerCount { get; set; }
         public int ClinicCount { get; set; }
+        public int CoachCount { get; set; }
         public double CompanionUnsettled { get; set; }
         public double StoreUnsettled { get; set; }
         public double GroomerUnsettled { get; set; }
         public double ClinicUnsettled { get; set; }
+        public double CoachUnsettled { get; set; }
         public double TotalUnsettled { get; set; }
         public double TotalSettled { get; set; }
         public double PaidOut { get; set; }
@@ -107,6 +109,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv.Dto
         public ProviderPoolSummaryVDto StorePool { get; set; }
         public ProviderPoolSummaryVDto GroomerPool { get; set; }
         public ProviderPoolSummaryVDto ClinicPool { get; set; }
+        public ProviderPoolSummaryVDto CoachPool { get; set; }
         public List<ProviderFinanceVenueVDto> Venues { get; set; } = new List<ProviderFinanceVenueVDto>();
         public List<ProviderFinanceCardVDto> Cards { get; set; } = new List<ProviderFinanceCardVDto>();
     }
@@ -115,7 +118,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv.Dto
     {
         public long VenueId { get; set; }
         public string VenueName { get; set; }
-        /// <summary>Reserve | Pansion | Consultation | School | Order | Groomer | Clinic</summary>
+        /// <summary>Reserve | Pansion | Consultation | School | Order | Groomer | Clinic | Coach</summary>
         public string Type { get; set; }
         public string Code { get; set; }
         public string BookerFullName { get; set; }

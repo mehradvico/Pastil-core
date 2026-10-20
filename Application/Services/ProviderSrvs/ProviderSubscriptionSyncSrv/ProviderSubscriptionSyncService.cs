@@ -61,6 +61,16 @@ namespace Application.Services.ProviderSrvs.ProviderSubscriptionSyncSrv
                 clinic.GoldAccountDate = gold;
                 clinic.SilverAccountDate = silver;
             }
+            // مربی‌ها (Coach) هم همین سطح را می‌گیرند؛ فقط تاریخ‌های طلایی/نقره‌ای دارند.
+            var coaches = await _context.Coaches
+                .AsTracking()
+                .Where(x => x.ProviderId == providerId && !x.Deleted)
+                .ToListAsync();
+            foreach (var coach in coaches)
+            {
+                coach.GoldAccountDate = gold;
+                coach.SilverAccountDate = silver;
+            }
             await _context.SaveChangesAsync();
         }
     }

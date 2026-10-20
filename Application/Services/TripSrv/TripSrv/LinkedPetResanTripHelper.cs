@@ -17,6 +17,9 @@ namespace Application.Services.TripSrv.TripSrv
         public static Task<Dictionary<long, LinkedPetResanTripVDto>> ForCompanionReservesAsync(IDataBaseContext context, IEnumerable<long> reserveIds) =>
             LoadAsync(context, t => t.CompanionReserveId, reserveIds);
 
+        public static Task<Dictionary<long, LinkedPetResanTripVDto>> ForClinicReservesAsync(IDataBaseContext context, IEnumerable<long> reserveIds) =>
+            LoadAsync(context, t => t.ClinicReserveId, reserveIds);
+
         public static Task<Dictionary<long, LinkedPetResanTripVDto>> ForPansionReservesAsync(IDataBaseContext context, IEnumerable<long> reserveIds) =>
             LoadAsync(context, t => t.PansionReserveId, reserveIds);
 

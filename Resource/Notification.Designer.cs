@@ -6397,5 +6397,473 @@ namespace Resource {
             }
         }
 
+        public static string ClinicReserveItemStatusInvalid {
+            get {
+                return ResourceManager.GetString("ClinicReserveItemStatusInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveItemNeedsPaidReserve {
+            get {
+                return ResourceManager.GetString("ClinicReserveItemNeedsPaidReserve", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveItemNotModifiable {
+            get {
+                return ResourceManager.GetString("ClinicReserveItemNotModifiable", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveItemNotFound {
+            get {
+                return ResourceManager.GetString("ClinicReserveItemNotFound", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveItemRefundFailed {
+            get {
+                return ResourceManager.GetString("ClinicReserveItemRefundFailed", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveTripNotAvailable {
+            get {
+                return ResourceManager.GetString("ClinicReserveTripNotAvailable", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveMessageAttachmentNotAvailable {
+            get {
+                return ResourceManager.GetString("ClinicReserveMessageAttachmentNotAvailable", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveMessageReactionRequired {
+            get {
+                return ResourceManager.GetString("ClinicReserveMessageReactionRequired", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveMessageReactionTooLong {
+            get {
+                return ResourceManager.GetString("ClinicReserveMessageReactionTooLong", resourceCulture);
+            }
+        }
+
+        public static string InvalidClinicReserveMessageType {
+            get {
+                return ResourceManager.GetString("InvalidClinicReserveMessageType", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveMessageContentRequired {
+            get {
+                return ResourceManager.GetString("ClinicReserveMessageContentRequired", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveMessagePreviewImage {
+            get {
+                return ResourceManager.GetString("ClinicReserveMessagePreviewImage", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveMessagePreviewNewMessage {
+            get {
+                return ResourceManager.GetString("ClinicReserveMessagePreviewNewMessage", resourceCulture);
+            }
+        }
+
+        public static string CoachProviderRequired {
+            get {
+                return ResourceManager.GetString("CoachProviderRequired", resourceCulture);
+            }
+        }
+
+        public static string CoachSelectedStateInvalid {
+            get {
+                return ResourceManager.GetString("CoachSelectedStateInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachSelectedCityNotInState {
+            get {
+                return ResourceManager.GetString("CoachSelectedCityNotInState", resourceCulture);
+            }
+        }
+
+        public static string CoachPleaseEnterAddress {
+            get {
+                return ResourceManager.GetString("CoachPleaseEnterAddress", resourceCulture);
+            }
+        }
+
+        public static string CoachPleaseSelectLocation {
+            get {
+                return ResourceManager.GetString("CoachPleaseSelectLocation", resourceCulture);
+            }
+        }
+
+        public static string CoachLocationCoordinatesNotValid {
+            get {
+                return ResourceManager.GetString("CoachLocationCoordinatesNotValid", resourceCulture);
+            }
+        }
+
+        public static string CoachPictureInvalid {
+            get {
+                return ResourceManager.GetString("CoachPictureInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachPleaseEnterPhone {
+            get {
+                return ResourceManager.GetString("CoachPleaseEnterPhone", resourceCulture);
+            }
+        }
+
+        public static string CoachOwnerInvalid {
+            get {
+                return ResourceManager.GetString("CoachOwnerInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachValueOutOfRange {
+            get {
+                return ResourceManager.GetString("CoachValueOutOfRange", resourceCulture);
+            }
+        }
+
+        public static string CoachServiceAlreadyExists {
+            get {
+                return ResourceManager.GetString("CoachServiceAlreadyExists", resourceCulture);
+            }
+        }
+
+        public static string CoachServiceAssistanceInvalid {
+            get {
+                return ResourceManager.GetString("CoachServiceAssistanceInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachPackagePriceInvalid {
+            get {
+                return ResourceManager.GetString("CoachPackagePriceInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachPackagePetSizeInvalid {
+            get {
+                return ResourceManager.GetString("CoachPackagePetSizeInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachTimeInvalid {
+            get {
+                return ResourceManager.GetString("CoachTimeInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachUserAlreadyExists {
+            get {
+                return ResourceManager.GetString("CoachUserAlreadyExists", resourceCulture);
+            }
+        }
+
+        public static string CoachCommentTextRequired {
+            get {
+                return ResourceManager.GetString("CoachCommentTextRequired", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveCoachUnavailable {
+            get {
+                return ResourceManager.GetString("CoachReserveCoachUnavailable", resourceCulture);
+            }
+        }
+
+        public static string CoachReservePackageInvalid {
+            get {
+                return ResourceManager.GetString("CoachReservePackageInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachReservePetInvalid {
+            get {
+                return ResourceManager.GetString("CoachReservePetInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachReservePetTypeNotAccepted {
+            get {
+                return ResourceManager.GetString("CoachReservePetTypeNotAccepted", resourceCulture);
+            }
+        }
+
+        public static string CoachReservePetSizeMismatch {
+            get {
+                return ResourceManager.GetString("CoachReservePetSizeMismatch", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveTimeInPast {
+            get {
+                return ResourceManager.GetString("CoachReserveTimeInPast", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveOutsideWorkingHours {
+            get {
+                return ResourceManager.GetString("CoachReserveOutsideWorkingHours", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveSlotFull {
+            get {
+                return ResourceManager.GetString("CoachReserveSlotFull", resourceCulture);
+            }
+        }
+
+        public static string CoachReservePetBusy {
+            get {
+                return ResourceManager.GetString("CoachReservePetBusy", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveHomeServiceUnavailable {
+            get {
+                return ResourceManager.GetString("CoachReserveHomeServiceUnavailable", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveSalonServiceUnavailable {
+            get {
+                return ResourceManager.GetString("CoachReserveSalonServiceUnavailable", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveAddressRequired {
+            get {
+                return ResourceManager.GetString("CoachReserveAddressRequired", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveAddressOutOfZone {
+            get {
+                return ResourceManager.GetString("CoachReserveAddressOutOfZone", resourceCulture);
+            }
+        }
+
+        public static string CoachReservePickupUnavailable {
+            get {
+                return ResourceManager.GetString("CoachReservePickupUnavailable", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveAssigneeInvalid {
+            get {
+                return ResourceManager.GetString("CoachReserveAssigneeInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveDatePassed {
+            get {
+                return ResourceManager.GetString("CoachReserveDatePassed", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveAwaitingOwnerApproval {
+            get {
+                return ResourceManager.GetString("CoachReserveAwaitingOwnerApproval", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveApprovalNotPending {
+            get {
+                return ResourceManager.GetString("CoachReserveApprovalNotPending", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveRejectReasonRequired {
+            get {
+                return ResourceManager.GetString("CoachReserveRejectReasonRequired", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveApprovedSuccessfully {
+            get {
+                return ResourceManager.GetString("CoachReserveApprovedSuccessfully", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveRejectedSuccessfully {
+            get {
+                return ResourceManager.GetString("CoachReserveRejectedSuccessfully", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveRefundFailed {
+            get {
+                return ResourceManager.GetString("CoachReserveRefundFailed", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveExpiredReason {
+            get {
+                return ResourceManager.GetString("CoachReserveExpiredReason", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveCannotCancel {
+            get {
+                return ResourceManager.GetString("CoachReserveCannotCancel", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveCancelledWithRefund {
+            get {
+                return ResourceManager.GetString("CoachReserveCancelledWithRefund", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveCancelledNoRefund {
+            get {
+                return ResourceManager.GetString("CoachReserveCancelledNoRefund", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveNotStartedYet {
+            get {
+                return ResourceManager.GetString("CoachReserveNotStartedYet", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveAlreadyCompleted {
+            get {
+                return ResourceManager.GetString("CoachReserveAlreadyCompleted", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveNotPaid {
+            get {
+                return ResourceManager.GetString("CoachReserveNotPaid", resourceCulture);
+            }
+        }
+
+        public static string CoachReviewNotAllowed {
+            get {
+                return ResourceManager.GetString("CoachReviewNotAllowed", resourceCulture);
+            }
+        }
+
+        public static string CoachReviewAlreadyExists {
+            get {
+                return ResourceManager.GetString("CoachReviewAlreadyExists", resourceCulture);
+            }
+        }
+
+        public static string CoachReviewRateInvalid {
+            get {
+                return ResourceManager.GetString("CoachReviewRateInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveTooManyPackages {
+            get {
+                return ResourceManager.GetString("CoachReserveTooManyPackages", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveDuplicateService {
+            get {
+                return ResourceManager.GetString("CoachReserveDuplicateService", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveTooLong {
+            get {
+                return ResourceManager.GetString("CoachReserveTooLong", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveRescheduleNotAllowed {
+            get {
+                return ResourceManager.GetString("CoachReserveRescheduleNotAllowed", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveRescheduleSameTime {
+            get {
+                return ResourceManager.GetString("CoachReserveRescheduleSameTime", resourceCulture);
+            }
+        }
+
+        public static string CoachStaffInviteNotFound {
+            get {
+                return ResourceManager.GetString("CoachStaffInviteNotFound", resourceCulture);
+            }
+        }
+
+        public static string CoachStaffInviteAnswered {
+            get {
+                return ResourceManager.GetString("CoachStaffInviteAnswered", resourceCulture);
+            }
+        }
+
+        public static string CoachServiceNotGrooming {
+            get {
+                return ResourceManager.GetString("CoachServiceNotGrooming", resourceCulture);
+            }
+        }
+
+        public static string CoachServiceIsGrooming {
+            get {
+                return ResourceManager.GetString("CoachServiceIsGrooming", resourceCulture);
+            }
+        }
+
+        public static string CoachPackageModeInvalid {
+            get {
+                return ResourceManager.GetString("CoachPackageModeInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveModeInvalid {
+            get {
+                return ResourceManager.GetString("CoachReserveModeInvalid", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveOnlineUnavailable {
+            get {
+                return ResourceManager.GetString("CoachReserveOnlineUnavailable", resourceCulture);
+            }
+        }
+
+        public static string CoachReservePackageNotOffered {
+            get {
+                return ResourceManager.GetString("CoachReservePackageNotOffered", resourceCulture);
+            }
+        }
+
+        public static string CoachRescheduleReasonByOwner {
+            get {
+                return ResourceManager.GetString("CoachRescheduleReasonByOwner", resourceCulture);
+            }
+        }
+
+        public static string CoachRescheduleReasonBySupport {
+            get {
+                return ResourceManager.GetString("CoachRescheduleReasonBySupport", resourceCulture);
+            }
+        }
+
+        public static string ClubPointCoachReserveCompletedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointCoachReserveCompletedDescription", resourceCulture);
+            }
+        }
+
     }
 }

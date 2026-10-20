@@ -10,5 +10,6 @@ namespace Entities.Entities
         Store = 2,
         Groomer = 3,
         Clinic = 4,
+        Coach = 5,
     }
 }

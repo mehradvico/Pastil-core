@@ -13,6 +13,7 @@ namespace Application.Services.AgencySrvs.AgencySrv.Dto
         School = 4,
         Groomer = 5,
         Clinic = 6,
+        Coach = 7,
     }
 
     public class AgencyInputDto : BaseInputDto
@@ -56,7 +57,7 @@ namespace Application.Services.AgencySrvs.AgencySrv.Dto
     /// <summary>یک ردیف لیست یکپارچه‌ی نمایندگی‌ها (فروشگاه + کلینیک/آرایشگاه/مربی). فقط ستون‌های مشترک.</summary>
     public class AgencyVDto
     {
-        /// <summary>1 = نمایندگی (Companion)، 2 = فروشگاه، 3 = پانسیون، 4 = مدرسه، 5 = آرایشگاه (Groomer)، 6 = کلینیک (Clinic).</summary>
+        /// <summary>1 = نمایندگی (Companion)، 2 = فروشگاه، 3 = پانسیون، 4 = مدرسه، 5 = آرایشگاه (Groomer)، 6 = کلینیک (Clinic)، 7 = مربی (Coach).</summary>
         public int Kind { get; set; }
         public long Id { get; set; }
         public string Name { get; set; }

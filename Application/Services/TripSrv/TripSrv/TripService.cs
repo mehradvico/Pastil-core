@@ -194,22 +194,22 @@ namespace Application.Services.TripSrv.TripSrv
             }
             if (baseSearchDto.ScheduledOrServiceOnly == true)
             {
-                model = model.Where(s => s.CompanionReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
+                model = model.Where(s => s.CompanionReserveId != null || s.ClinicReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
                     || s.ScheduledDepartureAt != null || s.PetResanServiceScheduleId != null);
             }
             switch (baseSearchDto.TripKind?.Trim().ToLowerInvariant())
             {
                 case "instant":
-                    model = model.Where(s => s.CompanionReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
+                    model = model.Where(s => s.CompanionReserveId == null && s.ClinicReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
                         && s.PetResanServiceScheduleId == null && s.ScheduledDepartureAt == null);
                     break;
                 case "reserve":
-                    model = model.Where(s => s.CompanionReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
+                    model = model.Where(s => s.CompanionReserveId != null || s.ClinicReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
                         || (s.PetResanServiceScheduleId == null && s.ScheduledDepartureAt != null));
                     break;
                 case "service":
                     model = model.Where(s => s.PetResanServiceScheduleId != null
-                        && s.CompanionReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null);
+                        && s.CompanionReserveId == null && s.ClinicReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null);
                     break;
             }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
@@ -485,10 +485,10 @@ namespace Application.Services.TripSrv.TripSrv
             return s => s.UserId == userId
                 && (s.TripStatusId == requested || s.TripStatusId == accepted)
                 && (
-                    s.CompanionReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
+                    s.CompanionReserveId != null || s.ClinicReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
                     || (s.ScheduledDepartureAt != null && s.PetResanServiceScheduleId == null)
                     || (s.PetResanServiceScheduleId != null && s.ProgressStageId >= petPickedUp)
-                    || ((s.CompanionReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
+                    || ((s.CompanionReserveId == null && s.ClinicReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
                          && s.PetResanServiceScheduleId == null && s.ScheduledDepartureAt == null)
                         && (s.TripStartDateTime == null || s.TripStartDateTime <= soon))
                 );
@@ -1109,6 +1109,9 @@ namespace Application.Services.TripSrv.TripSrv
         // سفری نبود یا قبلاً تمام/لغو شده بود — چیزی نباید لغوِ خودِ رزرو را متوقف کند.
         public Task CancelLinkedTripForCompanionReserveAsync(long companionReserveId) =>
             CancelLinkedTripAsync(t => t.CompanionReserveId == companionReserveId);
+
+        public Task CancelLinkedTripForClinicReserveAsync(long clinicReserveId) =>
+            CancelLinkedTripAsync(t => t.ClinicReserveId == clinicReserveId);
 
         public Task CancelLinkedTripForPansionReserveAsync(long pansionReserveId) =>
             CancelLinkedTripAsync(t => t.PansionReserveId == pansionReserveId);
@@ -2418,6 +2421,137 @@ namespace Application.Services.TripSrv.TripSrv
                 .Include(s => s.TripStatus)
                 .AsNoTracking()
                 .Where(s => s.PansionReserveId == pansionReserveId && s.UserId == userId)
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+
+            if (trip == null)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
+
+            return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(trip));
+        }
+
+        /// <summary>
+        /// سفرِ پت‌رسانِ متصل به یک رزرو کلینیک (فقط «حضوری در کلینیک»). همان منطق نسخه‌ی رزرو خدمت؛ زمان نوبت = DoDate رزرو (ساعت دارد).
+        /// رزرو باید پرداخت‌شده و لغونشده باشد و متعلق به همین کاربر.
+        /// </summary>
+        public async Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForClinicAsync(TripClinicReservationCreateDto dto, long userId)
+        {
+            if (dto.ScheduledLeadMinutes != 60 && dto.ScheduledLeadMinutes != 120)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripDriverMovementIntervalMustBe60Or120, null);
+            if (dto.Origin == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetOrigin, null);
+            if (dto.Destination == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetDestination, null);
+
+            var reserve = await _context.ClinicReserves.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.ClinicReserveId && s.BookerId == userId);
+            if (reserve == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
+            if (!reserve.IsReserved || reserve.IsCancel || reserve.Mode != (int)Entities.Entities.ClinicField.ClinicServiceModeEnum.InPerson)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.ClinicReserveTripNotAvailable, null);
+
+            var scheduledDepartureAt = reserve.DoDate.AddMinutes(-dto.ScheduledLeadMinutes);
+            if (scheduledDepartureAt <= DateTime.Now)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripInsufficientTimeToAppointmentForInterval, null);
+
+            var alreadyLinked = await _context.Trips.AnyAsync(s =>
+                s.ClinicReserveId == dto.ClinicReserveId &&
+                s.TripStatusId != (long)TripStatusEnum.TripStatus_Canceled);
+            if (alreadyLinked)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripPetDeliveryAlreadyExistsForReserve, null);
+
+            if (await _context.Trips.AnyAsync(TripCurrentForUser(userId, DateTime.Now)))
+                return new BaseResultDto<TripDto>(false, Resource.Notification.YouAlreadyHaveOnlineTrip, null);
+
+            var priceInput = new TripDto
+            {
+                Origin = dto.Origin,
+                Destination = dto.Destination,
+                FromAddress = dto.FromAddress,
+                ToAddress = dto.ToAddress,
+                TripStartDateTime = scheduledDepartureAt,
+                TripOptionIds = dto.TripOptionIds
+            };
+
+            var trip = new Trip
+            {
+                Origin = new Point(dto.Origin.x, dto.Origin.y) { SRID = 4326 },
+                Destination = new Point(dto.Destination.x, dto.Destination.y) { SRID = 4326 },
+                FromAddress = dto.FromAddress,
+                ToAddress = dto.ToAddress,
+                UserId = userId,
+                IsOnline = true,
+                CreateDate = DateTime.Now,
+                TripStartDateTime = scheduledDepartureAt,
+                DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
+                TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
+                ClinicReserveId = dto.ClinicReserveId,
+                ScheduledLeadMinutes = dto.ScheduledLeadMinutes,
+                ScheduledDepartureAt = scheduledDepartureAt,
+                OwnerRidesAlong = dto.OwnerRidesAlong,
+                ScheduledDispatched = false
+            };
+
+            try
+            {
+                trip.Price = await _priceCalculationService.CalculateTripPrice(priceInput);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Calculating price for clinic reservation-linked trip (reserve {ReserveId}) failed.", dto.ClinicReserveId);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.Unsuccess, null);
+            }
+
+            if (trip.Price <= 0)
+            {
+                _logger.LogError("Calculated price for clinic reservation-linked trip (reserve {ReserveId}) was {Price} at scheduled hour {Hour} — refusing to create a free trip. Check PriceCalculation coverage for this hour.", dto.ClinicReserveId, trip.Price, scheduledDepartureAt.Hour);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.FinalPriceIsNotAvailable, null);
+            }
+
+            trip.PaymentPrice = trip.Price;
+
+            if (dto.TripOptionIds != null && dto.TripOptionIds.Any())
+            {
+                var optionIds = dto.TripOptionIds.Distinct().ToList();
+                var validOptionCount = await _context.TripOptions.CountAsync(o => optionIds.Contains(o.Id) && o.Active && !o.Deleted);
+                if (validOptionCount != optionIds.Count)
+                    return new BaseResultDto<TripDto>(false, Resource.Notification.InvalidData, null);
+
+                trip.TripOptions = optionIds.Select(id => new TripOption { Id = id }).ToList();
+                foreach (var option in trip.TripOptions)
+                    _context.Entry(option).State = EntityState.Unchanged;
+            }
+
+            ApplyTripPets(trip, dto.UserPetIds, null);
+
+            await _context.Trips.AddAsync(trip);
+            await _context.SaveChangesAsync();
+
+            await BroadcastTripAvailableAsync(trip.Id);
+
+            await _noticeService.CreateAsync(new NoticeCreateDto
+            {
+                Label = NoticeTypeLabels.TripDriverRequested,
+                ActorUserId = trip.UserId,
+                ReferenceType = "Trip",
+                ReferenceId = trip.Id,
+                DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}"
+            });
+
+            return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(trip));
+        }
+
+        /// <summary>سفرِ پت‌رسانِ متصل به یک رزرو کلینیک مشخص (برای نمایش وضعیت راننده به کاربر).</summary>
+        public async Task<BaseResultDto<TripVDto>> GetTripForClinicReservationAsync(long clinicReserveId, long userId)
+        {
+            var trip = await _context.Trips
+                .Include(s => s.Driver).ThenInclude(d => d.ProfilePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.CertificatePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.VehicleCardPicture)
+                .Include(s => s.DriverStatus)
+                .Include(s => s.TripStatus)
+                .AsNoTracking()
+                .Where(s => s.ClinicReserveId == clinicReserveId && s.UserId == userId)
                 .OrderByDescending(s => s.Id)
                 .FirstOrDefaultAsync();
 

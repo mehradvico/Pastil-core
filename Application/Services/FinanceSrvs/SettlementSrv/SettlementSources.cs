@@ -53,6 +53,12 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
             return context.ClinicReserves
                 .Where(r => r.IsReserved && !r.IsCancel && r.Status == complete && clinicIds.Contains(r.ClinicId));
         }
+        public static IQueryable<Entities.Entities.CoachField.CoachReserve> CoachReserves(IDataBaseContext context, IReadOnlyCollection<long> coachIds)
+        {
+            var complete = (int)Application.Services.CoachSrvs.CoachReserveSrv.CoachReserveStatusEnum.Complete;
+            return context.CoachReserves
+                .Where(r => r.IsReserved && !r.IsCancel && r.Status == complete && coachIds.Contains(r.CoachId));
+        }
 
         /// <summary>سفارش فروشگاه‌ها؛ سفارشی که چند فروشگاه‌ِ یک ارائه‌دهنده دارد فقط یک‌بار شمرده می‌شود.</summary>
         public static IQueryable<ProductOrder> StoreOrders(IDataBaseContext context, IReadOnlyCollection<long> storeIds)

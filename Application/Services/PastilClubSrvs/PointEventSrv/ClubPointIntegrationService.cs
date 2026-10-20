@@ -65,6 +65,10 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv
             AwardSafeAsync(Create(userId, ClubPointEventTypeEnum.ClinicReservationCompleted,
                 ClubPointSourceTypeEnum.ClinicReservation, reserveId, reserveId.ToString(),
                 string.Format(Resource.Notification.ClubPointClinicReserveCompletedDescription, reserveId)), cancellationToken);
+        public Task CoachReserveCompletedAsync(long userId, long reserveId, CancellationToken cancellationToken = default) =>
+            AwardSafeAsync(Create(userId, ClubPointEventTypeEnum.CoachReservationCompleted,
+                ClubPointSourceTypeEnum.CoachReservation, reserveId, reserveId.ToString(),
+                string.Format(Resource.Notification.ClubPointCoachReserveCompletedDescription, reserveId)), cancellationToken);
 
         public Task PansionReserveReversedAsync(long userId, long reserveId, CancellationToken cancellationToken = default) =>
             ReverseSafeAsync(Create(userId, ClubPointEventTypeEnum.PansionReservationCompleted,

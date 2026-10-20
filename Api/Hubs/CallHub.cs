@@ -211,6 +211,133 @@ namespace Api.Hubs
             await Clients.OthersInGroup(GroupName(key)).SendAsync("callConnected", false);
         }
 
+        /// <summary>
+        /// تماس درون‌برنامه‌ای رزرو کلینیک (فقط نحوه‌ی ارائه‌ی آنلاین). سیگنالینگ همان جریان JoinCall است؛ برای استفاده‌ی مجدد از
+        /// SendSignal/EndCall و ردیاب، رزرو با کلید ClinicCallRules.KeyFor(id) ثبت می‌شود تا با رزرو Companion و جلسه‌ی آنلاین تداخل نکند.
+        /// کلاینت برای SendSignal همین کلید را می‌فرستد (یا SendClinicSignal با شناسه‌ی رزرو).
+        /// </summary>
+        public async Task JoinClinicCall(long clinicReserveId)
+        {
+            var userId = CurrentUserId;
+            if (!userId.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "احراز هویت نامعتبر است.");
+                return;
+            }
+
+            var reserve = await _context.ClinicReserves
+                .Include(r => r.Clinic)
+                .AsTracking()
+                .FirstOrDefaultAsync(r => r.Id == clinicReserveId && !r.IsCancel);
+            if (reserve == null)
+            {
+                await Clients.Caller.SendAsync("callError", "رزرو یافت نشد.");
+                return;
+            }
+
+            var isBooker = reserve.BookerId == userId.Value;
+            var isClinicSide = reserve.Clinic.OwnerId == userId.Value || reserve.AssigneeUserId == userId.Value;
+            if (!isBooker && !isClinicSide)
+            {
+                await Clients.Caller.SendAsync("callError", "شما دسترسی به این تماس ندارید.");
+                return;
+            }
+
+            if (reserve.CallEndDate.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "این تماس قبلاً پایان یافته است.");
+                return;
+            }
+
+            if (!Application.Services.ClinicSrvs.ClinicCallRules.CanJoin(
+                    reserve.Mode, reserve.IsReserved, reserve.IsCancel, reserve.OwnerDecision, reserve.DoDate, reserve.CallEndDate, DateTime.Now))
+            {
+                await Clients.Caller.SendAsync("callError", "تماس برای این رزرو هنوز باز نیست یا رزرو آنلاین/تأییدشده نیست.");
+                return;
+            }
+
+            var key = Application.Services.ClinicSrvs.ClinicCallRules.KeyFor(reserve.Id);
+            await Groups.AddToGroupAsync(Context.ConnectionId, GroupName(key));
+            var participantCount = _tracker.Join(key, Context.ConnectionId, userId.Value, reserve.BookerId, reserve.Clinic.Name);
+
+            if (participantCount <= 1)
+            {
+                await Clients.Caller.SendAsync("waitingForPeer");
+
+                // کلینیک/پزشک اولین نفری است که وصل شده: برای رزروکننده پوش فوری تا او هم وارد تماس شود.
+                if (!isBooker)
+                {
+                    try
+                    {
+                        await _pushNotificationService.SendPushAsync(
+                            PushTypeEnum.PushClinicInAppCallStarted,
+                            reserve.BookerId,
+                            token1: reserve.Clinic.Name,
+                            token2: reserve.Id.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to send in-app call start push for clinic reserve {ReserveId}.", reserve.Id);
+                    }
+                }
+                return;
+            }
+
+            if (!reserve.CallStartDate.HasValue)
+            {
+                reserve.CallStartDate = DateTime.Now;
+                await _context.SaveChangesAsync();
+            }
+
+            await Clients.Caller.SendAsync("callConnected", true);
+            await Clients.OthersInGroup(GroupName(key)).SendAsync("callConnected", false);
+        }
+
+        /// <summary>سیگنال WebRTC برای تماس رزرو کلینیک با شناسه‌ی رزرو (همان SendSignal با کلید مخصوص).</summary>
+        public Task SendClinicSignal(long clinicReserveId, string type, string payload) =>
+            SendSignal(Application.Services.ClinicSrvs.ClinicCallRules.KeyFor(clinicReserveId), type, payload);
+
+        /// <summary>پایان تماس رزرو کلینیک با شناسه‌ی رزرو (idempotent؛ بعد از بررسی دسترسی همیشه CallEndDate ثبت می‌شود).</summary>
+        public async Task EndClinicReserveCall(long clinicReserveId)
+        {
+            if (clinicReserveId <= 0)
+                return;
+
+            var userId = CurrentUserId;
+            if (!userId.HasValue)
+            {
+                await Clients.Caller.SendAsync("callError", "احراز هویت نامعتبر است.");
+                return;
+            }
+
+            var reserve = await _context.ClinicReserves.AsNoTracking()
+                .Include(r => r.Clinic)
+                .FirstOrDefaultAsync(r => r.Id == clinicReserveId);
+            if (reserve == null)
+                return;
+
+            if (reserve.BookerId != userId.Value && reserve.Clinic.OwnerId != userId.Value && reserve.AssigneeUserId != userId.Value)
+            {
+                await Clients.Caller.SendAsync("callError", "شما دسترسی به این تماس ندارید.");
+                return;
+            }
+
+            var key = Application.Services.ClinicSrvs.ClinicCallRules.KeyFor(reserve.Id);
+            var result = _tracker.Leave(Context.ConnectionId);
+            if (result.HasValue && result.Value.ReserveId == key)
+            {
+                await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(key));
+                await Clients.OthersInGroup(GroupName(key)).SendAsync("callEnded");
+            }
+            else
+            {
+                _tracker.RemoveCall(key);
+                await Clients.Group(GroupName(key)).SendAsync("callEnded");
+            }
+
+            await FinalizeCallAsync(key);
+        }
+
         public async Task SendSignal(long reserveId, string type, string payload)
         {
             var userId = CurrentUserId;
@@ -328,6 +455,26 @@ namespace Api.Hubs
             // تماس جلسه‌ی آنلاین (کلید منفی) رزرو ندارد که زمان پایانش ثبت شود
             if (reserveId < 0)
             {
+                return;
+            }
+
+            // رزرو کلینیک: کلید = ClinicCallKeyBase + شناسه‌ی رزرو
+            if (Application.Services.ClinicSrvs.ClinicCallRules.IsClinicKey(reserveId))
+            {
+                try
+                {
+                    var clinicReserveId = Application.Services.ClinicSrvs.ClinicCallRules.ReserveIdOf(reserveId);
+                    var clinicReserve = await _context.ClinicReserves.AsTracking().FirstOrDefaultAsync(r => r.Id == clinicReserveId);
+                    if (clinicReserve != null && !clinicReserve.CallEndDate.HasValue)
+                    {
+                        clinicReserve.CallEndDate = DateTime.Now;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to finalize call end time for clinic call key {Key}.", reserveId);
+                }
                 return;
             }
 

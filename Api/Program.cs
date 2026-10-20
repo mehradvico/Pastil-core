@@ -610,6 +610,11 @@ recurringJobManager.AddOrUpdate<Application.Services.ClinicSrvs.ClinicReserveSrv
     "ClinicReserveExpireOverdue",
     service => service.ExpireOverdueAsync(CancellationToken.None),
     "*/5 * * * *");
+// رزرو مربی: مربی در مهلت پاسخ ندهد → لغو خودکار و برگشت کل مبلغ به کیف پول. طراحی: backend/Docs/COACH_FA.md
+recurringJobManager.AddOrUpdate<Application.Services.CoachSrvs.CoachReserveSrv.Iface.ICoachReserveApprovalService>(
+    "CoachReserveExpireOverdue",
+    service => service.ExpireOverdueAsync(CancellationToken.None),
+    "*/5 * * * *");
 // اعلان ماندگار «سفر در جریان است» برای مسافر (بعد از سوار شدن پت تا پایان سفر)؛ طراحی: backend/Docs/TRIP_ONGOING_NOTIFICATION_FA.md
 recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripOngoingSrv.ITripOngoingNotificationService>(
     "TripOngoingNotification",

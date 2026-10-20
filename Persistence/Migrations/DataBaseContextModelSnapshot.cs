@@ -1224,6 +1224,12 @@ namespace Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime?>("CallEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CallStartDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("CancelDate")
                         .HasColumnType("datetime2");
 
@@ -1382,6 +1388,9 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<bool>("AddedAfterPayment")
+                        .HasColumnType("bit");
+
                     b.Property<long>("ClinicReserveId")
                         .HasColumnType("bigint");
 
@@ -1395,11 +1404,18 @@ namespace Persistence.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("int");
 
                     b.Property<double>("OnlineAmount")
                         .HasColumnType("float");
+
+                    b.Property<string>("PackageName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<double>("PackagePrice")
                         .HasColumnType("float");
@@ -1407,8 +1423,30 @@ namespace Persistence.Migrations
                     b.Property<double>("ProviderShare")
                         .HasColumnType("float");
 
+                    b.Property<double>("RefundAmount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("RefundDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<double>("SiteShare")
                         .HasColumnType("float");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("StatusChangedByAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("StatusChangedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("StatusChangedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StatusReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.HasKey("Id");
 
@@ -1419,6 +1457,131 @@ namespace Persistence.Migrations
                     b.HasIndex("ClinicServicePackageId");
 
                     b.ToTable("ClinicReserveItems");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserveMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ClinicReserveMessageTypeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DeliveredDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ReadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ReplyToMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SenderUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicReserveId");
+
+                    b.HasIndex("ClinicReserveMessageTypeId");
+
+                    b.HasIndex("ReplyToMessageId");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.ToTable("ClinicReserveMessages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserveMessageAttachment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicReserveMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicReserveMessageId");
+
+                    b.ToTable("ClinicReserveMessageAttachments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserveMessageReaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicReserveMessageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Reaction")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("ReactorUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicReserveMessageId");
+
+                    b.HasIndex("ReactorUserId");
+
+                    b.ToTable("ClinicReserveMessageReactions");
                 });
 
             modelBuilder.Entity("Entities.Entities.ClinicField.ClinicService", b =>
@@ -1776,6 +1939,793 @@ namespace Persistence.Migrations
                     b.HasIndex("RebateId");
 
                     b.ToTable("ClubRewards");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.Coach", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("AddressValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("BackgroundPictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("CommentCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("DeletedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EstablishedYear")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("GoldAccountDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("HasCamera")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasParking")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasWaitingRoom")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("IconId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("InstagramUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<long?>("LegacyCompanionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("LicenseApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LicenseNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography");
+
+                    b.Property<int>("MaxConcurrentPets")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long?>("NeighborhoodId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ProviderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RateAvg")
+                        .HasColumnType("float");
+
+                    b.Property<int>("RateCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferralCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Regulations")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SearchKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoCanonical")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoH1")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoMinDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SeoNoFollow")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SeoNoIndex")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SeoPictureAlt")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoUrlText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ServiceAtHome")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ServiceInPerson")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ServiceOnline")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShowToSite")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("SilverAccountDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StaffCount")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("StateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Suggested")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WebsiteUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BackgroundPictureId");
+
+                    b.HasIndex("IconId");
+
+                    b.HasIndex("LegacyCompanionId")
+                        .IsUnique()
+                        .HasFilter("[LegacyCompanionId] IS NOT NULL");
+
+                    b.HasIndex("NeighborhoodId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("ReferralCode")
+                        .IsUnique()
+                        .HasFilter("[ReferralCode] IS NOT NULL");
+
+                    b.HasIndex("StateId");
+
+                    b.HasIndex("ProviderId", "Deleted");
+
+                    b.HasIndex("CityId", "Active", "Approved", "Deleted");
+
+                    b.ToTable("Coaches");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachPet", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("PetId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetId");
+
+                    b.HasIndex("CoachId", "PetId");
+
+                    b.ToTable("CoachPets");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachPicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("CoachPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserve", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("AddressId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("AssigneeUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BookerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("BookerNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CancelDetail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("CancelledByBooker")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("CoachId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CoachServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CoachServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CoachTimeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DoDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DoneDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("FromWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCancel")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReserved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastRescheduleDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Mode")
+                        .HasColumnType("int");
+
+                    b.Property<double>("OnlineAmount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("OriginalDoDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("OwnerApprovalDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OwnerDecision")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("OwnerDecisionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OwnerDecisionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("PackagePrice")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("PaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("Permitted")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ProviderShare")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("RebateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RebatePrice")
+                        .HasColumnType("float");
+
+                    b.Property<int>("RescheduleCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReserveCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<double>("SiteShare")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserPetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("WalletPrice")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddressId");
+
+                    b.HasIndex("AssigneeUserId");
+
+                    b.HasIndex("CoachServiceId");
+
+                    b.HasIndex("CoachServicePackageId");
+
+                    b.HasIndex("CoachTimeId");
+
+                    b.HasIndex("RebateId");
+
+                    b.HasIndex("ReserveCode")
+                        .IsUnique()
+                        .HasFilter("[ReserveCode] IS NOT NULL");
+
+                    b.HasIndex("UserPetId");
+
+                    b.HasIndex("BookerId", "CreateDate");
+
+                    b.HasIndex("OwnerDecision", "OwnerApprovalDeadline");
+
+                    b.HasIndex("CoachId", "DoDate", "EndDate");
+
+                    b.ToTable("CoachReserves", t =>
+                        {
+                            t.HasCheckConstraint("CK_CoachReserve_Dates", "[EndDate] >= [DoDate]");
+
+                            t.HasCheckConstraint("CK_CoachReserve_Prices", "[Price] >= 0 AND [OnlineAmount] >= 0 AND [PaymentPrice] >= 0 AND [WalletPrice] >= 0 AND [RebatePrice] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserveItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CoachServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CoachServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<double>("OnlineAmount")
+                        .HasColumnType("float");
+
+                    b.Property<string>("PackageName")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<double>("PackagePrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ProviderShare")
+                        .HasColumnType("float");
+
+                    b.Property<double>("SiteShare")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachReserveId");
+
+                    b.HasIndex("CoachServiceId");
+
+                    b.HasIndex("CoachServicePackageId");
+
+                    b.ToTable("CoachReserveItems");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachService", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("AssistanceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CoachId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssistanceId");
+
+                    b.HasIndex("CoachId", "AssistanceId");
+
+                    b.ToTable("CoachServices");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachServicePackage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("CoachServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Discription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PetSize")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("PrePaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachServiceId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("CoachServicePackages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachServicePackagePicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachServicePackageId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("CoachServicePackagePictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachServicePackageType", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Mode")
+                        .HasColumnType("int");
+
+                    b.Property<double>("PrePaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachServicePackageId", "Mode");
+
+                    b.ToTable("CoachServicePackageTypes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachServiceUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("CoachServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CoachServiceId", "UserId");
+
+                    b.ToTable("CoachServiceUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachTime", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<long>("CoachId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("EndTime")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("StartTime")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<long>("WeekDayId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WeekDayId");
+
+                    b.HasIndex("CoachId", "WeekDayId");
+
+                    b.ToTable("CoachTimes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("CoachId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("InviteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool?>("UserAccept")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CoachId", "UserId");
+
+                    b.ToTable("CoachUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachZone", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CoachId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("NeighborhoodId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("StateId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("NeighborhoodId");
+
+                    b.HasIndex("StateId");
+
+                    b.HasIndex("CoachId", "CityId");
+
+                    b.ToTable("CoachZones");
                 });
 
             modelBuilder.Entity("Entities.Entities.Code", b =>
@@ -8653,6 +9603,9 @@ namespace Persistence.Migrations
                     b.Property<long>("AuthorUserId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ClinicReserveId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("CompanionReserveId")
                         .HasColumnType("bigint");
 
@@ -8675,6 +9628,10 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("ClinicReserveId")
+                        .IsUnique()
+                        .HasFilter("[ClinicReserveId] IS NOT NULL AND [Deleted] = 0");
 
                     b.HasIndex("CompanionReserveId")
                         .IsUnique()
@@ -10997,6 +11954,30 @@ namespace Persistence.Migrations
                     b.ToTable("SettlementClinics");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SettlementCoach", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SettlementId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoachReserveId")
+                        .IsUnique();
+
+                    b.HasIndex("SettlementId");
+
+                    b.ToTable("SettlementCoaches");
+                });
+
             modelBuilder.Entity("Entities.Entities.SettlementCompanion", b =>
                 {
                     b.Property<long>("Id")
@@ -12006,6 +12987,9 @@ namespace Persistence.Migrations
                     b.Property<string>("CancelReasonDetail")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("ClinicReserveId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("CompanionReserveId")
                         .HasColumnType("bigint");
 
@@ -12153,6 +13137,8 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CancelReasonCodeId");
+
+                    b.HasIndex("ClinicReserveId");
 
                     b.HasIndex("CompanionReserveId");
 
@@ -12718,6 +13704,9 @@ namespace Persistence.Migrations
                     b.Property<long?>("ClinicReserveId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("CoachReserveId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("CompanionInsurancePackageSaleId")
                         .HasColumnType("bigint");
 
@@ -12775,6 +13764,10 @@ namespace Persistence.Migrations
                     b.HasIndex("ClinicReserveId")
                         .IsUnique()
                         .HasFilter("[ClinicReserveId] IS NOT NULL");
+
+                    b.HasIndex("CoachReserveId")
+                        .IsUnique()
+                        .HasFilter("[CoachReserveId] IS NOT NULL");
 
                     b.HasIndex("CompanionInsurancePackageSaleId")
                         .IsUnique()
@@ -12954,6 +13947,28 @@ namespace Persistence.Migrations
                         .HasFilter("[ClinicReserveId] IS NOT NULL");
 
                     b.ToTable("ClinicComments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachComment", b =>
+                {
+                    b.HasBaseType("Entities.Entities.Comment");
+
+                    b.Property<long>("CoachId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CoachReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsReserved")
+                        .HasColumnType("bit");
+
+                    b.HasIndex("CoachId");
+
+                    b.HasIndex("CoachReserveId")
+                        .IsUnique()
+                        .HasFilter("[CoachReserveId] IS NOT NULL");
+
+                    b.ToTable("CoachComments");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionComment", b =>
@@ -13650,6 +14665,67 @@ namespace Persistence.Migrations
                     b.Navigation("ClinicServicePackage");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserveMessage", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserve", "ClinicReserve")
+                        .WithMany()
+                        .HasForeignKey("ClinicReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Code", "ClinicReserveMessageType")
+                        .WithMany()
+                        .HasForeignKey("ClinicReserveMessageTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserveMessage", "ReplyToMessage")
+                        .WithMany()
+                        .HasForeignKey("ReplyToMessageId");
+
+                    b.HasOne("Entities.Entities.Security.User", "SenderUser")
+                        .WithMany()
+                        .HasForeignKey("SenderUserId");
+
+                    b.Navigation("ClinicReserve");
+
+                    b.Navigation("ClinicReserveMessageType");
+
+                    b.Navigation("ReplyToMessage");
+
+                    b.Navigation("SenderUser");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserveMessageAttachment", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserveMessage", "ClinicReserveMessage")
+                        .WithMany("Attachments")
+                        .HasForeignKey("ClinicReserveMessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClinicReserveMessage");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserveMessageReaction", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserveMessage", "ClinicReserveMessage")
+                        .WithMany("Reactions")
+                        .HasForeignKey("ClinicReserveMessageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "ReactorUser")
+                        .WithMany()
+                        .HasForeignKey("ReactorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClinicReserveMessage");
+
+                    b.Navigation("ReactorUser");
+                });
+
             modelBuilder.Entity("Entities.Entities.ClinicField.ClinicService", b =>
                 {
                     b.HasOne("Entities.Entities.Assistance", "Assistance")
@@ -13836,6 +14912,361 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Rebate");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.Coach", b =>
+                {
+                    b.HasOne("Entities.Entities.Picture", "BackgroundPicture")
+                        .WithMany()
+                        .HasForeignKey("BackgroundPictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Icon")
+                        .WithMany()
+                        .HasForeignKey("IconId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Neighborhood", "Neighborhood")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("Coaches")
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.State", "State")
+                        .WithMany()
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BackgroundPicture");
+
+                    b.Navigation("City");
+
+                    b.Navigation("Icon");
+
+                    b.Navigation("Neighborhood");
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("Picture");
+
+                    b.Navigation("Provider");
+
+                    b.Navigation("State");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachPet", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany("CoachPets")
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Pet", "Pet")
+                        .WithMany()
+                        .HasForeignKey("PetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Coach");
+
+                    b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachPicture", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany("CoachPictures")
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Coach");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserve", b =>
+                {
+                    b.HasOne("Entities.Entities.Address", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "Assignee")
+                        .WithMany()
+                        .HasForeignKey("AssigneeUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "Booker")
+                        .WithMany()
+                        .HasForeignKey("BookerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany()
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.CoachService", "CoachService")
+                        .WithMany()
+                        .HasForeignKey("CoachServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.CoachServicePackage", "CoachServicePackage")
+                        .WithMany()
+                        .HasForeignKey("CoachServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.CoachTime", "CoachTime")
+                        .WithMany()
+                        .HasForeignKey("CoachTimeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Rebate", "Rebate")
+                        .WithMany()
+                        .HasForeignKey("RebateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.UserPet", "UserPet")
+                        .WithMany()
+                        .HasForeignKey("UserPetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Address");
+
+                    b.Navigation("Assignee");
+
+                    b.Navigation("Booker");
+
+                    b.Navigation("Coach");
+
+                    b.Navigation("CoachService");
+
+                    b.Navigation("CoachServicePackage");
+
+                    b.Navigation("CoachTime");
+
+                    b.Navigation("Rebate");
+
+                    b.Navigation("UserPet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserveItem", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachReserve", "CoachReserve")
+                        .WithMany("Items")
+                        .HasForeignKey("CoachReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.CoachService", "CoachService")
+                        .WithMany()
+                        .HasForeignKey("CoachServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.CoachServicePackage", "CoachServicePackage")
+                        .WithMany()
+                        .HasForeignKey("CoachServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachReserve");
+
+                    b.Navigation("CoachService");
+
+                    b.Navigation("CoachServicePackage");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachService", b =>
+                {
+                    b.HasOne("Entities.Entities.Assistance", "Assistance")
+                        .WithMany()
+                        .HasForeignKey("AssistanceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany("CoachServices")
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assistance");
+
+                    b.Navigation("Coach");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachServicePackage", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachService", "CoachService")
+                        .WithMany("Packages")
+                        .HasForeignKey("CoachServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CoachService");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachServicePackagePicture", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachServicePackage", "CoachServicePackage")
+                        .WithMany("Pictures")
+                        .HasForeignKey("CoachServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachServicePackage");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachServicePackageType", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachServicePackage", "CoachServicePackage")
+                        .WithMany("Types")
+                        .HasForeignKey("CoachServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachServicePackage");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachServiceUser", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachService", "CoachService")
+                        .WithMany("ServiceUsers")
+                        .HasForeignKey("CoachServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachService");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachTime", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany("CoachTimes")
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.WeekDay", "WeekDay")
+                        .WithMany()
+                        .HasForeignKey("WeekDayId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Coach");
+
+                    b.Navigation("WeekDay");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachUser", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany("CoachUsers")
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Coach");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachZone", b =>
+                {
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany("CoachZones")
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Neighborhood", "Neighborhood")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.State", "State")
+                        .WithMany()
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("Coach");
+
+                    b.Navigation("Neighborhood");
+
+                    b.Navigation("State");
                 });
 
             modelBuilder.Entity("Entities.Entities.Code", b =>
@@ -16666,6 +18097,11 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserve", "ClinicReserve")
+                        .WithMany()
+                        .HasForeignKey("ClinicReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.CompanionReserve", "CompanionReserve")
                         .WithMany()
                         .HasForeignKey("CompanionReserveId")
@@ -16677,6 +18113,8 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("AuthorUser");
+
+                    b.Navigation("ClinicReserve");
 
                     b.Navigation("CompanionReserve");
 
@@ -17583,6 +19021,25 @@ namespace Persistence.Migrations
                     b.Navigation("Settlement");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SettlementCoach", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachReserve", "CoachReserve")
+                        .WithMany()
+                        .HasForeignKey("CoachReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Settlement", "Settlement")
+                        .WithMany()
+                        .HasForeignKey("SettlementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachReserve");
+
+                    b.Navigation("Settlement");
+                });
+
             modelBuilder.Entity("Entities.Entities.SettlementCompanion", b =>
                 {
                     b.HasOne("Entities.Entities.CompanionReserve", "CompanionReserve")
@@ -17967,6 +19424,11 @@ namespace Persistence.Migrations
                         .HasForeignKey("CancelReasonCodeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserve", "ClinicReserve")
+                        .WithMany()
+                        .HasForeignKey("ClinicReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.CompanionReserve", "CompanionReserve")
                         .WithMany()
                         .HasForeignKey("CompanionReserveId")
@@ -18037,6 +19499,8 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CancelReasonCode");
+
+                    b.Navigation("ClinicReserve");
 
                     b.Navigation("CompanionReserve");
 
@@ -18325,6 +19789,11 @@ namespace Persistence.Migrations
                         .HasForeignKey("ClinicReserveId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Entities.Entities.CoachField.CoachReserve", "CoachReserve")
+                        .WithMany()
+                        .HasForeignKey("CoachReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.CompanionField.CompanionInsurancePackageSale", "CompanionInsurancePackageSale")
                         .WithOne("Wallet")
                         .HasForeignKey("Entities.Entities.Wallet", "CompanionInsurancePackageSaleId");
@@ -18377,6 +19846,8 @@ namespace Persistence.Migrations
                     b.Navigation("Cargo");
 
                     b.Navigation("ClinicReserve");
+
+                    b.Navigation("CoachReserve");
 
                     b.Navigation("CompanionInsurancePackageSale");
 
@@ -18513,6 +19984,30 @@ namespace Persistence.Migrations
                     b.Navigation("Clinic");
 
                     b.Navigation("ClinicReserve");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachComment", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany("CoachComments")
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CoachField.CoachReserve", "CoachReserve")
+                        .WithMany()
+                        .HasForeignKey("CoachReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Comment", null)
+                        .WithOne()
+                        .HasForeignKey("Entities.Entities.CoachField.CoachComment", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Coach");
+
+                    b.Navigation("CoachReserve");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionComment", b =>
@@ -18752,6 +20247,13 @@ namespace Persistence.Migrations
                     b.Navigation("Items");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserveMessage", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Reactions");
+                });
+
             modelBuilder.Entity("Entities.Entities.ClinicField.ClinicService", b =>
                 {
                     b.Navigation("Packages");
@@ -18760,6 +20262,42 @@ namespace Persistence.Migrations
                 });
 
             modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServicePackage", b =>
+                {
+                    b.Navigation("Pictures");
+
+                    b.Navigation("Types");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.Coach", b =>
+                {
+                    b.Navigation("CoachComments");
+
+                    b.Navigation("CoachPets");
+
+                    b.Navigation("CoachPictures");
+
+                    b.Navigation("CoachServices");
+
+                    b.Navigation("CoachTimes");
+
+                    b.Navigation("CoachUsers");
+
+                    b.Navigation("CoachZones");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachReserve", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachService", b =>
+                {
+                    b.Navigation("Packages");
+
+                    b.Navigation("ServiceUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachServicePackage", b =>
                 {
                     b.Navigation("Pictures");
 
@@ -19142,6 +20680,8 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.ProviderField.Provider", b =>
                 {
                     b.Navigation("Clinics");
+
+                    b.Navigation("Coaches");
 
                     b.Navigation("Companions");
 

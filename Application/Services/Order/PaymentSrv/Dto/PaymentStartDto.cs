@@ -13,6 +13,7 @@ namespace Application.Services.Order.PaymentSrv.Dto
         public long? SchoolReserveId { get; set; }
         public long? GroomerReserveId { get; set; }
         public long? ClinicReserveId { get; set; }
+        public long? CoachReserveId { get; set; }
         public long? CompanionReserveBatchId { get; set; }
         public long? TripId { get; set; }
         public long? CargoId { get; set; }

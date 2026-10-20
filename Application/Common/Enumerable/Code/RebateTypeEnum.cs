@@ -18,6 +18,7 @@ namespace Application.Common.Enumerable.Code
         RebateType_SchoolReserve = 69,
         RebateType_ConsultationPurchase = 70,
         RebateType_GroomerReserve = 71,
-        RebateType_ClinicReserve = 72
+        RebateType_ClinicReserve = 72,
+        RebateType_CoachReserve = 73
     }
 }

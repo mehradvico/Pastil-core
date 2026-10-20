@@ -25,5 +25,6 @@ namespace Entities.Entities.ProviderField
         public ICollection<Store> Stores { get; set; }
         public ICollection<GroomerField.Groomer> Groomers { get; set; }
         public ICollection<ClinicField.Clinic> Clinics { get; set; }
+        public ICollection<CoachField.Coach> Coaches { get; set; }
     }
 }

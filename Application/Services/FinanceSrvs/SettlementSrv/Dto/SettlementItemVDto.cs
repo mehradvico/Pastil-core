@@ -3,7 +3,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv.Dto
     /// <summary>یک ردیف از ریز تسویه: چیزی که داخل این تسویه پرداخت شده است.</summary>
     public class SettlementItemVDto
     {
-        /// <summary>Reserve | Pansion | Consultation | School | Order | Groomer | Clinic</summary>
+        /// <summary>Reserve | Pansion | Consultation | School | Order | Groomer | Clinic | Coach</summary>
         public string Type { get; set; }
         public string Code { get; set; }
         public string VenueName { get; set; }

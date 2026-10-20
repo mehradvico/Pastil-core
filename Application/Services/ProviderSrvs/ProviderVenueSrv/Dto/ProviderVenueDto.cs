@@ -21,6 +21,7 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv.Dto
         public List<ProviderVenueVDto> Companions { get; set; } = new List<ProviderVenueVDto>();
         public List<ProviderVenueVDto> Groomers { get; set; } = new List<ProviderVenueVDto>();
         public List<ProviderVenueVDto> Clinics { get; set; } = new List<ProviderVenueVDto>();
+        public List<ProviderVenueVDto> Coaches { get; set; } = new List<ProviderVenueVDto>();
         public List<ProviderVenueVDto> Stores { get; set; } = new List<ProviderVenueVDto>();
     }
 }

@@ -12,6 +12,7 @@ namespace Application.Services.Setting.NoticeSrv
         public const string PansionReserveRegistered = "PansionReserve.Registered";
         public const string GroomerReserveRegistered = "GroomerReserve.Registered";
         public const string ClinicReserveRegistered = "ClinicReserve.Registered";
+        public const string CoachReserveRegistered = "CoachReserve.Registered";
         public const string PansionSubmitted = "Pansion.Submitted";
         public const string PansionUpdated = "Pansion.Updated";
         public const string PansionCommentSubmitted = "Pansion.CommentSubmitted";

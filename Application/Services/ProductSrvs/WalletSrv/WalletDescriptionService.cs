@@ -74,6 +74,12 @@ namespace Application.Services.ProductSrvs.WalletSrv
                              .Select(s => new { s.Id, s.PackageName, s.CompanionReserve.ReserveCode }).ToList())
                     codes.CompanionPackageItems[row.Id] = (row.ReserveCode, row.PackageName);
 
+            var clinicPackageItemIds = Ids(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.ClinicPackageRefundPrefix)));
+            if (clinicPackageItemIds.Count > 0)
+                foreach (var row in _context.ClinicReserveItems.AsNoTracking().Where(s => clinicPackageItemIds.Contains(s.Id))
+                             .Select(s => new { s.Id, s.PackageName, s.ClinicReserve.ReserveCode }).ToList())
+                    codes.ClinicPackageItems[row.Id] = (row.ReserveCode, row.PackageName);
+
             var pansionReserveIds = Ids(inputs.Select(i => i.PansionReserveId)
                 .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.PansionReserveRefundPrefix))));
             if (pansionReserveIds.Count > 0)
@@ -90,6 +96,11 @@ namespace Application.Services.ProductSrvs.WalletSrv
             if (clinicReserveIds.Count > 0)
                 foreach (var row in _context.ClinicReserves.AsNoTracking().Where(s => clinicReserveIds.Contains(s.Id)).Select(s => new { s.Id, s.ReserveCode }).ToList())
                     codes.ClinicReserves[row.Id] = row.ReserveCode;
+            var coachReserveIds = Ids(inputs.Select(i => i.CoachReserveId)
+                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.CoachReserveRefundPrefix))));
+            if (coachReserveIds.Count > 0)
+                foreach (var row in _context.CoachReserves.AsNoTracking().Where(s => coachReserveIds.Contains(s.Id)).Select(s => new { s.Id, s.ReserveCode }).ToList())
+                    codes.CoachReserves[row.Id] = row.ReserveCode;
 
             var schoolReserveIds = Ids(inputs.Select(i => i.SchoolReserveId));
             if (schoolReserveIds.Count > 0)
@@ -123,6 +134,7 @@ namespace Application.Services.ProductSrvs.WalletSrv
             SchoolReserveId = row.SchoolReserveId,
             GroomerReserveId = row.GroomerReserveId,
             ClinicReserveId = row.ClinicReserveId,
+            CoachReserveId = row.CoachReserveId,
             ConsultationPurchaseId = row.ConsultationPurchaseId,
         };
 
@@ -141,6 +153,7 @@ namespace Application.Services.ProductSrvs.WalletSrv
             SchoolReserveId = dto.SchoolReserveId,
             GroomerReserveId = dto.GroomerReserveId,
             ClinicReserveId = dto.ClinicReserveId,
+            CoachReserveId = dto.CoachReserveId,
             ConsultationPurchaseId = dto.ConsultationPurchaseId,
         };
     }

@@ -693,4 +693,58 @@
   <data name="PushClinicReserveCancelledByAdmin" xml:space="preserve">
     <value>رزرو شما در {0} توسط پشتیبانی لغو شد. دلیل: {1}</value>
   </data>
+  <data name="PushClinicReserveItemApproved" xml:space="preserve">
+    <value>کلینیک بسته «{0}» رزرو شما را تأیید کرد.</value>
+  </data>
+  <data name="PushClinicReserveItemCancelled" xml:space="preserve">
+    <value>بسته «{0}» رزرو شما لغو شد و {3} تومان به کیف پول شما برگشت داده شد.</value>
+  </data>
+  <data name="PushClinicReserveNewMessage" xml:space="preserve">
+    <value>پیام جدید از {0}: {1}</value>
+  </data>
+  <data name="PushClinicInAppCallStarted" xml:space="preserve">
+    <value>{0} تماس درون‌برنامه‌ای را آغاز کرد.</value>
+  </data>
+  <data name="PushClinicOnlineReserveReminderBefore" xml:space="preserve">
+    <value>یادآوری: خدمت آنلاین {2} برای «{0}» در «{1}» به‌زودی شروع می‌شود.</value>
+  </data>
+  <data name="PushClinicOnlineReserveReminderAtTime" xml:space="preserve">
+    <value>وقت ارائه خدمت آنلاین {2} برای «{0}» در «{1}» فرا رسیده است.</value>
+  </data>
+  <data name="PushCoachReserveApprovalRequired" xml:space="preserve">
+    <value>رزرو جدید {1} در {0} منتظر تأیید شماست.</value>
+  </data>
+  <data name="PushCoachReserveApproved" xml:space="preserve">
+    <value>رزرو {1} در {0} توسط مربی تأیید شد.</value>
+  </data>
+  <data name="PushCoachReserveRejected" xml:space="preserve">
+    <value>رزرو شما در {0} رد شد و مبلغ به کیف پول شما برگشت. دلیل: {1}</value>
+  </data>
+  <data name="PushCoachReserveExpired" xml:space="preserve">
+    <value>مربی {0} در مهلت مقرر به رزرو شما پاسخ نداد؛ رزرو لغو و مبلغ به کیف پول شما برگشت.</value>
+  </data>
+  <data name="PushCoachReserveCancelledByBooker" xml:space="preserve">
+    <value>رزرو {0} در تاریخ {1} توسط مشتری لغو شد.</value>
+  </data>
+  <data name="PushCoachApproved" xml:space="preserve">
+    <value>مربی {0} تأیید شد و اکنون فعال است.</value>
+  </data>
+  <data name="PushCoachRejected" xml:space="preserve">
+    <value>مربی {0} رد شد. دلیل: {1}</value>
+  </data>
+  <data name="PushCoachReserveRescheduled" xml:space="preserve">
+    <value>زمان رزرو شما در {0} به {1} ساعت {2} تغییر کرد.</value>
+  </data>
+  <data name="PushCoachReserveRescheduledForCoach" xml:space="preserve">
+    <value>زمان رزرو {0} به {1} ساعت {2} تغییر کرد.</value>
+  </data>
+  <data name="PushCoachStaffInvite" xml:space="preserve">
+    <value>شما به عضویت در پرسنل {0} دعوت شده‌اید. برای پذیرش وارد اپ شوید.</value>
+  </data>
+  <data name="PushCoachReserveCancelledByAdmin" xml:space="preserve">
+    <value>رزرو شما در {0} توسط پشتیبانی لغو شد. دلیل: {1}</value>
+  </data>
+  <data name="WalletTargetCoachReserve" xml:space="preserve">
+    <value>رزرو مربی {0}</value>
+  </data>
 </root>

@@ -21,17 +21,20 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
         private readonly IDataBaseContext _context;
         private readonly IWalletService _walletService;
         private readonly IClinicNotifier _notifier;
+        private readonly Application.Services.TripSrv.TripSrv.Iface.ITripService _tripService;
         private readonly ILogger<ClinicReserveApprovalService> _logger;
 
         public ClinicReserveApprovalService(
             IDataBaseContext context,
             IWalletService walletService,
             IClinicNotifier notifier,
+            Application.Services.TripSrv.TripSrv.Iface.ITripService tripService,
             ILogger<ClinicReserveApprovalService> logger)
         {
             _context = context;
             _walletService = walletService;
             _notifier = notifier;
+            _tripService = tripService;
             _logger = logger;
         }
 
@@ -115,6 +118,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             }
             await transaction.CommitAsync(cancellationToken);
 
+            await SafeAsync(() => _tripService.CancelLinkedTripForClinicReserveAsync(reserve.Id), reserve.Id, "linked trip cancel");
+            await SafeAsync(() => Application.Services.ClinicSrvs.ClinicReserveReminders.RemoveAsync(_context, reserve.Id), reserve.Id, "reminders remove");
             if (reserve.IsReserved)
                 await _notifier.ReserveCancelledByBookerAsync(reserve.Id);
             return new BaseResultDto(true, !reserve.IsReserved || refund
@@ -149,6 +154,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 return new BaseResultDto(false, Resource.Notification.ClinicReserveRefundFailed);
             }
             await transaction.CommitAsync(cancellationToken);
+            await SafeAsync(() => _tripService.CancelLinkedTripForClinicReserveAsync(reserve.Id), reserve.Id, "linked trip cancel");
+            await SafeAsync(() => Application.Services.ClinicSrvs.ClinicReserveReminders.RemoveAsync(_context, reserve.Id), reserve.Id, "reminders remove");
             if (reserve.IsReserved)
                 await _notifier.ReserveCancelledByAdminAsync(reserve.Id, reason);
             return new BaseResultDto(true, Resource.Notification.Success);
@@ -182,6 +189,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             }
             await transaction.CommitAsync(ct);
 
+            await SafeAsync(() => _tripService.CancelLinkedTripForClinicReserveAsync(reserve.Id), reserve.Id, "linked trip cancel");
+            await SafeAsync(() => Application.Services.ClinicSrvs.ClinicReserveReminders.RemoveAsync(_context, reserve.Id), reserve.Id, "reminders remove");
             if (decision == ClinicReserveOwnerDecisionEnum.Rejected)
                 await _notifier.ReserveRejectedAsync(reserve.Id, reason);
             else

@@ -591,6 +591,20 @@
         <member name="M:Api.Areas.Admin.Controllers.ClinicReserveController.Cancel(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveReasonDto,System.Boolean)">
             <summary>لغو توسط ادمین؛ refund=true کل مبلغ پرداخت‌شده را به کیف پول کاربر برمی‌گرداند</summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicReservePackageController">
+            <summary>
+            پکیج‌های یک رزرو و وضعیتشان (در انتظار / تأییدشده / لغوشده)؛ تأیید یا لغوِ تکی، افزودن و حذف (رزرو پرداخت‌نشده)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicReservePackageController.Get(System.Int64)">
+            <summary>فهرست پکیج‌ها با وضعیت و مبلغ برگشتی</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicReservePackageController.Put(System.Int64,System.Int64,Application.Services.ClinicSrvs.ClinicReserveItemSrv.Dto.ClinicReserveItemStatusDto)">
+            <summary>تأیید (Status=2) یا لغو (Status=3 + Reason) یک پکیج؛ لغو، سهم پرداختی را به کیف پول کاربر برمی‌گرداند</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicReservePackageController.Post(System.Int64,Application.Services.ClinicSrvs.ClinicReserveItemSrv.Dto.ClinicReserveItemAddDto)">
+            <summary>افزودن پکیج به رزرو</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ClinicReviewController">
             <summary>
             نظرهای کلینیک (بعد از رزرو تکمیل‌شده): بررسی، تأیید/رد و پاسخ
@@ -673,6 +687,102 @@
              حذف آیتم
              </summary>
             
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachActiveController">
+            <summary>
+            فعال/غیرفعال کردن مربی
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachApproveController">
+            <summary>
+            تأیید/رد مربی (رد نیاز به دلیل دارد)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachController">
+            <summary>
+            مربی‌ها (Coach)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachController.Get(Application.Services.CoachSrvs.CoachSrv.Dto.CoachInputDto,System.Nullable{System.Boolean})">
+            <summary>جستجو</summary>
+            <param name="deleted">true = فقط مربی‌های حذف‌شده (حذف نرم)</param>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachController.Get(System.Int64)">
+            <summary>اطلاعات کامل یک مربی (حذف‌شده هم برای ادمین دیده می‌شود)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachController.Post(Application.Services.CoachSrvs.CoachSrv.Dto.CoachDto)">
+            <summary>ساخت مربی (مستقیم تأییدشده و فعال)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachController.Put(Application.Services.CoachSrvs.CoachSrv.Dto.CoachDto)">
+            <summary>ویرایش اطلاعات مربی (تأیید، کمیسیون و ... تغییر نمی‌کند)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachController.Delete(System.Int64)">
+            <summary>حذف نرم (رزروها و گزارش مالی می‌مانند)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachController.Restore(System.Int64)">
+            <summary>بازگردانی مربی حذف‌شده (غیرفعال و منتشرنشده برمی‌گردد)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachController.Pets(Api.Areas.Admin.Controllers.CoachPetsDto)">
+            <summary>گونه‌های پذیرش‌شده (جایگزین کل لیست)</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachPictureController">
+            <summary>
+            گالری مربی (محیط و تجهیزات)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachReserveController">
+            <summary>
+            رزروهای مربی (ادمین)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachReserveController.Reschedule(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveRescheduleDto)">
+            <summary>تغییر زمان نوبت (به کاربر پوش و پیامک می‌رود)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachReserveController.Cancel(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveReasonDto,System.Boolean)">
+            <summary>لغو توسط ادمین؛ refund=true کل مبلغ پرداخت‌شده را به کیف پول کاربر برمی‌گرداند</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachReviewController">
+            <summary>
+            نظرهای مربی (بعد از رزرو تکمیل‌شده): بررسی، تأیید/رد و پاسخ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachReviewController.Moderate(System.Int64,System.Boolean)">
+            <summary>تأیید (accept=true) یا رد نظر</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachScheduleController">
+            <summary>
+            ساعت کاری هفتگی و محدوده‌ی پوشش خدمات در محل
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachScheduleController.SetTimes(Application.Services.CoachSrvs.CoachProfileSrv.Dto.CoachProfileSetDto{Application.Services.CoachSrvs.CoachProfileSrv.Dto.CoachTimeInputDto})">
+            <summary>کل ساعت‌های کاری را جایگزین می‌کند</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachScheduleController.SetZones(Application.Services.CoachSrvs.CoachProfileSrv.Dto.CoachProfileSetDto{Application.Services.CoachSrvs.CoachProfileSrv.Dto.CoachZoneInputDto})">
+            <summary>کل محدوده‌های پوشش را جایگزین می‌کند</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachServiceController">
+            <summary>
+            خدمات و بسته‌های قیمتی مربی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachServiceController.Approve(Application.Services.CoachSrvs.CoachCatalogSrv.Dto.CoachServiceApproveDto)">
+            <summary>تأیید/رد خدمت و تعیین درصد کمیسیون</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachSettingController">
+            <summary>
+            تنظیمات مدیریتی مربی: پیشنهادی، تأیید پروانه، درصد کمیسیون و نمایش در سایت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachSettingController.Visibility(System.Int64,Application.Common.Dto.Input.SiteVisibilityDto)">
+            <summary>نمایش در سایت (فقط مربی تأییدشده و فعال)</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.CoachUserController">
+            <summary>
+            پرسنل مربی
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.CoachUserController.Post(Application.Services.CoachSrvs.CoachProfileSrv.Dto.CoachStaffAddDto)">
+            <summary>افزودن پرسنل با شماره موبایل (کاربر باید قبلاً ثبت‌نام کرده باشد)</summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CodeController">
             <summary>
@@ -6137,6 +6247,20 @@
         <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Complete(System.Int64)">
             <summary>تکمیل رزرو بعد از انجام خدمت</summary>
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicReservePackageController">
+            <summary>
+            پکیج‌های یک رزرو و وضعیتشان (در انتظار / تأییدشده / لغوشده)؛ تأیید یا لغوِ تکی، افزودن و حذف (رزرو پرداخت‌نشده)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicReservePackageController.Get(System.Int64)">
+            <summary>فهرست پکیج‌ها با وضعیت و مبلغ برگشتی</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicReservePackageController.Put(System.Int64,System.Int64,Application.Services.ClinicSrvs.ClinicReserveItemSrv.Dto.ClinicReserveItemStatusDto)">
+            <summary>تأیید (Status=2) یا لغو (Status=3 + Reason) یک پکیج؛ لغو، سهم پرداختی را به کیف پول کاربر برمی‌گرداند</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicReservePackageController.Post(System.Int64,Application.Services.ClinicSrvs.ClinicReserveItemSrv.Dto.ClinicReserveItemAddDto)">
+            <summary>افزودن پکیج به رزرو</summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.ClinicReviewController">
             <summary>
             نظرهای کلینیک‌های من و پاسخ به آن‌ها
@@ -6166,6 +6290,73 @@
         <member name="T:Api.Areas.Companion.Controllers.ClinicUserController">
             <summary>
             پرسنل کلینیک‌های من
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachController">
+            <summary>
+            مربی‌های من (مالک/ارائه‌دهنده). همه‌ی عملیات فقط روی مربی‌های خود کاربر جاری است.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachController.Get(Application.Services.CoachSrvs.CoachSrv.Dto.CoachInputDto)">
+            <summary>لیست مربی‌های من</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachController.Post(Application.Services.CoachSrvs.CoachSrv.Dto.CoachDto)">
+            <summary>ثبت مربی جدید زیر ارائه‌دهنده‌ی خودم (منتظر تأیید ادمین می‌ماند)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachController.Put(Application.Services.CoachSrvs.CoachSrv.Dto.CoachDto)">
+            <summary>ویرایش (دوباره منتظر تأیید ادمین می‌شود)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachPictureController">
+            <summary>
+            گالری مربی‌های من
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachReserveController">
+            <summary>
+            رزروهای مربی‌های من: لیست، تأیید/رد و تکمیل
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Get(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveSearchInputDto)">
+            <summary>فقط رزروهای پرداخت‌شده‌ی مربی‌های من</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Reject(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveReasonDto)">
+            <summary>رد رزرو (دلیل الزامی)؛ کل مبلغ به کیف پول مشتری برمی‌گردد</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Reschedule(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveRescheduleDto)">
+            <summary>تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد مربی</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Complete(System.Int64)">
+            <summary>تکمیل رزرو بعد از انجام خدمت</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachReviewController">
+            <summary>
+            نظرهای مربی‌های من و پاسخ به آن‌ها
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachScheduleController">
+            <summary>
+            ساعت کاری و محدوده‌ی پوشش مربی‌های من
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachServiceController">
+            <summary>
+            خدمات و بسته‌های قیمتی مربی‌های من
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachServiceController.Post(Application.Services.CoachSrvs.CoachCatalogSrv.Dto.CoachServiceInputDto)">
+            <summary>افزودن خدمت (تا تأیید ادمین قابل رزرو نیست)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachSettlementController">
+            <summary>
+            تاریخچه‌ی تسویه‌ی مربی‌های من (تسویه‌ی ارائه‌دهنده در استخر مربی)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachSettlementController.Items(System.Int64)">
+            <summary>ریز تسویه‌ی خودم</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachUserController">
+            <summary>
+            پرسنل مربی‌های من
             </summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceController">
@@ -7834,6 +8025,11 @@
         <member name="M:Api.Areas.EndUser.Controllers.ClinicReserveController.Cancel(System.Int64)">
             <summary>لغو رزرو: تا ۱۲ ساعت قبل از نوبت (یا تا قبل از تأیید کلینیک) با برگشت کل مبلغ به کیف پول</summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ClinicReservePackageController">
+            <summary>
+            پکیج‌های رزرو من و وضعیتشان (در انتظار تأیید کلینیک / تأییدشده / لغوشده + مبلغ برگشتی به کیف پول)
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.ClinicReservePaymentController">
             <summary>
             پرداخت رزرو کلینیک، کد تخفیف و کیف پول
@@ -7888,6 +8084,61 @@
             <summary>
             جستجو
             </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CoachReserveController">
+            <summary>
+            رزرو نوبت مربی (کاربر)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReserveController.Get(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveSearchInputDto)">
+            <summary>رزروهای من</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReserveController.Quote(System.Collections.Generic.List{System.Int64},System.Int32,System.Int64)">
+            <summary>قیمت بسته (پیش‌پرداخت و باقی‌مانده‌ی حضوری) قبل از رزرو</summary>
+            <param name="mode">نحوه‌ی ارائه: ۳۷ آنلاین، ۳۸ حضوری در مربی، ۳۹ در محل مشتری؛ قیمت هر بسته به آن بستگی دارد.</param>
+            <param name="packageIds">یک یا چند بسته (رزرو چندخدمتی؛ حداکثر ۵، هر خدمت یک‌بار). packageId قدیمی هم پذیرفته می‌شود.</param>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReserveController.Availability(System.Int64,System.DateTime,System.Int64,System.Nullable{System.Int64},System.Collections.Generic.List{System.Int64})">
+            <summary>زمان‌های آزاد یک روز برای بسته‌ی انتخابی</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReserveController.Post(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveInputDto)">
+            <summary>ثبت رزرو (پرداخت‌نشده)؛ بعد از آن کد تخفیف/کیف پول و پرداخت</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReserveController.Cancel(System.Int64)">
+            <summary>لغو رزرو: تا ۱۲ ساعت قبل از نوبت (یا تا قبل از تأیید مربی) با برگشت کل مبلغ به کیف پول</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CoachReservePaymentController">
+            <summary>
+            پرداخت رزرو مربی، کد تخفیف و کیف پول
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReservePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
+            <summary>شروع پرداخت رزرو (CoachReserveId در بدنه)</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReservePaymentController.SetRebate(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveRebateCodeDto)">
+            <summary>اعمال کد تخفیف روی مبلغ آنلاین رزرو</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReservePaymentController.SetWallet(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveWalletDto)">
+            <summary>پرداخت از کیف پول (کل یا بخشی از مبلغ)</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CoachReviewController">
+            <summary>
+            ثبت نظر و امتیاز برای مربی بعد از رزرو تکمیل‌شده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReviewController.Post(Application.Services.CoachSrvs.CoachReviewSrv.CoachReviewInputDto)">
+            <summary>نظر تا تأیید ادمین نمایش داده نمی‌شود</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CoachStaffInviteController">
+            <summary>
+            دعوت‌نامه‌های عضویت در پرسنل مربی (پذیرش یا رد توسط خود کاربر)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachStaffInviteController.Get">
+            <summary>دعوت‌نامه‌های منتظر پاسخ من</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachStaffInviteController.Put(System.Int64,System.Boolean)">
+            <summary>پذیرفتن (accept=true) یا رد دعوت</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CodeController">
             <summary>
@@ -9652,6 +9903,17 @@
             انتخاب این آدرس به‌عنوان آدرس منتخب کاربر (بقیه‌ی آدرس‌های ذخیره‌شده‌ی همون کاربر خودکار از حالت منتخب خارج می‌شن)
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.TripClinicReservationController">
+            <summary>
+            ساخت سفر پت‌رسانِ متصل به یک رزرو کلینیک (بردن پت تا کلینیک؛ فقط رزرو «حضوری در کلینیک»)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripClinicReservationController.Post(Application.Services.TripSrv.TripSrv.Dto.TripClinicReservationCreateDto)">
+            <summary>ثبت سفر پت‌رسان برای رزرو کلینیک</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripClinicReservationController.Get(System.Int64)">
+            <summary>سفرِ پت‌رسانِ متصل به یک رزرو کلینیک مشخص (وضعیت راننده)</summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripController">
             <summary>
             مدیریت  سفر ها
@@ -11041,6 +11303,32 @@
         <member name="M:Api.Controllers.ClinicController.Services(System.Int64,System.String)">
             <summary>خدمات و بسته‌های قیمتی قابل رزرو؛ petSize (Small/Medium/Large) بسته‌ها را فیلتر می‌کند</summary>
         </member>
+        <member name="T:Api.Controllers.ClinicReserveMessageAttachmentController">
+            <summary>
+            مدیریت فایل‌های پیام چت خدمات آنلاین
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.ClinicReserveMessageController">
+            <summary>
+            چت خدمات آنلاین (رزروکننده و نماینده) — بدون Area چون مجاز بودن رابطه‌محور است، نه نقش‌محور
+            (دقیقاً مثل Api/Hubs/CallHub.cs که هر دو طرف را از یک نقطه‌ی ورود سرویس می‌دهد).
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.ClinicReserveMessageDeliveredController">
+            <summary>
+            ثبت تحویل پیام چت خدمات آنلاین
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.ClinicReserveMessageReactionController">
+            <summary>
+            مدیریت ری‌اکشن‌های پیام چت خدمات آنلاین
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.ClinicReserveMessageReadController">
+            <summary>
+            ثبت خوانده شدن پیام‌های چت خدمات آنلاین
+            </summary>
+        </member>
         <member name="T:Api.Controllers.ClinicReviewController">
             <summary>
             نظرهای تأییدشده‌ی کلینیک (عمومی)
@@ -11066,6 +11354,22 @@
         <member name="M:Api.Controllers.ClubRewardController.Get(Application.Services.Accounting.ClubRewardSrv.Dto.ClubRewardInputDto)">
             <summary>
             جستجو
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CoachController">
+            <summary>
+            مربی‌ها (عمومی): فقط مربی‌های تأییدشده و فعال
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.CoachController.Get(Application.Services.CoachSrvs.CoachSrv.Dto.CoachInputDto)">
+            <summary>جستجو (شهر، محله، حیوان، خدمت، خدمات در محل، ...)</summary>
+        </member>
+        <member name="M:Api.Controllers.CoachController.Services(System.Int64,System.String)">
+            <summary>خدمات و بسته‌های قیمتی قابل رزرو؛ petSize (Small/Medium/Large) بسته‌ها را فیلتر می‌کند</summary>
+        </member>
+        <member name="T:Api.Controllers.CoachReviewController">
+            <summary>
+            نظرهای تأییدشده‌ی مربی (عمومی)
             </summary>
         </member>
         <member name="T:Api.Controllers.CompanionAssistanceController">
@@ -12209,6 +12513,19 @@
             SendSignal/EndCall و ردیاب، جلسه با کلید منفی (-sessionId) ثبت می‌شود تا با شناسه‌ی رزروها تداخل نکند.
             اولین نفری که وصل می‌شود (شروع‌کننده = نماینده) باعث پوش «زنگ خوردن» برای کاربر می‌شود.
             </summary>
+        </member>
+        <member name="M:Api.Hubs.CallHub.JoinClinicCall(System.Int64)">
+            <summary>
+            تماس درون‌برنامه‌ای رزرو کلینیک (فقط نحوه‌ی ارائه‌ی آنلاین). سیگنالینگ همان جریان JoinCall است؛ برای استفاده‌ی مجدد از
+            SendSignal/EndCall و ردیاب، رزرو با کلید ClinicCallRules.KeyFor(id) ثبت می‌شود تا با رزرو Companion و جلسه‌ی آنلاین تداخل نکند.
+            کلاینت برای SendSignal همین کلید را می‌فرستد (یا SendClinicSignal با شناسه‌ی رزرو).
+            </summary>
+        </member>
+        <member name="M:Api.Hubs.CallHub.SendClinicSignal(System.Int64,System.String,System.String)">
+            <summary>سیگنال WebRTC برای تماس رزرو کلینیک با شناسه‌ی رزرو (همان SendSignal با کلید مخصوص).</summary>
+        </member>
+        <member name="M:Api.Hubs.CallHub.EndClinicReserveCall(System.Int64)">
+            <summary>پایان تماس رزرو کلینیک با شناسه‌ی رزرو (idempotent؛ بعد از بررسی دسترسی همیشه CallEndDate ثبت می‌شود).</summary>
         </member>
         <member name="M:Api.Hubs.CallHub.EndReserveCall(System.Int64)">
             <summary>

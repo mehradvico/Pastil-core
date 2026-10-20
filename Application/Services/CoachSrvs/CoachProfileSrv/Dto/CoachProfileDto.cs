@@ -1,0 +1,95 @@
+using Application.Services.Filing.PictureSrv.Dto;
+using System.Collections.Generic;
+
+namespace Application.Services.CoachSrvs.CoachProfileSrv.Dto
+{
+    // ---- پرسنل
+    public class CoachStaffAddDto
+    {
+        public long CoachId { get; set; }
+        /// <summary>کاربر باید قبلاً در پاستیل ثبت‌نام کرده باشد.</summary>
+        public string Mobile { get; set; }
+    }
+
+    public class CoachStaffVDto
+    {
+        public long Id { get; set; }
+        public long CoachId { get; set; }
+        public long UserId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Mobile { get; set; }
+        public bool Active { get; set; }
+        public string ActivationValue { get; set; }
+        /// <summary>null = دعوت منتظر پاسخ، true = پذیرفته، false = ردشده.</summary>
+        public bool? UserAccept { get; set; }
+        public System.DateTime? InviteDate { get; set; }
+    }
+
+    /// <summary>دعوت‌نامه‌ی عضویت در پرسنل یک مربی، از دید کاربرِ دعوت‌شده.</summary>
+    public class CoachStaffInviteVDto
+    {
+        public long Id { get; set; }
+        public long CoachId { get; set; }
+        public string CoachName { get; set; }
+        public string CoachPhone { get; set; }
+        public System.DateTime? InviteDate { get; set; }
+    }
+
+    // ---- ساعت کاری
+    public class CoachTimeInputDto
+    {
+        public long WeekDayId { get; set; }
+        /// <summary>HH:mm</summary>
+        public string StartTime { get; set; }
+        /// <summary>HH:mm</summary>
+        public string EndTime { get; set; }
+        public int Capacity { get; set; }
+        public bool Active { get; set; } = true;
+    }
+
+    public class CoachTimeVDto : CoachTimeInputDto
+    {
+        public long Id { get; set; }
+        public string WeekDayName { get; set; }
+    }
+
+    // ---- محدوده‌ی پوشش
+    public class CoachZoneInputDto
+    {
+        public long StateId { get; set; }
+        public long CityId { get; set; }
+        public long? NeighborhoodId { get; set; }
+    }
+
+    public class CoachZoneVDto : CoachZoneInputDto
+    {
+        public long Id { get; set; }
+        public string StateName { get; set; }
+        public string CityName { get; set; }
+        public string NeighborhoodName { get; set; }
+    }
+
+    // ---- گالری
+    public class CoachPictureAddDto
+    {
+        public long CoachId { get; set; }
+        public long PictureId { get; set; }
+        public string Label { get; set; }
+    }
+
+    public class CoachPictureVDto
+    {
+        public long Id { get; set; }
+        public long CoachId { get; set; }
+        public long PictureId { get; set; }
+        public string Label { get; set; }
+        public PictureVDto Picture { get; set; }
+    }
+
+    public class CoachProfileSetDto<T>
+    {
+        public long CoachId { get; set; }
+        public List<T> Items { get; set; } = new List<T>();
+    }
+}

@@ -26,6 +26,8 @@ namespace Application.Services.ClinicSrvs
         Task ReserveCancelledByBookerAsync(long reserveId);
         Task ReserveCancelledByAdminAsync(long reserveId, string reason);
         Task ReserveRescheduledAsync(long reserveId, bool byOwner, DateTime oldDoDate);
+        /// <summary>سفر پت‌رسانِ متصل با رزرو جابه‌جا شد: به راننده‌ی پذیرنده (اگر بود) خبر می‌دهد (همان قالب پیامک/پوش تغییر زمان Companion).</summary>
+        Task TripRescheduledForDriverAsync(long reserveId, long tripId);
         Task StaffInvitedAsync(long clinicId, long userId);
     }
 
@@ -46,7 +48,7 @@ namespace Application.Services.ClinicSrvs
 
         private sealed record ReserveInfo(
             long Id, long ClinicId, string ClinicName, long OwnerId, string OwnerMobile, long BookerId, string BookerFirstName,
-            string BookerMobile, string PetName, DateTime DoDate, string ServiceName);
+            string BookerMobile, string PetName, DateTime DoDate, string ServiceName, int Mode, long? AssigneeUserId, string BookerName);
 
         public async Task ClinicDecidedAsync(long clinicId, bool approved, string reason)
         {
@@ -76,6 +78,18 @@ namespace Application.Services.ClinicSrvs
                     token1: r.ServiceName);
                 await _sms.SendMessageAsync(MessageTypeEnum.CompanionReserveForCompanion, r.OwnerMobile, null,
                     token1: r.ServiceName, token2: r.BookerFirstName);
+
+                // رزرو آنلاین: دو یادآور زمان‌بندی‌شده (۱۰ دقیقه قبل و سر ساعت) برای پزشک/کلینیک
+                if (r.Mode == (int)Entities.Entities.ClinicField.ClinicServiceModeEnum.Online)
+                {
+                    var targetUserId = r.AssigneeUserId ?? r.OwnerId;
+                    await _push.SendPushAsync(PushTypeEnum.PushClinicOnlineReserveReminderBefore, targetUserId,
+                        token1: r.BookerName, token2: r.ServiceName, token3: r.ClinicName, token4: r.Id.ToString(),
+                        sendDate: ClinicReserveReminders.BeforeAt(r.DoDate));
+                    await _push.SendPushAsync(PushTypeEnum.PushClinicOnlineReserveReminderAtTime, targetUserId,
+                        token1: r.BookerName, token2: r.ServiceName, token3: r.ClinicName, token4: r.Id.ToString(),
+                        sendDate: r.DoDate);
+                }
             });
         }
 
@@ -162,6 +176,24 @@ namespace Application.Services.ClinicSrvs
             });
         }
 
+        public async Task TripRescheduledForDriverAsync(long reserveId, long tripId)
+        {
+            await SafeAsync("trip rescheduled for driver", async () =>
+            {
+                var trip = await _context.Trips.AsNoTracking().Include(t => t.Driver)
+                    .FirstOrDefaultAsync(t => t.Id == tripId && t.ClinicReserveId == reserveId);
+                if (trip?.Driver == null || !trip.ScheduledDepartureAt.HasValue)
+                    return;
+                var clinicName = await _context.ClinicReserves.AsNoTracking().Where(r => r.Id == reserveId).Select(r => r.Clinic.Name).FirstOrDefaultAsync();
+                var departure = trip.ScheduledDepartureAt.Value;
+                var date = Rules.JalaliDate(departure);
+                await _sms.SendMessageAsync(MessageTypeEnum.CompanionReserveRescheduledDriver, trip.Driver.Phone, null,
+                    token1: date, token2: Rules.SmsTime(departure), token3: Rules.SmsText(clinicName));
+                await _push.SendPushAsync(PushTypeEnum.PushCompanionReserveRescheduledDriver, trip.Driver.OwnerId,
+                    token1: date, token2: Rules.Time(departure), token3: clinicName, token5: reserveId.ToString());
+            });
+        }
+
         public async Task StaffInvitedAsync(long clinicId, long userId)
         {
             await SafeAsync("staff invite", async () =>
@@ -178,7 +210,8 @@ namespace Application.Services.ClinicSrvs
             _context.ClinicReserves.AsNoTracking().Where(r => r.Id == reserveId)
                 .Select(r => new ReserveInfo(
                     r.Id, r.ClinicId, r.Clinic.Name, r.Clinic.OwnerId, r.Clinic.Owner.Mobile, r.BookerId,
-                    r.Booker.FirstName, r.Booker.Mobile, r.UserPet.Name, r.DoDate, r.ClinicService.Assistance.Name))
+                    r.Booker.FirstName, r.Booker.Mobile, r.UserPet.Name, r.DoDate, r.ClinicService.Assistance.Name,
+                    r.Mode, r.AssigneeUserId, (r.Booker.FirstName + " " + r.Booker.LastName).Trim()))
                 .FirstOrDefaultAsync();
 
         private async Task SafeAsync(string name, Func<Task> action)

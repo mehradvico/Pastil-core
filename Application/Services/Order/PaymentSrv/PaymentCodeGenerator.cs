@@ -94,6 +94,7 @@ namespace Application.Services.Order.PaymentSrv
             PaymentCallbackTypeEnum.ConsultationPurchase => "CNS",
             PaymentCallbackTypeEnum.GroomerReserve => "GRM",
             PaymentCallbackTypeEnum.ClinicReserve => "CLN",
+            PaymentCallbackTypeEnum.CoachReserve => "CCH",
             _ => throw new ArgumentOutOfRangeException(nameof(targetType))
         };
     }

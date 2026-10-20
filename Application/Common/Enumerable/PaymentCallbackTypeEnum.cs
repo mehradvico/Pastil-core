@@ -14,6 +14,7 @@
         CompanionReserveBatch,
         ConsultationPurchase,
         GroomerReserve,
-        ClinicReserve
+        ClinicReserve,
+        CoachReserve
     }
 }

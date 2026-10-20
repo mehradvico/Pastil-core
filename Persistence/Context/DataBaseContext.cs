@@ -2,6 +2,7 @@
 using Entities.Entities.CompanionField;
 using Entities.Entities.GroomerField;
 using Entities.Entities.ClinicField;
+using Entities.Entities.CoachField;
 using Entities.Entities.CommonField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
@@ -212,8 +213,11 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<CompanionReport> CompanionReports { get; set; }
         public DbSet<CompanionReserve> CompanionReserves { get; set; }
         public DbSet<CompanionReserveMessage> CompanionReserveMessages { get; set; }
+        public DbSet<ClinicReserveMessage> ClinicReserveMessages { get; set; }
         public DbSet<CompanionReserveMessageAttachment> CompanionReserveMessageAttachments { get; set; }
+        public DbSet<ClinicReserveMessageAttachment> ClinicReserveMessageAttachments { get; set; }
         public DbSet<CompanionReserveMessageReaction> CompanionReserveMessageReactions { get; set; }
+        public DbSet<ClinicReserveMessageReaction> ClinicReserveMessageReactions { get; set; }
         public DbSet<OnlineSession> OnlineSessions { get; set; }
         public DbSet<OnlineSessionMessage> OnlineSessionMessages { get; set; }
         public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
@@ -305,21 +309,36 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<GroomerPortfolioLike> GroomerPortfolioLikes { get; set; }
         public DbSet<GroomerPortfolioComment> GroomerPortfolioComments { get; set; }
         public DbSet<Clinic> Clinics { get; set; }
+        public DbSet<Coach> Coaches { get; set; }
         public DbSet<ClinicType> ClinicTypes { get; set; }
         public DbSet<ClinicUser> ClinicUsers { get; set; }
+        public DbSet<CoachUser> CoachUsers { get; set; }
         public DbSet<ClinicService> ClinicServices { get; set; }
+        public DbSet<CoachService> CoachServices { get; set; }
         public DbSet<ClinicServicePackage> ClinicServicePackages { get; set; }
+        public DbSet<CoachServicePackage> CoachServicePackages { get; set; }
         public DbSet<ClinicServicePackageType> ClinicServicePackageTypes { get; set; }
+        public DbSet<CoachServicePackageType> CoachServicePackageTypes { get; set; }
         public DbSet<ClinicServicePackagePicture> ClinicServicePackagePictures { get; set; }
+        public DbSet<CoachServicePackagePicture> CoachServicePackagePictures { get; set; }
         public DbSet<ClinicServiceUser> ClinicServiceUsers { get; set; }
+        public DbSet<CoachServiceUser> CoachServiceUsers { get; set; }
         public DbSet<ClinicTime> ClinicTimes { get; set; }
+        public DbSet<CoachTime> CoachTimes { get; set; }
         public DbSet<ClinicZone> ClinicZones { get; set; }
+        public DbSet<CoachZone> CoachZones { get; set; }
         public DbSet<ClinicPet> ClinicPets { get; set; }
+        public DbSet<CoachPet> CoachPets { get; set; }
         public DbSet<ClinicPicture> ClinicPictures { get; set; }
+        public DbSet<CoachPicture> CoachPictures { get; set; }
         public DbSet<ClinicComment> ClinicComments { get; set; }
+        public DbSet<CoachComment> CoachComments { get; set; }
         public DbSet<ClinicReserve> ClinicReserves { get; set; }
+        public DbSet<CoachReserve> CoachReserves { get; set; }
+        public DbSet<CoachReserveItem> CoachReserveItems { get; set; }
         public DbSet<ClinicReserveItem> ClinicReserveItems { get; set; }
         public DbSet<SettlementClinic> SettlementClinics { get; set; }
+        public DbSet<SettlementCoach> SettlementCoaches { get; set; }
         public DbSet<PansionReserve> PansionReserves { get; set; }
         public DbSet<PetResanService> PetResanServices { get; set; }
         public DbSet<PetResanServiceSchedule> PetResanServiceSchedules { get; set; }
@@ -467,6 +486,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         {
             GroomerModelConfiguration.Apply(modelBuilder);
             ClinicModelConfiguration.Apply(modelBuilder);
+            CoachModelConfiguration.Apply(modelBuilder);
             modelBuilder.HasSequence<long>("PaymentCodeSequence");
             modelBuilder.HasSequence<long>("BusinessCodeSequence");
 
@@ -1060,6 +1080,11 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasIndex(item => item.ClinicReserveId)
                     .IsUnique()
                     .HasFilter("[ClinicReserveId] IS NOT NULL");
+                // برداشت کیف پول برای رزرو مربی: برای هر رزرو حداکثر یک ردیف (بازپرداخت‌ها CoachReserveId ندارند)
+                entity.HasOne(item => item.CoachReserve).WithMany().HasForeignKey(item => item.CoachReserveId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => item.CoachReserveId)
+                    .IsUnique()
+                    .HasFilter("[CoachReserveId] IS NOT NULL");
                 entity.HasIndex(item => item.TripId)
                     .IsUnique()
                     .HasFilter("[TripId] IS NOT NULL");

@@ -40,6 +40,10 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
                     .Where(x => x.ProviderId == providerId && !x.Deleted)
                     .Select(x => new ProviderVenueVDto { Id = x.Id, Name = x.Name, Active = x.Active, Approved = x.Approved })
                     .ToListAsync(),
+                Coaches = await _context.Coaches.AsNoTracking()
+                    .Where(x => x.ProviderId == providerId && !x.Deleted)
+                    .Select(x => new ProviderVenueVDto { Id = x.Id, Name = x.Name, Active = x.Active, Approved = x.Approved })
+                    .ToListAsync(),
                 Stores = await _context.Stores.AsNoTracking()
                     .Where(x => x.ProviderId == providerId && !x.Deleted)
                     .Select(x => new ProviderVenueVDto { Id = x.Id, Name = x.Name, Active = x.Active, Approved = x.Approved })
@@ -86,6 +90,21 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             if (provider == null)
                 return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
             var item = await _context.Clinics.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            item.ProviderId = provider.Id;
+            item.OwnerId = provider.UserId;
+            await _context.SaveChangesAsync();
+            await _sync.SyncProviderAsync(provider.Id);
+            return new BaseResultDto(true);
+        }
+        /// <summary>مربی (Coach) را به ارائه‌دهنده وصل می‌کند؛ مالک مربی = کاربر ارائه‌دهنده و سطح اشتراک همگام می‌شود.</summary>
+        public async Task<BaseResultDto> AssignCoachAsync(ProviderVenueAssignDto dto)
+        {
+            var provider = await _context.Providers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ProviderId && !x.Deleted);
+            if (provider == null)
+                return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
+            var item = await _context.Coaches.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             item.ProviderId = provider.Id;

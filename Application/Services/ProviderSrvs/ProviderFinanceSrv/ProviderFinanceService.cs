@@ -129,9 +129,14 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 .Where(g => g.ProviderId != null && providerIds.Contains(g.ProviderId.Value))
                 .Select(g => new { g.Id, ProviderId = g.ProviderId.Value, g.Deleted })
                 .ToListAsync();
+            var coachMap = await _context.Coaches.AsNoTracking()
+                .Where(g => g.ProviderId != null && providerIds.Contains(g.ProviderId.Value))
+                .Select(g => new { g.Id, ProviderId = g.ProviderId.Value, g.Deleted })
+                .ToListAsync();
 
             var groomerTotals = await GroomerTotalsAsync(groomerMap.Select(g => g.Id).ToList());
             var clinicTotals = await ClinicTotalsAsync(clinicMap.Select(g => g.Id).ToList());
+            var coachTotals = await CoachTotalsAsync(coachMap.Select(g => g.Id).ToList());
             var companionTotals = await CompanionTotalsAsync(companionMap.Select(c => c.Id).ToList());
             var storeData = await LoadStoreDataAsync(storeMap.Select(s => s.Id).ToList());
             var stats = await SettlementStatsAsync(providerIds);
@@ -157,6 +162,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 stats.TryGetValue((p.Id, SettlementKindEnum.Store), out var ss);
                 stats.TryGetValue((p.Id, SettlementKindEnum.Groomer), out var gs);
                 stats.TryGetValue((p.Id, SettlementKindEnum.Clinic), out var cls);
+                stats.TryGetValue((p.Id, SettlementKindEnum.Coach), out var cos);
 
                 var groomerPool = new Totals();
                 foreach (var g in groomerMap.Where(g => g.ProviderId == p.Id))
@@ -167,6 +173,10 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 foreach (var g in clinicMap.Where(g => g.ProviderId == p.Id))
                     if (clinicTotals.TryGetValue(g.Id, out var gt))
                         clinicPool.Add(gt);
+                var coachPool = new Totals();
+                foreach (var g in coachMap.Where(g => g.ProviderId == p.Id))
+                    if (coachTotals.TryGetValue(g.Id, out var gt))
+                        coachPool.Add(gt);
 
                 rows.Add(new ProviderFinanceRowVDto
                 {
@@ -179,14 +189,16 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                     StoreCount = storeMap.Count(s => s.ProviderId == p.Id && !s.Deleted),
                     GroomerCount = groomerMap.Count(g => g.ProviderId == p.Id && !g.Deleted),
                     ClinicCount = clinicMap.Count(g => g.ProviderId == p.Id && !g.Deleted),
+                    CoachCount = coachMap.Count(g => g.ProviderId == p.Id && !g.Deleted),
                     CompanionUnsettled = companionPool.UnsettledShare,
                     StoreUnsettled = storePool.UnsettledShare,
                     GroomerUnsettled = groomerPool.UnsettledShare,
                     ClinicUnsettled = clinicPool.UnsettledShare,
-                    TotalUnsettled = companionPool.UnsettledShare + storePool.UnsettledShare + groomerPool.UnsettledShare + clinicPool.UnsettledShare,
-                    TotalSettled = companionPool.SettledShare + storePool.SettledShare + groomerPool.SettledShare + clinicPool.SettledShare,
-                    PaidOut = (cs?.Paid ?? 0) + (ss?.Paid ?? 0) + (gs?.Paid ?? 0) + (cls?.Paid ?? 0),
-                    LastSettlementDate = new[] { cs?.Last, ss?.Last, gs?.Last, cls?.Last }.Max(),
+                    CoachUnsettled = coachPool.UnsettledShare,
+                    TotalUnsettled = companionPool.UnsettledShare + storePool.UnsettledShare + groomerPool.UnsettledShare + clinicPool.UnsettledShare + coachPool.UnsettledShare,
+                    TotalSettled = companionPool.SettledShare + storePool.SettledShare + groomerPool.SettledShare + clinicPool.SettledShare + coachPool.SettledShare,
+                    PaidOut = (cs?.Paid ?? 0) + (ss?.Paid ?? 0) + (gs?.Paid ?? 0) + (cls?.Paid ?? 0) + (cos?.Paid ?? 0),
+                    LastSettlementDate = new[] { cs?.Last, ss?.Last, gs?.Last, cls?.Last, cos?.Last }.Max(),
                     HasApprovedCard = usersWithCard.Contains(p.UserId),
                 });
             }
@@ -234,7 +246,12 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 .OrderBy(g => g.Id).Take(UnassignedVenueLimit)
                 .Select(g => new ProviderUnassignedVenueVDto { Kind = SettlementKindEnum.Clinic, Id = g.Id, Name = g.Name })
                 .ToListAsync();
-            return companions.Concat(stores).Concat(groomers).Concat(clinics).ToList();
+            var coaches = await _context.Coaches.AsNoTracking()
+                .Where(g => g.ProviderId == null && !g.Deleted)
+                .OrderBy(g => g.Id).Take(UnassignedVenueLimit)
+                .Select(g => new ProviderUnassignedVenueVDto { Kind = SettlementKindEnum.Coach, Id = g.Id, Name = g.Name })
+                .ToListAsync();
+            return companions.Concat(stores).Concat(groomers).Concat(clinics).Concat(coaches).ToList();
         }
 
         // ------------------------------------------------------------------ جزئیات
@@ -270,10 +287,16 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 .OrderBy(g => g.Id)
                 .Select(g => new { g.Id, g.Name, g.Active, g.Deleted })
                 .ToListAsync();
+            var coaches = await _context.Coaches.AsNoTracking()
+                .Where(g => g.ProviderId == providerId)
+                .OrderBy(g => g.Id)
+                .Select(g => new { g.Id, g.Name, g.Active, g.Deleted })
+                .ToListAsync();
 
             var companionTotals = await CompanionTotalsAsync(companions.Select(c => c.Id).ToList());
             var groomerTotals = await GroomerTotalsAsync(groomers.Select(g => g.Id).ToList());
             var clinicTotals = await ClinicTotalsAsync(clinics.Select(g => g.Id).ToList());
+            var coachTotals = await CoachTotalsAsync(coaches.Select(g => g.Id).ToList());
             var storeData = await LoadStoreDataAsync(stores.Select(s => s.Id).ToList());
             var stats = await SettlementStatsAsync(new[] { providerId });
 
@@ -306,6 +329,14 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 clinicPool.Add(t);
                 venues.Add(ToVenue(SettlementKindEnum.Clinic, g.Id, g.Name, g.Active, g.Deleted, t));
             }
+            var coachPool = new Totals();
+            foreach (var g in coaches)
+            {
+                coachTotals.TryGetValue(g.Id, out var t);
+                t ??= new Totals();
+                coachPool.Add(t);
+                venues.Add(ToVenue(SettlementKindEnum.Coach, g.Id, g.Name, g.Active, g.Deleted, t));
+            }
 
             var storePool = StorePoolTotals(storeData, storeToProvider, providerId, out var notReceived, out var shared);
             foreach (var s in stores)
@@ -320,6 +351,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             stats.TryGetValue((providerId, SettlementKindEnum.Store), out var ss);
             stats.TryGetValue((providerId, SettlementKindEnum.Groomer), out var gs);
             stats.TryGetValue((providerId, SettlementKindEnum.Clinic), out var cls);
+            stats.TryGetValue((providerId, SettlementKindEnum.Coach), out var cos);
 
             var detail = new ProviderFinanceDetailVDto
             {
@@ -332,6 +364,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 StorePool = ToSummary(SettlementKindEnum.Store, storePool, ss, notReceived, shared),
                 GroomerPool = ToSummary(SettlementKindEnum.Groomer, groomerPool, gs, 0, 0),
                 ClinicPool = ToSummary(SettlementKindEnum.Clinic, clinicPool, cls, 0, 0),
+                CoachPool = ToSummary(SettlementKindEnum.Coach, coachPool, cos, 0, 0),
                 Venues = venues,
                 Cards = GetCards(provider.UserId),
             };
@@ -403,6 +436,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 SettlementKindEnum.Companion => await PendingCompanionItemsAsync(providerId),
                 SettlementKindEnum.Groomer => await PendingGroomerItemsAsync(providerId),
                 SettlementKindEnum.Clinic => await PendingClinicItemsAsync(providerId),
+                SettlementKindEnum.Coach => await PendingCoachItemsAsync(providerId),
                 _ => await PendingStoreItemsAsync(providerId),
             };
 
@@ -516,6 +550,33 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 })
                 .ToListAsync();
         }
+        private async Task<List<ProviderPendingItemVDto>> PendingCoachItemsAsync(long providerId)
+        {
+            var coachIds = await _context.Coaches.AsNoTracking()
+                .Where(g => g.ProviderId == providerId)
+                .Select(g => g.Id)
+                .ToListAsync();
+            if (coachIds.Count == 0)
+                return new List<ProviderPendingItemVDto>();
+
+            return await SettlementSources.CoachReserves(_context, coachIds)
+                .Where(r => !r.Permitted)
+                .OrderBy(r => r.Id)
+                .Select(r => new ProviderPendingItemVDto
+                {
+                    VenueId = r.CoachId,
+                    VenueName = r.Coach.Name,
+                    Type = "Coach",
+                    Code = r.ReserveCode,
+                    BookerFullName = (r.Booker.FirstName + " " + r.Booker.LastName).Trim(),
+                    PaymentPrice = r.PaymentPrice,
+                    CommissionPercent = r.CommissionPercent,
+                    SiteShare = r.SiteShare,
+                    ProviderShare = r.ProviderShare,
+                    StatusLabel = "Complete",
+                })
+                .ToListAsync();
+        }
 
         private async Task<List<ProviderPendingItemVDto>> PendingStoreItemsAsync(long providerId)
         {
@@ -614,6 +675,25 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             if (clinicIds.Count == 0)
                 return result;
             foreach (var row in await ProviderFinanceQueries.ClinicReserveGroups(_context, clinicIds).ToListAsync())
+            {
+                result[row.Key] = new Totals
+                {
+                    Count = row.Count,
+                    UnsettledCount = row.UnsettledCount,
+                    ProviderShare = row.ProviderShare,
+                    SiteShare = row.SiteShare,
+                    SettledShare = row.SettledShare,
+                    UnsettledShare = row.UnsettledShare,
+                };
+            }
+            return result;
+        }
+        private async Task<Dictionary<long, Totals>> CoachTotalsAsync(IReadOnlyCollection<long> coachIds)
+        {
+            var result = new Dictionary<long, Totals>();
+            if (coachIds.Count == 0)
+                return result;
+            foreach (var row in await ProviderFinanceQueries.CoachReserveGroups(_context, coachIds).ToListAsync())
             {
                 result[row.Key] = new Totals
                 {

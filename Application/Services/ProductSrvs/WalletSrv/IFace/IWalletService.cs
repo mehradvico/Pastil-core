@@ -21,6 +21,7 @@ namespace Application.Services.ProductSrvs.WalletSrv.IFace
         Task<BaseResultDto<WalletDto>> InsertUpdateSchoolReserveAsync(WalletDto dto, bool complete);
         Task<BaseResultDto<WalletDto>> InsertUpdateGroomerReserveAsync(WalletDto dto, bool complete);
         Task<BaseResultDto<WalletDto>> InsertUpdateClinicReserveAsync(WalletDto dto, bool complete);
+        Task<BaseResultDto<WalletDto>> InsertUpdateCoachReserveAsync(WalletDto dto, bool complete);
         Task<BaseResultDto<WalletDto>> InsertUpdateInsuranceAsync(WalletDto dto, bool complete);
         Task<BaseResultDto<WalletDto>> InsertUpdatePastilAiSubscriptionAsync(WalletDto dto, bool complete);
         Task<BaseResultDto<WalletDto>> InsertUpdateConsultationPurchaseAsync(WalletDto dto, bool complete);

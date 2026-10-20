@@ -14,6 +14,7 @@
         PaymentType_CompanionReserveBatch = 31,
         PaymentType_ConsultationPurchase = 32,
         PaymentType_GroomerReserve = 33,
-        PaymentType_ClinicReserve = 34
+        PaymentType_ClinicReserve = 34,
+        PaymentType_CoachReserve = 35
     }
 }

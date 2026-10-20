@@ -65,12 +65,21 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv.Dto
         public decimal CommissionPercent { get; set; }
         public double ProviderShare { get; set; }
         public double SiteShare { get; set; }
+        /// <summary>۱ در انتظار تأیید، ۲ تأییدشده، ۳ لغوشده.</summary>
+        public int Status { get; set; }
+        public string StatusReason { get; set; }
+        public double RefundAmount { get; set; }
+        public bool AddedAfterPayment { get; set; }
     }
 
     public class ClinicReserveVDto
     {
         public int RescheduleCount { get; set; }
         public DateTime? OriginalDoDate { get; set; }
+        public DateTime? CallStartDate { get; set; }
+        public DateTime? CallEndDate { get; set; }
+        /// <summary>سفر پت‌رسانِ متصل (اگر بود)؛ پرداختش جدا از رزرو است.</summary>
+        public Application.Services.TripSrv.TripSrv.Dto.LinkedPetResanTripVDto PetResanTrip { get; set; }
         public List<ClinicReserveItemVDto> Items { get; set; } = new List<ClinicReserveItemVDto>();
         public long Id { get; set; }
         public string ReserveCode { get; set; }

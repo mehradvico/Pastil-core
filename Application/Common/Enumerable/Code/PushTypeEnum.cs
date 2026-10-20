@@ -222,6 +222,40 @@ namespace Application.Common.Enumerable.Code
         /// <summary>به کاربرِ دعوت‌شده: دعوت به عضویت در پرسنل کلینیک. Token1 = نام کلینیک.</summary>
         PushClinicStaffInvite = 146,
         /// <summary>به کاربر: رزرو توسط ادمین لغو شد. Token1 = نام کلینیک، Token2 = دلیل.</summary>
-        PushClinicReserveCancelledByAdmin = 147
+        PushClinicReserveCancelledByAdmin = 147,
+        /// <summary>به کاربر: کلینیک یک بسته‌ی رزروش را تأیید کرد. Token1 = نام بسته، Token3 = شناسه‌ی رزرو.</summary>
+        PushClinicReserveItemApproved = 148,
+        /// <summary>به کاربر: کلینیک/ادمین یک بسته‌ی رزرو را لغو کرد و سهم پرداختی به کیف پول برگشت. Token1 = نام بسته، Token4 = مبلغ برگشتی.</summary>
+        PushClinicReserveItemCancelled = 149,
+        /// <summary>پیام تازه در گفتگوی رزرو کلینیک. Token1 = نام فرستنده، Token2 = پیش‌نمایش، Token3 = شناسه‌ی رزرو کلینیک.</summary>
+        PushClinicReserveNewMessage = 150,
+        /// <summary>به کاربر: کلینیک تماس درون‌برنامه‌ای رزرو را شروع کرد. Token1 = نام کلینیک، Token2 = شناسه‌ی رزرو کلینیک.</summary>
+        PushClinicInAppCallStarted = 151,
+        /// <summary>به کلینیک/پزشک: ۱۰ دقیقه به رزرو آنلاین مانده. Token1 = نام مشتری، Token2 = بسته، Token3 = نحوه‌ی ارائه، Token4 = شناسه‌ی رزرو کلینیک.</summary>
+        PushClinicOnlineReserveReminderBefore = 152,
+        /// <summary>به کلینیک/پزشک: زمان رزرو آنلاین رسید. Token1 = نام مشتری، Token2 = بسته، Token3 = نحوه‌ی ارائه، Token4 = شناسه‌ی رزرو کلینیک.</summary>
+        PushClinicOnlineReserveReminderAtTime = 153,
+        /// <summary>به مالک مربی: رزرو جدید پرداخت شد و منتظر تأیید شماست. Token1 = نام مربی، Token2 = نام پت، Token3 = شناسه‌ی رزرو.</summary>
+        PushCoachReserveApprovalRequired = 154,
+        /// <summary>به کاربر: مربی رزرو را تأیید کرد. Token1 = نام مربی، Token2 = نام پت، Token3 = شناسه‌ی رزرو.</summary>
+        PushCoachReserveApproved = 155,
+        /// <summary>به کاربر: مربی رزرو را رد کرد و مبلغ به کیف پول برگشت. Token1 = نام مربی، Token2 = دلیل.</summary>
+        PushCoachReserveRejected = 156,
+        /// <summary>به کاربر: مربی در مهلت پاسخ نداد؛ رزرو لغو و مبلغ برگشت.</summary>
+        PushCoachReserveExpired = 157,
+        /// <summary>به مالک مربی: کاربر رزرو را لغو کرد. Token1 = نام پت، Token2 = زمان نوبت.</summary>
+        PushCoachReserveCancelledByBooker = 158,
+        /// <summary>به مالک: مربی تأیید شد. Token1 = نام مربی.</summary>
+        PushCoachApproved = 159,
+        /// <summary>به مالک: مربی رد شد. Token1 = نام مربی، Token2 = دلیل.</summary>
+        PushCoachRejected = 160,
+        /// <summary>به کاربر: زمان رزرو عوض شد. Token1 = نام مربی، Token2 = تاریخ، Token3 = ساعت.</summary>
+        PushCoachReserveRescheduled = 161,
+        /// <summary>به مالک: زمان رزرو توسط ادمین عوض شد. Token1 = نام پت، Token2 = تاریخ، Token3 = ساعت.</summary>
+        PushCoachReserveRescheduledForCoach = 162,
+        /// <summary>به کاربرِ دعوت‌شده: دعوت به عضویت در پرسنل مربی. Token1 = نام مربی.</summary>
+        PushCoachStaffInvite = 163,
+        /// <summary>به کاربر: رزرو توسط ادمین لغو شد. Token1 = نام مربی، Token2 = دلیل.</summary>
+        PushCoachReserveCancelledByAdmin = 164,
     }
 }

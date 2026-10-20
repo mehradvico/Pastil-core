@@ -178,6 +178,10 @@ namespace Application.Services.ProductSrvs.WalletSrv
         {
             return await InsertUpdateReferenceAsync(dto, complete);
         }
+        public async Task<BaseResultDto<WalletDto>> InsertUpdateCoachReserveAsync(WalletDto dto, bool complete)
+        {
+            return await InsertUpdateReferenceAsync(dto, complete);
+        }
         public async Task<BaseResultDto<WalletDto>> InsertUpdateInsuranceAsync(WalletDto dto, bool complete)
         {
             return await InsertUpdateReferenceAsync(dto, complete);
@@ -230,6 +234,8 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 query = query.Where(s => s.GroomerReserveId == dto.GroomerReserveId);
             else if (dto.ClinicReserveId.HasValue)
                 query = query.Where(s => s.ClinicReserveId == dto.ClinicReserveId);
+            else if (dto.CoachReserveId.HasValue)
+                query = query.Where(s => s.CoachReserveId == dto.CoachReserveId);
             else if (dto.ConsultationPurchaseId.HasValue)
                 query = query.Where(s => s.ConsultationPurchaseId == dto.ConsultationPurchaseId);
             else
@@ -359,6 +365,18 @@ namespace Application.Services.ProductSrvs.WalletSrv
                     ClubRewardTargetTypeEnum.Clinic,
                     clinicId,
                     $"clinic-reserve:{dto.ClinicReserveId.Value}");
+            }
+            if (dto.CoachReserveId.HasValue)
+            {
+                var coachId = await _context.CoachReserves.AsNoTracking()
+                    .Where(item => item.Id == dto.CoachReserveId.Value)
+                    .Select(item => (long?)item.CoachId)
+                    .FirstOrDefaultAsync();
+                return new PromotionalReference(
+                    ClubRewardApplicationMethodEnum.CoachReservation,
+                    ClubRewardTargetTypeEnum.Coach,
+                    coachId,
+                    $"coach-reserve:{dto.CoachReserveId.Value}");
             }
             if (dto.PastilAiSubscriptionId.HasValue)
             {

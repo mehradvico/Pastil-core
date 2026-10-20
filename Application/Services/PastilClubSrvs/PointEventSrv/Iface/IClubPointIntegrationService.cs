@@ -14,6 +14,7 @@ namespace Application.Services.PastilClubSrvs.PointEventSrv.Iface
         Task PansionReserveReversedAsync(long userId, long reserveId, CancellationToken cancellationToken = default);
         Task GroomerReserveCompletedAsync(long userId, long reserveId, CancellationToken cancellationToken = default);
         Task ClinicReserveCompletedAsync(long userId, long reserveId, CancellationToken cancellationToken = default);
+        Task CoachReserveCompletedAsync(long userId, long reserveId, CancellationToken cancellationToken = default);
         Task PetProfileCompletedAsync(long userId, long userPetId, CancellationToken cancellationToken = default);
         Task MemoryCreatedAsync(long userId, long memoryId, DateTimeOffset memoryDate, CancellationToken cancellationToken = default);
         Task MemoryReversedAsync(long userId, long memoryId, DateTimeOffset memoryDate, CancellationToken cancellationToken = default);

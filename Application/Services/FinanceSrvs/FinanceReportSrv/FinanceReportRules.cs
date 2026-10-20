@@ -9,7 +9,7 @@ namespace Application.Services.FinanceSrvs.FinanceReportSrv
         // کلید منابع درآمد؛ همان نام PaymentCallbackTypeEnum (CompanionReserveBatch جزو CompanionReserve است)
         public static readonly string[] SourceKeys =
         {
-            "ProductOrder", "CompanionReserve", "PansionReserve", "SchoolReserve", "GroomerReserve", "ClinicReserve",
+            "ProductOrder", "CompanionReserve", "PansionReserve", "SchoolReserve", "GroomerReserve", "ClinicReserve", "CoachReserve",
             "ConsultationPurchase", "Trip", "Cargo", "Insurance", "PastilAI"
         };
 

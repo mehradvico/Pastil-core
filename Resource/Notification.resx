@@ -2407,4 +2407,238 @@
   <data name="ClinicRescheduleReasonBySupport" xml:space="preserve">
     <value>Requested by support</value>
   </data>
+  <data name="ClinicReserveItemStatusInvalid" xml:space="preserve">
+    <value>The package status change is not valid.</value>
+  </data>
+  <data name="ClinicReserveItemNeedsPaidReserve" xml:space="preserve">
+    <value>The reservation must be paid first.</value>
+  </data>
+  <data name="ClinicReserveItemNotModifiable" xml:space="preserve">
+    <value>This reservation can no longer be changed.</value>
+  </data>
+  <data name="ClinicReserveItemNotFound" xml:space="preserve">
+    <value>The package was not found in this reservation.</value>
+  </data>
+  <data name="ClinicReserveItemRefundFailed" xml:space="preserve">
+    <value>Refunding the package to the wallet failed.</value>
+  </data>
+  <data name="ClinicReserveTripNotAvailable" xml:space="preserve">
+    <value>A pet-transport trip is only available for a paid in-person clinic reservation.</value>
+  </data>
+  <data name="ClinicReserveMessageAttachmentNotAvailable" xml:space="preserve">
+    <value>ClinicReserveMessageAttachmentNotAvailable</value>
+  </data>
+  <data name="ClinicReserveMessageReactionRequired" xml:space="preserve">
+    <value>ClinicReserveMessageReactionRequired</value>
+  </data>
+  <data name="ClinicReserveMessageReactionTooLong" xml:space="preserve">
+    <value>ClinicReserveMessageReactionTooLong</value>
+  </data>
+  <data name="InvalidClinicReserveMessageType" xml:space="preserve">
+    <value>InvalidClinicReserveMessageType</value>
+  </data>
+  <data name="ClinicReserveMessageContentRequired" xml:space="preserve">
+    <value>ClinicReserveMessageContentRequired</value>
+  </data>
+  <data name="ClinicReserveMessagePreviewImage" xml:space="preserve">
+    <value>ClinicReserveMessagePreviewImage</value>
+  </data>
+  <data name="ClinicReserveMessagePreviewNewMessage" xml:space="preserve">
+    <value>ClinicReserveMessagePreviewNewMessage</value>
+  </data>
+  <data name="CoachProviderRequired" xml:space="preserve">
+    <value>A coach must belong to an approved provider.</value>
+  </data>
+  <data name="CoachSelectedStateInvalid" xml:space="preserve">
+    <value>The selected state is invalid.</value>
+  </data>
+  <data name="CoachSelectedCityNotInState" xml:space="preserve">
+    <value>The selected city does not belong to the selected state.</value>
+  </data>
+  <data name="CoachPleaseEnterAddress" xml:space="preserve">
+    <value>Please enter the address.</value>
+  </data>
+  <data name="CoachPleaseSelectLocation" xml:space="preserve">
+    <value>Please select the location on the map.</value>
+  </data>
+  <data name="CoachLocationCoordinatesNotValid" xml:space="preserve">
+    <value>The location coordinates are not valid.</value>
+  </data>
+  <data name="CoachPictureInvalid" xml:space="preserve">
+    <value>The selected picture is invalid.</value>
+  </data>
+  <data name="CoachPleaseEnterPhone" xml:space="preserve">
+    <value>Please enter the phone number.</value>
+  </data>
+  <data name="CoachOwnerInvalid" xml:space="preserve">
+    <value>The owner of the coach does not match its provider.</value>
+  </data>
+  <data name="CoachValueOutOfRange" xml:space="preserve">
+    <value>One of the numeric values is out of the allowed range.</value>
+  </data>
+  <data name="CoachServiceAlreadyExists" xml:space="preserve">
+    <value>This service is already defined for the coach.</value>
+  </data>
+  <data name="CoachServiceAssistanceInvalid" xml:space="preserve">
+    <value>The selected service is not available in the catalog.</value>
+  </data>
+  <data name="CoachPackagePriceInvalid" xml:space="preserve">
+    <value>The package price must be greater than zero and not less than the prepayment.</value>
+  </data>
+  <data name="CoachPackagePetSizeInvalid" xml:space="preserve">
+    <value>The pet size must be Small, Medium or Large.</value>
+  </data>
+  <data name="CoachTimeInvalid" xml:space="preserve">
+    <value>The working time range is invalid.</value>
+  </data>
+  <data name="CoachUserAlreadyExists" xml:space="preserve">
+    <value>This user is already a staff member of the coach.</value>
+  </data>
+  <data name="CoachCommentTextRequired" xml:space="preserve">
+    <value>Please write the comment text.</value>
+  </data>
+  <data name="CoachReserveCoachUnavailable" xml:space="preserve">
+    <value>This coach is not available for booking.</value>
+  </data>
+  <data name="CoachReservePackageInvalid" xml:space="preserve">
+    <value>The selected service package is not available.</value>
+  </data>
+  <data name="CoachReservePetInvalid" xml:space="preserve">
+    <value>The selected pet is invalid.</value>
+  </data>
+  <data name="CoachReservePetTypeNotAccepted" xml:space="preserve">
+    <value>This coach does not accept this type of pet.</value>
+  </data>
+  <data name="CoachReservePetSizeMismatch" xml:space="preserve">
+    <value>This package is not suitable for the size of your pet.</value>
+  </data>
+  <data name="CoachReserveTimeInPast" xml:space="preserve">
+    <value>The appointment time must be in the future.</value>
+  </data>
+  <data name="CoachReserveOutsideWorkingHours" xml:space="preserve">
+    <value>The appointment is outside the coach's working hours.</value>
+  </data>
+  <data name="CoachReserveSlotFull" xml:space="preserve">
+    <value>This time slot is fully booked. Please choose another time.</value>
+  </data>
+  <data name="CoachReservePetBusy" xml:space="preserve">
+    <value>Your pet already has an appointment at this time.</value>
+  </data>
+  <data name="CoachReserveHomeServiceUnavailable" xml:space="preserve">
+    <value>This coach does not provide services at the customer's location.</value>
+  </data>
+  <data name="CoachReserveSalonServiceUnavailable" xml:space="preserve">
+    <value>This coach only provides services at the customer's location.</value>
+  </data>
+  <data name="CoachReserveAddressRequired" xml:space="preserve">
+    <value>Please select an address for the at-home service.</value>
+  </data>
+  <data name="CoachReserveAddressOutOfZone" xml:space="preserve">
+    <value>Your address is outside the coach's service area.</value>
+  </data>
+  <data name="CoachReservePickupUnavailable" xml:space="preserve">
+    <value>This coach does not offer pickup and delivery.</value>
+  </data>
+  <data name="CoachReserveAssigneeInvalid" xml:space="preserve">
+    <value>The selected coach staff member is not available for this service.</value>
+  </data>
+  <data name="CoachReserveDatePassed" xml:space="preserve">
+    <value>The appointment time has passed.</value>
+  </data>
+  <data name="CoachReserveAwaitingOwnerApproval" xml:space="preserve">
+    <value>This reservation is waiting for the coach's approval.</value>
+  </data>
+  <data name="CoachReserveApprovalNotPending" xml:space="preserve">
+    <value>This reservation is not waiting for approval.</value>
+  </data>
+  <data name="CoachReserveRejectReasonRequired" xml:space="preserve">
+    <value>Please enter the reason for rejecting the reservation.</value>
+  </data>
+  <data name="CoachReserveApprovedSuccessfully" xml:space="preserve">
+    <value>The reservation was approved.</value>
+  </data>
+  <data name="CoachReserveRejectedSuccessfully" xml:space="preserve">
+    <value>The reservation was cancelled and the payment was refunded to the customer's wallet.</value>
+  </data>
+  <data name="CoachReserveRefundFailed" xml:space="preserve">
+    <value>Refunding the reservation failed; the reservation was not cancelled.</value>
+  </data>
+  <data name="CoachReserveExpiredReason" xml:space="preserve">
+    <value>The coach did not respond in time.</value>
+  </data>
+  <data name="CoachReserveCannotCancel" xml:space="preserve">
+    <value>This reservation cannot be cancelled.</value>
+  </data>
+  <data name="CoachReserveCancelledWithRefund" xml:space="preserve">
+    <value>The reservation was cancelled and the payment was refunded to your wallet.</value>
+  </data>
+  <data name="CoachReserveCancelledNoRefund" xml:space="preserve">
+    <value>The reservation was cancelled. Because the free cancellation window has passed, the payment is not refunded.</value>
+  </data>
+  <data name="CoachReserveNotStartedYet" xml:space="preserve">
+    <value>A reservation cannot be completed before its appointment time.</value>
+  </data>
+  <data name="CoachReserveAlreadyCompleted" xml:space="preserve">
+    <value>This reservation is already completed.</value>
+  </data>
+  <data name="CoachReserveNotPaid" xml:space="preserve">
+    <value>Only paid reservations can be changed.</value>
+  </data>
+  <data name="CoachReviewNotAllowed" xml:space="preserve">
+    <value>You can review a coach only after a completed reservation.</value>
+  </data>
+  <data name="CoachReviewAlreadyExists" xml:space="preserve">
+    <value>You have already reviewed this reservation.</value>
+  </data>
+  <data name="CoachReviewRateInvalid" xml:space="preserve">
+    <value>The rating must be between 1 and 5.</value>
+  </data>
+  <data name="CoachReserveTooManyPackages" xml:space="preserve">
+    <value>A reservation can include at most 5 packages.</value>
+  </data>
+  <data name="CoachReserveDuplicateService" xml:space="preserve">
+    <value>Each service can be selected only once in a reservation.</value>
+  </data>
+  <data name="CoachReserveTooLong" xml:space="preserve">
+    <value>The total duration of the selected packages is too long for one appointment.</value>
+  </data>
+  <data name="CoachReserveRescheduleNotAllowed" xml:space="preserve">
+    <value>Only a paid, active and not completed reservation can be rescheduled.</value>
+  </data>
+  <data name="CoachReserveRescheduleSameTime" xml:space="preserve">
+    <value>The new time is the same as the current time.</value>
+  </data>
+  <data name="CoachStaffInviteNotFound" xml:space="preserve">
+    <value>The invitation was not found.</value>
+  </data>
+  <data name="CoachStaffInviteAnswered" xml:space="preserve">
+    <value>This invitation was already answered.</value>
+  </data>
+  <data name="CoachServiceNotGrooming" xml:space="preserve">
+    <value>This service is not a grooming service.</value>
+  </data>
+  <data name="CoachServiceIsGrooming" xml:space="preserve">
+    <value>Grooming services are only for groomers.</value>
+  </data>
+  <data name="CoachPackageModeInvalid" xml:space="preserve">
+    <value>The package service modes are invalid or duplicated.</value>
+  </data>
+  <data name="CoachReserveModeInvalid" xml:space="preserve">
+    <value>The selected service mode is invalid.</value>
+  </data>
+  <data name="CoachReserveOnlineUnavailable" xml:space="preserve">
+    <value>This coach does not offer online service.</value>
+  </data>
+  <data name="CoachReservePackageNotOffered" xml:space="preserve">
+    <value>This package is not offered in the selected service mode.</value>
+  </data>
+  <data name="CoachRescheduleReasonByOwner" xml:space="preserve">
+    <value>Requested by the coach</value>
+  </data>
+  <data name="CoachRescheduleReasonBySupport" xml:space="preserve">
+    <value>Requested by support</value>
+  </data>
+  <data name="ClubPointCoachReserveCompletedDescription" xml:space="preserve">
+    <value>Points for completing coach reservation {0}</value>
+  </data>
 </root>

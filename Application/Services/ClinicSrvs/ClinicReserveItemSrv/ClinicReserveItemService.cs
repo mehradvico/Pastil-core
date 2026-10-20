@@ -200,7 +200,10 @@ namespace Application.Services.ClinicSrvs.ClinicReserveItemSrv
 
                 await RunSafeAsync(() => NotifyBookerAsync(reserve, item, cancelling, refund), "item status push");
                 if (reserveCancelled)
+                {
                     await RunSafeAsync(() => _tripService.CancelLinkedTripForClinicReserveAsync(reserve.Id), "linked trip cancel");
+                    await RunSafeAsync(() => ClinicReserveReminders.RemoveAsync(_context, reserve.Id), "reminders remove");
+                }
 
                 return new BaseResultDto<ClinicReserveItemStatusResultVDto>(true, new ClinicReserveItemStatusResultVDto
                 {
@@ -378,7 +381,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveItemSrv
             catch (Exception ex) { _logger.LogError(ex, "Post-commit action failed: {Action}", what); }
         }
 
-        private static ClinicReserveItemVDto ToVDto(ClinicReserveItem i) => new ClinicReserveItemVDto
+        private static ClinicReserveItemRowVDto ToVDto(ClinicReserveItem i) => new ClinicReserveItemRowVDto
         {
             Id = i.Id,
             PackageId = i.ClinicServicePackageId,
@@ -396,7 +399,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveItemSrv
             CreateDate = i.CreateDate,
         };
 
-        private static ClinicReserveItemSummaryVDto Summarize(List<ClinicReserveItemVDto> items) => new ClinicReserveItemSummaryVDto
+        private static ClinicReserveItemSummaryVDto Summarize(List<ClinicReserveItemRowVDto> items) => new ClinicReserveItemSummaryVDto
         {
             Total = items.Count,
             Pending = items.Count(i => i.Status == (int)ClinicReserveItemStatusEnum.Pending),

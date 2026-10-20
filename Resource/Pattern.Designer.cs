@@ -722,5 +722,113 @@ namespace Resource {
             }
         }
 
+        public static string PushClinicReserveItemApproved {
+            get {
+                return ResourceManager.GetString("PushClinicReserveItemApproved", resourceCulture);
+            }
+        }
+
+        public static string PushClinicReserveItemCancelled {
+            get {
+                return ResourceManager.GetString("PushClinicReserveItemCancelled", resourceCulture);
+            }
+        }
+
+        public static string PushClinicReserveNewMessage {
+            get {
+                return ResourceManager.GetString("PushClinicReserveNewMessage", resourceCulture);
+            }
+        }
+
+        public static string PushClinicInAppCallStarted {
+            get {
+                return ResourceManager.GetString("PushClinicInAppCallStarted", resourceCulture);
+            }
+        }
+
+        public static string PushClinicOnlineReserveReminderBefore {
+            get {
+                return ResourceManager.GetString("PushClinicOnlineReserveReminderBefore", resourceCulture);
+            }
+        }
+
+        public static string PushClinicOnlineReserveReminderAtTime {
+            get {
+                return ResourceManager.GetString("PushClinicOnlineReserveReminderAtTime", resourceCulture);
+            }
+        }
+
+        public static string PushCoachReserveApprovalRequired {
+            get {
+                return ResourceManager.GetString("PushCoachReserveApprovalRequired", resourceCulture);
+            }
+        }
+
+        public static string PushCoachReserveApproved {
+            get {
+                return ResourceManager.GetString("PushCoachReserveApproved", resourceCulture);
+            }
+        }
+
+        public static string PushCoachReserveRejected {
+            get {
+                return ResourceManager.GetString("PushCoachReserveRejected", resourceCulture);
+            }
+        }
+
+        public static string PushCoachReserveExpired {
+            get {
+                return ResourceManager.GetString("PushCoachReserveExpired", resourceCulture);
+            }
+        }
+
+        public static string PushCoachReserveCancelledByBooker {
+            get {
+                return ResourceManager.GetString("PushCoachReserveCancelledByBooker", resourceCulture);
+            }
+        }
+
+        public static string PushCoachApproved {
+            get {
+                return ResourceManager.GetString("PushCoachApproved", resourceCulture);
+            }
+        }
+
+        public static string PushCoachRejected {
+            get {
+                return ResourceManager.GetString("PushCoachRejected", resourceCulture);
+            }
+        }
+
+        public static string PushCoachReserveRescheduled {
+            get {
+                return ResourceManager.GetString("PushCoachReserveRescheduled", resourceCulture);
+            }
+        }
+
+        public static string PushCoachReserveRescheduledForCoach {
+            get {
+                return ResourceManager.GetString("PushCoachReserveRescheduledForCoach", resourceCulture);
+            }
+        }
+
+        public static string PushCoachStaffInvite {
+            get {
+                return ResourceManager.GetString("PushCoachStaffInvite", resourceCulture);
+            }
+        }
+
+        public static string PushCoachReserveCancelledByAdmin {
+            get {
+                return ResourceManager.GetString("PushCoachReserveCancelledByAdmin", resourceCulture);
+            }
+        }
+
+        public static string WalletTargetCoachReserve {
+            get {
+                return ResourceManager.GetString("WalletTargetCoachReserve", resourceCulture);
+            }
+        }
+
     }
 }

@@ -91,6 +91,19 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                     SettledShare = g.Sum(x => x.Permitted ? x.ProviderShare : 0d),
                     UnsettledShare = g.Sum(x => x.Permitted ? 0d : x.ProviderShare),
                 });
+        public static IQueryable<GroupRow> CoachReserveGroups(IDataBaseContext context, IReadOnlyCollection<long> coachIds)
+            => SettlementSources.CoachReserves(context, coachIds)
+                .GroupBy(r => r.CoachId)
+                .Select(g => new GroupRow
+                {
+                    Key = g.Key,
+                    Count = g.Count(),
+                    UnsettledCount = g.Count(x => !x.Permitted),
+                    ProviderShare = g.Sum(x => x.ProviderShare),
+                    SiteShare = g.Sum(x => x.SiteShare),
+                    SettledShare = g.Sum(x => x.Permitted ? x.ProviderShare : 0d),
+                    UnsettledShare = g.Sum(x => x.Permitted ? 0d : x.ProviderShare),
+                });
 
         public static IQueryable<GroupRow> PansionReserveGroups(IDataBaseContext context, IReadOnlyCollection<long> companionIds)
             => SettlementSources.PansionReserves(context, companionIds)

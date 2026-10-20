@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Application.Services.ClinicSrvs.ClinicReserveItemSrv.Dto
 {
     /// <summary>یک بسته داخل رزرو با وضعیتش. Status: 1 در انتظار تأیید، 2 تأییدشده، 3 لغوشده.</summary>
-    public class ClinicReserveItemVDto
+    public class ClinicReserveItemRowVDto
     {
         public long Id { get; set; }
         public long PackageId { get; set; }
@@ -38,7 +38,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveItemSrv.Dto
         public long ReserveId { get; set; }
         /// <summary>true = کلینیک/ادمین هنوز می‌تواند تأیید/لغو/افزودن کند (رزرو پرداخت‌شده و لغو/تکمیل‌نشده).</summary>
         public bool CanManage { get; set; }
-        public List<ClinicReserveItemVDto> Items { get; set; } = new List<ClinicReserveItemVDto>();
+        public List<ClinicReserveItemRowVDto> Items { get; set; } = new List<ClinicReserveItemRowVDto>();
         public ClinicReserveItemSummaryVDto Summary { get; set; } = new ClinicReserveItemSummaryVDto();
     }
 
@@ -57,7 +57,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveItemSrv.Dto
 
     public class ClinicReserveItemStatusResultVDto
     {
-        public ClinicReserveItemVDto Item { get; set; }
+        public ClinicReserveItemRowVDto Item { get; set; }
         public double RefundAmount { get; set; }
         /// <summary>true = آخرین بسته‌ی فعال هم لغو شد و کل رزرو لغو شد.</summary>
         public bool ReserveCancelled { get; set; }

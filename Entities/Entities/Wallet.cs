@@ -25,6 +25,7 @@ namespace Entities.Entities
         public long? SchoolReserveId { get; set; }
         public long? GroomerReserveId { get; set; }
         public long? ClinicReserveId { get; set; }
+        public long? CoachReserveId { get; set; }
         public long? ConsultationPurchaseId { get; set; }
         public bool Painding { get; set; }
         public bool Deleted { get; set; }
@@ -40,6 +41,7 @@ namespace Entities.Entities
         public SchoolReserve SchoolReserve { get; set; }
         public Entities.GroomerField.GroomerReserve GroomerReserve { get; set; }
         public Entities.ClinicField.ClinicReserve ClinicReserve { get; set; }
+        public Entities.CoachField.CoachReserve CoachReserve { get; set; }
         public ConsultationPurchase ConsultationPurchase { get; set; }
     }
 }
