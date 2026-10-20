@@ -2,6 +2,7 @@
 using Entities.Entities.CompanionField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
+using Entities.Entities.ProviderField;
 using Entities.Entities.Security;
 using NetTopologySuite.Geometries;
 using System;
@@ -13,6 +14,8 @@ namespace Entities.Entities
     {
         public bool IsPersonal { get; set; }
         public long OwnerId { get; set; }
+        /// <summary>ارائه‌دهنده‌ی صاحب این مکان؛ جایگزین تدریجی OwnerId (فعلاً هر دو پر می‌شوند).</summary>
+        public long? ProviderId { get; set; }
         public string ReferralCode { get; set; }
         public DateTime? GoldAccountDate { get; set; }
         public DateTime? SilverAccountDate { get; set; }
@@ -40,6 +43,7 @@ namespace Entities.Entities
         public Picture BackgroundPicture { get; set; }
         public Picture Icon { get; set; }
         public User Owner { get; set; }
+        public Provider Provider { get; set; }
         public ICollection<CompanionType> CompanionTypes { get; set; }
         public ICollection<CompanionAssistance> CompanionAssistances { get; set; }
         public ICollection<CompanionUser> CompanionUsers { get; set; }

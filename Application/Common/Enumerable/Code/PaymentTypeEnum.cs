@@ -12,6 +12,8 @@
         PaymentType_PastilAI = 29,
         PaymentType_SchoolReserve = 30,
         PaymentType_CompanionReserveBatch = 31,
-        PaymentType_ConsultationPurchase = 32
+        PaymentType_ConsultationPurchase = 32,
+        PaymentType_GroomerReserve = 33,
+        PaymentType_ClinicReserve = 34
     }
 }

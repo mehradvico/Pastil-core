@@ -11,6 +11,8 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
 {
     public class StoreFinanceVDto : Name_FieldDto
     {
+        /// <summary>ارائه‌دهنده‌ی صاحب فروشگاه؛ تسویه و حسابداری روی ارائه‌دهنده است.</summary>
+        public long? ProviderId { get; set; }
         public string Mobile { get; set; }
         public decimal CommissionPercent { get; set; }
         public bool HasCommission { get; set; }

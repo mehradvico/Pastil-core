@@ -13,6 +13,8 @@ namespace Application.Common.Enumerable.Code
         ScoreTransactionType_PansionReserve = 71,
         ScoreTransactionType_Spent = 72,
         ScoreTransactionType_AdminCharge = 73,
-        ScoreTransactionType_ReferralCode = 74
+        ScoreTransactionType_ReferralCode = 74,
+        ScoreTransactionType_GroomerReserve = 75,
+        ScoreTransactionType_ClinicReserve = 76
     }
 }

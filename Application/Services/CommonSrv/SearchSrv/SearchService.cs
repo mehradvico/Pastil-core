@@ -38,6 +38,7 @@ using Persistence.Interface;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Application.Services.CommonSrv.SearchSrv
 {
@@ -48,19 +49,22 @@ namespace Application.Services.CommonSrv.SearchSrv
         private readonly IDataBaseContext _context;
         private readonly ISearchSemanticReranker _semanticReranker;
         private readonly ILogger<SearchService> _logger;
+        private readonly IMemoryCache _cache;
 
         public SearchService(
             IServiceScopeFactory scopeFactory,
             IProductService productService,
             IDataBaseContext context,
             ISearchSemanticReranker semanticReranker,
-            ILogger<SearchService> logger)
+            ILogger<SearchService> logger,
+            IMemoryCache cache)
         {
             _scopeFactory = scopeFactory;
             _productService = productService;
             _context = context;
             _semanticReranker = semanticReranker;
             _logger = logger;
+            _cache = cache;
         }
 
         private async Task<List<TDto>> RunScoped<TService, TDto>(Func<TService, Task<List<TDto>>> action)
@@ -71,21 +75,110 @@ namespace Application.Services.CommonSrv.SearchSrv
             return await action(svc);
         }
 
+        private static readonly TimeSpan SearchTimeout = TimeSpan.FromSeconds(3);
+        private static readonly TimeSpan SearchCacheDuration = TimeSpan.FromMinutes(5);
+
+        // جستجو گلوگاه اصلی زیر بار بود (۱۰ کاربر هم‌زمان ⇒ تا ۱۲ ثانیه): نتیجه‌ی هر q نرمال‌شده ۵ دقیقه کش می‌شود، اول بدون فازی
+        // اجرا می‌شود (فازی فقط وقتی هیچ نتیجه‌ای نبود) و کل کار سقف ۳ ثانیه دارد؛ بعد از آن بخش‌های تمام‌شده برمی‌گردند، نه اتصال معلق.
         public async Task<BaseResultDto<SearchDto>> SearchAsync(SearchRequestDto request, CancellationToken cancellationToken = default)
         {
             var stopwatch = Stopwatch.StartNew();
             var originalQuery = request.Q?.Trim() ?? string.Empty;
+            // [StringLength] روی Q به‌خاطر SuppressModelStateInvalidFilter اعمال نمی‌شد؛ عبارت ۵۰۰۰ حرفی هم پردازش می‌شد
+            if (originalQuery.Length > SearchRequestDto.MaxQueryLength)
+                return new BaseResultDto<SearchDto>(false, Resource.Notification.SearchQueryTooLong, new SearchDto());
+
             request.Q = SearchNormalizeHelper.Normalize(request.Q);
             request.ClampCounts();
-            request.SearchTerms = SearchNormalizeHelper.BuildTerms(request.Q, request.EnableFuzzy);
 
             if (request.Q.Length < 2)
                 return new BaseResultDto<SearchDto>(false, Resource.Notification.SearchQueryTooShort, new SearchDto());
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            var cacheKey = BuildCacheKey(request);
+            SearchDto result;
+            var fromCache = _cache.TryGetValue(cacheKey, out SearchDto cached) && cached != null;
+            if (fromCache)
+            {
+                result = cached;
+            }
+            else
+            {
+                using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutSource.CancelAfter(SearchTimeout);
+
+                request.SearchTerms = SearchNormalizeHelper.BuildTerms(request.Q, enableFuzzy: false);
+                result = await RunSearchAsync(request, originalQuery, timeoutSource.Token, cancellationToken);
+
+                if (result.TotalCount == 0 && !result.IsPartial && request.EnableFuzzy && !timeoutSource.IsCancellationRequested)
+                {
+                    var fuzzyTerms = SearchNormalizeHelper.BuildTerms(request.Q, enableFuzzy: true);
+                    if (fuzzyTerms.Length > request.SearchTerms.Length)
+                    {
+                        request.SearchTerms = fuzzyTerms;
+                        result = await RunSearchAsync(request, originalQuery, timeoutSource.Token, cancellationToken);
+                    }
+                }
+
+                if (!result.IsPartial)
+                {
+                    _cache.Set(cacheKey, result, new MemoryCacheEntryOptions
+                    {
+                        AbsoluteExpirationRelativeToNow = SearchCacheDuration,
+                        Size = 1
+                    });
+                }
+            }
+
+            // شیء کش‌شده بین درخواست‌ها مشترک است؛ فیلدهای مخصوص همین پاسخ روی یک کپی نوشته می‌شوند
+            var response = result.ShallowCopy();
+            response.Query = originalQuery;
+            response.FromCache = fromCache;
+            stopwatch.Stop();
+            response.TookMilliseconds = stopwatch.ElapsedMilliseconds;
+
+            var channel = NormalizeChannel(request.Channel);
+            try
+            {
+                _context.SearchQueryLogs.Add(new SearchQueryLog
+                {
+                    Query = originalQuery,
+                    NormalizedQuery = request.Q,
+                    Channel = channel,
+                    ResultCount = response.TotalCount,
+                    TookMilliseconds = response.TookMilliseconds,
+                    CreateDateUtc = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                _logger.LogWarning(exception, "Search analytics could not be persisted for query {Query}.", request.Q);
+            }
+
+            return new BaseResultDto<SearchDto>(true, data: response);
+        }
+
+        private static string BuildCacheKey(SearchRequestDto request) =>
+            string.Join("|",
+                "search", request.Q, request.EnableFuzzy, request.ProductNotId, request.TotalCount,
+                request.ProductCount, request.BrandCount, request.CategoryCount, request.FeatureCount,
+                request.CompanionCount, request.AssistanceCount, request.StoreCount, request.PansionCount,
+                request.PackageCount, request.SchoolCount, request.SchoolCourseCount, request.ConsultationPackageCount);
+
+        private static List<T> CompletedOrNull<T>(Task<List<T>> task) =>
+            task.IsCompletedSuccessfully ? task.Result : null;
+
+        private async Task<SearchDto> RunSearchAsync(
+            SearchRequestDto request,
+            string originalQuery,
+            CancellationToken timeoutToken,
+            CancellationToken requestToken)
+        {
+            // محصولات هم در scope جدا اجرا می‌شوند تا پرس‌وجوی جامانده بعد از timeout روی DbContext همین درخواست (ثبت آمار) کار نکند
             var productsT = request.ProductCount > 0
-                ? _productService.SearchMinAsync(request, cancellationToken)
+                ? RunScoped<IProductService, SearchProductDto>(s => s.SearchMinAsync(request, timeoutToken))
                 : Task.FromResult<List<SearchProductDto>>(null);
 
             var pansionsT = request.PansionCount > 0
@@ -117,7 +210,7 @@ namespace Application.Services.CommonSrv.SearchSrv
                 : Task.FromResult<List<SearchAssistanceDto>>(null);
 
             var packagesT = request.PackageCount > 0
-                ? RunScoped<ICompanionAssistancePackageService, SearchCompanionAssistancePackageDto>(s => s.SearchMinAsync(request, cancellationToken))
+                ? RunScoped<ICompanionAssistancePackageService, SearchCompanionAssistancePackageDto>(s => s.SearchMinAsync(request, timeoutToken))
                 : Task.FromResult<List<SearchCompanionAssistancePackageDto>>(null);
 
             var schoolsT = request.SchoolCount > 0
@@ -132,29 +225,45 @@ namespace Application.Services.CommonSrv.SearchSrv
                 ? RunScoped<IConsultationPackageService, SearchConsultationPackageDto>(s => s.SearchMinAsync(request))
                 : Task.FromResult<List<SearchConsultationPackageDto>>(null);
 
-            await Task.WhenAll(productsT, pansionsT, storesT, categoriesT, brandsT, featuresT, companionsT, assistancesT, packagesT, schoolsT, schoolCoursesT, consultationPackagesT)
-                .WaitAsync(cancellationToken);
+            var isPartial = false;
+            try
+            {
+                await Task.WhenAll(productsT, pansionsT, storesT, categoriesT, brandsT, featuresT, companionsT, assistancesT, packagesT, schoolsT, schoolCoursesT, consultationPackagesT)
+                    .WaitAsync(timeoutToken);
+            }
+            catch (OperationCanceledException) when (!requestToken.IsCancellationRequested)
+            {
+                isPartial = true;
+                _logger.LogWarning("Search for {Query} hit the {Seconds}s limit; returning the finished groups only.", request.Q, SearchTimeout.TotalSeconds);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                // یک بخش خراب کل جستجو را ۵۰۰ نمی‌کند؛ بقیه‌ی بخش‌ها برمی‌گردند
+                isPartial = true;
+                _logger.LogError(exception, "A search group failed for query {Query}.", request.Q);
+            }
 
             var result = new SearchDto
             {
-                Products = productsT.Result,
-                Pansions = pansionsT.Result,
-                Stores = storesT.Result,
-                Categories = categoriesT.Result,
-                Brands = brandsT.Result,
-                Feature = featuresT.Result,
-                Companions = companionsT.Result,
-                Assistances = assistancesT.Result,
-                Packages = packagesT.Result,
-                Schools = schoolsT.Result,
-                SchoolCourses = schoolCoursesT.Result,
-                ConsultationPackages = consultationPackagesT.Result,
+                Products = CompletedOrNull(productsT),
+                Pansions = CompletedOrNull(pansionsT),
+                Stores = CompletedOrNull(storesT),
+                Categories = CompletedOrNull(categoriesT),
+                Brands = CompletedOrNull(brandsT),
+                Feature = CompletedOrNull(featuresT),
+                Companions = CompletedOrNull(companionsT),
+                Assistances = CompletedOrNull(assistancesT),
+                Packages = CompletedOrNull(packagesT),
+                Schools = CompletedOrNull(schoolsT),
+                SchoolCourses = CompletedOrNull(schoolCoursesT),
+                ConsultationPackages = CompletedOrNull(consultationPackagesT),
                 Query = originalQuery,
                 NormalizedQuery = request.Q,
+                IsPartial = isPartial,
             };
 
             var rankedItems = SearchItemsBuilder.Build(result, request);
-            rankedItems = await _semanticReranker.RerankAsync(request.Q, rankedItems, cancellationToken);
+            rankedItems = await _semanticReranker.RerankAsync(request.Q, rankedItems, requestToken);
             result.TotalCount = rankedItems.Count;
             result.Items = rankedItems.Take(request.TotalCount).ToList();
             result.Products = RankGroup(result.Products, rankedItems, SearchItemType.Product, request.ProductCount, item => item.Id);
@@ -170,29 +279,7 @@ namespace Application.Services.CommonSrv.SearchSrv
             result.SchoolCourses = RankGroup(result.SchoolCourses, rankedItems, SearchItemType.SchoolCourse, request.SchoolCourseCount, item => item.Id);
             result.ConsultationPackages = RankGroup(result.ConsultationPackages, rankedItems, SearchItemType.ConsultationPackage, request.ConsultationPackageCount, item => item.Id);
             result.Suggestions = SearchNormalizeHelper.BuildSuggestions(request.Q, request.SearchTerms, result.TotalCount);
-            stopwatch.Stop();
-            result.TookMilliseconds = stopwatch.ElapsedMilliseconds;
-
-            var channel = NormalizeChannel(request.Channel);
-            try
-            {
-                _context.SearchQueryLogs.Add(new SearchQueryLog
-                {
-                    Query = originalQuery,
-                    NormalizedQuery = request.Q,
-                    Channel = channel,
-                    ResultCount = result.TotalCount,
-                    TookMilliseconds = result.TookMilliseconds,
-                    CreateDateUtc = DateTime.UtcNow
-                });
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-            catch (Exception exception) when (exception is not OperationCanceledException)
-            {
-                _logger.LogWarning(exception, "Search analytics could not be persisted for query {Query}.", request.Q);
-            }
-
-            return new BaseResultDto<SearchDto>(true, data: result);
+            return result;
         }
 
         private const string ShopChannel = "Shop";

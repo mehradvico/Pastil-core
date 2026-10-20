@@ -9,6 +9,8 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
     public class StoreDto : Seo_Full_FieldDto
     {
         public string ReferralCode { get; set; }
+        /// <summary>ارائه‌دهنده‌ی صاحب فروشگاه. هنگام ساخت توسط ادمین الزامی است و فقط همان‌جا خوانده می‌شود؛ ویرایش بعدی از «اتصال به ارائه‌دهنده» انجام می‌شود (فروشنده با ویرایش فروشگاه نمی‌تواند آن را عوض کند).</summary>
+        public long? ProviderId { get; set; }
         public string Phone { get; set; }
         public string Mobile { get; set; }
         public string Email { get; set; }

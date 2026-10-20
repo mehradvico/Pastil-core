@@ -363,6 +363,71 @@ namespace Application.Services.TripSrv.PetResanServiceSrv
             return new BaseResultDto<PetResanServiceVDto>(true, ToVDto(service));
         }
 
+        /// <summary>
+        /// فهرست سرویس‌های هفتگی برای پنل (صفحه‌ی «سرویس‌های هفتگی» با لغو گروهی). Available: true فعال‌ها، false متوقف‌شده‌ها،
+        /// null همه. Q: نام/موبایل کاربر یا آدرس مبدا/مقصد. شمارش نوبت‌ها به تفکیک وضعیت برای تصمیم ادمین.
+        /// </summary>
+        public async Task<BaseSearchDto<PetResanServiceAdminVDto>> AdminSearchAsync(PetResanServiceAdminSearchDto dto)
+        {
+            var query = _context.PetResanServices.AsNoTracking().AsQueryable();
+            if (dto.Available.HasValue)
+                query = query.Where(s => s.Active == dto.Available.Value);
+            if (!string.IsNullOrWhiteSpace(dto.Q))
+            {
+                var q = dto.Q.Trim();
+                query = query.Where(s => s.User.Mobile.Contains(q)
+                    || (s.User.FirstName + " " + s.User.LastName).Contains(q)
+                    || s.FromAddress.Contains(q)
+                    || s.ToAddress.Contains(q));
+            }
+
+            var result = new BaseSearchDto<PetResanServiceAdminVDto>(dto) { TotalCount = await query.CountAsync() };
+            var now = DateTime.Now;
+            result.List = await query
+                .OrderByDescending(s => s.Active)
+                .ThenByDescending(s => s.Id)
+                .Skip((dto.PageIndex - 1) * dto.PageSize)
+                .Take(dto.PageSize)
+                .Select(s => new PetResanServiceAdminVDto
+                {
+                    Id = s.Id,
+                    UserId = s.UserId,
+                    UserFullName = (s.User.FirstName + " " + s.User.LastName).Trim(),
+                    UserMobile = s.User.Mobile,
+                    FromAddress = s.FromAddress,
+                    ToAddress = s.ToAddress,
+                    StartDate = s.StartDate,
+                    EndDate = s.EndDate,
+                    TotalWeeks = s.TotalWeeks,
+                    Active = s.Active,
+                    CreateDate = s.CreateDate,
+                    CancelDate = s.CancelDate,
+                    PricePerOccurrence = s.PricePerOccurrence,
+                    Schedules = s.Schedules
+                        .Where(schedule => schedule.Active)
+                        .OrderBy(schedule => schedule.WeekDay.Number)
+                        .Select(schedule => new PetResanServiceAdminScheduleVDto
+                        {
+                            WeekDayNumber = schedule.WeekDay.Number,
+                            WeekDayName = schedule.WeekDay.Label ?? schedule.WeekDay.Name,
+                            Time = schedule.Time,
+                            ReturnTime = schedule.ReturnTime
+                        })
+                        .ToList(),
+                    RequestedOccurrences = _context.Trips.Count(t => t.PetResanServiceSchedule.PetResanServiceId == s.Id
+                        && t.TripStatusId == (long)Application.Common.Enumerable.Code.TripStatusEnum.TripStatus_Requested),
+                    AcceptedUpcomingOccurrences = _context.Trips.Count(t => t.PetResanServiceSchedule.PetResanServiceId == s.Id
+                        && t.TripStatusId == (long)Application.Common.Enumerable.Code.TripStatusEnum.TripStatus_Accepted
+                        && t.TripStartDateTime > now),
+                    CompletedOccurrences = _context.Trips.Count(t => t.PetResanServiceSchedule.PetResanServiceId == s.Id
+                        && t.TripStatusId == (long)Application.Common.Enumerable.Code.TripStatusEnum.TripStatus_Compeleted),
+                    CanceledOccurrences = _context.Trips.Count(t => t.PetResanServiceSchedule.PetResanServiceId == s.Id
+                        && t.TripStatusId == (long)Application.Common.Enumerable.Code.TripStatusEnum.TripStatus_Canceled)
+                })
+                .ToListAsync();
+            return result;
+        }
+
         public async Task<BaseResultDto> CancelAsync(long id, long userId)
         {
             var service = await _context.PetResanServices.AsTracking().FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId);

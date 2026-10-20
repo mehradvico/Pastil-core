@@ -163,6 +163,15 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.UnpaidDebtLocked, dto);
 
                     var item = mapper.Map<PansionReserve>(dto);
+                    // مبالغ مالی از بدنه پذیرفته نمی‌شوند: RebatePrice منفی + حذف کد تخفیف قبلاً مبلغ قابل پرداخت را پایین می‌آورد.
+                    // تخفیف فقط با SetRebateCode و کیف پول فقط با SetWallet روی رزرو می‌نشیند.
+                    item.RebateId = null;
+                    item.RebatePrice = 0;
+                    item.Discount = 0;
+                    item.FromWallet = false;
+                    item.WalletPrice = 0;
+                    item.CancelDetail = null;
+                    item.CancelDate = null;
                     item.IsCancel = false;
                     item.CreateDate = DateTime.Now;
                     item.ReserveCode = PaymentCodeGenerator.Create(
@@ -197,6 +206,15 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     {
                         return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.InfectiousPansionOnlyAcceptsSickPets, dto);
                     }
+                    // «حیوانات مجاز پذیرش» مرکز (PansionPets)؛ مرکزی که فهرستی تعریف نکرده همه را می‌پذیرد
+                    var acceptedPetIds = await _context.PansionPets.AsNoTracking()
+                        .Where(s => s.PansionId == pansion.Id && !s.Deleted)
+                        .Select(s => s.PetId)
+                        .ToListAsync();
+                    if (acceptedPetIds.Count > 0 && !acceptedPetIds.Contains(userPet.PetId))
+                    {
+                        return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.PansionPetTypeNotAccepted, dto);
+                    }
                     var hasSchoolInputs = !string.IsNullOrWhiteSpace(dto.StartTime) && !string.IsNullOrWhiteSpace(dto.EndTime) && dto.SchoolCreateDate.HasValue;
                     var hasPansionInputs = dto.FromDate.HasValue && dto.ToDate.HasValue;
 
@@ -230,6 +248,13 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         {
                             return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.ToTimeMustBeBiggerThanFromTime, dto);
                         }
+                        if (!PansionReserveRules.IsWithinWorkingHours(pansion.OpenHour, pansion.CloseHour, startTime, endTime))
+                        {
+                            return new BaseResultDto<PansionReserveDto>(
+                                false,
+                                string.Format(Resource.Pattern.PansionOutsideWorkingHours, pansion.OpenHour, pansion.CloseHour),
+                                dto);
+                        }
                         if (dto.SchoolCreateDate.Value.Date < DateTime.Today)
                             return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.InvalidData, dto);
 
@@ -242,9 +267,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                                 dto);
                         }
 
-                        var totalHours = (endTime - startTime).TotalHours;
-
-                        item.HourCount = (int)Math.Ceiling(totalHours);
+                        item.HourCount = PansionReserveRules.DaycareHourCount(startTime, endTime);
                         item.DayCount = 0;
 
                         item.Price = pansion.SchoolPrice * item.HourCount;
@@ -260,14 +283,17 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         var from = dto.FromDate.Value.Date;
                         var to = dto.ToDate.Value.Date;
 
-                        if (to < from)
+                        if (to <= from)
                         {
-                            return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.PleaseEnterTimeRange, dto);
+                            return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.PansionCheckoutMustBeAfterCheckin, dto);
                         }
                         if (from < DateTime.Today)
                             return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.InvalidData, dto);
 
-                        item.DayCount = (to - from).Days + 1;
+                        item.FromDate = from;
+                        item.ToDate = to;
+                        // DayCount از این به بعد «تعداد شب» است
+                        item.DayCount = PansionReserveRules.NightCount(from, to);
                         item.HourCount = 0;
 
                         item.Price = pansion.PansionPrice * item.DayCount;
@@ -291,8 +317,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                             s.UserPetId == item.UserPetId &&
                             s.IsReserved &&
                             !s.IsCancel &&
-                            s.FromDate <= item.ToDate &&
-                            s.ToDate >= item.FromDate);
+                            s.FromDate < item.ToDate &&
+                            s.ToDate > item.FromDate);
                     if (hasOverlap)
                     {
                         await transaction.RollbackAsync();
@@ -451,6 +477,11 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 if (reserve.IsReserved)
                     return new BaseResultDto(true);
 
+                // بین ساخت رزرو و برگشت از درگاه ممکن است روزش گذشته باشد؛ اعمال نمی‌شود و پول درگاه (RefundUnappliedToWalletAsync) به کیف پول برمی‌گردد
+                var reserveDay = reserve.FromDate ?? reserve.SchoolCreateDate;
+                if (reserveDay.HasValue && reserveDay.Value.Date < DateTime.Today)
+                    return new BaseResultDto(false, Resource.Notification.PansionReserveDatePassed);
+
                 var hasOverlap = reserve.Pansion?.IsDaycare == true
                     ? await _context.PansionReserves.AsNoTracking().AnyAsync(s =>
                         s.Id != reserve.Id &&
@@ -467,8 +498,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         s.UserPetId == reserve.UserPetId &&
                         s.IsReserved &&
                         !s.IsCancel &&
-                        s.FromDate <= reserve.ToDate &&
-                        s.ToDate >= reserve.FromDate);
+                        s.FromDate < reserve.ToDate &&
+                        s.ToDate > reserve.FromDate);
 
                 if (hasOverlap)
                 {
@@ -693,8 +724,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             var financialLock = await GuardFinancialChangeAsync(item.Id);
             if (financialLock != null)
                 return financialLock;
-            var originalPrice = item.PaymentPrice + item.RebatePrice;
-            item.Price = originalPrice;
+            // پایه‌ی تخفیف همان Price سرور است، نه PaymentPrice + RebatePrice (که RebatePrice دست‌کاری‌شده می‌توانست آن را پایین بیاورد)
+            var originalPrice = item.Price;
             var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
             if (rebate.IsSuccess)
             {
@@ -734,7 +765,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             }
             item.RebateId = null;
-            item.PaymentPrice = item.PaymentPrice + item.RebatePrice;
+            item.PaymentPrice = item.Price;
             item.RebatePrice = 0;
             if (item.WalletPrice != 0)
             {

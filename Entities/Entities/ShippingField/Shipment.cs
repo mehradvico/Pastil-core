@@ -1,5 +1,6 @@
 using Entities.Entities.CommonField;
 using System;
+using System.Collections.Generic;
 
 namespace Entities.Entities.ShippingField
 {
@@ -57,7 +58,20 @@ namespace Entities.Entities.ShippingField
         public int? BoostLevel { get; set; }
         public double? BoostAmount { get; set; }
 
+        // آخرین اطلاعات پیک که میاره از طریق وب‌هوک فرستاده (snapshot؛ تاریخچه‌ی کامل در ShipmentEvents).
+        // طراحی: backend/Docs/MIARE_COURIER_TRACKING_FA.md
+        public string CourierName { get; set; }
+        public string CourierPhone { get; set; }
+        public double? CourierLatitude { get; set; }
+        public double? CourierLongitude { get; set; }
+        /// <summary>زمان دریافت آخرین موقعیت پیک (UTC)؛ برای «چند دقیقه پیش» و کهنه‌بودن نقشه.</summary>
+        public DateTime? CourierLocationAtUtc { get; set; }
+        /// <summary>آخرین state وب‌هوک میاره (assign_queue، pickup، dropoff، …) همان‌طور که رسید.</summary>
+        public string LastMiareState { get; set; }
+        public DateTime? LastMiareEventAtUtc { get; set; }
+
         public ProductOrderStore ProductOrderStore { get; set; }
         public ShippingQuote ShippingQuote { get; set; }
+        public ICollection<ShipmentEvent> Events { get; set; }
     }
 }

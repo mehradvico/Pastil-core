@@ -57,8 +57,9 @@ namespace Application.Services.Order.ShippingSrv
         /// به ادمین پوش می‌رود (Shipping:SellerNotReadyAdminAlertMinutes)، و ۱۵ دقیقه به مهلت مانده به خود فروشنده یادآوری می‌شود.
         /// </summary>
         public int SellerConfirmMinutes { get; set; } = 60;
-        /// <summary>پیک تقریباً این‌قدر بعد از درخواست به فروشگاه می‌رسد (pickup.deadline = الان + این مقدار؛ میاره زمان گذشته نمی‌پذیرد)</summary>
-        public int PickupLeadMinutes { get; set; } = 15;
+        /// <summary>پیک تقریباً این‌قدر بعد از درخواست به فروشگاه می‌رسد (pickup.deadline = الان + این مقدار). میاره کمتر از ۳۰ دقیقه را
+        /// «deadline_too_soon» رد می‌کند؛ مقدار کمتر از ShippingSlotRules.MinPickupFromNowMinutes به همان حداقل بالا می‌رود.</summary>
+        public int PickupLeadMinutes { get; set; } = 30;
         /// <summary>حداکثر فاصله‌ی هوایی فروشگاه تا آدرس برای اکسپرس (کیلومتر)؛ صفر = بدون محدودیت</summary>
         public double MaxDistanceKm { get; set; } = 30;
         /// <summary>قول تحویل به مشتری (ساعت کاری)</summary>
@@ -84,5 +85,12 @@ namespace Application.Services.Order.ShippingSrv
 
         // حداکثر فاصله‌ی هوایی فروشگاه تا آدرس برای نمایش این روش (کیلومتر)؛ صفر یا منفی = بدون محدودیت
         public double MaxDistanceKm { get; set; }
+
+        /// <summary>
+        /// فقط میاره: واحد مبلغ‌هایی که API میاره برمی‌گرداند (برآورد قیمت، مبلغ Boost، delivery_cost): "Toman" (پیش‌فرض) یا "Rial".
+        /// Staging تومان بود ولی Production ریال برگرداند (برآورد ≈۱۱ کیلومتر = ۹۰۱٬۰۰۰ → ۹۰٬۱۰۰ تومان). قبل از لانچ با یک برآورد
+        /// نمونه (یا تیم میاره) تأیید و در env سرور تنظیم شود: Shipping__Miare__AmountUnit=Rial. جزئیات: MiareAmountRules.
+        /// </summary>
+        public string AmountUnit { get; set; } = "Toman";
     }
 }

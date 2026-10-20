@@ -60,6 +60,7 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
+        [global::Api.Filter.IdempotentRequest]
         [ProducesResponseType(typeof(BaseResultDto<CompanionReserveDto>), 200)]
         public async Task<IActionResult> Post(CompanionReserveDto dto)
         {

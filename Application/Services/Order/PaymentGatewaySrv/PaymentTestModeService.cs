@@ -3,6 +3,7 @@ using Application.Services.Order.PaymentGatewaySrv.Iface;
 using Application.Services.Order.PaymentSrv.Dto;
 using Entities.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 
@@ -15,13 +16,21 @@ namespace Application.Services.Order.PaymentGatewaySrv
         public const string FailureResult = "failed";
 
         private readonly PaymentTestModeOptions _options;
+        private readonly bool _blockedByEnvironment;
 
         public PaymentTestModeService(IOptions<PaymentTestModeOptions> options)
+            : this(options, null)
         {
-            _options = options.Value;
         }
 
-        public bool IsEnabled => _options.Enabled;
+        // یک Enabled=true جامانده در appsettings روی سرور اصلی نباید همه‌ی خریدها را رایگان کند
+        public PaymentTestModeService(IOptions<PaymentTestModeOptions> options, IHostEnvironment environment)
+        {
+            _options = options.Value;
+            _blockedByEnvironment = environment != null && environment.IsProduction() && !_options.AllowInProduction;
+        }
+
+        public bool IsEnabled => _options.Enabled && !_blockedByEnvironment;
 
         public void ConfigureStartResult(PaymentStartDto dto)
         {

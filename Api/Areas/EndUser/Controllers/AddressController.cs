@@ -61,6 +61,7 @@ namespace Api.Areas.EndUser.Controllers
         /// آیتم جدید
         /// </summary>  
         [HttpPost]
+        [global::Api.Filter.IdempotentRequest]
         [ProducesResponseType(typeof(BaseResultDto<AddressDto>), 200)]
         public async Task<IActionResult> Post(AddressDto AddressDto)
         {

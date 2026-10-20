@@ -235,9 +235,11 @@ namespace Application.Services.PastilAISrv
         internal async Task<(PastilAiPlan Plan, PastilAiSubscription Subscription)> ResolvePlanAsync(long userId, CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
+            // اشتراکِ خریده‌شده تا پایان مدتش معتبر است حتی اگر ادمین بعداً پلن را غیرفعال کند (قبلاً کاربر به پلن رایگان
+            // برمی‌گشت در حالی که سفارشش «فعال» نشان داده می‌شد). فروش پلن را PurchaseEnabled کنترل می‌کند.
             var subscription = await _context.PastilAiSubscriptions.AsNoTracking().Include(x => x.Plan)
                 .Where(x => x.UserId == userId && x.Status == PastilAiSubscriptionStatus.Active &&
-                            x.StartDateUtc <= now && x.EndDateUtc > now && x.Plan.Active)
+                            x.StartDateUtc <= now && x.EndDateUtc > now)
                 .OrderByDescending(x => x.Plan.SortOrder).ThenByDescending(x => x.EndDateUtc)
                 .FirstOrDefaultAsync(cancellationToken);
             if (subscription != null)

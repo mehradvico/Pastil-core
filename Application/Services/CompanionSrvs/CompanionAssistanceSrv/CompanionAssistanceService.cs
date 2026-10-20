@@ -61,7 +61,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
             var item = await _context.CompanionAssistances.Include(s => s.Codes).Include(s => s.CompanionType).Include(s => s.Assistance).ThenInclude(s => s.Picture)
                 .Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.Companion).ThenInclude(s => s.Picture)
                 .Include(s => s.Companion).ThenInclude(s => s.City).Include(s => s.Companion).ThenInclude(s => s.City).ThenInclude(s => s.State)
-                .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted && s.Active && s.Approved);
+                .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted && s.Active && s.Approved && !s.Assistance.IsGrooming);
             
             if (item != null)
             {
@@ -76,6 +76,8 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 .Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.Companion).ThenInclude(s => s.Picture)
                 .Include(s => s.Companion).ThenInclude(s => s.City).Include(s => s.Companion).ThenInclude(s => s.City).ThenInclude(s => s.State)
                 .AsQueryable().Where(s => !s.Deleted & !s.Assistance.Deleted);
+            if (!baseSearchDto.IncludeGrooming)
+                model = model.Where(s => !s.Assistance.IsGrooming);
 
             if (baseSearchDto.Available.HasValue)
             {
@@ -132,6 +134,8 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 {
                     return modelCheker;
                 }
+                if (await _context.Assistances.AnyAsync(a => a.Id == dto.AssistanceId && a.IsGrooming))
+                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.CompanionAssistanceGroomingNotAllowed, dto);
                 bool exists = await _context.CompanionAssistances.AnyAsync(a => a.CompanionId == dto.CompanionId && a.AssistanceId == dto.AssistanceId && a.Deleted != true);
 
                 if (exists)
@@ -170,6 +174,8 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                     return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.NothingFound, dto);
                 if (companionId.HasValue && item.CompanionId != companionId.Value)
                     return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.AccessDenied, dto);
+                if (item.AssistanceId != dto.AssistanceId && await _context.Assistances.AnyAsync(a => a.Id == dto.AssistanceId && a.IsGrooming))
+                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.CompanionAssistanceGroomingNotAllowed, dto);
                 item.Active = dto.Active;
                 item.AssistanceId = dto.AssistanceId;
                 item.IsSinglePackage = dto.IsSinglePackage;

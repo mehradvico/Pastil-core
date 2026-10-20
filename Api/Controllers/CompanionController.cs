@@ -29,6 +29,7 @@ namespace Api.Controllers
         public IActionResult Get([FromQuery] CompanionInputDto dto)
         {
             var search = _companionService.Search(dto);
+            _companionService.ApplyReserveCounts(search.List);
             return Ok(search);
         }
 

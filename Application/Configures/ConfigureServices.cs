@@ -127,6 +127,26 @@ using Application.Services.CompanionSrvs.CompanionTypeSrv;
 using Application.Services.CompanionSrvs.CompanionTypeSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionUserSrv;
 using Application.Services.CompanionSrvs.CompanionUserSrv.Iface;
+using Application.Services.AgencySrvs.AgencySrv;
+using Application.Services.AgencySrvs.AgencySrv.Iface;
+using Application.Services.ProviderSrvs.ProviderFinanceSrv;
+using Application.Services.ProviderSrvs.ProviderFinanceSrv.Iface;
+using Application.Services.ProviderSrvs.ProviderOverviewSrv;
+using Application.Services.ProviderSrvs.ProviderOverviewSrv.Iface;
+using Application.Services.ProviderSrvs.ProviderRoleAssignmentSrv;
+using Application.Services.ProviderSrvs.ProviderRoleSrv;
+using Application.Services.ProviderSrvs.ProviderRoleSrv.Iface;
+using Application.Services.ProviderSrvs.ProviderRoleAssignmentSrv.Iface;
+using Application.Services.ProviderSrvs.ProviderSrv;
+using Application.Services.ProviderSrvs.ProviderSubscriptionSyncSrv;
+using Application.Services.ProviderSrvs.ProviderSubscriptionSyncSrv.Iface;
+using Application.Services.ProviderSrvs.ProviderVenueSrv;
+using Application.Services.ProviderSrvs.ProviderVenueSrv.Iface;
+using Application.Services.ProviderSrvs.ProviderSrv.Iface;
+using Application.Services.ProviderSrvs.ProviderSubscriptionSrv;
+using Application.Services.ProviderSrvs.ProviderSubscriptionSrv.Iface;
+using Application.Services.ProviderSrvs.SubscriptionPlanSrv;
+using Application.Services.ProviderSrvs.SubscriptionPlanSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionZoneSrv;
 using Application.Services.CompanionSrvs.CompanionZoneSrv.Iface;
 using Application.Services.Content.AddressSrv;
@@ -512,6 +532,16 @@ public static class ConfigureServices
         services.AddScoped<ICompanionTimeService, CompanionTimeService>();
         services.AddScoped<ICompanionTypeService, CompanionTypeService>();
         services.AddScoped<ICompanionUserService, CompanionUserService>();
+        services.AddScoped<IProviderService, ProviderService>();
+        services.AddScoped<IProviderRoleService, ProviderRoleService>();
+        services.AddScoped<IProviderOverviewService, ProviderOverviewService>();
+        services.AddScoped<IProviderFinanceService, ProviderFinanceService>();
+        services.AddScoped<IAgencyService, AgencyService>();
+        services.AddScoped<IProviderRoleAssignmentService, ProviderRoleAssignmentService>();
+        services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
+        services.AddScoped<IProviderSubscriptionService, ProviderSubscriptionService>();
+        services.AddScoped<IProviderSubscriptionSyncService, ProviderSubscriptionSyncService>();
+        services.AddScoped<IProviderVenueService, ProviderVenueService>();
         services.AddScoped<ICompanionZoneService, CompanionZoneService>();
         services.AddScoped<IContactUsGroupService, ContactUsGroupService>();
         services.AddScoped<IContactUsService, ContactUsService>();
@@ -523,6 +553,7 @@ public static class ConfigureServices
         services.AddScoped<IDeliveryService, DeliveryService>();
         services.AddScoped<IShippingQuoteService, ShippingQuoteService>();
         services.AddScoped<IShipmentService, ShipmentService>();
+        services.AddScoped<IShipmentTrackingService, ShipmentTrackingService>();
         services.AddScoped<IShippingProvider, AloPeykShippingProvider>();
         services.AddScoped<IShippingProvider, TipaxShippingProvider>();
         services.AddScoped<IShippingProvider, SnappBoxShippingProvider>();
@@ -567,6 +598,21 @@ public static class ConfigureServices
         services.AddScoped<IPansionPictureService, PansionPictureService>();
         services.AddScoped<IPansionReserveService, PansionReserveService>();
         services.AddScoped<IPansionService, PansionService>();
+        services.AddScoped<Application.Services.GroomerSrvs.GroomerSrv.Iface.IGroomerCoreService, Application.Services.GroomerSrvs.GroomerSrv.GroomerCoreService>();
+        services.AddScoped<Application.Services.ClinicSrvs.ClinicSrv.Iface.IClinicCoreService, Application.Services.ClinicSrvs.ClinicSrv.ClinicCoreService>();
+        services.AddScoped<Application.Services.GroomerSrvs.GroomerPortfolioSrv.Iface.IGroomerPortfolioService, Application.Services.GroomerSrvs.GroomerPortfolioSrv.GroomerPortfolioService>();
+        services.AddScoped<Application.Services.GroomerSrvs.GroomerCatalogSrv.Iface.IGroomerCatalogService, Application.Services.GroomerSrvs.GroomerCatalogSrv.GroomerCatalogService>();
+        services.AddScoped<Application.Services.ClinicSrvs.ClinicCatalogSrv.Iface.IClinicCatalogService, Application.Services.ClinicSrvs.ClinicCatalogSrv.ClinicCatalogService>();
+        services.AddScoped<Application.Services.GroomerSrvs.GroomerProfileSrv.Iface.IGroomerProfileService, Application.Services.GroomerSrvs.GroomerProfileSrv.GroomerProfileService>();
+        services.AddScoped<Application.Services.ClinicSrvs.ClinicProfileSrv.Iface.IClinicProfileService, Application.Services.ClinicSrvs.ClinicProfileSrv.ClinicProfileService>();
+        services.AddScoped<Application.Services.GroomerSrvs.GroomerReserveSrv.Iface.IGroomerReserveService, Application.Services.GroomerSrvs.GroomerReserveSrv.GroomerReserveService>();
+        services.AddScoped<Application.Services.ClinicSrvs.ClinicReserveSrv.Iface.IClinicReserveService, Application.Services.ClinicSrvs.ClinicReserveSrv.ClinicReserveService>();
+        services.AddScoped<Application.Services.GroomerSrvs.GroomerReserveSrv.Iface.IGroomerReserveApprovalService, Application.Services.GroomerSrvs.GroomerReserveSrv.GroomerReserveApprovalService>();
+        services.AddScoped<Application.Services.ClinicSrvs.ClinicReserveSrv.Iface.IClinicReserveApprovalService, Application.Services.ClinicSrvs.ClinicReserveSrv.ClinicReserveApprovalService>();
+        services.AddScoped<Application.Services.GroomerSrvs.IGroomerNotifier, Application.Services.GroomerSrvs.GroomerNotifier>();
+        services.AddScoped<Application.Services.ClinicSrvs.IClinicNotifier, Application.Services.ClinicSrvs.ClinicNotifier>();
+        services.AddScoped<Application.Services.GroomerSrvs.GroomerReviewSrv.IGroomerReviewService, Application.Services.GroomerSrvs.GroomerReviewSrv.GroomerReviewService>();
+        services.AddScoped<Application.Services.ClinicSrvs.ClinicReviewSrv.IClinicReviewService, Application.Services.ClinicSrvs.ClinicReviewSrv.ClinicReviewService>();
         services.AddScoped<ISchoolService, SchoolService>();
         services.AddScoped<ISchoolCourseService, SchoolCourseService>();
         services.AddScoped<ISchoolReserveService, SchoolReserveService>();
@@ -609,6 +655,8 @@ public static class ConfigureServices
         services.AddScoped<IPaymentGateway, PastilTestGateway>();
         services.AddScoped<IPaymentGatewayResolver, PaymentGatewayResolver>();
         services.AddScoped<IPaymentTestModeService, PaymentTestModeService>();
+        services.AddScoped<Application.Common.PostCommit.IPostCommitQueue, Application.Common.PostCommit.PostCommitQueue>();
+        services.AddScoped<Application.Services.Order.ProductOrderSrv.IProductOrderRegisteredNotifier, Application.Services.Order.ProductOrderSrv.ProductOrderRegisteredNotifier>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IPetBreedService, PetBreedService>();
@@ -714,6 +762,7 @@ public static class ConfigureServices
         services.AddScoped<IVarietyItemService, VarietyItemService>();
         services.AddScoped<IVarietyService, VarietyService>();
         services.AddScoped<IWalletService, WalletService>();
+        services.AddScoped<IWalletDescriptionService, WalletDescriptionService>();
         services.AddScoped<IWeekDayService, WeekDayService>();
 
         services.AddCors(option => option.AddPolicy("AllowAnyOrigin", b => b.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
@@ -721,6 +770,8 @@ public static class ConfigureServices
         var mapperConfig = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile(new AllMap());
+            cfg.AddProfile(new GroomerMap());
+            cfg.AddProfile(new ClinicMap());
         }, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
 
         IMapper mapper = mapperConfig.CreateMapper();

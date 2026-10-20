@@ -54,13 +54,21 @@ namespace Application.Services.Order.ShippingSrv
         public static DateTime LatestPickup(DateTime slotEndUtc, int minDeliveryMinutes) =>
             slotEndUtc.AddMinutes(-Math.Max(0, minDeliveryMinutes));
 
-        // ساعت پیش‌فرض تحویل به پیک: کمی قبل از شروع بازه، ولی هرگز زودتر از «الان + ۱۵ دقیقه».
+        // میاره pickup.deadline نزدیک را با «403 deadline_too_soon» رد می‌کند (۱۵ دقیقه از الان رد شد: درخواست پیک همه‌ی سفارش‌های
+        // اکسپرس شکست می‌خورد)؛ ۳۰ دقیقه همان مقدار پیش‌فرض قدیمی ما بود که پذیرفته می‌شد.
+        public const int MinPickupFromNowMinutes = 30;
+
+        // ساعت پیش‌فرض تحویل به پیک: کمی قبل از شروع بازه، ولی هرگز زودتر از «الان + MinPickupFromNowMinutes».
         public static DateTime DefaultPickup(DateTime slotStartUtc, DateTime nowUtc, int pickupLeadMinutes)
         {
             var ideal = slotStartUtc.AddMinutes(-Math.Max(0, pickupLeadMinutes));
-            var earliest = nowUtc.AddMinutes(15);
+            var earliest = nowUtc.AddMinutes(MinPickupFromNowMinutes);
             return ideal > earliest ? ideal : earliest;
         }
+
+        // اکسپرس: پیک بعد از leadMinutes می‌رسد، ولی هیچ‌وقت کمتر از حداقل مورد قبول میاره
+        public static DateTime ExpressPickup(DateTime nowUtc, int leadMinutes) =>
+            nowUtc.AddMinutes(Math.Max(MinPickupFromNowMinutes, leadMinutes));
 
         public static string FormatTime(TimeSpan time) => $"{time.Hours:D2}:{time.Minutes:D2}";
 

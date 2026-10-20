@@ -39,6 +39,11 @@ namespace Api.Areas.Admin.Controllers
         /// </summary>
         /// <returns></returns> 
 
+        /// <summary>ریز تسویه: ردیف‌هایی که داخل این تسویه پرداخت شده‌اند</summary>
+        [HttpGet("{id:long}/Items")]
+        [ProducesResponseType(typeof(BaseResultDto<List<SettlementItemVDto>>), 200)]
+        public async Task<IActionResult> Items(long id) => Ok(await SettlementService.GetItemsAsync(id));
+
         [HttpGet]
         [ProducesResponseType(typeof(BaseResultDto<SettlementVDto>), 200)]
         public IActionResult Get([FromQuery] SettlementInputDto dto)

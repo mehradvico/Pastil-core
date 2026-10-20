@@ -31,14 +31,14 @@ namespace Application.Services.PrescriptionSrv
         }
 
         // هدف تشخیص‌داده‌شده: دقیقاً یکی از رزرو/خرید + مالکیت‌ها
-        private sealed record Resolved(long? ReserveId, long? PurchaseId, long CompanionId, long BookerId, long? AgentUserId, bool Writable);
+        private sealed record Resolved(long? ReserveId, long? PurchaseId, long CompanionId, long BookerId, long? AgentUserId, bool Writable, long? ClinicReserveId = null, long? ClinicId = null);
 
         private async Task<Resolved> ResolveAsync(PrescriptionTargetDto target)
         {
             if (target == null)
                 return null;
 
-            var given = (target.CompanionReserveId.HasValue ? 1 : 0) + (target.ConsultationPurchaseId.HasValue ? 1 : 0) + (target.OnlineSessionId.HasValue ? 1 : 0);
+            var given = (target.CompanionReserveId.HasValue ? 1 : 0) + (target.ClinicReserveId.HasValue ? 1 : 0) + (target.ConsultationPurchaseId.HasValue ? 1 : 0) + (target.OnlineSessionId.HasValue ? 1 : 0);
             if (given != 1)
                 return null;
 
@@ -49,6 +49,15 @@ namespace Application.Services.PrescriptionSrv
                     .Select(s => new { s.Id, s.BookerId, s.IsReserved, s.IsCancel, CompanionId = s.CompanionAssistance.CompanionId })
                     .FirstOrDefaultAsync();
                 return r == null ? null : new Resolved(r.Id, null, r.CompanionId, r.BookerId, null, r.IsReserved && !r.IsCancel);
+            }
+
+            if (target.ClinicReserveId.HasValue)
+            {
+                var r = await _context.ClinicReserves.AsNoTracking()
+                    .Where(s => s.Id == target.ClinicReserveId.Value)
+                    .Select(s => new { s.Id, s.BookerId, s.IsReserved, s.IsCancel, s.ClinicId })
+                    .FirstOrDefaultAsync();
+                return r == null ? null : new Resolved(null, null, 0, r.BookerId, null, r.IsReserved && !r.IsCancel, r.Id, r.ClinicId);
             }
 
             var purchasesQuery = _context.ConsultationPurchases.AsNoTracking();
@@ -69,6 +78,13 @@ namespace Application.Services.PrescriptionSrv
         {
             if (target.AgentUserId == userId)
                 return true;
+            if (target.ClinicId.HasValue)
+            {
+                if (await _context.Clinics.AsNoTracking().AnyAsync(s => s.Id == target.ClinicId && s.OwnerId == userId))
+                    return true;
+                return await _context.ClinicUsers.AsNoTracking().AnyAsync(s =>
+                    s.ClinicId == target.ClinicId && s.UserId == userId && !s.Deleted && s.Active && s.UserAccept == true);
+            }
             var isOwner = await _context.Companions.AsNoTracking().AnyAsync(s => s.Id == target.CompanionId && s.OwnerId == userId);
             if (isOwner)
                 return true;
@@ -105,6 +121,7 @@ namespace Application.Services.PrescriptionSrv
                     .Include(s => s.Pictures)
                     .FirstOrDefaultAsync(s => !s.Deleted &&
                         ((target.ReserveId.HasValue && s.CompanionReserveId == target.ReserveId) ||
+                         (target.ClinicReserveId.HasValue && s.ClinicReserveId == target.ClinicReserveId) ||
                          (target.PurchaseId.HasValue && s.ConsultationPurchaseId == target.PurchaseId)));
 
                 var now = DateTime.Now;
@@ -113,6 +130,7 @@ namespace Application.Services.PrescriptionSrv
                     prescription = new OnlinePrescription
                     {
                         CompanionReserveId = target.ReserveId,
+                        ClinicReserveId = target.ClinicReserveId,
                         ConsultationPurchaseId = target.PurchaseId,
                         AuthorUserId = userId,
                         CreateDate = now,
@@ -163,6 +181,7 @@ namespace Application.Services.PrescriptionSrv
             var id = await _context.OnlinePrescriptions.AsNoTracking()
                 .Where(s => !s.Deleted &&
                     ((target.ReserveId.HasValue && s.CompanionReserveId == target.ReserveId) ||
+                     (target.ClinicReserveId.HasValue && s.ClinicReserveId == target.ClinicReserveId) ||
                      (target.PurchaseId.HasValue && s.ConsultationPurchaseId == target.PurchaseId)))
                 .Select(s => (long?)s.Id)
                 .FirstOrDefaultAsync();
@@ -180,6 +199,7 @@ namespace Application.Services.PrescriptionSrv
                 {
                     Id = s.Id,
                     CompanionReserveId = s.CompanionReserveId,
+                    ClinicReserveId = s.ClinicReserveId,
                     ConsultationPurchaseId = s.ConsultationPurchaseId,
                     Text = s.Text,
                     AuthorName = ((s.AuthorUser.FirstName ?? "") + " " + (s.AuthorUser.LastName ?? "")).Trim(),

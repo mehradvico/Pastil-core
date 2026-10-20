@@ -492,4 +492,154 @@
   <data name="PushTripServiceReminderUser" xml:space="preserve">
     <value>Your weekly Pet-Rasan service starts at {0}. Please have your pet ready.</value>
   </data>
+  <data name="PansionOutsideWorkingHours" xml:space="preserve">
+    <value>The selected hours must be within the center working hours ({0} to {1}).</value>
+  </data>
+  <data name="OtpResendTooSoon" xml:space="preserve">
+    <value>Please wait {0} seconds before requesting a new code.</value>
+  </data>
+  <data name="OtpHourlyLimitReached" xml:space="preserve">
+    <value>Too many codes were sent to this recipient in the last hour; try again in {0} minutes.</value>
+  </data>
+  <data name="WalletChargeAmountOutOfRange" xml:space="preserve">
+    <value>The top-up amount must be a whole number between {0} and {1} Toman.</value>
+  </data>
+  <data name="WalletReasonPayFor" xml:space="preserve">
+    <value>Payment for {0} from wallet</value>
+  </data>
+  <data name="WalletReasonRefundFor" xml:space="preserve">
+    <value>Refund of {0} to wallet</value>
+  </data>
+  <data name="WalletReasonCancelRefundFor" xml:space="preserve">
+    <value>{0} cancelled - refunded to wallet</value>
+  </data>
+  <data name="WalletReasonUserCharge" xml:space="preserve">
+    <value>Wallet top-up by user ({0})</value>
+  </data>
+  <data name="WalletReasonAdminChargeNote" xml:space="preserve">
+    <value>Manual top-up by admin - {0}</value>
+  </data>
+  <data name="WalletReasonAdminDebitNote" xml:space="preserve">
+    <value>Manual deduction by admin - {0}</value>
+  </data>
+  <data name="WalletReasonCompanionPackageRefund" xml:space="preserve">
+    <value>Service "{1}" of {0} cancelled - refunded to wallet</value>
+  </data>
+  <data name="WalletReasonOrderItemRefund" xml:space="preserve">
+    <value>Item reduced or removed from {0} - refunded to wallet</value>
+  </data>
+  <data name="WalletReasonReferralBonus" xml:space="preserve">
+    <value>Referral bonus ({0})</value>
+  </data>
+  <data name="WalletReasonCompanionDebt" xml:space="preserve">
+    <value>Unpaid service debt for {0} paid from wallet</value>
+  </data>
+  <data name="WalletTargetPayment" xml:space="preserve">
+    <value>payment {0}</value>
+  </data>
+  <data name="WalletTargetProductOrder" xml:space="preserve">
+    <value>order {0}</value>
+  </data>
+  <data name="WalletTargetCompanionReserve" xml:space="preserve">
+    <value>service reservation {0}</value>
+  </data>
+  <data name="WalletTargetPansionReserve" xml:space="preserve">
+    <value>boarding reservation {0}</value>
+  </data>
+  <data name="WalletTargetSchoolReserve" xml:space="preserve">
+    <value>course registration {0}</value>
+  </data>
+  <data name="WalletTargetConsultation" xml:space="preserve">
+    <value>consultation {0}</value>
+  </data>
+  <data name="WalletTargetTrip" xml:space="preserve">
+    <value>Pet-Rasan trip #{0}</value>
+  </data>
+  <data name="WalletTargetCargo" xml:space="preserve">
+    <value>cargo shipment #{0}</value>
+  </data>
+  <data name="WalletTargetInsurance" xml:space="preserve">
+    <value>insurance #{0}</value>
+  </data>
+  <data name="WalletTargetPastilAi" xml:space="preserve">
+    <value>Pastil AI subscription #{0}</value>
+  </data>
+  <data name="ShipmentExtendMinutesInvalid" xml:space="preserve">
+    <value>The extension must be between {0} and {1} minutes.</value>
+  </data>
+  <data name="ShipmentDeadlineExtendedTo" xml:space="preserve">
+    <value>The seller deadline was extended to {0}.</value>
+  </data>
+  <data name="WalletTargetGroomerReserve" xml:space="preserve">
+    <value>grooming reservation {0}</value>
+  </data>
+  <data name="PushGroomerReserveApprovalRequired" xml:space="preserve">
+    <value>New reservation {1} at {0} is waiting for your approval.</value>
+  </data>
+  <data name="PushGroomerReserveApproved" xml:space="preserve">
+    <value>Reservation {1} at {0} was approved by the groomer.</value>
+  </data>
+  <data name="PushGroomerReserveRejected" xml:space="preserve">
+    <value>Your reservation at {0} was rejected and the payment was refunded to your wallet. Reason: {1}</value>
+  </data>
+  <data name="PushGroomerReserveExpired" xml:space="preserve">
+    <value>Groomer {0} did not respond in time; the reservation was cancelled and refunded to your wallet.</value>
+  </data>
+  <data name="PushGroomerReserveCancelledByBooker" xml:space="preserve">
+    <value>Reservation {0} on {1} was cancelled by the customer.</value>
+  </data>
+  <data name="PushGroomerApproved" xml:space="preserve">
+    <value>Your groomer {0} was approved and is now live.</value>
+  </data>
+  <data name="PushGroomerRejected" xml:space="preserve">
+    <value>Your groomer {0} was rejected. Reason: {1}</value>
+  </data>
+  <data name="PushGroomerReserveRescheduled" xml:space="preserve">
+    <value>The time of your reservation at {0} changed to {1} at {2}.</value>
+  </data>
+  <data name="PushGroomerReserveRescheduledForGroomer" xml:space="preserve">
+    <value>The time of the reservation for {0} changed to {1} at {2}.</value>
+  </data>
+  <data name="PushGroomerStaffInvite" xml:space="preserve">
+    <value>You were invited to join the staff of {0}. Open the app to accept.</value>
+  </data>
+  <data name="PushGroomerReserveCancelledByAdmin" xml:space="preserve">
+    <value>Your reservation at {0} was cancelled by support. Reason: {1}</value>
+  </data>
+  <data name="WalletTargetClinicReserve" xml:space="preserve">
+    <value>grooming reservation {0}</value>
+  </data>
+  <data name="PushClinicReserveApprovalRequired" xml:space="preserve">
+    <value>New reservation {1} at {0} is waiting for your approval.</value>
+  </data>
+  <data name="PushClinicReserveApproved" xml:space="preserve">
+    <value>Reservation {1} at {0} was approved by the clinic.</value>
+  </data>
+  <data name="PushClinicReserveRejected" xml:space="preserve">
+    <value>Your reservation at {0} was rejected and the payment was refunded to your wallet. Reason: {1}</value>
+  </data>
+  <data name="PushClinicReserveExpired" xml:space="preserve">
+    <value>Clinic {0} did not respond in time; the reservation was cancelled and refunded to your wallet.</value>
+  </data>
+  <data name="PushClinicReserveCancelledByBooker" xml:space="preserve">
+    <value>Reservation {0} on {1} was cancelled by the customer.</value>
+  </data>
+  <data name="PushClinicApproved" xml:space="preserve">
+    <value>Your clinic {0} was approved and is now live.</value>
+  </data>
+  <data name="PushClinicRejected" xml:space="preserve">
+    <value>Your clinic {0} was rejected. Reason: {1}</value>
+  </data>
+  <data name="PushClinicReserveRescheduled" xml:space="preserve">
+    <value>The time of your reservation at {0} changed to {1} at {2}.</value>
+  </data>
+  <data name="PushClinicReserveRescheduledForClinic" xml:space="preserve">
+    <value>The time of the reservation for {0} changed to {1} at {2}.</value>
+  </data>
+  <data name="PushClinicStaffInvite" xml:space="preserve">
+    <value>You were invited to join the staff of {0}. Open the app to accept.</value>
+  </data>
+  <data name="PushClinicReserveCancelledByAdmin" xml:space="preserve">
+    <value>Your reservation at {0} was cancelled by support. Reason: {1}</value>
+  </data>
 </root>

@@ -45,6 +45,17 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
+        /// لغو کل سرویس هفتگیِ این سفر (Id = شناسه‌ی سفر): سرویس غیرفعال، همه‌ی نوبت‌های شروع‌نشده لغو با برگشت پول؛
+        /// دیگر هیچ نوبتی ساخته نمی‌شود. Data = تعداد نوبت‌های لغوشده.
+        /// </summary>
+        [HttpPost("cancel-service")]
+        [ProducesResponseType(typeof(BaseResultDto<int>), 200)]
+        public async Task<IActionResult> CancelService(TripAdminActionDto dto)
+        {
+            return Ok(await _assistanceService.AdminCancelPetResanServiceAsync(dto));
+        }
+
+        /// <summary>
         /// تکمیل دستی سفر پذیرفته‌شده توسط ادمین
         /// </summary>
         [HttpPost("complete")]

@@ -516,6 +516,8 @@ builder.Services.AddHangfire(configuration => configuration
 builder.Services.AddHangfireServer();
 
 var app = builder.Build();
+// AppSettingsHelper فقط در Payment مقداردهی می‌شد؛ در Api هر خواندن آن (مثلاً FileBaseUrl در ساخت تصویر پیک میاره) NullReferenceException می‌داد
+Application.Common.Helpers.AppSettingsHelper.Initialize(builder.Configuration);
 app.UseBackendSecurityHeaders();
 app.UseUnhandledExceptionResult();
 Application.Common.Helpers.ExceptionResultHelper.Initialize(app.Services.GetRequiredService<ILoggerFactory>());
@@ -528,7 +530,12 @@ if (Application.Common.Security.JwtKeyPolicy.IsWeak(app.Configuration["JWtConfig
 if (!app.Environment.IsDevelopment())
 {
     if (app.Configuration.GetValue<bool>("PaymentTestMode:Enabled"))
-        app.Logger.LogWarning("PaymentTestMode:Enabled is TRUE outside Development — payments are simulated, no real gateway is charged.");
+    {
+        if (app.Environment.IsProduction() && !app.Configuration.GetValue<bool>("PaymentTestMode:AllowInProduction"))
+            app.Logger.LogWarning("PaymentTestMode:Enabled is TRUE but ignored in Production (set PaymentTestMode:AllowInProduction=true to really simulate payments).");
+        else
+            app.Logger.LogWarning("PaymentTestMode:Enabled is TRUE outside Development — payments are simulated, no real gateway is charged.");
+    }
     if (app.Configuration.GetValue<bool>("Shipping:TestMode"))
         app.Logger.LogWarning("Shipping:TestMode is TRUE outside Development — shipment quotes/orders are simulated, no real courier is booked.");
 }
@@ -546,6 +553,9 @@ recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.Consultati
     "ConsultationNotifyUnclaimed", x => x.NotifyUnclaimedAsync(), Cron.Minutely);
 recurringJobManager.AddOrUpdate<Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface.IConsultationNotificationService>(
     "ConsultationBookingReminders", x => x.NotifyBookingRemindersAsync(), Cron.Minutely);
+// پرداخت زرین‌پالی که کاربر در درگاه انجام داد ولی callbackش نرسید (بستن صفحه/قطع اینترنت): verify و اعمال (۱۰ تا ۲۹ دقیقه بعد از شروع)
+recurringJobManager.AddOrUpdate<Application.Services.Order.PaymentSrv.Iface.IPaymentService>(
+    "PaymentReconcileUnconfirmed", x => x.ReconcileUnconfirmedAsync(), "*/5 * * * *");
 // بدهی پرداخت‌نشده‌ی خدمت: کسر خودکار از کیف پول (هر ۵ دقیقه) و یادآوری روزی ۳ بار برای کسانی که کیف پولشان کافی نیست (job هر ۱۵ دقیقه؛ بازه‌ها در CompanionReserveDebtRules)
 recurringJobManager.AddOrUpdate<Application.Services.CompanionSrvs.CompanionReserveDebtSrv.ICompanionReserveDebtService>(
     "CompanionDebtAutoCollect", x => x.AutoCollectAsync(), "*/5 * * * *");
@@ -590,6 +600,16 @@ recurringJobManager.AddOrUpdate<Application.Services.PansionSrvs.PansionReserveS
     "PansionReserveExpireOverdue",
     service => service.ExpireOverdueAsync(CancellationToken.None),
     "*/5 * * * *");
+// رزرو آرایشگاه: آرایشگاه در مهلت پاسخ ندهد → لغو خودکار و برگشت کل مبلغ به کیف پول. طراحی: backend/Docs/GROOMER_FA.md
+recurringJobManager.AddOrUpdate<Application.Services.GroomerSrvs.GroomerReserveSrv.Iface.IGroomerReserveApprovalService>(
+    "GroomerReserveExpireOverdue",
+    service => service.ExpireOverdueAsync(CancellationToken.None),
+    "*/5 * * * *");
+// رزرو کلینیک: کلینیک در مهلت پاسخ ندهد → لغو خودکار و برگشت کل مبلغ به کیف پول. طراحی: backend/Docs/CLINIC_FA.md
+recurringJobManager.AddOrUpdate<Application.Services.ClinicSrvs.ClinicReserveSrv.Iface.IClinicReserveApprovalService>(
+    "ClinicReserveExpireOverdue",
+    service => service.ExpireOverdueAsync(CancellationToken.None),
+    "*/5 * * * *");
 // اعلان ماندگار «سفر در جریان است» برای مسافر (بعد از سوار شدن پت تا پایان سفر)؛ طراحی: backend/Docs/TRIP_ONGOING_NOTIFICATION_FA.md
 recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripOngoingSrv.ITripOngoingNotificationService>(
     "TripOngoingNotification",
@@ -599,15 +619,17 @@ recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITrip
     "DispatchScheduledTrips",
     service => service.DispatchScheduledTripsAsync(),
     "* * * * *");
+// سفر بدون راننده (فوری، رزرو، سرویس): ۱۰ دقیقه بعد از ثبت اعلان پنل به ادمین برای انتخاب دستی راننده؛ لغو خودکار
+// (فوری ۳۰ دقیقه بعد از ثبت، رزرو/سرویس ۳۰ دقیقه مانده به حرکت) + برگشت مبلغ پرداخت‌شده به کیف پول (TripDriverTimeoutRules).
+recurringJobManager.RemoveIfExists("AutoCancelUnansweredInstantTrips");
+recurringJobManager.RemoveIfExists("NotifyAdminForSlowInstantTrips");
 recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
-    "AutoCancelUnansweredInstantTrips",
-    service => service.AutoCancelUnansweredInstantTripsAsync(),
+    "AutoCancelUnassignedTrips",
+    service => service.AutoCancelUnassignedTripsAsync(),
     "* * * * *");
-// هشدار زودهنگام (قبل از لغو خودکار بالا): وقتی سفر فوری چند دقیقه است ثبت شده و هنوز راننده‌ای قبول نکرده،
-// به کاربر پوش می‌دهد که ادمین در جریان است - بدون لغو سفر.
 recurringJobManager.AddOrUpdate<Application.Services.TripSrv.TripSrv.Iface.ITripService>(
-    "NotifyAdminForSlowInstantTrips",
-    service => service.NotifyAdminForSlowInstantTripsAsync(),
+    "NotifyAdminForUnassignedTrips",
+    service => service.NotifyAdminForUnassignedTripsAsync(),
     "* * * * *");
 // توکن‌های منقضی‌شده (بیش از ۳۰ روز بعد از انقضای refresh) پاک می‌شوند؛ جدول UserTokens قبلاً هیچ‌وقت کوچک نمی‌شد
 recurringJobManager.AddOrUpdate<Application.Services.Accounting.UserTokenSrv.Iface.IUserTokenService>(

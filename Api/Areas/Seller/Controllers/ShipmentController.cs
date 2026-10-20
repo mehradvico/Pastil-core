@@ -20,11 +20,13 @@ namespace Api.Areas.Seller.Controllers
     public class ShipmentController : ControllerBase
     {
         private readonly IShipmentService _shipmentService;
+        private readonly IShipmentTrackingService _trackingService;
         private readonly ICurrentUserHelper _currentUser;
 
-        public ShipmentController(IShipmentService shipmentService, ICurrentUserHelper currentUser)
+        public ShipmentController(IShipmentService shipmentService, IShipmentTrackingService trackingService, ICurrentUserHelper currentUser)
         {
             _shipmentService = shipmentService;
+            _trackingService = trackingService;
             _currentUser = currentUser;
         }
 
@@ -40,6 +42,19 @@ namespace Api.Areas.Seller.Controllers
             if (StoreId <= 0)
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             return Ok(await _shipmentService.GetAwaitingForStoreAsync(StoreId, cancellationToken));
+        }
+
+        /// <summary>
+        /// ردیابی پیک یک سفارش این فروشگاه: مراحل، نام/تلفن/موقعیت پیک (فقط وقتی پیک به‌سمت فروشگاه می‌آید) و فاصله تا فروشگاه.
+        /// سفارش فروشگاه دیگر = «یافت نشد». اپ تا وقتی <c>isFinal</c> نشده هر <c>pollSeconds</c> ثانیه دوباره بخواند.
+        /// </summary>
+        [HttpGet("Tracking")]
+        [ProducesResponseType(typeof(BaseResultDto<ShipmentTrackingVDto>), 200)]
+        public async Task<IActionResult> GetTracking([FromQuery] long productOrderStoreId, CancellationToken cancellationToken)
+        {
+            if (StoreId <= 0)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
+            return Ok(await _trackingService.GetForStoreAsync(StoreId, productOrderStoreId, cancellationToken));
         }
 
         /// <summary>

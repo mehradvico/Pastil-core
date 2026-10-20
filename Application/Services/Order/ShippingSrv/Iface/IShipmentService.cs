@@ -35,6 +35,17 @@ namespace Application.Services.Order.ShippingSrv.Iface
             long storeId,
             CancellationToken cancellationToken = default);
 
+        // پنل ادمین: مرسوله‌های یک سفارش (وضعیت، مهلت‌ها، دلیل شکست) و تمدید دستی مهلت فروشنده
+        Task<BaseResultDto<List<AdminShipmentVDto>>> GetForOrderAsync(
+            string productOrderId,
+            CancellationToken cancellationToken = default);
+
+        Task<BaseResultDto> ExtendSellerDeadlineAsync(
+            long shipmentId,
+            int minutes,
+            long adminUserId,
+            CancellationToken cancellationToken = default);
+
         // job (هر ۵ دقیقه): یادآوری ۱۵ دقیقه مانده به مهلت و شکست مرسوله‌ی تأییدنشده؛ تعداد مرسوله‌ی منقضی را برمی‌گرداند
         Task<int> ProcessUnconfirmedAsync(CancellationToken cancellationToken = default);
 

@@ -15,6 +15,8 @@ using Application.Services.Order.ProductOrderSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.PansionSrvs.PansionReserveSrv.Iface;
 using Application.Services.SchoolSrvs.SchoolReserveSrv.Iface;
+using Application.Services.GroomerSrvs.GroomerReserveSrv.Iface;
+using Application.Services.ClinicSrvs.ClinicReserveSrv.Iface;
 using Application.Services.PastilAISrv.Iface;
 using Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
@@ -52,6 +54,8 @@ namespace Application.Services.Order.PaymentSrv
         private readonly ICompanionInsurancePackageSaleService _companionInsurance;
         private readonly IPansionReserveService _pansionReserve;
         private readonly ISchoolReserveService _schoolReserve;
+        private readonly IGroomerReserveService _groomerReserve;
+        private readonly IClinicReserveService _clinicReserve;
         private readonly IPastilAiSubscriptionActivator _pastilAiSubscriptionActivator;
         private readonly IConsultationPurchaseActivator _consultationPurchaseActivator;
         private readonly IRebateService _rebateService;
@@ -60,6 +64,7 @@ namespace Application.Services.Order.PaymentSrv
         private readonly ICurrentUserHelper _currentUserHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<PaymentService> _logger;
+        private readonly Application.Common.PostCommit.IPostCommitQueue _postCommit;
 
         public PaymentService(
             IDataBaseContext context,
@@ -69,6 +74,8 @@ namespace Application.Services.Order.PaymentSrv
             IMerchantService merchantService,
             IPansionReserveService pansionReserve,
             ISchoolReserveService schoolReserve,
+            IGroomerReserveService groomerReserve,
+            IClinicReserveService clinicReserve,
             IProductOrderService productOrderService,
             ICompanionReserveService companionReserveService,
             ITripService tripService,
@@ -81,9 +88,11 @@ namespace Application.Services.Order.PaymentSrv
             ICurrentUserHelper currentUserHelper,
             IHttpContextAccessor httpContextAccessor,
             IConfiguration configuration,
-            ILogger<PaymentService> logger)
+            ILogger<PaymentService> logger,
+            Application.Common.PostCommit.IPostCommitQueue postCommit)
             : base(context, mapper)
         {
+            _postCommit = postCommit;
             _context = context;
             this.mapper = mapper;
             _merchantService = merchantService;
@@ -96,6 +105,8 @@ namespace Application.Services.Order.PaymentSrv
             _companionInsurance = companionInsurance;
             _pansionReserve = pansionReserve;
             _schoolReserve = schoolReserve;
+            _groomerReserve = groomerReserve;
+            _clinicReserve = clinicReserve;
             _pastilAiSubscriptionActivator = pastilAiSubscriptionActivator;
             _consultationPurchaseActivator = consultationPurchaseActivator;
             _rebateService = rebateService;
@@ -108,9 +119,12 @@ namespace Application.Services.Order.PaymentSrv
 
         public async Task<BaseResultDto> InsertWalletPaymentAsyncDto(PaymentStartDto dto)
         {
-            if (dto.Amount < 10000)
+            if (!Application.Services.ProductSrvs.WalletSrv.WalletChargeRules.IsValid(dto.Amount))
             {
-                dto.Amount = 10000;
+                return new BaseResultDto(false, string.Format(
+                    Resource.Pattern.WalletChargeAmountOutOfRange,
+                    Application.Services.ProductSrvs.WalletSrv.WalletChargeRules.MinAmount.ToString("N0", System.Globalization.CultureInfo.InvariantCulture),
+                    Application.Services.ProductSrvs.WalletSrv.WalletChargeRules.MaxAmount.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)));
             }
 
             if (dto.MerchantId == null)
@@ -122,7 +136,7 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentTypeEnum.PaymentType_Wallet.ToString());
 
             dto.IsOnline = true;
-            dto.ProductOrderId = null;
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.Wallet, null);
             dto.TypeId = paymentTypeWallet.Id;
             dto.CallBackTypeLabel = PaymentCallbackTypeEnum.Wallet.ToString();
             dto.CallBackId = null;
@@ -141,6 +155,16 @@ namespace Application.Services.Order.PaymentSrv
             {
                 if (!TryGetIdempotencyKey(out var idempotencyKey, out var idempotencyError))
                     return new BaseResultDto(false, idempotencyError);
+
+                // این فیلدها را فقط سرور و درگاه پر می‌کنند؛ مقداری که کلاینت در بدنه‌ی PaymentStartDto فرستاده دور ریخته می‌شود
+                dto.PaymentCode = null;
+                dto.PaymentUrl = null;
+                dto.PaymentIsLink = false;
+                dto.IsTestMode = false;
+                dto.TestSuccessUrl = null;
+                dto.TestFailureUrl = null;
+                dto.CallbackUrl = null;
+                dto.GatewayToken = null;
 
                 dto.GrossAmount = dto.GrossAmount > 0
                     ? dto.GrossAmount
@@ -163,6 +187,20 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 if (!isInternalSettlement && (!dto.MerchantId.HasValue || dto.MerchantId.Value <= 0))
                     return new BaseResultDto(false, Resource.Notification.PleaseSelectTheMerchant);
+
+                // همان قاعده‌ی لیست درگاه‌ها: همه زرین‌پال، مدیر اصلی علاوه بر آن درگاه تستی (merchantId قدیمیِ ذخیره‌شده در سبد یا
+                // دست‌ساز پذیرفته نمی‌شود و کاربر باید از لیست دوباره انتخاب کند)
+                if (!isInternalSettlement)
+                {
+                    var payer = _currentUserHelper.CurrentUser;
+                    if (payer != null && payer.UserId != dto.UserId.Value)
+                        payer = null;
+                    var allowedBankIds = Application.Services.Order.MerchantSrv.MerchantGatewayRules.AllowedBankIds(payer);
+                    var merchantAllowed = await _context.Merchants.AsNoTracking()
+                        .AnyAsync(s => s.Id == dto.MerchantId.Value && s.Active && allowedBankIds.Contains(s.BankId));
+                    if (!merchantAllowed)
+                        return new BaseResultDto(false, Resource.Notification.PleaseSelectTheMerchant);
+                }
 
                 await using var createTransaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
                 if (idempotencyKey != null)
@@ -266,11 +304,14 @@ namespace Application.Services.Order.PaymentSrv
                     return new BaseResultDto(false, item.Description);
                 }
 
-                dto.CallbackUrl = $"{paymentBaseUrl}/callback/{item.Id}?callbackToken={item.CallbackToken}";
+                // توکن داخل مسیر (نه query): هر درگاه پارامترهای خودش را بی‌دردسر به انتهای آدرس اضافه می‌کند.
+                // شکل قدیمی ?callbackToken= هم در CallbackController پذیرفته می‌شود (پرداخت‌های در جریانِ قبل از انتشار).
+                dto.CallbackUrl = $"{paymentBaseUrl}/callback/{item.Id}/{item.CallbackToken}";
                 var startResult = await _merchantService.StartAsync(dto);
 
                 item.PaymentUrl = dto.PaymentUrl;
                 item.PaymentIsLink = dto.PaymentIsLink;
+                item.Token = dto.GatewayToken;
                 _context.Payments.Update(item);
                 await _context.SaveChangesAsync();
 
@@ -320,8 +361,8 @@ namespace Application.Services.Order.PaymentSrv
                     await _context.SaveChangesAsync();
                 }
 
-                var detail = exception.InnerException?.Message ?? exception.Message;
-                return new BaseResultDto(false, Resource.Notification.Unsuccess, detail);
+                // جزئیات exception فقط در لاگ بالا؛ به کاربر/کلاینت پیام عمومی
+                return new BaseResultDto(false, Resource.Notification.Unsuccess);
             }
         }
 
@@ -487,7 +528,9 @@ namespace Application.Services.Order.PaymentSrv
                     // درگاهِ یک تلاش کنارگذاشته‌شده پرداخت شد: verify نمی‌شود تا بانک مبلغ را برگرداند؛ کاربر باید دلیلش را بداند
                     var failMessage = payment.GatewayStatus == PaymentAttemptRules.SupersededGatewayStatus
                         ? Resource.Notification.PaymentAttemptSuperseded
-                        : Resource.Notification.Unsuccess;
+                        : payment.GatewayStatus == RefundedToWalletStatus
+                            ? Resource.Notification.PaymentRefundedToWallet
+                            : Resource.Notification.Unsuccess;
                     return new BaseResultDto<PaymentDto>(
                         false,
                         failMessage,
@@ -526,6 +569,17 @@ namespace Application.Services.Order.PaymentSrv
                             // اگر نتیجه‌ای ثبت نشد (خطای تنظیمات/exception)، علامت برداشته می‌شود تا تلاش بعدی کاربر قفل نماند
                             await PaymentAttemptRules.ClearVerifyingAsync(_context, payment.Id);
                         }
+                        if (!callbackResult.IsSuccess && callbackResult.Code == (int)ResultCodeEnum.PaymentVerificationPending)
+                        {
+                            // جواب بانک نرسید: پرداخت ناموفق نیست (پول ممکن است کسر شده باشد)؛ سفارش/کیف پول دست نمی‌خورد و
+                            // job تطبیق بعد از چند دقیقه verify را دوباره می‌زند.
+                            _logger.LogWarning("Payment {PaymentId} verification is pending (no definitive answer from the gateway).", payment.Id);
+                            return new BaseResultDto<PaymentDto>(
+                                false,
+                                callbackResult.Messages,
+                                await MapPaymentForDisplayAsync(payment),
+                                (int)ResultCodeEnum.PaymentVerificationPending);
+                        }
                         if (!callbackResult.IsSuccess)
                         {
                             await HandleFailedPaymentAsync(payment);
@@ -545,6 +599,20 @@ namespace Application.Services.Order.PaymentSrv
                     exception,
                     "Payment callback failed while applying payment {PaymentId} to its target.",
                     paymentId);
+
+                // استثنا ممکن است بعد از ثبت واقعی رخ داده باشد (مثلاً موقع ساخت پاسخ/اعلان‌ها): وضعیت ماندگار را از دیتابیس
+                // می‌خوانیم و اگر پرداخت اعمال شده به کاربر «ناموفق» نشان نمی‌دهیم.
+                try
+                {
+                    (_context as DbContext)?.ChangeTracker.Clear();
+                    var durable = await _context.Payments.AsNoTracking().FirstOrDefaultAsync(s => s.Id == paymentId);
+                    if (durable?.AppliedDate != null && IsValidCallbackToken(durable.CallbackToken, callbackToken))
+                        return new BaseResultDto<PaymentDto>(true, await MapPaymentForDisplayAsync(durable));
+                }
+                catch (Exception recheckException)
+                {
+                    _logger.LogError(recheckException, "Re-checking payment {PaymentId} after a callback error failed.", paymentId);
+                }
                 return new BaseResultDto<PaymentDto>(false, Resource.Notification.Unsuccess, null);
             }
         }
@@ -552,6 +620,24 @@ namespace Application.Services.Order.PaymentSrv
         private async Task<BaseResultDto<PaymentDto>> ApplyAndMapPaymentAsync(
             Entities.Entities.Payment payment)
         {
+            // کارهای جانبیِ ثبت‌شده‌ی تلاشِ قبلیِ ناموفق (مثلاً در job تطبیق که چند پرداخت را با یک scope می‌گذراند) نباید اجرا شوند
+            _postCommit.Clear();
+            // تا پایان اعمال، پوش‌هایی که داخل تراکنش فرستاده می‌شوند (مثلاً ثبت سفارش اکسپرس) به بعد از Commit می‌روند
+            _postCommit.Activate();
+            try
+            {
+                return await ApplyAndMapPaymentCoreAsync(payment);
+            }
+            finally
+            {
+                _postCommit.Deactivate();
+            }
+        }
+
+        private async Task<BaseResultDto<PaymentDto>> ApplyAndMapPaymentCoreAsync(
+            Entities.Entities.Payment payment)
+        {
+            var applyWatch = System.Diagnostics.Stopwatch.StartNew();
             await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
             // The callback path already tracked this entity before entering the
             // transaction. Reload it under Serializable isolation so a duplicate
@@ -570,10 +656,27 @@ namespace Application.Services.Order.PaymentSrv
                 return new BaseResultDto<PaymentDto>(true, await MapPaymentForDisplayAsync(lockedPayment));
             }
 
+            // هر هدف فقط یک پرداخت اعمال‌شده دارد. پرداخت تأییدشده‌ی دوم برای همان هدف (پرداخت تکراری) قبلاً بی‌صدا «موفق» می‌شد
+            // چون callback هدف برای موردِ پرداخت‌شده true برمی‌گرداند؛ حالا اعمال نمی‌شود و مبلغش به کیف پول برمی‌گردد.
+            if (!string.IsNullOrWhiteSpace(lockedPayment.CallBackId) &&
+                await _context.Payments.AsNoTracking().AnyAsync(s =>
+                    s.Id != lockedPayment.Id &&
+                    s.CallBackTypeLabel == lockedPayment.CallBackTypeLabel &&
+                    s.CallBackId == lockedPayment.CallBackId &&
+                    s.AppliedDate != null))
+            {
+                await transaction.RollbackAsync();
+                if (await RefundUnappliedToWalletAsync(lockedPayment))
+                    return new BaseResultDto<PaymentDto>(false, Resource.Notification.PaymentDuplicateRefundedToWallet, await MapPaymentForDisplayAsync(lockedPayment));
+                return new BaseResultDto<PaymentDto>(false, Resource.Notification.PaymentTargetAlreadyPaid, await MapPaymentForDisplayAsync(lockedPayment));
+            }
+
             var snapshotValidation = await ValidatePaymentSnapshotAsync(lockedPayment);
             if (!snapshotValidation.IsSuccess)
             {
                 await transaction.RollbackAsync();
+                if (await RefundUnappliedToWalletAsync(lockedPayment))
+                    return new BaseResultDto<PaymentDto>(false, Resource.Notification.PaymentRefundedToWallet, await MapPaymentForDisplayAsync(lockedPayment));
                 return new BaseResultDto<PaymentDto>(false, snapshotValidation.Messages, await MapPaymentForDisplayAsync(lockedPayment));
             }
 
@@ -588,20 +691,202 @@ namespace Application.Services.Order.PaymentSrv
                             .SetProperty(s => s.IsSuccess, false)
                             .SetProperty(s => s.GatewayStatus, "WALLET_TARGET_FAILED"));
                 }
+                else if (await RefundUnappliedToWalletAsync(lockedPayment))
+                {
+                    return new BaseResultDto<PaymentDto>(false, Resource.Notification.PaymentRefundedToWallet, await MapPaymentForDisplayAsync(lockedPayment));
+                }
                 return new BaseResultDto<PaymentDto>(false, applyResult.Messages, await MapPaymentForDisplayAsync(lockedPayment));
             }
 
+            var isTestPayment = lockedPayment.GatewayStatus?.StartsWith("TEST_") == true;
+            if (isTestPayment)
+                await MarkTestTargetSettledAsync(lockedPayment);
+
             lockedPayment.AppliedDate = DateTime.UtcNow;
-            lockedPayment.GatewayStatus = lockedPayment.GatewayStatus?.StartsWith("TEST_") == true
+            lockedPayment.GatewayStatus = isTestPayment
                 ? "TEST_APPLIED"
                 : "APPLIED";
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
+            // پیامک/پوش/اعلان‌های این پرداخت فقط بعد از Commit موفق و در پس‌زمینه می‌روند؛ کاربر منتظرشان نمی‌ماند
+            _postCommit.Flush();
+            if (applyWatch.ElapsedMilliseconds > 5000)
+                _logger.LogWarning("Applying payment {PaymentId} ({Target}) took {Ms} ms.", lockedPayment.Id, lockedPayment.CallBackTypeLabel, applyWatch.ElapsedMilliseconds);
+
             return new BaseResultDto<PaymentDto>(
                 true,
                 applyResult.Messages,
                 await MapPaymentForDisplayAsync(lockedPayment));
+        }
+
+        private const string GatewaySuccessStatus = "SUCCESS";
+        private const string RefundedToWalletStatus = "REFUNDED_TO_WALLET";
+        private const int ReconcileBatchSize = 50;
+        // کاربر حداقل ۱۰ دقیقه فرصت دارد خودش از درگاه برگردد؛ بعد از عمر درگاه (۳۰ دقیقه) callback پرداخت را EXPIRED می‌کند
+        // verify ناموفقِ job ذخیره نمی‌شود (کاربر ممکن است هنوز در درگاه باشد)، پس ۳ دقیقه امن است؛ job هر ۵ دقیقه اجرا می‌شود
+        private static readonly TimeSpan ReconcileAfter = TimeSpan.FromMinutes(3);
+
+        public async Task<int> ReconcileUnconfirmedAsync()
+        {
+            var now = DateTime.Now;
+            var olderThan = now - ReconcileAfter;
+            var newerThan = now - PaymentAttemptRules.PendingAttemptLifetime + TimeSpan.FromMinutes(1);
+            var zarinpal = (long)Common.Enumerable.MerchantEnum.zarinpal;
+            var ids = await _context.Payments.AsNoTracking()
+                .Where(s => s.IsSuccess == null && s.AppliedDate == null && s.GatewayStatus == null &&
+                            s.IsOnline && s.Amount > 0 && s.Token != null && s.CallbackToken != null &&
+                            s.CreateDate <= olderThan && s.CreateDate >= newerThan &&
+                            s.Merchant.BankId == zarinpal)
+                .OrderBy(s => s.Id)
+                .Select(s => s.Id)
+                .Take(ReconcileBatchSize)
+                .ToListAsync();
+
+            var applied = 0;
+            foreach (var id in ids)
+            {
+                try
+                {
+                    var payment = await FindAsync(id);
+                    if (payment == null || payment.IsSuccess != null)
+                        continue;
+                    // همان قفل callback: اگر کاربر همین لحظه برگشت، فقط یکی verify می‌کند و تلاش تازه کنارش نمی‌گذارد
+                    if (!await PaymentAttemptRules.TryMarkVerifyingAsync(_context, payment.Id))
+                        continue;
+
+                    BaseResultDto verified;
+                    try
+                    {
+                        verified = await _merchantService.ReconcileUnconfirmedAsync(payment);
+                    }
+                    finally
+                    {
+                        await PaymentAttemptRules.ClearVerifyingAsync(_context, payment.Id);
+                    }
+                    if (!verified.IsSuccess)
+                        continue;
+
+                    await _context.Entry(payment).ReloadAsync();
+                    var result = await ApplyAndMapPaymentAsync(payment);
+                    if (result.IsSuccess)
+                        applied++;
+                    _logger.LogWarning(
+                        "Payment {PaymentId} was paid at the gateway but its callback never arrived; reconciled (applied: {Applied}).",
+                        id, result.IsSuccess);
+                }
+                catch (Exception exception)
+                {
+                    // یک پرداخت خراب بقیه را متوقف نمی‌کند؛ اجرای بعدی (تا پایان عمر درگاه) دوباره تلاش می‌کند
+                    _logger.LogError(exception, "Reconciling unconfirmed payment {PaymentId} failed.", id);
+                }
+                finally
+                {
+                    // هر پرداخت با context تمیز؛ موجودیت‌های tracked پرداخت قبلی در ذخیره‌ی بعدی نمی‌آیند
+                    (_context as DbContext)?.ChangeTracker.Clear();
+                }
+            }
+            return applied;
+        }
+
+        // بانک پول را قطعی کرده ولی اعمال روی هدف شکست خورد (مبلغ هدف عوض شده، کیف پول کافی نبود، هدف لغو شد، ...):
+        // به‌جای رها کردن پولِ گرفته‌شده، کل مبلغ درگاه یک‌بار (ردیف دفتر PaymentRefund:{id}) به کیف پول کاربر برمی‌گردد و پرداخت
+        // IsSuccess=false می‌شود تا هدف دوباره قابل پرداخت باشد و این پرداخت هرگز بعداً اعمال نشود. فقط درگاه واقعی (نه TEST_ / کیف پول).
+        // exception (خطای گذرا) به این‌جا نمی‌رسد: بالا می‌رود تا رفرش صفحه‌ی callback دوباره اعمال را امتحان کند.
+        private async Task<bool> RefundUnappliedToWalletAsync(Entities.Entities.Payment payment)
+        {
+            if (payment.GatewayStatus != GatewaySuccessStatus || !payment.IsOnline || payment.Amount <= 0 || payment.AppliedDate.HasValue)
+                return false;
+
+            // اعمالِ rollback‌شده ممکن است موجودیت‌های tracked نیمه‌کاره (رزرو/سفارش) گذاشته باشد؛ SaveChanges بعدی نباید آن‌ها را ذخیره کند
+            _context.Entry(payment).Context.ChangeTracker.Clear();
+
+            await using var refundTransaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
+            var claimed = await _context.Payments
+                .Where(s => s.Id == payment.Id && s.IsSuccess == true && s.AppliedDate == null && s.GatewayStatus == GatewaySuccessStatus)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(s => s.IsSuccess, false)
+                    .SetProperty(s => s.GatewayStatus, RefundedToWalletStatus));
+            if (claimed == 0)
+            {
+                await refundTransaction.RollbackAsync();
+                return false;
+            }
+
+            var ledgerName = $"PaymentRefund:{payment.Id}";
+            if (!await _context.Wallets.AsNoTracking().AnyAsync(s => s.Name == ledgerName && s.UserId == payment.UserId && !s.Deleted))
+            {
+                var credit = await _walletService.InsertAsyncDto(new WalletDto
+                {
+                    Name = ledgerName,
+                    Amount = payment.Amount,
+                    IsIncrease = true,
+                    UserId = payment.UserId,
+                    PaymentId = payment.Id,
+                    Painding = false
+                });
+                if (!credit.IsSuccess)
+                {
+                    await refundTransaction.RollbackAsync();
+                    return false;
+                }
+            }
+
+            await refundTransaction.CommitAsync();
+            payment.IsSuccess = false;
+            payment.GatewayStatus = RefundedToWalletStatus;
+            _logger.LogWarning(
+                "Verified payment {PaymentId} ({CallbackType}/{CallbackId}) could not be applied; {Amount} refunded to wallet of user {UserId}.",
+                payment.Id, payment.CallBackTypeLabel, payment.CallBackId, payment.Amount, payment.UserId);
+            return true;
+        }
+
+        // پرداخت تستی (درگاه تستی پاستیل / حالت تست) پول واقعی ندارد: هدفش «تسویه‌شده» علامت می‌خورد تا در تسویه‌ی
+        // نماینده/فروشگاه سهمی بابتش پرداخت نشود. داخل تراکنش اعمال صدا زده می‌شود.
+        private async Task MarkTestTargetSettledAsync(Entities.Entities.Payment payment)
+        {
+            var label = payment.CallBackTypeLabel;
+            if (label == nameof(PaymentCallbackTypeEnum.ProductOrder))
+            {
+                var orderId = payment.CallBackId ?? payment.ProductOrderId;
+                await _context.ProductOrders.Where(s => s.Id == orderId)
+                    .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
+                return;
+            }
+            if (!long.TryParse(payment.CallBackId, out var targetId))
+                return;
+            switch (label)
+            {
+                case nameof(PaymentCallbackTypeEnum.CompanionReserve):
+                    await _context.CompanionReserves.Where(s => s.Id == targetId)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
+                    break;
+                case nameof(PaymentCallbackTypeEnum.CompanionReserveBatch):
+                    await _context.CompanionReserves.Where(s => s.BatchId == targetId)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
+                    break;
+                case nameof(PaymentCallbackTypeEnum.PansionReserve):
+                    await _context.PansionReserves.Where(s => s.Id == targetId)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
+                    break;
+                case nameof(PaymentCallbackTypeEnum.SchoolReserve):
+                    await _context.SchoolReserves.Where(s => s.Id == targetId)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
+                    break;
+                case nameof(PaymentCallbackTypeEnum.GroomerReserve):
+                    await _context.GroomerReserves.Where(s => s.Id == targetId)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
+                    break;
+
+                case nameof(PaymentCallbackTypeEnum.ClinicReserve):
+                    await _context.ClinicReserves.Where(s => s.Id == targetId)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
+                    break;
+                case nameof(PaymentCallbackTypeEnum.ConsultationPurchase):
+                    await _context.ConsultationPurchases.Where(s => s.Id == targetId)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Permitted, true));
+                    break;
+            }
         }
 
         private async Task<PaymentDto> MapPaymentForDisplayAsync(Entities.Entities.Payment payment)
@@ -628,6 +913,17 @@ namespace Application.Services.Order.PaymentSrv
                     await _context.ConsultationPurchases.AsNoTracking()
                         .Where(item => item.Id == consultationPurchaseRefId)
                         .Select(item => item.PurchaseCode)
+                        .FirstOrDefaultAsync(),
+                nameof(PaymentCallbackTypeEnum.GroomerReserve) when long.TryParse(payment.CallBackId, out var groomerReserveId) =>
+                    await _context.GroomerReserves.AsNoTracking()
+                        .Where(item => item.Id == groomerReserveId)
+                        .Select(item => item.ReserveCode)
+                        .FirstOrDefaultAsync(),
+
+                nameof(PaymentCallbackTypeEnum.ClinicReserve) when long.TryParse(payment.CallBackId, out var clinicReserveId) =>
+                    await _context.ClinicReserves.AsNoTracking()
+                        .Where(item => item.Id == clinicReserveId)
+                        .Select(item => item.ReserveCode)
                         .FirstOrDefaultAsync(),
                 nameof(PaymentCallbackTypeEnum.SchoolReserve) when long.TryParse(payment.CallBackId, out var schoolReserveId) =>
                     await _context.SchoolReserves.AsNoTracking()
@@ -732,6 +1028,7 @@ namespace Application.Services.Order.PaymentSrv
                     Resource.Notification.PaymentReserveAlreadyPaid);
             if (reserveBlocked != null)
                 return reserveBlocked;
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.CompanionReserve, reservedetail.Id);
             var reserveRebateValidation = ValidateAppliedRebate(
                 reservedetail.Rebate,
                 reservedetail.PrePaymentPrice + reservedetail.RebatePrice,
@@ -801,7 +1098,8 @@ namespace Application.Services.Order.PaymentSrv
 
         public async Task<BaseResultDto> InsertPansionReservePaymentAsyncDto(PaymentStartDto dto)
         {
-            var reservedetail = await _context.PansionReserves.Include(s => s.Rebate).FirstOrDefaultAsync(s => s.Id == dto.PansionReserveId);
+            var reservedetail = await _context.PansionReserves.Include(s => s.Rebate).Include(s => s.Pansion).AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.PansionReserveId);
             if (reservedetail == null || reservedetail.BookerId != dto.UserId)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             var pansionBlocked = await GuardRetryAsync(
@@ -809,6 +1107,18 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentCallbackTypeEnum.PansionReserve, reservedetail.Id.ToString());
             if (pansionBlocked != null)
                 return pansionBlocked;
+            var reserveDay = reservedetail.FromDate ?? reservedetail.SchoolCreateDate;
+            if (reserveDay.HasValue && reserveDay.Value.Date < DateTime.Today)
+                return new BaseResultDto(false, Resource.Notification.PansionReserveDatePassed);
+            switch (Application.Services.PansionSrvs.PansionReserveSrv.PansionReserveRules.Reprice(reservedetail, reservedetail.Pansion))
+            {
+                case Application.Services.PansionSrvs.PansionReserveSrv.PansionReserveRules.RepriceResult.Invalid:
+                    return new BaseResultDto(false, Resource.Notification.PansionCheckoutMustBeAfterCheckin);
+                case Application.Services.PansionSrvs.PansionReserveSrv.PansionReserveRules.RepriceResult.Changed:
+                    await _context.SaveChangesAsync();
+                    break;
+            }
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.PansionReserve, null);
             var pansionRebateValidation = ValidateAppliedRebate(
                 reservedetail.Rebate,
                 reservedetail.PaymentPrice + reservedetail.RebatePrice,
@@ -872,6 +1182,138 @@ namespace Application.Services.Order.PaymentSrv
             return await StartPayment(dto);
         }
 
+        public async Task<BaseResultDto> InsertGroomerReservePaymentAsyncDto(PaymentStartDto dto)
+        {
+            var reservedetail = await _context.GroomerReserves.Include(s => s.Rebate).Include(s => s.Groomer).AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.GroomerReserveId);
+            if (reservedetail == null || reservedetail.BookerId != dto.UserId)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            var groomerBlocked = await GuardRetryAsync(
+                reservedetail.IsCancel, reservedetail.IsReserved, Resource.Notification.PaymentReserveAlreadyPaid,
+                PaymentCallbackTypeEnum.GroomerReserve, reservedetail.Id.ToString());
+            if (groomerBlocked != null)
+                return groomerBlocked;
+            if (reservedetail.DoDate <= DateTime.Now)
+                return new BaseResultDto(false, Resource.Notification.GroomerReserveDatePassed);
+            if (reservedetail.Groomer == null || !reservedetail.Groomer.Active || !reservedetail.Groomer.Approved || reservedetail.Groomer.Deleted)
+                return new BaseResultDto(false, Resource.Notification.GroomerReserveGroomerUnavailable);
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.GroomerReserve, null);
+            var groomerRebateValidation = ValidateAppliedRebate(
+                reservedetail.Rebate,
+                reservedetail.PaymentPrice + reservedetail.RebatePrice,
+                reservedetail.BookerId,
+                RebateTypeLabels.GroomerReserve,
+                reservedetail.RebatePrice);
+            if (!groomerRebateValidation.IsSuccess)
+                return groomerRebateValidation;
+
+            dto.Amount = reservedetail.PaymentPrice;
+            dto.GrossAmount = reservedetail.PaymentPrice + reservedetail.RebatePrice;
+            dto.RebateAmount = reservedetail.RebatePrice;
+            dto.RebateId = reservedetail.RebateId;
+            dto.WalletAmount = 0;
+
+            if (dto.Amount < 0)
+            {
+                return new BaseResultDto(false, Resource.Notification.AmountNotCorrect);
+            }
+            else if (dto.Amount > 0 && dto.MerchantId == null && !reservedetail.FromWallet)
+            {
+                return new BaseResultDto(false, Resource.Notification.PleaseSelectTheMerchant);
+            }
+            var groomerTypeId = await _codeService.GetIdByLabelAsync(PaymentTypeEnum.PaymentType_GroomerReserve.ToString());
+            if (reservedetail.FromWallet)
+            {
+                var walletAmount = await _walletService.GetSpendableAmountValueAsync(
+                    reservedetail.BookerId,
+                    Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Groomer,
+                    reservedetail.GroomerId);
+                reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PaymentPrice);
+                dto.WalletAmount = reservedetail.WalletPrice;
+                await _context.SaveChangesAsync();
+
+                dto.Amount = walletAmount >= reservedetail.PaymentPrice ? 0 : reservedetail.PaymentPrice - reservedetail.WalletPrice;
+                dto.ProductOrderId = null;
+                dto.CallBackTypeLabel = PaymentCallbackTypeEnum.GroomerReserve.ToString();
+                dto.CallBackId = reservedetail.Id.ToString();
+                dto.TypeId = groomerTypeId;
+                return await StartPayment(dto);
+            }
+
+            dto.IsOnline = true;
+            dto.ProductOrderId = null;
+            dto.TypeId = groomerTypeId;
+            dto.CallBackTypeLabel = PaymentCallbackTypeEnum.GroomerReserve.ToString();
+            dto.CallBackId = reservedetail.Id.ToString();
+            return await StartPayment(dto);
+        }
+
+        public async Task<BaseResultDto> InsertClinicReservePaymentAsyncDto(PaymentStartDto dto)
+        {
+            var reservedetail = await _context.ClinicReserves.Include(s => s.Rebate).Include(s => s.Clinic).AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.ClinicReserveId);
+            if (reservedetail == null || reservedetail.BookerId != dto.UserId)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            var clinicBlocked = await GuardRetryAsync(
+                reservedetail.IsCancel, reservedetail.IsReserved, Resource.Notification.PaymentReserveAlreadyPaid,
+                PaymentCallbackTypeEnum.ClinicReserve, reservedetail.Id.ToString());
+            if (clinicBlocked != null)
+                return clinicBlocked;
+            if (reservedetail.DoDate <= DateTime.Now)
+                return new BaseResultDto(false, Resource.Notification.ClinicReserveDatePassed);
+            if (reservedetail.Clinic == null || !reservedetail.Clinic.Active || !reservedetail.Clinic.Approved || reservedetail.Clinic.Deleted)
+                return new BaseResultDto(false, Resource.Notification.ClinicReserveClinicUnavailable);
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.ClinicReserve, null);
+            var clinicRebateValidation = ValidateAppliedRebate(
+                reservedetail.Rebate,
+                reservedetail.PaymentPrice + reservedetail.RebatePrice,
+                reservedetail.BookerId,
+                RebateTypeLabels.ClinicReserve,
+                reservedetail.RebatePrice);
+            if (!clinicRebateValidation.IsSuccess)
+                return clinicRebateValidation;
+
+            dto.Amount = reservedetail.PaymentPrice;
+            dto.GrossAmount = reservedetail.PaymentPrice + reservedetail.RebatePrice;
+            dto.RebateAmount = reservedetail.RebatePrice;
+            dto.RebateId = reservedetail.RebateId;
+            dto.WalletAmount = 0;
+
+            if (dto.Amount < 0)
+            {
+                return new BaseResultDto(false, Resource.Notification.AmountNotCorrect);
+            }
+            else if (dto.Amount > 0 && dto.MerchantId == null && !reservedetail.FromWallet)
+            {
+                return new BaseResultDto(false, Resource.Notification.PleaseSelectTheMerchant);
+            }
+            var clinicTypeId = await _codeService.GetIdByLabelAsync(PaymentTypeEnum.PaymentType_ClinicReserve.ToString());
+            if (reservedetail.FromWallet)
+            {
+                var walletAmount = await _walletService.GetSpendableAmountValueAsync(
+                    reservedetail.BookerId,
+                    Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Clinic,
+                    reservedetail.ClinicId);
+                reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PaymentPrice);
+                dto.WalletAmount = reservedetail.WalletPrice;
+                await _context.SaveChangesAsync();
+
+                dto.Amount = walletAmount >= reservedetail.PaymentPrice ? 0 : reservedetail.PaymentPrice - reservedetail.WalletPrice;
+                dto.ProductOrderId = null;
+                dto.CallBackTypeLabel = PaymentCallbackTypeEnum.ClinicReserve.ToString();
+                dto.CallBackId = reservedetail.Id.ToString();
+                dto.TypeId = clinicTypeId;
+                return await StartPayment(dto);
+            }
+
+            dto.IsOnline = true;
+            dto.ProductOrderId = null;
+            dto.TypeId = clinicTypeId;
+            dto.CallBackTypeLabel = PaymentCallbackTypeEnum.ClinicReserve.ToString();
+            dto.CallBackId = reservedetail.Id.ToString();
+            return await StartPayment(dto);
+        }
+
         public async Task<BaseResultDto> InsertSchoolReservePaymentAsyncDto(PaymentStartDto dto)
         {
             var reservedetail = await _context.SchoolReserves.Include(s => s.Rebate).AsTracking().FirstOrDefaultAsync(s => s.Id == dto.SchoolReserveId);
@@ -882,6 +1324,10 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentCallbackTypeEnum.SchoolReserve, reservedetail.Id.ToString());
             if (schoolBlocked != null)
                 return schoolBlocked;
+            // ثبت‌نامِ پرداخت‌نشده‌ای که جلسه‌ی اول دوره‌اش شروع شده دیگر پرداخت نمی‌شود
+            if (!await Application.Services.SchoolSrvs.SchoolCourseSrv.SchoolCourseRules.IsRegistrationOpenAsync(_context, reservedetail.SchoolCourseId, DateTime.Now))
+                return new BaseResultDto(false, Resource.Notification.SchoolCourseRegistrationClosed);
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.SchoolReserve, null);
             var schoolRebateValidation = ValidateAppliedRebate(
                 reservedetail.Rebate,
                 reservedetail.PaymentPrice + reservedetail.RebatePrice,
@@ -973,6 +1419,7 @@ namespace Application.Services.Order.PaymentSrv
             }
             if (batchBlocked != null)
                 return batchBlocked;
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.CompanionReserveBatch, null);
 
             var totalPrePayment = members.Sum(s => s.PrePaymentPrice);
             var totalRebate = members.Sum(s => s.RebatePrice);
@@ -1041,6 +1488,7 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentCallbackTypeEnum.Trip, tripdetail.Id.ToString());
             if (tripBlocked != null)
                 return tripBlocked;
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.Trip, tripdetail.Id);
             var tripRebateValidation = ValidateAppliedRebate(
                 tripdetail.Rebate, tripdetail.Price, tripdetail.UserId, RebateTypeLabels.Trip, tripdetail.RebatePrice);
             if (!tripRebateValidation.IsSuccess)
@@ -1111,6 +1559,7 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentCallbackTypeEnum.Cargo, cargodetail.Id.ToString());
             if (cargoBlocked != null)
                 return cargoBlocked;
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.Cargo, cargodetail.Id);
             var cargoRebateValidation = ValidateAppliedRebate(
                 cargodetail.Rebate, cargodetail.Price, cargodetail.UserPet.UserId, RebateTypeLabels.Cargo, cargodetail.RebatePrice);
             if (!cargoRebateValidation.IsSuccess)
@@ -1180,6 +1629,7 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentCallbackTypeEnum.Insurance, insuranceDetail.Id.ToString());
             if (insuranceBlocked != null)
                 return insuranceBlocked;
+            ScopePaymentTarget(dto, PaymentCallbackTypeEnum.Insurance, insuranceDetail.Id);
             var insuranceRebateValidation = ValidateAppliedRebate(
                 insuranceDetail.Rebate,
                 insuranceDetail.Price,
@@ -1250,6 +1700,17 @@ namespace Application.Services.Order.PaymentSrv
         public async Task<Payment> FindAsync(long id)
         {
             return await _context.Payments.Include(s => s.User).Include(s => s.Type).Include(s => s.ProductOrder).Include(s => s.Merchant).ThenInclude(s => s.Bank).AsTracking().SingleOrDefaultAsync(s => s.Id == id);
+        }
+
+        // ستون‌های هدفِ Payment (CompanionReserveId/TripId/CargoId/...) فقط از هدفِ واقعیِ بررسی‌شده پر می‌شوند؛ مقداری که کلاینت
+        // در بدنه‌ی PaymentStartDto فرستاده دور ریخته می‌شود. (Pansion/School/Batch روی Payment ستون جدا ندارند.)
+        private static void ScopePaymentTarget(PaymentStartDto dto, PaymentCallbackTypeEnum target, long? targetId)
+        {
+            dto.ProductOrderId = null;
+            dto.CompanionReserveId = target == PaymentCallbackTypeEnum.CompanionReserve ? targetId : null;
+            dto.TripId = target == PaymentCallbackTypeEnum.Trip ? targetId : null;
+            dto.CargoId = target == PaymentCallbackTypeEnum.Cargo ? targetId : null;
+            dto.CompanionInsurancePackageSaleId = target == PaymentCallbackTypeEnum.Insurance ? targetId : null;
         }
 
         // ورودی مشترک پرداخت هر هدف: لغوشده ⇒ پیام لغو؛ پرداخت‌شده ⇒ «قبلاً پرداخت شده» (کد ۲۰)؛ وگرنه تلاش‌های رهاشده‌ی قبلی
@@ -1338,6 +1799,38 @@ namespace Application.Services.Order.PaymentSrv
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.PansionReserve.ToString())
             {
                 var item = await _context.PansionReserves.AsNoTracking()
+                    .Where(s => s.Id == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
+                    .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
+                    .FirstOrDefaultAsync();
+                return item != null && SnapshotMatches(
+                    payment,
+                    item.PaymentPrice + item.RebatePrice,
+                    item.RebatePrice,
+                    item.WalletPrice,
+                    item.PaymentPrice - item.WalletPrice)
+                    ? new BaseResultDto(true)
+                    : new BaseResultDto(false, Resource.Notification.InvalidData);
+            }
+
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.GroomerReserve.ToString())
+            {
+                var item = await _context.GroomerReserves.AsNoTracking()
+                    .Where(s => s.Id == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
+                    .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
+                    .FirstOrDefaultAsync();
+                return item != null && SnapshotMatches(
+                    payment,
+                    item.PaymentPrice + item.RebatePrice,
+                    item.RebatePrice,
+                    item.WalletPrice,
+                    item.PaymentPrice - item.WalletPrice)
+                    ? new BaseResultDto(true)
+                    : new BaseResultDto(false, Resource.Notification.InvalidData);
+            }
+
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ClinicReserve.ToString())
+            {
+                var item = await _context.ClinicReserves.AsNoTracking()
                     .Where(s => s.Id == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
                     .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
                     .FirstOrDefaultAsync();
@@ -1517,6 +2010,16 @@ namespace Application.Services.Order.PaymentSrv
                 return await _pansionReserve.PansionReservePaymentCallback(referenceId, useWallet);
             }
 
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.GroomerReserve.ToString())
+            {
+                return await _groomerReserve.GroomerReservePaymentCallback(referenceId, useWallet);
+            }
+
+            if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ClinicReserve.ToString())
+            {
+                return await _clinicReserve.ClinicReservePaymentCallback(referenceId, useWallet);
+            }
+
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserveBatch.ToString())
             {
                 return await _companionReserveService.CompanionReserveBatchPaymentCallback(referenceId, useWallet);
@@ -1624,6 +2127,48 @@ namespace Application.Services.Order.PaymentSrv
                 return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
             }
 
+            if (dto.TargetType == PaymentCallbackTypeEnum.GroomerReserve)
+            {
+                var item = await _context.GroomerReserves.AsNoTracking()
+                    .Where(s => s.Id == referenceId)
+                    .Select(s => new { s.BookerId, s.PaymentPrice, s.IsReserved, s.IsCancel })
+                    .FirstOrDefaultAsync();
+                if (item == null)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.NothingFound);
+                }
+                if (item.IsReserved)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentReserveAlreadyPaid);
+                }
+                if (item.IsCancel)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.GroomerReserveCannotCancel);
+                }
+                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
+            }
+
+            if (dto.TargetType == PaymentCallbackTypeEnum.ClinicReserve)
+            {
+                var item = await _context.ClinicReserves.AsNoTracking()
+                    .Where(s => s.Id == referenceId)
+                    .Select(s => new { s.BookerId, s.PaymentPrice, s.IsReserved, s.IsCancel })
+                    .FirstOrDefaultAsync();
+                if (item == null)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.NothingFound);
+                }
+                if (item.IsReserved)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentReserveAlreadyPaid);
+                }
+                if (item.IsCancel)
+                {
+                    return ManualPaymentTargetResult.Fail(Resource.Notification.ClinicReserveCannotCancel);
+                }
+                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
+            }
+
             if (dto.TargetType == PaymentCallbackTypeEnum.SchoolReserve)
             {
                 var item = await _context.SchoolReserves.AsNoTracking()
@@ -1721,6 +2266,8 @@ namespace Application.Services.Order.PaymentSrv
                 PaymentCallbackTypeEnum.CompanionReserve => PaymentTypeEnum.PaymentType_CompanionReserve.ToString(),
                 PaymentCallbackTypeEnum.PansionReserve => PaymentTypeEnum.PaymentType_PansionReserve.ToString(),
                 PaymentCallbackTypeEnum.SchoolReserve => PaymentTypeEnum.PaymentType_SchoolReserve.ToString(),
+                PaymentCallbackTypeEnum.GroomerReserve => PaymentTypeEnum.PaymentType_GroomerReserve.ToString(),
+                PaymentCallbackTypeEnum.ClinicReserve => PaymentTypeEnum.PaymentType_ClinicReserve.ToString(),
                 PaymentCallbackTypeEnum.Trip => PaymentTypeEnum.PaymentType_Trip.ToString(),
                 PaymentCallbackTypeEnum.Cargo => PaymentTypeEnum.PaymentType_Cargo.ToString(),
                 PaymentCallbackTypeEnum.Insurance => PaymentTypeEnum.PaymentType_Insurance.ToString(),

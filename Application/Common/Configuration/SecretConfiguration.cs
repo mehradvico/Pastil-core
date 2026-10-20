@@ -27,6 +27,8 @@ namespace Application.Common.Configuration
             // حالت سیاست عضویت ناحیه‌های Seller/Companion/Driver: Audit (پیش‌فرض، فقط لاگ) یا Enforce (رد غیرعضو)
             Override(configuration, "Security:AreaPolicyMode", "PASTIL_AREA_POLICY_MODE");
             Override(configuration, "Security:OtpLength", "PASTIL_OTP_LENGTH");
+            // پل موقت: سقف نشست هم‌زمان صاحب مرکز (۱ = خاموش). نگاه کنید به UserTokenSrv/SessionLimitRules
+            Override(configuration, "Security:CompanionOwnerMaxSessions", "PASTIL_COMPANION_OWNER_MAX_SESSIONS");
             Application.Common.Helpers.GenerateHelper.ConfigureOtpLength(configuration["Security:OtpLength"]);
             // هشدار لحظه‌ای امنیتی (اختیاری): webhook عمومی یا ربات تلگرام؛ بدون آن‌ها هشدار فقط در لاگ (Critical, Security.Alert) می‌آید
             Override(configuration, "Security:AlertWebhookUrl", "PASTIL_SECURITY_ALERT_WEBHOOK_URL");

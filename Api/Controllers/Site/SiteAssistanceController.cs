@@ -25,6 +25,7 @@ namespace Api.Controllers.Site
         public IActionResult Get([FromQuery] AssistanceInputDto dto)
         {
             dto.Available = true;
+            dto.IsGrooming ??= false;
             dto.ShowToSite = true;
             return Ok(_assistanceService.Search(dto));
         }

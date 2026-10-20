@@ -7,10 +7,11 @@ namespace Entities.Entities.PrescriptionField
 {
     // نسخه‌ی پزشک برای یک رزرو آنلاین (CompanionReserve) یا یک خرید مشاوره (ConsultationPurchase): متن و/یا تصویر.
     // برای هر هدف فقط یک نسخه وجود دارد (ایندکس یکتا)؛ نماینده همان را ویرایش می‌کند (حین تماس هم ذخیره‌ی خودکار).
-    // دقیقاً یکی از CompanionReserveId / ConsultationPurchaseId پر است.
+    // دقیقاً یکی از CompanionReserveId / ClinicReserveId / ConsultationPurchaseId پر است.
     public class OnlinePrescription : Id_Field
     {
         public long? CompanionReserveId { get; set; }
+        public long? ClinicReserveId { get; set; }
         public long? ConsultationPurchaseId { get; set; }
         // نمایندهای که نسخه را نوشته (پزشک/همکار)
         public long AuthorUserId { get; set; }
@@ -20,6 +21,7 @@ namespace Entities.Entities.PrescriptionField
         public bool Deleted { get; set; }
 
         public CompanionReserve CompanionReserve { get; set; }
+        public Entities.ClinicField.ClinicReserve ClinicReserve { get; set; }
         public ConsultationPurchase ConsultationPurchase { get; set; }
         public User AuthorUser { get; set; }
         public ICollection<OnlinePrescriptionPicture> Pictures { get; set; }

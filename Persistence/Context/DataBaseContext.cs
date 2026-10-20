@@ -1,5 +1,7 @@
 ﻿using Entities.Entities;
 using Entities.Entities.CompanionField;
+using Entities.Entities.GroomerField;
+using Entities.Entities.ClinicField;
 using Entities.Entities.CommonField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
@@ -8,6 +10,7 @@ using Entities.Entities.SchoolField;
 using Entities.Entities.PastilMatchField;
 using Entities.Entities.PastilAIField;
 using Entities.Entities.PastilClubField;
+using Entities.Entities.ProviderField;
 using Entities.Entities.Security;
 using Entities.Entities.ShippingField;
 using Microsoft.Data.SqlClient;
@@ -224,6 +227,11 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<CompanionType> CompanionTypes { get; set; }
         public DbSet<CompanionUser> CompanionUsers { get; set; }
         public DbSet<CompanionUserExpertise> CompanionUserExpertises { get; set; }
+        public DbSet<Provider> Providers { get; set; }
+        public DbSet<ProviderRole> ProviderRoles { get; set; }
+        public DbSet<ProviderRoleAssignment> ProviderRoleAssignments { get; set; }
+        public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+        public DbSet<ProviderSubscription> ProviderSubscriptions { get; set; }
         public DbSet<AssistanceExpertise> AssistanceExpertises { get; set; }
         public DbSet<CompanionZone> CompanionZones { get; set; }
         public DbSet<ContactUs> ContactUses { get; set; }
@@ -234,6 +242,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<ShippingQuote> ShippingQuotes { get; set; }
         public DbSet<ShippingSlot> ShippingSlots { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
+        public DbSet<ShipmentEvent> ShipmentEvents { get; set; }
         public DbSet<DeliveryDistance> DeliveryDistances { get; set; }
         public DbSet<Detail> Details { get; set; }
         public DbSet<Discount> Discounts { get; set; }
@@ -277,6 +286,40 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<PansionComment> PansionComments { get; set; }
         public DbSet<PansionPet> PansionPets { get; set; }
         public DbSet<PansionPicture> PansionPictures { get; set; }
+        public DbSet<Groomer> Groomers { get; set; }
+        public DbSet<GroomerUser> GroomerUsers { get; set; }
+        public DbSet<GroomerService> GroomerServices { get; set; }
+        public DbSet<GroomerServicePackage> GroomerServicePackages { get; set; }
+        public DbSet<GroomerServicePackagePicture> GroomerServicePackagePictures { get; set; }
+        public DbSet<GroomerServiceUser> GroomerServiceUsers { get; set; }
+        public DbSet<GroomerTime> GroomerTimes { get; set; }
+        public DbSet<GroomerZone> GroomerZones { get; set; }
+        public DbSet<GroomerPet> GroomerPets { get; set; }
+        public DbSet<GroomerPicture> GroomerPictures { get; set; }
+        public DbSet<GroomerComment> GroomerComments { get; set; }
+        public DbSet<GroomerReserve> GroomerReserves { get; set; }
+        public DbSet<GroomerReserveItem> GroomerReserveItems { get; set; }
+        public DbSet<SettlementGroomer> SettlementGroomers { get; set; }
+        public DbSet<GroomerPortfolioPost> GroomerPortfolioPosts { get; set; }
+        public DbSet<GroomerPortfolioPicture> GroomerPortfolioPictures { get; set; }
+        public DbSet<GroomerPortfolioLike> GroomerPortfolioLikes { get; set; }
+        public DbSet<GroomerPortfolioComment> GroomerPortfolioComments { get; set; }
+        public DbSet<Clinic> Clinics { get; set; }
+        public DbSet<ClinicType> ClinicTypes { get; set; }
+        public DbSet<ClinicUser> ClinicUsers { get; set; }
+        public DbSet<ClinicService> ClinicServices { get; set; }
+        public DbSet<ClinicServicePackage> ClinicServicePackages { get; set; }
+        public DbSet<ClinicServicePackageType> ClinicServicePackageTypes { get; set; }
+        public DbSet<ClinicServicePackagePicture> ClinicServicePackagePictures { get; set; }
+        public DbSet<ClinicServiceUser> ClinicServiceUsers { get; set; }
+        public DbSet<ClinicTime> ClinicTimes { get; set; }
+        public DbSet<ClinicZone> ClinicZones { get; set; }
+        public DbSet<ClinicPet> ClinicPets { get; set; }
+        public DbSet<ClinicPicture> ClinicPictures { get; set; }
+        public DbSet<ClinicComment> ClinicComments { get; set; }
+        public DbSet<ClinicReserve> ClinicReserves { get; set; }
+        public DbSet<ClinicReserveItem> ClinicReserveItems { get; set; }
+        public DbSet<SettlementClinic> SettlementClinics { get; set; }
         public DbSet<PansionReserve> PansionReserves { get; set; }
         public DbSet<PetResanService> PetResanServices { get; set; }
         public DbSet<PetResanServiceSchedule> PetResanServiceSchedules { get; set; }
@@ -422,6 +465,8 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            GroomerModelConfiguration.Apply(modelBuilder);
+            ClinicModelConfiguration.Apply(modelBuilder);
             modelBuilder.HasSequence<long>("PaymentCodeSequence");
             modelBuilder.HasSequence<long>("BusinessCodeSequence");
 
@@ -645,7 +690,9 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.Property(item => item.Text).HasMaxLength(4000);
                 // برای هر رزرو / هر خرید مشاوره فقط یک نسخه‌ی فعال
                 entity.HasIndex(item => item.CompanionReserveId).IsUnique().HasFilter("[CompanionReserveId] IS NOT NULL AND [Deleted] = 0");
+                entity.HasIndex(item => item.ClinicReserveId).IsUnique().HasFilter("[ClinicReserveId] IS NOT NULL AND [Deleted] = 0");
                 entity.HasIndex(item => item.ConsultationPurchaseId).IsUnique().HasFilter("[ConsultationPurchaseId] IS NOT NULL AND [Deleted] = 0");
+                entity.HasOne(item => item.ClinicReserve).WithMany().HasForeignKey(item => item.ClinicReserveId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(item => item.CompanionReserve).WithMany().HasForeignKey(item => item.CompanionReserveId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(item => item.ConsultationPurchase).WithMany().HasForeignKey(item => item.ConsultationPurchaseId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(item => item.AuthorUser).WithMany().HasForeignKey(item => item.AuthorUserId).OnDelete(DeleteBehavior.Restrict);
@@ -1003,6 +1050,16 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasIndex(item => item.PansionReserveId)
                     .IsUnique()
                     .HasFilter("[PansionReserveId] IS NOT NULL");
+                // برداشت کیف پول برای رزرو آرایشگاه: برای هر رزرو حداکثر یک ردیف (بازپرداخت‌ها GroomerReserveId ندارند)
+                entity.HasOne(item => item.GroomerReserve).WithMany().HasForeignKey(item => item.GroomerReserveId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => item.GroomerReserveId)
+                    .IsUnique()
+                    .HasFilter("[GroomerReserveId] IS NOT NULL");
+                // برداشت کیف پول برای رزرو کلینیک: برای هر رزرو حداکثر یک ردیف (بازپرداخت‌ها ClinicReserveId ندارند)
+                entity.HasOne(item => item.ClinicReserve).WithMany().HasForeignKey(item => item.ClinicReserveId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => item.ClinicReserveId)
+                    .IsUnique()
+                    .HasFilter("[ClinicReserveId] IS NOT NULL");
                 entity.HasIndex(item => item.TripId)
                     .IsUnique()
                     .HasFilter("[TripId] IS NOT NULL");
@@ -1298,6 +1355,43 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasIndex(x => new { x.Name, x.Deleted });
             });
 
+            modelBuilder.Entity<Provider>(entity =>
+            {
+                entity.HasOne(x => x.User).WithOne(x => x.Provider).HasForeignKey<Provider>(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => x.UserId).IsUnique().HasFilter("[Deleted] = 0");
+                entity.HasMany(x => x.Companions).WithOne(x => x.Provider).HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasMany(x => x.Stores).WithOne(x => x.Provider).HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity<Settlement>(entity =>
+            {
+                entity.HasOne(x => x.Provider).WithMany().HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => new { x.ProviderId, x.Kind });
+            });
+            modelBuilder.Entity<ProviderRole>(entity =>
+            {
+                entity.Property(x => x.Name).IsRequired().HasMaxLength(100);
+                entity.Property(x => x.Label).IsRequired().HasMaxLength(50);
+                entity.HasIndex(x => x.Label).IsUnique().HasFilter("[Deleted] = 0");
+            });
+            modelBuilder.Entity<ProviderRoleAssignment>(entity =>
+            {
+                entity.HasOne(x => x.Provider).WithMany(x => x.RoleAssignments).HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.ProviderRole).WithMany(x => x.Assignments).HasForeignKey(x => x.ProviderRoleId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => new { x.ProviderId, x.ProviderRoleId }).IsUnique().HasFilter("[Deleted] = 0");
+            });
+            modelBuilder.Entity<SubscriptionPlan>(entity =>
+            {
+                entity.Property(x => x.Name).IsRequired().HasMaxLength(100);
+                entity.HasIndex(x => x.Level);
+            });
+            modelBuilder.Entity<ProviderSubscription>(entity =>
+            {
+                entity.Property(x => x.Note).HasMaxLength(500);
+                entity.HasOne(x => x.Provider).WithMany(x => x.Subscriptions).HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.Plan).WithMany(x => x.ProviderSubscriptions).HasForeignKey(x => x.PlanId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => new { x.ProviderId, x.EndDate });
+            });
+
             modelBuilder.Entity<CompanionUser>()
                 .HasOne(x => x.Expertise)
                 .WithMany(x => x.CompanionUsers)
@@ -1407,6 +1501,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 .HasOne(t => t.CompanionReserve)
                 .WithMany()
                 .HasForeignKey(t => t.CompanionReserveId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.ClinicReserve)
+                .WithMany()
+                .HasForeignKey(t => t.ClinicReserveId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Trip>()
@@ -1619,6 +1719,9 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.Property(item => item.TrackingCode).HasMaxLength(250);
                 entity.Property(item => item.FailureReason).HasMaxLength(1000);
                 entity.Property(item => item.DeliveryCode).HasMaxLength(10);
+                entity.Property(item => item.CourierName).HasMaxLength(200);
+                entity.Property(item => item.CourierPhone).HasMaxLength(40);
+                entity.Property(item => item.LastMiareState).HasMaxLength(60);
                 entity.HasIndex(item => new { item.Status, item.SellerConfirmDeadlineUtc });
                 entity.HasIndex(item => item.ProductOrderStoreId).IsUnique();
                 entity.HasIndex(item => new { item.Provider, item.Status });
@@ -1630,6 +1733,18 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                     .WithMany()
                     .HasForeignKey(item => item.ShippingQuoteId)
                     .OnDelete(DeleteBehavior.NoAction);
+            });
+            modelBuilder.Entity<ShipmentEvent>(entity =>
+            {
+                entity.Property(item => item.State).HasMaxLength(60);
+                entity.Property(item => item.CourierName).HasMaxLength(200);
+                entity.Property(item => item.PayloadHash).HasMaxLength(64);
+                entity.Property(item => item.PayloadJson).HasMaxLength(6000);
+                entity.HasIndex(item => new { item.ShipmentId, item.ReceivedAtUtc });
+                entity.HasOne(item => item.Shipment)
+                    .WithMany(item => item.Events)
+                    .HasForeignKey(item => item.ShipmentId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<ProductFeatureValue>(e =>
             {

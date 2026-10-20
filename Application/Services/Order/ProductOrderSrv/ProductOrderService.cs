@@ -29,6 +29,7 @@ using AutoMapper;
 using Entities.Entities;
 using Entities.Entities.ShippingField;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PersianDate.Standard;
 using Persistence.Interface;
@@ -58,6 +59,8 @@ namespace Application.Services.Order.ProductOrderSrv
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
         private readonly IShipmentService _shipmentService;
         private readonly ILogger<ProductOrderService> _logger;
+        private readonly Application.Common.PostCommit.IPostCommitQueue _postCommit;
+        private readonly IProductOrderRegisteredNotifier _registeredNotifier;
 
         public ProductOrderService(IDataBaseContext _context, IPushNotificationService pushNotificationService, IUserProductService userProductService,
             INoticeService notificationService, IMapper mapper, ICodeService codeService, IAdminSettingHelper adminSettingHelper, IWalletService walletService,
@@ -65,8 +68,12 @@ namespace Application.Services.Order.ProductOrderSrv
             IMessageSenderService messageSenderService,
             IClubPointIntegrationService clubPointIntegrationService,
             IShipmentService shipmentService,
-            ILogger<ProductOrderService> logger) : base(_context, mapper)
+            ILogger<ProductOrderService> logger,
+            Application.Common.PostCommit.IPostCommitQueue postCommit,
+            IProductOrderRegisteredNotifier registeredNotifier) : base(_context, mapper)
         {
+            this._postCommit = postCommit;
+            this._registeredNotifier = registeredNotifier;
             this._context = _context;
             this.mapper = mapper;
             this._userService = userService;
@@ -391,33 +398,29 @@ namespace Application.Services.Order.ProductOrderSrv
             {
                 await AddBonusAmountToWalletAsync(productOrder);
             }
-            var orderUrl = productOrder.Id;
-
-            // ثبت سفارش: ایمیل نمی‌رود (فقط پیامک). نام فروشگاه(ها) در token4 (= %token10 کاوه‌نگار) برای کاربر و ادمین؛
-            // پیامک فروشگاه فقط نام کاربر و شماره سفارش دارد و فقط یک‌بار به هر شماره‌ی موبایل می‌رود.
-            var storeNamesText = RegisterOrderStoreNames(productOrder);
-            await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.UserRegisterOrder, mobileReceptor: productOrder.User.Mobile, emailReceptor: null, token1: nameText, token2: productOrder.OrderCode, token3: orderUrl, token4: storeNamesText);
-            await SendRegisterOrderPushesAsync(productOrder, nameText);
-            var orderId = long.Parse(productOrder.Id);
-            await _notificationService.CreateAsync(new NoticeCreateDto
+            // ثبت سفارش: ایمیل نمی‌رود (فقط پیامک). نام فروشگاه(ها) در token4 (= %token10 کاوه‌نگار) برای کاربر؛ پیامک فروشگاه فقط نام کاربر و
+            // شماره سفارش دارد و فقط یک‌بار به هر شماره‌ی موبایل می‌رود. پیامک/پوش/اعلان ادمین best-effort است و داخل تراکنش پرداخت
+            // (که کاربر پشتش منتظر است) اجرا نمی‌شود: بعد از Commit موفق در پس‌زمینه می‌رود (PostCommitQueue).
+            var notification = new ProductOrderRegisteredNotification
             {
-                Label = NoticeTypeLabels.ProductOrderRegistered,
-                ActorUserId = productOrder.UserId,
-                ReferenceType = "ProductOrder",
-                ReferenceId = orderId,
-                DeduplicationKey = $"{NoticeTypeLabels.ProductOrderRegistered}:{productOrder.Id}",
-                Metadata = new Dictionary<string, string> { { "userName", $"{productOrder.User.FirstName} {productOrder.User.LastName}".Trim() }, { "orderId", productOrder.Id }, { "mobile", productOrder.User.Mobile } }
-            });
-
-            // پیامک فقط به شماره‌ی خودِ فروشگاه (مالک) و یک‌بار برای هر شماره، حتی اگر چند فروشگاه سفارش یک شماره دارند
-            var storeMobiles = productOrder.ProductOrderStores
-                .Select(productOrderStore => productOrderStore.Store?.Mobile?.Trim())
-                .Where(mobile => !string.IsNullOrEmpty(mobile))
-                .Distinct();
-            foreach (var mobile in storeMobiles)
-            {
-                await _messageSenderService.SendMessageAsync(messageType: MessageTypeEnum.StoreRegisterOrder, mobileReceptor: mobile, emailReceptor: null, token1: nameText, token2: productOrder.OrderCode);
-            }
+                UserId = productOrder.UserId,
+                UserFullName = $"{productOrder.User.FirstName} {productOrder.User.LastName}".Trim(),
+                UserMobile = productOrder.User.Mobile,
+                OrderId = productOrder.Id,
+                OrderCode = productOrder.OrderCode,
+                NameToken = nameText,
+                StoreNamesText = RegisterOrderStoreNames(productOrder),
+                StoreIds = productOrder.ProductOrderStores.Select(store => store.StoreId).Distinct().ToList(),
+                StoreMobiles = productOrder.ProductOrderStores
+                    .Select(productOrderStore => productOrderStore.Store?.Mobile?.Trim())
+                    .Where(mobile => !string.IsNullOrEmpty(mobile))
+                    .Distinct()
+                    .ToList()
+            };
+            if (_context.CurrentTransaction != null)
+                _postCommit.Add("ProductOrderRegistered", sp => sp.GetRequiredService<IProductOrderRegisteredNotifier>().NotifyAsync(notification));
+            else
+                await _registeredNotifier.NotifyAsync(notification);
             return new BaseResultDto(true);
         }
 
@@ -431,47 +434,6 @@ namespace Application.Services.Order.ProductOrderSrv
                 .Distinct();
             var text = string.Join("،", names).Replace(' ', '‌');
             return text.Length > 100 ? text.Substring(0, 100) : text;
-        }
-
-        // پوش ثبت سفارش فقط برای فروشگاه (کاربران همان فروشگاه‌ها) و ادمین؛ برای مشتری پوش نمی‌رود.
-        private async Task SendRegisterOrderPushesAsync(ProductOrder productOrder, string nameText)
-        {
-            try
-            {
-                var storeIds = productOrder.ProductOrderStores.Select(productOrderStore => productOrderStore.StoreId).Distinct().ToList();
-                var storeUserIds = await _context.Stores.AsNoTracking()
-                    .Where(store => storeIds.Contains(store.Id))
-                    .SelectMany(store => store.Users)
-                    .Where(user => !user.Deleted && !user.Locked)
-                    .Select(user => user.Id)
-                    .Distinct()
-                    .ToListAsync();
-                var adminUserIds = await _context.Users.AsNoTracking()
-                    .Where(user => user.RoleId == (long)RoleEnum.Admin && !user.Deleted && !user.Locked)
-                    .Select(user => user.Id)
-                    .ToListAsync();
-
-                foreach (var userId in storeUserIds)
-                    await SendOrderPushSafeAsync(PushTypeEnum.PushRegisterOrderStore, userId, nameText, productOrder.OrderCode);
-                foreach (var userId in adminUserIds.Except(storeUserIds))
-                    await SendOrderPushSafeAsync(PushTypeEnum.PushRegisterOrderAdmin, userId, nameText, productOrder.OrderCode);
-            }
-            catch
-            {
-                // پوش فروشگاه/ادمین best-effort است؛ ثبت سفارش نباید به‌خاطرش خراب شود.
-            }
-        }
-
-        private async Task SendOrderPushSafeAsync(PushTypeEnum pushType, long userId, string nameText, string orderCode)
-        {
-            try
-            {
-                await _pushNotificationService.SendPushAsync(pushType, userId, token1: nameText, token2: orderCode);
-            }
-            catch
-            {
-                // یک گیرنده‌ی خراب بقیه را متوقف نکند.
-            }
         }
 
         public Task UpdateProductOrderCommissionDto(ProductOrder order)

@@ -11,5 +11,7 @@ namespace Application.Services.CommonSrv.PushNotificationSrv.Iface
     {
         Task SendPushAsync(PushTypeEnum pushType, long userId, string token1 = null, string token2 = null, string token3 = null, string token4 = null, string token5 = null, DateTime? sendDate = null);
         Task SendPushGroupAsync(int pageSize = 100);
+        // ارسال یک پوشِ از‌قبل‌ذخیره‌شده (IsSend=false) بعد از Commit؛ هر چیزی که به هر دلیل از این مسیر نرود job (SendPushGroupAsync) می‌فرستد
+        Task DeliverAsync(long pushNotificationId);
     }
 }

@@ -46,6 +46,16 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.AgencyController">
+            <summary>
+            لیست یکپارچه‌ی نمایندگی‌ها (فروشگاه، کلینیک، آرایشگاه و ...)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.AgencyController.Get(Application.Services.AgencySrvs.AgencySrv.Dto.AgencyInputDto)">
+            <summary>
+            جستجو در همه‌ی انواع نمایندگی؛ Kind خالی = همه، 1 = نمایندگی (کلینیک/آرایشگاه/مربی)، 2 = فروشگاه
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.AssistanceController">
             <summary>
             خدمات
@@ -527,6 +537,102 @@
              حذف آیتم
              </summary>
             
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicActiveController">
+            <summary>
+            فعال/غیرفعال کردن کلینیک
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicApproveController">
+            <summary>
+            تأیید/رد کلینیک (رد نیاز به دلیل دارد)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicController">
+            <summary>
+            کلینیک‌ها (Clinic)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicController.Get(Application.Services.ClinicSrvs.ClinicSrv.Dto.ClinicInputDto,System.Nullable{System.Boolean})">
+            <summary>جستجو</summary>
+            <param name="deleted">true = فقط کلینیک‌های حذف‌شده (حذف نرم)</param>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicController.Get(System.Int64)">
+            <summary>اطلاعات کامل یک کلینیک (حذف‌شده هم برای ادمین دیده می‌شود)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicController.Post(Application.Services.ClinicSrvs.ClinicSrv.Dto.ClinicDto)">
+            <summary>ساخت کلینیک (مستقیم تأییدشده و فعال)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicController.Put(Application.Services.ClinicSrvs.ClinicSrv.Dto.ClinicDto)">
+            <summary>ویرایش اطلاعات کلینیک (تأیید، کمیسیون و ... تغییر نمی‌کند)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicController.Delete(System.Int64)">
+            <summary>حذف نرم (رزروها و گزارش مالی می‌مانند)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicController.Restore(System.Int64)">
+            <summary>بازگردانی کلینیک حذف‌شده (غیرفعال و منتشرنشده برمی‌گردد)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicController.Pets(Api.Areas.Admin.Controllers.ClinicPetsDto)">
+            <summary>گونه‌های پذیرش‌شده (جایگزین کل لیست)</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicPictureController">
+            <summary>
+            گالری کلینیک (محیط و تجهیزات)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicReserveController">
+            <summary>
+            رزروهای کلینیک (ادمین)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicReserveController.Reschedule(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveRescheduleDto)">
+            <summary>تغییر زمان نوبت (به کاربر پوش و پیامک می‌رود)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicReserveController.Cancel(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveReasonDto,System.Boolean)">
+            <summary>لغو توسط ادمین؛ refund=true کل مبلغ پرداخت‌شده را به کیف پول کاربر برمی‌گرداند</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicReviewController">
+            <summary>
+            نظرهای کلینیک (بعد از رزرو تکمیل‌شده): بررسی، تأیید/رد و پاسخ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicReviewController.Moderate(System.Int64,System.Boolean)">
+            <summary>تأیید (accept=true) یا رد نظر</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicScheduleController">
+            <summary>
+            ساعت کاری هفتگی و محدوده‌ی پوشش خدمات در محل
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicScheduleController.SetTimes(Application.Services.ClinicSrvs.ClinicProfileSrv.Dto.ClinicProfileSetDto{Application.Services.ClinicSrvs.ClinicProfileSrv.Dto.ClinicTimeInputDto})">
+            <summary>کل ساعت‌های کاری را جایگزین می‌کند</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicScheduleController.SetZones(Application.Services.ClinicSrvs.ClinicProfileSrv.Dto.ClinicProfileSetDto{Application.Services.ClinicSrvs.ClinicProfileSrv.Dto.ClinicZoneInputDto})">
+            <summary>کل محدوده‌های پوشش را جایگزین می‌کند</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicServiceController">
+            <summary>
+            خدمات و بسته‌های قیمتی کلینیک
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicServiceController.Approve(Application.Services.ClinicSrvs.ClinicCatalogSrv.Dto.ClinicServiceApproveDto)">
+            <summary>تأیید/رد خدمت و تعیین درصد کمیسیون</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicSettingController">
+            <summary>
+            تنظیمات مدیریتی کلینیک: پیشنهادی، تأیید پروانه، درصد کمیسیون و نمایش در سایت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicSettingController.Visibility(System.Int64,Application.Common.Dto.Input.SiteVisibilityDto)">
+            <summary>نمایش در سایت (فقط کلینیک تأییدشده و فعال)</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ClinicUserController">
+            <summary>
+            پرسنل کلینیک
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ClinicUserController.Post(Application.Services.ClinicSrvs.ClinicProfileSrv.Dto.ClinicStaffAddDto)">
+            <summary>افزودن پرسنل با شماره موبایل (کاربر باید قبلاً ثبت‌نام کرده باشد)</summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ClubRewardController">
             <summary>
@@ -1028,7 +1134,7 @@
         </member>
         <member name="T:Api.Areas.Admin.Controllers.CompanionController">
             <summary>
-            نمایندگان
+            نمایندگی‌ها
             </summary>
             
         </member>
@@ -2290,6 +2396,115 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerActiveController">
+            <summary>
+            فعال/غیرفعال کردن آرایشگاه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerApproveController">
+            <summary>
+            تأیید/رد آرایشگاه (رد نیاز به دلیل دارد)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerController">
+            <summary>
+            آرایشگاه‌ها (Groomer)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerController.Get(Application.Services.GroomerSrvs.GroomerSrv.Dto.GroomerInputDto,System.Nullable{System.Boolean})">
+            <summary>جستجو</summary>
+            <param name="deleted">true = فقط آرایشگاه‌های حذف‌شده (حذف نرم)</param>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerController.Get(System.Int64)">
+            <summary>اطلاعات کامل یک آرایشگاه (حذف‌شده هم برای ادمین دیده می‌شود)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerController.Post(Application.Services.GroomerSrvs.GroomerSrv.Dto.GroomerDto)">
+            <summary>ساخت آرایشگاه (مستقیم تأییدشده و فعال)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerController.Put(Application.Services.GroomerSrvs.GroomerSrv.Dto.GroomerDto)">
+            <summary>ویرایش اطلاعات آرایشگاه (تأیید، کمیسیون و ... تغییر نمی‌کند)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerController.Delete(System.Int64)">
+            <summary>حذف نرم (رزروها و گزارش مالی می‌مانند)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerController.Restore(System.Int64)">
+            <summary>بازگردانی آرایشگاه حذف‌شده (غیرفعال و منتشرنشده برمی‌گردد)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerController.Pets(Api.Areas.Admin.Controllers.GroomerPetsDto)">
+            <summary>گونه‌های پذیرش‌شده (جایگزین کل لیست)</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerPictureController">
+            <summary>
+            گالری آرایشگاه (محیط و تجهیزات؛ نمونه‌کار در GroomerPortfolio است)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerPortfolioCommentController">
+            <summary>
+            کامنت‌های نمونه‌کار آرایشگاه (مشاهده و حذف توسط ادمین)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerPortfolioController">
+            <summary>
+            نمونه‌کارهای آرایشگاه (پست‌های اینستاگرامی): ساخت، ویرایش، حذف و پنهان‌کردن
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerPortfolioController.Moderate(Application.Services.GroomerSrvs.GroomerPortfolioSrv.Dto.GroomerPortfolioModerationDto)">
+            <summary>پنهان/نمایش یک پست (پنهان‌کردن نیاز به دلیل دارد)</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerReserveController">
+            <summary>
+            رزروهای آرایشگاه (ادمین)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerReserveController.Reschedule(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveRescheduleDto)">
+            <summary>تغییر زمان نوبت (به کاربر پوش و پیامک می‌رود)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerReserveController.Cancel(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveReasonDto,System.Boolean)">
+            <summary>لغو توسط ادمین؛ refund=true کل مبلغ پرداخت‌شده را به کیف پول کاربر برمی‌گرداند</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerReviewController">
+            <summary>
+            نظرهای آرایشگاه (بعد از رزرو تکمیل‌شده): بررسی، تأیید/رد و پاسخ
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerReviewController.Moderate(System.Int64,System.Boolean)">
+            <summary>تأیید (accept=true) یا رد نظر</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerScheduleController">
+            <summary>
+            ساعت کاری هفتگی و محدوده‌ی پوشش خدمات در محل
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerScheduleController.SetTimes(Application.Services.GroomerSrvs.GroomerProfileSrv.Dto.GroomerProfileSetDto{Application.Services.GroomerSrvs.GroomerProfileSrv.Dto.GroomerTimeInputDto})">
+            <summary>کل ساعت‌های کاری را جایگزین می‌کند</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerScheduleController.SetZones(Application.Services.GroomerSrvs.GroomerProfileSrv.Dto.GroomerProfileSetDto{Application.Services.GroomerSrvs.GroomerProfileSrv.Dto.GroomerZoneInputDto})">
+            <summary>کل محدوده‌های پوشش را جایگزین می‌کند</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerServiceController">
+            <summary>
+            خدمات و بسته‌های قیمتی آرایشگاه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerServiceController.Approve(Application.Services.GroomerSrvs.GroomerCatalogSrv.Dto.GroomerServiceApproveDto)">
+            <summary>تأیید/رد خدمت و تعیین درصد کمیسیون</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerSettingController">
+            <summary>
+            تنظیمات مدیریتی آرایشگاه: پیشنهادی، تأیید پروانه، درصد کمیسیون و نمایش در سایت
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerSettingController.Visibility(System.Int64,Application.Common.Dto.Input.SiteVisibilityDto)">
+            <summary>نمایش در سایت (فقط آرایشگاه تأییدشده و فعال)</summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.GroomerUserController">
+            <summary>
+            پرسنل آرایشگاه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.GroomerUserController.Post(Application.Services.GroomerSrvs.GroomerProfileSrv.Dto.GroomerStaffAddDto)">
+            <summary>افزودن پرسنل با شماره موبایل (کاربر باید قبلاً ثبت‌نام کرده باشد)</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.HashtagController">
              <summary>
               هشتگ ها
@@ -2520,6 +2735,21 @@
             ارسال آیتم به کاربر
              </summary>
             <returns></returns>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.OrderShipmentController">
+            <summary>
+            مرسوله‌های پیک (میاره) یک سفارش و تمدید مهلت فروشنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.OrderShipmentController.Get(System.String,System.Threading.CancellationToken)">
+            <summary>
+            مرسوله‌های یک سفارش (وضعیت، مهلت‌ها، دلیل شکست)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.OrderShipmentController.ExtendSellerDeadline(Application.Services.Order.ShippingSrv.Dto.AdminExtendShipmentDeadlineDto,System.Threading.CancellationToken)">
+            <summary>
+            تمدید مهلت فروشنده (۱۵ تا ۴۸۰ دقیقه)؛ مرسوله‌ی ناموفق‌شده به‌خاطر پایان مهلت هم احیا می‌شود
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionActiveController">
             <summary>
@@ -3453,6 +3683,22 @@
         <member name="M:Api.Areas.Admin.Controllers.PetMicrochipRequestController.Put(System.Int64,Application.Services.Accounting.PetMicrochipSrv.Dto.PetMicrochipRequestUpdateDto)">
             <summary>تغییر وضعیت و یادداشت ادمین</summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.PetResanServiceController">
+            <summary>
+            سرویس‌های هفتگی پت‌رسان
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetResanServiceController.Get(Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceAdminSearchDto)">
+            <summary>
+            فهرست سرویس‌های هفتگی (Available: true فعال / false متوقف / خالی همه؛ Q: نام، موبایل یا آدرس)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.PetResanServiceController.Cancel(Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceBulkCancelDto)">
+            <summary>
+            لغو گروهی سرویس‌های هفتگی: هر سرویس غیرفعال می‌شود و نوبت‌های شروع‌نشده‌اش با برگشت پول لغو می‌شوند؛
+            دیگر هیچ نوبتی برایشان ساخته نمی‌شود.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.PetTagController">
             <summary>
             کیوآر کد
@@ -3884,6 +4130,17 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProductOrderCancelController">
+            <summary>
+            لغو کامل سفارش توسط ادمین (قبل از ارسال)؛ مبلغ پرداختی به کیف پول کاربر برمی‌گردد و سفر پیک (اگر هست) لغو می‌شود.
+            طراحی: backend/Docs/PRODUCT_ORDER_CANCEL_ADJUST_FA.md
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProductOrderCancelController.Post(Application.Services.Order.ProductOrderSrv.Dto.ProductOrderCancelInputDto,System.Threading.CancellationToken)">
+            <summary>
+            Reason برای ادمین اختیاری است (در پیامک/یادداشت سفارش می‌آید). پیامک به فروشگاه و کاربر، پوش به فروشگاه.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderCancelRequestController">
              <summary>
              درخواست های لغو سفارش
@@ -4123,6 +4380,186 @@
             بازگذاری آیتم
             </summary>
             
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProviderController">
+            <summary>
+            ارائه‌دهندگان
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderController.Get(Application.Services.ProviderSrvs.ProviderSrv.Dto.ProviderInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderController.Post(Application.Services.ProviderSrvs.ProviderSrv.Dto.ProviderDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderController.Put(Application.Services.ProviderSrvs.ProviderSrv.Dto.ProviderDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProviderFinanceController">
+            <summary>
+            حسابداری ارائه‌دهندگان
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderFinanceController.Get(Application.Services.ProviderSrvs.ProviderFinanceSrv.Dto.ProviderFinanceInputDto)">
+            <summary>
+            لیست ارائه‌دهندگان با مانده‌ی تسویه‌نشده‌ی نمایندگی‌ها و فروشگاه‌ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderFinanceController.Get(System.Int64)">
+            <summary>
+            جمع هر استخر، تفکیک هر نمایندگی/فروشگاه و کارت‌های بانکی یک ارائه‌دهنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderFinanceController.GetPending(System.Int64,Entities.Entities.SettlementKindEnum)">
+            <summary>
+            ریز ردیف‌های تسویه‌نشده‌ی یک استخر (kind: 1 نمایندگی‌ها، 2 فروشگاه‌ها) - پیش‌نمایش ثبت تسویه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProviderOverviewController">
+            <summary>
+            خلاصه‌ی ارائه‌دهنده: حسابداری، کیف پول، کارت‌های بانکی، تسویه‌ها و آمار نمایندگی‌ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderOverviewController.Get(System.Int64)">
+            <summary>
+            خلاصه‌ی کامل یک ارائه‌دهنده
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProviderRoleAssignmentController">
+            <summary>
+            تخصص‌های ارائه‌دهنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleAssignmentController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleAssignmentController.Get(Application.Services.ProviderSrvs.ProviderRoleAssignmentSrv.Dto.ProviderRoleAssignmentInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleAssignmentController.Post(Application.Services.ProviderSrvs.ProviderRoleAssignmentSrv.Dto.ProviderRoleAssignmentDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleAssignmentController.Put(Application.Services.ProviderSrvs.ProviderRoleAssignmentSrv.Dto.ProviderRoleAssignmentDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleAssignmentController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProviderRoleController">
+            <summary>
+            نقش های نمایندگان
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleController.Get(Application.Services.ProviderSrvs.ProviderRoleSrv.Dto.ProviderRoleInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleController.Post(Application.Services.ProviderSrvs.ProviderRoleSrv.Dto.ProviderRoleDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleController.Put(Application.Services.ProviderSrvs.ProviderRoleSrv.Dto.ProviderRoleDto)">
+            <summary>
+            ویرایش آیتم (فقط نام و فعال بودن)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderRoleController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم (اگر به ارائه‌دهنده‌ای داده شده باشد رد می‌شود)
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProviderSubscriptionController">
+            <summary>
+            اشتراک ارائه‌دهندگان: اختصاص دستی پلن توسط ادمین + تاریخچه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderSubscriptionController.Get(Application.Services.ProviderSrvs.ProviderSubscriptionSrv.Dto.ProviderSubscriptionInputDto)">
+            <summary>
+            تاریخچه‌ی اشتراک‌ها (فیلتر: ارائه‌دهنده، پلن، فقط جاری)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderSubscriptionController.GetCurrent(System.Int64)">
+            <summary>
+            اشتراک جاری یک ارائه‌دهنده (Data = null یعنی بدون اشتراک)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderSubscriptionController.Post(Application.Services.ProviderSrvs.ProviderSubscriptionSrv.Dto.ProviderSubscriptionDto)">
+            <summary>
+            اختصاص پلن به ارائه‌دهنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderSubscriptionController.Cancel(System.Int64)">
+            <summary>
+            پایان‌دادن فوری به اشتراک
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderSubscriptionController.Delete(System.Int64)">
+            <summary>
+            حذف رکورد اشتباه از تاریخچه
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProviderVenueController">
+            <summary>
+            نمایندگی‌های یک ارائه‌دهنده (فروشگاه‌ها و نماینده‌ها) و اتصال آن‌ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.Get(System.Int64)">
+            <summary>
+            فروشگاه‌ها و نماینده‌های یک ارائه‌دهنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignCompanion(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
+            <summary>
+            اتصال یک نماینده (کلینیک/آرایشگاه/پانسیون‌دار...) به ارائه‌دهنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignStore(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
+            <summary>
+            اتصال یک فروشگاه به ارائه‌دهنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignGroomer(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
+            <summary>
+            اتصال یک آرایشگاه (Groomer) به ارائه‌دهنده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignClinic(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
+            <summary>
+            اتصال یک کلینیک (Clinic) به ارائه‌دهنده
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PushBroadcastController">
             <summary>
@@ -4521,11 +4958,12 @@
             <returns>
             </returns>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.SettlementController.Get(Application.Services.FinanceSrvs.SettlementSrv.Dto.SettlementInputDto)">
+        <member name="M:Api.Areas.Admin.Controllers.SettlementController.Items(System.Int64)">
             <summary>
              جستجو
             </summary>
             <returns></returns> 
+            <summary>ریز تسویه: ردیف‌هایی که داخل این تسویه پرداخت شده‌اند</summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.SettlementController.Post(Application.Services.FinanceSrvs.SettlementSrv.Dto.SettlementDto)">
             <summary>
@@ -4862,6 +5300,36 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.SubscriptionPlanController">
+            <summary>
+            پلن‌های اشتراک
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SubscriptionPlanController.Get(System.Int64)">
+            <summary>
+            اطلاعات آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SubscriptionPlanController.Get(Application.Services.ProviderSrvs.SubscriptionPlanSrv.Dto.SubscriptionPlanInputDto)">
+            <summary>
+            جستجو
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SubscriptionPlanController.Post(Application.Services.ProviderSrvs.SubscriptionPlanSrv.Dto.SubscriptionPlanDto)">
+            <summary>
+            آیتم جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SubscriptionPlanController.Put(Application.Services.ProviderSrvs.SubscriptionPlanSrv.Dto.SubscriptionPlanDto)">
+            <summary>
+            ویرایش آیتم
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SubscriptionPlanController.Delete(System.Int64)">
+            <summary>
+            حذف آیتم
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.TicketAdminController">
             <summary>
             تخصیص مدیر رسیدگی به تیکت
@@ -5016,6 +5484,12 @@
         <member name="M:Api.Areas.Admin.Controllers.TripChangeStatusController.Cancel(Application.Services.TripSrv.TripSrv.Dto.TripAdminActionDto)">
             <summary>
             لغو دستی سفر توسط ادمین (اعلان به کاربر و راننده؛ توضیح ادمین در دلیل لغو سفر ثبت می‌شود)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.TripChangeStatusController.CancelService(Application.Services.TripSrv.TripSrv.Dto.TripAdminActionDto)">
+            <summary>
+            لغو کل سرویس هفتگیِ این سفر (Id = شناسه‌ی سفر): سرویس غیرفعال، همه‌ی نوبت‌های شروع‌نشده لغو با برگشت پول؛
+            دیگر هیچ نوبتی ساخته نمی‌شود. Data = تعداد نوبت‌های لغوشده.
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.TripChangeStatusController.Complete(Application.Services.TripSrv.TripSrv.Dto.TripAdminActionDto)">
@@ -5626,6 +6100,73 @@
             محدوده در مپ
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicController">
+            <summary>
+            کلینیک‌های من (مالک/ارائه‌دهنده). همه‌ی عملیات فقط روی کلینیک‌های خود کاربر جاری است.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicController.Get(Application.Services.ClinicSrvs.ClinicSrv.Dto.ClinicInputDto)">
+            <summary>لیست کلینیک‌های من</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicController.Post(Application.Services.ClinicSrvs.ClinicSrv.Dto.ClinicDto)">
+            <summary>ثبت کلینیک جدید زیر ارائه‌دهنده‌ی خودم (منتظر تأیید ادمین می‌ماند)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicController.Put(Application.Services.ClinicSrvs.ClinicSrv.Dto.ClinicDto)">
+            <summary>ویرایش (دوباره منتظر تأیید ادمین می‌شود)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicPictureController">
+            <summary>
+            گالری کلینیک‌های من
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicReserveController">
+            <summary>
+            رزروهای کلینیک‌های من: لیست، تأیید/رد و تکمیل
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Get(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveSearchInputDto)">
+            <summary>فقط رزروهای پرداخت‌شده‌ی کلینیک‌های من</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Reject(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveReasonDto)">
+            <summary>رد رزرو (دلیل الزامی)؛ کل مبلغ به کیف پول مشتری برمی‌گردد</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Reschedule(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveRescheduleDto)">
+            <summary>تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد کلینیک</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Complete(System.Int64)">
+            <summary>تکمیل رزرو بعد از انجام خدمت</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicReviewController">
+            <summary>
+            نظرهای کلینیک‌های من و پاسخ به آن‌ها
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicScheduleController">
+            <summary>
+            ساعت کاری و محدوده‌ی پوشش کلینیک‌های من
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicServiceController">
+            <summary>
+            خدمات و بسته‌های قیمتی کلینیک‌های من
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicServiceController.Post(Application.Services.ClinicSrvs.ClinicCatalogSrv.Dto.ClinicServiceInputDto)">
+            <summary>افزودن خدمت (تا تأیید ادمین قابل رزرو نیست)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicSettlementController">
+            <summary>
+            تاریخچه‌ی تسویه‌ی کلینیک‌های من (تسویه‌ی ارائه‌دهنده در استخر کلینیک)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicSettlementController.Items(System.Int64)">
+            <summary>ریز تسویه‌ی خودم</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicUserController">
+            <summary>
+            پرسنل کلینیک‌های من
+            </summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceController">
             <summary>
@@ -6417,6 +6958,84 @@
             </summary>
             <returns></returns> 
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.GroomerController">
+            <summary>
+            آرایشگاه‌های من (مالک/ارائه‌دهنده). همه‌ی عملیات فقط روی آرایشگاه‌های خود کاربر جاری است.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerController.Get(Application.Services.GroomerSrvs.GroomerSrv.Dto.GroomerInputDto)">
+            <summary>لیست آرایشگاه‌های من</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerController.Post(Application.Services.GroomerSrvs.GroomerSrv.Dto.GroomerDto)">
+            <summary>ثبت آرایشگاه جدید زیر ارائه‌دهنده‌ی خودم (منتظر تأیید ادمین می‌ماند)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerController.Put(Application.Services.GroomerSrvs.GroomerSrv.Dto.GroomerDto)">
+            <summary>ویرایش (دوباره منتظر تأیید ادمین می‌شود)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.GroomerPictureController">
+            <summary>
+            گالری آرایشگاه‌های من
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.GroomerPortfolioController">
+            <summary>
+            نمونه‌کارهای آرایشگاه‌های من (پست‌های اینستاگرامی با لایک و کامنت کاربران)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerPortfolioController.Get(Application.Services.GroomerSrvs.GroomerPortfolioSrv.Dto.GroomerPortfolioPostSearchInputDto)">
+            <summary>پست‌های آرایشگاه‌های من (شامل پنهان‌شده‌ها با دلیل)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerPortfolioController.DeleteComment(System.Int64)">
+            <summary>حذف کامنت زیر نمونه‌کار خودم</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.GroomerReserveController">
+            <summary>
+            رزروهای آرایشگاه‌های من: لیست، تأیید/رد و تکمیل
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Get(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveSearchInputDto)">
+            <summary>فقط رزروهای پرداخت‌شده‌ی آرایشگاه‌های من</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Reject(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveReasonDto)">
+            <summary>رد رزرو (دلیل الزامی)؛ کل مبلغ به کیف پول مشتری برمی‌گردد</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Reschedule(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveRescheduleDto)">
+            <summary>تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد آرایشگاه</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Complete(System.Int64)">
+            <summary>تکمیل رزرو بعد از انجام خدمت</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.GroomerReviewController">
+            <summary>
+            نظرهای آرایشگاه‌های من و پاسخ به آن‌ها
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.GroomerScheduleController">
+            <summary>
+            ساعت کاری و محدوده‌ی پوشش آرایشگاه‌های من
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.GroomerServiceController">
+            <summary>
+            خدمات و بسته‌های قیمتی آرایشگاه‌های من
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerServiceController.Post(Application.Services.GroomerSrvs.GroomerCatalogSrv.Dto.GroomerServiceInputDto)">
+            <summary>افزودن خدمت (تا تأیید ادمین قابل رزرو نیست)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.GroomerSettlementController">
+            <summary>
+            تاریخچه‌ی تسویه‌ی آرایشگاه‌های من (تسویه‌ی ارائه‌دهنده در استخر آرایشگاه)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerSettlementController.Items(System.Int64)">
+            <summary>ریز تسویه‌ی خودم</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.GroomerUserController">
+            <summary>
+            پرسنل آرایشگاه‌های من
+            </summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.OnlinePrescriptionController">
             <summary>
             نسخه‌ی پزشک برای رزرو آنلاین / مشاوره (نماینده و همکار)
@@ -7143,6 +7762,12 @@
             ویرایش Code 1: کاربر باید لاگین کند
             </summary>  
         </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CartController.Get(Application.Services.Order.CartSrv.Dto.CartUpdateDto)">
+            <summary>
+            خواندن سبد (GetCart پیش‌فرض، یا GetCount/GetDelivery) با GET؛ برای خواندن دیگر لازم نیست POST فرستاده شود.
+            هر نوع تغییر‌دهنده‌ای این‌جا GetCart حساب می‌شود.
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.ChangeEmailController">
              <summary>
              تغییر ایمیل کاربر
@@ -7186,6 +7811,61 @@
             <summary>
              تغییر موبایل
             </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ClinicReserveController">
+            <summary>
+            رزرو نوبت کلینیک (کاربر)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicReserveController.Get(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveSearchInputDto)">
+            <summary>رزروهای من</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicReserveController.Quote(System.Collections.Generic.List{System.Int64},System.Int32,System.Int64)">
+            <summary>قیمت بسته (پیش‌پرداخت و باقی‌مانده‌ی حضوری) قبل از رزرو</summary>
+            <param name="mode">نحوه‌ی ارائه: ۳۷ آنلاین، ۳۸ حضوری در کلینیک، ۳۹ در محل مشتری؛ قیمت هر بسته به آن بستگی دارد.</param>
+            <param name="packageIds">یک یا چند بسته (رزرو چندخدمتی؛ حداکثر ۵، هر خدمت یک‌بار). packageId قدیمی هم پذیرفته می‌شود.</param>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicReserveController.Availability(System.Int64,System.DateTime,System.Int64,System.Nullable{System.Int64},System.Collections.Generic.List{System.Int64})">
+            <summary>زمان‌های آزاد یک روز برای بسته‌ی انتخابی</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicReserveController.Post(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveInputDto)">
+            <summary>ثبت رزرو (پرداخت‌نشده)؛ بعد از آن کد تخفیف/کیف پول و پرداخت</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicReserveController.Cancel(System.Int64)">
+            <summary>لغو رزرو: تا ۱۲ ساعت قبل از نوبت (یا تا قبل از تأیید کلینیک) با برگشت کل مبلغ به کیف پول</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ClinicReservePaymentController">
+            <summary>
+            پرداخت رزرو کلینیک، کد تخفیف و کیف پول
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicReservePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
+            <summary>شروع پرداخت رزرو (ClinicReserveId در بدنه)</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicReservePaymentController.SetRebate(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveRebateCodeDto)">
+            <summary>اعمال کد تخفیف روی مبلغ آنلاین رزرو</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicReservePaymentController.SetWallet(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveWalletDto)">
+            <summary>پرداخت از کیف پول (کل یا بخشی از مبلغ)</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ClinicReviewController">
+            <summary>
+            ثبت نظر و امتیاز برای کلینیک بعد از رزرو تکمیل‌شده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicReviewController.Post(Application.Services.ClinicSrvs.ClinicReviewSrv.ClinicReviewInputDto)">
+            <summary>نظر تا تأیید ادمین نمایش داده نمی‌شود</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ClinicStaffInviteController">
+            <summary>
+            دعوت‌نامه‌های عضویت در پرسنل کلینیک (پذیرش یا رد توسط خود کاربر)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicStaffInviteController.Get">
+            <summary>دعوت‌نامه‌های منتظر پاسخ من</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ClinicStaffInviteController.Put(System.Int64,System.Boolean)">
+            <summary>پذیرفتن (accept=true) یا رد دعوت</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.ClubRewardController">
             <summary>
@@ -7800,6 +8480,82 @@
             <summary>
             ویرایش و ارسال مجدد درخواست رانندگی
             </summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.GroomerPortfolioCommentController">
+            <summary>
+            کامنت روی نمونه‌کار آرایشگاه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerPortfolioCommentController.Post(Application.Services.GroomerSrvs.GroomerPortfolioSrv.Dto.GroomerPortfolioCommentInputDto)">
+            <summary>ثبت کامنت (یا پاسخ با ParentId)</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerPortfolioCommentController.Delete(System.Int64)">
+            <summary>حذف کامنت خودم</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.GroomerPortfolioLikeController">
+            <summary>
+            لایک نمونه‌کار آرایشگاه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerPortfolioLikeController.Post(System.Int64)">
+            <summary>لایک (تکراری بودن مشکلی ندارد؛ همیشه وضعیت نهایی و تعداد را برمی‌گرداند)</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerPortfolioLikeController.Delete(System.Int64)">
+            <summary>برداشتن لایک</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.GroomerReserveController">
+            <summary>
+            رزرو نوبت آرایشگاه (کاربر)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerReserveController.Get(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveSearchInputDto)">
+            <summary>رزروهای من</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerReserveController.Quote(System.Collections.Generic.List{System.Int64},System.Int64,System.Boolean)">
+            <summary>قیمت بسته (پیش‌پرداخت و باقی‌مانده‌ی حضوری) قبل از رزرو</summary>
+            <param name="packageIds">یک یا چند بسته (رزرو چندخدمتی؛ حداکثر ۵، هر خدمت یک‌بار). packageId قدیمی هم پذیرفته می‌شود.</param>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerReserveController.Availability(System.Int64,System.DateTime,System.Int64,System.Nullable{System.Int64},System.Collections.Generic.List{System.Int64})">
+            <summary>زمان‌های آزاد یک روز برای بسته‌ی انتخابی</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerReserveController.Post(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveInputDto)">
+            <summary>ثبت رزرو (پرداخت‌نشده)؛ بعد از آن کد تخفیف/کیف پول و پرداخت</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerReserveController.Cancel(System.Int64)">
+            <summary>لغو رزرو: تا ۱۲ ساعت قبل از نوبت (یا تا قبل از تأیید آرایشگاه) با برگشت کل مبلغ به کیف پول</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.GroomerReservePaymentController">
+            <summary>
+            پرداخت رزرو آرایشگاه، کد تخفیف و کیف پول
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerReservePaymentController.Post(Application.Services.Order.PaymentSrv.Dto.PaymentStartDto)">
+            <summary>شروع پرداخت رزرو (GroomerReserveId در بدنه)</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerReservePaymentController.SetRebate(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveRebateCodeDto)">
+            <summary>اعمال کد تخفیف روی مبلغ آنلاین رزرو</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerReservePaymentController.SetWallet(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveWalletDto)">
+            <summary>پرداخت از کیف پول (کل یا بخشی از مبلغ)</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.GroomerReviewController">
+            <summary>
+            ثبت نظر و امتیاز برای آرایشگاه بعد از رزرو تکمیل‌شده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerReviewController.Post(Application.Services.GroomerSrvs.GroomerReviewSrv.GroomerReviewInputDto)">
+            <summary>نظر تا تأیید ادمین نمایش داده نمی‌شود</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.GroomerStaffInviteController">
+            <summary>
+            دعوت‌نامه‌های عضویت در پرسنل آرایشگاه (پذیرش یا رد توسط خود کاربر)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerStaffInviteController.Get">
+            <summary>دعوت‌نامه‌های منتظر پاسخ من</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.GroomerStaffInviteController.Put(System.Int64,System.Boolean)">
+            <summary>پذیرفتن (accept=true) یا رد دعوت</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.MapSearchController">
             <summary>
@@ -8702,6 +9458,18 @@
             مدیریت تغییر وضعیت کیف پول رزرو دوره مدرسه
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ShipmentTrackingController">
+            <summary>
+            ردیابی پیک سفارش مشتری (مراحل، پیک، موقعیت زنده)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ShipmentTrackingController.Get(System.String,System.Threading.CancellationToken)">
+            <summary>
+            مرسوله‌های پیک یک سفارش (به‌ازای هر فروشگاه یکی). <c>productOrderId</c> شناسه یا شماره‌ی سفارش است.
+            سفارش دیگران یا سفارشِ بدون پیک = لیست خالی. تا وقتی <c>isFinal</c> نشده هر <c>pollSeconds</c> ثانیه دوباره بخوانید.
+            نام پیک فقط نام کوچک، تلفن فقط وقتی پیک کالا را برداشته و می‌آید؛ بعد از تحویل/لغو هیچ‌کدام نمی‌آید.
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.ShippingQuoteController">
             <summary>
             قیمت لحظه‌ای روش‌های ارسال
@@ -9329,6 +10097,11 @@
             آیتم جدید
             </summary>  
         </member>
+        <member name="M:Api.Areas.EndUser.Controllers.WalletController.ChargeLimits">
+            <summary>
+            حداقل و حداکثر مبلغ شارژ کیف پول (تومان) برای اعتبارسنجی فرم
+            </summary>
+        </member>
         <member name="T:Api.Areas.Operator.Controllers.CompanionReserveController">
             <summary>
             مدیریت  رزرو نمایندگان
@@ -9874,6 +10647,12 @@
             سفارش‌های این فروشگاه که منتظر اقدام فروشنده‌اند: Step=1 تأیید سفارش، Step=2 «آماده تحویل به پیک» (با مهلت‌ها)
             </summary>
         </member>
+        <member name="M:Api.Areas.Seller.Controllers.ShipmentController.GetTracking(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            ردیابی پیک یک سفارش این فروشگاه: مراحل، نام/تلفن/موقعیت پیک (فقط وقتی پیک به‌سمت فروشگاه می‌آید) و فاصله تا فروشگاه.
+            سفارش فروشگاه دیگر = «یافت نشد». اپ تا وقتی <c>isFinal</c> نشده هر <c>pollSeconds</c> ثانیه دوباره بخواند.
+            </summary>
+        </member>
         <member name="M:Api.Areas.Seller.Controllers.ShipmentController.Confirm(Application.Services.Order.ShippingSrv.Dto.ShipmentConfirmDto,System.Threading.CancellationToken)">
             <summary>
             مرحله‌ی ۱: تأیید سفارش (در حال آماده‌سازی). سفر میاره هنوز ساخته نمی‌شود.
@@ -10250,6 +11029,22 @@
             <param name="storeId">فروشگاه</param>
             <returns></returns>
             
+        </member>
+        <member name="T:Api.Controllers.ClinicController">
+            <summary>
+            کلینیک‌ها (عمومی): فقط کلینیک‌های تأییدشده و فعال
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.ClinicController.Get(Application.Services.ClinicSrvs.ClinicSrv.Dto.ClinicInputDto)">
+            <summary>جستجو (شهر، محله، حیوان، خدمت، خدمات در محل، ...)</summary>
+        </member>
+        <member name="M:Api.Controllers.ClinicController.Services(System.Int64,System.String)">
+            <summary>خدمات و بسته‌های قیمتی قابل رزرو؛ petSize (Small/Medium/Large) بسته‌ها را فیلتر می‌کند</summary>
+        </member>
+        <member name="T:Api.Controllers.ClinicReviewController">
+            <summary>
+            نظرهای تأییدشده‌ی کلینیک (عمومی)
+            </summary>
         </member>
         <member name="T:Api.Controllers.ClubRewardController">
             <summary>
@@ -10701,6 +11496,33 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Controllers.GroomerController">
+            <summary>
+            آرایشگاه‌ها (عمومی): فقط آرایشگاه‌های تأییدشده و فعال
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.GroomerController.Get(Application.Services.GroomerSrvs.GroomerSrv.Dto.GroomerInputDto)">
+            <summary>جستجو (شهر، محله، حیوان، خدمت، خدمات در محل، ...)</summary>
+        </member>
+        <member name="M:Api.Controllers.GroomerController.Services(System.Int64,System.String)">
+            <summary>خدمات و بسته‌های قیمتی قابل رزرو؛ petSize (Small/Medium/Large) بسته‌ها را فیلتر می‌کند</summary>
+        </member>
+        <member name="T:Api.Controllers.GroomerPortfolioController">
+            <summary>
+            نمونه‌کار آرایشگاه‌ها (فید عمومی اینستاگرامی). برای کاربر واردشده LikedByMe هم پر می‌شود.
+            </summary>
+        </member>
+        <member name="M:Api.Controllers.GroomerPortfolioController.Get(Application.Services.GroomerSrvs.GroomerPortfolioSrv.Dto.GroomerPortfolioPostSearchInputDto)">
+            <summary>فید نمونه‌کارها؛ با groomerId فقط نمونه‌کارهای همان آرایشگاه</summary>
+        </member>
+        <member name="M:Api.Controllers.GroomerPortfolioController.Comments(Application.Services.GroomerSrvs.GroomerPortfolioSrv.Dto.GroomerPortfolioCommentSearchInputDto)">
+            <summary>کامنت‌های یک نمونه‌کار؛ ParentId خالی = نظرهای اصلی، پر = پاسخ‌های آن نظر</summary>
+        </member>
+        <member name="T:Api.Controllers.GroomerReviewController">
+            <summary>
+            نظرهای تأییدشده‌ی آرایشگاه (عمومی)
+            </summary>
         </member>
         <member name="T:Api.Controllers.MerchantController">
             <summary>
@@ -11302,6 +12124,11 @@
             مرتبط با استوری ها
             </summary>
         </member>
+        <member name="M:Api.Controllers.StoryGroupController.Home">
+            <summary>
+            استوری‌های صفحه‌ی اصلی در یک درخواست: گروه‌های دارای استوری فعال + تعداد + اولین استوری (کش ۵ دقیقه)
+            </summary>
+        </member>
         <member name="M:Api.Controllers.StoryGroupController.Get(Application.Services.Content.StoryGroupSrv.Dto.StoryGroupInputDto)">
             <summary>
             جستجو
@@ -11347,6 +12174,14 @@
             قاعده‌ی سراسری: endpointی که احراز هویت لازم ندارد (بدون [Authorize] یا با [AllowAnonymous]) هیچ‌وقت اطلاعات شخصی
             «کاربران دیگر» (موبایل، ایمیل، کد معرف، موقعیت…) برنمی‌گرداند؛ حتی اگر خودِ درخواست‌دهنده تصادفاً توکن داشته باشد.
             به‌جای اصلاح دستی صدها DTO، خروجی این endpointها قبل از سریال‌شدن پاک‌سازی می‌شود، پس endpoint عمومیِ جدید هم پوشش دارد.
+            </summary>
+        </member>
+        <member name="T:Api.Filter.IdempotentRequestAttribute">
+            <summary>
+            جلوگیری از ثبت تکراری فرم‌های ایجاد (آدرس، پت، رزرو، تیکت، ...): در حساب تست دو آدرس کاملاً یکسان با دابل‌کلیک ثبت شده بود.
+            - با هدر Idempotency-Key: همان کلید تا ۱۰ دقیقه همان پاسخ موفق اول را برمی‌گرداند (ثبت دوم انجام نمی‌شود).
+            - بدون هدر: همان کاربر + همان مسیر + همان بدنه در چند ثانیه = تکراری؛ اگر اولی تمام شده پاسخش برمی‌گردد، اگر هنوز در جریان است پیام «تکراری».
+            پاسخ ناموفق نگه داشته نمی‌شود تا تلاش دوباره ممکن باشد. فقط کاربر لاگین‌شده؛ حافظه‌ی همین نمونه‌ی API.
             </summary>
         </member>
         <member name="T:Api.HangFire.AdminDashboardAuthorizationFilter">

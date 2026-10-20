@@ -8,6 +8,7 @@ using Application.Services.Order.AddressSrv.iface;
 using Application.Services.Order.CartSrv.Dto;
 using Application.Services.Order.CartSrv.Iface;
 using Application.Services.Order.DeliverySrv.iface;
+using Application.Services.Order.PaymentSrv;
 using Application.Services.Order.PaymentSrv.Iface;
 using Application.Services.Order.PaymentSrv.Dto;
 using Application.Services.Order.ProductOrderItemSrv.Iface;
@@ -634,6 +635,10 @@ namespace Application.Services.Order.CartSrv
                     }
                 }
 
+                var staleCheckout = await ReleaseStaleStoreCheckoutsAsync(cart.UserId.Value, cartStore.StoreId);
+                if (staleCheckout != null)
+                    return staleCheckout;
+
                 var insertedProductOrder = await _productOrderService.InsertAsyncDto(productOrderDto);
 
 
@@ -695,6 +700,46 @@ namespace Application.Services.Order.CartSrv
 
             }
         }
+        // هر checkout سفارش تازه می‌سازد؛ درگاهِ نیمه‌کاره‌ی سفارش قبلیِ «همین فروشگاه» کنار گذاشته می‌شود تا کاربر با برگشتن به
+        // درگاه قدیمی دو سفارش تکراری نخرد. پرداخت فروشگاه‌های دیگر هرگز دست نمی‌خورد (خرید هم‌زمان از دو فروشگاه سالم می‌ماند).
+        // تلاش قدیمی‌تر از دو برابر عمر درگاه دیگر قابل اعمال نیست و بررسی نمی‌شود. null یعنی checkout ادامه پیدا کند.
+        private async Task<BaseResultDto> ReleaseStaleStoreCheckoutsAsync(long userId, long storeId)
+        {
+            var label = PaymentCallbackTypeEnum.ProductOrder.ToString();
+            var since = DateTime.Now - PaymentAttemptRules.PendingAttemptLifetime - PaymentAttemptRules.PendingAttemptLifetime;
+            var openOrderIds = await _context.Payments.AsNoTracking()
+                .Where(s => s.UserId == userId && s.CallBackTypeLabel == label && s.CallBackId != null &&
+                            s.AppliedDate == null && s.IsSuccess != false && s.CreateDate >= since)
+                .Select(s => s.CallBackId)
+                .Distinct()
+                .ToListAsync();
+            if (openOrderIds.Count == 0)
+                return null;
+
+            var sameStoreOrderIds = await _context.ProductOrders.AsNoTracking()
+                .Where(o => openOrderIds.Contains(o.Id) && !o.IsPaid && o.ProductOrderStores.Any(s => s.StoreId == storeId))
+                .Select(o => o.Id)
+                .ToListAsync();
+            if (sameStoreOrderIds.Count == 0)
+                return null;
+
+            var verifyingSince = DateTime.Now - PaymentAttemptRules.PendingAttemptLifetime;
+            await _context.Payments
+                .Where(s => s.UserId == userId && s.CallBackTypeLabel == label && sameStoreOrderIds.Contains(s.CallBackId) &&
+                            s.IsSuccess == null && s.AppliedDate == null &&
+                            (s.GatewayStatus == null || s.GatewayStatus != PaymentAttemptRules.VerifyingGatewayStatus || s.CreateDate < verifyingSince))
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(s => s.IsSuccess, false)
+                    .SetProperty(s => s.GatewayStatus, PaymentAttemptRules.SupersededGatewayStatus)
+                    .SetProperty(s => s.Description, "Superseded by a newer checkout of the same store"));
+
+            // باقی‌مانده = بانک همین الان در حال تأیید سفارش قبلی است (یا تأیید شده و در حال اعمال)؛ چند ثانیه صبر
+            var stillOpen = await _context.Payments.AsNoTracking().AnyAsync(s =>
+                s.UserId == userId && s.CallBackTypeLabel == label && sameStoreOrderIds.Contains(s.CallBackId) &&
+                s.AppliedDate == null && s.IsSuccess != false && s.CreateDate >= verifyingSince);
+            return stillOpen ? new BaseResultDto(false, Resource.Notification.PaymentPreviousAttemptVerifying) : null;
+        }
+
         private BaseResultDto CartGetDelivery(CartUpdateDto cartUpdate, Cart cart)
         {
             return _deliveryService.GetDeliveries(cart: cart, cartUpdate.StoreId);

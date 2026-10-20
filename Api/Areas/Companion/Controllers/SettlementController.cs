@@ -35,7 +35,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var role = await SettlementService.FindAsyncVDto(id);
-            if (role.IsSuccess && role.Data?.CompanionId != _currentuser.CurrentUser.CompanionId)
+            if (role.IsSuccess && !await SettlementService.BelongsToVenueAsync(id, Entities.Entities.SettlementKindEnum.Companion, _currentuser.CurrentUser.CompanionId))
                 return Ok(new BaseResultDto<SettlementVDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(role);
         }
@@ -46,10 +46,9 @@ namespace Api.Areas.Companion.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(BaseResultDto<SettlementVDto>), 200)]
-        public IActionResult Get([FromQuery] SettlementInputDto dto)
+        public async Task<IActionResult> Get([FromQuery] SettlementInputDto dto)
         {
-            dto.CompanionId = _currentuser.CurrentUser.CompanionId;
-            var searchDto = SettlementService.Search(dto);
+            var searchDto = await SettlementService.SearchForVenueAsync(dto, Entities.Entities.SettlementKindEnum.Companion, _currentuser.CurrentUser.CompanionId);
             return Ok(searchDto);
         }
     }

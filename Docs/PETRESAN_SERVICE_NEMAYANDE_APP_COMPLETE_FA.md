@@ -14,6 +14,20 @@
 > **مخاطب:** توسعه‌دهنده‌ی اپ نماینده (Flutter) و QA.
 > **همراه این سند:** [PETRESAN_SERVICE_WEBAPP_COMPLETE_FA.md](PETRESAN_SERVICE_WEBAPP_COMPLETE_FA.md) (سمت کاربر).
 
+> ### ➕ فیلد جدید برای راننده — `petResanService` (۱۴۰۵/۰۷/۲۰)
+> در `TripAvailable`، `TripUpcoming`، `TripCurrent` و `GET api/Driver/Trip/{id}` برای نوبت‌های سرویس (`petResanServiceScheduleId ≠ null`) حالا برنامه‌ی هفتگی هم می‌آید (بدون قیمت و اطلاعات شخصی؛ برای سفرهای دیگر `null`):
+> ```jsonc
+> "petResanService": {
+>   "serviceId": 501, "scheduleId": 77, "active": true,
+>   "startDate": "2026-10-10T00:00:00", "totalWeeks": null, "endDate": null,   // null = تا لغو
+>   "schedules": [                                   // فقط ردیف‌های فعال، مرتب بر روز هفته
+>     { "weekDayId": 1, "weekDayName": "شنبه",   "weekDayNumber": 1, "time": "09:00", "returnTime": null },
+>     { "weekDayId": 3, "weekDayName": "دوشنبه", "weekDayNumber": 3, "time": "12:00", "returnTime": "17:00" }
+>   ]
+> }
+> ```
+> `scheduleId` ردیفی است که همین نوبت از آن ساخته شده. `GET api/Driver/Trip/{id}` از این پس `TripVDto` برمی‌گرداند (قبلاً `TripDto`)؛ فیلد `userPetIds` جایش `userPets` است.
+
 ## ۰) دامنه و فرض این سند (لطفاً بخوانید)
 
 «اپ نماینده» در این پروژه همان اپ Flutter شریک‌های پاستیل است. دو نقش در آن با سرویس پت‌رسان درگیرند:

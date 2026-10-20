@@ -1,0 +1,62 @@
+using Application.Common.Dto.Result;
+using Application.Services.GroomerSrvs.GroomerReserveSrv.Dto;
+using Application.Services.GroomerSrvs.GroomerReserveSrv.Iface;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Api.Areas.Admin.Controllers
+{
+    /// <summary>
+    /// رزروهای آرایشگاه (ادمین)
+    /// </summary>
+    [Area("Admin")]
+    [Route("api/[area]/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class GroomerReserveController : ControllerBase
+    {
+        private readonly IGroomerReserveService _service;
+        private readonly IGroomerReserveApprovalService _approval;
+
+        public GroomerReserveController(IGroomerReserveService service, IGroomerReserveApprovalService approval)
+        {
+            _service = service;
+            _approval = approval;
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(GroomerReservePage), 200)]
+        public IActionResult Get([FromQuery] GroomerReserveSearchInputDto dto)
+        {
+            dto.OwnerUserId = null;
+            return Ok(_service.Search(dto));
+        }
+
+        [HttpGet("{id:long}")]
+        [ProducesResponseType(typeof(BaseResultDto<GroomerReserveVDto>), 200)]
+        public async Task<IActionResult> Get(long id) => Ok(await _service.FindAsync(id, null, null));
+
+        [HttpPut("Approve")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Approve(long id) => Ok(await _approval.ApproveAsync(id, null));
+
+        [HttpPut("Reject")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Reject(GroomerReserveReasonDto dto) => Ok(await _approval.RejectAsync(dto.Id, dto.Reason, null));
+
+        [HttpPut("Complete")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Complete(long id) => Ok(await _service.CompleteAsync(id, null));
+
+        /// <summary>تغییر زمان نوبت (به کاربر پوش و پیامک می‌رود)</summary>
+        [HttpPut("Reschedule")]
+        [ProducesResponseType(typeof(BaseResultDto<GroomerReserveVDto>), 200)]
+        public async Task<IActionResult> Reschedule(GroomerReserveRescheduleDto dto) => Ok(await _service.RescheduleAsync(dto.Id, dto.NewDoDate, null));
+
+        /// <summary>لغو توسط ادمین؛ refund=true کل مبلغ پرداخت‌شده را به کیف پول کاربر برمی‌گرداند</summary>
+        [HttpPut("Cancel")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Cancel(GroomerReserveReasonDto dto, bool refund = true) =>
+            Ok(await _approval.CancelByAdminAsync(dto.Id, dto.Reason, refund));
+    }
+}

@@ -37,7 +37,8 @@ namespace Api.Controllers
         public IActionResult Get([FromQuery] BaseInputDto dto)
         {
             dto.Available = true;
-            var model = MerchantService.Search(dto, hideTestGateway: _currentUser.CurrentUser?.RoleEnum != RoleEnum.Admin.ToString());
+            // همه زرین‌پال، مدیر اصلی علاوه بر آن درگاه تستی پاستیل؛ سمت شروع پرداخت هم همین اجباری است
+            var model = MerchantService.Search(dto, onlyBankIds: Application.Services.Order.MerchantSrv.MerchantGatewayRules.AllowedBankIds(_currentUser.CurrentUser));
             return Ok(model);
         }
     }

@@ -50,6 +50,13 @@ using Application.Services.CompanionSrvs.CompanionReserveSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionTypeSrv.Dto;
 using Application.Services.CompanionSrvs.CompanionUserSrv.Dto;
+using Application.Services.ProviderSrvs.ProviderRoleAssignmentSrv.Dto;
+using Application.Services.ProviderSrvs.ProviderRoleSrv.Dto;
+using Application.Services.ProviderSrvs.ProviderSrv.Dto;
+using Application.Services.ProviderSrvs.ProviderSubscriptionSrv;
+using Application.Services.ProviderSrvs.ProviderSubscriptionSrv.Dto;
+using Application.Services.ProviderSrvs.SubscriptionPlanSrv.Dto;
+using Entities.Entities.ProviderField;
 using Application.Services.CompanionSrvs.CompanionZoneSrv.Dto;
 using Application.Services.Content.BannerSrv.Dto;
 using Application.Services.Content.CargoSrv.Dto;
@@ -425,6 +432,31 @@ namespace Application.Maping
             CreateMap<CompanionPet, CompanionPetVDto>();
             CreateMap<CompanionPet, CompanionPetDto>();
             CreateMap<CompanionPetDto, CompanionPet>().ForMember(x => x.Pet, y => y.Ignore()).ForMember(x => x.Companion, y => y.Ignore());
+            // ---- Provider (ارائه‌دهنده) ----
+            CreateMap<Provider, ProviderDto>();
+            CreateMap<ProviderDto, Provider>()
+                .ForMember(x => x.User, y => y.Ignore()).ForMember(x => x.RoleAssignments, y => y.Ignore())
+                .ForMember(x => x.Subscriptions, y => y.Ignore()).ForMember(x => x.Companions, y => y.Ignore())
+                .ForMember(x => x.Stores, y => y.Ignore()).ForMember(x => x.CreateDate, y => y.Ignore())
+                .ForMember(x => x.Deleted, y => y.Ignore());
+            CreateMap<Provider, ProviderVDto>()
+                .ForMember(d => d.RoleAssignments, o => o.MapFrom(s => s.RoleAssignments.Where(c => !c.Deleted)))
+                .ForMember(d => d.CurrentSubscription, o => o.MapFrom(s => s.Subscriptions
+                    .Where(x => !x.Deleted && x.StartDate <= DateTime.Now && x.EndDate > DateTime.Now)
+                    .OrderByDescending(x => x.Plan.Level).FirstOrDefault()))
+                .ForMember(d => d.CompanionCount, o => o.MapFrom(s => s.Companions.Count(c => !c.Deleted)))
+                .ForMember(d => d.StoreCount, o => o.MapFrom(s => s.Stores.Count(c => !c.Deleted)));
+            CreateMap<ProviderRoleAssignment, ProviderRoleAssignmentDto>();
+            CreateMap<ProviderRoleAssignmentDto, ProviderRoleAssignment>().ForMember(x => x.Provider, y => y.Ignore()).ForMember(x => x.ProviderRole, y => y.Ignore()).ForMember(x => x.Deleted, y => y.Ignore());
+            CreateMap<ProviderRoleAssignment, ProviderRoleAssignmentVDto>();
+            CreateMap<ProviderRole, ProviderRoleDto>();
+            CreateMap<ProviderRoleDto, ProviderRole>().ForMember(x => x.Assignments, y => y.Ignore()).ForMember(x => x.Deleted, y => y.Ignore());
+            CreateMap<ProviderRole, ProviderRoleVDto>();
+            CreateMap<SubscriptionPlan, SubscriptionPlanDto>();
+            CreateMap<SubscriptionPlanDto, SubscriptionPlan>().ForMember(x => x.ProviderSubscriptions, y => y.Ignore()).ForMember(x => x.Deleted, y => y.Ignore());
+            CreateMap<SubscriptionPlan, SubscriptionPlanVDto>();
+            CreateMap<ProviderSubscription, ProviderSubscriptionVDto>()
+                .ForMember(d => d.IsActive, o => o.MapFrom(s => ProviderSubscriptionRules.IsActiveAt(s.StartDate, s.EndDate, DateTime.Now)));
             CreateMap<CompanionType, CompanionTypeVDto>();
             CreateMap<CompanionType, CompanionTypeDto>();
             CreateMap<CompanionTypeDto, CompanionType>().ForMember(x => x.Type, y => y.Ignore()).ForMember(x => x.Companion, y => y.Ignore());
@@ -931,6 +963,7 @@ namespace Application.Maping
             //Settlement
             CreateMap<Settlement, SettlementDto>().ReverseMap();
             CreateMap<Settlement, SettlementVDto>();
+            CreateMap<Provider, ProviderMinVDto>();
             CreateMap<SettlementStoreDto, SettlementStore>().ReverseMap();
             CreateMap<SettlementCompanionDto, SettlementCompanion>().ReverseMap();
             //Settlement End ----------------------------------------------
@@ -950,7 +983,7 @@ namespace Application.Maping
 
             //Store
             CreateMap<Store, StoreDto>();
-            CreateMap<StoreDto, Store>().ForMember(x => x.ExpressShippingEnabled, o => { o.PreCondition(src => src.ExpressShippingEnabled.HasValue); o.MapFrom(src => src.ExpressShippingEnabled.Value); }).ForMember(x => x.MaxPreparationMinutes, o => { o.PreCondition(src => src.MaxPreparationMinutes.HasValue); o.MapFrom(src => Math.Clamp(src.MaxPreparationMinutes.Value, 0, 10080)); }).ForMember(x => x.Users, opt => opt.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.MaxDiscountPercent, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.Icon, y => y.Ignore()).ForMember(x => x.ReferralCode, y => y.Ignore());
+            CreateMap<StoreDto, Store>().ForMember(x => x.ExpressShippingEnabled, o => { o.PreCondition(src => src.ExpressShippingEnabled.HasValue); o.MapFrom(src => src.ExpressShippingEnabled.Value); }).ForMember(x => x.MaxPreparationMinutes, o => { o.PreCondition(src => src.MaxPreparationMinutes.HasValue); o.MapFrom(src => Math.Clamp(src.MaxPreparationMinutes.Value, 0, 10080)); }).ForMember(x => x.Users, opt => opt.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore()).ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.MaxDiscountPercent, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.Icon, y => y.Ignore()).ForMember(x => x.ReferralCode, y => y.Ignore()).ForMember(x => x.ProviderId, y => y.Ignore()).ForMember(x => x.Provider, y => y.Ignore());
             CreateMap<Store, StoreMinVDto>().ForMember(x => x.StoreId, o => o.MapFrom(m => m.Id));
             CreateMap<Store, StoreVDto>();
             CreateMap<Store, StoreFinanceVDto>().ForMember(d => d.HasCommission, o => o.MapFrom(s => s.CommissionPercent != 0));

@@ -77,9 +77,10 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
 
         private bool IsAdmin(long? userId)
         {
+            // با Id نقش (main-admin)، نه Label: RoleEnum همان Roles.Label است و با "Admin" هرگز برابر نمی‌شد
             var user = _currentUser.CurrentUser;
             return userId.HasValue && user != null && user.UserId == userId.Value &&
-                   user.RoleEnum == RoleEnum.Admin.ToString();
+                   Application.Services.Order.MerchantSrv.MerchantGatewayRules.IsMainAdmin(user);
         }
 
         private static string AddResult(string callbackUrl, string result)

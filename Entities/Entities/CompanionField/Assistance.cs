@@ -9,6 +9,8 @@ namespace Entities.Entities
         public long? PictureId { get; set; }
         public bool Active { get; set; }
         public bool ShowToSite { get; set; }
+        /// <summary>خدمت گرومینگ: فقط برای آرایشگاه‌ها (Groomer)؛ کلینیک/نماینده نه می‌بیند نه می‌سازد.</summary>
+        public bool IsGrooming { get; set; }
         public bool Deleted { get; set; }
 
         public AssistanceGroup AssistanceGroup { get; set; }

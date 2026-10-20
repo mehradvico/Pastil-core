@@ -75,7 +75,10 @@ public class ShippingSlotRulesTests
     {
         var slotStart = NowUtc.AddHours(4);
         Assert.Equal(slotStart.AddMinutes(-30), ShippingSlotRules.DefaultPickup(slotStart, NowUtc, 30));
-        Assert.Equal(NowUtc.AddMinutes(15), ShippingSlotRules.DefaultPickup(NowUtc.AddMinutes(20), NowUtc, 30));
+        // میاره pickup.deadline کمتر از ۳۰ دقیقه از الان را «deadline_too_soon» رد می‌کند
+        Assert.Equal(NowUtc.AddMinutes(30), ShippingSlotRules.DefaultPickup(NowUtc.AddMinutes(20), NowUtc, 30));
+        Assert.Equal(NowUtc.AddMinutes(30), ShippingSlotRules.ExpressPickup(NowUtc, 15));
+        Assert.Equal(NowUtc.AddMinutes(40), ShippingSlotRules.ExpressPickup(NowUtc, 40));
         Assert.Equal(NowUtc.AddHours(4), ShippingSlotRules.LatestPickup(NowUtc.AddHours(5), 60));
     }
 

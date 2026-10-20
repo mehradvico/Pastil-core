@@ -72,6 +72,19 @@
         CompanionReserveRescheduledDriver,
         // ارسال اکسپرس (میاره + Boost): پیامک فوری به فروشگاه («همین الان پیک بگیرید») و پیامک ثبت به مشتری («۲ تا ۳ ساعت کاری»)
         ProductOrderExpressStore,
-        ProductOrderExpressUser
+        ProductOrderExpressUser,
+        // آرایشگاه (Groomer): تأیید/رد خود آرایشگاه، رزرو، تأیید/رد/لغو/تغییر زمان رزرو، دعوت پرسنل (متن‌ها: backend/Docs/GROOMER_FA.md)
+        GroomerApprovedForOwner,
+        GroomerRejectedForOwner,
+        GroomerReserveForUser,
+        GroomerReserveForGroomer,
+        GroomerReserveApprovedForUser,
+        GroomerReserveRejectedForUser,
+        GroomerReserveExpiredForUser,
+        GroomerReserveCancelledForGroomer,
+        GroomerReserveCancelledByAdminForUser,
+        GroomerReserveRescheduledForUser,
+        GroomerReserveRescheduledForGroomer,
+        GroomerStaffInvite
     }
 }

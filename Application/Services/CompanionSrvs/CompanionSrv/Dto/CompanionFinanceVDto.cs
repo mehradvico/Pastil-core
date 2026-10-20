@@ -14,6 +14,8 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
     public class CompanionFinanceVDto : Name_FieldDto
     {
         public long OwnerId { get; set; }
+        /// <summary>ارائه‌دهنده‌ی صاحب نمایندگی؛ تسویه و حسابداری روی ارائه‌دهنده است.</summary>
+        public long? ProviderId { get; set; }
         public bool HasCommission { get; set; }
         public int TotalItemsCount { get; set; } 
         public int ItemsWithCommissionCount { get; set; }

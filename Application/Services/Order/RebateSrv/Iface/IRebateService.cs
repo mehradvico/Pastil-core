@@ -17,6 +17,9 @@ namespace Application.Services.Order.RebateSrv.Iface
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(CompanionInsurancePackageSale insurance, string Code);
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(Trip trip, string Code);
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(PansionReserve pansion, string Code);
+        /// <summary>کد تخفیف رزرو آرایشگاه؛ پایه‌ی تخفیف مبلغ آنلاین رزرو است و هدف کوپن باشگاه با آرایشگاه/خدمت چک می‌شود.</summary>
+        BaseResultDto<RebateVDto> GetRebateByCodeAsync(Entities.Entities.GroomerField.GroomerReserve groomerReserve, long assistanceId, string Code);
+        BaseResultDto<RebateVDto> GetRebateByCodeAsync(Entities.Entities.ClinicField.ClinicReserve clinicReserve, long assistanceId, string Code);
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(double basePrice, long userId, string typeLabel, string code, long? targetId = null);
         void IncreaseUseCount(ProductOrder order);
         void IncreaseUseCount(CompanionReserve reserve);
@@ -24,6 +27,8 @@ namespace Application.Services.Order.RebateSrv.Iface
         void IncreaseUseCount(Trip trip);
         void IncreaseUseCount(CompanionInsurancePackageSale insurance);
         void IncreaseUseCount(PansionReserve pansion);
+        void IncreaseUseCount(Entities.Entities.GroomerField.GroomerReserve groomerReserve);
+        void IncreaseUseCount(Entities.Entities.ClinicField.ClinicReserve clinicReserve);
         void IncreaseUseCount(Rebate rebate, long userId, double fundedValue = 0);
 
     }

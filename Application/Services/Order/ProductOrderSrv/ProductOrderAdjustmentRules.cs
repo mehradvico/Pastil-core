@@ -15,10 +15,13 @@ namespace Application.Services.Order.ProductOrderSrv
     public static class ProductOrderAdjustmentRules
     {
         // فقط قبل از ارسال: پرداخت‌شده، حذف/لغو نشده، هنوز «ارسال/تحویل» نشده و مشتری هم پاسخ تحویل نداده.
+        // allowCustomerNotReceived (فقط لغو کامل توسط ادمین): مشتری «تحویل نگرفتم» زده و کالا واقعاً نرسیده؛ ادمین باید بتواند
+        // لغو و استرداد کند. «تحویل گرفتم» (true) در هر حالتی رد می‌شود. تصمیم صاحب پروژه، ۲۵ مهر ۱۴۰۵.
         public static bool IsBeforeShipment(bool isPaid, bool deleted, string statusLabel, string stateLabel, bool? userReceived,
-            string insertLabel, string processLabel, string canceledLabel)
+            string insertLabel, string processLabel, string canceledLabel, bool allowCustomerNotReceived = false)
         {
-            if (!isPaid || deleted || userReceived != null || stateLabel == canceledLabel)
+            var answered = userReceived != null && !(allowCustomerNotReceived && userReceived == false);
+            if (!isPaid || deleted || answered || stateLabel == canceledLabel)
                 return false;
             return statusLabel == insertLabel || statusLabel == processLabel;
         }

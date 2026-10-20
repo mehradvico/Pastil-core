@@ -1,6 +1,7 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.CompanionField;
 using Entities.Entities.PastilClubField;
+using Entities.Entities.ProviderField;
 using System;
 using System.Collections.Generic;
 
@@ -17,6 +18,8 @@ namespace Entities.Entities.Security
         public string Password { get; set; }
         public bool Locked { get; set; }
         public bool Deleted { get; set; }
+        /// <summary>فلگ سریع «این کاربر ارائه‌دهنده است»؛ جزئیات در جدول Provider.</summary>
+        public bool IsProvider { get; set; }
         public long RoleId { get; set; }
         public string ReferralCode { get; set; }
         public RegistrationReferralSource RegistrationReferralSource { get; set; }
@@ -44,6 +47,7 @@ namespace Entities.Entities.Security
         public ICollection<Store> Stores { get; set; }
         public ICollection<Companion> Companions { get; set; }
         public Driver Driver { get; set; }
+        public Provider Provider { get; set; }
         public Picture Picture { get; set; }
         public UserCurrentLocation UserCurrentLocation { get; set; }
         public ClubPointAccount ClubPointAccount { get; set; }

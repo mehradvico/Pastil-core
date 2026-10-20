@@ -54,6 +54,7 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         ///
         [HttpPost]
+        [global::Api.Filter.IdempotentRequest]
         [ProducesResponseType(typeof(BaseResultDto<TicketVDto>), 200)]
         public async Task<IActionResult> Post(CreateTicketDto dto)
         {

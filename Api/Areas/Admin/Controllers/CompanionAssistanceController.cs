@@ -31,6 +31,7 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(CompanionAssistanceSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionAssistanceInputDto dto)
         {
+            dto.IncludeGrooming = true;
             var search = _companionAssistanceService.Search(dto);
             return Ok(search);
         }

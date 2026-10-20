@@ -521,8 +521,8 @@ petResanServiceScheduleId != null  &&  tripStatusId == 76  &&  !لغوشده  &&
 | `PushTripCompleted` | ۵۲ | فقط وقتی **ادمین** سفر را تکمیل کند (تکمیل طبیعی با مرحله‌ی ۴ همان پوش ۵۱ را می‌فرستد) | سفر پت‌رسان تکمیل شد — لطفا به راننده امتیاز دهید |
 | `PushTripCanceled` | ۵۳ | لغو توسط **ادمین/سیستم** (از جمله لغو خودکار به‌خاطر لغو رزرو) | سفر پت‌رسان لغو شد |
 | `PushTripDriverCanceled` | ۵۵ | راننده لغو کرد | راننده‌ی شما لغو کرد، در حال یافتن راننده‌ی جدید هستیم |
-| `PushTripNoDriverAdminNotified` | ۷۶ | ۲ دقیقه بی‌راننده (*) | نگران نباشید! هنوز راننده‌ای سفرتون رو قبول نکرده… |
-| `PushTripNoDriverTryAnotherOption` | ۷۷ | لغو سیستمی ۵ دقیقه (*) | متأسفانه فعلاً راننده‌ای برای این سفر پیدا نشد… |
+| `PushTripNoDriverAdminNotified` | ۷۶ | ۱۰ دقیقه بی‌راننده، فقط سفر فوری (به‌روز ۲۵ مهر) | نگران نباشید! هنوز راننده‌ای سفرتون رو قبول نکرده… |
+| `PushTripNoDriverTryAnotherOption` | ۷۷ | لغو سیستمی سفر فوری بعد از ۳۰ دقیقه (به‌روز ۲۵ مهر؛ رزرو/سرویس: `PushTripCanceled` ۳۰ دقیقه مانده به حرکت) | متأسفانه فعلاً راننده‌ای برای این سفر پیدا نشد… |
 | `PushTripOngoing` / `End` | ۱۱۱ / ۱۱۲ | سفر در جریان | {پت} در مسیر مقصد است. زمان تقریبی رسیدن… |
 | `PushTripServiceWalletTopUp` | ۱۱۸ | کمبود موجودی | برای کسر خودکار سفرهای سرویس هفتگی پت‌رسان، حدود {X} تومان به کیف پول شما کم است… (لینک `/wallet`) |
 
@@ -656,7 +656,7 @@ Trip (نوبت)                PetResanServiceScheduleId?  ← تشخیص سفر
 | `DispatchScheduledTrips` | هر دقیقه | ۱ ساعت مانده و بی‌راننده ⇒ Notice ادمین؛ موعد گذشته ⇒ پیامک+Notice ادمین (یک‌بار) |
 | `SendUpcomingTripReminderPush` | هر دقیقه | ۳۰ دقیقه مانده ⇒ پوش ۸۱ به راننده (یک‌بار) |
 | `TripOngoingNotification` | هر دقیقه | اعلان ماندگار |
-| `AutoCancelUnansweredInstantTrips` / `NotifyAdminForSlowInstantTrips` | هر دقیقه | ⚠️ A-۲ |
+| `AutoCancelUnassignedTrips` / `NotifyAdminForUnassignedTrips` (جایگزین نسخه‌ی فوری، ۲۵ مهر) | هر دقیقه | `TRIP_UNASSIGNED_TIMEOUT_FA.md` |
 
 ### مستندهای مرتبط
 `PETRESAN_SERVICE_FIRST_PAYMENT_APP_FA.md` · `PETRESAN_SERVICE_RETURN_TIME_FA.md` · `PETRESAN_WEEKLY_PRICE_AND_MULTI_PET_ANSWER_FA.md` · `WEBAPP_PETRESAN_SERVICE_TRIP_OPTIONS_FA.md` · `WEBAPP_PETRESAN_BACKEND_CONTRACT_FA.md` · `PETRESAN_CONCURRENT_TRIP_GUARD_FA.md` · `TRIP_SCHEDULING_DRIVER_BUSY_WINDOW_AMIRMOHSEN_FA.md` · `TRIP_ONGOING_NOTIFICATION_FA.md` · `webapp/qa/pet-resan/*` · `backend/scripts/Check-PetResanServiceAfterDeploy.sql`

@@ -604,7 +604,7 @@ namespace Utility.Reflection
                 (1, N'تنظیمات سیستم', N'Settings', NULL, 1),
                 (2, N'مدیریت کاربران', N'UserManager', NULL, 2),
                 (3, N'مدیریت پت ها', N'PetManagement', NULL, 3),
-                (4, N'مدیریت نمایندگان', N'CompanionManagement', NULL, 4),
+                (4, N'مدیریت نمایندگی‌ها', N'CompanionManagement', NULL, 4),
                 (5, N'مدیریت فروشگاه', N'ShopManagement', NULL, 5),
                 (11, N'مدیریت PastilAI', N'PastilAIManagement', NULL, 6),
                 (6, N'مدیریت محتوا', N'ContentManagement', N'ContentManagment', 7),

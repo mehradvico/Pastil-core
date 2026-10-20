@@ -10,12 +10,12 @@ namespace Application.Common.Helpers
         {
             _configuration = configuration;
         }
-        public static string ApiBaseUrl => _configuration["Urls:ApiBaseUrl"];
-        public static string FileBaseUrl => _configuration["Urls:FileBaseUrl"];
-        public static string PaymentBaseUrl => _configuration["Urls:PaymentBaseUrl"];
-        public static string PaymentStartBaseUrl => _configuration["Urls:PaymentStartBaseUrl"];
-        public static bool PaymentStartFromApi => Convert.ToBoolean(_configuration["Urls:PaymentStartFromApi"]);
-        public static string BaseUrl => _configuration["Urls:BaseUrl"];
+        public static string ApiBaseUrl => _configuration?["Urls:ApiBaseUrl"];
+        public static string FileBaseUrl => _configuration?["Urls:FileBaseUrl"];
+        public static string PaymentBaseUrl => _configuration?["Urls:PaymentBaseUrl"];
+        public static string PaymentStartBaseUrl => _configuration?["Urls:PaymentStartBaseUrl"];
+        public static bool PaymentStartFromApi => bool.TryParse(_configuration?["Urls:PaymentStartFromApi"], out var fromApi) && fromApi;
+        public static string BaseUrl => _configuration?["Urls:BaseUrl"];
         public static string PaymentOrderUrl(long id) => $"{BaseUrl}{_configuration["Urls:OrderUrl"].Replace("id", id.ToString())}";
         public static string PaymentReserveUrl(long id) => $"{BaseUrl}{_configuration["Urls:ReserveUrl"].Replace("id", id.ToString())}";
         public static string PaymentTripUrl(long id) => $"{BaseUrl}{_configuration["Urls:TripUrl"].Replace("id", id.ToString())}";

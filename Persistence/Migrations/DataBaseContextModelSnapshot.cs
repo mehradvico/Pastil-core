@@ -238,6 +238,9 @@ namespace Persistence.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsGrooming")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsPersonal")
                         .HasColumnType("bit");
 
@@ -936,6 +939,812 @@ namespace Persistence.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ClinicField.Clinic", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("AddressValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("BackgroundPictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("CommentCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("DeletedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EstablishedYear")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("GoldAccountDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("HasCamera")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasParking")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasWaitingRoom")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("IconId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("InstagramUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<long?>("LegacyCompanionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("LicenseApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LicenseNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography");
+
+                    b.Property<int>("MaxConcurrentPets")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long?>("NeighborhoodId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ProviderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RateAvg")
+                        .HasColumnType("float");
+
+                    b.Property<int>("RateCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferralCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Regulations")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SearchKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoCanonical")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoH1")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoMinDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SeoNoFollow")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SeoNoIndex")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SeoPictureAlt")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoUrlText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ServiceAtHome")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ServiceInPerson")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ServiceOnline")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShowToSite")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("SilverAccountDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StaffCount")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("StateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Suggested")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WebsiteUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BackgroundPictureId");
+
+                    b.HasIndex("IconId");
+
+                    b.HasIndex("LegacyCompanionId")
+                        .IsUnique()
+                        .HasFilter("[LegacyCompanionId] IS NOT NULL");
+
+                    b.HasIndex("NeighborhoodId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("ReferralCode")
+                        .IsUnique()
+                        .HasFilter("[ReferralCode] IS NOT NULL");
+
+                    b.HasIndex("StateId");
+
+                    b.HasIndex("ProviderId", "Deleted");
+
+                    b.HasIndex("CityId", "Active", "Approved", "Deleted");
+
+                    b.ToTable("Clinics");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicPet", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("PetId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetId");
+
+                    b.HasIndex("ClinicId", "PetId");
+
+                    b.ToTable("ClinicPets");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicPicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("ClinicPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserve", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("AddressId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("AssigneeUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BookerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("BookerNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CancelDetail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("CancelledByBooker")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ClinicServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ClinicServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ClinicTimeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DoDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DoneDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("FromWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsCancel")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReserved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastRescheduleDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Mode")
+                        .HasColumnType("int");
+
+                    b.Property<double>("OnlineAmount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("OriginalDoDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("OwnerApprovalDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OwnerDecision")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("OwnerDecisionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OwnerDecisionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("PackagePrice")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("PaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("Permitted")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ProviderShare")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("RebateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RebatePrice")
+                        .HasColumnType("float");
+
+                    b.Property<int>("RescheduleCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReserveCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<double>("SiteShare")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserPetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("WalletPrice")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddressId");
+
+                    b.HasIndex("AssigneeUserId");
+
+                    b.HasIndex("ClinicServiceId");
+
+                    b.HasIndex("ClinicServicePackageId");
+
+                    b.HasIndex("ClinicTimeId");
+
+                    b.HasIndex("RebateId");
+
+                    b.HasIndex("ReserveCode")
+                        .IsUnique()
+                        .HasFilter("[ReserveCode] IS NOT NULL");
+
+                    b.HasIndex("UserPetId");
+
+                    b.HasIndex("BookerId", "CreateDate");
+
+                    b.HasIndex("OwnerDecision", "OwnerApprovalDeadline");
+
+                    b.HasIndex("ClinicId", "DoDate", "EndDate");
+
+                    b.ToTable("ClinicReserves", t =>
+                        {
+                            t.HasCheckConstraint("CK_ClinicReserve_Dates", "[EndDate] >= [DoDate]");
+
+                            t.HasCheckConstraint("CK_ClinicReserve_Prices", "[Price] >= 0 AND [OnlineAmount] >= 0 AND [PaymentPrice] >= 0 AND [WalletPrice] >= 0 AND [RebatePrice] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserveItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ClinicServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ClinicServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<double>("OnlineAmount")
+                        .HasColumnType("float");
+
+                    b.Property<double>("PackagePrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ProviderShare")
+                        .HasColumnType("float");
+
+                    b.Property<double>("SiteShare")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicReserveId");
+
+                    b.HasIndex("ClinicServiceId");
+
+                    b.HasIndex("ClinicServicePackageId");
+
+                    b.ToTable("ClinicReserveItems");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicService", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("AssistanceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssistanceId");
+
+                    b.HasIndex("ClinicId", "AssistanceId");
+
+                    b.ToTable("ClinicServices");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServicePackage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ClinicServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Discription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PetSize")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("PrePaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicServiceId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("ClinicServicePackages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServicePackagePicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicServicePackageId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("ClinicServicePackagePictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServicePackageType", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Mode")
+                        .HasColumnType("int");
+
+                    b.Property<double>("PrePaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicServicePackageId", "Mode");
+
+                    b.ToTable("ClinicServicePackageTypes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServiceUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ClinicServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ClinicServiceId", "UserId");
+
+                    b.ToTable("ClinicServiceUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicTime", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<long>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("EndTime")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("StartTime")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<long>("WeekDayId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WeekDayId");
+
+                    b.HasIndex("ClinicId", "WeekDayId");
+
+                    b.ToTable("ClinicTimes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicType", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("TypeId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TypeId");
+
+                    b.HasIndex("ClinicId", "TypeId");
+
+                    b.ToTable("ClinicTypes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("InviteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool?>("UserAccept")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ClinicId", "UserId");
+
+                    b.ToTable("ClinicUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicZone", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("NeighborhoodId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("StateId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("NeighborhoodId");
+
+                    b.HasIndex("StateId");
+
+                    b.HasIndex("ClinicId", "CityId");
+
+                    b.ToTable("ClinicZones");
+                });
+
             modelBuilder.Entity("Entities.Entities.ClubReward", b =>
                 {
                     b.Property<long>("Id")
@@ -1161,6 +1970,9 @@ namespace Persistence.Migrations
                     b.Property<long?>("PictureId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ProviderId")
+                        .HasColumnType("bigint");
+
                     b.Property<double>("RateAvg")
                         .HasColumnType("float");
 
@@ -1231,6 +2043,8 @@ namespace Persistence.Migrations
                     b.HasIndex("PetId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("ProviderId");
 
                     b.HasIndex("ReferralCode")
                         .IsUnique();
@@ -3601,6 +4415,889 @@ namespace Persistence.Migrations
                     b.HasIndex("PictureId");
 
                     b.ToTable("GalleryItems");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.Groomer", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("AddressValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("BackgroundPictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("CommentCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("DeletedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("EstablishedYear")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("GoldAccountDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("HasCamera")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasParking")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("HasWaitingRoom")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("IconId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("InstagramUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<bool>("IsPersonal")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("LegacyCompanionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("LicenseApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LicenseNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geography");
+
+                    b.Property<int>("MaxConcurrentPets")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<long?>("NeighborhoodId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<bool>("PickupAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("PickupFee")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("PortfolioCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PortfolioLikeCount")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("ProviderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RateAvg")
+                        .HasColumnType("float");
+
+                    b.Property<int>("RateCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferralCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Regulations")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SearchKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoCanonical")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoH1")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoMinDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SeoNoFollow")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("SeoNoIndex")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SeoPictureAlt")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeoUrlText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ServiceAtHome")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ServiceInSalon")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShowToSite")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("SilverAccountDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("StaffCount")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("StateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Suggested")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WebsiteUrl")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BackgroundPictureId");
+
+                    b.HasIndex("IconId");
+
+                    b.HasIndex("LegacyCompanionId")
+                        .IsUnique()
+                        .HasFilter("[LegacyCompanionId] IS NOT NULL");
+
+                    b.HasIndex("NeighborhoodId");
+
+                    b.HasIndex("OwnerId");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("ReferralCode")
+                        .IsUnique()
+                        .HasFilter("[ReferralCode] IS NOT NULL");
+
+                    b.HasIndex("StateId");
+
+                    b.HasIndex("ProviderId", "Deleted");
+
+                    b.HasIndex("CityId", "Active", "Approved", "Deleted");
+
+                    b.ToTable("Groomers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPet", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("GroomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PetId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PetId");
+
+                    b.HasIndex("GroomerId", "PetId");
+
+                    b.ToTable("GroomerPets");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("GroomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroomerId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("GroomerPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPortfolioLike", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("PostId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PostId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("GroomerPortfolioLikes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPortfolioPicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PostId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("PostId", "SortOrder");
+
+                    b.ToTable("GroomerPortfolioPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPortfolioPost", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ApprovalValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("CommentCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("GroomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("GroomerServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("LikeCount")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("PetId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroomerServiceId");
+
+                    b.HasIndex("PetId");
+
+                    b.HasIndex("GroomerId", "Deleted", "Approved", "Active", "Id");
+
+                    b.ToTable("GroomerPortfolioPosts");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerReserve", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("AddressId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("AssigneeUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("BookerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("BookerNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("CancelDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CancelDetail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("CancelledByBooker")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DoDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DoneDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("FromWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("GroomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("GroomerServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("GroomerServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("GroomerTimeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsCancel")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsHomeService")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReserved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastRescheduleDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("OnlineAmount")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("OriginalDoDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("OwnerApprovalDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OwnerDecision")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("OwnerDecisionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OwnerDecisionReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("PackagePrice")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("PaidDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("PaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("Permitted")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("PickupFee")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("PickupRequested")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ProviderShare")
+                        .HasColumnType("float");
+
+                    b.Property<long?>("RebateId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("RebatePrice")
+                        .HasColumnType("float");
+
+                    b.Property<int>("RescheduleCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReserveCode")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<double>("SiteShare")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long>("UserPetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("WalletPrice")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddressId");
+
+                    b.HasIndex("AssigneeUserId");
+
+                    b.HasIndex("GroomerServiceId");
+
+                    b.HasIndex("GroomerServicePackageId");
+
+                    b.HasIndex("GroomerTimeId");
+
+                    b.HasIndex("RebateId");
+
+                    b.HasIndex("ReserveCode")
+                        .IsUnique()
+                        .HasFilter("[ReserveCode] IS NOT NULL");
+
+                    b.HasIndex("UserPetId");
+
+                    b.HasIndex("BookerId", "CreateDate");
+
+                    b.HasIndex("OwnerDecision", "OwnerApprovalDeadline");
+
+                    b.HasIndex("GroomerId", "DoDate", "EndDate");
+
+                    b.ToTable("GroomerReserves", t =>
+                        {
+                            t.HasCheckConstraint("CK_GroomerReserve_Dates", "[EndDate] >= [DoDate]");
+
+                            t.HasCheckConstraint("CK_GroomerReserve_Prices", "[Price] >= 0 AND [OnlineAmount] >= 0 AND [PaymentPrice] >= 0 AND [WalletPrice] >= 0 AND [RebatePrice] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerReserveItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<long>("GroomerReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("GroomerServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("GroomerServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("OnlineAmount")
+                        .HasColumnType("float");
+
+                    b.Property<double>("PackagePrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ProviderShare")
+                        .HasColumnType("float");
+
+                    b.Property<double>("SiteShare")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroomerReserveId");
+
+                    b.HasIndex("GroomerServiceId");
+
+                    b.HasIndex("GroomerServicePackageId");
+
+                    b.ToTable("GroomerReserveItems");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerService", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("AssistanceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<long>("GroomerId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssistanceId");
+
+                    b.HasIndex("GroomerId", "AssistanceId");
+
+                    b.ToTable("GroomerServices");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerServicePackage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Discription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("GroomerServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PetSize")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("PrePaymentPrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroomerServiceId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("GroomerServicePackages");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerServicePackagePicture", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("GroomerServicePackageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroomerServicePackageId");
+
+                    b.HasIndex("PictureId");
+
+                    b.ToTable("GroomerServicePackagePictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerServiceUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("GroomerServiceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("GroomerServiceId", "UserId");
+
+                    b.ToTable("GroomerServiceUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerTime", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("EndTime")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<long>("GroomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StartTime")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<long>("WeekDayId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WeekDayId");
+
+                    b.HasIndex("GroomerId", "WeekDayId");
+
+                    b.ToTable("GroomerTimes");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActivationValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("GroomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("InviteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool?>("UserAccept")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("GroomerId", "UserId");
+
+                    b.ToTable("GroomerUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerZone", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("GroomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("NeighborhoodId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("StateId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CityId");
+
+                    b.HasIndex("NeighborhoodId");
+
+                    b.HasIndex("StateId");
+
+                    b.HasIndex("GroomerId", "CityId");
+
+                    b.ToTable("GroomerZones");
                 });
 
             modelBuilder.Entity("Entities.Entities.Hashtag", b =>
@@ -7782,6 +9479,176 @@ namespace Persistence.Migrations
                     b.ToTable("ProductStockAlerts");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ProviderField.Provider", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[Deleted] = 0");
+
+                    b.ToTable("Providers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderRole", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Label")
+                        .IsUnique()
+                        .HasFilter("[Deleted] = 0");
+
+                    b.ToTable("ProviderRoles");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderRoleAssignment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ProviderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProviderRoleId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderRoleId");
+
+                    b.HasIndex("ProviderId", "ProviderRoleId")
+                        .IsUnique()
+                        .HasFilter("[Deleted] = 0");
+
+                    b.ToTable("ProviderRoleAssignments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderSubscription", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CreatedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("PlanId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProviderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("ProviderId", "EndDate");
+
+                    b.ToTable("ProviderSubscriptions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.SubscriptionPlan", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Level");
+
+                    b.ToTable("SubscriptionPlans");
+                });
+
             modelBuilder.Entity("Entities.Entities.PushMessage", b =>
                 {
                     b.Property<long>("Id")
@@ -8903,6 +10770,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("IsFemale")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsProvider")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
@@ -9072,8 +10942,14 @@ namespace Persistence.Migrations
                     b.Property<long>("ItemCount")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
                     b.Property<double>("PaidPrice")
                         .HasColumnType("float");
+
+                    b.Property<long?>("ProviderId")
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("StoreId")
                         .HasColumnType("bigint");
@@ -9092,7 +10968,33 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserBankCardId");
 
+                    b.HasIndex("ProviderId", "Kind");
+
                     b.ToTable("Settlements");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SettlementClinic", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SettlementId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicReserveId")
+                        .IsUnique();
+
+                    b.HasIndex("SettlementId");
+
+                    b.ToTable("SettlementClinics");
                 });
 
             modelBuilder.Entity("Entities.Entities.SettlementCompanion", b =>
@@ -9131,6 +11033,30 @@ namespace Persistence.Migrations
                     b.HasIndex("SettlementId");
 
                     b.ToTable("SettlementCompanions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SettlementGroomer", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("GroomerReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SettlementId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroomerReserveId")
+                        .IsUnique();
+
+                    b.HasIndex("SettlementId");
+
+                    b.ToTable("SettlementGroomers");
                 });
 
             modelBuilder.Entity("Entities.Entities.SettlementStore", b =>
@@ -9173,6 +11099,23 @@ namespace Persistence.Migrations
                     b.Property<double>("ChargedPrice")
                         .HasColumnType("float");
 
+                    b.Property<double?>("CourierLatitude")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("CourierLocationAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double?>("CourierLongitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("CourierName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("CourierPhone")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<int>("CourierRetryCount")
                         .HasColumnType("int");
 
@@ -9202,6 +11145,13 @@ namespace Persistence.Migrations
 
                     b.Property<bool>("IsExpress")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastMiareEventAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastMiareState")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
 
                     b.Property<DateTime?>("LateNotifiedAtUtc")
                         .HasColumnType("datetime2");
@@ -9279,6 +11229,49 @@ namespace Persistence.Migrations
                     b.HasIndex("Status", "SellerConfirmDeadlineUtc");
 
                     b.ToTable("Shipments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ShippingField.ShipmentEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CourierName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("PayloadHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("PayloadJson")
+                        .HasMaxLength(6000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ReceivedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("ShipmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("State")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShipmentId", "ReceivedAtUtc");
+
+                    b.ToTable("ShipmentEvents");
                 });
 
             modelBuilder.Entity("Entities.Entities.ShippingField.ShippingQuote", b =>
@@ -9691,6 +11684,9 @@ namespace Persistence.Migrations
                     b.Property<long?>("PictureId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ProviderId")
+                        .HasColumnType("bigint");
+
                     b.Property<double>("RateAvg")
                         .HasColumnType("float");
 
@@ -9745,6 +11741,8 @@ namespace Persistence.Migrations
                     b.HasIndex("IconId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("ProviderId");
 
                     b.HasIndex("ReferralCode")
                         .IsUnique();
@@ -10717,6 +12715,9 @@ namespace Persistence.Migrations
                     b.Property<long?>("CargoId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ClinicReserveId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("CompanionInsurancePackageSaleId")
                         .HasColumnType("bigint");
 
@@ -10731,6 +12732,9 @@ namespace Persistence.Migrations
 
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
+
+                    b.Property<long?>("GroomerReserveId")
+                        .HasColumnType("bigint");
 
                     b.Property<bool>("IsIncrease")
                         .HasColumnType("bit");
@@ -10768,6 +12772,10 @@ namespace Persistence.Migrations
                         .IsUnique()
                         .HasFilter("[CargoId] IS NOT NULL");
 
+                    b.HasIndex("ClinicReserveId")
+                        .IsUnique()
+                        .HasFilter("[ClinicReserveId] IS NOT NULL");
+
                     b.HasIndex("CompanionInsurancePackageSaleId")
                         .IsUnique()
                         .HasFilter("[CompanionInsurancePackageSaleId] IS NOT NULL");
@@ -10779,6 +12787,10 @@ namespace Persistence.Migrations
                     b.HasIndex("ConsultationPurchaseId")
                         .IsUnique()
                         .HasFilter("[ConsultationPurchaseId] IS NOT NULL");
+
+                    b.HasIndex("GroomerReserveId")
+                        .IsUnique()
+                        .HasFilter("[GroomerReserveId] IS NOT NULL");
 
                     b.HasIndex("PansionReserveId")
                         .IsUnique()
@@ -10922,6 +12934,28 @@ namespace Persistence.Migrations
                     b.ToTable("TripTripOption");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicComment", b =>
+                {
+                    b.HasBaseType("Entities.Entities.Comment");
+
+                    b.Property<long>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ClinicReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsReserved")
+                        .HasColumnType("bit");
+
+                    b.HasIndex("ClinicId");
+
+                    b.HasIndex("ClinicReserveId")
+                        .IsUnique()
+                        .HasFilter("[ClinicReserveId] IS NOT NULL");
+
+                    b.ToTable("ClinicComments");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionComment", b =>
                 {
                     b.HasBaseType("Entities.Entities.Comment");
@@ -10944,6 +12978,48 @@ namespace Persistence.Migrations
                     b.HasIndex("CompanionReserveId");
 
                     b.ToTable("CompanionReserveComments", (string)null);
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerComment", b =>
+                {
+                    b.HasBaseType("Entities.Entities.Comment");
+
+                    b.Property<long>("GroomerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("GroomerReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsReserved")
+                        .HasColumnType("bit");
+
+                    b.HasIndex("GroomerId");
+
+                    b.HasIndex("GroomerReserveId")
+                        .IsUnique()
+                        .HasFilter("[GroomerReserveId] IS NOT NULL");
+
+                    b.ToTable("GroomerComments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPortfolioComment", b =>
+                {
+                    b.HasBaseType("Entities.Entities.Comment");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("ParentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PostId")
+                        .HasColumnType("bigint");
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("PostId", "Deleted");
+
+                    b.ToTable("GroomerPortfolioComments");
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.PansionComment", b =>
@@ -11377,6 +13453,380 @@ namespace Persistence.Migrations
                     b.Navigation("Picture");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ClinicField.Clinic", b =>
+                {
+                    b.HasOne("Entities.Entities.Picture", "BackgroundPicture")
+                        .WithMany()
+                        .HasForeignKey("BackgroundPictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Icon")
+                        .WithMany()
+                        .HasForeignKey("IconId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Neighborhood", "Neighborhood")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("Clinics")
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.State", "State")
+                        .WithMany()
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BackgroundPicture");
+
+                    b.Navigation("City");
+
+                    b.Navigation("Icon");
+
+                    b.Navigation("Neighborhood");
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("Picture");
+
+                    b.Navigation("Provider");
+
+                    b.Navigation("State");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicPet", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany("ClinicPets")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Pet", "Pet")
+                        .WithMany()
+                        .HasForeignKey("PetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicPicture", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany("ClinicPictures")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserve", b =>
+                {
+                    b.HasOne("Entities.Entities.Address", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "Assignee")
+                        .WithMany()
+                        .HasForeignKey("AssigneeUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "Booker")
+                        .WithMany()
+                        .HasForeignKey("BookerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.ClinicService", "ClinicService")
+                        .WithMany()
+                        .HasForeignKey("ClinicServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.ClinicServicePackage", "ClinicServicePackage")
+                        .WithMany()
+                        .HasForeignKey("ClinicServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.ClinicTime", "ClinicTime")
+                        .WithMany()
+                        .HasForeignKey("ClinicTimeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Rebate", "Rebate")
+                        .WithMany()
+                        .HasForeignKey("RebateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.UserPet", "UserPet")
+                        .WithMany()
+                        .HasForeignKey("UserPetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Address");
+
+                    b.Navigation("Assignee");
+
+                    b.Navigation("Booker");
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("ClinicService");
+
+                    b.Navigation("ClinicServicePackage");
+
+                    b.Navigation("ClinicTime");
+
+                    b.Navigation("Rebate");
+
+                    b.Navigation("UserPet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserveItem", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserve", "ClinicReserve")
+                        .WithMany("Items")
+                        .HasForeignKey("ClinicReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.ClinicService", "ClinicService")
+                        .WithMany()
+                        .HasForeignKey("ClinicServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.ClinicServicePackage", "ClinicServicePackage")
+                        .WithMany()
+                        .HasForeignKey("ClinicServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClinicReserve");
+
+                    b.Navigation("ClinicService");
+
+                    b.Navigation("ClinicServicePackage");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicService", b =>
+                {
+                    b.HasOne("Entities.Entities.Assistance", "Assistance")
+                        .WithMany()
+                        .HasForeignKey("AssistanceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany("ClinicServices")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assistance");
+
+                    b.Navigation("Clinic");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServicePackage", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicService", "ClinicService")
+                        .WithMany("Packages")
+                        .HasForeignKey("ClinicServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ClinicService");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServicePackagePicture", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicServicePackage", "ClinicServicePackage")
+                        .WithMany("Pictures")
+                        .HasForeignKey("ClinicServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClinicServicePackage");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServicePackageType", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicServicePackage", "ClinicServicePackage")
+                        .WithMany("Types")
+                        .HasForeignKey("ClinicServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClinicServicePackage");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServiceUser", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicService", "ClinicService")
+                        .WithMany("ServiceUsers")
+                        .HasForeignKey("ClinicServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClinicService");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicTime", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany("ClinicTimes")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.WeekDay", "WeekDay")
+                        .WithMany()
+                        .HasForeignKey("WeekDayId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("WeekDay");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicType", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany("ClinicTypes")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Code", "Type")
+                        .WithMany()
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("Type");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicUser", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany("ClinicUsers")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicZone", b =>
+                {
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany("ClinicZones")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Neighborhood", "Neighborhood")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.State", "State")
+                        .WithMany()
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("Neighborhood");
+
+                    b.Navigation("State");
+                });
+
             modelBuilder.Entity("Entities.Entities.ClubReward", b =>
                 {
                     b.HasOne("Entities.Entities.Rebate", "Rebate")
@@ -11473,6 +13923,11 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("PictureId");
 
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("Companions")
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("BackgroundPicture");
 
                     b.Navigation("City");
@@ -11484,6 +13939,8 @@ namespace Persistence.Migrations
                     b.Navigation("Owner");
 
                     b.Navigation("Picture");
+
+                    b.Navigation("Provider");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionAssistance", b =>
@@ -12543,6 +15000,413 @@ namespace Persistence.Migrations
                     b.Navigation("Gallery");
 
                     b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.Groomer", b =>
+                {
+                    b.HasOne("Entities.Entities.Picture", "BackgroundPicture")
+                        .WithMany()
+                        .HasForeignKey("BackgroundPictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Icon")
+                        .WithMany()
+                        .HasForeignKey("IconId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Neighborhood", "Neighborhood")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("Groomers")
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.State", "State")
+                        .WithMany()
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BackgroundPicture");
+
+                    b.Navigation("City");
+
+                    b.Navigation("Icon");
+
+                    b.Navigation("Neighborhood");
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("Picture");
+
+                    b.Navigation("Provider");
+
+                    b.Navigation("State");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPet", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
+                        .WithMany("GroomerPets")
+                        .HasForeignKey("GroomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Pet", "Pet")
+                        .WithMany()
+                        .HasForeignKey("PetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Groomer");
+
+                    b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPicture", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
+                        .WithMany("GroomerPictures")
+                        .HasForeignKey("GroomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Groomer");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPortfolioLike", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.GroomerPortfolioPost", "Post")
+                        .WithMany("Likes")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPortfolioPicture", b =>
+                {
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerPortfolioPost", "Post")
+                        .WithMany("Pictures")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Picture");
+
+                    b.Navigation("Post");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPortfolioPost", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
+                        .WithMany("PortfolioPosts")
+                        .HasForeignKey("GroomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerService", "GroomerService")
+                        .WithMany()
+                        .HasForeignKey("GroomerServiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Pet", "Pet")
+                        .WithMany()
+                        .HasForeignKey("PetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Groomer");
+
+                    b.Navigation("GroomerService");
+
+                    b.Navigation("Pet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerReserve", b =>
+                {
+                    b.HasOne("Entities.Entities.Address", "Address")
+                        .WithMany()
+                        .HasForeignKey("AddressId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "Assignee")
+                        .WithMany()
+                        .HasForeignKey("AssigneeUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Security.User", "Booker")
+                        .WithMany()
+                        .HasForeignKey("BookerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
+                        .WithMany()
+                        .HasForeignKey("GroomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerService", "GroomerService")
+                        .WithMany()
+                        .HasForeignKey("GroomerServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerServicePackage", "GroomerServicePackage")
+                        .WithMany()
+                        .HasForeignKey("GroomerServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerTime", "GroomerTime")
+                        .WithMany()
+                        .HasForeignKey("GroomerTimeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Rebate", "Rebate")
+                        .WithMany()
+                        .HasForeignKey("RebateId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.UserPet", "UserPet")
+                        .WithMany()
+                        .HasForeignKey("UserPetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Address");
+
+                    b.Navigation("Assignee");
+
+                    b.Navigation("Booker");
+
+                    b.Navigation("Groomer");
+
+                    b.Navigation("GroomerService");
+
+                    b.Navigation("GroomerServicePackage");
+
+                    b.Navigation("GroomerTime");
+
+                    b.Navigation("Rebate");
+
+                    b.Navigation("UserPet");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerReserveItem", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.GroomerReserve", "GroomerReserve")
+                        .WithMany("Items")
+                        .HasForeignKey("GroomerReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerService", "GroomerService")
+                        .WithMany()
+                        .HasForeignKey("GroomerServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerServicePackage", "GroomerServicePackage")
+                        .WithMany()
+                        .HasForeignKey("GroomerServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GroomerReserve");
+
+                    b.Navigation("GroomerService");
+
+                    b.Navigation("GroomerServicePackage");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerService", b =>
+                {
+                    b.HasOne("Entities.Entities.Assistance", "Assistance")
+                        .WithMany()
+                        .HasForeignKey("AssistanceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
+                        .WithMany("GroomerServices")
+                        .HasForeignKey("GroomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assistance");
+
+                    b.Navigation("Groomer");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerServicePackage", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.GroomerService", "GroomerService")
+                        .WithMany("Packages")
+                        .HasForeignKey("GroomerServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("GroomerService");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerServicePackagePicture", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.GroomerServicePackage", "GroomerServicePackage")
+                        .WithMany("Pictures")
+                        .HasForeignKey("GroomerServicePackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GroomerServicePackage");
+
+                    b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerServiceUser", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.GroomerService", "GroomerService")
+                        .WithMany("ServiceUsers")
+                        .HasForeignKey("GroomerServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GroomerService");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerTime", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
+                        .WithMany("GroomerTimes")
+                        .HasForeignKey("GroomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.WeekDay", "WeekDay")
+                        .WithMany()
+                        .HasForeignKey("WeekDayId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Groomer");
+
+                    b.Navigation("WeekDay");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerUser", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
+                        .WithMany("GroomerUsers")
+                        .HasForeignKey("GroomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Groomer");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerZone", b =>
+                {
+                    b.HasOne("Entities.Entities.LocationField.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
+                        .WithMany("GroomerZones")
+                        .HasForeignKey("GroomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Neighborhood", "Neighborhood")
+                        .WithMany()
+                        .HasForeignKey("NeighborhoodId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.State", "State")
+                        .WithMany()
+                        .HasForeignKey("StateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("City");
+
+                    b.Navigation("Groomer");
+
+                    b.Navigation("Neighborhood");
+
+                    b.Navigation("State");
                 });
 
             modelBuilder.Entity("Entities.Entities.LocationField.City", b =>
@@ -14203,6 +17067,55 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ProviderField.Provider", b =>
+                {
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithOne("Provider")
+                        .HasForeignKey("Entities.Entities.ProviderField.Provider", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderRoleAssignment", b =>
+                {
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("RoleAssignments")
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ProviderField.ProviderRole", "ProviderRole")
+                        .WithMany("Assignments")
+                        .HasForeignKey("ProviderRoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Provider");
+
+                    b.Navigation("ProviderRole");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderSubscription", b =>
+                {
+                    b.HasOne("Entities.Entities.ProviderField.SubscriptionPlan", "Plan")
+                        .WithMany("ProviderSubscriptions")
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("Subscriptions")
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Plan");
+
+                    b.Navigation("Provider");
+                });
+
             modelBuilder.Entity("Entities.Entities.PushMessage", b =>
                 {
                     b.HasOne("Entities.Entities.Picture", "Picture")
@@ -14627,6 +17540,11 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CompanionId");
 
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany()
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Store", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId");
@@ -14639,9 +17557,30 @@ namespace Persistence.Migrations
 
                     b.Navigation("Companion");
 
+                    b.Navigation("Provider");
+
                     b.Navigation("Store");
 
                     b.Navigation("UserBankCard");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SettlementClinic", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserve", "ClinicReserve")
+                        .WithMany()
+                        .HasForeignKey("ClinicReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Settlement", "Settlement")
+                        .WithMany()
+                        .HasForeignKey("SettlementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClinicReserve");
+
+                    b.Navigation("Settlement");
                 });
 
             modelBuilder.Entity("Entities.Entities.SettlementCompanion", b =>
@@ -14679,6 +17618,25 @@ namespace Persistence.Migrations
                     b.Navigation("Settlement");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SettlementGroomer", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.GroomerReserve", "GroomerReserve")
+                        .WithMany()
+                        .HasForeignKey("GroomerReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Settlement", "Settlement")
+                        .WithMany()
+                        .HasForeignKey("SettlementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("GroomerReserve");
+
+                    b.Navigation("Settlement");
+                });
+
             modelBuilder.Entity("Entities.Entities.SettlementStore", b =>
                 {
                     b.HasOne("Entities.Entities.ProductOrder", "ProductOrder")
@@ -14712,6 +17670,17 @@ namespace Persistence.Migrations
                     b.Navigation("ProductOrderStore");
 
                     b.Navigation("ShippingQuote");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ShippingField.ShipmentEvent", b =>
+                {
+                    b.HasOne("Entities.Entities.ShippingField.Shipment", "Shipment")
+                        .WithMany("Events")
+                        .HasForeignKey("ShipmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Shipment");
                 });
 
             modelBuilder.Entity("Entities.Entities.ShippingField.ShippingQuote", b =>
@@ -14816,6 +17785,11 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("PictureId");
 
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("Stores")
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Code", "Type")
                         .WithMany()
                         .HasForeignKey("TypeId")
@@ -14827,6 +17801,8 @@ namespace Persistence.Migrations
                     b.Navigation("Icon");
 
                     b.Navigation("Picture");
+
+                    b.Navigation("Provider");
 
                     b.Navigation("Type");
                 });
@@ -15344,6 +18320,11 @@ namespace Persistence.Migrations
                         .WithOne("Wallet")
                         .HasForeignKey("Entities.Entities.Wallet", "CargoId");
 
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserve", "ClinicReserve")
+                        .WithMany()
+                        .HasForeignKey("ClinicReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.CompanionField.CompanionInsurancePackageSale", "CompanionInsurancePackageSale")
                         .WithOne("Wallet")
                         .HasForeignKey("Entities.Entities.Wallet", "CompanionInsurancePackageSaleId");
@@ -15355,6 +18336,11 @@ namespace Persistence.Migrations
                     b.HasOne("Entities.Entities.ConsultationPurchase", "ConsultationPurchase")
                         .WithMany()
                         .HasForeignKey("ConsultationPurchaseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerReserve", "GroomerReserve")
+                        .WithMany()
+                        .HasForeignKey("GroomerReserveId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Entities.Entities.PansionField.PansionReserve", "PansionReserve")
@@ -15390,11 +18376,15 @@ namespace Persistence.Migrations
 
                     b.Navigation("Cargo");
 
+                    b.Navigation("ClinicReserve");
+
                     b.Navigation("CompanionInsurancePackageSale");
 
                     b.Navigation("CompanionReserve");
 
                     b.Navigation("ConsultationPurchase");
+
+                    b.Navigation("GroomerReserve");
 
                     b.Navigation("PansionReserve");
 
@@ -15501,6 +18491,30 @@ namespace Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicComment", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany("ClinicComments")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ClinicField.ClinicReserve", "ClinicReserve")
+                        .WithMany()
+                        .HasForeignKey("ClinicReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Comment", null)
+                        .WithOne()
+                        .HasForeignKey("Entities.Entities.ClinicField.ClinicComment", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("ClinicReserve");
+                });
+
             modelBuilder.Entity("Entities.Entities.CompanionComment", b =>
                 {
                     b.HasOne("Entities.Entities.Companion", "Companion")
@@ -15527,6 +18541,54 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("CompanionReserve");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerComment", b =>
+                {
+                    b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
+                        .WithMany("GroomerComments")
+                        .HasForeignKey("GroomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerReserve", "GroomerReserve")
+                        .WithMany()
+                        .HasForeignKey("GroomerReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.Comment", null)
+                        .WithOne()
+                        .HasForeignKey("Entities.Entities.GroomerField.GroomerComment", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Groomer");
+
+                    b.Navigation("GroomerReserve");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPortfolioComment", b =>
+                {
+                    b.HasOne("Entities.Entities.Comment", null)
+                        .WithOne()
+                        .HasForeignKey("Entities.Entities.GroomerField.GroomerPortfolioComment", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerPortfolioComment", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerPortfolioPost", "Post")
+                        .WithMany("Comments")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Parent");
+
+                    b.Navigation("Post");
                 });
 
             modelBuilder.Entity("Entities.Entities.PansionField.PansionComment", b =>
@@ -15664,6 +18726,44 @@ namespace Persistence.Migrations
                     b.Navigation("Children");
 
                     b.Navigation("Varieties");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.Clinic", b =>
+                {
+                    b.Navigation("ClinicComments");
+
+                    b.Navigation("ClinicPets");
+
+                    b.Navigation("ClinicPictures");
+
+                    b.Navigation("ClinicServices");
+
+                    b.Navigation("ClinicTimes");
+
+                    b.Navigation("ClinicTypes");
+
+                    b.Navigation("ClinicUsers");
+
+                    b.Navigation("ClinicZones");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicReserve", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicService", b =>
+                {
+                    b.Navigation("Packages");
+
+                    b.Navigation("ServiceUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicServicePackage", b =>
+                {
+                    b.Navigation("Pictures");
+
+                    b.Navigation("Types");
                 });
 
             modelBuilder.Entity("Entities.Entities.Code", b =>
@@ -15813,6 +18913,51 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.Gallery", b =>
                 {
                     b.Navigation("GalleryItems");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.Groomer", b =>
+                {
+                    b.Navigation("GroomerComments");
+
+                    b.Navigation("GroomerPets");
+
+                    b.Navigation("GroomerPictures");
+
+                    b.Navigation("GroomerServices");
+
+                    b.Navigation("GroomerTimes");
+
+                    b.Navigation("GroomerUsers");
+
+                    b.Navigation("GroomerZones");
+
+                    b.Navigation("PortfolioPosts");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerPortfolioPost", b =>
+                {
+                    b.Navigation("Comments");
+
+                    b.Navigation("Likes");
+
+                    b.Navigation("Pictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerReserve", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerService", b =>
+                {
+                    b.Navigation("Packages");
+
+                    b.Navigation("ServiceUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerServicePackage", b =>
+                {
+                    b.Navigation("Pictures");
                 });
 
             modelBuilder.Entity("Entities.Entities.LocationField.Park", b =>
@@ -15994,6 +19139,31 @@ namespace Persistence.Migrations
                     b.Navigation("Shipment");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ProviderField.Provider", b =>
+                {
+                    b.Navigation("Clinics");
+
+                    b.Navigation("Companions");
+
+                    b.Navigation("Groomers");
+
+                    b.Navigation("RoleAssignments");
+
+                    b.Navigation("Stores");
+
+                    b.Navigation("Subscriptions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderRole", b =>
+                {
+                    b.Navigation("Assignments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.SubscriptionPlan", b =>
+                {
+                    b.Navigation("ProviderSubscriptions");
+                });
+
             modelBuilder.Entity("Entities.Entities.Rebate", b =>
                 {
                     b.Navigation("ClubCoupon");
@@ -16057,6 +19227,8 @@ namespace Persistence.Migrations
 
                     b.Navigation("Products");
 
+                    b.Navigation("Provider");
+
                     b.Navigation("Rebates");
 
                     b.Navigation("UserCurrentLocation");
@@ -16064,6 +19236,11 @@ namespace Persistence.Migrations
                     b.Navigation("UserProducts");
 
                     b.Navigation("UserTokens");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ShippingField.Shipment", b =>
+                {
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("Entities.Entities.State", b =>

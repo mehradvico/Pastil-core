@@ -24,13 +24,15 @@ namespace Application.Services.ProductSrvs.WalletSrv
         private readonly IMapper mapper;
         private readonly ISmsService _smsService;
         private readonly INoticeService _notificationService;
+        private readonly IWalletDescriptionService _descriptionService;
 
-        public WalletService(IDataBaseContext _context, INoticeService notificationService, IConfiguration config, IMapper mapper, ISmsService smsService)
+        public WalletService(IDataBaseContext _context, INoticeService notificationService, IConfiguration config, IMapper mapper, ISmsService smsService, IWalletDescriptionService descriptionService)
         {
             this._context = _context;
             this.mapper = mapper;
             this._smsService = smsService;
             this._notificationService = notificationService;
+            this._descriptionService = descriptionService;
 
 
         }
@@ -59,7 +61,9 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
-                return new BaseResultDto<WalletVDto>(true, mapper.Map<WalletVDto>(item));
+                var vdto = mapper.Map<WalletVDto>(item);
+                _descriptionService.Apply(new[] { vdto });
+                return new BaseResultDto<WalletVDto>(true, vdto);
             }
             return new BaseResultDto<WalletVDto>(false, null);
         }
@@ -123,6 +127,10 @@ namespace Application.Services.ProductSrvs.WalletSrv
                         return new BaseResultDto<WalletDto>(false, Resource.Notification.InsufficientFunds, dto);
                     }
 
+                    // هر تراکنش شرح دارد: اگر سازنده Name نداد، از روی مرجع (رزرو/سفارش/پرداخت با کدش) ساخته می‌شود
+                    if (string.IsNullOrWhiteSpace(dto.Name))
+                        dto.Name = _descriptionService.Describe(dto);
+
                     var item = mapper.Map<Wallet>(dto);
 
                     item.CreateDate = DateTime.Now;
@@ -159,6 +167,14 @@ namespace Application.Services.ProductSrvs.WalletSrv
             return await InsertUpdateReferenceAsync(dto, complete);
         }
         public async Task<BaseResultDto<WalletDto>> InsertUpdateSchoolReserveAsync(WalletDto dto, bool complete)
+        {
+            return await InsertUpdateReferenceAsync(dto, complete);
+        }
+        public async Task<BaseResultDto<WalletDto>> InsertUpdateGroomerReserveAsync(WalletDto dto, bool complete)
+        {
+            return await InsertUpdateReferenceAsync(dto, complete);
+        }
+        public async Task<BaseResultDto<WalletDto>> InsertUpdateClinicReserveAsync(WalletDto dto, bool complete)
         {
             return await InsertUpdateReferenceAsync(dto, complete);
         }
@@ -210,6 +226,10 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 query = query.Where(s => s.PastilAiSubscriptionId == dto.PastilAiSubscriptionId);
             else if (dto.SchoolReserveId.HasValue)
                 query = query.Where(s => s.SchoolReserveId == dto.SchoolReserveId);
+            else if (dto.GroomerReserveId.HasValue)
+                query = query.Where(s => s.GroomerReserveId == dto.GroomerReserveId);
+            else if (dto.ClinicReserveId.HasValue)
+                query = query.Where(s => s.ClinicReserveId == dto.ClinicReserveId);
             else if (dto.ConsultationPurchaseId.HasValue)
                 query = query.Where(s => s.ConsultationPurchaseId == dto.ConsultationPurchaseId);
             else
@@ -249,6 +269,13 @@ namespace Application.Services.ProductSrvs.WalletSrv
 
                 if (!item.Deleted && !item.Painding)
                     return new BaseResultDto<WalletDto>(true, mapper.Map<WalletDto>(item));
+
+                if (string.IsNullOrWhiteSpace(item.Name))
+                {
+                    var described = mapper.Map<WalletDto>(item);
+                    described.IsIncrease = false;
+                    item.Name = _descriptionService.Describe(described);
+                }
 
                 var amount = dto.Amount > 0 ? dto.Amount : item.Amount;
                 if (amount <= 0 || amount > await GetAmountValueAsync(dto.UserId))
@@ -308,6 +335,30 @@ namespace Application.Services.ProductSrvs.WalletSrv
                     ClubRewardTargetTypeEnum.Pansion,
                     pansionId,
                     $"pansion-reserve:{dto.PansionReserveId.Value}");
+            }
+            if (dto.GroomerReserveId.HasValue)
+            {
+                var groomerId = await _context.GroomerReserves.AsNoTracking()
+                    .Where(item => item.Id == dto.GroomerReserveId.Value)
+                    .Select(item => (long?)item.GroomerId)
+                    .FirstOrDefaultAsync();
+                return new PromotionalReference(
+                    ClubRewardApplicationMethodEnum.GroomerReservation,
+                    ClubRewardTargetTypeEnum.Groomer,
+                    groomerId,
+                    $"groomer-reserve:{dto.GroomerReserveId.Value}");
+            }
+            if (dto.ClinicReserveId.HasValue)
+            {
+                var clinicId = await _context.ClinicReserves.AsNoTracking()
+                    .Where(item => item.Id == dto.ClinicReserveId.Value)
+                    .Select(item => (long?)item.ClinicId)
+                    .FirstOrDefaultAsync();
+                return new PromotionalReference(
+                    ClubRewardApplicationMethodEnum.ClinicReservation,
+                    ClubRewardTargetTypeEnum.Clinic,
+                    clinicId,
+                    $"clinic-reserve:{dto.ClinicReserveId.Value}");
             }
             if (dto.PastilAiSubscriptionId.HasValue)
             {
@@ -425,7 +476,9 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 default:
                     break;
             }
-            return new WalletSearchDto(baseSearchDto, query, mapper);
+            var result = new WalletSearchDto(baseSearchDto, query, mapper);
+            _descriptionService.Apply(result.List);
+            return result;
         }
 
         public async Task<BaseResultDto> WalletPaymentCallback(Payment payment)
@@ -444,7 +497,8 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 UserId = payment.UserId,
                 PaymentId = payment.Id,
                 Painding = false,
-                Name = Resource.Lang.OnlinePayment,
+                // شرح از روی پرداخت ساخته می‌شود: «شارژ کیف پول توسط کاربر (پرداخت PAY-…)»
+                Name = null,
             };
             var result = await InsertAsyncDto(walletDto);
             if (!result.IsSuccess &&

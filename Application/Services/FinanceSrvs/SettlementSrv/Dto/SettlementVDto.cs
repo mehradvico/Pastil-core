@@ -13,6 +13,8 @@ namespace Application.Services.FinanceSrvs.SettlementSrv.Dto
 {
     public class SettlementVDto : Id_FieldDto
     {
+        public long? ProviderId { get; set; }
+        public Entities.Entities.SettlementKindEnum Kind { get; set; }
         public long? StoreId { get; set; }
         public long? CompanionId { get; set; }
         public DateTime CreateDate { get; set; }
@@ -22,6 +24,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv.Dto
         public long ItemCount { get; set; }
 
         public UserBankCardVDto UserBankCard { get; set; }
+        public Application.Services.ProviderSrvs.ProviderSrv.Dto.ProviderMinVDto Provider { get; set; }
         public CompanionMinVDto Companion { get; set; }
         public StoreMinVDto Store { get; set; }
     }

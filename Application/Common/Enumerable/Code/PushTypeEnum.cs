@@ -178,6 +178,50 @@ namespace Application.Common.Enumerable.Code
         /// <summary>به راننده: یک ساعت به نوبت سرویس هفتگی پت‌رسان مانده؛ آماده باشید. Token1 = ساعت (HH:mm)، Token2 = شناسه‌ی سفر.</summary>
         PushTripServiceReminderDriver = 124,
         /// <summary>به کاربر: یک ساعت به نوبت سرویس هفتگی پت‌رسان مانده؛ آماده باشید. Token1 = ساعت (HH:mm)، Token2 = شناسه‌ی سفر.</summary>
-        PushTripServiceReminderUser = 125
+        PushTripServiceReminderUser = 125,
+        /// <summary>به مالک آرایشگاه: رزرو جدید پرداخت شد و منتظر تأیید شماست. Token1 = نام آرایشگاه، Token2 = نام پت، Token3 = شناسه‌ی رزرو.</summary>
+        PushGroomerReserveApprovalRequired = 126,
+        /// <summary>به کاربر: آرایشگاه رزرو را تأیید کرد. Token1 = نام آرایشگاه، Token2 = نام پت، Token3 = شناسه‌ی رزرو.</summary>
+        PushGroomerReserveApproved = 127,
+        /// <summary>به کاربر: آرایشگاه رزرو را رد کرد و مبلغ به کیف پول برگشت. Token1 = نام آرایشگاه، Token2 = دلیل.</summary>
+        PushGroomerReserveRejected = 128,
+        /// <summary>به کاربر: آرایشگاه در مهلت پاسخ نداد؛ رزرو لغو و مبلغ برگشت.</summary>
+        PushGroomerReserveExpired = 129,
+        /// <summary>به مالک آرایشگاه: کاربر رزرو را لغو کرد. Token1 = نام پت، Token2 = زمان نوبت.</summary>
+        PushGroomerReserveCancelledByBooker = 130,
+        /// <summary>به مالک: آرایشگاه تأیید شد. Token1 = نام آرایشگاه.</summary>
+        PushGroomerApproved = 131,
+        /// <summary>به مالک: آرایشگاه رد شد. Token1 = نام آرایشگاه، Token2 = دلیل.</summary>
+        PushGroomerRejected = 132,
+        /// <summary>به کاربر: زمان رزرو عوض شد. Token1 = نام آرایشگاه، Token2 = تاریخ، Token3 = ساعت.</summary>
+        PushGroomerReserveRescheduled = 133,
+        /// <summary>به مالک: زمان رزرو توسط ادمین عوض شد. Token1 = نام پت، Token2 = تاریخ، Token3 = ساعت.</summary>
+        PushGroomerReserveRescheduledForGroomer = 134,
+        /// <summary>به کاربرِ دعوت‌شده: دعوت به عضویت در پرسنل آرایشگاه. Token1 = نام آرایشگاه.</summary>
+        PushGroomerStaffInvite = 135,
+        /// <summary>به کاربر: رزرو توسط ادمین لغو شد. Token1 = نام آرایشگاه، Token2 = دلیل.</summary>
+        PushGroomerReserveCancelledByAdmin = 136,
+        /// <summary>به مالک کلینیک: رزرو جدید پرداخت شد و منتظر تأیید شماست. Token1 = نام کلینیک، Token2 = نام پت، Token3 = شناسه‌ی رزرو.</summary>
+        PushClinicReserveApprovalRequired = 137,
+        /// <summary>به کاربر: کلینیک رزرو را تأیید کرد. Token1 = نام کلینیک، Token2 = نام پت، Token3 = شناسه‌ی رزرو.</summary>
+        PushClinicReserveApproved = 138,
+        /// <summary>به کاربر: کلینیک رزرو را رد کرد و مبلغ به کیف پول برگشت. Token1 = نام کلینیک، Token2 = دلیل.</summary>
+        PushClinicReserveRejected = 139,
+        /// <summary>به کاربر: کلینیک در مهلت پاسخ نداد؛ رزرو لغو و مبلغ برگشت.</summary>
+        PushClinicReserveExpired = 140,
+        /// <summary>به مالک کلینیک: کاربر رزرو را لغو کرد. Token1 = نام پت، Token2 = زمان نوبت.</summary>
+        PushClinicReserveCancelledByBooker = 141,
+        /// <summary>به مالک: کلینیک تأیید شد. Token1 = نام کلینیک.</summary>
+        PushClinicApproved = 142,
+        /// <summary>به مالک: کلینیک رد شد. Token1 = نام کلینیک، Token2 = دلیل.</summary>
+        PushClinicRejected = 143,
+        /// <summary>به کاربر: زمان رزرو عوض شد. Token1 = نام کلینیک، Token2 = تاریخ، Token3 = ساعت.</summary>
+        PushClinicReserveRescheduled = 144,
+        /// <summary>به مالک: زمان رزرو توسط ادمین عوض شد. Token1 = نام پت، Token2 = تاریخ، Token3 = ساعت.</summary>
+        PushClinicReserveRescheduledForClinic = 145,
+        /// <summary>به کاربرِ دعوت‌شده: دعوت به عضویت در پرسنل کلینیک. Token1 = نام کلینیک.</summary>
+        PushClinicStaffInvite = 146,
+        /// <summary>به کاربر: رزرو توسط ادمین لغو شد. Token1 = نام کلینیک، Token2 = دلیل.</summary>
+        PushClinicReserveCancelledByAdmin = 147
     }
 }

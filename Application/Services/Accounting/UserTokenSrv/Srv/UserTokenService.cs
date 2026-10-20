@@ -327,6 +327,28 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 revocable = isAdmin
                     ? revocable.Where(x => x.DeviceName != null && x.DeviceName.StartsWith(PanelSessionDevice.Prefix))
                     : revocable.Where(x => x.DeviceName == null || !x.DeviceName.StartsWith(PanelSessionDevice.Prefix));
+
+                // پل موقت چندنشستی صاحب مرکز (SessionLimitRules): تازه‌ترین نشست‌های زنده می‌مانند، بقیه بسته می‌شوند
+                var keep = SessionLimitRules.SessionsToKeepOnSignIn(
+                    configuration[SessionLimitRules.ConfigKey],
+                    isAdmin,
+                    !isAdmin && await _context.Companions.AnyAsync(c => c.OwnerId == user.Id && !c.Deleted && c.Active && c.Approved));
+                if (keep > 0)
+                {
+                    var now = DateTime.UtcNow;
+                    var keptIds = await revocable
+                        .Where(x => x.RefreshTokenExp > now)
+                        .OrderByDescending(x => x.CreateDate)
+                        .ThenByDescending(x => x.Id)
+                        .Select(x => x.Id)
+                        .Take(keep)
+                        .ToListAsync();
+                    if (keptIds.Count > 0)
+                    {
+                        revocable = revocable.Where(x => !keptIds.Contains(x.Id));
+                        _audit.Success("SignIn.CompanionOwnerMultiSession", user.Id, detail: "kept=" + keptIds.Count);
+                    }
+                }
             }
             await revocable.ExecuteUpdateAsync(setters => setters
                 .SetProperty(token => token.Deleted, true));

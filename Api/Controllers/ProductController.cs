@@ -16,6 +16,7 @@ namespace Api.Controllers
     [AllowAnonymous]
     public class ProductController : ControllerBase
     {
+        private const int PublicProductMaxPageSize = 100;
         private IProductService ProductService;
         /// <summary>
         /// مرتبط با محصولات 
@@ -49,6 +50,8 @@ namespace Api.Controllers
         public IActionResult Get([FromQuery] ProductInputDto dto)
         {
             dto.Available = true;
+            // endpoint عمومی و بدون لاگین: سقف کلی ۱۰۰۰ اجازه می‌داد کل کاتالوگ (~۳٫۳ مگابایت) با یک درخواست کشیده شود
+            dto.PageSize = Math.Min(dto.PageSize, PublicProductMaxPageSize);
             var Product = ProductService.Search(dto);
             return Ok(Product);
         }

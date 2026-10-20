@@ -35,7 +35,7 @@ namespace Api.Areas.Seller.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var role = await SettlementService.FindAsyncDto(id);
-            if (role.IsSuccess && role.Data?.StoreId != _currentuser.CurrentUser.StoreId)
+            if (role.IsSuccess && !await SettlementService.BelongsToVenueAsync(id, Entities.Entities.SettlementKindEnum.Store, _currentuser.CurrentUser.StoreId))
                 return Ok(new BaseResultDto<SettlementDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(role);
         }
@@ -46,10 +46,11 @@ namespace Api.Areas.Seller.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(BaseResultDto<SettlementVDto>), 200)]
-        public IActionResult Get([FromQuery] SettlementInputDto dto)
+        public async Task<IActionResult> Get([FromQuery] SettlementInputDto dto)
         {
-            dto.CompanionId = _currentuser.CurrentUser.StoreId;
-            var searchDto = SettlementService.Search(dto);
+            // StoreId کاربر جاری ۰ است اگر فروشگاه نداشته باشد؛ ۰ یعنی «هیچ فروشگاهی».
+            var storeId = _currentuser.CurrentUser.StoreId > 0 ? _currentuser.CurrentUser.StoreId : (long?)null;
+            var searchDto = await SettlementService.SearchForVenueAsync(dto, Entities.Entities.SettlementKindEnum.Store, storeId);
             return Ok(searchDto);
         }
     }

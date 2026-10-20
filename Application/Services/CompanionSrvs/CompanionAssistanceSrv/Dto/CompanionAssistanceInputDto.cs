@@ -13,5 +13,8 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto
         public long? CompanionTypeId { get; set; }
         public long? PetId { get; set; }
         public CompanionAssistanceTypeEnum? Type { get; set; }
+        /// <summary>فقط ادمین (سمت سرور) ردیف‌های خدمت گرومینگ قدیمی را می‌بیند.</summary>
+        [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever]
+        public bool IncludeGrooming { get; set; }
     }
 }

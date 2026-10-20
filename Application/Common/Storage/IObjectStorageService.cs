@@ -9,6 +9,12 @@ namespace Application.Common.Storage
     {
         public required Stream Content { get; init; }
         public string? ContentType { get; init; }
+        /// <summary>طول بدنه‌ی همین پاسخ (برای درخواست Range، طول همان بازه).</summary>
+        public long? ContentLength { get; init; }
+        /// <summary>فقط برای پاسخ جزئی (206) پر است، مثلاً "bytes 0-1/52341".</summary>
+        public string? ContentRange { get; init; }
+        /// <summary>بازه‌ی درخواستی خارج از طول فایل بود (416).</summary>
+        public bool RangeNotSatisfiable { get; init; }
     }
 
     /// <summary>
@@ -23,7 +29,10 @@ namespace Application.Common.Storage
 
         Task UploadAsync(string key, Stream content, string? contentType, CancellationToken cancellationToken = default);
 
-        /// <summary>Returns null (not throws) when the key doesn't exist in the bucket.</summary>
-        Task<ObjectStorageFile?> TryGetAsync(string key, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Returns null (not throws) when the key doesn't exist in the bucket.
+        /// <paramref name="byteRange"/> is a single HTTP range ("bytes=0-1", "bytes=100-", "bytes=-500") forwarded to S3.
+        /// </summary>
+        Task<ObjectStorageFile?> TryGetAsync(string key, string? byteRange = null, CancellationToken cancellationToken = default);
     }
 }

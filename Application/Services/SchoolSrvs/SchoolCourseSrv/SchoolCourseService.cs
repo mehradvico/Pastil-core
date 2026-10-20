@@ -7,6 +7,7 @@ using AutoMapper;
 using Entities.Entities.SchoolField;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,24 +42,28 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
         private static void ApplySessionSummary(SchoolCourseVDto vdto, IEnumerable<SchoolCourseSession> sessions)
         {
             vdto.IsSingleSession = vdto.SessionCount <= 1;
-            var dates = sessions.Where(s => !s.Deleted).Select(s => s.SessionDate).OrderBy(d => d).ToList();
+            var liveSessions = sessions.Where(s => !s.Deleted).ToList();
+
+            // جلسات همیشه به ترتیب تاریخ و ساعت برمی‌گردند (قبلاً به ترتیب ثبت، پس «جلسه ۲» می‌توانست قبل از «جلسه ۱» باشد)
+            vdto.SchoolCourseSessions = vdto.SchoolCourseSessions?
+                .OrderBy(s => SchoolCourseRules.SessionStart(s.SessionDate, s.StartTime))
+                .ThenBy(s => s.Id)
+                .ToList();
+
+            var firstStart = SchoolCourseRules.FirstSessionStart(liveSessions.Select(s => (s.SessionDate, s.StartTime)));
+            vdto.IsRegistrationOpen = vdto.Active &&
+                                      SchoolCourseRules.IsRegistrationOpenByDate(firstStart, DateTime.Now) &&
+                                      (!vdto.RemainingCapacity.HasValue || vdto.RemainingCapacity.Value > 0);
+
+            var dates = liveSessions.Select(s => s.SessionDate).OrderBy(d => d).ToList();
             if (dates.Count == 0)
                 return;
 
             vdto.FirstSessionDate = dates.First();
             vdto.LastSessionDate = dates.Last();
-
-            if (dates.Count == 1)
-            {
-                vdto.TotalDurationWeeks = 0;
-                vdto.SessionsPerWeek = dates.Count;
-                return;
-            }
-
-            var spanDays = (dates.Last() - dates.First()).TotalDays;
-            var spanWeeks = spanDays / 7.0;
-            vdto.TotalDurationWeeks = System.Math.Round(spanWeeks, 1);
-            vdto.SessionsPerWeek = spanWeeks > 0 ? System.Math.Round(dates.Count / spanWeeks, 1) : dates.Count;
+            var (sessionsPerWeek, totalWeeks) = SchoolCourseRules.WeeklySummary(dates);
+            vdto.SessionsPerWeek = sessionsPerWeek;
+            vdto.TotalDurationWeeks = totalWeeks;
         }
 
         public async Task<BaseResultDto<SchoolCourseVDto>> FindAsyncVDto(long id)
@@ -179,6 +184,17 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             return new BaseResultDto<SchoolCourseDto>(true, mapper.Map<SchoolCourseDto>(item));
         }
 
+        public override BaseResultDto UpdateDto(SchoolCourseDto dto)
+        {
+            if (dto == null || dto.SessionCount <= 0 || dto.Price <= 0)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            // «تعداد جلسات» نمی‌تواند از جلسات تعریف‌شده کمتر شود (دوره‌ی «۴ جلسه» با فقط ۲ جلسه هم با همین عدد در صفحه دیده می‌شود)
+            var definedCount = _context.SchoolCourseSessions.Count(s => s.SchoolCourseId == dto.Id && !s.Deleted);
+            if (dto.SessionCount < definedCount)
+                return new BaseResultDto(false, Resource.Notification.SchoolCourseSessionCountBelowDefined);
+            return base.UpdateDto(dto);
+        }
+
         public async Task<BaseResultDto> UpdateActiveAsync(long id, bool active, long? companionId = null)
         {
             var item = await _context.SchoolCourses.Include(c => c.School).AsTracking().FirstOrDefaultAsync(c => c.Id == id);
@@ -211,12 +227,25 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
                   (meetingUri.Scheme == System.Uri.UriSchemeHttps || meetingUri.Scheme == System.Uri.UriSchemeHttp)))
                 return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.InvalidData, dto);
 
+            dto.StartTime = dto.StartTime?.Trim();
+            dto.EndTime = dto.EndTime?.Trim();
+            if (!ReservationScheduleValidator.TryGetServiceTimeRange(dto.StartTime, dto.EndTime, out _, out _))
+                return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.ToTimeMustBeBiggerThanFromTime, dto);
+
+            var course = await _context.SchoolCourses.AsNoTracking().FirstOrDefaultAsync(c => c.Id == dto.SchoolCourseId && !c.Deleted);
+            if (course == null)
+                return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.NothingFound, dto);
+
             SchoolCourseSession item;
             if (dto.Id > 0)
             {
                 item = await _context.SchoolCourseSessions.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && s.SchoolCourseId == dto.SchoolCourseId);
                 if (item == null)
                     return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.NothingFound, dto);
+                // جلسه‌ی گذشته را فقط بدون جابه‌جایی زمانش می‌شود ویرایش کرد (مثلاً لینک)؛ زمان جدید باید در آینده باشد
+                var timeChanged = item.SessionDate.Date != dto.SessionDate.Date || item.StartTime != dto.StartTime || item.EndTime != dto.EndTime;
+                if (timeChanged && SchoolCourseRules.SessionStart(dto.SessionDate, dto.StartTime) <= DateTime.Now)
+                    return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.SchoolSessionMustBeInFuture, dto);
                 item.SessionDate = dto.SessionDate;
                 item.StartTime = dto.StartTime;
                 item.EndTime = dto.EndTime;
@@ -225,6 +254,13 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             }
             else
             {
+                if (SchoolCourseRules.SessionStart(dto.SessionDate, dto.StartTime) <= DateTime.Now)
+                    return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.SchoolSessionMustBeInFuture, dto);
+                // تعداد جلسات تعریف‌شده نباید از «تعداد جلسات» دوره بیشتر شود (دوره‌ی «۴ جلسه» با ۵ جلسه)
+                var definedCount = await _context.SchoolCourseSessions.CountAsync(s => s.SchoolCourseId == dto.SchoolCourseId && !s.Deleted);
+                if (definedCount >= course.SessionCount)
+                    return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.SchoolSessionCountExceeded, dto);
+
                 item = mapper.Map<SchoolCourseSession>(dto);
                 item.Deleted = false;
                 await _context.SchoolCourseSessions.AddAsync(item);

@@ -37,7 +37,8 @@ namespace Application.Services.Content.StoryItemSrv
         public async Task<BaseResultDto<StoryItemVDto>> FindAsyncVDto(long id, bool view = true)
         {
 
-            var item = await _baseQuery.Include(s => s.Picture).Include(s => s.Companion).Include(s => s.Pansion).Include(s => s.Store).FirstOrDefaultAsync(s => s.Id == id);
+            // File (ویدیوی استوری) هم Include می‌شود؛ قبلاً جزئیات استوری ویدیویی بدون file برمی‌گشت و وب‌اپ صفحه‌ی سیاه نشان می‌داد.
+            var item = await _baseQuery.Include(s => s.Picture).Include(s => s.File).Include(s => s.Companion).Include(s => s.Pansion).Include(s => s.Store).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 if (view)
@@ -54,7 +55,7 @@ namespace Application.Services.Content.StoryItemSrv
         public async Task<BaseResultDto<StoryItemVDto>> FindAsyncAdminVDto(long id)
         {
 
-            var item = await _baseQuery.Include(s => s.Picture).Include(s => s.Companion).Include(s => s.Pansion).Include(s => s.Store).FirstOrDefaultAsync(s => s.Id == id);
+            var item = await _baseQuery.Include(s => s.Picture).Include(s => s.File).Include(s => s.Companion).Include(s => s.Pansion).Include(s => s.Store).FirstOrDefaultAsync(s => s.Id == id);
             if (item != null)
             {
                 return new BaseResultDto<StoryItemVDto>(true, mapper.Map<StoryItemVDto>(item));

@@ -20,10 +20,14 @@ namespace Payment.Controllers
             _paymentService = paymentService;
         }
 
-        [HttpGet]
+        // توکن از مسیر (آدرس‌های تازه: callback/{id}/{token}) یا query (پرداخت‌های قبل از انتشار: ?callbackToken=).
+        // بعضی بانک‌ها (پارسیان) نتیجه را با فرم POST برمی‌گردانند؛ امنیت این مسیر توکن تصادفی است، نه antiforgery.
+        [AcceptVerbs("GET", "POST")]
+        [IgnoreAntiforgeryToken]
         [EnableRateLimiting("PaymentCallback")]
         [Route("callback/{id:long}")]
-        public async Task<IActionResult> Index(long id, [FromQuery] string callbackToken)
+        [Route("callback/{id:long}/{callbackToken}")]
+        public async Task<IActionResult> Index(long id, string callbackToken)
         {
             try
             {
@@ -38,6 +42,7 @@ namespace Payment.Controllers
                 }
 
                 TempData["ReturnToSiteUrl"] = AppSettingsHelper.BaseUrl;
+                ViewData["ReturnLinks"] = Models.PaymentReturnLinks.For(payment.Data, payment.IsSuccess, AppSettingsHelper.BaseUrl);
                 return View("Index", payment);
             }
             catch (Exception ex)
@@ -45,6 +50,7 @@ namespace Payment.Controllers
                 _logger.LogError(ex, "Unhandled payment callback error. PaymentId: {PaymentId}", id);
 
                 TempData["ReturnToSiteUrl"] = AppSettingsHelper.BaseUrl;
+                ViewData["ReturnLinks"] = Models.PaymentReturnLinks.For(null, false, AppSettingsHelper.BaseUrl);
 
                 var failedResult = new BaseResultDto<PaymentDto>(
                     false,

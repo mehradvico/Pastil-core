@@ -46,13 +46,12 @@ namespace Api.Areas.Driver.Controllers
         /// <returns>
         /// </returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResultDto<TripDto>), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<TripVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            var Trip = await _tripService.FindAsyncDto(id);
-            if (Trip.IsSuccess && Trip.Data?.DriverId != _currentUserHelper.CurrentUser.DriverId)
-                return Ok(new BaseResultDto<TripDto>(false, Resource.Notification.AccessDenied, default!));
-            return Ok(Trip);
+            // TripVDto شامل petResanServiceScheduleId و petResanService (برنامه‌ی هفتگی) برای نوبت‌های سرویس است
+            var trip = await _tripService.GetTripForDriverAsync(id, _currentUserHelper.CurrentUser.DriverId);
+            return Ok(trip);
         }
     }
 }

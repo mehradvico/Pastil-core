@@ -347,5 +347,380 @@ namespace Resource {
                 return ResourceManager.GetString("YouCanBuyUpToT1Product", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The selected hours must be within the center working hours ({0} to {1})..
+        /// </summary>
+        public static string PansionOutsideWorkingHours {
+            get {
+                return ResourceManager.GetString("PansionOutsideWorkingHours", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Please wait {0} seconds before requesting a new code..
+        /// </summary>
+        public static string OtpResendTooSoon {
+            get {
+                return ResourceManager.GetString("OtpResendTooSoon", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Too many codes were sent to this recipient in the last hour; try again in {0} minutes..
+        /// </summary>
+        public static string OtpHourlyLimitReached {
+            get {
+                return ResourceManager.GetString("OtpHourlyLimitReached", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The top-up amount must be a whole number between {0} and {1} Toman..
+        /// </summary>
+        public static string WalletChargeAmountOutOfRange {
+            get {
+                return ResourceManager.GetString("WalletChargeAmountOutOfRange", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Payment for {0} from wallet.
+        /// </summary>
+        public static string WalletReasonPayFor {
+            get {
+                return ResourceManager.GetString("WalletReasonPayFor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refund of {0} to wallet.
+        /// </summary>
+        public static string WalletReasonRefundFor {
+            get {
+                return ResourceManager.GetString("WalletReasonRefundFor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} cancelled - refunded to wallet.
+        /// </summary>
+        public static string WalletReasonCancelRefundFor {
+            get {
+                return ResourceManager.GetString("WalletReasonCancelRefundFor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Wallet top-up by user ({0}).
+        /// </summary>
+        public static string WalletReasonUserCharge {
+            get {
+                return ResourceManager.GetString("WalletReasonUserCharge", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Manual top-up by admin - {0}.
+        /// </summary>
+        public static string WalletReasonAdminChargeNote {
+            get {
+                return ResourceManager.GetString("WalletReasonAdminChargeNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Manual deduction by admin - {0}.
+        /// </summary>
+        public static string WalletReasonAdminDebitNote {
+            get {
+                return ResourceManager.GetString("WalletReasonAdminDebitNote", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Service "{1}" of {0} cancelled - refunded to wallet.
+        /// </summary>
+        public static string WalletReasonCompanionPackageRefund {
+            get {
+                return ResourceManager.GetString("WalletReasonCompanionPackageRefund", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Item reduced or removed from {0} - refunded to wallet.
+        /// </summary>
+        public static string WalletReasonOrderItemRefund {
+            get {
+                return ResourceManager.GetString("WalletReasonOrderItemRefund", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Referral bonus ({0}).
+        /// </summary>
+        public static string WalletReasonReferralBonus {
+            get {
+                return ResourceManager.GetString("WalletReasonReferralBonus", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unpaid service debt for {0} paid from wallet.
+        /// </summary>
+        public static string WalletReasonCompanionDebt {
+            get {
+                return ResourceManager.GetString("WalletReasonCompanionDebt", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to payment {0}.
+        /// </summary>
+        public static string WalletTargetPayment {
+            get {
+                return ResourceManager.GetString("WalletTargetPayment", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to order {0}.
+        /// </summary>
+        public static string WalletTargetProductOrder {
+            get {
+                return ResourceManager.GetString("WalletTargetProductOrder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to service reservation {0}.
+        /// </summary>
+        public static string WalletTargetCompanionReserve {
+            get {
+                return ResourceManager.GetString("WalletTargetCompanionReserve", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to boarding reservation {0}.
+        /// </summary>
+        public static string WalletTargetPansionReserve {
+            get {
+                return ResourceManager.GetString("WalletTargetPansionReserve", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to course registration {0}.
+        /// </summary>
+        public static string WalletTargetSchoolReserve {
+            get {
+                return ResourceManager.GetString("WalletTargetSchoolReserve", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to consultation {0}.
+        /// </summary>
+        public static string WalletTargetConsultation {
+            get {
+                return ResourceManager.GetString("WalletTargetConsultation", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pet-Rasan trip #{0}.
+        /// </summary>
+        public static string WalletTargetTrip {
+            get {
+                return ResourceManager.GetString("WalletTargetTrip", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to cargo shipment #{0}.
+        /// </summary>
+        public static string WalletTargetCargo {
+            get {
+                return ResourceManager.GetString("WalletTargetCargo", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to insurance #{0}.
+        /// </summary>
+        public static string WalletTargetInsurance {
+            get {
+                return ResourceManager.GetString("WalletTargetInsurance", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil AI subscription #{0}.
+        /// </summary>
+        public static string WalletTargetPastilAi {
+            get {
+                return ResourceManager.GetString("WalletTargetPastilAi", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The extension must be between {0} and {1} minutes..
+        /// </summary>
+        public static string ShipmentExtendMinutesInvalid {
+            get {
+                return ResourceManager.GetString("ShipmentExtendMinutesInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The seller deadline was extended to {0}..
+        /// </summary>
+        public static string ShipmentDeadlineExtendedTo {
+            get {
+                return ResourceManager.GetString("ShipmentDeadlineExtendedTo", resourceCulture);
+            }
+        }
+        public static string WalletTargetGroomerReserve {
+            get {
+                return ResourceManager.GetString("WalletTargetGroomerReserve", resourceCulture);
+            }
+        }
+        public static string PushGroomerReserveApprovalRequired {
+            get {
+                return ResourceManager.GetString("PushGroomerReserveApprovalRequired", resourceCulture);
+            }
+        }
+
+        public static string PushGroomerReserveApproved {
+            get {
+                return ResourceManager.GetString("PushGroomerReserveApproved", resourceCulture);
+            }
+        }
+
+        public static string PushGroomerReserveRejected {
+            get {
+                return ResourceManager.GetString("PushGroomerReserveRejected", resourceCulture);
+            }
+        }
+
+        public static string PushGroomerReserveExpired {
+            get {
+                return ResourceManager.GetString("PushGroomerReserveExpired", resourceCulture);
+            }
+        }
+
+        public static string PushGroomerReserveCancelledByBooker {
+            get {
+                return ResourceManager.GetString("PushGroomerReserveCancelledByBooker", resourceCulture);
+            }
+        }
+        public static string PushGroomerApproved {
+            get {
+                return ResourceManager.GetString("PushGroomerApproved", resourceCulture);
+            }
+        }
+
+        public static string PushGroomerRejected {
+            get {
+                return ResourceManager.GetString("PushGroomerRejected", resourceCulture);
+            }
+        }
+
+        public static string PushGroomerReserveRescheduled {
+            get {
+                return ResourceManager.GetString("PushGroomerReserveRescheduled", resourceCulture);
+            }
+        }
+
+        public static string PushGroomerReserveRescheduledForGroomer {
+            get {
+                return ResourceManager.GetString("PushGroomerReserveRescheduledForGroomer", resourceCulture);
+            }
+        }
+
+        public static string PushGroomerStaffInvite {
+            get {
+                return ResourceManager.GetString("PushGroomerStaffInvite", resourceCulture);
+            }
+        }
+
+        public static string PushGroomerReserveCancelledByAdmin {
+            get {
+                return ResourceManager.GetString("PushGroomerReserveCancelledByAdmin", resourceCulture);
+            }
+        }
+        public static string PushClinicReserveApprovalRequired {
+            get {
+                return ResourceManager.GetString("PushClinicReserveApprovalRequired", resourceCulture);
+            }
+        }
+
+        public static string PushClinicReserveApproved {
+            get {
+                return ResourceManager.GetString("PushClinicReserveApproved", resourceCulture);
+            }
+        }
+
+        public static string PushClinicReserveRejected {
+            get {
+                return ResourceManager.GetString("PushClinicReserveRejected", resourceCulture);
+            }
+        }
+
+        public static string PushClinicReserveExpired {
+            get {
+                return ResourceManager.GetString("PushClinicReserveExpired", resourceCulture);
+            }
+        }
+
+        public static string PushClinicApproved {
+            get {
+                return ResourceManager.GetString("PushClinicApproved", resourceCulture);
+            }
+        }
+
+        public static string PushClinicRejected {
+            get {
+                return ResourceManager.GetString("PushClinicRejected", resourceCulture);
+            }
+        }
+
+        public static string PushClinicReserveRescheduled {
+            get {
+                return ResourceManager.GetString("PushClinicReserveRescheduled", resourceCulture);
+            }
+        }
+
+        public static string PushClinicReserveRescheduledForClinic {
+            get {
+                return ResourceManager.GetString("PushClinicReserveRescheduledForClinic", resourceCulture);
+            }
+        }
+
+        public static string PushClinicStaffInvite {
+            get {
+                return ResourceManager.GetString("PushClinicStaffInvite", resourceCulture);
+            }
+        }
+
+        public static string WalletTargetClinicReserve {
+            get {
+                return ResourceManager.GetString("WalletTargetClinicReserve", resourceCulture);
+            }
+        }
+
+        public static string PushClinicReserveCancelledByBooker {
+            get {
+                return ResourceManager.GetString("PushClinicReserveCancelledByBooker", resourceCulture);
+            }
+        }
+
+        public static string PushClinicReserveCancelledByAdmin {
+            get {
+                return ResourceManager.GetString("PushClinicReserveCancelledByAdmin", resourceCulture);
+            }
+        }
+
     }
 }

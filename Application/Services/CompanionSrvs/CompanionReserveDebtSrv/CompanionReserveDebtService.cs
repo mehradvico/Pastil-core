@@ -142,7 +142,8 @@ namespace Application.Services.CompanionSrvs.CompanionReserveDebtSrv
 
                 var debit = await _walletService.InsertAsyncDto(new WalletDto
                 {
-                    Name = $"پرداخت هزینه‌ی خدمت (رزرو {reserveId})",
+                    // کلید دفتر؛ در نمایش «پرداخت بدهی خدمت رزرو RSV-… از کیف پول» می‌شود (WalletDescriptionRules)
+                    Name = Application.Services.ProductSrvs.WalletSrv.WalletDescriptionRules.CompanionDebtName(reserveId),
                     Amount = reserve.OperatorUnpaidAmount,
                     IsIncrease = false,
                     UserId = userId,

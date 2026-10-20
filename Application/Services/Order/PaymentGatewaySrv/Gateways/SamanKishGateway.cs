@@ -7,7 +7,9 @@ using Application.Services.Order.PaymentGatewaySrv.Iface;
 using Application.Services.Order.PaymentSrv.Dto;
 using Entities.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Persistence.Interface;
 using RestSharp;
 using System;
 using System.Threading.Tasks;
@@ -19,22 +21,28 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
         public MerchantEnum Provider => MerchantEnum.samanKish;
 
         private readonly IAdminSettingHelper _adminSettingHelper;
+        private readonly IDataBaseContext _context;
 
-        public SamanKishGateway(IAdminSettingHelper adminSettingHelper)
+        public SamanKishGateway(IAdminSettingHelper adminSettingHelper, IDataBaseContext context)
         {
             _adminSettingHelper = adminSettingHelper;
+            _context = context;
         }
 
         public async Task<GatewayStartResultDto> StartAsync(PaymentStartDto dto, Merchant merchant)
         {
             try
             {
+                // آدرس برگشت باید callbackToken همین پرداخت را داشته باشد (قبلاً PaymentUrl + id بود و callback بدون توکن رد می‌شد)
+                if (string.IsNullOrWhiteSpace(dto.CallbackUrl))
+                    return new GatewayStartResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.ErrorOnStartPayment };
+
                 var requestDto = new SamanKishRequestDto
                 {
                     TerminalId = merchant.TerminalKey,
                     Amount = dto.Amount * 10,
                     ResNum = dto.PaymentId.ToString(),
-                    RedirectUrl = _adminSettingHelper.BaseAdminSetting.PaymentUrl + dto.PaymentId,
+                    RedirectUrl = dto.CallbackUrl,
                     CellNumber = dto.User?.Mobile
                 };
 
@@ -85,7 +93,20 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                     return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.InvalidData };
 
                 if (!string.Equals(state?.Trim(), "OK", StringComparison.OrdinalIgnoreCase))
-                    return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.Unsuccess };
+                    return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.PaymentNotCompletedAtGateway, Description = $"GATEWAY_{state}" };
+
+                // نتیجه باید مال همین پرداخت باشد: شماره‌ی سفارش (ResNum) و توکنی که SEP موقع شروع داد
+                var resNum = HttpRequestParamReaderHelper.Get(request, "ResNum");
+                var callbackToken = HttpRequestParamReaderHelper.Get(request, "Token");
+                if (!string.Equals(resNum?.Trim(), payment.Id.ToString(), StringComparison.Ordinal) ||
+                    !string.IsNullOrWhiteSpace(payment.Token) && !string.IsNullOrWhiteSpace(callbackToken) &&
+                    !string.Equals(payment.Token.Trim(), callbackToken.Trim(), StringComparison.Ordinal))
+                    return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.InvalidData };
+
+                // یک RefNum فقط برای یک پرداخت موفق (verify تکراریِ همان تراکنش برای پرداخت دیگری پذیرفته نمی‌شود)
+                if (await _context.Payments.AsNoTracking().AnyAsync(s =>
+                        s.Id != payment.Id && s.IsSuccess == true && s.RefNumber == refNum && s.MerchantId == payment.MerchantId))
+                    return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.InvalidData };
 
                 var verifyDto = new SamanKishVerifyRequestDto
                 {
@@ -103,7 +124,28 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
 
                 var verifyObj = JsonConvert.DeserializeObject<SamanKishVerifyResponseDto>(verifyRes.Content);
 
-                if (verifyObj.Success)
+                // فقط verify اولِ همین تراکنش (resultCode 0) با مبلغ همین پرداخت پذیرفته می‌شود؛ مبلغ نامطابق برگشت داده می‌شود
+                var expectedAmount = Convert.ToInt64(payment.Amount * 10);
+                if (verifyObj?.Success == true &&
+                    (verifyObj.resultCode != 0 || verifyObj.TransactionDetail == null ||
+                     verifyObj.TransactionDetail.OrginalAmount != expectedAmount))
+                {
+                    if (verifyObj.resultCode == 0)
+                    {
+                        var reverseReq = new RestRequest("verifyTxnRandomSessionkey/ipg/ReverseTransaction", method: Method.Post);
+                        reverseReq.AddJsonBody(verifyDto);
+                        try { client.ExecutePost(reverseReq); } catch { /* برگشت best-effort؛ تأییدنشده از سمت ما = ناموفق */ }
+                    }
+                    return new GatewayCallbackResultDto
+                    {
+                        IsSuccess = false,
+                        RefNumber = refNum,
+                        Description = $"SAMAN_MISMATCH-{verifyObj.resultCode}-{verifyObj.TransactionDetail?.OrginalAmount}",
+                        ErrorMessage = Resource.Notification.Unsuccess
+                    };
+                }
+
+                if (verifyObj?.Success == true)
                 {
                     return new GatewayCallbackResultDto
                     {

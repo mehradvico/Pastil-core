@@ -100,10 +100,13 @@ namespace Application.Services.Order.ShippingSrv.Provider
                     return ShippingProviderQuoteResult.Failed("Miare estimate response did not include a price.");
                 }
 
-                // میاره قیمت را به تومان برمی‌گرداند؛ بقیه‌ی سیستم (سایر پرووایدرها، ShippingQuoteService،
-                // نمایش در وب‌اپ) هم همون عدد تومان رو بدون تبدیل به عنوان Price نگه می‌داره و نشون می‌ده،
-                // پس اینجا هم نباید ضربدر ۱۰ بشه.
-                var priceToman = priceProp.GetDouble();
+                // بقیه‌ی سیستم (سایر پرووایدرها، ShippingQuoteService، نمایش در وب‌اپ) عدد «تومان» را بی‌تبدیل نگه می‌دارد و نشان می‌دهد
+                // (پس ×۱۰ نمی‌خواهد). ولی واحد خروجی میاره بین محیط‌ها فرق دارد (Staging تومان، Production ریال)؛ MiareAmountRules طبق
+                // Shipping:Miare:AmountUnit به تومان برمی‌گرداند.
+                var rawPrice = priceProp.GetDouble();
+                var priceToman = MiareAmountRules.ToToman(rawPrice, providerOptions.AmountUnit);
+                if (MiareAmountRules.IsRial(providerOptions.AmountUnit))
+                    _logger.LogInformation("Miare GetQuoteAsync: raw price {Raw} (Rial) -> {Toman} Toman.", rawPrice, priceToman);
                 // میاره هیچ‌وقت ارسال رایگان نیست؛ قیمت صفر یعنی برآورد معتبر نیست (مثلاً محیط تست/آدرس نامعتبر) و به‌جای «رایگان» استعلام شکست می‌خورد.
                 if (priceToman <= 0)
                 {
@@ -157,7 +160,7 @@ namespace Application.Services.Order.ShippingSrv.Provider
                             levels = doc.RootElement.EnumerateArray()
                                 .Where(item => item.TryGetProperty("level", out var level) && level.ValueKind == JsonValueKind.Number
                                                && item.TryGetProperty("amount", out var amount) && amount.ValueKind == JsonValueKind.Number)
-                                .Select(item => new ShippingBoostLevel { Level = item.GetProperty("level").GetInt32(), Amount = item.GetProperty("amount").GetDouble() })
+                                .Select(item => new ShippingBoostLevel { Level = item.GetProperty("level").GetInt32(), Amount = MiareAmountRules.ToToman(item.GetProperty("amount").GetDouble(), providerOptions.AmountUnit) })
                                 .OrderBy(item => item.Level)
                                 .ToList();
                             ttl = BoostCacheTtl;
@@ -278,12 +281,38 @@ namespace Application.Services.Order.ShippingSrv.Provider
                     response = await SendAsync();
                 }
 
+                // مهلت تحویل به پیک نزدیک: «403 {"code":"deadline_too_soon"}»؛ با مهلت دیرتر دوباره می‌سازیم و همان را برمی‌گردانیم
+                var usedDeadline = request.PickupDeadlineUtc ?? DateTime.UtcNow.AddMinutes(30);
+                foreach (var retryLeadMinutes in new[] { 45, 60 })
+                {
+                    if (response.IsSuccessful || !IsDeadlineTooSoon(response.Content))
+                        break;
+                    usedDeadline = DateTime.UtcNow.AddMinutes(retryLeadMinutes);
+                    _logger.LogWarning("Miare rejected pickup deadline (deadline_too_soon); retrying with now + {Lead} minutes.", retryLeadMinutes);
+                    body.Pickup.Deadline = FormatDeadline(usedDeadline);
+                    response = await SendAsync();
+                }
+
+                // تصویر فروشگاه (مثلاً webp/آدرس غیرقابل‌دسترس) ممکن است رد شود؛ یک‌بار با تصویر پیش‌فرض دوباره می‌سازیم تا سفر گیر نکند
+                if (!response.IsSuccessful &&
+                    !string.IsNullOrWhiteSpace(request.PickupImageUrl) &&
+                    !string.Equals(body.Pickup.Image, providerOptions.DefaultPickupImageUrl, StringComparison.Ordinal) &&
+                    (response.Content ?? string.Empty).Contains("image", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Miare rejected pickup image {Image}; retrying with the default image. Response: {Body}",
+                        body.Pickup.Image, response.Content);
+                    body.Pickup.Image = providerOptions.DefaultPickupImageUrl;
+                    response = await SendAsync();
+                }
+
                 if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
-                    return new ShippingProviderShipmentResult
-                    {
-                        IsSuccess = false,
-                        ErrorMessage = ExtractMiareError(response.Content) ?? response.ErrorMessage ?? "Miare request failed."
-                    };
+                {
+                    // دلیل واقعی رد شدن (۴۰۰ اعتبارسنجی فیلدها و...) قبلاً گم می‌شد: فقط detail/code خوانده می‌شد و فروشنده/ادمین
+                    // «Miare request failed.» می‌دید. حالا کد HTTP و بدنه‌ی پاسخ (بدون درخواست/کلید) در Shipment.FailureReason و لاگ می‌آید.
+                    var reason = DescribeFailure(response);
+                    _logger.LogWarning("Miare create trip failed for bill {BillNumber}. {Reason}", body.Courses[0].BillNumber, reason);
+                    return new ShippingProviderShipmentResult { IsSuccess = false, ErrorMessage = reason };
+                }
 
                 using var doc = JsonDocument.Parse(response.Content);
                 var root = doc.RootElement;
@@ -305,15 +334,18 @@ namespace Application.Services.Order.ShippingSrv.Provider
                     IsSuccess = true,
                     ExternalShipmentId = tripId,
                     TrackingCode = string.IsNullOrWhiteSpace(trackingUrl) ? tripId : trackingUrl,
-                    BoostApplied = boostApplied && BoostWasApplied(root)
+                    BoostApplied = boostApplied && BoostWasApplied(root),
+                    PickupDeadlineUtc = usedDeadline
                 };
             }
             catch (Exception exception)
             {
+                // قبلاً بی‌صدا فقط exception.Message («Object reference not set...») ذخیره می‌شد و ردی در لاگ نبود
+                _logger.LogError(exception, "Miare create trip threw for bill {BillNumber}.", request.BillNumber);
                 return new ShippingProviderShipmentResult
                 {
                     IsSuccess = false,
-                    ErrorMessage = exception.Message
+                    ErrorMessage = $"{exception.GetType().Name}: {exception.Message}"
                 };
             }
         }
@@ -371,9 +403,11 @@ namespace Application.Services.Order.ShippingSrv.Provider
             try
             {
                 using var doc = JsonDocument.Parse(content);
-                if (doc.RootElement.TryGetProperty("detail", out var detail))
+                if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                    return null;
+                if (doc.RootElement.TryGetProperty("detail", out var detail) && detail.ValueKind == JsonValueKind.String)
                     return detail.GetString();
-                if (doc.RootElement.TryGetProperty("code", out var code))
+                if (doc.RootElement.TryGetProperty("code", out var code) && code.ValueKind == JsonValueKind.String)
                     return code.GetString();
             }
             catch (JsonException)
@@ -382,6 +416,23 @@ namespace Application.Services.Order.ShippingSrv.Provider
             }
 
             return null;
+        }
+
+        private static bool IsDeadlineTooSoon(string content) =>
+            !string.IsNullOrWhiteSpace(content) && content.Contains("deadline_too_soon", StringComparison.OrdinalIgnoreCase);
+
+        // «HTTP 400: <پیام/بدنه‌ی خام تا ۶۰۰ نویسه>»؛ خطای ساختاریافته‌ی فیلدها ({"pickup":{"image":["..."]}}) همان بدنه‌ی خام است
+        private static string DescribeFailure(RestResponse response)
+        {
+            var content = response.Content?.Trim();
+            var message = ExtractMiareError(content);
+            if (string.IsNullOrWhiteSpace(message))
+                message = string.IsNullOrWhiteSpace(content)
+                    ? response.ErrorMessage ?? "Miare request failed."
+                    : content;
+            if (message.Length > 600)
+                message = message[..600];
+            return $"HTTP {(int)response.StatusCode}: {message}";
         }
 
         private class MiareCreateTripRequest

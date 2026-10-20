@@ -158,11 +158,28 @@ namespace Application.Services.CompanionSrvs.OnlineSessionSrv
                 if (string.IsNullOrEmpty(q) || q.Length < MinSearchLength)
                     return new BaseResultDto<List<OnlineSessionUserVDto>>(true, new List<OnlineSessionUserVDto>());
 
-                var users = await _context.Users
-                    .AsNoTracking()
-                    .Include(s => s.Picture)
-                    .Where(s => !s.Deleted && !s.Locked && s.Id != current.UserId
-                        && ((s.FirstName + " " + s.LastName).Contains(q) || s.Mobile.Contains(q)))
+                // قبلاً هر نماینده/کارمند مرکز می‌توانست با تکه‌ی نام یا شماره کل کاربران (و موبایلشان) را فهرست کند.
+                // حالا: شماره‌ی کامل ⇒ فقط همان یک کاربر؛ هر جستجوی دیگر فقط بین مشتریان خود مرکز (رزرو/ثبت‌نام/جلسه‌ی قبلی).
+                var baseQuery = _context.Users.AsNoTracking().Include(s => s.Picture)
+                    .Where(s => !s.Deleted && !s.Locked && s.Id != current.UserId);
+                var fullMobile = NormalizeFullMobile(q);
+                IQueryable<Entities.Entities.Security.User> scoped;
+                if (fullMobile != null)
+                {
+                    scoped = baseQuery.Where(s => s.Mobile == fullMobile);
+                }
+                else
+                {
+                    var companionIds = await AgentCompanionIdsAsync(current);
+                    var customerIds = _context.CompanionReserves.Where(r => companionIds.Contains(r.CompanionAssistance.CompanionId)).Select(r => r.BookerId)
+                        .Concat(_context.PansionReserves.Where(r => companionIds.Contains(r.Pansion.CompanionId)).Select(r => r.BookerId))
+                        .Concat(_context.SchoolReserves.Where(r => companionIds.Contains(r.SchoolCourse.School.CompanionId)).Select(r => r.BookerId))
+                        .Concat(_context.OnlineSessions.Where(o => o.InitiatorUserId == current.UserId).Select(o => o.TargetUserId));
+                    scoped = baseQuery.Where(s => customerIds.Contains(s.Id)
+                        && ((s.FirstName + " " + s.LastName).Contains(q) || s.Mobile.Contains(q)));
+                }
+
+                var users = await scoped
                     .OrderBy(s => s.Id)
                     .Take(MaxSearchResults)
                     .ToListAsync();
@@ -384,6 +401,32 @@ namespace Application.Services.CompanionSrvs.OnlineSessionSrv
                     .Select(p => ToPictureVDto(p.Picture))
                     .ToList() ?? new List<PictureVDto>()
             }).ToList();
+        }
+
+        // «۰۹۱۲۳۴۵۶۷۸۹»، «9123456789»، «+989123456789» ⇒ 09123456789؛ هر چیز دیگری شماره‌ی کامل نیست
+        private static string NormalizeFullMobile(string q)
+        {
+            var digits = new string((q ?? string.Empty).Where(char.IsDigit).ToArray());
+            if (digits.Length == 12 && digits.StartsWith("98")) digits = "0" + digits.Substring(2);
+            else if (digits.Length == 10 && digits.StartsWith("9")) digits = "0" + digits;
+            var onlyPhoneChars = (q ?? string.Empty).All(c => char.IsDigit(c) || c == '+' || c == ' ' || c == '-');
+            return onlyPhoneChars && digits.Length == 11 && digits.StartsWith("09") ? digits : null;
+        }
+
+        // مراکزی که این کاربر صاحب یا کارمند فعالشان است
+        private async Task<List<long>> AgentCompanionIdsAsync(Application.Services.Dto.CurrentUserDto current)
+        {
+            var ids = await _context.CompanionUsers.AsNoTracking()
+                .Where(s => s.UserId == current.UserId && s.Active && !s.Deleted)
+                .Select(s => s.CompanionId)
+                .ToListAsync();
+            ids.AddRange(await _context.Companions.AsNoTracking()
+                .Where(s => s.OwnerId == current.UserId && !s.Deleted)
+                .Select(s => s.Id)
+                .ToListAsync());
+            if ((current.CompanionId ?? 0) > 0)
+                ids.Add(current.CompanionId.Value);
+            return ids.Distinct().ToList();
         }
 
         private static PictureVDto ToPictureVDto(Entities.Entities.Picture picture) => picture == null ? null : new PictureVDto

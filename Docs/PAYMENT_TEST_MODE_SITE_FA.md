@@ -48,7 +48,7 @@
     "walletAmount": 100000,
     "paymentIsLink": true,
     "isTestMode": true,
-    "paymentUrl": "https://payment.pastil.pet/callback/4501?callbackToken=...&testResult=success",
+    "paymentUrl": "https://payment.pastil.pet/callback/4501/<callbackToken>?testResult=success",
     "testSuccessUrl": null,
     "testFailureUrl": null
   }

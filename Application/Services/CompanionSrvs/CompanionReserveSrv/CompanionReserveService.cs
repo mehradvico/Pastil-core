@@ -302,6 +302,7 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                             s.Active &&
                             s.Approved &&
                             !s.Deleted &&
+                            !s.Assistance.IsGrooming &&
                             s.Companion.Active);
                     if (companionAssistance == null)
                         return new BaseResultDto<CompanionReserveDto>(false, Resource.Notification.NothingFound, dto);

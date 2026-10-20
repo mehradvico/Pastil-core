@@ -40,14 +40,22 @@ namespace Api.Controllers
         {
             var expectedKey = _options.Miare.ApiKey;
             if (string.IsNullOrWhiteSpace(expectedKey))
+            {
+                _logger.LogWarning("Miare webhook rejected: Shipping:Miare:ApiKey is not configured on this server.");
                 return Unauthorized();
+            }
 
             var authHeader = Request.Headers["Authorization"].ToString();
             // مقایسه‌ی زمان‌ثابت تا با اندازه‌گیری زمان پاسخ نتوان کلید را حدس زد
             if (!System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
                     System.Text.Encoding.UTF8.GetBytes(authHeader),
                     System.Text.Encoding.UTF8.GetBytes($"Token {expectedKey}")))
+            {
+                // بدون این لاگ، وب‌هوکی که میاره با هدر/کلید اشتباه می‌فرستد هیچ ردی نداشت و «میاره زنگ نمی‌زند» با «کلید اشتباه» یکی دیده می‌شد
+                _logger.LogWarning("Miare webhook rejected: the Authorization header does not match (header present: {HasHeader}).",
+                    !string.IsNullOrEmpty(authHeader));
                 return Unauthorized();
+            }
 
             string payload;
             using (var reader = new StreamReader(Request.Body))

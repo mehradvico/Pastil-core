@@ -70,7 +70,12 @@ public class CustomOutputCacheAttribute : Attribute, IAsyncActionFilter
             };
 
             string responseBody = System.Text.Json.JsonSerializer.Serialize(result.Value, options);
-            cache.Set(cacheKey, responseBody, TimeSpan.FromSeconds(duration));
+            // MemoryCache با SizeLimit ثبت شده؛ ورودی بدون Size خطا می‌دهد (روشن کردن CacheSettings قبلاً همین‌جا می‌شکست)
+            cache.Set(cacheKey, responseBody, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(duration),
+                Size = 1
+            });
         }
     }
     public class CamelCaseNamingPolicy : JsonNamingPolicy

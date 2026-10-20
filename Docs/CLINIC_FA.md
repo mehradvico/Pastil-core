@@ -1,0 +1,32 @@
+# کلینیک (Clinic) — جداسازی از Companion (۱۴۰۵/۰۷/۲۹)
+
+کلینیک (نوع‌های کلینیک ۴۰، آزمایشگاه ۴۲، پرستار ۴۴) از `Companion` جدا شد و مثل آرایشگاه موجودیت و جریان مستقل دارد: **خدمات، بسته‌ها، ساعت کاری، پرسنل، رزرو، پرداخت، کیف پول، کد تخفیف، امتیاز باشگاه، تسویه (Provider + Kind=4)**. مدل و قواعد رزرو عیناً مثل آرایشگاه است (`backend/Docs/GROOMER_FA.md`)؛ فقط تفاوت‌های زیر را دارد.
+
+## تفاوت با آرایشگاه
+- **نحوه‌ی ارائه (Mode):** ۳۷ آنلاین، ۳۸ حضوری در کلینیک، ۳۹ در محل مشتری (هم‌ارز `CompanionAssistanceTypeEnum`). قیمت و پیش‌پرداخت هر بسته به‌ازای هر حالت در `ClinicServicePackageTypes` است؛ بسته‌ی بدون ردیف همه‌ی حالت‌ها را با قیمت پایه ارائه می‌دهد؛ بسته‌ی دارای ردیف فقط حالت‌های لیست‌شده را (قیمت پایه = ارزان‌ترین). پرچم‌های کلینیک: `ServiceOnline`، `ServiceInPerson`، `ServiceAtHome`.
+- **نوع مرکز:** `ClinicTypes` (۴۰/۴۲/۴۴؛ خالی = ۴۰). فیلتر `TypeId` در جستجو.
+- **بدون** دریافت/تحویل (Pickup) و بدون نمونه‌کار (Portfolio).
+- **خدمات گرومینگ** (`Assistances.IsGrooming = 1`) برای کلینیک ساخته/دیده/رزرو نمی‌شود (`ClinicServiceIsGrooming`).
+- کد پرداخت `CLN...`، `PaymentType_ClinicReserve=34`، `RebateType_ClinicReserve=72`، `ScoreTransactionType_ClinicReserve=76`، `SettlementKindEnum.Clinic=4`، پوش‌های ۱۳۷ تا ۱۴۷، باشگاه: رویداد ۱۰، منبع ۱۲، روش ۶، هدف ۱۴.
+- **پیامک:** قالب جدید نداریم. از همان قالب‌های Companion استفاده می‌شود: ثبت/پرداخت رزرو `CompanionReserveForUser` (token = نام خدمت) و `CompanionReserveForCompanion` (token = نام خدمت، token2 = نام مشتری)؛ تغییر زمان `CompanionReserveRescheduledUser` (مرکز، تاریخ قبلی، تاریخ جدید، ساعت جدید، علت). بقیه‌ی رویدادها (تأیید/رد/انقضا/لغو/دعوت پرسنل) فقط پوش دارند.
+
+## فلو (خلاصه)
+رزرو → پرداخت (کد تخفیف/کیف پول/درگاه) → منتظر تأیید کلینیک (۱۲ ساعت؛ رد یا بی‌پاسخی = لغو + برگشت کل مبلغ به کیف پول، job `ClinicReserveExpireOverdue` هر ۵ دقیقه) → تکمیل → امتیاز/پوینت باشگاه → نظر → تسویه با ارائه‌دهنده. لغو کاربر تا ۱۲ ساعت قبل رایگان. تغییر زمان توسط کلینیک/ادمین. رزرو چندخدمتی تا ۵ بسته. دعوت پرسنل با پذیرش کاربر.
+
+## API
+- عمومی: `GET /api/Clinic`، `/api/Clinic/{id}`، `/{id}/Services?petSize=`، `/Times`، `/Zones`، `/Pictures`، `GET /api/ClinicReview`.
+- مشتری: `GET/POST EndUser/ClinicReserve`، `GET .../Quote?packageIds=&mode=` (mode الزامی)، `GET .../Availability?clinicId&date&packageId&extraPackageIds`، `PUT .../Cancel?id=`، `EndUser/ClinicReservePayment` (Rebate/Wallet/پرداخت)، `EndUser/ClinicReview`، `EndUser/ClinicStaffInvite`.
+- ورودی رزرو: `ClinicReserveInputDto { ClinicId, ClinicServicePackageId, ExtraPackageIds[], UserPetId, DoDate, Mode, AddressId?, AssigneeUserId?, BookerNote }` (`AddressId` فقط برای Mode=۳۹).
+- مالک (Companion area): `Clinic`، `ClinicService` (+`/Package` با `Types[]`)، `ClinicSchedule`، `ClinicUser`، `ClinicPicture`، `ClinicReserve` (Approve/Reject/Reschedule/Complete)، `ClinicSettlement`، `ClinicReview`.
+- ادمین: همان خانواده‌ها + `ClinicActive/ClinicApprove/ClinicSetting` و `ClinicReserve` (لغو با/بی بازگشت وجه). مجوزها در `AdminPermissionCatalog` (بخش Clinic و ClinicReserve).
+
+## دیپلوی (به ترتیب؛ خودتان اجرا کنید)
+1. `AddClinics` (migration یا `scripts/AddClinics.sql`؛ جدول‌ها، ستون `Wallets.ClinicReserveId`، Codeهای پرداخت/تخفیف/امتیاز و پوش‌های ۱۳۷–۱۴۷).
+2. خدمات گرومینگ را در پنل علامت بزنید (`IsGrooming`) و `scripts/DeactivateClinicGroomingServices.sql` را اجرا کنید (پیش‌نیاز انتقال تمیز).
+3. `scripts/MigrateCompanionClinicsToClinics.sql` با `@Commit = 0` و بعد `1` (روی LocalDB با تست `ClinicMigrationScriptTests` راستی‌آزمایی شده). Companion شخصی منتقل نمی‌شود؛ رزروهای قدیمی روی Companion می‌مانند.
+4. دیپلوی Api و Payment با هم، Permission Sync و دادن مجوزهای Clinic*، آپلود پنل.
+
+انتقال‌یافته‌ها از لیست‌های عمومی نماینده/کلینیک، «نزدیک من» و جستجوی سراسری مخفی می‌شوند (`CompanionMigrationFilter`)؛ تا اتصال اپ‌ها به `GET /api/Clinic` کارت‌های کلینیک در اپ‌های فعلی (که از Companion می‌خوانند) خالی می‌شود.
+
+## محدودیت‌ها (هنوز روی CompanionReserve هستند)
+`ClinicReserve` رزرو، پرداخت، تأیید، تکمیل و تسویه‌ی هر سه حالت را پوشش می‌دهد، اما این قابلیت‌های وابسته به رزرو قدیمی به ClinicReserve وصل **نشده‌اند**: چت رزرو، تماس تصویری/جلسه‌ی آنلاین، نسخه‌ی آنلاین، سفر پت‌رسان (دریافت/تحویل)، اقلام بسته‌ی حین ویزیت (PackageItems)، بدهی اپراتور، بیمه، رزرو گروهی چندپتی. جدول‌های آن‌ها کلید `CompanionReserveId` دارند و باید در فاز بعد به `ClinicReserveId` هم متصل شوند.

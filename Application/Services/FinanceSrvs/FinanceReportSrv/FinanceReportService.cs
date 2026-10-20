@@ -61,6 +61,8 @@ namespace Application.Services.FinanceSrvs.FinanceReportSrv
                     ["CompanionReserve"] = await debits.Where(w => w.CompanionReserveId != null).SumAsync(w => (double?)w.Amount) ?? 0,
                     ["PansionReserve"] = await debits.Where(w => w.PansionReserveId != null).SumAsync(w => (double?)w.Amount) ?? 0,
                     ["SchoolReserve"] = await debits.Where(w => w.SchoolReserveId != null).SumAsync(w => (double?)w.Amount) ?? 0,
+                    ["GroomerReserve"] = await debits.Where(w => w.GroomerReserveId != null).SumAsync(w => (double?)w.Amount) ?? 0,
+                    ["ClinicReserve"] = await debits.Where(w => w.ClinicReserveId != null).SumAsync(w => (double?)w.Amount) ?? 0,
                     ["ConsultationPurchase"] = await debits.Where(w => w.ConsultationPurchaseId != null).SumAsync(w => (double?)w.Amount) ?? 0,
                     ["Trip"] = await debits.Where(w => w.TripId != null).SumAsync(w => (double?)w.Amount) ?? 0,
                     ["Cargo"] = await debits.Where(w => w.CargoId != null).SumAsync(w => (double?)w.Amount) ?? 0,
@@ -74,6 +76,8 @@ namespace Application.Services.FinanceSrvs.FinanceReportSrv
                 var reserves = _context.CompanionReserves.AsNoTracking().Where(r => r.IsReserved && !r.IsCancel);
                 var pansions = _context.PansionReserves.AsNoTracking().Where(r => r.IsReserved && !r.IsCancel);
                 var schools = _context.SchoolReserves.AsNoTracking().Where(r => r.IsReserved && !r.IsCancel);
+                var groomers = _context.GroomerReserves.AsNoTracking().Where(r => r.IsReserved && !r.IsCancel);
+                var clinics = _context.ClinicReserves.AsNoTracking().Where(r => r.IsReserved && !r.IsCancel);
                 var paidStatuses = new[] { (int)ConsultationPurchaseStatusEnum.Paid, (int)ConsultationPurchaseStatusEnum.Active, (int)ConsultationPurchaseStatusEnum.Completed };
                 var consultations = _context.ConsultationPurchases.AsNoTracking().Where(c => paidStatuses.Contains(c.Status));
                 var trips = _context.Trips.AsNoTracking().Where(t => t.IsPaid);
@@ -82,12 +86,14 @@ namespace Application.Services.FinanceSrvs.FinanceReportSrv
                     orders = orders.Where(x => x.CreateDate >= from.Value); reserves = reserves.Where(x => x.CreateDate >= from.Value);
                     pansions = pansions.Where(x => x.CreateDate >= from.Value); schools = schools.Where(x => x.CreateDate >= from.Value);
                     consultations = consultations.Where(x => x.CreateDate >= from.Value); trips = trips.Where(x => x.CreateDate >= from.Value);
+                    groomers = groomers.Where(x => x.CreateDate >= from.Value);
                 }
                 if (to.HasValue)
                 {
                     orders = orders.Where(x => x.CreateDate < to.Value); reserves = reserves.Where(x => x.CreateDate < to.Value);
                     pansions = pansions.Where(x => x.CreateDate < to.Value); schools = schools.Where(x => x.CreateDate < to.Value);
                     consultations = consultations.Where(x => x.CreateDate < to.Value); trips = trips.Where(x => x.CreateDate < to.Value);
+                    groomers = groomers.Where(x => x.CreateDate < to.Value);
                 }
 
                 var siteShare = new Dictionary<string, double>
@@ -96,6 +102,8 @@ namespace Application.Services.FinanceSrvs.FinanceReportSrv
                     ["CompanionReserve"] = await reserves.SumAsync(x => (double?)x.SiteShare) ?? 0,
                     ["PansionReserve"] = await pansions.SumAsync(x => (double?)x.SiteShare) ?? 0,
                     ["SchoolReserve"] = await schools.SumAsync(x => (double?)x.SiteShare) ?? 0,
+                    ["GroomerReserve"] = await groomers.SumAsync(x => (double?)x.SiteShare) ?? 0,
+                    ["ClinicReserve"] = await clinics.SumAsync(x => (double?)x.SiteShare) ?? 0,
                     ["ConsultationPurchase"] = await consultations.SumAsync(x => (double?)x.SiteShare) ?? 0,
                     ["Trip"] = await trips.SumAsync(x => (double?)x.SiteShare) ?? 0,
                 };

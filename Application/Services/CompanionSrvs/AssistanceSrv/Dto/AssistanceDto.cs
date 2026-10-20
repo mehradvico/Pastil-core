@@ -11,5 +11,6 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
         public long? PictureId { get; set; }
         public bool Active { get; set; }
         public bool ShowToSite { get; set; }
+        public bool IsGrooming { get; set; }
     }
 }

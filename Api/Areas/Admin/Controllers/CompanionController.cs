@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Areas.Admin.Controllers
 {
     /// <summary>
-    /// نمایندگان
+    /// نمایندگی‌ها
     /// </summary>
     /// 
     [Area("Admin")]
@@ -30,6 +30,7 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(CompanionSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionInputDto dto)
         {
+            dto.IncludeMigratedGroomers = true;
             var search = _companionService.Search(dto);
             return Ok(search);
         }

@@ -58,6 +58,8 @@ namespace Entities.Entities
 
         // اتصال به رزرو کلینیک/نماینده (فقط برای سفرهای «رزرو هم‌زمان»، حالت دو پت‌رسان)
         public long? CompanionReserveId { get; set; }
+        // اتصال به رزرو کلینیک (Clinic؛ جدا از Companion)
+        public long? ClinicReserveId { get; set; }
         // اتصال به رزرو پانسیون (فقط برای سفرهای «رزرو هم‌زمان» با هتل/مهد پانسیون)
         public long? PansionReserveId { get; set; }
         // اتصال به ثبت نام مدرسه (تحویل پت برای اولین جلسه حضوری)
@@ -98,6 +100,7 @@ namespace Entities.Entities
         public Wallet Wallet { get; set; }
         public User User { get; set; }
         public CompanionReserve CompanionReserve { get; set; }
+        public Entities.ClinicField.ClinicReserve ClinicReserve { get; set; }
         public PansionReserve PansionReserve { get; set; }
         public SchoolReserve SchoolReserve { get; set; }
         public PetResanServiceSchedule PetResanServiceSchedule { get; set; }

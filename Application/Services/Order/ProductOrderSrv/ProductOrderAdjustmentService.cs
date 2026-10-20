@@ -244,7 +244,8 @@ namespace Application.Services.Order.ProductOrderSrv
                 return new BaseResultDto(false, Resource.Notification.OrderAdjustNotFound);
 
             if (!ProductOrderAdjustmentRules.IsBeforeShipment(order.IsPaid, order.Deleted, order.ProductOrderStatus?.Label,
-                    order.ProductOrderState?.Label, order.UserReceived, InsertLabel, ProcessLabel, CanceledLabel))
+                    order.ProductOrderState?.Label, order.UserReceived, InsertLabel, ProcessLabel, CanceledLabel,
+                    allowCustomerNotReceived: actor == OrderAdjustActor.Admin && cancelWholeOrder))
                 return new BaseResultDto(false, Resource.Notification.OrderAdjustNotAllowedShipped);
 
             if (actor == OrderAdjustActor.Store)

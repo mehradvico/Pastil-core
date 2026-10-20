@@ -9,6 +9,7 @@ using Application.Services.Order.PaymentSrv;
 using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
+using Application.Services.SchoolSrvs.SchoolCourseSrv;
 using Application.Services.SchoolSrvs.SchoolReserveSrv.Dto;
 using Application.Services.SchoolSrvs.SchoolReserveSrv.Iface;
 using AutoMapper;
@@ -70,7 +71,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             var item = await _context.SchoolReserves
                 .Include(r => r.SchoolCourse).ThenInclude(c => c.Pet)
                 .Include(r => r.SchoolCourse).ThenInclude(c => c.PetBreed)
-                .Include(r => r.SchoolCourse).ThenInclude(c => c.SchoolCourseSessions)
+                .Include(r => r.SchoolCourse).ThenInclude(c => c.SchoolCourseSessions.Where(s => !s.Deleted).OrderBy(s => s.SessionDate).ThenBy(s => s.StartTime))
                 .Include(r => r.SchoolCourse).ThenInclude(c => c.School).ThenInclude(s => s.Companion)
                 .Include(r => r.UserPet)
                 .Include(r => r.Booker)
@@ -151,6 +152,9 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                             (int)ResultCodeEnum.PaymentAlreadyPaid);
                     }
 
+                    if (!await SchoolCourseRules.IsRegistrationOpenAsync(_context, course.Id, DateTime.Now))
+                        return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCourseRegistrationClosed, dto);
+
                     // ثبت‌نامِ پرداخت‌نشده‌ی قبلی (کاربر از درگاه برگشت یا اصلاً به درگاه نرسید): به‌جای «قبلاً رزرو شده»
                     // همان ثبت‌نام برای پرداخت دوباره برمی‌گردد. تلاش‌های درگاهِ رهاشده کنار گذاشته می‌شوند و مبلغ مثل یک
                     // ثبت‌نام تازه از قیمت فعلی دوره شروع می‌شود (صفحه‌ی نهایی‌سازی کیف پول/تخفیف را دوباره اعمال می‌کند).
@@ -178,6 +182,10 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     return new BaseResultDto<SchoolReserveDto>(true, mapper.Map<SchoolReserveDto>(existing));
                 }
 
+                // دوره‌ای که جلسه‌ی اولش شروع شده دیگر ثبت‌نام نمی‌گیرد
+                if (!await SchoolCourseRules.IsRegistrationOpenAsync(_context, course.Id, DateTime.Now))
+                    return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCourseRegistrationClosed, dto);
+
                 if (course.Capacity.HasValue)
                 {
                     var takenCount = await _context.SchoolReserves.CountAsync(r => r.SchoolCourseId == dto.SchoolCourseId && !r.IsCancel);
@@ -188,6 +196,9 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                 }
 
                 var item = mapper.Map<SchoolReserve>(dto);
+                // تخفیف از بدنه پذیرفته نمی‌شود (RebatePrice منفی + حذف کد، مبلغ را پایین می‌آورد)؛ فقط SetRebateCode
+                item.RebateId = null;
+                item.RebatePrice = 0;
                 item.Price = course.Price;
                 item.PaymentPrice = course.Price;
                 item.FromWallet = false;
@@ -305,8 +316,8 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             if (financialLock != null)
                 return financialLock;
 
-            var originalPrice = item.PaymentPrice + item.RebatePrice;
-            item.Price = originalPrice;
+            // پایه‌ی تخفیف همان Price سرور (قیمت دوره) است، نه PaymentPrice + RebatePrice
+            var originalPrice = item.Price;
             var rebate = _rebateService.GetRebateByCodeAsync(originalPrice, item.BookerId, RebateTypeLabels.SchoolReserve, dto.RebateCode);
             if (rebate.IsSuccess)
             {
@@ -345,7 +356,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             }
             item.RebateId = null;
-            item.PaymentPrice = item.PaymentPrice + item.RebatePrice;
+            item.PaymentPrice = item.Price;
             item.RebatePrice = 0;
             if (item.WalletPrice != 0)
             {

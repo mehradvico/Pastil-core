@@ -72,6 +72,9 @@ namespace Application.Services.PastilAISrv.Dto
         public int? DailyVideoLimit { get; set; }
         public int? RemainingChats => DailyChatLimit.HasValue ? Math.Max(0, DailyChatLimit.Value - UsedChats) : null;
         public int? RemainingImages => DailyImageLimit.HasValue ? Math.Max(0, DailyImageLimit.Value - UsedImages) : null;
+        // وضعیت واحد اشتراک برای صفحه‌ی /ai و لیست سفارش‌ها (هر دو باید همین را نشان دهند)
+        public bool IsSubscribed => SubscriptionEndDateUtc.HasValue;
+        public DateTime? ExpiresAt => SubscriptionEndDateUtc;
     }
 
     public class PastilAiConversationInputDto : BaseInputDto

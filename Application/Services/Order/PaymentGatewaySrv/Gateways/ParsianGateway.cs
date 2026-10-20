@@ -6,6 +6,7 @@ using Application.Services.Order.PaymentSrv.Dto;
 using Entities.Entities;
 using IPGServices;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Net.Http;
@@ -18,6 +19,13 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
     public class ParsianGateway : IPaymentGateway
     {
         public MerchantEnum Provider => MerchantEnum.parsian;
+
+        private readonly ILogger<ParsianGateway> _logger;
+
+        public ParsianGateway(ILogger<ParsianGateway> logger)
+        {
+            _logger = logger;
+        }
 
         public async Task<GatewayStartResultDto> StartAsync(PaymentStartDto dto, Merchant merchant)
         {
@@ -56,7 +64,9 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
             }
             catch (Exception ex)
             {
-                return Fail(ex.ToString());
+                // جزئیات فقط در لاگ؛ متن exception (با stack trace) به کاربر برنمی‌گردد
+                _logger.LogError(ex, "Parsian start failed for payment {PaymentId}.", dto.PaymentId);
+                return Fail(Resource.Notification.ErrorOnStartPayment);
             }
         }
 
@@ -90,21 +100,22 @@ namespace Application.Services.Order.PaymentGatewaySrv.Gateways
                 token ??= request.Query["Token"].FirstOrDefault() ?? request.Query["token"].FirstOrDefault();
                 rrn ??= request.Query["RRN"].FirstOrDefault() ?? request.Query["rrn"].FirstOrDefault();
                 amountStr ??= request.Query["Amount"].FirstOrDefault();
+                var orderId = (request.HasFormContentType ? request.Form["OrderId"].FirstOrDefault() : null)
+                    ?? request.Query["OrderId"].FirstOrDefault();
 
-                payment.Token = token;
-                payment.RefNumber = rrn;
-                payment.GatewayStatus = status;
+                if (string.IsNullOrWhiteSpace(token))
+                    return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.InvalidData };
 
-                if (!string.IsNullOrWhiteSpace(status))
-                {
-                    var cleanStatus = status.Trim();
-                }
-
-                if (!string.IsNullOrWhiteSpace(amountStr) &&
-                    long.TryParse(amountStr, out var callbackAmount))
-                {
-                    var dbAmount = Convert.ToInt64(payment.Amount * 10);
-                }
+                // توکن باید همانی باشد که پارسیان موقع شروع برای همین پرداخت داد (Payment.Token)؛ وگرنه توکنِ یک پرداخت
+                // ارزان‌تر روی callback پرداخت گران‌تر confirm می‌شد. پرداخت‌های قبل از این انتشار توکن ذخیره‌شده ندارند (حداکثر ۳۰ دقیقه).
+                if (!string.IsNullOrWhiteSpace(payment.Token) &&
+                    !string.Equals(payment.Token.Trim(), token.Trim(), StringComparison.Ordinal))
+                    return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.InvalidData };
+                if (!string.IsNullOrWhiteSpace(orderId) && orderId.Trim() != payment.Id.ToString())
+                    return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.InvalidData };
+                if (!string.IsNullOrWhiteSpace(amountStr) && long.TryParse(amountStr, out var callbackAmount) &&
+                    callbackAmount != Convert.ToInt64(payment.Amount * 10))
+                    return new GatewayCallbackResultDto { IsSuccess = false, ErrorMessage = Resource.Notification.InvalidData };
 
                 var verifyBody = $@"<?xml version=""1.0"" encoding=""utf-8""?>
                                 <soap:Envelope xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""

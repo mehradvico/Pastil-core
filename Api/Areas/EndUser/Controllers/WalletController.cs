@@ -57,5 +57,19 @@ namespace Api.Areas.EndUser.Controllers
             var dto = await _paymentService.InsertWalletPaymentAsyncDto(payment);
             return Ok(dto);
         }
+
+        /// <summary>
+        /// حداقل و حداکثر مبلغ شارژ کیف پول (تومان) برای اعتبارسنجی فرم
+        /// </summary>
+        [HttpGet("ChargeLimits")]
+        [ProducesResponseType(typeof(BaseResultDto<WalletChargeLimitsDto>), 200)]
+        public IActionResult ChargeLimits()
+        {
+            return Ok(new BaseResultDto<WalletChargeLimitsDto>(true, new WalletChargeLimitsDto
+            {
+                MinAmount = Application.Services.ProductSrvs.WalletSrv.WalletChargeRules.MinAmount,
+                MaxAmount = Application.Services.ProductSrvs.WalletSrv.WalletChargeRules.MaxAmount
+            }));
+        }
     }
 }

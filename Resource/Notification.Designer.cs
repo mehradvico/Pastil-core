@@ -1774,6 +1774,33 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The payment was not completed or was cancelled at the gateway. Any deducted amount is returned by the bank within 72 hours. You can pay again..
+        /// </summary>
+        public static string PaymentNotCompletedAtGateway {
+            get {
+                return ResourceManager.GetString("PaymentNotCompletedAtGateway", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This item was already paid; the amount of this duplicate payment was returned to your Pastil wallet..
+        /// </summary>
+        public static string PaymentDuplicateRefundedToWallet {
+            get {
+                return ResourceManager.GetString("PaymentDuplicateRefundedToWallet", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your bank payment succeeded but this item could not be registered; the full amount was returned to your Pastil wallet..
+        /// </summary>
+        public static string PaymentRefundedToWallet {
+            get {
+                return ResourceManager.GetString("PaymentRefundedToWallet", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to This item has been cancelled and can no longer be paid..
         /// </summary>
         public static string PaymentTargetCancelled {
@@ -2535,6 +2562,15 @@ namespace Resource {
         public static string TripAutoCanceledNoDriverAccepted {
             get {
                 return ResourceManager.GetString("TripAutoCanceledNoDriverAccepted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No driver accepted this weekly service on two consecutive service days, so the service was stopped..
+        /// </summary>
+        public static string PetResanServiceStoppedNoDriver {
+            get {
+                return ResourceManager.GetString("PetResanServiceStoppedNoDriver", resourceCulture);
             }
         }
 
@@ -5242,5 +5278,1124 @@ namespace Resource {
                 return ResourceManager.GetString("ShipmentExpressRequested", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Check-out must be at least one night after check-in..
+        /// </summary>
+        public static string PansionCheckoutMustBeAfterCheckin {
+            get {
+                return ResourceManager.GetString("PansionCheckoutMustBeAfterCheckin", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This center does not accept the selected pet type..
+        /// </summary>
+        public static string PansionPetTypeNotAccepted {
+            get {
+                return ResourceManager.GetString("PansionPetTypeNotAccepted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The date of this reservation has passed; please choose a new date..
+        /// </summary>
+        public static string PansionReserveDatePassed {
+            get {
+                return ResourceManager.GetString("PansionReserveDatePassed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Registration for this course is closed; its first session has already started..
+        /// </summary>
+        public static string SchoolCourseRegistrationClosed {
+            get {
+                return ResourceManager.GetString("SchoolCourseRegistrationClosed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The session date and time must be in the future..
+        /// </summary>
+        public static string SchoolSessionMustBeInFuture {
+            get {
+                return ResourceManager.GetString("SchoolSessionMustBeInFuture", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The number of defined sessions cannot exceed the course session count..
+        /// </summary>
+        public static string SchoolSessionCountExceeded {
+            get {
+                return ResourceManager.GetString("SchoolSessionCountExceeded", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The session count cannot be lower than the sessions already defined..
+        /// </summary>
+        public static string SchoolCourseSessionCountBelowDefined {
+            get {
+                return ResourceManager.GetString("SchoolCourseSessionCountBelowDefined", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The search phrase must be at most 100 characters..
+        /// </summary>
+        public static string SearchQueryTooLong {
+            get {
+                return ResourceManager.GetString("SearchQueryTooLong", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This request was just submitted; please wait a few seconds..
+        /// </summary>
+        public static string DuplicateRequest {
+            get {
+                return ResourceManager.GetString("DuplicateRequest", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Wallet deposit.
+        /// </summary>
+        public static string WalletReasonGenericIncrease {
+            get {
+                return ResourceManager.GetString("WalletReasonGenericIncrease", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Wallet withdrawal.
+        /// </summary>
+        public static string WalletReasonGenericDecrease {
+            get {
+                return ResourceManager.GetString("WalletReasonGenericDecrease", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Manual top-up by admin.
+        /// </summary>
+        public static string WalletReasonAdminCharge {
+            get {
+                return ResourceManager.GetString("WalletReasonAdminCharge", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Manual deduction by admin.
+        /// </summary>
+        public static string WalletReasonAdminDebit {
+            get {
+                return ResourceManager.GetString("WalletReasonAdminDebit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your payment is being confirmed with the bank. If the amount was deducted, your order is registered automatically within a few minutes, otherwise the amount returns to your account. Please do not pay again..
+        /// </summary>
+        public static string PaymentVerificationPending {
+            get {
+                return ResourceManager.GetString("PaymentVerificationPending", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The seller deadline of this shipment cannot be extended in its current state..
+        /// </summary>
+        public static string ShipmentExtendNotAllowed {
+            get {
+                return ResourceManager.GetString("ShipmentExtendNotAllowed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The store is preparing your order..
+        /// </summary>
+        public static string ShipmentTrackStepPreparing {
+            get {
+                return ResourceManager.GetString("ShipmentTrackStepPreparing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A courier has been requested and is being assigned..
+        /// </summary>
+        public static string ShipmentTrackStepCourierRequested {
+            get {
+                return ResourceManager.GetString("ShipmentTrackStepCourierRequested", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A courier was assigned and is heading to the store..
+        /// </summary>
+        public static string ShipmentTrackStepCourierAssigned {
+            get {
+                return ResourceManager.GetString("ShipmentTrackStepCourierAssigned", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The courier picked up the order and is on the way..
+        /// </summary>
+        public static string ShipmentTrackStepPickedUp {
+            get {
+                return ResourceManager.GetString("ShipmentTrackStepPickedUp", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The order was delivered..
+        /// </summary>
+        public static string ShipmentTrackStepDelivered {
+            get {
+                return ResourceManager.GetString("ShipmentTrackStepDelivered", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The delivery was cancelled..
+        /// </summary>
+        public static string ShipmentTrackStepCancelled {
+            get {
+                return ResourceManager.GetString("ShipmentTrackStepCancelled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The delivery ran into a problem..
+        /// </summary>
+        public static string ShipmentTrackStepFailed {
+            get {
+                return ResourceManager.GetString("ShipmentTrackStepFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The parcel is returning to the store..
+        /// </summary>
+        public static string ShipmentTrackStepReturning {
+            get {
+                return ResourceManager.GetString("ShipmentTrackStepReturning", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Not Found.
+        /// </summary>
+        public static string ProviderNotFound {
+            get {
+                return ResourceManager.GetString("ProviderNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to A provider already exists for this user..
+        /// </summary>
+        public static string ProviderAlreadyExistsForUser {
+            get {
+                return ResourceManager.GetString("ProviderAlreadyExistsForUser", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Subscription Plan Not Found.
+        /// </summary>
+        public static string SubscriptionPlanNotFound {
+            get {
+                return ResourceManager.GetString("SubscriptionPlanNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The subscription end date must be after the start date..
+        /// </summary>
+        public static string SubscriptionPeriodInvalid {
+            get {
+                return ResourceManager.GetString("SubscriptionPeriodInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Gold/silver account tiers are now managed from the provider subscription..
+        /// </summary>
+        public static string AccountTierManagedByProvider {
+            get {
+                return ResourceManager.GetString("AccountTierManagedByProvider", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Role Not Found.
+        /// </summary>
+        public static string ProviderRoleNotFound {
+            get {
+                return ResourceManager.GetString("ProviderRoleNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This role is assigned to providers; deactivate it instead of deleting..
+        /// </summary>
+        public static string ProviderRoleInUse {
+            get {
+                return ResourceManager.GetString("ProviderRoleInUse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Settlements are recorded for a provider; specify ProviderId and Kind.
+        /// </summary>
+        public static string SettlementRequiresProvider {
+            get {
+                return ResourceManager.GetString("SettlementRequiresProvider", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Settlement kind is invalid.
+        /// </summary>
+        public static string SettlementKindInvalid {
+            get {
+                return ResourceManager.GetString("SettlementKindInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The bank card must be an approved card of the provider.
+        /// </summary>
+        public static string SettlementBankCardInvalid {
+            get {
+                return ResourceManager.GetString("SettlementBankCardInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to There is nothing to settle for this provider.
+        /// </summary>
+        public static string SettlementNothingToSettle {
+            get {
+                return ResourceManager.GetString("SettlementNothingToSettle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Some items changed while settling (cancelled or settled elsewhere). Nothing was recorded; please try again.
+        /// </summary>
+        public static string SettlementItemsChanged {
+            get {
+                return ResourceManager.GetString("SettlementItemsChanged", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Every store must belong to a provider.
+        /// </summary>
+        public static string StoreProviderRequired {
+            get {
+                return ResourceManager.GetString("StoreProviderRequired", resourceCulture);
+            }
+        }
+        public static string GroomerProviderRequired {
+            get {
+                return ResourceManager.GetString("GroomerProviderRequired", resourceCulture);
+            }
+        }
+
+        public static string GroomerSelectedStateInvalid {
+            get {
+                return ResourceManager.GetString("GroomerSelectedStateInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerSelectedCityNotInState {
+            get {
+                return ResourceManager.GetString("GroomerSelectedCityNotInState", resourceCulture);
+            }
+        }
+
+        public static string GroomerPleaseEnterAddress {
+            get {
+                return ResourceManager.GetString("GroomerPleaseEnterAddress", resourceCulture);
+            }
+        }
+
+        public static string GroomerPleaseSelectLocation {
+            get {
+                return ResourceManager.GetString("GroomerPleaseSelectLocation", resourceCulture);
+            }
+        }
+
+        public static string GroomerLocationCoordinatesNotValid {
+            get {
+                return ResourceManager.GetString("GroomerLocationCoordinatesNotValid", resourceCulture);
+            }
+        }
+
+        public static string GroomerPictureInvalid {
+            get {
+                return ResourceManager.GetString("GroomerPictureInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerPleaseEnterPhone {
+            get {
+                return ResourceManager.GetString("GroomerPleaseEnterPhone", resourceCulture);
+            }
+        }
+
+        public static string GroomerOwnerInvalid {
+            get {
+                return ResourceManager.GetString("GroomerOwnerInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerValueOutOfRange {
+            get {
+                return ResourceManager.GetString("GroomerValueOutOfRange", resourceCulture);
+            }
+        }
+
+        public static string GroomerServiceAlreadyExists {
+            get {
+                return ResourceManager.GetString("GroomerServiceAlreadyExists", resourceCulture);
+            }
+        }
+
+        public static string CompanionAssistanceGroomingNotAllowed {
+            get {
+                return ResourceManager.GetString("CompanionAssistanceGroomingNotAllowed", resourceCulture);
+            }
+        }
+
+        public static string GroomerServiceNotGrooming {
+            get {
+                return ResourceManager.GetString("GroomerServiceNotGrooming", resourceCulture);
+            }
+        }
+
+        public static string GroomerServiceAssistanceInvalid {
+            get {
+                return ResourceManager.GetString("GroomerServiceAssistanceInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerPackagePriceInvalid {
+            get {
+                return ResourceManager.GetString("GroomerPackagePriceInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerPackagePetSizeInvalid {
+            get {
+                return ResourceManager.GetString("GroomerPackagePetSizeInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerTimeInvalid {
+            get {
+                return ResourceManager.GetString("GroomerTimeInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerUserAlreadyExists {
+            get {
+                return ResourceManager.GetString("GroomerUserAlreadyExists", resourceCulture);
+            }
+        }
+
+        public static string GroomerCommentTextRequired {
+            get {
+                return ResourceManager.GetString("GroomerCommentTextRequired", resourceCulture);
+            }
+        }
+
+        public static string PortfolioPostNotFound {
+            get {
+                return ResourceManager.GetString("PortfolioPostNotFound", resourceCulture);
+            }
+        }
+
+        public static string PortfolioNeedsPicture {
+            get {
+                return ResourceManager.GetString("PortfolioNeedsPicture", resourceCulture);
+            }
+        }
+
+        public static string PortfolioTooManyPictures {
+            get {
+                return ResourceManager.GetString("PortfolioTooManyPictures", resourceCulture);
+            }
+        }
+
+        public static string PortfolioCaptionTooLong {
+            get {
+                return ResourceManager.GetString("PortfolioCaptionTooLong", resourceCulture);
+            }
+        }
+
+        public static string PortfolioCommentTooLong {
+            get {
+                return ResourceManager.GetString("PortfolioCommentTooLong", resourceCulture);
+            }
+        }
+
+        public static string PortfolioParentCommentInvalid {
+            get {
+                return ResourceManager.GetString("PortfolioParentCommentInvalid", resourceCulture);
+            }
+        }
+
+        public static string PortfolioPictureInvalid {
+            get {
+                return ResourceManager.GetString("PortfolioPictureInvalid", resourceCulture);
+            }
+        }
+        public static string GroomerReserveGroomerUnavailable {
+            get {
+                return ResourceManager.GetString("GroomerReserveGroomerUnavailable", resourceCulture);
+            }
+        }
+
+        public static string GroomerReservePackageInvalid {
+            get {
+                return ResourceManager.GetString("GroomerReservePackageInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerReservePetInvalid {
+            get {
+                return ResourceManager.GetString("GroomerReservePetInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerReservePetTypeNotAccepted {
+            get {
+                return ResourceManager.GetString("GroomerReservePetTypeNotAccepted", resourceCulture);
+            }
+        }
+
+        public static string GroomerReservePetSizeMismatch {
+            get {
+                return ResourceManager.GetString("GroomerReservePetSizeMismatch", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveTimeInPast {
+            get {
+                return ResourceManager.GetString("GroomerReserveTimeInPast", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveOutsideWorkingHours {
+            get {
+                return ResourceManager.GetString("GroomerReserveOutsideWorkingHours", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveSlotFull {
+            get {
+                return ResourceManager.GetString("GroomerReserveSlotFull", resourceCulture);
+            }
+        }
+
+        public static string GroomerReservePetBusy {
+            get {
+                return ResourceManager.GetString("GroomerReservePetBusy", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveHomeServiceUnavailable {
+            get {
+                return ResourceManager.GetString("GroomerReserveHomeServiceUnavailable", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveSalonServiceUnavailable {
+            get {
+                return ResourceManager.GetString("GroomerReserveSalonServiceUnavailable", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveAddressRequired {
+            get {
+                return ResourceManager.GetString("GroomerReserveAddressRequired", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveAddressOutOfZone {
+            get {
+                return ResourceManager.GetString("GroomerReserveAddressOutOfZone", resourceCulture);
+            }
+        }
+
+        public static string GroomerReservePickupUnavailable {
+            get {
+                return ResourceManager.GetString("GroomerReservePickupUnavailable", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveAssigneeInvalid {
+            get {
+                return ResourceManager.GetString("GroomerReserveAssigneeInvalid", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveDatePassed {
+            get {
+                return ResourceManager.GetString("GroomerReserveDatePassed", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveAwaitingOwnerApproval {
+            get {
+                return ResourceManager.GetString("GroomerReserveAwaitingOwnerApproval", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveApprovalNotPending {
+            get {
+                return ResourceManager.GetString("GroomerReserveApprovalNotPending", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveRejectReasonRequired {
+            get {
+                return ResourceManager.GetString("GroomerReserveRejectReasonRequired", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveApprovedSuccessfully {
+            get {
+                return ResourceManager.GetString("GroomerReserveApprovedSuccessfully", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveRejectedSuccessfully {
+            get {
+                return ResourceManager.GetString("GroomerReserveRejectedSuccessfully", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveRefundFailed {
+            get {
+                return ResourceManager.GetString("GroomerReserveRefundFailed", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveExpiredReason {
+            get {
+                return ResourceManager.GetString("GroomerReserveExpiredReason", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveCannotCancel {
+            get {
+                return ResourceManager.GetString("GroomerReserveCannotCancel", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveCancelledWithRefund {
+            get {
+                return ResourceManager.GetString("GroomerReserveCancelledWithRefund", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveCancelledNoRefund {
+            get {
+                return ResourceManager.GetString("GroomerReserveCancelledNoRefund", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveNotStartedYet {
+            get {
+                return ResourceManager.GetString("GroomerReserveNotStartedYet", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveAlreadyCompleted {
+            get {
+                return ResourceManager.GetString("GroomerReserveAlreadyCompleted", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveNotPaid {
+            get {
+                return ResourceManager.GetString("GroomerReserveNotPaid", resourceCulture);
+            }
+        }
+
+        public static string GroomerReviewNotAllowed {
+            get {
+                return ResourceManager.GetString("GroomerReviewNotAllowed", resourceCulture);
+            }
+        }
+
+        public static string GroomerReviewAlreadyExists {
+            get {
+                return ResourceManager.GetString("GroomerReviewAlreadyExists", resourceCulture);
+            }
+        }
+
+        public static string GroomerReviewRateInvalid {
+            get {
+                return ResourceManager.GetString("GroomerReviewRateInvalid", resourceCulture);
+            }
+        }
+        public static string ClubPointGroomerReserveCompletedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointGroomerReserveCompletedDescription", resourceCulture);
+            }
+        }
+
+        public static string ClubPointGroomerReserveReversedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointGroomerReserveReversedDescription", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveTooManyPackages {
+            get {
+                return ResourceManager.GetString("GroomerReserveTooManyPackages", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveDuplicateService {
+            get {
+                return ResourceManager.GetString("GroomerReserveDuplicateService", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveTooLong {
+            get {
+                return ResourceManager.GetString("GroomerReserveTooLong", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveRescheduleNotAllowed {
+            get {
+                return ResourceManager.GetString("GroomerReserveRescheduleNotAllowed", resourceCulture);
+            }
+        }
+
+        public static string GroomerReserveRescheduleSameTime {
+            get {
+                return ResourceManager.GetString("GroomerReserveRescheduleSameTime", resourceCulture);
+            }
+        }
+
+        public static string GroomerStaffInviteNotFound {
+            get {
+                return ResourceManager.GetString("GroomerStaffInviteNotFound", resourceCulture);
+            }
+        }
+
+        public static string GroomerStaffInviteAnswered {
+            get {
+                return ResourceManager.GetString("GroomerStaffInviteAnswered", resourceCulture);
+            }
+        }
+        public static string ClinicProviderRequired {
+            get {
+                return ResourceManager.GetString("ClinicProviderRequired", resourceCulture);
+            }
+        }
+
+        public static string ClinicSelectedStateInvalid {
+            get {
+                return ResourceManager.GetString("ClinicSelectedStateInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicSelectedCityNotInState {
+            get {
+                return ResourceManager.GetString("ClinicSelectedCityNotInState", resourceCulture);
+            }
+        }
+
+        public static string ClinicPleaseEnterAddress {
+            get {
+                return ResourceManager.GetString("ClinicPleaseEnterAddress", resourceCulture);
+            }
+        }
+
+        public static string ClinicPleaseSelectLocation {
+            get {
+                return ResourceManager.GetString("ClinicPleaseSelectLocation", resourceCulture);
+            }
+        }
+
+        public static string ClinicLocationCoordinatesNotValid {
+            get {
+                return ResourceManager.GetString("ClinicLocationCoordinatesNotValid", resourceCulture);
+            }
+        }
+
+        public static string ClinicPictureInvalid {
+            get {
+                return ResourceManager.GetString("ClinicPictureInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicPleaseEnterPhone {
+            get {
+                return ResourceManager.GetString("ClinicPleaseEnterPhone", resourceCulture);
+            }
+        }
+
+        public static string ClinicOwnerInvalid {
+            get {
+                return ResourceManager.GetString("ClinicOwnerInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicValueOutOfRange {
+            get {
+                return ResourceManager.GetString("ClinicValueOutOfRange", resourceCulture);
+            }
+        }
+
+        public static string ClinicServiceAlreadyExists {
+            get {
+                return ResourceManager.GetString("ClinicServiceAlreadyExists", resourceCulture);
+            }
+        }
+
+        public static string ClinicServiceNotGrooming {
+            get {
+                return ResourceManager.GetString("ClinicServiceNotGrooming", resourceCulture);
+            }
+        }
+
+        public static string ClinicServiceAssistanceInvalid {
+            get {
+                return ResourceManager.GetString("ClinicServiceAssistanceInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicPackagePriceInvalid {
+            get {
+                return ResourceManager.GetString("ClinicPackagePriceInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicPackagePetSizeInvalid {
+            get {
+                return ResourceManager.GetString("ClinicPackagePetSizeInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicTimeInvalid {
+            get {
+                return ResourceManager.GetString("ClinicTimeInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicUserAlreadyExists {
+            get {
+                return ResourceManager.GetString("ClinicUserAlreadyExists", resourceCulture);
+            }
+        }
+
+        public static string ClinicCommentTextRequired {
+            get {
+                return ResourceManager.GetString("ClinicCommentTextRequired", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveClinicUnavailable {
+            get {
+                return ResourceManager.GetString("ClinicReserveClinicUnavailable", resourceCulture);
+            }
+        }
+
+        public static string ClinicReservePackageInvalid {
+            get {
+                return ResourceManager.GetString("ClinicReservePackageInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicReservePetInvalid {
+            get {
+                return ResourceManager.GetString("ClinicReservePetInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicReservePetTypeNotAccepted {
+            get {
+                return ResourceManager.GetString("ClinicReservePetTypeNotAccepted", resourceCulture);
+            }
+        }
+
+        public static string ClinicReservePetSizeMismatch {
+            get {
+                return ResourceManager.GetString("ClinicReservePetSizeMismatch", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveTimeInPast {
+            get {
+                return ResourceManager.GetString("ClinicReserveTimeInPast", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveOutsideWorkingHours {
+            get {
+                return ResourceManager.GetString("ClinicReserveOutsideWorkingHours", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveSlotFull {
+            get {
+                return ResourceManager.GetString("ClinicReserveSlotFull", resourceCulture);
+            }
+        }
+
+        public static string ClinicReservePetBusy {
+            get {
+                return ResourceManager.GetString("ClinicReservePetBusy", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveHomeServiceUnavailable {
+            get {
+                return ResourceManager.GetString("ClinicReserveHomeServiceUnavailable", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveSalonServiceUnavailable {
+            get {
+                return ResourceManager.GetString("ClinicReserveSalonServiceUnavailable", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveAddressRequired {
+            get {
+                return ResourceManager.GetString("ClinicReserveAddressRequired", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveAddressOutOfZone {
+            get {
+                return ResourceManager.GetString("ClinicReserveAddressOutOfZone", resourceCulture);
+            }
+        }
+
+        public static string ClinicReservePickupUnavailable {
+            get {
+                return ResourceManager.GetString("ClinicReservePickupUnavailable", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveAssigneeInvalid {
+            get {
+                return ResourceManager.GetString("ClinicReserveAssigneeInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveDatePassed {
+            get {
+                return ResourceManager.GetString("ClinicReserveDatePassed", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveAwaitingOwnerApproval {
+            get {
+                return ResourceManager.GetString("ClinicReserveAwaitingOwnerApproval", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveApprovalNotPending {
+            get {
+                return ResourceManager.GetString("ClinicReserveApprovalNotPending", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveRejectReasonRequired {
+            get {
+                return ResourceManager.GetString("ClinicReserveRejectReasonRequired", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveApprovedSuccessfully {
+            get {
+                return ResourceManager.GetString("ClinicReserveApprovedSuccessfully", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveRejectedSuccessfully {
+            get {
+                return ResourceManager.GetString("ClinicReserveRejectedSuccessfully", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveRefundFailed {
+            get {
+                return ResourceManager.GetString("ClinicReserveRefundFailed", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveExpiredReason {
+            get {
+                return ResourceManager.GetString("ClinicReserveExpiredReason", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveCannotCancel {
+            get {
+                return ResourceManager.GetString("ClinicReserveCannotCancel", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveCancelledWithRefund {
+            get {
+                return ResourceManager.GetString("ClinicReserveCancelledWithRefund", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveCancelledNoRefund {
+            get {
+                return ResourceManager.GetString("ClinicReserveCancelledNoRefund", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveNotStartedYet {
+            get {
+                return ResourceManager.GetString("ClinicReserveNotStartedYet", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveAlreadyCompleted {
+            get {
+                return ResourceManager.GetString("ClinicReserveAlreadyCompleted", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveNotPaid {
+            get {
+                return ResourceManager.GetString("ClinicReserveNotPaid", resourceCulture);
+            }
+        }
+
+        public static string ClinicReviewNotAllowed {
+            get {
+                return ResourceManager.GetString("ClinicReviewNotAllowed", resourceCulture);
+            }
+        }
+
+        public static string ClinicReviewAlreadyExists {
+            get {
+                return ResourceManager.GetString("ClinicReviewAlreadyExists", resourceCulture);
+            }
+        }
+
+        public static string ClubPointClinicReserveCompletedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointClinicReserveCompletedDescription", resourceCulture);
+            }
+        }
+
+        public static string ClubPointClinicReserveReversedDescription {
+            get {
+                return ResourceManager.GetString("ClubPointClinicReserveReversedDescription", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveTooManyPackages {
+            get {
+                return ResourceManager.GetString("ClinicReserveTooManyPackages", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveDuplicateService {
+            get {
+                return ResourceManager.GetString("ClinicReserveDuplicateService", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveTooLong {
+            get {
+                return ResourceManager.GetString("ClinicReserveTooLong", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveRescheduleNotAllowed {
+            get {
+                return ResourceManager.GetString("ClinicReserveRescheduleNotAllowed", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveRescheduleSameTime {
+            get {
+                return ResourceManager.GetString("ClinicReserveRescheduleSameTime", resourceCulture);
+            }
+        }
+
+        public static string ClinicStaffInviteNotFound {
+            get {
+                return ResourceManager.GetString("ClinicStaffInviteNotFound", resourceCulture);
+            }
+        }
+
+        public static string ClinicReviewRateInvalid {
+            get {
+                return ResourceManager.GetString("ClinicReviewRateInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicStaffInviteAnswered {
+            get {
+                return ResourceManager.GetString("ClinicStaffInviteAnswered", resourceCulture);
+            }
+        }
+
+        public static string ClinicServiceIsGrooming {
+            get {
+                return ResourceManager.GetString("ClinicServiceIsGrooming", resourceCulture);
+            }
+        }
+
+        public static string ClinicPackageModeInvalid {
+            get {
+                return ResourceManager.GetString("ClinicPackageModeInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveModeInvalid {
+            get {
+                return ResourceManager.GetString("ClinicReserveModeInvalid", resourceCulture);
+            }
+        }
+
+        public static string ClinicReserveOnlineUnavailable {
+            get {
+                return ResourceManager.GetString("ClinicReserveOnlineUnavailable", resourceCulture);
+            }
+        }
+
+        public static string ClinicReservePackageNotOffered {
+            get {
+                return ResourceManager.GetString("ClinicReservePackageNotOffered", resourceCulture);
+            }
+        }
+
+        public static string ClinicRescheduleReasonByOwner {
+            get {
+                return ResourceManager.GetString("ClinicRescheduleReasonByOwner", resourceCulture);
+            }
+        }
+
+        public static string ClinicRescheduleReasonBySupport {
+            get {
+                return ResourceManager.GetString("ClinicRescheduleReasonBySupport", resourceCulture);
+            }
+        }
+
     }
 }

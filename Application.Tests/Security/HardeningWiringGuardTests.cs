@@ -67,6 +67,7 @@ public class HardeningWiringGuardTests
         Assert.Contains("\"AllowedHosts\", \"PASTIL_ALLOWED_HOSTS\"", secrets);
         Assert.Contains("\"Security:AreaPolicyMode\", \"PASTIL_AREA_POLICY_MODE\"", secrets);
         Assert.Contains("\"Security:OtpLength\", \"PASTIL_OTP_LENGTH\"", secrets);
+        Assert.Contains("\"Security:CompanionOwnerMaxSessions\", \"PASTIL_COMPANION_OWNER_MAX_SESSIONS\"", secrets);
     }
 
     [Fact]

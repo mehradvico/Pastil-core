@@ -43,6 +43,7 @@ namespace Api.Areas.EndUser.Controllers
         /// </summary>
         ///
         [HttpPost("{ticketId}")]
+        [global::Api.Filter.IdempotentRequest]
         [ProducesResponseType(typeof(BaseResultDto<TicketItemVDto>), 200)]
         public async Task<IActionResult> Post(long ticketId, SendTicketMessageDto dto)
         {

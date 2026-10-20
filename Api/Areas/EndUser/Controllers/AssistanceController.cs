@@ -29,6 +29,7 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(AssistanceSearchDto), 200)]
         public IActionResult Get([FromQuery] AssistanceInputDto dto)
         {
+            dto.IsGrooming ??= false;
             var search = _assistanceService.Search(dto);
             return Ok(search);
         }

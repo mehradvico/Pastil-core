@@ -18,11 +18,14 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto> InsertOrUpdateAsync(TripDto dto);
         Task<BaseResultDto<TripVDto>> GetUserCurrentTrip(long userId);
         Task<BaseResultDto<TripVDto>> GetDriverCurrentTrip(long driverId);
+        Task<BaseResultDto<TripVDto>> GetTripForDriverAsync(long id, long driverId);
         Task<BaseResultDto> TripPaymentCallback(long? tripId, bool fromWallet = false);
         Task<BaseResultDto<TripDriverChangeStatusDto>> UpdateTripDriverStatusAsync(TripDriverChangeStatusDto dto);
         Task<BaseResultDto<TripShareDto>> UpdateTripShareAsync(TripShareDto dto);
         Task<BaseResultDto<TripAdminChooseDriverDto>> ChooseDriverAsync(TripAdminChooseDriverDto dto);
         Task<BaseResultDto<TripChangeStatusDto>> TripChangeStatusAsync(TripChangeStatusDto dto);
+        Task<BaseResultDto<int>> AdminCancelPetResanServiceAsync(TripAdminActionDto dto);
+        Task<BaseResultDto<Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceBulkCancelResultDto>> AdminCancelPetResanServicesAsync(Application.Services.TripSrv.PetResanServiceSrv.Dto.PetResanServiceBulkCancelDto dto);
         Task<BaseResultDto<TripVDto>> AdminCancelAsync(TripAdminActionDto dto, Application.Common.Enumerable.TripCancelInitiatorEnum initiator = Application.Common.Enumerable.TripCancelInitiatorEnum.Admin);
         Task CancelLinkedTripForCompanionReserveAsync(long companionReserveId);
         Task CancelLinkedTripForPansionReserveAsync(long pansionReserveId);
@@ -33,7 +36,7 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto> SetWalletAsyncDto(TripSetWalletDto dto);
         Task<BaseResultDto> ClearRebateCodeAsync(long id);
         Task SyncDriverAcceptAsync();
-        Task NotifyAdminForSlowInstantTripsAsync();
+        Task NotifyAdminForUnassignedTripsAsync();
 
         // پت‌رسان — مراحل ریز پیشرفت سفر
         Task<BaseResultDto<TripVDto>> AdvanceTripProgressAsync(long tripId, long driverId, TripProgressStageEnum targetStage);
@@ -53,7 +56,7 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         // (وگرنه تا job فردا که فقط «پس‌فردا» را می‌سازد از دست می‌رفت). تعداد نوبت‌های ساخته‌شده را برمی‌گرداند.
         Task<int> GeneratePetResanServiceTripsForNewServiceAsync(long serviceId);
         Task DispatchScheduledTripsAsync();
-        Task AutoCancelUnansweredInstantTripsAsync();
+        Task AutoCancelUnassignedTripsAsync();
         Task<BaseResultDto<TripVDto>> RequestAdminDriverSelectionAsync(long tripId, long userId);
 
         // پت‌رسان — حالت سه: سفر تاریخ‌دار (نه لحظه‌ای، نه متصل به رزرو)

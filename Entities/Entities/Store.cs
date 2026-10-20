@@ -1,5 +1,6 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.LocationField;
+using Entities.Entities.ProviderField;
 using Entities.Entities.Security;
 using NetTopologySuite.Geometries;
 using System;
@@ -10,6 +11,8 @@ namespace Entities.Entities
     public class Store : Seo_Full_Field
     {
         public string ReferralCode { get; set; }
+        /// <summary>ارائه‌دهنده‌ی صاحب فروشگاه. Users (جدول StoreUser) پرسنل فروشگاه هستند.</summary>
+        public long? ProviderId { get; set; }
         public string Phone { get; set; }
         public string Mobile { get; set; }
         public string Email { get; set; }
@@ -38,6 +41,7 @@ namespace Entities.Entities
         public Picture Icon { get; set; }
         public Code Type { get; set; }
         public City City { get; set; }
+        public Provider Provider { get; set; }
         public ICollection<User> Users { get; set; }
         public ICollection<StoreComment> StoreComments { get; set; }
     }

@@ -49,8 +49,9 @@ Adapterهای الوپیک، تیپاکس و اسنپ‌باکس هنوز Test M
 
 - `GetQuoteAsync`: استعلام واقعی قیمت روی `GET /estimate/price/` (Base URL جدای Accounting:
   `Shipping:Miare:AccountingBaseUrl` / `.../api/accounting`، جدا از Base URL بالا که مخصوص Trip Management
-  است). قیمت پاسخ میاره به تومان است و قبل از ذخیره در Quote، در کد ضرب‌در‌ده می‌شود تا با واحد ریالی
-  بقیه‌ی سیستم یکی باشد. اگر `area_coverage` پاسخ `false` باشد، استعلام Fail می‌شود (پیام:
+  است). واحد قیمت پاسخ میاره بسته به محیط فرق دارد (Staging: تومان، Production: ریال؛ ۲۵ مهر ۱۴۰۵) و با
+  `Shipping:Miare:AmountUnit` (`Toman` | `Rial`) به **تومان** تبدیل می‌شود؛ بقیه‌ی سیستم (Quote، سبد، وب‌اپ) تومان است و ضرب‌در‌ده
+  ندارد. جزئیات: `PRE_LAUNCH_BACKEND_FIXES_FA.md` ← «واحد مبلغ‌های میاره». اگر `area_coverage` پاسخ `false` باشد، استعلام Fail می‌شود (پیام:
   `ShippingProviderAreaNotCoveredFormat`).
 - `CreateShipmentAsync` / `CancelShipmentAsync`: واقعی، روی `POST /trips/` و `POST /trips/{id}/cancel/`.
 - **Webhook**: `Api/Controllers/MiareWebhookController.cs` روی `POST /api/webhooks/miare` رویدادهای میاره

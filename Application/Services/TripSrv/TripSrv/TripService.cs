@@ -32,6 +32,7 @@ using Microsoft.Extensions.Logging;
 using NetTopologySuite.Geometries;
 using Persistence.Interface;
 using System;
+using System.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -509,6 +510,61 @@ namespace Application.Services.TripSrv.TripSrv
                 && t.TripStartDateTime <= busyThreshold);
         }
 
+        /// <summary>جزئیات یک سفر برای راننده‌ی همان سفر؛ شامل برنامه‌ی هفتگی اگر نوبتِ سرویس باشد.</summary>
+        public async Task<BaseResultDto<TripVDto>> GetTripForDriverAsync(long id, long driverId)
+        {
+            var result = await FindAsyncVDto(id);
+            if (!result.IsSuccess || result.Data == null || result.Data.DriverId != driverId)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.AccessDenied, null);
+            await AttachServiceInfoAsync(new[] { result.Data });
+            return result;
+        }
+
+        // برنامه‌ی هفتگیِ سرویس را روی نوبت‌های سرویس می‌گذارد (برای اپ راننده؛ بدون قیمت/اطلاعات شخصی)
+        private async Task AttachServiceInfoAsync(IEnumerable<TripVDto> trips)
+        {
+            var list = trips?.Where(t => t != null && t.PetResanServiceScheduleId.HasValue).ToList();
+            if (list == null || list.Count == 0)
+                return;
+
+            var scheduleIds = list.Select(t => t.PetResanServiceScheduleId.Value).Distinct().ToList();
+            var rows = await _context.PetResanServiceSchedules.AsNoTracking()
+                .Where(s => scheduleIds.Contains(s.Id))
+                .Select(s => new
+                {
+                    ScheduleId = s.Id,
+                    Service = s.PetResanService,
+                    Schedules = s.PetResanService.Schedules
+                        .Where(x => x.Active)
+                        .Select(x => new TripServiceScheduleVDto
+                        {
+                            WeekDayId = x.WeekDayId,
+                            WeekDayName = x.WeekDay.Name,
+                            WeekDayNumber = x.WeekDay.Number,
+                            Time = x.Time,
+                            ReturnTime = x.ReturnTime
+                        }).ToList()
+                })
+                .ToListAsync();
+
+            var byId = rows.ToDictionary(r => r.ScheduleId);
+            foreach (var trip in list)
+            {
+                if (!byId.TryGetValue(trip.PetResanServiceScheduleId.Value, out var row))
+                    continue;
+                trip.PetResanService = new TripServiceInfoVDto
+                {
+                    ServiceId = row.Service.Id,
+                    ScheduleId = row.ScheduleId,
+                    Active = row.Service.Active,
+                    StartDate = row.Service.StartDate,
+                    TotalWeeks = row.Service.TotalWeeks,
+                    EndDate = row.Service.EndDate,
+                    Schedules = row.Schedules.OrderBy(x => x.WeekDayNumber).ThenBy(x => x.Time, StringComparer.Ordinal).ToList()
+                };
+            }
+        }
+
         public async Task<BaseResultDto<TripVDto>> GetDriverCurrentTrip(long driverId)
         {
             var item = await _context.Trips.Include(s => s.TripStop).Include(s => s.TripOptions).Include(s => s.UserPet).ThenInclude(s => s.User)
@@ -516,7 +572,9 @@ namespace Application.Services.TripSrv.TripSrv
                 .FirstOrDefaultAsync(s => s.DriverId == driverId && s.IsOnline && (s.TripStatusId == (long)TripStatusEnum.TripStatus_Requested || s.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted) && s.DriverStatusId != (long)DriverRequestStatusEnum.DriverRequestStatus_Rejected);
             if (item != null)
             {
-                return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(item));
+                var current = mapper.Map<TripVDto>(item);
+                await AttachServiceInfoAsync(new[] { current });
+                return new BaseResultDto<TripVDto>(true, current);
             }
             return new BaseResultDto<TripVDto>(false, mapper.Map<TripVDto>(item));
         }
@@ -831,20 +889,32 @@ namespace Application.Services.TripSrv.TripSrv
             if (trip.TripStatusId == (long)TripStatusEnum.TripStatus_Compeleted || trip.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled)
                 return new BaseResultDto<TripVDto>(false, Resource.Notification.PleaseChangeTheStatus, null);
 
-            var detail = string.IsNullOrWhiteSpace(dto.Detail) ? null : dto.Detail.Trim();
+            await CancelTripByAdminCoreAsync(trip, initiator, dto.Detail, notifyUser: true);
+
+            // فقط همین نوبت لغو می‌شود؛ اگر سرویس هفتگی هنوز فعال است نوبت هفته‌ی بعد ساخته می‌شود
+            // (برای توقف کل سرویس: AdminCancelPetResanServiceAsync)
+            if (trip.PetResanServiceScheduleId.HasValue)
+                await CreateNextServiceOccurrenceAsync(trip.Id);
+            return await FindAsyncVDto(trip.Id);
+        }
+
+        // لغو + برگشت پول + پوش راننده (و در صورت خواست، کاربر)؛ مشترک بین لغو یک سفر و لغو کل سرویس هفتگی
+        private async Task CancelTripByAdminCoreAsync(Trip trip, TripCancelInitiatorEnum initiator, string detail, bool notifyUser)
+        {
             var previousDriverId = trip.DriverId;
 
             trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
             trip.CancelInitiatorId = (int)initiator;
             trip.CancelReasonCodeId = null;
-            trip.CancelReasonDetail = detail;
+            trip.CancelReasonDetail = string.IsNullOrWhiteSpace(detail) ? null : detail.Trim();
             trip.ProgressUpdateDate = DateTime.Now;
             _context.Trips.Update(trip);
-            await _context.SaveChangesAsync();
+            await SaveCancellationWithRefundAsync(trip);
 
             try
             {
-                await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripCanceled, trip.UserId);
+                if (notifyUser)
+                    await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripCanceled, trip.UserId);
                 if (previousDriverId.HasValue)
                 {
                     var driver = await _context.Drivers.FindAsync(previousDriverId.Value);
@@ -856,10 +926,183 @@ namespace Application.Services.TripSrv.TripSrv
             {
                 _logger.LogError(ex, "Sending admin-cancel push for trip {TripId} failed.", trip.Id);
             }
+        }
 
-            if (trip.PetResanServiceScheduleId.HasValue)
-                await CreateNextServiceOccurrenceAsync(trip.Id);
-            return await FindAsyncVDto(trip.Id);
+        /// <summary>
+        /// لغو کل سرویس هفتگیِ این سفر توسط ادمین: سرویس غیرفعال می‌شود (دیگر هیچ نوبتی ساخته نمی‌شود — نه با لغو/تکمیل
+        /// نوبت‌ها، نه با لغو خودکار بدون راننده، نه با job شروع برنامه) و همه‌ی نوبت‌های شروع‌نشده‌اش لغو و پولشان برگردانده
+        /// می‌شود. قبلاً پنل فقط «لغو سفر» داشت که همان نوبت را لغو و بلافاصله نوبت هفته‌ی بعد را می‌ساخت.
+        /// </summary>
+        public async Task<BaseResultDto<int>> AdminCancelPetResanServiceAsync(TripAdminActionDto dto)
+        {
+            var serviceId = await _context.Trips.AsNoTracking()
+                .Where(t => t.Id == dto.Id && t.PetResanServiceScheduleId != null)
+                .Select(t => (long?)t.PetResanServiceSchedule.PetResanServiceId)
+                .FirstOrDefaultAsync();
+            if (!serviceId.HasValue)
+                return new BaseResultDto<int>(false, Resource.Notification.NothingFound, 0);
+
+            var canceled = await StopPetResanServiceAsync(serviceId.Value, TripCancelInitiatorEnum.Admin, dto.Detail);
+            return canceled < 0
+                ? new BaseResultDto<int>(false, Resource.Notification.NothingFound, 0)
+                : new BaseResultDto<int>(true, Resource.Notification.Success, canceled);
+        }
+
+        /// <summary>لغو گروهی سرویس‌های هفتگی از صفحه‌ی «سرویس‌های هفتگی» پنل؛ هر سرویس مثل لغو تکی متوقف می‌شود.</summary>
+        public async Task<BaseResultDto<PetResanServiceSrv.Dto.PetResanServiceBulkCancelResultDto>> AdminCancelPetResanServicesAsync(PetResanServiceSrv.Dto.PetResanServiceBulkCancelDto dto)
+        {
+            var ids = (dto?.Ids ?? new List<long>()).Where(id => id > 0).Distinct().ToList();
+            if (ids.Count == 0)
+                return new BaseResultDto<PetResanServiceSrv.Dto.PetResanServiceBulkCancelResultDto>(false, Resource.Notification.NothingFound, null);
+
+            var result = new PetResanServiceSrv.Dto.PetResanServiceBulkCancelResultDto();
+            foreach (var id in ids)
+            {
+                try
+                {
+                    var canceled = await StopPetResanServiceAsync(id, TripCancelInitiatorEnum.Admin, dto.Detail);
+                    if (canceled < 0)
+                    {
+                        result.NotFound++;
+                        continue;
+                    }
+                    result.Services++;
+                    result.Occurrences += canceled;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Bulk-canceling weekly service {ServiceId} failed.", id);
+                }
+                finally
+                {
+                    // هر سرویس با context تمیز؛ موجودیت‌های ردیابی‌شده‌ی سرویس قبلی نباید در ذخیره‌ی بعدی بیایند
+                    (_context as DbContext)?.ChangeTracker.Clear();
+                }
+            }
+
+            return new BaseResultDto<PetResanServiceSrv.Dto.PetResanServiceBulkCancelResultDto>(result.Services > 0, result.Services > 0 ? Resource.Notification.Success : Resource.Notification.NothingFound, result);
+        }
+
+        /// <summary>
+        /// توقف یک سرویس هفتگی (مشترک بین لغو ادمین از سفر، لغو گروهی سرویس‌ها و توقف خودکارِ بی‌راننده): اول غیرفعال، بعد لغو
+        /// همه‌ی نوبت‌های شروع‌نشده با برگشت پول و یک پوش به کاربر. خروجی: تعداد نوبت‌های لغوشده، یا -1 اگر سرویس پیدا نشد.
+        /// </summary>
+        private async Task<int> StopPetResanServiceAsync(long serviceId, TripCancelInitiatorEnum initiator, string detail)
+        {
+            var service = await _context.PetResanServices.AsTracking().FirstOrDefaultAsync(s => s.Id == serviceId);
+            if (service == null)
+                return -1;
+
+            // اول غیرفعال: CreateNextServiceOccurrenceAsync و GenerateUpcomingOccurrencesAsync سرویس غیرفعال را رد می‌کنند
+            if (service.Active || !service.CancelDate.HasValue)
+            {
+                service.Active = false;
+                service.CancelDate ??= DateTime.Now;
+                await _context.SaveChangesAsync();
+            }
+
+            // نوبت‌های درخواست‌شده (هر زمان) و پذیرفته‌شده‌ای که زمانشان نرسیده و راننده هنوز به مبدا نرسیده
+            // (پذیرش با EnRouteOrigin ثبت می‌شود)؛ سفرِ در جریان دست نمی‌خورد
+            var now = DateTime.Now;
+            var tripIds = await _context.Trips.AsNoTracking()
+                .Where(t => t.PetResanServiceSchedule.PetResanServiceId == service.Id
+                    && (t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
+                        || (t.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted
+                            && t.ProgressStageId <= (int)TripProgressStageEnum.EnRouteOrigin
+                            && t.TripStartDateTime > now)))
+                .Select(t => t.Id)
+                .ToListAsync();
+
+            var canceled = 0;
+            foreach (var tripId in tripIds)
+            {
+                try
+                {
+                    var trip = await _context.Trips.AsTracking().FirstOrDefaultAsync(t => t.Id == tripId);
+                    if (trip == null
+                        || trip.TripStatusId == (long)TripStatusEnum.TripStatus_Compeleted
+                        || trip.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled)
+                        continue;
+                    await CancelTripByAdminCoreAsync(trip, initiator, detail, notifyUser: false);
+                    canceled++;
+                }
+                catch (Exception ex)
+                {
+                    // یک نوبت مشکل‌دار نباید بقیه را نگه دارد؛ سرویس به‌هرحال غیرفعال شده و نوبت تازه‌ای ساخته نمی‌شود
+                    _logger.LogError(ex, "Canceling occurrence {TripId} of weekly service {ServiceId} failed.", tripId, service.Id);
+                }
+            }
+
+            // یک پوش برای کاربر، نه یکی برای هر نوبت
+            if (canceled > 0)
+            {
+                try
+                {
+                    await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripCanceled, service.UserId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Sending weekly-service cancel push for service {ServiceId} failed.", service.Id);
+                }
+            }
+
+            _logger.LogInformation("Weekly service {ServiceId} stopped by {Initiator}: {Count} upcoming occurrence(s) canceled.", service.Id, initiator, canceled);
+            return canceled;
+        }
+
+        /// <summary>
+        /// بعد از لغو خودکارِ بی‌راننده‌ی یک نوبت: اگر آخرین <see cref="PetResanServiceTripRules.StopAfterNoDriverDays"/> روزِ
+        /// سرویس همه بدون راننده بوده‌اند، سرویس متوقف می‌شود (به‌جای ساختن نوبت هفته‌ی بعد). اگر راننده‌ای یک نوبت آینده را
+        /// پذیرفته، سرویس قابل‌انجام است و متوقف نمی‌شود. true یعنی متوقف شد.
+        /// </summary>
+        private async Task<bool> StopServiceAfterRepeatedNoDriverAsync(long tripId)
+        {
+            try
+            {
+                var serviceId = await _context.Trips.AsNoTracking()
+                    .Where(t => t.Id == tripId && t.PetResanServiceScheduleId != null)
+                    .Select(t => (long?)t.PetResanServiceSchedule.PetResanServiceId)
+                    .FirstOrDefaultAsync();
+                if (!serviceId.HasValue)
+                    return false;
+
+                var now = DateTime.Now;
+                if (await _context.Trips.AnyAsync(t => t.PetResanServiceSchedule.PetResanServiceId == serviceId.Value
+                        && t.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted
+                        && t.TripStartDateTime > now))
+                    return false;
+
+                // نوبت‌های تمام‌شده (تکمیل/لغو)؛ لغو System در نوبت سرویس فقط از job لغو خودکارِ بی‌راننده می‌آید
+                var finished = await _context.Trips.AsNoTracking()
+                    .Where(t => t.PetResanServiceSchedule.PetResanServiceId == serviceId.Value
+                        && t.TripStartDateTime != null
+                        && (t.TripStatusId == (long)TripStatusEnum.TripStatus_Compeleted || t.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled))
+                    .OrderByDescending(t => t.TripStartDateTime)
+                    .Take(20)
+                    .Select(t => new
+                    {
+                        Start = t.TripStartDateTime.Value,
+                        NoDriver = t.TripStatusId == (long)TripStatusEnum.TripStatus_Canceled
+                            && t.CancelInitiatorId == (int)TripCancelInitiatorEnum.System
+                            && t.DriverId == null
+                    })
+                    .ToListAsync();
+
+                if (!PetResanServiceTripRules.ShouldStopForNoDriver(finished.Select(o => (o.Start, o.NoDriver))))
+                    return false;
+
+                var canceled = await StopPetResanServiceAsync(serviceId.Value, TripCancelInitiatorEnum.System, Resource.Notification.PetResanServiceStoppedNoDriver);
+                if (canceled < 0)
+                    return false;
+                _logger.LogInformation("Weekly service {ServiceId} auto-stopped: no driver on {Days} consecutive service days.", serviceId.Value, PetResanServiceTripRules.StopAfterNoDriverDays);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // در خطا مثل قبل نوبت هفته‌ی بعد ساخته می‌شود؛ لغو خودِ سفر نباید به‌خاطر این بررسی شکست بخورد
+                _logger.LogError(ex, "Checking auto-stop for the weekly service of trip {TripId} failed.", tripId);
+                return false;
+            }
         }
 
         // لغو خودکار سفر پت‌رسانِ متصل، وقتی خودِ رزرو (خدمت/پانسیون/مدرسه) لغو می‌شود؛ بی‌صدا نادیده می‌گیرد اگر
@@ -955,62 +1198,52 @@ namespace Application.Services.TripSrv.TripSrv
         // پیامک به ادمین حذف شد؛ job (DriverAccept) برای سازگاری با HangFire باقی مانده و فعلاً کاری انجام نمی‌دهد.
         public Task SyncDriverAcceptAsync() => Task.CompletedTask;
 
-        // Job هر دقیقه: سفرهای فوری Broadcast (بدون راننده‌ی از‌قبل‌انتخاب‌شده - DriverId خالی، برخلاف
-        // SyncDriverAcceptAsync بالا که مخصوص انتخاب مستقیم راننده است) که مدتی است هیچ راننده‌ای قبولش
-        // نکرده اما هنوز به مهلت AutoCancelUnansweredInstantTripsAsync (پایین‌تر، ۵ دقیقه) نرسیده‌اند.
-        // این «مرحله‌ی ۱» است: فقط یک هشدار زودهنگام به کاربر که ادمین در جریان است - سفر لغو نمی‌شود.
-        // «مرحله‌ی ۲» (وقتی واقعاً نا‌امید می‌شویم و باید رزرو/سرویس دیگری پیشنهاد بدهیم) همان لحظه‌ی
-        // لغو خودکار توسط AutoCancelUnansweredInstantTripsAsync است - آنجا پوش نهایی فرستاده می‌شود.
-        // Idempotent از طریق چک PushNotifications قبلی با همان کاربر/الگو/Token1=TripId (بدون ستون جدید،
-        // هم‌الگوی SyncDriverAcceptAsync).
-        private const int InstantTripAdminNoticeDelayMinutes = 2;
+        // Job هر دقیقه: سفر درخواست‌شده‌ای (فوری، رزرو یا نوبت سرویس) که ۱۰ دقیقه از ثبتش گذشته و هنوز راننده‌ای قبولش
+        // نکرده ⇒ اعلان پنل به ادمین (TripDriverSelectionRequired) تا دستی راننده انتخاب کند. اگر تا مهلت
+        // AutoCancelUnassignedTripsAsync (پایین‌تر) رسیدگی نشود سفر لغو می‌شود (TripDriverTimeoutRules).
+        // برای سفر فوری همان پوش قبلی «ادمین در جریان است» هم به کاربر می‌رود (قبلاً بعد از ۲ دقیقه).
+        // Idempotent: Notice با DeduplicationKey و پوش با چک PushNotifications قبلی (Token1=TripId).
+        private static readonly TimeSpan AdminNoticeLookback = TimeSpan.FromMinutes(40);
 
-        public async Task NotifyAdminForSlowInstantTripsAsync()
+        public async Task NotifyAdminForUnassignedTripsAsync()
         {
             var now = DateTime.Now;
-            var noticeThreshold = now.AddMinutes(-InstantTripAdminNoticeDelayMinutes);
-            var autoCancelThreshold = now.AddMinutes(-InstantTripDriverSearchTimeoutMinutes);
+            var noticeThreshold = now - TripDriverTimeoutRules.AdminNoticeDelay;
+            var lookback = noticeThreshold - AdminNoticeLookback;
 
-            var pendingTrips = await _context.Trips
-                .Where(t => !t.ScheduledDepartureAt.HasValue
-                    && t.PetResanServiceScheduleId == null
-                    && !t.DriverId.HasValue
-                    && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
+            var pendingTrips = await _context.Trips.AsNoTracking()
+                .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
                     && t.CreateDate <= noticeThreshold
-                    && t.CreateDate > autoCancelThreshold)
+                    && t.CreateDate > lookback)
                 .ToListAsync();
-
-            if (pendingTrips.Count == 0)
-                return;
 
             foreach (var trip in pendingTrips)
             {
                 try
                 {
-                    var tripIdToken = trip.Id.ToString();
+                    await _noticeService.CreateAsync(new NoticeCreateDto
+                    {
+                        Label = NoticeTypeLabels.TripDriverSelectionRequired,
+                        ActorUserId = trip.UserId,
+                        ReferenceType = "Trip",
+                        ReferenceId = trip.Id,
+                        DeduplicationKey = $"DriverSelectionDue:{trip.Id}"
+                    });
 
+                    if (!TripDriverTimeoutRules.IsInstant(trip.ScheduledDepartureAt, trip.PetResanServiceScheduleId) || trip.DriverId.HasValue)
+                        continue;
+
+                    var tripIdToken = trip.Id.ToString();
                     var alreadyNotified = await _context.PushNotifications
                         .AnyAsync(p => p.UserId == trip.UserId
                             && p.PushPattern.PushTypeId == (long)PushTypeEnum.PushTripNoDriverAdminNotified
                             && p.Token1 == tripIdToken);
-
-                    if (alreadyNotified)
-                        continue;
-
-                    await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripNoDriverAdminNotified, trip.UserId, token1: tripIdToken);
-
-                    await _noticeService.CreateAsync(new NoticeCreateDto
-                    {
-                        Label = NoticeTypeLabels.TripNoDriverFound,
-                        ActorUserId = trip.UserId,
-                        ReferenceType = "Trip",
-                        ReferenceId = trip.Id,
-                        DeduplicationKey = $"{NoticeTypeLabels.TripNoDriverFound}:{trip.Id}"
-                    });
+                    if (!alreadyNotified)
+                        await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripNoDriverAdminNotified, trip.UserId, token1: tripIdToken);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Notifying about slow driver search for trip {TripId} failed.", trip.Id);
+                    _logger.LogError(ex, "Notifying admin about unassigned trip {TripId} failed.", trip.Id);
                 }
             }
         }
@@ -1304,7 +1537,9 @@ namespace Application.Services.TripSrv.TripSrv
                 .OrderBy(t => t.CreateDate)
                 .ToListAsync();
 
-            return new BaseResultDto<List<TripVDto>>(true, mapper.Map<List<TripVDto>>(trips));
+            var result = mapper.Map<List<TripVDto>>(trips);
+            await AttachServiceInfoAsync(result);
+            return new BaseResultDto<List<TripVDto>>(true, result);
         }
 
         /// <summary>
@@ -1331,7 +1566,9 @@ namespace Application.Services.TripSrv.TripSrv
                 .OrderBy(t => t.TripStartDateTime)
                 .ToListAsync();
 
-            return new BaseResultDto<List<TripVDto>>(true, mapper.Map<List<TripVDto>>(trips));
+            var result = mapper.Map<List<TripVDto>>(trips);
+            await AttachServiceInfoAsync(result);
+            return new BaseResultDto<List<TripVDto>>(true, result);
         }
 
         /// <summary>
@@ -1471,7 +1708,7 @@ namespace Application.Services.TripSrv.TripSrv
                 });
             }
 
-            await _context.SaveChangesAsync();
+            await SaveCancellationWithRefundAsync(trip);
 
             try
             {
@@ -1528,7 +1765,7 @@ namespace Application.Services.TripSrv.TripSrv
             trip.ProgressUpdateDate = DateTime.Now;
 
             _context.Trips.Update(trip);
-            await _context.SaveChangesAsync();
+            await SaveCancellationWithRefundAsync(trip);
 
             if (previousDriverId.HasValue)
             {
@@ -2816,70 +3053,168 @@ namespace Application.Services.TripSrv.TripSrv
             await _context.SaveChangesAsync();
         }
 
-        // Job زمان‌بندی‌شده (Hangfire): برخلاف DispatchScheduledTripsAsync (که فقط سفرهای
-        // تاریخ‌دار رو پوشش می‌ده)، این Job سفرهای «لحظه‌ای» (بدون ScheduledDepartureAt) رو
-        // بررسی می‌کنه — اگه ۵ دقیقه از ثبت درخواست گذشته و هنوز هیچ راننده‌ای قبول نکرده،
-        // درخواست به‌صورت خودکار لغو می‌شه تا کاربر توی صفحه‌ی انتظار برای همیشه گیر نکنه؛
-        // کاربر می‌تونه دوباره درخواست بزنه یا از ادمین بخواد خودش راننده انتخاب کنه.
-        private const int InstantTripDriverSearchTimeoutMinutes = 5;
-
-        public async Task AutoCancelUnansweredInstantTripsAsync()
+        // Job هر دقیقه: سفر درخواست‌شده‌ای که تا مهلتش (TripDriverTimeoutRules.CancelAt: فوری ۳۰ دقیقه بعد از ثبت، رزرو/سرویس
+        // ۳۰ دقیقه مانده به حرکت) هیچ راننده‌ای نگرفته، لغو خودکار (System) می‌شود. هر سفر در تراکنش خودش و با UPDATE شرطی
+        // (هنوز Requested) لغو می‌شود تا با قبولِ هم‌زمان راننده یا انتخاب دستی ادمین تداخل نکند. مبلغ پرداخت‌شده (نوبت‌های سرویس
+        // از کیف پول پیش‌پرداخت می‌شوند) به کیف پول برمی‌گردد. لغو نوبت سرویس نوبت هفته‌ی بعد را می‌سازد (مثل لغو دستی ادمین).
+        public async Task AutoCancelUnassignedTripsAsync()
         {
-            var cutoff = DateTime.Now.AddMinutes(-InstantTripDriverSearchTimeoutMinutes);
+            var now = DateTime.Now;
+            var earliestCandidate = now - TripDriverTimeoutRules.CancelAfterRequest;
 
-            var due = await _context.Trips
-                .Where(t =>
-                    !t.ScheduledDepartureAt.HasValue &&
-                    t.PetResanServiceScheduleId == null &&
-                    t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested &&
-                    t.DriverId == null &&
-                    t.CreateDate <= cutoff)
-                .AsTracking()
+            var candidates = await _context.Trips.AsNoTracking()
+                .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested && t.CreateDate <= earliestCandidate)
+                .Select(t => new { t.Id, t.CreateDate, t.ScheduledDepartureAt, t.PetResanServiceScheduleId, t.TripStartDateTime })
                 .ToListAsync();
 
-            if (due.Count == 0)
-                return;
+            var dueIds = candidates
+                .Where(t => TripDriverTimeoutRules.CancelAt(
+                    t.CreateDate,
+                    TripDriverTimeoutRules.Departure(t.ScheduledDepartureAt, t.PetResanServiceScheduleId, t.TripStartDateTime)) <= now)
+                .Select(t => t.Id)
+                .ToList();
 
-            foreach (var trip in due)
-            {
-                trip.TripStatusId = (long)TripStatusEnum.TripStatus_Canceled;
-                trip.CancelInitiatorId = (int)TripCancelInitiatorEnum.System;
-                trip.CancelReasonDetail = Resource.Notification.TripAutoCanceledNoDriverAccepted;
-                trip.ProgressUpdateDate = DateTime.Now;
-                _context.Trips.Update(trip);
-            }
-
-            await _context.SaveChangesAsync();
-
-            foreach (var trip in due)
+            foreach (var tripId in dueIds)
             {
                 try
                 {
-                    await _noticeService.CreateAsync(new NoticeCreateDto
-                    {
-                        Label = NoticeTypeLabels.TripDriverSelectionRequired,
-                        ActorUserId = trip.UserId,
-                        ReferenceType = "Trip",
-                        ReferenceId = trip.Id,
-                        DeduplicationKey = $"AutoCancelNoDriver:{trip.Id}"
-                    });
+                    await AutoCancelUnassignedTripAsync(tripId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Creating admin notice for auto-canceled trip {TripId} failed.", trip.Id);
+                    _logger.LogError(ex, "Auto-canceling unassigned trip {TripId} failed.", tripId);
+                }
+                finally
+                {
+                    (_context as DbContext)?.ChangeTracker.Clear();
+                }
+            }
+        }
+
+        private async Task AutoCancelUnassignedTripAsync(long tripId)
+        {
+            Trip trip;
+            double refunded;
+            await using (var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable))
+            {
+                var claimed = await _context.Trips
+                    .Where(t => t.Id == tripId && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(t => t.TripStatusId, (long)TripStatusEnum.TripStatus_Canceled)
+                        .SetProperty(t => t.CancelInitiatorId, (int?)TripCancelInitiatorEnum.System)
+                        .SetProperty(t => t.CancelReasonCodeId, (long?)null)
+                        .SetProperty(t => t.CancelReasonDetail, Resource.Notification.TripAutoCanceledNoDriverAccepted)
+                        .SetProperty(t => t.ProgressUpdateDate, DateTime.Now));
+                if (claimed == 0)
+                {
+                    await transaction.RollbackAsync();
+                    return;
                 }
 
-                try
+                trip = await _context.Trips.AsNoTracking().FirstAsync(t => t.Id == tripId);
+                refunded = await RefundCanceledTripToWalletAsync(trip);
+                await transaction.CommitAsync();
+            }
+
+            try
+            {
+                await _noticeService.CreateAsync(new NoticeCreateDto
                 {
-                    // همان لحظه‌ای که کاربر تو اپ هم صفحه‌ی «راننده پیدا نشد» (با دکمه‌ی درخواست از ادمین/
-                    // ثبت دوباره) را می‌بیند؛ این پوش برای وقتی است که اپ باز نیست.
+                    Label = NoticeTypeLabels.TripDriverSelectionRequired,
+                    ActorUserId = trip.UserId,
+                    ReferenceType = "Trip",
+                    ReferenceId = trip.Id,
+                    DeduplicationKey = $"AutoCancelNoDriver:{trip.Id}"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Creating admin notice for auto-canceled trip {TripId} failed.", trip.Id);
+            }
+
+            try
+            {
+                // سفر فوری: کاربر صفحه‌ی «راننده پیدا نشد» (درخواست از ادمین/ثبت دوباره) را می‌بیند؛ رزرو/سرویس: پوش لغو سفر
+                if (TripDriverTimeoutRules.IsInstant(trip.ScheduledDepartureAt, trip.PetResanServiceScheduleId))
                     await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripNoDriverTryAnotherOption, trip.UserId, token1: trip.Id.ToString());
-                }
-                catch (Exception ex)
+                else
+                    await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripCanceled, trip.UserId);
+
+                // درخواست مستقیم به یک راننده که هنوز جواب نداده بود
+                if (trip.DriverId.HasValue)
                 {
-                    _logger.LogError(ex, "Sending no-driver-found push for trip {TripId} failed.", trip.Id);
+                    var driver = await _context.Drivers.AsNoTracking().FirstOrDefaultAsync(d => d.Id == trip.DriverId.Value);
+                    if (driver != null)
+                        await _pushNotificationService.SendPushAsync(PushTypeEnum.PushTripCanceled, driver.OwnerId);
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Sending auto-cancel push for trip {TripId} failed.", trip.Id);
+            }
+
+            if (refunded > 0)
+                _logger.LogInformation("Auto-canceled trip {TripId}: {Amount} refunded to wallet of user {UserId}.", trip.Id, refunded, trip.UserId);
+
+            // دو روزِ پشت‌سرهم بی‌راننده ⇒ توقف سرویس؛ وگرنه نوبت هفته‌ی بعد (StopServiceAfterRepeatedNoDriverAsync)
+            if (trip.PetResanServiceScheduleId.HasValue && !await StopServiceAfterRepeatedNoDriverAsync(trip.Id))
+                await CreateNextServiceOccurrenceAsync(trip.Id);
+        }
+
+        // هر لغو سفر (کاربر، راننده، ادمین، لغو رزرو متصل، لغو خودکار) لغو و برگشت پول را با هم ذخیره می‌کند. اگر تراکنشی از بیرون
+        // باز است (مثلاً لغو رزرو پانسیون/مدرسه/خدمت) داخل همان انجام می‌شود، وگرنه تراکنش Serializable خودش.
+        private async Task<double> SaveCancellationWithRefundAsync(Trip trip)
+        {
+            if (_context.CurrentTransaction != null)
+            {
+                await _context.SaveChangesAsync();
+                return await RefundCanceledTripToWalletAsync(trip);
+            }
+
+            await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
+            await _context.SaveChangesAsync();
+            var refunded = await RefundCanceledTripToWalletAsync(trip);
+            await transaction.CommitAsync();
+            if (refunded > 0)
+                _logger.LogInformation("Canceled trip {TripId}: {Amount} refunded to wallet of user {UserId}.", trip.Id, refunded, trip.UserId);
+            return refunded;
+        }
+
+        // مبلغ پرداخت‌شده‌ی سفر لغوشده به کیف پول: کسرهای قطعی کیف پول برای همین سفر + پرداخت درگاهِ آنلاینِ اعمال‌شده (APPLIED یا
+        // LEGACY_APPLIED؛ نه TEST_ و نه پرداخت نقدی/دستی). پرداخت موفقی که هنوز اعمال نشده این‌جا حساب نمی‌شود: آن را
+        // RefundUnappliedToWalletAsync جدا برمی‌گرداند (وگرنه دوبار برمی‌گشت). یک‌بار برای هر سفر (ردیف دفتر TripCancelRefund:{id}).
+        // باید داخل تراکنش صدا زده شود.
+        private async Task<double> RefundCanceledTripToWalletAsync(Trip trip)
+        {
+            var ledgerName = Application.Services.ProductSrvs.WalletSrv.WalletDescriptionRules.TripCancelRefundName(trip.Id);
+            if (await _context.Wallets.AsNoTracking().AnyAsync(w => w.Name == ledgerName && w.UserId == trip.UserId && !w.Deleted))
+                return 0;
+
+            var walletPaid = await _context.Wallets.AsNoTracking()
+                .Where(w => w.TripId == trip.Id && w.UserId == trip.UserId && !w.IsIncrease && !w.Deleted && !w.Painding)
+                .SumAsync(w => (double?)w.Amount) ?? 0;
+            var tripIdText = trip.Id.ToString();
+            var gatewayPaid = await _context.Payments.AsNoTracking()
+                .Where(p => p.UserId == trip.UserId && p.IsSuccess == true && p.IsOnline && p.AppliedDate != null &&
+                            (p.GatewayStatus == null || !p.GatewayStatus.StartsWith("TEST_")) &&
+                            (p.TripId == trip.Id || (p.CallBackTypeLabel == nameof(PaymentCallbackTypeEnum.Trip) && p.CallBackId == tripIdText)))
+                .SumAsync(p => (double?)p.Amount) ?? 0;
+
+            var amount = walletPaid + gatewayPaid;
+            if (amount <= 0)
+                return 0;
+
+            var credit = await _walletService.InsertAsyncDto(new Application.Services.ProductSrvs.WalletSrv.Dto.WalletDto
+            {
+                Name = ledgerName,
+                Amount = amount,
+                IsIncrease = true,
+                UserId = trip.UserId,
+                Painding = false
+            });
+            if (!credit.IsSuccess)
+                throw new InvalidOperationException($"Refunding canceled trip {trip.Id} to wallet failed.");
+            return amount;
         }
 
         /// <summary>

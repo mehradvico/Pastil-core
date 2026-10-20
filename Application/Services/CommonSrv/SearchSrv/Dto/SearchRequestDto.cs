@@ -7,7 +7,9 @@ namespace Application.Services.CommonSrv.SearchSrv.Dto
 {
     public class SearchRequestDto
     {
-        public const int MaxPerTypeCount = 20;
+        // هر بخش (محصول، مرکز، ...) حداکثر ۱۰ نتیجه
+        public const int MaxPerTypeCount = 10;
+        public const int MaxQueryLength = 100;
         public const int MaxTotalCount = 50;
 
         public long ProductNotId { get; set; }
@@ -25,6 +27,7 @@ namespace Application.Services.CommonSrv.SearchSrv.Dto
         public int ConsultationPackageCount { get; set; } = 5;
         public int TotalCount { get; set; } = 20;
 
+        // جستجوی فازی (بیگرام‌ها) سنگین است: فقط وقتی اجرا می‌شود که جستجوی عادی هیچ نتیجه‌ای نداشت و این پرچم true باشد
         public bool EnableFuzzy { get; set; } = true;
 
         /// <summary>

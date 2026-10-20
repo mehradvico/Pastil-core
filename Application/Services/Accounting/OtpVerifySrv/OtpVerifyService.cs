@@ -7,6 +7,7 @@ using Application.Services.Setting.MessageSenderSrv.Iface;
 using AutoMapper;
 using Entities.Entities.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
@@ -21,13 +22,15 @@ namespace Application.Services.Accounting.OtpVerifySrv
         private readonly IMapper mapper;
         private readonly IMessageSenderService _messageSenderService;
         private readonly IRegixHelper RegixHelper;
+        private readonly IMemoryCache _cache;
 
-        public OtpVerifyService(IDataBaseContext _context, IMapper mapper, IMessageSenderService messageSenderService, IRegixHelper RegixHelper)
+        public OtpVerifyService(IDataBaseContext _context, IMapper mapper, IMessageSenderService messageSenderService, IRegixHelper RegixHelper, IMemoryCache cache)
         {
             this._context = _context;
             this.mapper = mapper;
             this._messageSenderService = messageSenderService;
             this.RegixHelper = RegixHelper;
+            this._cache = cache;
 
         }
         public async Task<BaseResultDto<OtpVerifyVDto>> InsertAsyncDto(OtpVerifyVDto dto)
@@ -61,6 +64,18 @@ namespace Application.Services.Accounting.OtpVerifySrv
                     {
                         return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, messages: errors, dto);
                     }
+
+                    // محدودیت هر گیرنده: ۱ کد در ۲ دقیقه و ۵ کد در ساعت (OtpSendRules)
+                    var sendDecision = OtpSendRules.TryRegisterSend(_cache, string.IsNullOrEmpty(dto.Mobile) ? dto.Email : dto.Mobile, DateTime.Now);
+                    if (!sendDecision.Allowed)
+                    {
+                        var message = sendDecision.Reason == OtpSendRules.BlockReason.TooSoon
+                            ? string.Format(Resource.Pattern.OtpResendTooSoon, Math.Max(1, (int)Math.Ceiling(sendDecision.RetryAfter.TotalSeconds)))
+                            : string.Format(Resource.Pattern.OtpHourlyLimitReached, Math.Max(1, (int)Math.Ceiling(sendDecision.RetryAfter.TotalMinutes)));
+                        errors.Add(new Tuple<string, string>(message, nameof(dto.Code)));
+                        return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, messages: errors, dto);
+                    }
+
                     var item = await _context.OtpVerifies.FirstOrDefaultAsync(s => (string.IsNullOrEmpty(dto.Mobile) == false && s.Mobile == dto.Mobile) || (string.IsNullOrEmpty(dto.Email) == false && s.Email == dto.Email));
                     var newCode = GenerateHelper.RandomDigit(GenerateHelper.OtpLength);
 

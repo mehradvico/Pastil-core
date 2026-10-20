@@ -1,5 +1,7 @@
 ﻿using Entities.Entities;
 using Entities.Entities.CompanionField;
+using Entities.Entities.GroomerField;
+using Entities.Entities.ClinicField;
 using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.PetResanServiceField;
@@ -7,6 +9,7 @@ using Entities.Entities.SchoolField;
 using Entities.Entities.PastilMatchField;
 using Entities.Entities.PastilAIField;
 using Entities.Entities.PastilClubField;
+using Entities.Entities.ProviderField;
 using Entities.Entities.Security;
 using Entities.Entities.ShippingField;
 using Microsoft.EntityFrameworkCore;
@@ -95,6 +98,11 @@ namespace Persistence.Interface
         public DbSet<CompanionType> CompanionTypes { get; set; }
         public DbSet<CompanionUser> CompanionUsers { get; set; }
         public DbSet<CompanionUserExpertise> CompanionUserExpertises { get; set; }
+        public DbSet<Provider> Providers { get; set; }
+        public DbSet<ProviderRole> ProviderRoles { get; set; }
+        public DbSet<ProviderRoleAssignment> ProviderRoleAssignments { get; set; }
+        public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
+        public DbSet<ProviderSubscription> ProviderSubscriptions { get; set; }
         public DbSet<AssistanceExpertise> AssistanceExpertises { get; set; }
         public DbSet<CompanionZone> CompanionZones { get; set; }
         public DbSet<ContactUs> ContactUses { get; set; }
@@ -106,6 +114,7 @@ namespace Persistence.Interface
         public DbSet<ShippingQuote> ShippingQuotes { get; set; }
         public DbSet<ShippingSlot> ShippingSlots { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
+        public DbSet<ShipmentEvent> ShipmentEvents { get; set; }
         public DbSet<Detail> Details { get; set; }
         public DbSet<Discount> Discounts { get; set; }
         public DbSet<DiscountGroup> DiscountGroups { get; set; }
@@ -148,6 +157,40 @@ namespace Persistence.Interface
         public DbSet<PansionComment> PansionComments { get; set; }
         public DbSet<PansionPet> PansionPets { get; set; }
         public DbSet<PansionPicture> PansionPictures { get; set; }
+        public DbSet<Groomer> Groomers { get; set; }
+        public DbSet<GroomerUser> GroomerUsers { get; set; }
+        public DbSet<GroomerService> GroomerServices { get; set; }
+        public DbSet<GroomerServicePackage> GroomerServicePackages { get; set; }
+        public DbSet<GroomerServicePackagePicture> GroomerServicePackagePictures { get; set; }
+        public DbSet<GroomerServiceUser> GroomerServiceUsers { get; set; }
+        public DbSet<GroomerTime> GroomerTimes { get; set; }
+        public DbSet<GroomerZone> GroomerZones { get; set; }
+        public DbSet<GroomerPet> GroomerPets { get; set; }
+        public DbSet<GroomerPicture> GroomerPictures { get; set; }
+        public DbSet<GroomerComment> GroomerComments { get; set; }
+        public DbSet<GroomerReserve> GroomerReserves { get; set; }
+        public DbSet<GroomerReserveItem> GroomerReserveItems { get; set; }
+        public DbSet<SettlementGroomer> SettlementGroomers { get; set; }
+        public DbSet<GroomerPortfolioPost> GroomerPortfolioPosts { get; set; }
+        public DbSet<GroomerPortfolioPicture> GroomerPortfolioPictures { get; set; }
+        public DbSet<GroomerPortfolioLike> GroomerPortfolioLikes { get; set; }
+        public DbSet<GroomerPortfolioComment> GroomerPortfolioComments { get; set; }
+        public DbSet<Clinic> Clinics { get; set; }
+        public DbSet<ClinicType> ClinicTypes { get; set; }
+        public DbSet<ClinicUser> ClinicUsers { get; set; }
+        public DbSet<ClinicService> ClinicServices { get; set; }
+        public DbSet<ClinicServicePackage> ClinicServicePackages { get; set; }
+        public DbSet<ClinicServicePackageType> ClinicServicePackageTypes { get; set; }
+        public DbSet<ClinicServicePackagePicture> ClinicServicePackagePictures { get; set; }
+        public DbSet<ClinicServiceUser> ClinicServiceUsers { get; set; }
+        public DbSet<ClinicTime> ClinicTimes { get; set; }
+        public DbSet<ClinicZone> ClinicZones { get; set; }
+        public DbSet<ClinicPet> ClinicPets { get; set; }
+        public DbSet<ClinicPicture> ClinicPictures { get; set; }
+        public DbSet<ClinicComment> ClinicComments { get; set; }
+        public DbSet<ClinicReserve> ClinicReserves { get; set; }
+        public DbSet<ClinicReserveItem> ClinicReserveItems { get; set; }
+        public DbSet<SettlementClinic> SettlementClinics { get; set; }
         public DbSet<PansionReserve> PansionReserves { get; set; }
         public DbSet<PetResanService> PetResanServices { get; set; }
         public DbSet<PetResanServiceSchedule> PetResanServiceSchedules { get; set; }

@@ -35,6 +35,22 @@ namespace Api.Areas.EndUser.Controllers
             return Ok(dto);
         }
 
+        /// <summary>
+        /// خواندن سبد (GetCart پیش‌فرض، یا GetCount/GetDelivery) با GET؛ برای خواندن دیگر لازم نیست POST فرستاده شود.
+        /// هر نوع تغییر‌دهنده‌ای این‌جا GetCart حساب می‌شود.
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResultDto<CartVDto>), 200)]
+        public async Task<IActionResult> Get([FromQuery] CartUpdateDto cartUpdate)
+        {
+            cartUpdate ??= new CartUpdateDto();
+            if (cartUpdate.CartUpdateType != Application.Common.Enumerable.CartUpdateEnum.GetCount &&
+                cartUpdate.CartUpdateType != Application.Common.Enumerable.CartUpdateEnum.GetDelivery)
+                cartUpdate.CartUpdateType = Application.Common.Enumerable.CartUpdateEnum.GetCart;
+            var dto = await CartService.CartUpdateAsync(cartUpdate);
+            return Ok(dto);
+        }
+
     }
 
 

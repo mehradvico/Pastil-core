@@ -40,7 +40,9 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Dto
         public System.DateTime? LastSessionDate { get; set; }
         // تعداد جلسات در هفته، از روی بازه‌ی واقعی جلسات (نه یک عدد فرضی)
         public double SessionsPerWeek { get; set; }
-        // طول کل دوره به هفته، از اولین تا آخرین جلسه
+        // طول کل دوره به هفته‌ی تقویمی، از اولین تا آخرین جلسه
         public double TotalDurationWeeks { get; set; }
+        // فعال + جلسه‌ی اول هنوز شروع نشده + ظرفیت دارد؛ ثبت‌نام و پرداخت هم سمت سرور با همین قاعده رد می‌شوند
+        public bool IsRegistrationOpen { get; set; }
     }
 }

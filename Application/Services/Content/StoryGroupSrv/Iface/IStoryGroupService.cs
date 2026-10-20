@@ -15,5 +15,6 @@ namespace Application.Services.Content.StoryGroupSrv.Iface
     {
         Task<BaseResultDto<StoryGroupVDto>> FindAsyncVDto(long id);
         BaseSearchDto<StoryGroupVDto> Search(StoryGroupInputDto searchDto);
+        Task<List<StoryGroupHomeVDto>> HomeAsync();
     }
 }

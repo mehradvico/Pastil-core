@@ -41,6 +41,7 @@ namespace Api.Areas.EndUser.Controllers
         /// نهایی کردن سبد رزرو - ثبت همزمان چند رزرو (هر کدام برای یک خدمت متفاوت اما همگی از یک نمایندگی)
         /// </summary>
         [HttpPost]
+        [global::Api.Filter.IdempotentRequest]
         [ProducesResponseType(typeof(BaseResultDto<CompanionReserveBatchVDto>), 200)]
         public async Task<IActionResult> Post(CompanionReserveBatchInsertDto dto)
         {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Application.Common.Dto.Input;
 using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
@@ -85,7 +86,7 @@ namespace Application.Services.Order.MerchantSrv
             return new BaseResultDto(true);
         }
 
-        public BaseSearchDto<MerchantVDto> Search(BaseInputDto baseSearchDto, bool hideTestGateway = false)
+        public BaseSearchDto<MerchantVDto> Search(BaseInputDto baseSearchDto, bool hideTestGateway = false, IReadOnlyCollection<long> onlyBankIds = null)
         {
             var query = _context.Merchants
                 .Include(s => s.Bank)
@@ -95,6 +96,11 @@ namespace Application.Services.Order.MerchantSrv
             if (hideTestGateway)
             {
                 query = query.Where(s => s.BankId != (long)MerchantEnum.pastilTest);
+            }
+
+            if (onlyBankIds != null)
+            {
+                query = query.Where(s => onlyBankIds.Contains(s.BankId));
             }
 
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
@@ -158,6 +164,7 @@ namespace Application.Services.Order.MerchantSrv
             dto.PaymentUrl = gatewayResult.PaymentIsLink
                 ? gatewayResult.PaymentUrl
                 : gatewayResult.HtmlForm;
+            dto.GatewayToken = gatewayResult.Token;
 
             return new BaseResultDto<PaymentStartDto>(true, dto);
         }
@@ -202,7 +209,34 @@ namespace Application.Services.Order.MerchantSrv
                 return new BaseResultDto(false, Resource.Notification.MerchantGatewayCredentialsDecryptionFailed);
             var gatewayResult = await gateway.CallbackAsync(payment, gatewayMerchant, request);
 
-            return await SaveCallbackResultAsync(payment, gatewayResult, false);
+            // درگاه تستی پاستیل پول واقعی جابه‌جا نمی‌کند: نتیجه‌اش TEST_ ثبت می‌شود تا از تسویه و بازپرداخت کنار بماند
+            return await SaveCallbackResultAsync(payment, gatewayResult, merchant.BankId == (long)MerchantEnum.pastilTest);
+        }
+
+        // کاربر در زرین‌پال پرداخت کرد ولی مرورگرش هرگز به callback برنگشت (بستن صفحه، قطع اینترنت، WebView): بدون این، پول
+        // تأیید نمی‌شد، بانک برمی‌گرداند و رزرو ثبت نمی‌شد. نتیجه‌ی ناموفق ذخیره نمی‌شود چون ممکن است کاربر هنوز روی درگاه باشد
+        // و callback واقعی‌اش بعداً برسد. فعلاً فقط زرین‌پال (verify با Authority ذخیره‌شده و مبلغ همین پرداخت).
+        public async Task<BaseResultDto> ReconcileUnconfirmedAsync(Payment payment)
+        {
+            if (payment == null || _paymentTestModeService.IsEnabled || string.IsNullOrWhiteSpace(payment.Token))
+                return new BaseResultDto(false);
+
+            var merchant = await _context.Merchants.AsTracking().Include(s => s.Bank)
+                .FirstOrDefaultAsync(s => s.Id == payment.MerchantId);
+            if (merchant == null || !merchant.Active || merchant.BankId != (long)MerchantEnum.zarinpal || _encryptionKey == null)
+                return new BaseResultDto(false);
+
+            await ProtectLegacySecretsAsync(merchant);
+            if (_gatewayResolver.Resolve(MerchantEnum.zarinpal) is not Application.Services.Order.PaymentGatewaySrv.Gateways.ZarinPalGateway zarinPal)
+                return new BaseResultDto(false);
+            var gatewayMerchant = TryCreateGatewayMerchant(merchant);
+            if (gatewayMerchant == null)
+                return new BaseResultDto(false);
+
+            var result = await zarinPal.VerifyStoredAuthorityAsync(payment, gatewayMerchant);
+            if (!result.IsSuccess)
+                return new BaseResultDto(false);
+            return await SaveCallbackResultAsync(payment, result, false);
         }
 
         private async Task<BaseResultDto> SaveCallbackResultAsync(
@@ -210,6 +244,11 @@ namespace Application.Services.Order.MerchantSrv
             GatewayCallbackResultDto result,
             bool isTestMode)
         {
+            // verify جواب قطعی نگرفت: قبلاً همین حالت «ناموفق» ثبت می‌شد و پرداختی که بانک تأیید کرده بود برای همیشه از job تطبیق
+            // (که فقط پرداخت‌های بدون نتیجه را می‌بیند) و اعمال روی سفارش جا می‌ماند. حالا بدون نتیجه می‌ماند تا قطعی شود.
+            if (result.IsPending)
+                return new BaseResultDto(false, result.ErrorMessage ?? Resource.Notification.PaymentVerificationPending, (int)ResultCodeEnum.PaymentVerificationPending);
+
             var gatewayStatus = isTestMode
                 ? result.IsSuccess ? "TEST_SUCCESS" : "TEST_FAILED"
                 : result.IsSuccess ? "SUCCESS" : "FAILED";

@@ -11,6 +11,8 @@ namespace Application.Services.Order.PaymentSrv.Dto
         public long? CompanionReserveId { get; set; }
         public long? PansionReserveId { get; set; }
         public long? SchoolReserveId { get; set; }
+        public long? GroomerReserveId { get; set; }
+        public long? ClinicReserveId { get; set; }
         public long? CompanionReserveBatchId { get; set; }
         public long? TripId { get; set; }
         public long? CargoId { get; set; }
@@ -33,6 +35,8 @@ namespace Application.Services.Order.PaymentSrv.Dto
         public string CallBackTypeLabel { get; set; }
         public string CallBackId { get; set; }
         public string CallbackUrl { get; set; }
+        // توکن/Authority که درگاه هنگام شروع داد؛ در Payment.Token ذخیره می‌شود تا callback فقط نتیجه‌ی همین پرداخت را بپذیرد
+        public string GatewayToken { get; set; }
         public UserMinVDto User { get; set; }
     }
 }

@@ -17,10 +17,14 @@ namespace Application.Services.Order.PaymentSrv.Iface
         Task<BaseResultDto> InsertCargoPaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto> InsertCompanionInsurancePackageSalePaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto> InsertPansionReservePaymentAsyncDto(PaymentStartDto dto);
+        Task<BaseResultDto> InsertGroomerReservePaymentAsyncDto(PaymentStartDto dto);
+        Task<BaseResultDto> InsertClinicReservePaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto> InsertSchoolReservePaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto> InsertCompanionReserveBatchPaymentAsyncDto(PaymentStartDto dto);
         Task<BaseResultDto<ManualPaymentVDto>> InsertManualPaymentAsync(ManualPaymentDto dto);
         Task<BaseResultDto<PaymentDto>> CallbackPayment(long paymentId, string callbackToken);
+        // Hangfire هر ۵ دقیقه: پرداخت‌های زرین‌پالی که callbackشان نرسید را با بانک تأیید و اعمال می‌کند؛ تعداد اعمال‌شده
+        Task<int> ReconcileUnconfirmedAsync();
     }
 }
 

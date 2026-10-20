@@ -29,6 +29,7 @@ namespace Api.Controllers
         public IActionResult Get([FromQuery] AssistanceInputDto dto)
         {
             dto.Available = true;
+            dto.IsGrooming ??= false;
             var search = _assistanceService.Search(dto);
             return Ok(search);
         }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Application.Common.Dto.Input;
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
@@ -10,9 +11,11 @@ namespace Application.Services.Order.MerchantSrv.Iface
 {
     public interface IMerchantService : ICommonSrv<Merchant, MerchantDto>
     {
-        BaseSearchDto<MerchantVDto> Search(BaseInputDto baseSearchDto, bool hideTestGateway = false);
+        BaseSearchDto<MerchantVDto> Search(BaseInputDto baseSearchDto, bool hideTestGateway = false, IReadOnlyCollection<long> onlyBankIds = null);
         Task<BaseResultDto> StartAsync(PaymentStartDto dto);
         Task<BaseResultDto> CallbackAsync(Entities.Entities.Payment payment);
+        // تطبیق بدون callback: فقط اگر درگاه پرداخت را تأیید کرد نتیجه ثبت می‌شود؛ «پرداخت نشده» هیچ اثری ندارد
+        Task<BaseResultDto> ReconcileUnconfirmedAsync(Entities.Entities.Payment payment);
         Task<BaseResultDto> UpdateSecureAsyncDto(MerchantDto dto);
     }
 }

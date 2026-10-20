@@ -15,6 +15,7 @@ namespace Application.Services.ProductSrvs.StoreSrv.Dto
     public class StoreVDto : Seo_Full_FieldDto
     {
         public string ReferralCode { get; set; }
+        public long? ProviderId { get; set; }
         public string Phone { get; set; }
         public string Mobile { get; set; }
         public string Email { get; set; }

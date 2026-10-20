@@ -9,6 +9,7 @@ namespace Application.Services.PrescriptionSrv.Dto
     public class PrescriptionTargetDto
     {
         public long? CompanionReserveId { get; set; }
+        public long? ClinicReserveId { get; set; }
         public long? ConsultationPurchaseId { get; set; }
         public long? OnlineSessionId { get; set; }
     }
@@ -25,6 +26,7 @@ namespace Application.Services.PrescriptionSrv.Dto
     {
         public long Id { get; set; }
         public long? CompanionReserveId { get; set; }
+        public long? ClinicReserveId { get; set; }
         public long? ConsultationPurchaseId { get; set; }
         public string Text { get; set; }
         public List<PictureVDto> Pictures { get; set; } = new();

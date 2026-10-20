@@ -30,7 +30,12 @@ namespace Application.Services.ProductSrvs.WalletSrv.Dto
         public long? CompanionInsurancePackageSaleId { get; set; }
         public long? PastilAiSubscriptionId { get; set; }
         public long? SchoolReserveId { get; set; }
+        public long? GroomerReserveId { get; set; }
+        public long? ClinicReserveId { get; set; }
+        public long? ConsultationPurchaseId { get; set; }
         public bool Painding { get; set; }
+        // Name در پاسخ «شرح تراکنش» فارسی است (هرگز خالی نیست)؛ مقدار ذخیره‌شده (گاهی کلید دفتر مثل PaymentRefund:12) این‌جاست
+        public string LedgerName { get; set; }
 
         public UserVDto User { get; set; }
         public PaymentVDto Payment { get; set; }

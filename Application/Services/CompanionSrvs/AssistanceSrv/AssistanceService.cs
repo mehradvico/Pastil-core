@@ -87,6 +87,11 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv
                 model = model.Where(s => s.IsPersonal == baseSearchDto.IsPersonal.Value);
             }
 
+            if (baseSearchDto.IsGrooming.HasValue)
+            {
+                model = model.Where(s => s.IsGrooming == baseSearchDto.IsGrooming.Value);
+            }
+
             if (baseSearchDto.AssistanceGroupId.HasValue)
             {
                 model = model.Where(
@@ -124,7 +129,7 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv
         public async Task<List<SearchAssistanceDto>> SearchMinAsync(SearchRequestDto request)
         {
             var predicate = SearchQueryHelper.ContainsAny<Assistance>(request.SearchTerms, item => item.Name, item => item.AssistanceGroup.Name);
-            var query = _context.Assistances.Where(s => s.Deleted == false && s.Active);
+            var query = _context.Assistances.Where(s => s.Deleted == false && s.Active && !s.IsGrooming);
             var list = await query.Where(predicate)
                 .Take(SearchQueryHelper.CandidateCount(request.AssistanceCount))
                 .Select(s => new SearchAssistanceDto { Id = s.Id, Name = s.Name, PictureId = s.PictureId, Picture = mapper.Map<PictureVDto>(s.Picture) })

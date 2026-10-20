@@ -339,7 +339,7 @@ namespace Application.Services.Order.ShippingSrv
                 SellerConfirmDeadlineUtc = row.Status == ShipmentStatusEnum.AwaitingSellerConfirm ? row.SellerConfirmDeadlineUtc : null,
                 ReadyDeadlineUtc = row.ReadyDeadlineUtc ?? (row.SlotEndUtc.HasValue ? ShippingSlotRules.ReadyDeadline(row.SlotEndUtc.Value, _options.MinDeliveryMinutes) : null),
                 PlannedPickupUtc = row.IsExpress
-                    ? nowUtc.AddMinutes(Math.Max(5, _options.Express.PickupLeadMinutes))
+                    ? ShippingSlotRules.ExpressPickup(nowUtc, _options.Express.PickupLeadMinutes)
                     : ShippingSlotRules.DefaultPickup(row.SlotStartUtc ?? nowUtc, nowUtc, _options.PickupLeadMinutes)
             }).ToList();
             return new BaseResultDto<List<SellerShipmentVDto>>(true, list);
@@ -403,7 +403,7 @@ namespace Application.Services.Order.ShippingSrv
 
             // اکسپرس: پیک بعد از PickupLeadMinutes (میاره pickup.deadline گذشته نمی‌پذیرد)؛ بازه‌ای: مثل قبل
             var pickup = isExpress
-                ? nowUtc.AddMinutes(Math.Max(5, _options.Express.PickupLeadMinutes))
+                ? ShippingSlotRules.ExpressPickup(nowUtc, _options.Express.PickupLeadMinutes)
                 : ShippingSlotRules.DefaultPickup(slotStart, nowUtc, _options.PickupLeadMinutes);
             if (!isExpress && pickup > readyDeadline)
                 return new BaseResultDto(false, Resource.Notification.ShipmentPickupTimeInvalid);
@@ -463,7 +463,8 @@ namespace Application.Services.Order.ShippingSrv
                 shipment.FailureReason = null;
                 shipment.RequestedAtUtc = nowUtc;
                 shipment.ReadyAtUtc = nowUtc;
-                shipment.PickupDeadlineUtc = pickup;
+                // اگر میاره «deadline_too_soon» داد و provider با مهلت دیرتر ساخت، همان مهلت واقعی ذخیره می‌شود
+                shipment.PickupDeadlineUtc = result.PickupDeadlineUtc ?? pickup;
                 if (isExpress)
                 {
                     shipment.SellerConfirmedAtUtc = nowUtc;
@@ -482,6 +483,160 @@ namespace Application.Services.Order.ShippingSrv
                 _logger.LogWarning(exception, "Miare trip creation failed for ProductOrderStore {Id}.", productOrderStoreId);
                 return new BaseResultDto(false, Resource.Notification.ShipmentCourierRequestFailed);
             }
+        }
+
+        public async Task<BaseResultDto<List<AdminShipmentVDto>>> GetForOrderAsync(
+            string productOrderId,
+            CancellationToken cancellationToken = default)
+        {
+            var rows = await _context.Shipments.AsNoTracking()
+                .Where(item => item.ProductOrderStore.ProductOrderId == productOrderId)
+                .OrderBy(item => item.Id)
+                .Select(item => new
+                {
+                    Shipment = item,
+                    item.ProductOrderStore.StoreId,
+                    StoreName = item.ProductOrderStore.Store.Name,
+                    StoreLat = (double?)item.ProductOrderStore.Store.Location.Y,
+                    StoreLng = (double?)item.ProductOrderStore.Store.Location.X,
+                    DestLat = (double?)item.ProductOrderStore.ProductOrder.Address.Location.Y,
+                    DestLng = (double?)item.ProductOrderStore.ProductOrder.Address.Location.X
+                })
+                .ToListAsync(cancellationToken);
+
+            static DateTime? Utc(DateTime? value) => value.HasValue ? DateTime.SpecifyKind(value.Value, DateTimeKind.Utc) : null;
+            static bool UsablePoint(double? lat, double? lng) => lat.HasValue && lng.HasValue && ShipmentCourierRules.IsUsable(lat.Value, lng.Value);
+
+            // آخرین ۶۰ رویدادِ هر مرسوله (یک سفارش چند مرسوله‌ی کم دارد؛ سقف کل ۳۰۰)
+            var shipmentIds = rows.Select(row => row.Shipment.Id).ToList();
+            var eventRows = shipmentIds.Count == 0
+                ? new List<ShipmentEvent>()
+                : await _context.ShipmentEvents.AsNoTracking()
+                    .Where(item => shipmentIds.Contains(item.ShipmentId))
+                    .OrderByDescending(item => item.Id)
+                    .Take(300)
+                    .ToListAsync(cancellationToken);
+            var eventsByShipment = eventRows
+                .GroupBy(item => item.ShipmentId)
+                .ToDictionary(group => group.Key, group => group.Take(60).OrderBy(item => item.Id).Select(item => new AdminShipmentEventVDto
+                {
+                    Id = item.Id,
+                    State = item.State,
+                    ReceivedAtUtc = DateTime.SpecifyKind(item.ReceivedAtUtc, DateTimeKind.Utc),
+                    CourierName = item.CourierName,
+                    Latitude = item.Latitude,
+                    Longitude = item.Longitude,
+                    PayloadJson = item.PayloadJson
+                }).ToList());
+
+            var list = rows.Select(row => new AdminShipmentVDto
+            {
+                CourierName = row.Shipment.CourierName,
+                CourierPhone = row.Shipment.CourierPhone,
+                CourierLatitude = row.Shipment.CourierLatitude,
+                CourierLongitude = row.Shipment.CourierLongitude,
+                CourierLocationAtUtc = Utc(row.Shipment.CourierLocationAtUtc),
+                LastMiareState = row.Shipment.LastMiareState,
+                LastMiareEventAtUtc = Utc(row.Shipment.LastMiareEventAtUtc),
+                StoreLatitude = UsablePoint(row.StoreLat, row.StoreLng) ? row.StoreLat : null,
+                StoreLongitude = UsablePoint(row.StoreLat, row.StoreLng) ? row.StoreLng : null,
+                DestinationLatitude = UsablePoint(row.DestLat, row.DestLng) ? row.DestLat : null,
+                DestinationLongitude = UsablePoint(row.DestLat, row.DestLng) ? row.DestLng : null,
+                Events = eventsByShipment.TryGetValue(row.Shipment.Id, out var events) ? events : new List<AdminShipmentEventVDto>(),
+                Id = row.Shipment.Id,
+                ProductOrderStoreId = row.Shipment.ProductOrderStoreId,
+                StoreId = row.StoreId,
+                StoreName = row.StoreName,
+                Provider = row.Shipment.Provider.ToString(),
+                Status = (int)row.Shipment.Status,
+                StatusKey = row.Shipment.Status.ToString(),
+                IsExpress = row.Shipment.IsExpress,
+                FailureReason = row.Shipment.FailureReason,
+                TrackingCode = row.Shipment.TrackingCode,
+                ExternalShipmentId = row.Shipment.ExternalShipmentId,
+                CreatedAtUtc = DateTime.SpecifyKind(row.Shipment.CreatedAtUtc, DateTimeKind.Utc),
+                SellerConfirmDeadlineUtc = Utc(row.Shipment.SellerConfirmDeadlineUtc),
+                ReadyDeadlineUtc = Utc(row.Shipment.ReadyDeadlineUtc),
+                PickupDeadlineUtc = Utc(row.Shipment.PickupDeadlineUtc),
+                RequestedAtUtc = Utc(row.Shipment.RequestedAtUtc),
+                CanExtendSellerDeadline = ShipmentDeadlineRules.CanExtend(row.Shipment.Status, row.Shipment.FailureReason)
+            }).ToList();
+            return new BaseResultDto<List<AdminShipmentVDto>>(true, list);
+        }
+
+        // ادمین مهلت فروشنده را تمدید می‌کند. منتظر تأیید/اکسپرس: SellerConfirmDeadlineUtc؛ در حال آماده‌سازی (بازه‌ای): ReadyDeadlineUtc.
+        // مرسوله‌ای که فقط به‌خاطر پایان مهلت ناموفق شده احیا می‌شود (و درخواست لغوِ خودکارِ سفارش برداشته می‌شود) تا فروشنده دوباره
+        // «درخواست پیک» بزند. به فروشنده پوش «مهلت جدید» می‌رود (همان پوش ثبت سفارش).
+        public async Task<BaseResultDto> ExtendSellerDeadlineAsync(
+            long shipmentId,
+            int minutes,
+            long adminUserId,
+            CancellationToken cancellationToken = default)
+        {
+            if (!ShipmentDeadlineRules.IsValidMinutes(minutes))
+                return new BaseResultDto(false, string.Format(Resource.Pattern.ShipmentExtendMinutesInvalid,
+                    ShipmentDeadlineRules.MinExtendMinutes, ShipmentDeadlineRules.MaxExtendMinutes));
+
+            var shipment = await _context.Shipments
+                .Include(item => item.ProductOrderStore).ThenInclude(item => item.ProductOrder)
+                .AsTracking()
+                .FirstOrDefaultAsync(item => item.Id == shipmentId, cancellationToken);
+            if (shipment == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (!ShipmentDeadlineRules.CanExtend(shipment.Status, shipment.FailureReason))
+                return new BaseResultDto(false, Resource.Notification.ShipmentExtendNotAllowed);
+
+            var nowUtc = DateTime.UtcNow;
+            var orderStore = shipment.ProductOrderStore;
+            var productOrder = orderStore.ProductOrder;
+            var previousStatus = shipment.Status;
+            DateTime newDeadline;
+
+            if (shipment.Status == ShipmentStatusEnum.Preparing)
+            {
+                newDeadline = ShipmentDeadlineRules.NewDeadline(shipment.ReadyDeadlineUtc, nowUtc, minutes);
+                shipment.ReadyDeadlineUtc = newDeadline;
+                shipment.ReadyReminderSentAtUtc = null;
+            }
+            else
+            {
+                newDeadline = ShipmentDeadlineRules.NewDeadline(shipment.SellerConfirmDeadlineUtc, nowUtc, minutes);
+                shipment.SellerConfirmDeadlineUtc = newDeadline;
+                shipment.SellerReminderSentAtUtc = null;
+                shipment.SellerNotReadyAdminNotifiedAtUtc = null;
+                shipment.FailureReason = null;
+                if (shipment.Status == ShipmentStatusEnum.Failed)
+                {
+                    shipment.Status = ShipmentStatusEnum.AwaitingSellerConfirm;
+                    // درخواست لغوی که همین سیستم بعد از پایان مهلت ساخته بود برداشته می‌شود؛ لغو درخواستیِ دستی ادمین/مشتری دست نمی‌خورد
+                    if (productOrder.CancelRequestDate != null &&
+                        string.Equals(productOrder.AdminDescription, Resource.Notification.ShipmentSellerConfirmExpiredNote, StringComparison.Ordinal))
+                    {
+                        productOrder.CancelRequestDate = null;
+                        productOrder.AdminDescription = null;
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation(
+                "Admin {AdminUserId} extended the seller deadline of shipment {ShipmentId} (order {OrderCode}) by {Minutes} min; status {Previous} -> {Current}; new deadline {Deadline:O}.",
+                adminUserId, shipment.Id, productOrder.OrderCode, minutes, previousStatus, shipment.Status, newDeadline);
+
+            if (shipment.Status == ShipmentStatusEnum.AwaitingSellerConfirm)
+            {
+                var slotText = shipment.SlotStartUtc.HasValue && shipment.SlotEndUtc.HasValue
+                    ? $"{TehranHm(shipment.SlotStartUtc.Value)}-{TehranHm(shipment.SlotEndUtc.Value)}"
+                    : string.Empty;
+                if (shipment.IsExpress)
+                    await PushToStoreUsersAsync(orderStore.StoreId, PushTypeEnum.PushShipmentExpressAwaitingSeller,
+                        productOrder.OrderCode, TehranHm(newDeadline), string.Empty);
+                else
+                    await PushToStoreUsersAsync(orderStore.StoreId, PushTypeEnum.PushShipmentAwaitingSeller,
+                        productOrder.OrderCode, TehranHm(newDeadline), slotText);
+            }
+
+            return new BaseResultDto(true, string.Format(Resource.Pattern.ShipmentDeadlineExtendedTo, TehranHm(newDeadline)));
         }
 
         private static string Truncate(string value) =>
@@ -808,7 +963,66 @@ namespace Application.Services.Order.ShippingSrv
                 var state = root.TryGetProperty("state", out var stateProp) ? stateProp.GetString() : null;
                 if (string.IsNullOrWhiteSpace(state))
                     return;
-                await ApplyMiareStateAsync(shipment, state.Trim().ToLowerInvariant(), root, cancellationToken);
+                _logger.LogInformation("Miare webhook: trip {TripId} state '{State}' for shipment {ShipmentId} (currently {Status}).",
+                    tripId, state, shipment.Id, shipment.Status);
+                var normalizedState = state.Trim().ToLowerInvariant();
+                try
+                {
+                    await ApplyMiareStateAsync(shipment, normalizedState, root, cancellationToken);
+                }
+                finally
+                {
+                    // اطلاعات پیک و تاریخچه بعد از منطق وضعیت ذخیره می‌شود و هیچ‌وقت آن را خراب نمی‌کند
+                    await RecordMiareEventAsync(shipment, root, normalizedState, payload, cancellationToken);
+                }
+            }
+        }
+
+        // آخرین اطلاعات پیک (نام/تلفن/موقعیت) را روی مرسوله می‌نشاند و رویداد را برای نمایش «مراحل» و عیب‌یابی ذخیره می‌کند.
+        // هر خطایی فقط لاگ می‌شود: وب‌هوک باید ۲۰۰ بگیرد و وضعیت مرسوله قبلاً اعمال شده است.
+        private async Task RecordMiareEventAsync(Shipment shipment, JsonElement root, string state, string payload, CancellationToken cancellationToken)
+        {
+            ShipmentEvent pending = null;
+            try
+            {
+                var nowUtc = DateTime.UtcNow;
+                var info = ShipmentCourierRules.Extract(root);
+                ShipmentCourierRules.ApplyCourier(shipment, info, nowUtc);
+                shipment.LastMiareState = state.Length > 60 ? state[..60] : state;
+                shipment.LastMiareEventAtUtc = nowUtc;
+
+                var hash = ShipmentCourierRules.HashPayload(payload);
+                var last = await _context.ShipmentEvents.AsNoTracking()
+                    .Where(item => item.ShipmentId == shipment.Id)
+                    .OrderByDescending(item => item.Id)
+                    .Select(item => new { item.State, item.ReceivedAtUtc, item.PayloadHash })
+                    .FirstOrDefaultAsync(cancellationToken);
+                var count = last == null
+                    ? 0
+                    : await _context.ShipmentEvents.CountAsync(item => item.ShipmentId == shipment.Id, cancellationToken);
+
+                if (ShipmentCourierRules.ShouldStoreEvent(last?.State, last?.ReceivedAtUtc, last?.PayloadHash, state, hash, nowUtc, count))
+                {
+                    pending = new ShipmentEvent
+                    {
+                        ShipmentId = shipment.Id,
+                        State = state.Length > 60 ? state[..60] : state,
+                        ReceivedAtUtc = nowUtc,
+                        CourierName = info.Name,
+                        Latitude = info.Latitude,
+                        Longitude = info.Longitude,
+                        PayloadHash = hash,
+                        PayloadJson = ShipmentCourierRules.SanitizePayload(payload)
+                    };
+                    _context.ShipmentEvents.Add(pending);
+                }
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                if (pending != null)
+                    _context.Entry(pending).State = EntityState.Detached; // وگرنه SaveChanges بعدی همین خطا را دوباره می‌دهد
+                _logger.LogWarning(exception, "Recording Miare courier info for shipment {ShipmentId} failed.", shipment.Id);
             }
         }
 
@@ -833,10 +1047,10 @@ namespace Application.Services.Order.ShippingSrv
                         break;
                     shipment.Status = ShipmentStatusEnum.Delivered;
                     shipment.DeliveredAtUtc = nowUtc;
-                    // میاره «delivery_cost» را به تومان می‌فرستد؛ هزینه‌ی واقعی سفر نزد میاره (نه مبلغ دریافتی از مشتری)،
-                    // برای ریال‌سازی مثل GetQuoteAsync ضرب‌در‌ده می‌شود.
+                    // «delivery_cost» هزینه‌ی واقعی سفر نزد میاره است (نه مبلغ دریافتی از مشتری) و در ProviderCost به «ریال» ذخیره می‌شود.
+                    // واحد خروجی میاره طبق Shipping:Miare:AmountUnit است (Toman ← ×۱۰، Rial ← بدون تغییر)؛ MiareAmountRules.
                     if (root.TryGetProperty("delivery_cost", out var costProp) && costProp.ValueKind == JsonValueKind.Number)
-                        shipment.ProviderCost = costProp.GetDouble() * 10;
+                        shipment.ProviderCost = MiareAmountRules.ToRial(costProp.GetDouble(), _options.Miare.AmountUnit);
                     shipment.ShippedNotifiedAtUtc ??= nowUtc; // «ارسال» را از دست داده بودیم؛ دیگر پیام ارسال نمی‌خواهد
                     await _context.SaveChangesAsync(cancellationToken);
                     await OnDeliveredAsync(shipment, cancellationToken);

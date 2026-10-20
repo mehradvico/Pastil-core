@@ -12,6 +12,9 @@ namespace Application.Services.TripSrv.PetResanServiceSrv.Iface
         Task<BaseResultDto<PetResanServiceVDto>> FindAsyncVDto(long id, long userId);
         Task<BaseResultDto> CancelAsync(long id, long userId);
 
+        /// <summary>فهرست سرویس‌های هفتگی برای پنل ادمین (لغو گروهی در ITripService.AdminCancelPetResanServicesAsync).</summary>
+        Task<BaseSearchDto<PetResanServiceAdminVDto>> AdminSearchAsync(PetResanServiceAdminSearchDto dto);
+
         /// <summary>پیش‌نمایش قیمت هر رفت‌وبرگشت، قبل از ثبت نهایی سرویس.</summary>
         Task<BaseResultDto<double>> PreviewPriceAsync(PetResanServiceCreateDto dto);
     }

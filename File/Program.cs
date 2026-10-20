@@ -226,15 +226,36 @@ app.Use(async (context, next) =>
     if (!storage.IsConfigured)
         return;
 
-    var file = await storage.TryGetAsync(path, context.RequestAborted);
+    // Range (مثل UseStaticFiles برای فایل‌های روی دیسک): Safari/iOS ویدیو را فقط با پاسخ 206 پخش می‌کند.
+    // فقط یک بازه پشتیبانی می‌شود؛ درخواست چندبازه‌ای کل فایل را با 200 می‌گیرد (مجاز طبق RFC 9110).
+    string? byteRange = null;
+    var range = context.Request.GetTypedHeaders().Range;
+    if (range != null && string.Equals(range.Unit.Value, "bytes", StringComparison.OrdinalIgnoreCase) && range.Ranges.Count == 1)
+    {
+        var single = range.Ranges.First();
+        byteRange = $"bytes={single.From}-{single.To}";
+    }
+
+    var file = await storage.TryGetAsync(path, byteRange, context.RequestAborted);
     if (file == null)
         return;
 
     await using (file.Content)
     {
-        context.Response.StatusCode = StatusCodes.Status200OK;
-        context.Response.ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
         context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers.AcceptRanges = "bytes";
+        if (file.RangeNotSatisfiable)
+        {
+            context.Response.StatusCode = StatusCodes.Status416RangeNotSatisfiable;
+            return;
+        }
+
+        context.Response.StatusCode = file.ContentRange != null ? StatusCodes.Status206PartialContent : StatusCodes.Status200OK;
+        if (file.ContentRange != null)
+            context.Response.Headers.ContentRange = file.ContentRange;
+        if (file.ContentLength.HasValue)
+            context.Response.ContentLength = file.ContentLength;
+        context.Response.ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
         await file.Content.CopyToAsync(context.Response.Body, context.RequestAborted);
     }
 });

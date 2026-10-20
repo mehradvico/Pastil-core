@@ -35,6 +35,23 @@ public class ProductOrderAdjustmentRulesTests
         Assert.False(Editable(received: false));
     }
 
+    [Fact]
+    public void Admin_whole_order_cancel_is_allowed_after_the_customer_said_not_received_but_never_after_received()
+    {
+        bool AdminCancel(bool? received, string status = Insert)
+            => IsBeforeShipment(true, false, status, Normal, received, Insert, Process, Canceled, allowCustomerNotReceived: true);
+
+        Assert.True(AdminCancel(received: false));      // «تحویل نگرفتم» ← ادمین می‌تواند لغو و استرداد کند
+        Assert.True(AdminCancel(received: null));
+        Assert.False(AdminCancel(received: true));      // «تحویل گرفتم» همیشه رد
+        Assert.False(AdminCancel(received: false, status: Send));        // ارسال‌شده همچنان رد
+        Assert.False(AdminCancel(received: false, status: Delivered));
+        Assert.False(IsBeforeShipment(true, false, Insert, Canceled, false, Insert, Process, Canceled, allowCustomerNotReceived: true)); // قبلاً لغو شده
+        Assert.False(IsBeforeShipment(false, false, Insert, Normal, false, Insert, Process, Canceled, allowCustomerNotReceived: true));  // پرداخت‌نشده
+        // بدون مجوز (فروشنده/کم‌کردن آیتم) رفتار قبلی: جواب مشتری = رد
+        Assert.False(Editable(received: false));
+    }
+
     [Theory]
     [InlineData(ShipmentStatusEnum.AwaitingSellerConfirm, true, ShipmentGate.Allowed)]
     [InlineData(ShipmentStatusEnum.Preparing, true, ShipmentGate.Allowed)]

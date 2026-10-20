@@ -21,6 +21,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Application.Services.ProviderSrvs.ProviderSrv.Iface;
+using Application.Services.ProviderSrvs.ProviderSubscriptionSyncSrv.Iface;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
@@ -39,8 +41,10 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
         private readonly INoticeService _notificationService;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ILogger<CompanionService> _logger;
+        private readonly IProviderService _providerService;
+        private readonly IProviderSubscriptionSyncService _subscriptionSync;
         private readonly string connectionString;
-        public CompanionService(IDataBaseContext _context, IMapper mapper, IConfiguration config, IUserService userService, INoticeService notificationService, ICodeService codeService, IPushNotificationService pushNotificationService, ILogger<CompanionService> logger) : base(_context, mapper)
+        public CompanionService(IDataBaseContext _context, IMapper mapper, IConfiguration config, IUserService userService, INoticeService notificationService, ICodeService codeService, IPushNotificationService pushNotificationService, ILogger<CompanionService> logger, IProviderService providerService, IProviderSubscriptionSyncService subscriptionSync) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -49,6 +53,8 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             this._notificationService = notificationService;
             this._pushNotificationService = pushNotificationService;
             this._logger = logger;
+            this._providerService = providerService;
+            this._subscriptionSync = subscriptionSync;
             this.connectionString = config.GetValue<string>("connection");
         }
 
@@ -93,6 +99,8 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             var companions = _context.Companions
                 .AsNoTracking()
                 .Where(x => !x.Deleted && x.Active && x.Approved && x.Location != null)
+                // آرایشگاهِ منتقل‌شده به Groomer دیگر به‌عنوان نماینده/کلینیک نمایش داده نمی‌شود.
+                .Where(CompanionMigrationFilter.NotFullyMigrated(_context))
                 .Where(x => x.Location.Distance(userLocation.Location) <= inputDto.RadiusMeter);
 
             if (!string.IsNullOrWhiteSpace(inputDto.Q))
@@ -193,6 +201,8 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             var model = _context.Companions.Include(s => s.CompanionAssistances).Include(s => s.Owner).Include(s => s.Picture).Include(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.Neighborhood).Include(s => s.CompanionTypes).Include(s => s.CompanionPets).Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.CompanionTypes)
                 .Include(s => s.CompanionZones).ThenInclude(s => s.City).ThenInclude(s => s.State).AsQueryable().Where(s => !s.Deleted);
+            if (!baseSearchDto.IncludeMigratedGroomers)
+                model = model.Where(CompanionMigrationFilter.NotFullyMigrated(_context));
 
             if (baseSearchDto.Available.HasValue)
             {
@@ -219,6 +229,11 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             {
                 model = model.Where(s => s.IsPersonal == baseSearchDto.IsPersonal.Value);
             }
+            if (baseSearchDto.HasActiveService == true)
+            {
+                model = model.Where(s => s.CompanionAssistances.Any(a => a.Active && !a.Deleted &&
+                    a.CompanionAssistancePackages.Any(p => p.Active && !p.Deleted)));
+            }
             if (baseSearchDto.CityId.HasValue)
             {
                 model = model.Where(s => s.City.Id == baseSearchDto.CityId.Value);
@@ -234,6 +249,10 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             if (baseSearchDto.OwnerId.HasValue)
             {
                 model = model.Where(s => s.Owner.Id == baseSearchDto.OwnerId.Value);
+            }
+            if (baseSearchDto.ProviderRoleId.HasValue)
+            {
+                model = model.Where(s => s.Provider.RoleAssignments.Any(a => !a.Deleted && a.ProviderRoleId == baseSearchDto.ProviderRoleId.Value));
             }
             if (baseSearchDto.TypeId.HasValue)
             {
@@ -319,6 +338,21 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             }
             return new CompanionSearchDto(baseSearchDto, model, mapper);
         }
+        // همان شمارش ReserveCountAsync، یک‌جا برای همه‌ی مراکز صفحه
+        public void ApplyReserveCounts(IReadOnlyCollection<CompanionVDto> companions)
+        {
+            if (companions == null || companions.Count == 0)
+                return;
+            var ids = companions.Select(s => s.Id).ToList();
+            var counts = _context.CompanionReserves.AsNoTracking()
+                .Where(s => ids.Contains(s.CompanionAssistance.CompanionId))
+                .GroupBy(s => s.CompanionAssistance.CompanionId)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionary(x => x.Key, x => x.Count);
+            foreach (var companion in companions)
+                companion.ReserveCount = counts.TryGetValue(companion.Id, out var count) ? count : 0;
+        }
+
         public override async Task<BaseResultDto<CompanionDto>> InsertAsyncDto(CompanionDto dto)
         {
             try
@@ -344,14 +378,13 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                     {
                         return new BaseResultDto<CompanionDto>(false, Resource.Notification.NothingFound, dto);
                     }
-                    bool existed = await _context.Companions.AnyAsync(x => x.OwnerId == dto.OwnerId && !x.Deleted);
-                    if (existed)
-                    {
-                        return new BaseResultDto<CompanionDto>(false, Resource.Notification.AlreadyIsCompanion, dto);
-                    }
                     item.ReferralCode = await ReferralCodeGenerator.CreateCompanionCodeAsync(_context);
+                    item.Provider = await _providerService.EnsureForUserAsync(item.OwnerId, approved: false);
                     await _context.Companions.AddAsync(item);
                     await _context.SaveChangesAsync();
+                    // یک ارائه‌دهنده می‌تواند چند مکان داشته باشد؛ مکان جدید سطح اشتراک Provider را همان لحظه می‌گیرد.
+                    if (item.ProviderId.HasValue)
+                        await _subscriptionSync.SyncProviderAsync(item.ProviderId.Value);
                     try
                     {
                         await _notificationService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.CompanionSubmitted, ActorUserId = item.OwnerId, ReferenceType = "Companion", ReferenceId = item.Id, DeduplicationKey = $"{NoticeTypeLabels.CompanionSubmitted}:{item.Id}", Metadata = new Dictionary<string, string> { { "companionName", item.Name } } });
@@ -439,56 +472,17 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
             }
         }
 
-        public async Task<BaseResultDto> UpdateGoldAccountDto(CompanionGoldAccountDto dto)
+        public Task<BaseResultDto> UpdateGoldAccountDto(CompanionGoldAccountDto dto)
         {
-            var model = await _context.Companions
-                .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
-
-            if (model == null)
-            {
-                return new BaseResultDto<CompanionGoldAccountDto>(false, mapper.Map<CompanionGoldAccountDto>(model));
-            }
-
-            bool isAlreadyGold = model.GoldAccountDate.HasValue;
-            model.GoldAccountDate = dto.GoldAccountDate;
-
-            if (!isAlreadyGold)
-            {
-                var previousGold = await _context.Companions.Where(s => s.GoldAccountDate.HasValue && s.Id != dto.Id && !s.Deleted).FirstOrDefaultAsync();
-                if (previousGold != null)
-                {
-                    previousGold.GoldAccountDate = null;
-                    _context.Companions.Update(previousGold);
-                }
-            }
-
-            _context.Companions.Update(model);
-            await _context.SaveChangesAsync();
-
-            return new BaseResultDto<CompanionGoldAccountDto>(true, mapper.Map<CompanionGoldAccountDto>(model));
+            // اشتراک اکنون روی Provider است و با IProviderSubscriptionSyncService روی این فیلدها نوشته می‌شود؛ نوشتن مستقیم آن را ناسازگار می‌کرد.
+            return Task.FromResult(new BaseResultDto(false, Resource.Notification.AccountTierManagedByProvider));
         }
 
         public BaseResultDto UpdateSilverAccountDto(CompanionSilverAccountDto dto)
         {
-            var model = _context.Companions.FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
-            if (model == null)
-            {
-                return new BaseResultDto<CompanionSilverAccountDto>(false, mapper.Map<CompanionSilverAccountDto>(model));
-            }
-            else
-            {
-                if (dto.SilverAccountDate != model.SilverAccountDate)
-                    model.SilverAccountCreateDate = DateTime.Now;
-
-                model.SilverAccountDate = dto.SilverAccountDate;
-
-                if (model.SilverAccountDate == null)
-                    model.SilverAccountCreateDate = null;
-            }
-            _context.Companions.Update(model);
-            _context.SaveChanges();
-            return new BaseResultDto<CompanionSilverAccountDto>(true, mapper.Map<CompanionSilverAccountDto>(model));
+            return new BaseResultDto(false, Resource.Notification.AccountTierManagedByProvider);
         }
+
 
         public async Task<BaseResultDto> UpdateAsyncDto(CompanionDto dto)
         {
@@ -509,12 +503,10 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                     return modelCheker;
                 }
 
-                var ownerHasAnotherCompanion = await _context.Companions.AnyAsync(s =>
-                    s.Id != dto.Id && s.OwnerId == dto.OwnerId && !s.Deleted);
-                if (ownerHasAnotherCompanion)
-                    return new BaseResultDto(false, Resource.Notification.CompanionAlreadyRegisteredForOwner);
-
                 mapper.Map(dto, item);
+                // هر نمایندگی باید ارائه‌دهنده داشته باشد؛ اگر ندارد، از مالک ساخته/وصل می‌شود (ارائه‌دهنده‌ی دستی‌وصل‌شده دست‌نخورده می‌ماند).
+                if (!item.ProviderId.HasValue)
+                    item.Provider = await _providerService.EnsureForUserAsync(item.OwnerId, approved: true);
                 await _context.SaveChangesAsync();
 
                 try
@@ -696,7 +688,8 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
                 .Where(s =>
                     !s.Deleted &&
                     s.Active &&
-                    s.Approved);
+                    s.Approved)
+                .Where(CompanionMigrationFilter.NotFullyMigrated(_context));
 
             var list = await query
                 .Where(SearchQueryHelper.Or(SearchQueryHelper.Or(textPredicate, assistancePredicate), typePredicate))

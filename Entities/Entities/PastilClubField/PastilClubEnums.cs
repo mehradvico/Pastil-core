@@ -26,7 +26,9 @@ namespace Entities.Entities.PastilClubField
         BusinessReferral = 7,
         RewardRedemption = 8,
         Admin = 9,
-        System = 10
+        System = 10,
+        GroomerReservation = 11,
+        ClinicReservation = 12
     }
 
     public enum ClubPointEventTypeEnum
@@ -38,7 +40,9 @@ namespace Entities.Entities.PastilClubField
         MemoryCreated = 5,
         UserReferralReferrer = 6,
         UserReferralReferee = 7,
-        BusinessReferralUser = 8
+        BusinessReferralUser = 8,
+        GroomerReservationCompleted = 9,
+        ClinicReservationCompleted = 10
     }
 
     public enum ClubRewardTypeEnum
@@ -67,7 +71,9 @@ namespace Entities.Entities.PastilClubField
         PastilAI = 9,
         PastilAIPlan = 10,
         City = 11,
-        School = 12
+        School = 12,
+        Groomer = 13,
+        Clinic = 14
     }
 
     public enum ClubRewardExpirationTypeEnum
@@ -128,7 +134,9 @@ namespace Entities.Entities.PastilClubField
         ProductOrder = 1,
         CompanionReservation = 2,
         PansionReservation = 3,
-        PastilAI = 4
+        PastilAI = 4,
+        GroomerReservation = 5,
+        ClinicReservation = 6
     }
 
     public enum ClubPromotionalCreditStatusEnum

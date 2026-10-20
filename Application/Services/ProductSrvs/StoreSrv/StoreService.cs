@@ -20,6 +20,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Application.Services.ProviderSrvs.ProviderSrv.Iface;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
@@ -37,9 +38,10 @@ namespace Application.Services.ProductSrvs.StoreSrv
         private readonly INoticeService _noticeService;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ILogger<StoreService> _logger;
+        private readonly IProviderService _providerService;
         private readonly string connectionString;
 
-        public StoreService(IDataBaseContext _context, IMapper mapper, IConfiguration config, IProductService productService, INoticeService noticeService, IPushNotificationService pushNotificationService, ILogger<StoreService> logger) : base(_context: _context, mapper: mapper)
+        public StoreService(IDataBaseContext _context, IMapper mapper, IConfiguration config, IProductService productService, INoticeService noticeService, IPushNotificationService pushNotificationService, ILogger<StoreService> logger, IProviderService providerService) : base(_context: _context, mapper: mapper)
         {
             this._context = _context;
             this.mapper = mapper;
@@ -47,6 +49,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
             this._noticeService = noticeService;
             this._pushNotificationService = pushNotificationService;
             this._logger = logger;
+            this._providerService = providerService;
             this.connectionString = config.GetValue<string>(
             "connection");
         }
@@ -157,7 +160,11 @@ namespace Application.Services.ProductSrvs.StoreSrv
                     {
                         return new BaseResultDto<StoreDto>(isSuccess: false, val1: Resource.Notification.TheNameIsDuplicate, val2: nameof(dto.Name), dto);
                     }
+                    // هر فروشگاه باید ارائه‌دهنده داشته باشد (تسویه و حسابداری روی ارائه‌دهنده است).
+                    if ((dto.ProviderId ?? 0) <= 0 || !await _context.Providers.AnyAsync(p => p.Id == dto.ProviderId.Value && !p.Deleted))
+                        return new BaseResultDto<StoreDto>(isSuccess: false, val1: Resource.Notification.StoreProviderRequired, val2: nameof(dto.ProviderId), dto);
                     var item = mapper.Map<Store>(dto);
+                    item.ProviderId = dto.ProviderId;
                     item.CreateDate = DateTime.Now;
                     item.ReferralCode = await ReferralCodeGenerator.CreateStoreCodeAsync(_context);
                     await _context.Stores.AddAsync(item);
@@ -223,6 +230,7 @@ namespace Application.Services.ProductSrvs.StoreSrv
             item.CommissionPercent = 0;
             item.ReferralCode = await ReferralCodeGenerator.CreateStoreCodeAsync(_context);
             item.Users = new List<Entities.Entities.Security.User> { user };
+            item.Provider = await _providerService.EnsureForUserAsync(userId, approved: false);
 
             await _context.Stores.AddAsync(item);
             try

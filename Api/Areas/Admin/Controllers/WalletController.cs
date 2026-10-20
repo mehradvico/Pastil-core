@@ -51,6 +51,8 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto<WalletDto>), 200)]
         public async Task<IActionResult> Post(WalletDto WalletDto)
         {
+            // شارژ/کسر دستی پنل همیشه با «توسط ادمین» و یادداشت ادمین ثبت می‌شود (شرح خالی/مبهم در کیف پول کاربر نمی‌ماند)
+            WalletDto.Name = Application.Services.ProductSrvs.WalletSrv.WalletDescriptionRules.AdminManualName(WalletDto.Name);
             var dto = await _walletService.InsertAsyncDto(WalletDto);
             return Ok(dto);
         }

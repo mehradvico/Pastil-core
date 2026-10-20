@@ -8,7 +8,12 @@
     ViewData["Title"] = "بازگشت از پرداخت";
     var isSuccess = Model?.IsSuccess == true;
     var returnUrl = TempData["ReturnToSiteUrl"]?.ToString() ?? AppSettingsHelper.BaseUrl;
-    var ordersUrl = returnUrl.TrimEnd('/') + "/orders";
+    var links = ViewData["ReturnLinks"] as Payment.Models.PaymentReturnLinks
+        ?? Payment.Models.PaymentReturnLinks.For(Model?.Data, isSuccess, returnUrl);
+    // دلیل واقعی (لغو در درگاه، جایگزین‌شده با تلاش جدیدتر، برگشت به کیف پول، ...)؛ پیام عمومی «ناموفق» تکرار نمی‌شود
+    var reason = Model?.Messages?.FirstOrDefault()?.Item1;
+    if (isSuccess || string.IsNullOrWhiteSpace(reason) || reason == Resource.Notification.Unsuccess)
+        reason = null;
     var payment = Model?.Data;
     var targetType = payment?.CallBackTypeLabel;
     var targetCode = payment?.ReferenceCode;
@@ -54,6 +59,11 @@
             @(isSuccess ? "پرداخت با موفقیت انجام شد" : "پرداخت شما ناموفق بود.")
         </h1>
 
+        @if (reason != null)
+        {
+            <p class="payment-reason">@reason</p>
+        }
+
         @if (payment != null)
         {
             <section class="payment-details" aria-label="جزئیات پرداخت">
@@ -92,13 +102,13 @@
             </section>
         }
 
-        <a class="btn-return" href="@returnUrl">
-            <span>بازگشت به اپ پاستیل</span>
+        <a class="btn-return" href="@links.PrimaryUrl">
+            <span>@links.PrimaryLabel</span>
             <span class="return-arrow" aria-hidden="true">←</span>
         </a>
 
-        <a class="btn-orders" href="@ordersUrl">
-            <span>مشاهده سفارش‌ها</span>
+        <a class="btn-orders" href="@links.SecondaryUrl">
+            <span>@links.SecondaryLabel</span>
         </a>
 
         <footer class="security-note">پرداخت امن پاستیل</footer>

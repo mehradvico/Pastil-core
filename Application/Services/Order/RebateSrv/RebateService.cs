@@ -362,6 +362,70 @@ namespace Application.Services.Order.RebateSrv
             return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
         }
 
+        public BaseResultDto<RebateVDto> GetRebateByCodeAsync(Entities.Entities.GroomerField.GroomerReserve groomerReserve, long assistanceId, string Code)
+        {
+            double basePrice = groomerReserve.OnlineAmount;
+            var rebate = GetRebateByCodeValue(Code);
+
+            var commonCheck = ValidateRebateCommon(
+                rebate: rebate,
+                typeLabel: RebateTypeLabels.GroomerReserve,
+                justNow: DateTime.Now.Date,
+                userId: groomerReserve.BookerId,
+                rebateUserId: rebate?.UserId,
+                basePrice: basePrice
+            );
+            if (!commonCheck.IsSuccess)
+                return commonCheck;
+
+            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            var targetOk = targets == null || targets.Count == 0 || targets.Any(item =>
+                item.TargetType == ClubRewardTargetTypeEnum.Global ||
+                item.TargetType == ClubRewardTargetTypeEnum.Groomer && item.TargetId == groomerReserve.GroomerId ||
+                item.TargetType == ClubRewardTargetTypeEnum.Assistance && item.TargetId == assistanceId);
+            if (!targetOk)
+                return new BaseResultDto<RebateVDto>(false, Resource.Notification.NotPossibleUseRebateCode, null);
+
+            var rebateDto = mapper.Map<RebateVDto>(rebate);
+            rebateDto.FinalPrice = ApplyClubMaximum(rebate, rebateDto.IsPriceRebate
+                ? rebateDto.PriceValue
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100)));
+
+            return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
+        }
+
+        public BaseResultDto<RebateVDto> GetRebateByCodeAsync(Entities.Entities.ClinicField.ClinicReserve clinicReserve, long assistanceId, string Code)
+        {
+            double basePrice = clinicReserve.OnlineAmount;
+            var rebate = GetRebateByCodeValue(Code);
+
+            var commonCheck = ValidateRebateCommon(
+                rebate: rebate,
+                typeLabel: RebateTypeLabels.ClinicReserve,
+                justNow: DateTime.Now.Date,
+                userId: clinicReserve.BookerId,
+                rebateUserId: rebate?.UserId,
+                basePrice: basePrice
+            );
+            if (!commonCheck.IsSuccess)
+                return commonCheck;
+
+            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            var targetOk = targets == null || targets.Count == 0 || targets.Any(item =>
+                item.TargetType == ClubRewardTargetTypeEnum.Global ||
+                item.TargetType == ClubRewardTargetTypeEnum.Clinic && item.TargetId == clinicReserve.ClinicId ||
+                item.TargetType == ClubRewardTargetTypeEnum.Assistance && item.TargetId == assistanceId);
+            if (!targetOk)
+                return new BaseResultDto<RebateVDto>(false, Resource.Notification.NotPossibleUseRebateCode, null);
+
+            var rebateDto = mapper.Map<RebateVDto>(rebate);
+            rebateDto.FinalPrice = ApplyClubMaximum(rebate, rebateDto.IsPriceRebate
+                ? rebateDto.PriceValue
+                : Math.Round(basePrice * (rebateDto.PriceValue / 100)));
+
+            return new BaseResultDto<RebateVDto>(true, Resource.Notification.Success, rebateDto);
+        }
+
         public BaseResultDto<RebateVDto> GetRebateByCodeAsync(double basePrice, long userId, string typeLabel, string code, long? targetId = null)
         {
             var rebate = GetRebateByCodeValue(code);
@@ -515,6 +579,24 @@ namespace Application.Services.Order.RebateSrv
             {
                 UpdateUsageStatistics(pansion.Rebate, pansion.BookerId);
                 CompleteClubCoupon(pansion.Rebate.Id, pansion.RebatePrice, null, pansion.Id);
+            }
+        }
+
+        public void IncreaseUseCount(Entities.Entities.GroomerField.GroomerReserve groomerReserve)
+        {
+            if (groomerReserve.Rebate != null)
+            {
+                UpdateUsageStatistics(groomerReserve.Rebate, groomerReserve.BookerId);
+                CompleteClubCoupon(groomerReserve.Rebate.Id, groomerReserve.RebatePrice, null, groomerReserve.Id);
+            }
+        }
+
+        public void IncreaseUseCount(Entities.Entities.ClinicField.ClinicReserve clinicReserve)
+        {
+            if (clinicReserve.Rebate != null)
+            {
+                UpdateUsageStatistics(clinicReserve.Rebate, clinicReserve.BookerId);
+                CompleteClubCoupon(clinicReserve.Rebate.Id, clinicReserve.RebatePrice, null, clinicReserve.Id);
             }
         }
 

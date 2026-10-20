@@ -1,4 +1,5 @@
 ﻿using AngleSharp.Dom;
+using Microsoft.Extensions.DependencyInjection;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
@@ -27,7 +28,11 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
         private readonly IFcmSender _fcmSender;
         private readonly ISignalRPushSender _signalRPushSender;
         private readonly ILogger<PushNotificationService> _logger;
+        private readonly Application.Common.PostCommit.IPostCommitQueue _postCommit;
         private const int MaxAttemptCount = 3;
+        // هر دستگاه حداکثر این‌قدر منتظر می‌ماند؛ WebPush پیش‌فرض ۱۰۰ ثانیه صبر می‌کرد و یک اندپوینت دست‌نیافتنی (از سرور ایران)
+        // کل ثبت سفارش را ده‌ها ثانیه نگه می‌داشت. بعد از آن ارسال «خطای گذرا» حساب می‌شود و job دوباره تلاش می‌کند.
+        private static readonly TimeSpan WebPushTimeout = TimeSpan.FromSeconds(15);
         // برخی الگوهای Push (مثل PushMemoryReminder) هیچ‌وقت مقدار Icon نداشتن (NULL در دیتابیس)
         // و صرفاً به fallback سمت service worker وب‌اپ متکی بودن؛ اگه یه نسخه‌ی قدیمی‌تر sw.js
         // (که هنوز آپدیت نشده روی گوشی کاربر) اون fallback رو نداشته باشه، آیکون واقعی پاستیل
@@ -40,8 +45,10 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             IOptions<VapidKeysOption> vapid,
             IFcmSender fcmSender,
             ISignalRPushSender signalRPushSender,
-            ILogger<PushNotificationService> logger)
+            ILogger<PushNotificationService> logger,
+            Application.Common.PostCommit.IPostCommitQueue postCommit)
         {
+            _postCommit = postCommit;
             _context = context;
             _vapid = vapid.Value;
             _fcmSender = fcmSender;
@@ -107,7 +114,33 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
             await _context.SaveChangesAsync();
 
             if (sendDate == null)
-                await SendSingleAsync(pattern, notif);
+            {
+                // داخل تراکنش پرداخت، کاربر پشت ارسال منتظر می‌ماند و قفل‌های دیتابیس نگه داشته می‌شود: ردیف الان ذخیره می‌شود و
+                // ارسال بعد از Commit در پس‌زمینه انجام می‌شود (اگر تراکنش برگردد، ردیف هم برمی‌گردد و چیزی نمی‌رود).
+                if (_postCommit.IsActive && _context.CurrentTransaction != null)
+                {
+                    var notificationId = notif.Id;
+                    _postCommit.Add($"push:{notificationId}", sp =>
+                        sp.GetRequiredService<IPushNotificationService>().DeliverAsync(notificationId));
+                }
+                else
+                {
+                    await SendSingleAsync(pattern, notif);
+                }
+            }
+        }
+
+        public async Task DeliverAsync(long pushNotificationId)
+        {
+            var notif = await _context.PushNotifications
+                .Include(x => x.PushPattern).ThenInclude(x => x.PushType)
+                .Where(x => x.Id == pushNotificationId && !x.IsSend && x.Status == null)
+                .AsTracking()
+                .FirstOrDefaultAsync();
+            if (notif?.PushPattern == null)
+                return;
+
+            await SendSingleAsync(notif.PushPattern, notif);
         }
 
         public async Task SendPushGroupAsync(int pageSize = 100)
@@ -361,7 +394,8 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                     subscription.Endpoint,
                     subscription.P256dh,
                     subscription.Auth);
-                await client.SendNotificationAsync(sub, payload, vapid);
+                using var timeout = new System.Threading.CancellationTokenSource(WebPushTimeout);
+                await client.SendNotificationAsync(sub, payload, vapid, timeout.Token);
                 return PushSendResult.Success;
             }
             catch (WebPushException exception) when (

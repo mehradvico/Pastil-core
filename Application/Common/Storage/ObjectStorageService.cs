@@ -47,28 +47,39 @@ namespace Application.Common.Storage
             }, cancellationToken);
         }
 
-        public async Task<ObjectStorageFile?> TryGetAsync(string key, CancellationToken cancellationToken = default)
+        public async Task<ObjectStorageFile?> TryGetAsync(string key, string? byteRange = null, CancellationToken cancellationToken = default)
         {
             if (client == null)
                 return null;
 
             try
             {
-                var response = await client.GetObjectAsync(new GetObjectRequest
+                var request = new GetObjectRequest
                 {
                     BucketName = options.BucketName,
                     Key = key
-                }, cancellationToken);
+                };
+                // پخش ویدیو در Safari/iOS بدون پاسخ 206 به درخواست Range ممکن نیست
+                if (!string.IsNullOrWhiteSpace(byteRange))
+                    request.ByteRange = new ByteRange(byteRange);
+
+                var response = await client.GetObjectAsync(request, cancellationToken);
 
                 return new ObjectStorageFile
                 {
                     Content = response.ResponseStream,
-                    ContentType = response.Headers["Content-Type"]
+                    ContentType = response.Headers["Content-Type"],
+                    ContentLength = response.ContentLength >= 0 ? response.ContentLength : null,
+                    ContentRange = response.HttpStatusCode == HttpStatusCode.PartialContent ? response.ContentRange : null
                 };
             }
             catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {
                 return null;
+            }
+            catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.RequestedRangeNotSatisfiable)
+            {
+                return new ObjectStorageFile { Content = Stream.Null, RangeNotSatisfiable = true };
             }
         }
     }

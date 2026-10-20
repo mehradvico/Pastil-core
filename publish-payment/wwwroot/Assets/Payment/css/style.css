@@ -138,6 +138,13 @@ body.payment-page > div {
     line-height: 1.7;
 }
 
+.payment-reason {
+    margin: 10px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 2;
+}
+
 .payment-details {
     margin-top: 28px;
     overflow: hidden;

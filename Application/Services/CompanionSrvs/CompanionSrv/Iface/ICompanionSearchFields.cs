@@ -6,6 +6,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Iface
     public interface ICompanionSearchFields
     {
         public long? OwnerId { get; set; }
+        public long? ProviderRoleId { get; set; }
         public long? TypeId { get; set; }
         public long? PetId  { get; set; }
         public long? CityId { get; set; }

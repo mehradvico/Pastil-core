@@ -12,6 +12,8 @@
         Wallet,
         SchoolReserve,
         CompanionReserveBatch,
-        ConsultationPurchase
+        ConsultationPurchase,
+        GroomerReserve,
+        ClinicReserve
     }
 }

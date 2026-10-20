@@ -14,9 +14,13 @@ namespace Application.Services.FinanceSrvs.SettlementSrv.Dto
     {
         public SettlementSearchDto(SettlementInputDto dto, IQueryable<Settlement> list, IMapper mapper) : base(dto, list, mapper)
         {
+            this.ProviderId = dto.ProviderId;
+            this.Kind = dto.Kind;
             this.StoreId = dto.StoreId;
             this.CompanionId = dto.CompanionId;
         }
+        public long? ProviderId { get; set; }
+        public Entities.Entities.SettlementKindEnum? Kind { get; set; }
         public long? StoreId { get; set; }
         public long? CompanionId { get; set; }
     }

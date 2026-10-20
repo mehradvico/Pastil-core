@@ -11,6 +11,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Iface
     public interface ICompanionService : ICommonSrv<Companion, CompanionDto>
     {
         CompanionSearchDto Search(CompanionInputDto baseSearchDto);
+        void ApplyReserveCounts(IReadOnlyCollection<CompanionVDto> companions);
         Task<BaseResultDto<CompanionVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
         Task<BaseResultDto<NearbyCompanionSearchDto>> GetNearbyAsync(long userId, NearbyCompanionInputDto inputDto);

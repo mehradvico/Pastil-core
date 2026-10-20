@@ -34,6 +34,12 @@ namespace Application.Services.CommonSrv.SearchSrv.Dto
         public string NormalizedQuery { get; set; }
         public int TotalCount { get; set; }
         public long TookMilliseconds { get; set; }
+        // سقف زمان جستجو (۳ ثانیه) رسید و فقط بخش‌هایی که تمام شدند برگشتند؛ این نتیجه کش نمی‌شود
+        public bool IsPartial { get; set; }
+        // از کش ۵ دقیقه‌ای آمد (برای عیب‌یابی)
+        public bool FromCache { get; set; }
+
+        public SearchDto ShallowCopy() => (SearchDto)MemberwiseClone();
     }
 
 }

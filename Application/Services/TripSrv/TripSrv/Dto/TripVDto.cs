@@ -62,6 +62,8 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         // نوبتی از «سرویس پت‌رسان هفتگی» (job شبانه می‌سازد). اپ راننده «سرویس دوره‌ای» بودن را از همین فیلد تشخیص می‌دهد؛
         // این نوبت‌ها ScheduledDepartureAt ندارند (فقط TripStartDateTime) و به هیچ رزروی هم وصل نیستند.
         public long? PetResanServiceScheduleId { get; set; }
+        // برنامه‌ی هفتگیِ سرویس (فقط در پاسخ‌های راننده پر می‌شود)
+        public TripServiceInfoVDto PetResanService { get; set; }
         public int? ScheduledLeadMinutes { get; set; }
         public DateTime? ScheduledDepartureAt { get; set; }
         public bool OwnerRidesAlong { get; set; }

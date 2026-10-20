@@ -921,6 +921,15 @@
   <data name="PaymentPreviousAttemptVerifying" xml:space="preserve">
     <value>پرداخت قبلی شما همین الان در حال تأیید نهایی بانک است؛ چند ثانیه دیگر دوباره تلاش کنید.</value>
   </data>
+  <data name="PaymentNotCompletedAtGateway" xml:space="preserve">
+    <value>پرداخت در درگاه انجام نشد یا لغو شد. اگر مبلغی از حسابتان کم شده، بانک حداکثر تا ۷۲ ساعت آن را برمی‌گرداند. می‌توانید دوباره پرداخت کنید.</value>
+  </data>
+  <data name="PaymentDuplicateRefundedToWallet" xml:space="preserve">
+    <value>این مورد قبلاً پرداخت شده بود؛ مبلغ این پرداخت تکراری به کیف پول پاستیل شما برگشت داده شد.</value>
+  </data>
+  <data name="PaymentRefundedToWallet" xml:space="preserve">
+    <value>پرداخت شما از بانک انجام شد ولی ثبت این مورد ممکن نشد؛ کل مبلغ به کیف پول پاستیل شما برگشت داده شد.</value>
+  </data>
   <data name="PaymentTargetCancelled" xml:space="preserve">
     <value>این مورد لغو شده و دیگر قابل پرداخت نیست.</value>
   </data>
@@ -1172,6 +1181,9 @@
   </data>
   <data name="TripAutoCanceledNoDriverAccepted" xml:space="preserve">
     <value>هیچ راننده‌ای ظرف مدت مقرر این سفر را نپذیرفت، به همین دلیل درخواست به‌صورت خودکار لغو شد.</value>
+  </data>
+  <data name="PetResanServiceStoppedNoDriver" xml:space="preserve">
+    <value>در دو روزِ پشت‌سرهمِ سرویس هیچ راننده‌ای این سرویس هفتگی را نپذیرفت، به همین دلیل سرویس متوقف شد.</value>
   </data>
   <data name="TripAdminDriverSelectionRequestSubmitted" xml:space="preserve">
     <value>درخواست شما برای ادمین‌های پاستیل ارسال شد تا برای شما راننده انتخاب کنند.</value>
@@ -1887,5 +1899,512 @@
   </data>
   <data name="TicketAutoReplyMessage" xml:space="preserve">
     <value>با سلام،&#10;درخواست شما توسط همکاران ما در پاستیل در حال پیگیری می‌باشد.&#10;شما در کوتاه‌ترین زمان ممکن به پشتیبان‌های پاستیل متصل خواهید شد.&#10;از صبوری و اعتماد شما متشکریم.</value>
+  </data>
+  <data name="PansionCheckoutMustBeAfterCheckin" xml:space="preserve">
+    <value>تاریخ خروج باید دست‌کم یک شب بعد از تاریخ ورود باشد.</value>
+  </data>
+  <data name="PansionPetTypeNotAccepted" xml:space="preserve">
+    <value>این مرکز نوع حیوان انتخاب‌شده را پذیرش نمی‌کند.</value>
+  </data>
+  <data name="PansionReserveDatePassed" xml:space="preserve">
+    <value>تاریخ این رزرو گذشته است؛ لطفاً تاریخ جدیدی انتخاب کنید.</value>
+  </data>
+  <data name="SchoolCourseRegistrationClosed" xml:space="preserve">
+    <value>ثبت‌نام این دوره بسته شده است؛ جلسه‌ی اول دوره برگزار شده است.</value>
+  </data>
+  <data name="SchoolSessionMustBeInFuture" xml:space="preserve">
+    <value>تاریخ و ساعت جلسه باید در آینده باشد.</value>
+  </data>
+  <data name="SchoolSessionCountExceeded" xml:space="preserve">
+    <value>تعداد جلسات تعریف‌شده نمی‌تواند از «تعداد جلسات» دوره بیشتر شود.</value>
+  </data>
+  <data name="SchoolCourseSessionCountBelowDefined" xml:space="preserve">
+    <value>تعداد جلسات دوره نمی‌تواند از جلسات تعریف‌شده کمتر باشد.</value>
+  </data>
+  <data name="SearchQueryTooLong" xml:space="preserve">
+    <value>عبارت جستجو نباید بیشتر از ۱۰۰ کاراکتر باشد.</value>
+  </data>
+  <data name="DuplicateRequest" xml:space="preserve">
+    <value>این درخواست همین الان ثبت شد؛ لطفاً چند ثانیه صبر کنید.</value>
+  </data>
+  <data name="WalletReasonGenericIncrease" xml:space="preserve">
+    <value>واریز به کیف پول</value>
+  </data>
+  <data name="WalletReasonGenericDecrease" xml:space="preserve">
+    <value>برداشت از کیف پول</value>
+  </data>
+  <data name="WalletReasonAdminCharge" xml:space="preserve">
+    <value>شارژ دستی توسط ادمین</value>
+  </data>
+  <data name="WalletReasonAdminDebit" xml:space="preserve">
+    <value>کسر دستی توسط ادمین</value>
+  </data>
+  <data name="PaymentVerificationPending" xml:space="preserve">
+    <value>پرداخت شما در حال تأیید با بانک است. اگر مبلغ از حساب شما کسر شده، ظرف چند دقیقه سفارش به‌صورت خودکار ثبت می‌شود و در غیر این صورت مبلغ به حساب شما برمی‌گردد. لطفاً دوباره پرداخت نکنید.</value>
+  </data>
+  <data name="ShipmentExtendNotAllowed" xml:space="preserve">
+    <value>مهلت فروشنده برای این مرسوله در وضعیت فعلی قابل تمدید نیست.</value>
+  </data>
+  <data name="ShipmentTrackStepPreparing" xml:space="preserve">
+    <value>فروشگاه در حال آماده‌سازی سفارش است.</value>
+  </data>
+  <data name="ShipmentTrackStepCourierRequested" xml:space="preserve">
+    <value>پیک درخواست شد و در انتظار تخصیص است.</value>
+  </data>
+  <data name="ShipmentTrackStepCourierAssigned" xml:space="preserve">
+    <value>پیک تعیین شد و در مسیر فروشگاه است.</value>
+  </data>
+  <data name="ShipmentTrackStepPickedUp" xml:space="preserve">
+    <value>پیک سفارش را از فروشگاه تحویل گرفت و در راه است.</value>
+  </data>
+  <data name="ShipmentTrackStepDelivered" xml:space="preserve">
+    <value>سفارش تحویل داده شد.</value>
+  </data>
+  <data name="ShipmentTrackStepCancelled" xml:space="preserve">
+    <value>ارسال لغو شد.</value>
+  </data>
+  <data name="ShipmentTrackStepFailed" xml:space="preserve">
+    <value>ارسال با مشکل روبه‌رو شد.</value>
+  </data>
+  <data name="ShipmentTrackStepReturning" xml:space="preserve">
+    <value>کالا در حال بازگشت به فروشگاه است.</value>
+  </data>
+  <data name="ProviderNotFound" xml:space="preserve">
+    <value>ارائه‌دهنده موردنظر یافت نشد.</value>
+  </data>
+  <data name="ProviderAlreadyExistsForUser" xml:space="preserve">
+    <value>برای این کاربر قبلاً ارائه‌دهنده ثبت شده است.</value>
+  </data>
+  <data name="SubscriptionPlanNotFound" xml:space="preserve">
+    <value>پلن اشتراک موردنظر یافت نشد.</value>
+  </data>
+  <data name="SubscriptionPeriodInvalid" xml:space="preserve">
+    <value>تاریخ پایان اشتراک باید بعد از تاریخ شروع باشد.</value>
+  </data>
+  <data name="AccountTierManagedByProvider" xml:space="preserve">
+    <value>سطح حساب ویژه (نقره‌ای/طلایی/الماس) اکنون از بخش اشتراک ارائه‌دهنده مدیریت می‌شود.</value>
+  </data>
+  <data name="ProviderRoleNotFound" xml:space="preserve">
+    <value>نقش ارائه‌دهنده موردنظر یافت نشد.</value>
+  </data>
+  <data name="ProviderRoleInUse" xml:space="preserve">
+    <value>این نقش به ارائه‌دهنده‌ای داده شده و قابل حذف نیست؛ به‌جای حذف آن را غیرفعال کنید.</value>
+  </data>
+  <data name="SettlementRequiresProvider" xml:space="preserve">
+    <value>تسویه فقط برای ارائه‌دهنده ثبت می‌شود؛ شناسه‌ی ارائه‌دهنده و نوع تسویه را بدهید.</value>
+  </data>
+  <data name="SettlementKindInvalid" xml:space="preserve">
+    <value>نوع تسویه معتبر نیست.</value>
+  </data>
+  <data name="SettlementBankCardInvalid" xml:space="preserve">
+    <value>کارت بانکی باید کارت تأییدشده‌ی خودِ ارائه‌دهنده باشد.</value>
+  </data>
+  <data name="SettlementNothingToSettle" xml:space="preserve">
+    <value>برای این ارائه‌دهنده موردِ تسویه‌نشده‌ای وجود ندارد.</value>
+  </data>
+  <data name="SettlementItemsChanged" xml:space="preserve">
+    <value>هنگام ثبت تسویه برخی موارد تغییر کردند (لغو یا تسویه‌ی هم‌زمان). چیزی ثبت نشد؛ دوباره تلاش کنید.</value>
+  </data>
+  <data name="StoreProviderRequired" xml:space="preserve">
+    <value>هر فروشگاه باید ارائه‌دهنده داشته باشد.</value>
+  </data>
+  <data name="GroomerProviderRequired" xml:space="preserve">
+    <value>هر آرایشگاه باید ارائه‌دهنده‌ی تأییدشده داشته باشد.</value>
+  </data>
+  <data name="GroomerSelectedStateInvalid" xml:space="preserve">
+    <value>استان انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="GroomerSelectedCityNotInState" xml:space="preserve">
+    <value>شهر انتخاب‌شده متعلق به استان انتخاب‌شده نیست.</value>
+  </data>
+  <data name="GroomerPleaseEnterAddress" xml:space="preserve">
+    <value>لطفاً آدرس را وارد کنید.</value>
+  </data>
+  <data name="GroomerPleaseSelectLocation" xml:space="preserve">
+    <value>لطفاً موقعیت را روی نقشه انتخاب کنید.</value>
+  </data>
+  <data name="GroomerLocationCoordinatesNotValid" xml:space="preserve">
+    <value>مختصات موقعیت معتبر نیست.</value>
+  </data>
+  <data name="GroomerPictureInvalid" xml:space="preserve">
+    <value>تصویر انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="GroomerPleaseEnterPhone" xml:space="preserve">
+    <value>لطفاً شماره تماس را وارد کنید.</value>
+  </data>
+  <data name="GroomerOwnerInvalid" xml:space="preserve">
+    <value>مالک آرایشگاه با ارائه‌دهنده‌ی آن یکی نیست.</value>
+  </data>
+  <data name="GroomerValueOutOfRange" xml:space="preserve">
+    <value>یکی از مقدارهای عددی خارج از بازه‌ی مجاز است.</value>
+  </data>
+  <data name="GroomerServiceAlreadyExists" xml:space="preserve">
+    <value>این خدمت قبلاً برای آرایشگاه تعریف شده است.</value>
+  </data>
+  <data name="GroomerServiceAssistanceInvalid" xml:space="preserve">
+    <value>خدمت انتخاب‌شده در کاتالوگ وجود ندارد.</value>
+  </data>
+  <data name="GroomerPackagePriceInvalid" xml:space="preserve">
+    <value>قیمت بسته باید بیشتر از صفر و کمتر از پیش‌پرداخت نباشد.</value>
+  </data>
+  <data name="GroomerPackagePetSizeInvalid" xml:space="preserve">
+    <value>سایز حیوان باید Small، Medium یا Large باشد.</value>
+  </data>
+  <data name="GroomerTimeInvalid" xml:space="preserve">
+    <value>بازه‌ی ساعت کاری معتبر نیست.</value>
+  </data>
+  <data name="GroomerUserAlreadyExists" xml:space="preserve">
+    <value>این کاربر قبلاً پرسنل این آرایشگاه است.</value>
+  </data>
+  <data name="GroomerCommentTextRequired" xml:space="preserve">
+    <value>لطفاً متن نظر را بنویسید.</value>
+  </data>
+  <data name="PortfolioPostNotFound" xml:space="preserve">
+    <value>نمونه‌کار پیدا نشد.</value>
+  </data>
+  <data name="PortfolioNeedsPicture" xml:space="preserve">
+    <value>نمونه‌کار باید حداقل یک تصویر داشته باشد.</value>
+  </data>
+  <data name="PortfolioTooManyPictures" xml:space="preserve">
+    <value>هر نمونه‌کار حداکثر ۱۰ تصویر می‌تواند داشته باشد.</value>
+  </data>
+  <data name="PortfolioCaptionTooLong" xml:space="preserve">
+    <value>توضیح نمونه‌کار بیش از ۲۰۰۰ نویسه است.</value>
+  </data>
+  <data name="PortfolioCommentTooLong" xml:space="preserve">
+    <value>متن نظر بیش از ۱۰۰۰ نویسه است.</value>
+  </data>
+  <data name="PortfolioParentCommentInvalid" xml:space="preserve">
+    <value>نظری که به آن پاسخ می‌دهید وجود ندارد.</value>
+  </data>
+  <data name="PortfolioPictureInvalid" xml:space="preserve">
+    <value>یکی از تصاویر انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="GroomerReserveGroomerUnavailable" xml:space="preserve">
+    <value>این آرایشگاه در حال حاضر قابل رزرو نیست.</value>
+  </data>
+  <data name="GroomerReservePackageInvalid" xml:space="preserve">
+    <value>بسته‌ی انتخاب‌شده قابل رزرو نیست.</value>
+  </data>
+  <data name="GroomerReservePetInvalid" xml:space="preserve">
+    <value>حیوان انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="GroomerReservePetTypeNotAccepted" xml:space="preserve">
+    <value>این آرایشگاه این نوع حیوان را نمی‌پذیرد.</value>
+  </data>
+  <data name="GroomerReservePetSizeMismatch" xml:space="preserve">
+    <value>این بسته برای سایز حیوان شما مناسب نیست.</value>
+  </data>
+  <data name="GroomerReserveTimeInPast" xml:space="preserve">
+    <value>زمان نوبت باید در آینده باشد.</value>
+  </data>
+  <data name="GroomerReserveOutsideWorkingHours" xml:space="preserve">
+    <value>زمان نوبت خارج از ساعت کاری آرایشگاه است.</value>
+  </data>
+  <data name="GroomerReserveSlotFull" xml:space="preserve">
+    <value>ظرفیت این زمان تکمیل شده است؛ زمان دیگری انتخاب کنید.</value>
+  </data>
+  <data name="GroomerReservePetBusy" xml:space="preserve">
+    <value>حیوان شما در این زمان نوبت دیگری دارد.</value>
+  </data>
+  <data name="GroomerReserveHomeServiceUnavailable" xml:space="preserve">
+    <value>این آرایشگاه خدمات در محل ندارد.</value>
+  </data>
+  <data name="GroomerReserveSalonServiceUnavailable" xml:space="preserve">
+    <value>این آرایشگاه فقط خدمات در محل ارائه می‌دهد.</value>
+  </data>
+  <data name="GroomerReserveAddressRequired" xml:space="preserve">
+    <value>برای خدمات در محل آدرس را انتخاب کنید.</value>
+  </data>
+  <data name="GroomerReserveAddressOutOfZone" xml:space="preserve">
+    <value>آدرس شما خارج از محدوده‌ی خدمات این آرایشگاه است.</value>
+  </data>
+  <data name="GroomerReservePickupUnavailable" xml:space="preserve">
+    <value>این آرایشگاه خدمت دریافت و تحویل ندارد.</value>
+  </data>
+  <data name="GroomerReserveAssigneeInvalid" xml:space="preserve">
+    <value>گرومر انتخاب‌شده برای این خدمت در دسترس نیست.</value>
+  </data>
+  <data name="GroomerReserveDatePassed" xml:space="preserve">
+    <value>زمان این نوبت گذشته است.</value>
+  </data>
+  <data name="GroomerReserveAwaitingOwnerApproval" xml:space="preserve">
+    <value>این رزرو منتظر تأیید آرایشگاه است.</value>
+  </data>
+  <data name="GroomerReserveApprovalNotPending" xml:space="preserve">
+    <value>این رزرو منتظر تأیید نیست.</value>
+  </data>
+  <data name="GroomerReserveRejectReasonRequired" xml:space="preserve">
+    <value>دلیل رد رزرو را وارد کنید.</value>
+  </data>
+  <data name="GroomerReserveApprovedSuccessfully" xml:space="preserve">
+    <value>رزرو تأیید شد.</value>
+  </data>
+  <data name="GroomerReserveRejectedSuccessfully" xml:space="preserve">
+    <value>رزرو لغو شد و مبلغ به کیف پول مشتری برگشت.</value>
+  </data>
+  <data name="GroomerReserveRefundFailed" xml:space="preserve">
+    <value>برگشت وجه رزرو انجام نشد؛ رزرو لغو نشد.</value>
+  </data>
+  <data name="GroomerReserveExpiredReason" xml:space="preserve">
+    <value>آرایشگاه در مهلت مقرر پاسخ نداد.</value>
+  </data>
+  <data name="GroomerReserveCannotCancel" xml:space="preserve">
+    <value>این رزرو قابل لغو نیست.</value>
+  </data>
+  <data name="GroomerReserveCancelledWithRefund" xml:space="preserve">
+    <value>رزرو لغو شد و مبلغ به کیف پول شما برگشت.</value>
+  </data>
+  <data name="GroomerReserveCancelledNoRefund" xml:space="preserve">
+    <value>رزرو لغو شد. چون مهلت لغو رایگان گذشته، مبلغ برگشت داده نمی‌شود.</value>
+  </data>
+  <data name="GroomerReserveNotStartedYet" xml:space="preserve">
+    <value>رزرو قبل از زمان نوبت قابل تکمیل نیست.</value>
+  </data>
+  <data name="GroomerReserveAlreadyCompleted" xml:space="preserve">
+    <value>این رزرو قبلاً تکمیل شده است.</value>
+  </data>
+  <data name="GroomerReserveNotPaid" xml:space="preserve">
+    <value>فقط رزرو پرداخت‌شده قابل تغییر است.</value>
+  </data>
+  <data name="GroomerReviewNotAllowed" xml:space="preserve">
+    <value>فقط بعد از رزرو تکمیل‌شده می‌توانید برای آرایشگاه نظر ثبت کنید.</value>
+  </data>
+  <data name="GroomerReviewAlreadyExists" xml:space="preserve">
+    <value>برای این رزرو قبلاً نظر ثبت کرده‌اید.</value>
+  </data>
+  <data name="GroomerReviewRateInvalid" xml:space="preserve">
+    <value>امتیاز باید بین ۱ تا ۵ باشد.</value>
+  </data>
+  <data name="ClubPointGroomerReserveCompletedDescription" xml:space="preserve">
+    <value>امتیاز تکمیل رزرو آرایشگاه {0}</value>
+  </data>
+  <data name="ClubPointGroomerReserveReversedDescription" xml:space="preserve">
+    <value>برگشت امتیاز رزرو لغوشده‌ی آرایشگاه {0}</value>
+  </data>
+  <data name="GroomerReserveTooManyPackages" xml:space="preserve">
+    <value>هر رزرو حداکثر ۵ بسته می‌تواند داشته باشد.</value>
+  </data>
+  <data name="GroomerReserveDuplicateService" xml:space="preserve">
+    <value>هر خدمت فقط یک‌بار در یک رزرو انتخاب می‌شود.</value>
+  </data>
+  <data name="GroomerReserveTooLong" xml:space="preserve">
+    <value>مجموع مدت بسته‌های انتخابی برای یک نوبت زیاد است.</value>
+  </data>
+  <data name="GroomerReserveRescheduleNotAllowed" xml:space="preserve">
+    <value>فقط رزرو پرداخت‌شده، فعال و تکمیل‌نشده قابل تغییر زمان است.</value>
+  </data>
+  <data name="GroomerReserveRescheduleSameTime" xml:space="preserve">
+    <value>زمان جدید با زمان فعلی یکی است.</value>
+  </data>
+  <data name="GroomerStaffInviteNotFound" xml:space="preserve">
+    <value>دعوت‌نامه پیدا نشد.</value>
+  </data>
+  <data name="GroomerStaffInviteAnswered" xml:space="preserve">
+    <value>به این دعوت‌نامه قبلاً پاسخ داده شده است.</value>
+  </data>
+  <data name="CompanionAssistanceGroomingNotAllowed" xml:space="preserve">
+    <value>خدمات گرومینگ فقط مخصوص آرایشگاه‌هاست.</value>
+  </data>
+  <data name="GroomerServiceNotGrooming" xml:space="preserve">
+    <value>این خدمت جزو خدمات گرومینگ نیست.</value>
+  </data>
+  <data name="ClinicProviderRequired" xml:space="preserve">
+    <value>هر کلینیک باید ارائه‌دهنده‌ی تأییدشده داشته باشد.</value>
+  </data>
+  <data name="ClinicSelectedStateInvalid" xml:space="preserve">
+    <value>استان انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="ClinicSelectedCityNotInState" xml:space="preserve">
+    <value>شهر انتخاب‌شده متعلق به استان انتخاب‌شده نیست.</value>
+  </data>
+  <data name="ClinicPleaseEnterAddress" xml:space="preserve">
+    <value>لطفاً آدرس را وارد کنید.</value>
+  </data>
+  <data name="ClinicPleaseSelectLocation" xml:space="preserve">
+    <value>لطفاً موقعیت را روی نقشه انتخاب کنید.</value>
+  </data>
+  <data name="ClinicLocationCoordinatesNotValid" xml:space="preserve">
+    <value>مختصات موقعیت معتبر نیست.</value>
+  </data>
+  <data name="ClinicPictureInvalid" xml:space="preserve">
+    <value>تصویر انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="ClinicPleaseEnterPhone" xml:space="preserve">
+    <value>لطفاً شماره تماس را وارد کنید.</value>
+  </data>
+  <data name="ClinicOwnerInvalid" xml:space="preserve">
+    <value>مالک کلینیک با ارائه‌دهنده‌ی آن یکی نیست.</value>
+  </data>
+  <data name="ClinicValueOutOfRange" xml:space="preserve">
+    <value>یکی از مقدارهای عددی خارج از بازه‌ی مجاز است.</value>
+  </data>
+  <data name="ClinicServiceAlreadyExists" xml:space="preserve">
+    <value>این خدمت قبلاً برای کلینیک تعریف شده است.</value>
+  </data>
+  <data name="ClinicServiceAssistanceInvalid" xml:space="preserve">
+    <value>خدمت انتخاب‌شده در کاتالوگ وجود ندارد.</value>
+  </data>
+  <data name="ClinicPackagePriceInvalid" xml:space="preserve">
+    <value>قیمت بسته باید بیشتر از صفر و کمتر از پیش‌پرداخت نباشد.</value>
+  </data>
+  <data name="ClinicPackagePetSizeInvalid" xml:space="preserve">
+    <value>سایز حیوان باید Small، Medium یا Large باشد.</value>
+  </data>
+  <data name="ClinicTimeInvalid" xml:space="preserve">
+    <value>بازه‌ی ساعت کاری معتبر نیست.</value>
+  </data>
+  <data name="ClinicUserAlreadyExists" xml:space="preserve">
+    <value>این کاربر قبلاً پرسنل این کلینیک است.</value>
+  </data>
+  <data name="ClinicCommentTextRequired" xml:space="preserve">
+    <value>لطفاً متن نظر را بنویسید.</value>
+  </data>
+  <data name="ClinicReserveClinicUnavailable" xml:space="preserve">
+    <value>این کلینیک در حال حاضر قابل رزرو نیست.</value>
+  </data>
+  <data name="ClinicReservePackageInvalid" xml:space="preserve">
+    <value>بسته‌ی انتخاب‌شده قابل رزرو نیست.</value>
+  </data>
+  <data name="ClinicReservePetInvalid" xml:space="preserve">
+    <value>حیوان انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="ClinicReservePetTypeNotAccepted" xml:space="preserve">
+    <value>این کلینیک این نوع حیوان را نمی‌پذیرد.</value>
+  </data>
+  <data name="ClinicReservePetSizeMismatch" xml:space="preserve">
+    <value>این بسته برای سایز حیوان شما مناسب نیست.</value>
+  </data>
+  <data name="ClinicReserveTimeInPast" xml:space="preserve">
+    <value>زمان نوبت باید در آینده باشد.</value>
+  </data>
+  <data name="ClinicReserveOutsideWorkingHours" xml:space="preserve">
+    <value>زمان نوبت خارج از ساعت کاری کلینیک است.</value>
+  </data>
+  <data name="ClinicReserveSlotFull" xml:space="preserve">
+    <value>ظرفیت این زمان تکمیل شده است؛ زمان دیگری انتخاب کنید.</value>
+  </data>
+  <data name="ClinicReservePetBusy" xml:space="preserve">
+    <value>حیوان شما در این زمان نوبت دیگری دارد.</value>
+  </data>
+  <data name="ClinicReserveHomeServiceUnavailable" xml:space="preserve">
+    <value>این کلینیک خدمات در محل ندارد.</value>
+  </data>
+  <data name="ClinicReserveSalonServiceUnavailable" xml:space="preserve">
+    <value>این کلینیک فقط خدمات در محل ارائه می‌دهد.</value>
+  </data>
+  <data name="ClinicReserveAddressRequired" xml:space="preserve">
+    <value>برای خدمات در محل آدرس را انتخاب کنید.</value>
+  </data>
+  <data name="ClinicReserveAddressOutOfZone" xml:space="preserve">
+    <value>آدرس شما خارج از محدوده‌ی خدمات این کلینیک است.</value>
+  </data>
+  <data name="ClinicReservePickupUnavailable" xml:space="preserve">
+    <value>این کلینیک خدمت دریافت و تحویل ندارد.</value>
+  </data>
+  <data name="ClinicReserveAssigneeInvalid" xml:space="preserve">
+    <value>گرومر انتخاب‌شده برای این خدمت در دسترس نیست.</value>
+  </data>
+  <data name="ClinicReserveDatePassed" xml:space="preserve">
+    <value>زمان این نوبت گذشته است.</value>
+  </data>
+  <data name="ClinicReserveAwaitingOwnerApproval" xml:space="preserve">
+    <value>این رزرو منتظر تأیید کلینیک است.</value>
+  </data>
+  <data name="ClinicReserveApprovalNotPending" xml:space="preserve">
+    <value>این رزرو منتظر تأیید نیست.</value>
+  </data>
+  <data name="ClinicReserveRejectReasonRequired" xml:space="preserve">
+    <value>دلیل رد رزرو را وارد کنید.</value>
+  </data>
+  <data name="ClinicReserveApprovedSuccessfully" xml:space="preserve">
+    <value>رزرو تأیید شد.</value>
+  </data>
+  <data name="ClinicReserveRejectedSuccessfully" xml:space="preserve">
+    <value>رزرو لغو شد و مبلغ به کیف پول مشتری برگشت.</value>
+  </data>
+  <data name="ClinicReserveRefundFailed" xml:space="preserve">
+    <value>برگشت وجه رزرو انجام نشد؛ رزرو لغو نشد.</value>
+  </data>
+  <data name="ClinicReserveExpiredReason" xml:space="preserve">
+    <value>کلینیک در مهلت مقرر پاسخ نداد.</value>
+  </data>
+  <data name="ClinicReserveCannotCancel" xml:space="preserve">
+    <value>این رزرو قابل لغو نیست.</value>
+  </data>
+  <data name="ClinicReserveCancelledWithRefund" xml:space="preserve">
+    <value>رزرو لغو شد و مبلغ به کیف پول شما برگشت.</value>
+  </data>
+  <data name="ClinicReserveCancelledNoRefund" xml:space="preserve">
+    <value>رزرو لغو شد. چون مهلت لغو رایگان گذشته، مبلغ برگشت داده نمی‌شود.</value>
+  </data>
+  <data name="ClinicReserveNotStartedYet" xml:space="preserve">
+    <value>رزرو قبل از زمان نوبت قابل تکمیل نیست.</value>
+  </data>
+  <data name="ClinicReserveAlreadyCompleted" xml:space="preserve">
+    <value>این رزرو قبلاً تکمیل شده است.</value>
+  </data>
+  <data name="ClinicReserveNotPaid" xml:space="preserve">
+    <value>فقط رزرو پرداخت‌شده قابل تغییر است.</value>
+  </data>
+  <data name="ClinicReviewNotAllowed" xml:space="preserve">
+    <value>فقط بعد از رزرو تکمیل‌شده می‌توانید برای کلینیک نظر ثبت کنید.</value>
+  </data>
+  <data name="ClinicReviewAlreadyExists" xml:space="preserve">
+    <value>برای این رزرو قبلاً نظر ثبت کرده‌اید.</value>
+  </data>
+  <data name="ClinicReviewRateInvalid" xml:space="preserve">
+    <value>امتیاز باید بین ۱ تا ۵ باشد.</value>
+  </data>
+  <data name="ClubPointClinicReserveCompletedDescription" xml:space="preserve">
+    <value>امتیاز تکمیل رزرو کلینیک {0}</value>
+  </data>
+  <data name="ClubPointClinicReserveReversedDescription" xml:space="preserve">
+    <value>برگشت امتیاز رزرو لغوشده‌ی کلینیک {0}</value>
+  </data>
+  <data name="ClinicReserveTooManyPackages" xml:space="preserve">
+    <value>هر رزرو حداکثر ۵ بسته می‌تواند داشته باشد.</value>
+  </data>
+  <data name="ClinicReserveDuplicateService" xml:space="preserve">
+    <value>هر خدمت فقط یک‌بار در یک رزرو انتخاب می‌شود.</value>
+  </data>
+  <data name="ClinicReserveTooLong" xml:space="preserve">
+    <value>مجموع مدت بسته‌های انتخابی برای یک نوبت زیاد است.</value>
+  </data>
+  <data name="ClinicReserveRescheduleNotAllowed" xml:space="preserve">
+    <value>فقط رزرو پرداخت‌شده، فعال و تکمیل‌نشده قابل تغییر زمان است.</value>
+  </data>
+  <data name="ClinicReserveRescheduleSameTime" xml:space="preserve">
+    <value>زمان جدید با زمان فعلی یکی است.</value>
+  </data>
+  <data name="ClinicStaffInviteNotFound" xml:space="preserve">
+    <value>دعوت‌نامه پیدا نشد.</value>
+  </data>
+  <data name="ClinicStaffInviteAnswered" xml:space="preserve">
+    <value>به این دعوت‌نامه قبلاً پاسخ داده شده است.</value>
+  </data>
+  <data name="ClinicServiceNotGrooming" xml:space="preserve">
+    <value>این خدمت جزو خدمات گرومینگ نیست.</value>
+  </data>
+  <data name="ClinicServiceIsGrooming" xml:space="preserve">
+    <value>خدمات گرومینگ فقط مخصوص آرایشگاه‌هاست و برای کلینیک قابل ثبت نیست.</value>
+  </data>
+  <data name="ClinicPackageModeInvalid" xml:space="preserve">
+    <value>نحوه‌ی ارائه‌ی بسته نامعتبر یا تکراری است.</value>
+  </data>
+  <data name="ClinicReserveModeInvalid" xml:space="preserve">
+    <value>نحوه‌ی ارائه‌ی انتخاب‌شده نامعتبر است.</value>
+  </data>
+  <data name="ClinicReserveOnlineUnavailable" xml:space="preserve">
+    <value>این کلینیک خدمات آنلاین ندارد.</value>
+  </data>
+  <data name="ClinicReservePackageNotOffered" xml:space="preserve">
+    <value>این بسته در نحوه‌ی ارائه‌ی انتخاب‌شده ارائه نمی‌شود.</value>
+  </data>
+  <data name="ClinicRescheduleReasonByOwner" xml:space="preserve">
+    <value>به درخواست کلینیک</value>
+  </data>
+  <data name="ClinicRescheduleReasonBySupport" xml:space="preserve">
+    <value>به درخواست پشتیبانی</value>
   </data>
 </root>

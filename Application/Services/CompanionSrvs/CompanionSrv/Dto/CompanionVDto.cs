@@ -18,6 +18,8 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
     {
         public bool IsPersonal { get; set; }
         public long OwnerId { get; set; }
+        /// <summary>ارائه‌دهنده‌ی صاحب این مکان؛ اشتراک از روی همین مدیریت می‌شود.</summary>
+        public long? ProviderId { get; set; }
         public string ReferralCode { get; set; }
         public DateTime? GoldAccountDate { get; set; }
         public DateTime? SilverAccountDate { get; set; }
@@ -37,6 +39,8 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         public int CommentCount { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
+        // تعداد رزروهای مرکز؛ فقط در لیست عمومی پر می‌شود (به‌جای یک درخواست companionReserveCount برای هر مرکز)
+        public int ReserveCount { get; set; }
         public bool IsSilver { get; set; }
         public bool IsGold { get; set; }
         public string SearchKey { get; set; }

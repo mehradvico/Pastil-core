@@ -14,6 +14,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
         {
             this.Approved = dto.Approved;
             this.OwnerId = dto.OwnerId;
+            this.ProviderRoleId = dto.ProviderRoleId;
             this.CityId = dto.CityId;
             this.StateId = dto.StateId;
             this.NeighborhoodIds = dto.NeighborhoodIds;
@@ -27,6 +28,7 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
             this.AssistanceType = dto.AssistanceType;
         }
         public long? OwnerId { get; set; }
+        public long? ProviderRoleId { get; set; }
         public long? CityId { get; set; }
         public long? StateId { get; set; }
         public long? TypeId { get; set; }

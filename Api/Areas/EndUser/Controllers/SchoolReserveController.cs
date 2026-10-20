@@ -44,6 +44,7 @@ namespace Api.Areas.EndUser.Controllers
         }
 
         [HttpPost]
+        [global::Api.Filter.IdempotentRequest]
         [ProducesResponseType(typeof(BaseResultDto<SchoolReserveDto>), 200)]
         public async Task<IActionResult> Post(SchoolReserveDto dto)
         {

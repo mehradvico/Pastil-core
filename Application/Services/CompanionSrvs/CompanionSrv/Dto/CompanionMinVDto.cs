@@ -9,6 +9,8 @@ namespace Application.Services.CompanionSrvs.CompanionSrv.Dto
     {
         public bool IsPersonal { get; set; }
         public long OwnerId { get; set; }
+        /// <summary>ارائه‌دهنده‌ی صاحب این مکان؛ اشتراک از روی همین مدیریت می‌شود.</summary>
+        public long? ProviderId { get; set; }
         public long? PictureId { get; set; }
         public long? BackgroundPictureId { get; set; }
         public long? IconId { get; set; }
