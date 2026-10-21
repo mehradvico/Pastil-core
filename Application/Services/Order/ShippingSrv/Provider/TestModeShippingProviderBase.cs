@@ -49,7 +49,7 @@ namespace Application.Services.Order.ShippingSrv.Provider
             {
                 IsSuccess = true,
                 Price = price,
-                Currency = "IRR",
+                Currency = "IRT",
                 ExternalQuoteId = $"TEST-{Provider}-{Guid.NewGuid():N}"
             });
         }

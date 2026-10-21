@@ -4,7 +4,7 @@ namespace Application.Services.Order.ShippingSrv.Provider
     {
         public bool IsSuccess { get; set; }
         public double Price { get; set; }
-        public string Currency { get; set; } = "IRR";
+        public string Currency { get; set; } = "IRT";
         public string ExternalQuoteId { get; set; }
         public string ErrorMessage { get; set; }
 

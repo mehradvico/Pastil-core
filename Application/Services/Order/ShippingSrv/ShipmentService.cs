@@ -922,6 +922,47 @@ namespace Application.Services.Order.ShippingSrv
                 await _context.SaveChangesAsync(cancellationToken);
         }
 
+        public async Task<int> ReconcileMiareTripsAsync(CancellationToken cancellationToken = default)
+        {
+            if (_options.TestMode || !_providers.TryGetValue(ShippingProviderEnum.Miare, out var provider)
+                || provider is not MiareShippingProvider miare)
+                return 0;
+
+            var sinceUtc = DateTime.UtcNow.AddDays(-14);
+            var ids = await _context.Shipments.AsNoTracking()
+                .Where(item => item.Provider == ShippingProviderEnum.Miare
+                    && item.ExternalShipmentId != null
+                    && item.CreatedAtUtc >= sinceUtc
+                    && (item.Status == ShipmentStatusEnum.Requested || item.Status == ShipmentStatusEnum.Accepted
+                        || item.Status == ShipmentStatusEnum.PickedUp))
+                .OrderBy(item => item.CreatedAtUtc)
+                .Take(50)
+                .Select(item => item.ExternalShipmentId)
+                .ToListAsync(cancellationToken);
+
+            var processed = 0;
+            foreach (var id in ids)
+            {
+                try
+                {
+                    var snapshot = await miare.GetTripSnapshotAsync(id, cancellationToken);
+                    if (snapshot == null)
+                        continue;
+                    await HandleMiareWebhookAsync(snapshot, cancellationToken);
+                    processed++;
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Miare trip reconciliation failed for {TripId}.", id);
+                }
+            }
+            return processed;
+        }
+
         public async Task HandleMiareWebhookAsync(
             string payload,
             CancellationToken cancellationToken = default)
@@ -943,9 +984,12 @@ namespace Application.Services.Order.ShippingSrv
             using (doc)
             {
                 var root = doc.RootElement;
-                var tripId = root.TryGetProperty("id", out var idProp) ? idProp.GetString() : null;
-                if (string.IsNullOrWhiteSpace(tripId))
+                if (!MiareWebhookRules.TryReadTrip(root, out var tripId, out var normalizedState, out var trip))
+                {
+                    _logger.LogWarning("Miare webhook ignored: missing trip id or state (event: {Event}).",
+                        root.ValueKind == JsonValueKind.Object && root.TryGetProperty("event", out var eventProp) ? eventProp.ToString() : null);
                     return;
+                }
 
                 var shipment = await _context.Shipments
                     .Include(item => item.ProductOrderStore).ThenInclude(item => item.ProductOrder).ThenInclude(item => item.User)
@@ -960,15 +1004,11 @@ namespace Application.Services.Order.ShippingSrv
                     return;
                 }
 
-                var state = root.TryGetProperty("state", out var stateProp) ? stateProp.GetString() : null;
-                if (string.IsNullOrWhiteSpace(state))
-                    return;
                 _logger.LogInformation("Miare webhook: trip {TripId} state '{State}' for shipment {ShipmentId} (currently {Status}).",
-                    tripId, state, shipment.Id, shipment.Status);
-                var normalizedState = state.Trim().ToLowerInvariant();
+                    tripId, normalizedState, shipment.Id, shipment.Status);
                 try
                 {
-                    await ApplyMiareStateAsync(shipment, normalizedState, root, cancellationToken);
+                    await ApplyMiareStateAsync(shipment, normalizedState, trip, cancellationToken);
                 }
                 finally
                 {
@@ -979,7 +1019,7 @@ namespace Application.Services.Order.ShippingSrv
         }
 
         // آخرین اطلاعات پیک (نام/تلفن/موقعیت) را روی مرسوله می‌نشاند و رویداد را برای نمایش «مراحل» و عیب‌یابی ذخیره می‌کند.
-        // هر خطایی فقط لاگ می‌شود: وب‌هوک باید ۲۰۰ بگیرد و وضعیت مرسوله قبلاً اعمال شده است.
+        // خطای ثبت تاریخچه فقط لاگ می‌شود؛ وضعیت مرسوله پیش‌تر ذخیره شده است.
         private async Task RecordMiareEventAsync(Shipment shipment, JsonElement root, string state, string payload, CancellationToken cancellationToken)
         {
             ShipmentEvent pending = null;
@@ -1048,11 +1088,23 @@ namespace Application.Services.Order.ShippingSrv
                     shipment.Status = ShipmentStatusEnum.Delivered;
                     shipment.DeliveredAtUtc = nowUtc;
                     // «delivery_cost» هزینه‌ی واقعی سفر نزد میاره است (نه مبلغ دریافتی از مشتری) و در ProviderCost به «ریال» ذخیره می‌شود.
-                    // واحد خروجی میاره طبق Shipping:Miare:AmountUnit است (Toman ← ×۱۰، Rial ← بدون تغییر)؛ MiareAmountRules.
+                    // مبلغ خام میاره طبق قرارداد فعلی تومان است؛ ProviderCost به ریال ذخیره می‌شود.
                     if (root.TryGetProperty("delivery_cost", out var costProp) && costProp.ValueKind == JsonValueKind.Number)
                         shipment.ProviderCost = MiareAmountRules.ToRial(costProp.GetDouble(), _options.Miare.AmountUnit);
-                    shipment.ShippedNotifiedAtUtc ??= nowUtc; // «ارسال» را از دست داده بودیم؛ دیگر پیام ارسال نمی‌خواهد
+                    var missedPickup = shipment.ShippedNotifiedAtUtc == null;
+                    shipment.ShippedNotifiedAtUtc ??= nowUtc; // پس از تحویل، پیام «در راه است» دیگر نباید ارسال شود
                     await _context.SaveChangesAsync(cancellationToken);
+                    if (missedPickup)
+                    {
+                        try
+                        {
+                            await MarkOrderSentAsync(shipment.ProductOrderStore.ProductOrder.Id, cancellationToken);
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.LogWarning(exception, "Marking delivered order {OrderId} as sent failed.", shipment.ProductOrderStore.ProductOrder.Id);
+                        }
+                    }
                     await OnDeliveredAsync(shipment, cancellationToken);
                     break;
                 case "returning": // مشتری تحویل نگرفت/پیک نتوانست تحویل بدهد و کالا برمی‌گردد

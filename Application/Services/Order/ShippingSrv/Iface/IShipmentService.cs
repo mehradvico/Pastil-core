@@ -57,5 +57,7 @@ namespace Application.Services.Order.ShippingSrv.Iface
         Task HandleMiareWebhookAsync(
             string payload,
             CancellationToken cancellationToken = default);
+
+        Task<int> ReconcileMiareTripsAsync(CancellationToken cancellationToken = default);
     }
 }

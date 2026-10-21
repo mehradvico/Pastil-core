@@ -23,7 +23,7 @@ public class ShippingProviderTests
         Assert.True(result.IsSuccess);
         Assert.True(result.Price > 0);
         Assert.StartsWith("TEST-AloPeyk-", result.ExternalQuoteId);
-        Assert.Equal("IRR", result.Currency);
+        Assert.Equal("IRT", result.Currency);
     }
 
     [Fact]

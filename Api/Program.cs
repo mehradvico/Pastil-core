@@ -573,6 +573,10 @@ recurringJobManager.AddOrUpdate<Application.Services.Order.ShippingSrv.Iface.ISh
     "ShipmentSellerConfirmSweep",
     service => service.ProcessUnconfirmedAsync(CancellationToken.None),
     "*/5 * * * *");
+recurringJobManager.AddOrUpdate<Application.Services.Order.ShippingSrv.Iface.IShipmentService>(
+    "MiareTripReconcile",
+    service => service.ReconcileMiareTripsAsync(CancellationToken.None),
+    "*/5 * * * *");
 recurringJobManager.AddOrUpdate<Application.Services.Order.CartSrv.Iface.IAbandonedCartReminderService>(
     "AbandonedCartPush",
     service => service.SendPushRemindersAsync(CancellationToken.None),

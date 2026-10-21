@@ -25,6 +25,11 @@ DECLARE @Commit bit = 0;   -- 0 = فقط بررسی (ROLLBACK)، 1 = ذخیره
 DECLARE @TypeIds TABLE (Id bigint PRIMARY KEY);
 INSERT INTO @TypeIds (Id) VALUES (40), (42), (44);
 
+-- اختیاری: Companionهایی که نوع کلینیک/آزمایشگاه/پرستار ندارند ولی باید کلینیک شوند (مثلاً «بیمارستان دامپزشکی آوینا» = 10018).
+-- شخصی‌بودن برای این‌ها مانع نیست و اگر نوعی نداشته باشند نوع پیش‌فرض کلینیک (40) می‌گیرند.
+DECLARE @CompanionIds TABLE (Id bigint PRIMARY KEY);
+-- INSERT INTO @CompanionIds (Id) VALUES (10018);
+
 BEGIN TRANSACTION;
 
 -- ۱) Companionهای کلینیکی که هنوز منتقل نشده‌اند
@@ -32,8 +37,9 @@ SELECT c.Id AS CompanionId
 INTO #NewClinics
 FROM Companions c
 WHERE c.Deleted = 0
-  AND c.IsPersonal = 0
-  AND EXISTS (SELECT 1 FROM CompanionTypes ct WHERE ct.CompanionId = c.Id AND ct.Deleted = 0 AND ct.TypeId IN (SELECT Id FROM @TypeIds))
+  AND ((c.IsPersonal = 0
+        AND EXISTS (SELECT 1 FROM CompanionTypes ct WHERE ct.CompanionId = c.Id AND ct.Deleted = 0 AND ct.TypeId IN (SELECT Id FROM @TypeIds)))
+       OR c.Id IN (SELECT Id FROM @CompanionIds))
   AND NOT EXISTS (SELECT 1 FROM Clinics k WHERE k.LegacyCompanionId = c.Id);
 
 -- ۲) Clinics (Id خودکار؛ نگاشت قدیمی ← جدید با LegacyCompanionId)
@@ -72,6 +78,12 @@ SELECT cm.ClinicId, ct.TypeId, 0
 FROM CompanionTypes ct
 JOIN #ClinicMap cm ON cm.CompanionId = ct.CompanionId
 WHERE ct.Deleted = 0 AND ct.TypeId IN (SELECT Id FROM @TypeIds);
+
+-- کلینیکی که هیچ نوعی نگرفت (فقط با @CompanionIds ممکن است): نوع پیش‌فرض کلینیک
+INSERT INTO ClinicTypes (ClinicId, TypeId, Deleted)
+SELECT cm.ClinicId, 40, 0
+FROM #ClinicMap cm
+WHERE NOT EXISTS (SELECT 1 FROM ClinicTypes x WHERE x.ClinicId = cm.ClinicId);
 
 -- ۳) خدمات (CompanionAssistance → ClinicService) با نگاشت شناسه؛ خدمت گرومینگ منتقل نمی‌شود
 CREATE TABLE #ServiceMap (OldId bigint PRIMARY KEY, NewId bigint NOT NULL);

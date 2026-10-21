@@ -87,9 +87,8 @@ namespace Application.Services.Order.ShippingSrv
         public double MaxDistanceKm { get; set; }
 
         /// <summary>
-        /// فقط میاره: واحد مبلغ‌هایی که API میاره برمی‌گرداند (برآورد قیمت، مبلغ Boost، delivery_cost): "Toman" (پیش‌فرض) یا "Rial".
-        /// Staging تومان بود ولی Production ریال برگرداند (برآورد ≈۱۱ کیلومتر = ۹۰۱٬۰۰۰ → ۹۰٬۱۰۰ تومان). قبل از لانچ با یک برآورد
-        /// نمونه (یا تیم میاره) تأیید و در env سرور تنظیم شود: Shipping__Miare__AmountUnit=Rial. جزئیات: MiareAmountRules.
+        /// تنظیم قدیمی واحد میاره؛ برای سازگاری با پیکربندی موجود نگه داشته شده است.
+        /// طبق قرارداد فعلی، عدد خام میاره بدون تقسیم بر ۱۰ به‌عنوان تومان استفاده می‌شود.
         /// </summary>
         public string AmountUnit { get; set; } = "Toman";
     }

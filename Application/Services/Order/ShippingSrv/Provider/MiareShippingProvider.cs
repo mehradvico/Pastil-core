@@ -100,13 +100,9 @@ namespace Application.Services.Order.ShippingSrv.Provider
                     return ShippingProviderQuoteResult.Failed("Miare estimate response did not include a price.");
                 }
 
-                // بقیه‌ی سیستم (سایر پرووایدرها، ShippingQuoteService، نمایش در وب‌اپ) عدد «تومان» را بی‌تبدیل نگه می‌دارد و نشان می‌دهد
-                // (پس ×۱۰ نمی‌خواهد). ولی واحد خروجی میاره بین محیط‌ها فرق دارد (Staging تومان، Production ریال)؛ MiareAmountRules طبق
-                // Shipping:Miare:AmountUnit به تومان برمی‌گرداند.
+                // عدد استعلام میاره همان مبلغ تومانی مشتری است؛ تنظیم قدیمی واحد نباید آن را تقسیم کند.
                 var rawPrice = priceProp.GetDouble();
                 var priceToman = MiareAmountRules.ToToman(rawPrice, providerOptions.AmountUnit);
-                if (MiareAmountRules.IsRial(providerOptions.AmountUnit))
-                    _logger.LogInformation("Miare GetQuoteAsync: raw price {Raw} (Rial) -> {Toman} Toman.", rawPrice, priceToman);
                 // میاره هیچ‌وقت ارسال رایگان نیست؛ قیمت صفر یعنی برآورد معتبر نیست (مثلاً محیط تست/آدرس نامعتبر) و به‌جای «رایگان» استعلام شکست می‌خورد.
                 if (priceToman <= 0)
                 {
@@ -117,7 +113,7 @@ namespace Application.Services.Order.ShippingSrv.Provider
                 {
                     IsSuccess = true,
                     Price = priceToman,
-                    Currency = "IRR",
+                    Currency = "IRT",
                     ExternalQuoteId = $"MIARE-EST-{Guid.NewGuid():N}"
                 };
             }
@@ -384,6 +380,26 @@ namespace Application.Services.Order.ShippingSrv.Provider
             {
                 return ShippingProviderCancelResult.Failed(exception.Message);
             }
+        }
+
+        // وضعیت فعلی سفر برای جبران وب‌هوک‌های نرسیده (GET Trip طبق مستند میاره).
+        public async Task<string> GetTripSnapshotAsync(string tripId, CancellationToken cancellationToken = default)
+        {
+            var options = _options.Miare;
+            if (!options.Enabled || string.IsNullOrWhiteSpace(options.BaseUrl) ||
+                string.IsNullOrWhiteSpace(options.ApiKey) || string.IsNullOrWhiteSpace(tripId))
+                return null;
+
+            var client = new RestClient(new RestClientOptions(options.BaseUrl.TrimEnd('/')));
+            var request = new RestRequest($"/trips/{Uri.EscapeDataString(tripId)}/", Method.Get);
+            request.AddHeader("Authorization", $"Token {options.ApiKey}");
+            var response = await client.ExecuteAsync(request, cancellationToken);
+            if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
+            {
+                _logger.LogWarning("Miare trip snapshot failed for {TripId}: HTTP {StatusCode}.", tripId, (int)response.StatusCode);
+                return null;
+            }
+            return response.Content;
         }
 
         // پاسخ میاره: boost: null یعنی نادیده گرفته شد؛ شیء با level>0 یعنی اعمال شد؛ نبودن کلید = نامعلوم (اعمال‌شده فرض می‌شود)

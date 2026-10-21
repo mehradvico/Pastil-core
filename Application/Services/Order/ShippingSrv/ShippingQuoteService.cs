@@ -389,7 +389,7 @@ namespace Application.Services.Order.ShippingSrv
                 Price = Math.Max(0, price),
                 IsExpress = isExpress,
                 ExpressSurcharge = isExpress ? expressSurcharge : 0,
-                Currency = "IRR",
+                Currency = "IRT",
                 ExternalQuoteId = externalQuoteId,
                 RequestFingerprint = CreateFingerprint(cartStore, cart.AddressId.Value, delivery.Id),
                 CreatedAtUtc = now,

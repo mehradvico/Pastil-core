@@ -49,12 +49,18 @@ Adapterهای الوپیک، تیپاکس و اسنپ‌باکس هنوز Test M
 
 - `GetQuoteAsync`: استعلام واقعی قیمت روی `GET /estimate/price/` (Base URL جدای Accounting:
   `Shipping:Miare:AccountingBaseUrl` / `.../api/accounting`، جدا از Base URL بالا که مخصوص Trip Management
-  است). واحد قیمت پاسخ میاره بسته به محیط فرق دارد (Staging: تومان، Production: ریال؛ ۲۵ مهر ۱۴۰۵) و با
-  `Shipping:Miare:AmountUnit` (`Toman` | `Rial`) به **تومان** تبدیل می‌شود؛ بقیه‌ی سیستم (Quote، سبد، وب‌اپ) تومان است و ضرب‌در‌ده
-  ندارد. جزئیات: `PRE_LAUNCH_BACKEND_FIXES_FA.md` ← «واحد مبلغ‌های میاره». اگر `area_coverage` پاسخ `false` باشد، استعلام Fail می‌شود (پیام:
+  است). طبق قرارداد فعلی، عدد خام پاسخ میاره بدون تقسیم بر ۱۰ مبلغ تومانی Quote، سبد و وب‌اپ است؛
+  `Shipping:Miare:AmountUnit` فقط برای سازگاری با تنظیمات قدیمی باقی مانده و عدد را تغییر نمی‌دهد.
+  جزئیات تصمیم قدیمی: `PRE_LAUNCH_BACKEND_FIXES_FA.md` ← «واحد مبلغ‌های میاره». اگر `area_coverage` پاسخ `false` باشد، استعلام Fail می‌شود (پیام:
   `ShippingProviderAreaNotCoveredFormat`).
 - `CreateShipmentAsync` / `CancelShipmentAsync`: واقعی، روی `POST /trips/` و `POST /trips/{id}/cancel/`.
 - **Webhook**: `Api/Controllers/MiareWebhookController.cs` روی `POST /api/webhooks/miare` رویدادهای میاره
+
+  پیلود v2 میاره به شکل `{ "event": "assigned", "trip": { "id": "...", "state": "pickup" } }` است؛
+  `id` و `state` باید از `trip` خوانده شوند. نسخه‌های قبلی این دو فیلد را از ریشه می‌خواندند و
+  بنابراین همهٔ رویدادهای واقعی را بدون به‌روزرسانی مرسوله رد می‌کردند. خطای پردازش اکنون HTTP 500
+  برمی‌گرداند تا میاره دوباره تلاش کند. Job `MiareTripReconcile` هر پنج دقیقه سفرهای فعال ۱۴ روز اخیر
+  را از `GET /trips/{id}/` می‌خواند تا وضعیت رویدادهای ازدست‌رفته، از جمله سفارش‌های قبلی، جبران شود.
   (`state_changed`, `delivered`, `courier_assigned`, ...) را دریافت می‌کند. هدر `Authorization: Token <key>`
   با `Shipping:Miare:ApiKey` تطبیق داده می‌شود؛ همیشه سریع `200` برمی‌گرداند (طبق رفتار Retry میاره: تا ۵ بار
   با فاصله‌ی ۵ ثانیه روی غیر ۲XX) و خطاها فقط لاگ می‌شوند. پردازش واقعی در

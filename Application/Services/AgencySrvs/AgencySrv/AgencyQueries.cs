@@ -36,6 +36,9 @@ namespace Application.Services.AgencySrvs.AgencySrv
             var model = context.Companions.Where(c => !c.Deleted);
             // آرایشگاهی که به Groomer منتقل شده، دیگر به‌عنوان Companion نمایش داده نمی‌شود (مگر نوع دیگری هم داشته باشد، مثل کلینیک).
             model = model.Where(Application.Services.CompanionSrvs.CompanionSrv.CompanionMigrationFilter.NotFullyMigrated(context));
+            // Companionی که فقط «ظرف» پانسیون/مدرسه است (خودش خدمتی ندارد) به‌عنوان نمایندگی قدیمی نمایش داده نمی‌شود؛ خودِ پانسیون/مدرسه ردیف جدا دارد.
+            model = model.Where(c => !((context.Pansions.Any(p => p.CompanionId == c.Id && !p.Deleted) || context.Schools.Any(s => s.CompanionId == c.Id && !s.Deleted))
+                                          && !context.CompanionAssistances.Any(a => a.CompanionId == c.Id && !a.Deleted && a.Active)));
 
             if (!string.IsNullOrWhiteSpace(input.Q))
             {

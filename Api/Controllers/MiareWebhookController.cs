@@ -12,9 +12,7 @@ using System.Threading.Tasks;
 namespace Api.Controllers
 {
     /// <summary>
-    /// دریافت رویدادهای Webhook میاره (added, state_changed, courier_assigned, arrived,
-    /// picked_up, departed, delivered, batched). میاره تا ۵ بار با فاصله‌ی ۵ ثانیه روی پاسخ
-    /// غیر ۲XX دوباره تلاش می‌کند، پس این Endpoint همیشه سریع ۲۰۰ برمی‌گرداند و خطاها را فقط لاگ می‌کند.
+    /// دریافت رویدادهای Webhook میاره. میاره روی پاسخ 5XX تا پنج بار تلاش مجدد می‌کند.
     /// </summary>
     [Route("api/webhooks/miare")]
     [ApiController]
@@ -68,6 +66,7 @@ namespace Api.Controllers
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Failed to process Miare webhook payload.");
+                return StatusCode(500);
             }
 
             return Ok();
