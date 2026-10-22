@@ -21,10 +21,20 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
             => context.CompanionReserves
                 .Where(r => r.IsReserved && !r.IsCancel && companionIds.Contains(r.CompanionAssistance.CompanionId));
 
-        /// <summary>رزرو پانسیون/مهد: رزروشده و لغونشده.</summary>
+        /// <summary>
+        /// رزرو پانسیون/مهد: پرداخت‌شده، لغونشده، «تکمیل‌شده» و تأییدشده توسط مرکز (یا بدون نیاز به تأیید).
+        /// رزروی که هنوز منتظر تأیید است ممکن است رد/منقضی شود و پولش به کیف پول برگردد؛ پس وارد استخر تسویه نمی‌شود.
+        /// </summary>
         public static IQueryable<PansionReserve> PansionReserves(IDataBaseContext context, IReadOnlyCollection<long> companionIds)
-            => context.PansionReserves
-                .Where(r => r.IsReserved && !r.IsCancel && companionIds.Contains(r.Pansion.CompanionId));
+        {
+            var complete = (long)Application.Common.Enumerable.Code.PansionReserveStatusEnum.PansionReserveState_Complete;
+            var notRequired = (int)Application.Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.NotRequired;
+            var approved = (int)Application.Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.Approved;
+            return context.PansionReserves
+                .Where(r => r.IsReserved && !r.IsCancel && r.StatusId == complete
+                            && (r.OwnerDecision == notRequired || r.OwnerDecision == approved)
+                            && companionIds.Contains(r.Pansion.CompanionId));
+        }
 
         /// <summary>مشاوره‌ی آنلاین: فقط «تکمیل‌شده» (بعد از آن دیگر قابل بازپرداخت نیست).</summary>
         public static IQueryable<ConsultationPurchase> ConsultationPurchases(IDataBaseContext context, IReadOnlyCollection<long> companionIds)

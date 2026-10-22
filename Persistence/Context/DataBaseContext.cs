@@ -313,6 +313,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<GroomerPortfolioComment> GroomerPortfolioComments { get; set; }
         public DbSet<Clinic> Clinics { get; set; }
         public DbSet<Coach> Coaches { get; set; }
+        public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
         public DbSet<ClinicType> ClinicTypes { get; set; }
         public DbSet<ClinicUser> ClinicUsers { get; set; }
         public DbSet<CoachUser> CoachUsers { get; set; }
@@ -490,6 +491,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             GroomerModelConfiguration.Apply(modelBuilder);
             ClinicModelConfiguration.Apply(modelBuilder);
             CoachModelConfiguration.Apply(modelBuilder);
+            modelBuilder.Entity<IdempotencyRecord>(entity =>
+            {
+                entity.Property(item => item.Key).HasMaxLength(300).IsRequired();
+                entity.HasIndex(item => item.Key).IsUnique();
+                entity.HasIndex(item => item.ExpireDate);
+            });
             modelBuilder.HasSequence<long>("PaymentCodeSequence");
             modelBuilder.HasSequence<long>("BusinessCodeSequence");
 
@@ -1424,6 +1431,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 .HasOne(x => x.Expertise)
                 .WithMany(x => x.CompanionUsers)
                 .HasForeignKey(x => x.ExpertiseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Expertise>()
+                .HasOne(x => x.ProviderRole)
+                .WithMany()
+                .HasForeignKey(x => x.ProviderRoleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<CompanionUserExpertise>(entity =>

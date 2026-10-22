@@ -148,21 +148,43 @@ namespace Utility.Reflection
         private static void EnsureUniqueControllerDisplayNames(
             IReadOnlyCollection<ControllerActionInfoDto> controllers)
         {
-            var duplicate = controllers
-                .GroupBy(
-                    controller => $"{controller.ParentId}:{NormalizeKey(controller.Summary)}",
+            // Related controllers may share an XML summary, even when they are
+            // different permissions under the same parent.
+            var duplicateGroups = controllers
+                .GroupBy(controller => $"{controller.ParentId}:{NormalizeKey(controller.Summary)}",
+                    StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Count() > 1)
+                .ToList();
+
+            foreach (var group in duplicateGroups)
+            {
+                foreach (var controller in group)
+                {
+                    var scope = controller.Name.StartsWith("Clinic", StringComparison.OrdinalIgnoreCase) ? "کلینیک"
+                        : controller.Name.StartsWith("Coach", StringComparison.OrdinalIgnoreCase) ? "مربی"
+                        : controller.Name.StartsWith("Groomer", StringComparison.OrdinalIgnoreCase) ? "آرایشگاه"
+                        : controller.Name.StartsWith("Companion", StringComparison.OrdinalIgnoreCase) ? "نمایندگی"
+                        : controller.Name;
+                    controller.Summary = $"{controller.Summary} ({scope})";
+                }
+            }
+
+            var remainingGroups = controllers
+                .GroupBy(controller => $"{controller.ParentId}:{NormalizeKey(controller.Summary)}",
+                    StringComparer.OrdinalIgnoreCase)
+                .Where(group => group.Count() > 1)
+                .ToList();
+            foreach (var group in remainingGroups)
+                foreach (var controller in group)
+                    controller.Summary = $"{controller.Summary} [{controller.Name}]";
+
+            var remaining = controllers
+                .GroupBy(controller => $"{controller.ParentId}:{NormalizeKey(controller.Summary)}",
                     StringComparer.OrdinalIgnoreCase)
                 .FirstOrDefault(group => group.Count() > 1);
-
-            if (duplicate == null)
-                return;
-
-            var controllerNames = string.Join(
-                ", ",
-                duplicate.Select(x => x.Name).OrderBy(x => x));
-
-            throw new InvalidOperationException(
-                $"Duplicate admin permission display name detected for: {controllerNames}.");
+            if (remaining != null)
+                throw new InvalidOperationException(
+                    $"Duplicate admin permission display name detected for: {string.Join(", ", remaining.Select(x => x.Name))}.");
         }
 
         private Permission SynchronizeController(

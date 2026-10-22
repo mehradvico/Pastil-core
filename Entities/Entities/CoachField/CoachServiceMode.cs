@@ -18,6 +18,10 @@ namespace Entities.Entities.CoachField
         public int Mode { get; set; }
         public double Price { get; set; }
         public double PrePaymentPrice { get; set; }
+        /// <summary>مدت اقامت/دوره به روز (مثلاً پانسیون آموزشی در Mode=۳۸)؛ در رزرو بیشینه‌ی بسته‌ها حساب می‌شود.</summary>
+        public int? StayDays { get; set; }
+        /// <summary>تعداد جلسات (مثلاً آموزش در منزل، Mode=۳۹)؛ در رزرو جمع بسته‌ها حساب می‌شود.</summary>
+        public int? SessionCount { get; set; }
         public bool Deleted { get; set; }
 
         public CoachServicePackage CoachServicePackage { get; set; }

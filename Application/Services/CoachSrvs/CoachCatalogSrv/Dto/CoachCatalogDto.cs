@@ -36,6 +36,10 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv.Dto
         public int Mode { get; set; }
         public double Price { get; set; }
         public double PrePaymentPrice { get; set; }
+        /// <summary>مدت اقامت/دوره به روز (اختیاری).</summary>
+        public int? StayDays { get; set; }
+        /// <summary>تعداد جلسات (اختیاری).</summary>
+        public int? SessionCount { get; set; }
     }
 
     public class CoachPackageTypeVDto : CoachPackageTypeDto

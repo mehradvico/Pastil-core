@@ -5,9 +5,11 @@ using Application.Services.CompanionSrvs.ExpertiseSrv.Dto;
 using Application.Services.CompanionSrvs.ExpertiseSrv.Iface;
 using AutoMapper;
 using Entities.Entities.CompanionField;
+using Entities.Entities.ProviderField;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Application.Services.CompanionSrvs.ExpertiseSrv
@@ -28,6 +30,7 @@ namespace Application.Services.CompanionSrvs.ExpertiseSrv
         {
             var item = await context.Expertises
                 .AsNoTracking()
+                .Include(x => x.ProviderRole)
                 .FirstOrDefaultAsync(x => x.Id == id && !x.Deleted);
 
             return new BaseResultDto<ExpertiseVDto>(
@@ -37,9 +40,15 @@ namespace Application.Services.CompanionSrvs.ExpertiseSrv
 
         public ExpertiseSearchDto Search(ExpertiseInputDto dto)
         {
-            var query = context.Expertises
+            IQueryable<Expertise> query = context.Expertises
                 .AsNoTracking()
+                .Include(x => x.ProviderRole)
                 .Where(x => !x.Deleted);
+
+            if (dto.ProviderRoleId == 0)
+                query = query.Where(x => x.ProviderRoleId == null);
+            else if (dto.ProviderRoleId.HasValue)
+                query = query.Where(x => x.ProviderRoleId == dto.ProviderRoleId.Value);
 
             if (dto.Available.HasValue)
                 query = query.Where(x => x.Active == dto.Available.Value);
@@ -62,13 +71,26 @@ namespace Application.Services.CompanionSrvs.ExpertiseSrv
             return new ExpertiseSearchDto(dto, query, mapper);
         }
 
+        public Task<List<ExpertiseGroupDto>> GroupsAsync() => context.ProviderRoles
+            .AsNoTracking()
+            .Where(x => !x.Deleted && x.Active &&
+                (x.Label == ProviderRoleLabels.Groomer || x.Label == ProviderRoleLabels.Clinic ||
+                 x.Label == ProviderRoleLabels.Coach || x.Label == ProviderRoleLabels.Pansion ||
+                 x.Label == ProviderRoleLabels.School))
+            .OrderBy(x => x.Id)
+            .Select(x => new ExpertiseGroupDto { Id = x.Id, Name = x.Name, Label = x.Label })
+            .ToListAsync();
+
         public async Task<BaseResultDto<ExpertiseDto>> InsertValidatedAsync(ExpertiseDto dto)
         {
             dto.Name = dto.Name?.Trim();
             if (string.IsNullOrWhiteSpace(dto.Name))
                 return new BaseResultDto<ExpertiseDto>(false, Resource.Notification.CompanionExpertiseNameRequired, nameof(dto.Name), dto);
 
-            if (await NameExistsAsync(dto.Name, null))
+            if (!await ValidGroupAsync(dto.ProviderRoleId))
+                return new BaseResultDto<ExpertiseDto>(false, Resource.Notification.CompanionExpertiseDataInvalid, nameof(dto.ProviderRoleId), dto);
+
+            if (await NameExistsAsync(dto.Name, dto.ProviderRoleId, null))
                 return new BaseResultDto<ExpertiseDto>(false, Resource.Notification.CompanionExpertiseNameAlreadyRegistered, nameof(dto.Name), dto);
 
             return await InsertAsyncDto(dto);
@@ -80,7 +102,10 @@ namespace Application.Services.CompanionSrvs.ExpertiseSrv
             if (dto.Id <= 0 || string.IsNullOrWhiteSpace(dto.Name))
                 return new BaseResultDto(false, Resource.Notification.CompanionExpertiseDataInvalid);
 
-            if (await NameExistsAsync(dto.Name, dto.Id))
+            if (!await ValidGroupAsync(dto.ProviderRoleId))
+                return new BaseResultDto(false, Resource.Notification.CompanionExpertiseDataInvalid, nameof(dto.ProviderRoleId));
+
+            if (await NameExistsAsync(dto.Name, dto.ProviderRoleId, dto.Id))
                 return new BaseResultDto(false, Resource.Notification.CompanionExpertiseNameAlreadyRegistered, nameof(dto.Name));
 
             return UpdateDto(dto);
@@ -98,12 +123,21 @@ namespace Application.Services.CompanionSrvs.ExpertiseSrv
             return DeleteDto(id);
         }
 
-        private Task<bool> NameExistsAsync(string name, long? exceptId) =>
+        private Task<bool> ValidGroupAsync(long? id) =>
+            id.HasValue && id.Value > 0
+                ? context.ProviderRoles.AsNoTracking().AnyAsync(x => x.Id == id.Value && !x.Deleted && x.Active &&
+                    (x.Label == ProviderRoleLabels.Groomer || x.Label == ProviderRoleLabels.Clinic ||
+                     x.Label == ProviderRoleLabels.Coach || x.Label == ProviderRoleLabels.Pansion ||
+                     x.Label == ProviderRoleLabels.School))
+                : Task.FromResult(false);
+
+        private Task<bool> NameExistsAsync(string name, long? providerRoleId, long? exceptId) =>
             context.Expertises
                 .AsNoTracking()
                 .AnyAsync(x =>
                     !x.Deleted &&
                     x.Name == name &&
+                    x.ProviderRoleId == providerRoleId &&
                     (!exceptId.HasValue || x.Id != exceptId.Value));
     }
 }

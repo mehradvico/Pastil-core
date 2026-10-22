@@ -2186,7 +2186,7 @@
     <value>A reservation can include at most 5 packages.</value>
   </data>
   <data name="GroomerReserveDuplicateService" xml:space="preserve">
-    <value>Each service can be selected only once in a reservation.</value>
+    <value>Each package can be selected only once per reserve.</value>
   </data>
   <data name="GroomerReserveTooLong" xml:space="preserve">
     <value>The total duration of the selected packages is too long for one appointment.</value>
@@ -2366,7 +2366,7 @@
     <value>A reservation can include at most 5 packages.</value>
   </data>
   <data name="ClinicReserveDuplicateService" xml:space="preserve">
-    <value>Each service can be selected only once in a reservation.</value>
+    <value>Each package can be selected only once per reserve.</value>
   </data>
   <data name="ClinicReserveTooLong" xml:space="preserve">
     <value>The total duration of the selected packages is too long for one appointment.</value>
@@ -2597,7 +2597,7 @@
     <value>A reservation can include at most 5 packages.</value>
   </data>
   <data name="CoachReserveDuplicateService" xml:space="preserve">
-    <value>Each service can be selected only once in a reservation.</value>
+    <value>Each package can be selected only once per reserve.</value>
   </data>
   <data name="CoachReserveTooLong" xml:space="preserve">
     <value>The total duration of the selected packages is too long for one appointment.</value>
@@ -2664,5 +2664,32 @@
   </data>
   <data name="ProviderRoleRequired" xml:space="preserve">
     <value>The provider does not have the required approved role for this center type.</value>
+  </data>
+  <data name="CoachConsultationUnavailable" xml:space="preserve">
+    <value>This coach is not connected to the online consultation system yet.</value>
+  </data>
+  <data name="PansionReserveApprovalDeadlinePassed" xml:space="preserve">
+    <value>The response deadline has passed; the reserve will be cancelled automatically and the payment refunded.</value>
+  </data>
+  <data name="PansionActivationRequiresApproval" xml:space="preserve">
+    <value>A pansion must be approved before it can be activated.</value>
+  </data>
+  <data name="PansionReserveStatusInvalid" xml:space="preserve">
+    <value>This status change is not allowed for this reserve.</value>
+  </data>
+  <data name="PansionReserveTripNotAvailable" xml:space="preserve">
+    <value>A trip can only be linked to a paid, active pansion reserve.</value>
+  </data>
+  <data name="PansionWorkingHoursInvalid" xml:space="preserve">
+    <value>Opening and closing hours must be valid (HH:mm) and the opening hour must be before the closing hour.</value>
+  </data>
+  <data name="PansionReserveCancelReasonRequired" xml:space="preserve">
+    <value>A cancellation reason is required.</value>
+  </data>
+  <data name="PansionReserveCannotBeCancelledByOwner" xml:space="preserve">
+    <value>Only a paid, not completed reserve can be cancelled by the pansion.</value>
+  </data>
+  <data name="PansionCommentReplyInvalid" xml:space="preserve">
+    <value>The reply is empty or too long (max 1000 characters).</value>
   </data>
 </root>

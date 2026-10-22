@@ -73,7 +73,7 @@ public class CoachPhase3Tests : IClassFixture<CoachLocalDbFixture>
     }
 
     [Fact]
-    public async Task MultiPackage_DuplicateServiceOrTooMany_IsRejected()
+    public async Task MultiPackage_SeveralPackagesOfOneService_AreAllowed_ButTheSamePackageTwiceIsRejected()
     {
         if (!_fixture.Available) return;
         var world = await BuildWorldAsync(_fixture);
@@ -83,9 +83,64 @@ public class CoachPhase3Tests : IClassFixture<CoachLocalDbFixture>
             var catalog = new CoachCatalogService(context, _fixture.Mapper, NullLogger<CoachCatalogService>.Instance);
             sameServicePackage = (await catalog.AddPackageAsync(new CoachServicePackageInputDto { CoachServiceId = world.ServiceId, Name = "Pkg3", Price = 300_000 }, null)).Data.Id;
         }
+
+        // یک خدمت، دو بسته‌ی متفاوت ⇒ مجاز؛ دو آیتم با همان خدمت
         var input = Input(world, Tomorrow(12));
         input.ExtraPackageIds = new List<long> { sameServicePackage };
-        Assert.False((await NewReserveService(_fixture).CreateAsync(input, world.BookerId)).IsSuccess);
+        var created = await NewReserveService(_fixture).CreateAsync(input, world.BookerId);
+        Assert.True(created.IsSuccess);
+        using (var context = _fixture.NewContext())
+        {
+            var items = await context.CoachReserveItems.AsNoTracking().Where(i => i.CoachReserveId == created.Data.Id).ToListAsync();
+            Assert.Equal(2, items.Count);
+            Assert.Single(items.Select(i => i.CoachServiceId).Distinct());
+        }
+
+        // تکرار همان بسته ⇒ رد
+        var duplicate = Input(world, Tomorrow(15));
+        duplicate.ExtraPackageIds = new List<long> { duplicate.CoachServicePackageId };
+        Assert.False((await NewReserveService(_fixture).CreateAsync(duplicate, world.BookerId)).IsSuccess);
+    }
+
+    [Fact]
+    public async Task StayDays_TakeTheMaximum_AndLiftTheMinutesCapInPersonMode()
+    {
+        if (!_fixture.Available) return;
+        var world = await BuildWorldAsync(_fixture);
+        long twoMonths, fiveMonths;
+        using (var context = _fixture.NewContext())
+        {
+            // مدت دقیقه‌ای خدمت بزرگ است؛ بدون StayDays جمع دو بسته از سقف می‌گذرد.
+            await context.CoachServices.Where(s => s.Id == world.ServiceId).ExecuteUpdateAsync(s => s.SetProperty(x => x.DurationMinutes, 400));
+            var catalog = new CoachCatalogService(context, _fixture.Mapper, NullLogger<CoachCatalogService>.Instance);
+            twoMonths = (await catalog.AddPackageAsync(new CoachServicePackageInputDto
+            {
+                CoachServiceId = world.ServiceId, Name = "Two", Price = 1_000_000,
+                Types = new List<CoachPackageTypeDto> { new() { Mode = (int)CoachServiceModeEnum.InPerson, Price = 1_000_000, PrePaymentPrice = 200_000, StayDays = 60 }, new() { Mode = (int)CoachServiceModeEnum.InPlace, Price = 900_000, PrePaymentPrice = 100_000, SessionCount = 8 } },
+            }, null)).Data.Id;
+            fiveMonths = (await catalog.AddPackageAsync(new CoachServicePackageInputDto
+            {
+                CoachServiceId = world.ServiceId, Name = "Five", Price = 2_000_000,
+                Types = new List<CoachPackageTypeDto> { new() { Mode = (int)CoachServiceModeEnum.InPerson, Price = 2_000_000, PrePaymentPrice = 400_000, StayDays = 150 }, new() { Mode = (int)CoachServiceModeEnum.InPlace, Price = 1_800_000, PrePaymentPrice = 200_000, SessionCount = 12 } },
+            }, null)).Data.Id;
+        }
+
+        var quote = await NewReserveService(_fixture).QuoteAsync(new[] { twoMonths, fiveMonths }, (int)CoachServiceModeEnum.InPerson);
+        Assert.True(quote.IsSuccess);
+        Assert.Equal(150, quote.Data.StayDays);        // بیشینه، نه جمع
+        Assert.Null(quote.Data.SessionCount);          // در حالت حضوری جلسه‌ای تعریف نشده
+        Assert.Equal(3_000_000, quote.Data.Price);
+
+        var home = await NewReserveService(_fixture).QuoteAsync(new[] { twoMonths, fiveMonths }, (int)CoachServiceModeEnum.InPlace);
+        Assert.False(home.IsSuccess);                  // سقف دقیقه‌ای برای حالت در محل برقرار است (۸۰۰ دقیقه > ۷۲۰)
+
+        var input = Input(world, Tomorrow(10));
+        input.CoachServicePackageId = twoMonths;
+        input.ExtraPackageIds = new List<long> { fiveMonths };
+        input.Mode = (int)CoachServiceModeEnum.InPerson;
+        var created = await NewReserveService(_fixture).CreateAsync(input, world.BookerId);
+        Assert.True(created.IsSuccess);
+        Assert.Equal(150, created.Data.StayDays);
     }
 
     [Fact]

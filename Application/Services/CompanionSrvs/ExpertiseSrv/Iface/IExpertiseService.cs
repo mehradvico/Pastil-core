@@ -3,12 +3,14 @@ using Application.Common.Interface;
 using Application.Services.CompanionSrvs.ExpertiseSrv.Dto;
 using Entities.Entities.CompanionField;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Application.Services.CompanionSrvs.ExpertiseSrv.Iface
 {
     public interface IExpertiseService : ICommonSrv<Expertise, ExpertiseDto>
     {
         ExpertiseSearchDto Search(ExpertiseInputDto dto);
+        Task<List<ExpertiseGroupDto>> GroupsAsync();
         Task<BaseResultDto<ExpertiseVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto<ExpertiseDto>> InsertValidatedAsync(ExpertiseDto dto);
         Task<BaseResultDto> UpdateValidatedAsync(ExpertiseDto dto);

@@ -27,6 +27,7 @@
     <Compile Include="..\Api\Authorization\AreaMembershipAuthorizationHandler.cs" Link="Api\Authorization\AreaMembershipAuthorizationHandler.cs" />
     <Compile Include="..\Api\Filters\ScrubAnonymousUserPiiFilter.cs" Link="Api\Filters\ScrubAnonymousUserPiiFilter.cs" />
     <Compile Include="..\Api\Hubs\CallSessionTracker.cs" Link="Api\Hubs\CallSessionTracker.cs" />
+    <Compile Include="..\Api\Filter\IdempotentRequestAttribute.cs" Link="Api\Filter\IdempotentRequestAttribute.cs" />
     <Compile Include="..\File\Security\UploadSignature.cs" Link="File\Security\UploadSignature.cs" />
     <Compile Include="..\Api\Services\AiProductMatch\AiProductMatchExecutionGate.cs" Link="Api\Services\AiProductMatch\AiProductMatchExecutionGate.cs" />
   </ItemGroup>

@@ -175,7 +175,7 @@ namespace Application.Services.CoachSrvs.CoachSrv
             view.Owner = null;
             view.Provider = null;
             view.ActivationValue = null;
-            view.LegacyCompanionId = null;
+            // LegacyCompanionId عمداً می‌ماند: کلید سامانه‌ی مشاوره‌ی آنلاین (ConsultationPackage/Purchase) هنوز Companion است.
             view.DeleteDate = null;
             return new BaseResultDto<CoachVDto>(true, view);
         }

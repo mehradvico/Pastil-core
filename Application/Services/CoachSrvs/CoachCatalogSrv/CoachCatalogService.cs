@@ -214,7 +214,7 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                     Name = dto.Name.Trim(),
                     Price = basePrice,
                     PrePaymentPrice = basePre,
-                    Types = types.Select(x => new CoachServicePackageType { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice }).ToList(),
+                    Types = types.Select(x => new CoachServicePackageType { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, StayDays = x.StayDays, SessionCount = x.SessionCount }).ToList(),
                     PictureId = dto.PictureId,
                     Discription = dto.Discription?.Trim(),
                     PetSize = NormalizePetSize(dto.PetSize),
@@ -223,7 +223,7 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 await _context.CoachServicePackages.AddAsync(package);
                 await _context.SaveChangesAsync();
                 var created = _mapper.Map<CoachServicePackageVDto>(package);
-                created.Types = types.Select(x => new CoachPackageTypeVDto { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, ModeName = ModeName(x.Mode) }).ToList();
+                created.Types = types.Select(x => new CoachPackageTypeVDto { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, StayDays = x.StayDays, SessionCount = x.SessionCount, ModeName = ModeName(x.Mode) }).ToList();
                 return new BaseResultDto<CoachServicePackageVDto>(true, created);
             }
             catch (Exception ex)
@@ -278,9 +278,11 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 if (wanted == null) { row.Deleted = true; continue; }
                 row.Price = wanted.Price;
                 row.PrePaymentPrice = wanted.PrePaymentPrice;
+                row.StayDays = wanted.StayDays;
+                row.SessionCount = wanted.SessionCount;
             }
             foreach (var item in types.Where(x => existing.All(e => e.Mode != x.Mode)))
-                await _context.CoachServicePackageTypes.AddAsync(new CoachServicePackageType { CoachServicePackageId = packageId, Mode = item.Mode, Price = item.Price, PrePaymentPrice = item.PrePaymentPrice });
+                await _context.CoachServicePackageTypes.AddAsync(new CoachServicePackageType { CoachServicePackageId = packageId, Mode = item.Mode, Price = item.Price, PrePaymentPrice = item.PrePaymentPrice, StayDays = item.StayDays, SessionCount = item.SessionCount });
             await _context.SaveChangesAsync();
         }
 
@@ -344,6 +346,8 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
             {
                 if (types.Select(x => x.Mode).Distinct().Count() != types.Count || types.Any(x => !Enum.IsDefined(typeof(CoachServiceModeEnum), x.Mode)))
                     return Resource.Notification.CoachPackageModeInvalid;
+                if (types.Any(x => x.StayDays is < 0 or > 3650 || x.SessionCount is < 0 or > 1000))
+                    return Resource.Notification.CoachValueOutOfRange;
                 if (types.Any(x => x.Price <= 0 || x.PrePaymentPrice < 0 || x.PrePaymentPrice > x.Price || double.IsNaN(x.Price) || double.IsInfinity(x.Price)))
                     return Resource.Notification.CoachPackagePriceInvalid;
             }
@@ -391,7 +395,7 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 Packages = s.Packages
                     .Where(p => !p.Deleted && (!onlyActivePackages || p.Active) && (petSize == null || p.PetSize == null || p.PetSize == petSize))
                     .OrderBy(p => p.Price)
-                    .Select(p => new { p.Id, p.CoachServiceId, p.Name, p.Price, p.PrePaymentPrice, p.PictureId, p.Picture, p.Active, p.ActivationValue, p.Discription, p.PetSize, Types = p.Types.Where(x => !x.Deleted).OrderBy(x => x.Mode).Select(x => new { x.Id, x.Mode, x.Price, x.PrePaymentPrice }).ToList() })
+                    .Select(p => new { p.Id, p.CoachServiceId, p.Name, p.Price, p.PrePaymentPrice, p.PictureId, p.Picture, p.Active, p.ActivationValue, p.Discription, p.PetSize, Types = p.Types.Where(x => !x.Deleted).OrderBy(x => x.Mode).Select(x => new { x.Id, x.Mode, x.Price, x.PrePaymentPrice, x.StayDays, x.SessionCount }).ToList() })
                     .ToList(),
                 UserIds = s.ServiceUsers.Where(u => !u.Deleted && u.Active).Select(u => u.UserId).ToList(),
             }).AsSplitQuery().ToListAsync();
@@ -423,7 +427,7 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                     ActivationValue = p.ActivationValue,
                     Discription = p.Discription,
                     PetSize = p.PetSize,
-                    Types = p.Types.Select(x => new CoachPackageTypeVDto { Id = x.Id, Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, ModeName = ModeName(x.Mode) }).ToList(),
+                    Types = p.Types.Select(x => new CoachPackageTypeVDto { Id = x.Id, Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, StayDays = x.StayDays, SessionCount = x.SessionCount, ModeName = ModeName(x.Mode) }).ToList(),
                 }).ToList(),
             }).ToList();
         }

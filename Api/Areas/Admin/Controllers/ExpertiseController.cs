@@ -4,6 +4,7 @@ using Application.Services.CompanionSrvs.ExpertiseSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Api.Areas.Admin.Controllers
 {
@@ -38,6 +39,10 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(ExpertiseSearchDto), 200)]
         public IActionResult Get([FromQuery] ExpertiseInputDto dto) =>
             Ok(expertiseService.Search(dto));
+
+        [HttpGet("groups")]
+        [ProducesResponseType(typeof(List<ExpertiseGroupDto>), 200)]
+        public async Task<IActionResult> Groups() => Ok(await expertiseService.GroupsAsync());
 
         /// <summary>
         /// ثبت تخصص

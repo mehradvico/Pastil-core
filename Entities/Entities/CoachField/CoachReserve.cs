@@ -68,6 +68,10 @@ namespace Entities.Entities.CoachField
         public int RescheduleCount { get; set; }
         public DateTime? OriginalDoDate { get; set; }
         public DateTime? LastRescheduleDate { get; set; }
+        /// <summary>snapshot مدت اقامت رزرو = بیشینه‌ی StayDays بسته‌های انتخاب‌شده (در صورت وجود).</summary>
+        public int? StayDays { get; set; }
+        /// <summary>snapshot جمع تعداد جلسات بسته‌های انتخاب‌شده (در صورت وجود).</summary>
+        public int? SessionCount { get; set; }
         /// <summary>تماس تصویری/صوتی درون‌برنامه‌ای (فقط Mode=آنلاین): لحظه‌ی وصل‌شدن هر دو طرف و لحظه‌ی پایان.</summary>
         public DateTime? CallStartDate { get; set; }
         public DateTime? CallEndDate { get; set; }

@@ -205,7 +205,9 @@ namespace Application.Maping
             CreateMap<AssistanceQuestionnaire, AssistanceQuestionnaireDto>().ReverseMap();
             CreateMap<AssistanceQuestionnaire, AssistanceQuestionnaireVDto>();
             CreateMap<Expertise, ExpertiseDto>().ReverseMap();
-            CreateMap<Expertise, ExpertiseVDto>();
+            CreateMap<Expertise, ExpertiseVDto>()
+                .ForMember(x => x.ProviderRoleName, o => o.MapFrom(s => s.ProviderRole != null ? s.ProviderRole.Name : null))
+                .ForMember(x => x.ProviderRoleLabel, o => o.MapFrom(s => s.ProviderRole != null ? s.ProviderRole.Label : null));
             //Assistance End ----------------------------------------------
 
 

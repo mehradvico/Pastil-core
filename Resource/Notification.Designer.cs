@@ -6913,5 +6913,59 @@ namespace Resource {
             }
         }
 
+        public static string CoachConsultationUnavailable {
+            get {
+                return ResourceManager.GetString("CoachConsultationUnavailable", resourceCulture);
+            }
+        }
+
+        public static string PansionReserveApprovalDeadlinePassed {
+            get {
+                return ResourceManager.GetString("PansionReserveApprovalDeadlinePassed", resourceCulture);
+            }
+        }
+
+        public static string PansionActivationRequiresApproval {
+            get {
+                return ResourceManager.GetString("PansionActivationRequiresApproval", resourceCulture);
+            }
+        }
+
+        public static string PansionReserveStatusInvalid {
+            get {
+                return ResourceManager.GetString("PansionReserveStatusInvalid", resourceCulture);
+            }
+        }
+
+        public static string PansionReserveTripNotAvailable {
+            get {
+                return ResourceManager.GetString("PansionReserveTripNotAvailable", resourceCulture);
+            }
+        }
+
+        public static string PansionWorkingHoursInvalid {
+            get {
+                return ResourceManager.GetString("PansionWorkingHoursInvalid", resourceCulture);
+            }
+        }
+
+        public static string PansionReserveCancelReasonRequired {
+            get {
+                return ResourceManager.GetString("PansionReserveCancelReasonRequired", resourceCulture);
+            }
+        }
+
+        public static string PansionReserveCannotBeCancelledByOwner {
+            get {
+                return ResourceManager.GetString("PansionReserveCannotBeCancelledByOwner", resourceCulture);
+            }
+        }
+
+        public static string PansionCommentReplyInvalid {
+            get {
+                return ResourceManager.GetString("PansionCommentReplyInvalid", resourceCulture);
+            }
+        }
+
     }
 }

@@ -391,8 +391,12 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
             await MarkAsync(reserves.Select(x => x.Id), ids => _context.CompanionReserves
                 .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && !r.IsCancel)
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.Permitted, true)));
+            var pansionComplete = (long)Common.Enumerable.Code.PansionReserveStatusEnum.PansionReserveState_Complete;
+            var pansionNotRequired = (int)Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.NotRequired;
+            var pansionApproved = (int)Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.Approved;
             await MarkAsync(pansions.Select(x => x.Id), ids => _context.PansionReserves
-                .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && !r.IsCancel)
+                .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && !r.IsCancel && r.StatusId == pansionComplete
+                            && (r.OwnerDecision == pansionNotRequired || r.OwnerDecision == pansionApproved))
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.Permitted, true)));
             await MarkAsync(consultations.Select(x => x.Id), ids => _context.ConsultationPurchases
                 .Where(p => ids.Contains(p.Id) && !p.Permitted && p.Status == completed)

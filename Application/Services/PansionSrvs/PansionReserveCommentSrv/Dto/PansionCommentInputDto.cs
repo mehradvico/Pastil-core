@@ -14,6 +14,8 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv.Dto
         public long? PansionId { get; set; }
         public bool? IsReserved { get; set; }
         public long? UserId { get; set; }
+        /// <summary>نظرهای پانسیون‌های یک نمایندگی (برای مالک)</summary>
+        public long? CompanionId { get; set; }
         public bool? AllStatus { get; set; }
 
     }

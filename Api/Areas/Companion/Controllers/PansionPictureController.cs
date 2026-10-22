@@ -16,6 +16,7 @@ namespace Api.Areas.Companion.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
+    [Api.Filters.RequireCompanionScope]
     public class PansionPictureController : ControllerBase
     {
         private readonly IPansionPictureService PansionPictureService;
@@ -37,6 +38,12 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var PansionPicture = await PansionPictureService.FindAsyncVDto(id);
+            if (PansionPicture.IsSuccess && PansionPicture.Data != null)
+            {
+                var owner = await _PansionService.FindAsyncVDto(PansionPicture.Data.PansionId);
+                if (!owner.IsSuccess || owner.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+                    return Ok(new BaseResultDto<PansionPictureVDto>(false, Resource.Notification.AccessDenied, null));
+            }
             return Ok(PansionPicture);
         }
         /// <summary>

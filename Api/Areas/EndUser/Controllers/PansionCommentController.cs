@@ -35,11 +35,14 @@ namespace Api.Areas.EndUser.Controllers
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(typeof(PansionCommentSearchDto), 200)]
-        public IActionResult Get([FromQuery] PansionCommentInputDto dto)
+        public IActionResult Get([FromQuery] PansionCommentInputDto dto, [FromQuery] bool mine = false)
         {
+            // فهرست عمومی = نظرهای تأییدشده‌ی همه؛ فقط با mine=true نظرهای خودِ کاربر (لایک‌های خودش هم همراه می‌آید).
             dto.Available = true;
             dto.AllStatus = false;
-            if (_currentUser != null)
+            dto.CompanionId = null;
+            dto.UserId = null;
+            if (mine && _currentUser != null)
             {
                 dto.UserId = _currentUser.UserId;
             }

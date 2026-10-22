@@ -94,11 +94,17 @@ namespace Application.Services.PansionSrvs.PansionSrv
             if (baseSearchDto.IsDaycare.HasValue)
             {
                 var IsDaycare = baseSearchDto.IsDaycare.Value;
-                model = model.Where(s => s.IsDaycare == null || s.IsDaycare == IsDaycare);
+                // رکورد قدیمی بدون نوع (NULL) پانسیون شبانه حساب می‌شود؛ فیلتر نوع خدمت در خود سرور اعمال می‌شود تا شمارش درست باشد.
+                model = model.Where(s => (s.IsDaycare ?? false) == IsDaycare);
             }
             if (baseSearchDto.CompanionId.HasValue)
             {
                 model = model.Where(s => s.CompanionId == baseSearchDto.CompanionId.Value);
+            }
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.Q))
+            {
+                var q = baseSearchDto.Q.Trim();
+                model = model.Where(s => s.Name.Contains(q) || (s.AddressValue != null && s.AddressValue.Contains(q)) || (s.Discription != null && s.Discription.Contains(q)));
             }
             if (baseSearchDto.IsInfectious.HasValue)
             {
@@ -250,6 +256,11 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 errors.Add(Tuple.Create(Resource.Notification.PansionPleaseEnterOpenHour, nameof(dto.OpenHour)));
             if (string.IsNullOrWhiteSpace(dto.CloseHour))
                 errors.Add(Tuple.Create(Resource.Notification.PansionPleaseEnterCloseHour, nameof(dto.CloseHour)));
+            if (!string.IsNullOrWhiteSpace(dto.OpenHour) && !string.IsNullOrWhiteSpace(dto.CloseHour) &&
+                (!PansionReserveSrv.PansionReserveRules.TryParseHour(dto.OpenHour, out var openHour) ||
+                 !PansionReserveSrv.PansionReserveRules.TryParseHour(dto.CloseHour, out var closeHour) ||
+                 openHour >= closeHour))
+                errors.Add(Tuple.Create(Resource.Notification.PansionWorkingHoursInvalid, nameof(dto.OpenHour)));
             if (dto.IsDaycare == true && dto.SchoolPrice <= 0)
                 errors.Add(Tuple.Create(Resource.Notification.PansionSchoolPriceMustBeGreaterThanZero, nameof(dto.SchoolPrice)));
             if (dto.IsDaycare == false && dto.PansionPrice <= 0)
@@ -270,6 +281,8 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (companionId.HasValue && item.CompanionId != companionId.Value)
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
+            if (dto.Active && !item.Approve)
+                return new BaseResultDto(false, Resource.Notification.PansionActivationRequiresApproval);
             item.Active = dto.Active;
             _context.Pansions.Update(item);
             _context.SaveChanges();

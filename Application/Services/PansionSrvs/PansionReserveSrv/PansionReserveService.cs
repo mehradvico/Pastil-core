@@ -668,9 +668,20 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             if (companionId.HasValue && item.Pansion?.CompanionId != companionId.Value)
                 return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.AccessDenied, dto);
 
-            if (item.PaymentPrice == 0)
+            // فقط رزروِ پرداخت‌شده و لغونشده وضعیت عوض می‌کند و وضعیتِ هدف باید معتبر باشد (Registered با پرداخت تعیین می‌شود).
+            // رزرو پرداخت‌شده با مبلغ صفر (تخفیف کامل/کیف پول) هم قابل تکمیل است: قیمت نهایی در پرداخت ثبت شده است.
+            if (!item.IsReserved || item.IsCancel ||
+                (dto.StatusId != (long)PansionReserveStatusEnum.PansionReserveState_Paid &&
+                 dto.StatusId != (long)PansionReserveStatusEnum.PansionReserveState_Complete))
             {
-                return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.TheFinalPriceHasNotYetBeenRecordedForThisReserve, dto);
+                return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.PansionReserveStatusInvalid, dto);
+            }
+            // مرکز فقط می‌تواند «پرداخت‌شده» را «تکمیل» کند؛ برگرداندن وضعیت فقط با ادمین است.
+            if (companionId.HasValue &&
+                !(item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Paid &&
+                  dto.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete))
+            {
+                return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.PansionReserveStatusInvalid, dto);
             }
             if (dto.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete &&
                 !PansionReserveApprovalRules.CanComplete(item.OwnerDecision))

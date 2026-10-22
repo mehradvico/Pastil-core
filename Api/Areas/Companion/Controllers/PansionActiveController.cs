@@ -15,6 +15,7 @@ namespace Api.Areas.Companion.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
+    [Api.Filters.RequireCompanionScope]
     public class PansionActiveController : ControllerBase
     {
         private readonly IPansionService _PansionService;

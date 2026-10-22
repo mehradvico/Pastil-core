@@ -2153,6 +2153,12 @@ namespace Application.Services.TripSrv.TripSrv
             if (reserve == null)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
 
+            // سفر فقط برای رزروِ پرداخت‌شده و لغونشده؛ رزرو ردشده/منقضی هم سفر نمی‌گیرد (منتظر تأیید مجاز است).
+            if (!reserve.IsReserved || reserve.IsCancel ||
+                reserve.OwnerDecision == (int)Application.Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.Rejected ||
+                reserve.OwnerDecision == (int)Application.Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.Expired)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PansionReserveTripNotAvailable, null);
+
             if (!TryGetPansionDropOffMoment(reserve, dto.DropOffTime, out var dropOffAt, out var dropOffError))
                 return new BaseResultDto<TripDto>(false, dropOffError, null);
 

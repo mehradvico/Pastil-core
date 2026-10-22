@@ -263,7 +263,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveItemSrv
 
                 await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
                 var active = reserve.Items.Where(i => i.Status != (int)ClinicReserveItemStatusEnum.Cancelled).ToList();
-                if (active.Any(i => i.ClinicServiceId == package.ClinicServiceId))
+                if (active.Any(i => i.ClinicServicePackageId == package.Id))
                 {
                     await transaction.RollbackAsync();
                     return Fail<ClinicReserveItemsVDto>(Resource.Notification.ClinicReserveDuplicateService);

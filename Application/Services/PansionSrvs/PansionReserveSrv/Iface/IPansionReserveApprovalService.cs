@@ -13,6 +13,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv.Iface
         Task<BaseResultDto> ApproveAsync(long reserveId, long? companionId, CancellationToken cancellationToken = default);
         Task<BaseResultDto> RejectAsync(long reserveId, string reason, long? companionId, CancellationToken cancellationToken = default);
 
+        // لغو توسط مرکز بعد از تأیید (قبل از تکمیل): کل مبلغ آنلاین به کیف پول برمی‌گردد، سفر متصل لغو و امتیاز باشگاه برگشت می‌خورد
+        Task<BaseResultDto> CancelByOwnerAsync(long reserveId, string reason, long? companionId, CancellationToken cancellationToken = default);
+
         // job هر چند دقیقه: رزروهایی که مهلت پاسخشان گذشته لغو و پول برگردانده می‌شود
         Task ExpireOverdueAsync(CancellationToken cancellationToken = default);
     }

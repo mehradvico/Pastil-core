@@ -2186,7 +2186,7 @@
     <value>هر رزرو حداکثر ۵ بسته می‌تواند داشته باشد.</value>
   </data>
   <data name="GroomerReserveDuplicateService" xml:space="preserve">
-    <value>هر خدمت فقط یک‌بار در یک رزرو انتخاب می‌شود.</value>
+    <value>هر بسته فقط یک‌بار در یک رزرو انتخاب می‌شود.</value>
   </data>
   <data name="GroomerReserveTooLong" xml:space="preserve">
     <value>مجموع مدت بسته‌های انتخابی برای یک نوبت زیاد است.</value>
@@ -2366,7 +2366,7 @@
     <value>هر رزرو حداکثر ۵ بسته می‌تواند داشته باشد.</value>
   </data>
   <data name="ClinicReserveDuplicateService" xml:space="preserve">
-    <value>هر خدمت فقط یک‌بار در یک رزرو انتخاب می‌شود.</value>
+    <value>هر بسته فقط یک‌بار در یک رزرو انتخاب می‌شود.</value>
   </data>
   <data name="ClinicReserveTooLong" xml:space="preserve">
     <value>مجموع مدت بسته‌های انتخابی برای یک نوبت زیاد است.</value>
@@ -2597,7 +2597,7 @@
     <value>هر رزرو حداکثر ۵ بسته می‌تواند داشته باشد.</value>
   </data>
   <data name="CoachReserveDuplicateService" xml:space="preserve">
-    <value>هر خدمت فقط یک‌بار در یک رزرو انتخاب می‌شود.</value>
+    <value>هر بسته فقط یک‌بار در یک رزرو انتخاب می‌شود.</value>
   </data>
   <data name="CoachReserveTooLong" xml:space="preserve">
     <value>مجموع مدت بسته‌های انتخابی برای یک نوبت زیاد است.</value>
@@ -2664,5 +2664,32 @@
   </data>
   <data name="ProviderRoleRequired" xml:space="preserve">
     <value>ارائه‌دهنده نقش تأییدشده‌ی مربوط به این نوع مرکز را ندارد؛ ابتدا نقش را به او بدهید.</value>
+  </data>
+  <data name="CoachConsultationUnavailable" xml:space="preserve">
+    <value>این مربی هنوز به سامانه‌ی مشاوره‌ی آنلاین وصل نیست (مربی باید از نمایندگی قدیمی منتقل شده باشد).</value>
+  </data>
+  <data name="PansionReserveApprovalDeadlinePassed" xml:space="preserve">
+    <value>مهلت پاسخ به این رزرو گذشته است؛ رزرو به‌زودی خودکار لغو و مبلغ به کیف پول مشتری برگردانده می‌شود.</value>
+  </data>
+  <data name="PansionActivationRequiresApproval" xml:space="preserve">
+    <value>پانسیونِ تأییدنشده را نمی‌توان فعال کرد.</value>
+  </data>
+  <data name="PansionReserveStatusInvalid" xml:space="preserve">
+    <value>این تغییر وضعیت برای این رزرو مجاز نیست.</value>
+  </data>
+  <data name="PansionReserveTripNotAvailable" xml:space="preserve">
+    <value>سفر فقط برای رزرو پانسیونِ پرداخت‌شده و لغونشده ساخته می‌شود.</value>
+  </data>
+  <data name="PansionWorkingHoursInvalid" xml:space="preserve">
+    <value>ساعت شروع و پایان کار باید معتبر (مثل 08:00) و ساعت شروع زودتر از پایان باشد.</value>
+  </data>
+  <data name="PansionReserveCancelReasonRequired" xml:space="preserve">
+    <value>دلیل لغو الزامی است.</value>
+  </data>
+  <data name="PansionReserveCannotBeCancelledByOwner" xml:space="preserve">
+    <value>مرکز فقط رزرو پرداخت‌شده‌ی تکمیل‌نشده را می‌تواند لغو کند.</value>
+  </data>
+  <data name="PansionCommentReplyInvalid" xml:space="preserve">
+    <value>پاسخ خالی یا طولانی‌تر از ۱۰۰۰ کاراکتر است.</value>
   </data>
 </root>

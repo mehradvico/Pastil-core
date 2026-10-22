@@ -72,7 +72,7 @@ public class GroomerPhase3Tests : IClassFixture<GroomerLocalDbFixture>
     }
 
     [Fact]
-    public async Task MultiPackage_DuplicateServiceOrTooMany_IsRejected()
+    public async Task MultiPackage_SeveralPackagesOfOneService_AreAllowed_ButTheSamePackageTwiceIsRejected()
     {
         if (!_fixture.Available) return;
         var world = await BuildWorldAsync(_fixture);
@@ -82,9 +82,23 @@ public class GroomerPhase3Tests : IClassFixture<GroomerLocalDbFixture>
             var catalog = new GroomerCatalogService(context, _fixture.Mapper, NullLogger<GroomerCatalogService>.Instance);
             sameServicePackage = (await catalog.AddPackageAsync(new GroomerServicePackageInputDto { GroomerServiceId = world.ServiceId, Name = "Pkg3", Price = 300_000 }, null)).Data.Id;
         }
+
+        // یک خدمت، دو بسته‌ی متفاوت ⇒ مجاز؛ دو آیتم با همان خدمت
         var input = Input(world, Tomorrow(12));
         input.ExtraPackageIds = new List<long> { sameServicePackage };
-        Assert.False((await NewReserveService(_fixture).CreateAsync(input, world.BookerId)).IsSuccess);
+        var created = await NewReserveService(_fixture).CreateAsync(input, world.BookerId);
+        Assert.True(created.IsSuccess);
+        using (var context = _fixture.NewContext())
+        {
+            var items = await context.GroomerReserveItems.AsNoTracking().Where(i => i.GroomerReserveId == created.Data.Id).ToListAsync();
+            Assert.Equal(2, items.Count);
+            Assert.Single(items.Select(i => i.GroomerServiceId).Distinct());
+        }
+
+        // تکرار همان بسته ⇒ رد
+        var duplicate = Input(world, Tomorrow(15));
+        duplicate.ExtraPackageIds = new List<long> { duplicate.GroomerServicePackageId };
+        Assert.False((await NewReserveService(_fixture).CreateAsync(duplicate, world.BookerId)).IsSuccess);
     }
 
     [Fact]

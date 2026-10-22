@@ -161,6 +161,7 @@ namespace Persistence.Interface
         public DbSet<NotifyMessage> NotifyMessages { get; set; }
         public DbSet<OtpVerify> OtpVerifies { get; set; }
         public DbSet<Pansion> Pansions { get; set; }
+        public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
         public DbSet<PansionComment> PansionComments { get; set; }
         public DbSet<PansionPet> PansionPets { get; set; }
         public DbSet<PansionPicture> PansionPictures { get; set; }

@@ -6292,6 +6292,18 @@
             پرسنل کلینیک‌های من
             </summary>
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachConsultationOnlineController">
+            <summary>
+            «من آنلاینم» مربی برای مشاوره‌ی آنلاین فوری (همان سامانه‌ی ConsultationOnline کلینیک؛ اعتبار حداکثر ۳ ساعت)
+            </summary>
+            <remarks>با شناسه‌ی مربی کار می‌کند و به Companion قدیمیِ مربی (LegacyCompanionId) نگاشت می‌شود؛ مربی بدون آن خطای CoachConsultationUnavailable می‌گیرد.</remarks>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachConsultationOnlineController.Get(System.Int64)">
+            <summary>وضعیت آنلاین من در این مربی</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachConsultationOnlineController.Put(Api.Areas.Companion.Controllers.CoachConsultationOnlineSetDto)">
+            <summary>روشن/خاموش‌کردن وضعیت آنلاین من</summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.CoachController">
             <summary>
             مربی‌های من (مالک/ارائه‌دهنده). همه‌ی عملیات فقط روی مربی‌های خود کاربر جاری است.
@@ -7251,6 +7263,17 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.PansionCommentController">
+            <summary>
+            نظرات پانسیون‌های من و پاسخ مالک
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionCommentController.Get(Application.Services.PansionSrvs.PansionCommentSrv.Dto.PansionCommentInputDto)">
+            <summary>نظرهای همه‌ی پانسیون‌های نمایندگی من (همه‌ی وضعیت‌ها)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionCommentController.Reply(Api.Areas.Companion.Controllers.PansionCommentReplyDto)">
+            <summary>پاسخ مالک به نظر (فقط متن پاسخ؛ تأیید/رد نظر با ادمین است)</summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.PansionController">
             <summary>
             مدیریت پانسیون
@@ -7382,6 +7405,18 @@
         </member>
         <member name="M:Api.Areas.Companion.Controllers.PansionReserveRejectController.Put(Application.Services.PansionSrvs.PansionReserveSrv.Dto.PansionReserveDecisionDto)">
             <summary>رد رزرو با دلیل (الزامی؛ برای کاربر ارسال می‌شود)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.PansionSettlementController">
+            <summary>
+            تاریخچه‌ی تسویه‌ی پانسیون‌های من. پانسیون استخر جدا ندارد و در استخر «نمایندگی‌ها» (Kind=1) همراه رزرو خدمت، مشاوره و مدرسه تسویه می‌شود؛
+            این مسیر همان تسویه‌های ارائه‌دهنده‌ی کاربر را می‌دهد و ریز آن را فقط به ردیف‌های پانسیون (Type=Pansion) محدود می‌کند.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionSettlementController.Get(Application.Services.FinanceSrvs.SettlementSrv.Dto.SettlementInputDto)">
+            <summary>تسویه‌های ارائه‌دهنده‌ی من در استخر نمایندگی‌ها (شامل پانسیون)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionSettlementController.Items(System.Int64)">
+            <summary>ریز پانسیونیِ یک تسویه‌ی من (فقط ردیف‌های Type=Pansion)</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.SchoolActiveController">
             <summary>
@@ -8891,7 +8926,7 @@
             مدیریت نظرات پانسیون ها
             </summary>
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.PansionCommentController.Get(Application.Services.PansionSrvs.PansionCommentSrv.Dto.PansionCommentInputDto)">
+        <member name="M:Api.Areas.EndUser.Controllers.PansionCommentController.Get(Application.Services.PansionSrvs.PansionCommentSrv.Dto.PansionCommentInputDto,System.Boolean)">
             <summary>
             جستجو
             </summary>
@@ -12497,6 +12532,12 @@
             فهرست ثابت روزهای هفته — برای کاربر نهایی (مثلاً انتخاب برنامه‌ی هفتگی سرویس پت‌رسان)
             </summary>
         </member>
+        <member name="T:Api.Filters.RequireCompanionScopeAttribute">
+            <summary>
+            endpointهای ناحیه‌ی Companion که با «شناسه‌ی نمایندگیِ کاربر» scope می‌شوند (مثل مدیریت پانسیون): اگر کاربر لاگین‌شده نمایندگی نداشته باشد،
+            CompanionId تهی است و فیلتر مالکیت سرویس‌ها اعمال نمی‌شود (یعنی همه‌ی ردیف‌ها دیده می‌شد). این فیلتر قبل از اجرا با 403 جلوی آن را می‌گیرد.
+            </summary>
+        </member>
         <member name="T:Api.Filters.ScrubAnonymousUserPiiFilter">
             <summary>
             قاعده‌ی سراسری: endpointی که احراز هویت لازم ندارد (بدون [Authorize] یا با [AllowAnonymous]) هیچ‌وقت اطلاعات شخصی
@@ -12509,7 +12550,9 @@
             جلوگیری از ثبت تکراری فرم‌های ایجاد (آدرس، پت، رزرو، تیکت، ...): در حساب تست دو آدرس کاملاً یکسان با دابل‌کلیک ثبت شده بود.
             - با هدر Idempotency-Key: همان کلید تا ۱۰ دقیقه همان پاسخ موفق اول را برمی‌گرداند (ثبت دوم انجام نمی‌شود).
             - بدون هدر: همان کاربر + همان مسیر + همان بدنه در چند ثانیه = تکراری؛ اگر اولی تمام شده پاسخش برمی‌گردد، اگر هنوز در جریان است پیام «تکراری».
-            پاسخ ناموفق نگه داشته نمی‌شود تا تلاش دوباره ممکن باشد. فقط کاربر لاگین‌شده؛ حافظه‌ی همین نمونه‌ی API.
+            پاسخ ناموفق نگه داشته نمی‌شود تا تلاش دوباره ممکن باشد. فقط کاربر لاگین‌شده.
+            کلید صریح (Idempotency-Key) در دیتابیس (IdempotencyRecords) ثبت می‌شود تا بین چند replica و بعد از restart هم پایدار باشد؛
+            تشخیص «بدنه‌ی تکراری در چند ثانیه» (بدون هدر) همچنان در حافظه‌ی همین نمونه است چون عمداً کوتاه‌مدت است.
             </summary>
         </member>
         <member name="T:Api.HangFire.AdminDashboardAuthorizationFilter">

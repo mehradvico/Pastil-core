@@ -14,6 +14,8 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv.Iface
     public interface IPansionCommentService : ICommonSrv<PansionComment, PansionCommentDto>
     {
         Task<BaseResultDto> UpdateDtoAsync(PansionCommentDto dto);
+        // پاسخ مالک مرکز به یک نظر (فقط Answer؛ وضعیت تأیید دست‌نخورده می‌ماند). companionId = نمایندگیِ مالک.
+        Task<BaseResultDto> ReplyAsync(long commentId, string answer, long companionId);
         PansionCommentSearchDto Search(PansionCommentInputDto baseSearchDto);
         Task UpdatePansionCommentRateAsync(long Id);
     }

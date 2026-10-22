@@ -67,7 +67,8 @@ namespace Application.Services.ProviderSrvs.ProviderRoleSrv
         /// <summary>نقشی که به ارائه‌دهنده‌ای داده شده حذف نمی‌شود (به‌جایش غیرفعال کنید).</summary>
         public override BaseResultDto DeleteDto(long id)
         {
-            if (_context.ProviderRoleAssignments.Any(x => x.ProviderRoleId == id && !x.Deleted))
+            if (_context.ProviderRoleAssignments.Any(x => x.ProviderRoleId == id && !x.Deleted) ||
+                _context.Expertises.Any(x => x.ProviderRoleId == id && !x.Deleted))
                 return new BaseResultDto(false, Resource.Notification.ProviderRoleInUse);
             return base.DeleteDto(id);
         }

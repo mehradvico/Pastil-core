@@ -73,7 +73,7 @@ public class ClinicPhase3Tests : IClassFixture<ClinicLocalDbFixture>
     }
 
     [Fact]
-    public async Task MultiPackage_DuplicateServiceOrTooMany_IsRejected()
+    public async Task MultiPackage_SeveralPackagesOfOneService_AreAllowed_ButTheSamePackageTwiceIsRejected()
     {
         if (!_fixture.Available) return;
         var world = await BuildWorldAsync(_fixture);
@@ -83,9 +83,23 @@ public class ClinicPhase3Tests : IClassFixture<ClinicLocalDbFixture>
             var catalog = new ClinicCatalogService(context, _fixture.Mapper, NullLogger<ClinicCatalogService>.Instance);
             sameServicePackage = (await catalog.AddPackageAsync(new ClinicServicePackageInputDto { ClinicServiceId = world.ServiceId, Name = "Pkg3", Price = 300_000 }, null)).Data.Id;
         }
+
+        // یک خدمت، دو بسته‌ی متفاوت ⇒ مجاز؛ دو آیتم با همان خدمت
         var input = Input(world, Tomorrow(12));
         input.ExtraPackageIds = new List<long> { sameServicePackage };
-        Assert.False((await NewReserveService(_fixture).CreateAsync(input, world.BookerId)).IsSuccess);
+        var created = await NewReserveService(_fixture).CreateAsync(input, world.BookerId);
+        Assert.True(created.IsSuccess);
+        using (var context = _fixture.NewContext())
+        {
+            var items = await context.ClinicReserveItems.AsNoTracking().Where(i => i.ClinicReserveId == created.Data.Id).ToListAsync();
+            Assert.Equal(2, items.Count);
+            Assert.Single(items.Select(i => i.ClinicServiceId).Distinct());
+        }
+
+        // تکرار همان بسته ⇒ رد
+        var duplicate = Input(world, Tomorrow(15));
+        duplicate.ExtraPackageIds = new List<long> { duplicate.ClinicServicePackageId };
+        Assert.False((await NewReserveService(_fixture).CreateAsync(duplicate, world.BookerId)).IsSuccess);
     }
 
     [Fact]

@@ -2336,10 +2336,16 @@ namespace Persistence.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
 
+                    b.Property<int?>("SessionCount")
+                        .HasColumnType("int");
+
                     b.Property<double>("SiteShare")
                         .HasColumnType("float");
 
                     b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StayDays")
                         .HasColumnType("int");
 
                     b.Property<long>("UserPetId")
@@ -2705,6 +2711,12 @@ namespace Persistence.Migrations
 
                     b.Property<double>("Price")
                         .HasColumnType("float");
+
+                    b.Property<int?>("SessionCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StayDays")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -3790,7 +3802,12 @@ namespace Persistence.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
+                    b.Property<long?>("ProviderRoleId")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ProviderRoleId");
 
                     b.HasIndex("Name", "Deleted");
 
@@ -6395,6 +6412,44 @@ namespace Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Hashtags");
+                });
+
+            modelBuilder.Entity("Entities.Entities.IdempotencyRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Completed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("ResponseJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpireDate");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("IdempotencyRecords");
                 });
 
             modelBuilder.Entity("Entities.Entities.LocationField.City", b =>
@@ -15928,6 +15983,16 @@ namespace Persistence.Migrations
                     b.Navigation("Neighborhood");
 
                     b.Navigation("State");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CompanionField.Expertise", b =>
+                {
+                    b.HasOne("Entities.Entities.ProviderField.ProviderRole", "ProviderRole")
+                        .WithMany()
+                        .HasForeignKey("ProviderRoleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ProviderRole");
                 });
 
             modelBuilder.Entity("Entities.Entities.CompanionReserve", b =>

@@ -75,6 +75,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 OnlineAmount = online,
                 PayAtVenue = price - online,
                 DurationMinutes = set.DurationMinutes,
+                StayDays = set.StayDays,
+                SessionCount = set.SessionCount,
             });
         }
 
@@ -222,6 +224,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                     CoachTimeId = slot.CoachTimeId,
                     DoDate = doDate,
                     DurationMinutes = duration,
+                    StayDays = set.StayDays,
+                    SessionCount = set.SessionCount,
                     EndDate = endDate,
                     Mode = dto.Mode,
                     AddressId = dto.Mode == (int)CoachServiceModeEnum.InPlace ? dto.AddressId : null,
@@ -592,15 +596,19 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
 
         // ------------------------------------------------------------------ کمکی
 
-        private sealed record PackageSet(List<PackageInfo> Packages, PackageInfo Primary, int DurationMinutes);
+        private sealed record PackageSet(List<PackageInfo> Packages, PackageInfo Primary, int DurationMinutes, int? StayDays, int? SessionCount);
 
         /// <summary>
-        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک مربی، هر خدمت حداکثر یک‌بار، حداکثر ۵ بسته؛ مجموع مدت از سقف یک روز کمتر.
+        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک مربی، حداکثر ۵ بستهٔ متفاوت (چند بسته از یک خدمت مجاز است؛ تکرار همان بسته نه)؛ مجموع مدت از سقف کمتر، مگر بسته‌ها مدت اقامت (StayDays) داشته باشند.
         /// expectedCoachId پر باشد باید با مربیِ همه‌ی بسته‌ها یکی باشد.
         /// </summary>
         private async Task<(PackageSet Set, string Error)> BuildSetAsync(IReadOnlyList<long> packageIds, long? expectedCoachId, int? mode)
         {
-            var ids = (packageIds ?? Array.Empty<long>()).Where(id => id > 0).Distinct().ToList();
+            var requested = (packageIds ?? Array.Empty<long>()).Where(id => id > 0).ToList();
+            var ids = requested.Distinct().ToList();
+            // یکتایی بر اساس شناسه‌ی «بسته» است: چند بسته از یک خدمت مجاز است، ولی تکرار همان بسته رد می‌شود.
+            if (ids.Count != requested.Count)
+                return (null, Resource.Notification.CoachReserveDuplicateService);
             if (ids.Count == 0)
                 return (null, Resource.Notification.CoachReservePackageInvalid);
             if (ids.Count > CoachReserveRules.MaxPackages)
@@ -618,13 +626,14 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             }
             if (packages.Select(p => p.CoachId).Distinct().Count() > 1)
                 return (null, Resource.Notification.CoachReservePackageInvalid);
-            if (packages.Select(p => p.CoachServiceId).Distinct().Count() != packages.Count)
-                return (null, Resource.Notification.CoachReserveDuplicateService);
-
             var duration = packages.Sum(p => CoachReserveRules.EffectiveDuration(p.DurationMinutes));
-            if (duration > CoachReserveRules.MaxTotalMinutes)
+            var stayDays = packages.Where(p => p.StayDays.HasValue).Select(p => p.StayDays).DefaultIfEmpty().Max();
+            var sessions = packages.Any(p => p.SessionCount.HasValue) ? packages.Sum(p => p.SessionCount ?? 0) : (int?)null;
+            // بسته‌ی دارای مدت اقامت (پانسیون آموزشی، Mode=۳۸) سقف دقیقه‌ای ندارد؛ مدتش با StayDays سنجیده می‌شود.
+            var stayBased = stayDays.HasValue && (mode ?? (int)CoachServiceModeEnum.InPerson) == (int)CoachServiceModeEnum.InPerson;
+            if (!stayBased && duration > CoachReserveRules.MaxTotalMinutes)
                 return (null, Resource.Notification.CoachReserveTooLong);
-            return (new PackageSet(packages, packages[0], duration), null);
+            return (new PackageSet(packages, packages[0], duration, stayDays, sessions), null);
         }
 
         /// <summary>
@@ -669,7 +678,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
         private sealed record PackageInfo(
             long Id, long CoachServiceId, long CoachId, double Price, double PrePaymentPrice, string PetSize,
             int DurationMinutes, bool ServiceAtHome, bool ServiceInPerson, bool ServiceOnline,
-            int MaxConcurrentPets, long AssistanceId, long CityId, bool OfferedInMode, string Name);
+            int MaxConcurrentPets, long AssistanceId, long CityId, bool OfferedInMode, string Name, int? StayDays, int? SessionCount);
 
         private async Task<PackageInfo> LoadBookablePackageAsync(long packageId, int? mode)
         {
@@ -683,7 +692,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                     p.CoachService.DurationMinutes, p.CoachService.Coach.ServiceAtHome, p.CoachService.Coach.ServiceInPerson,
                     p.CoachService.Coach.ServiceOnline, p.CoachService.Coach.MaxConcurrentPets,
                     p.CoachService.AssistanceId, p.CoachService.Coach.CityId,
-                    Types = p.Types.Where(x => !x.Deleted).Select(x => new { x.Mode, x.Price, x.PrePaymentPrice }).ToList(),
+                    Types = p.Types.Where(x => !x.Deleted).Select(x => new { x.Mode, x.Price, x.PrePaymentPrice, x.StayDays, x.SessionCount }).ToList(),
                 })
                 .FirstOrDefaultAsync();
             if (row == null)
@@ -692,17 +701,28 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             var price = row.Price;
             var pre = row.PrePaymentPrice;
             var offered = true;
+            int? stayDays = null;
+            int? sessionCount = null;
             if (mode.HasValue)
             {
+                var modeRow = row.Types.FirstOrDefault(x => x.Mode == mode.Value);
+                stayDays = modeRow?.StayDays;
+                sessionCount = modeRow?.SessionCount;
                 var types = row.Types.Select(x => (x.Mode, x.Price, x.PrePaymentPrice)).ToList();
                 var resolved = CoachReserveRules.ResolveModePrice(row.Price, row.PrePaymentPrice, types, mode.Value);
                 offered = resolved.HasValue;
                 if (resolved.HasValue)
                     (price, pre) = resolved.Value;
             }
+            else if (row.Types.Count > 0)
+            {
+                // بدون Mode (Availability): بیشینه‌ی اقامت بین حالت‌ها، فقط برای تصمیم سقف مدت.
+                stayDays = row.Types.Max(x => x.StayDays);
+            }
             return new PackageInfo(
                 row.Id, row.CoachServiceId, row.CoachId, price, pre, row.PetSize, row.DurationMinutes,
-                row.ServiceAtHome, row.ServiceInPerson, row.ServiceOnline, row.MaxConcurrentPets, row.AssistanceId, row.CityId, offered, row.Name);
+                row.ServiceAtHome, row.ServiceInPerson, row.ServiceOnline, row.MaxConcurrentPets, row.AssistanceId, row.CityId, offered, row.Name,
+                stayDays, sessionCount);
         }
 
         /// <summary>نحوه‌ی ارائه باید یکی از سه حالت باشد و مربی آن را ارائه دهد. null = معتبر.</summary>
@@ -861,6 +881,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 Permitted = r.Permitted,
                 RescheduleCount = r.RescheduleCount,
                 OriginalDoDate = r.OriginalDoDate,
+                StayDays = r.StayDays,
+                SessionCount = r.SessionCount,
                 CallStartDate = r.CallStartDate,
                 CallEndDate = r.CallEndDate,
                 Items = r.Items.OrderBy(i => i.Id).Select(i => new CoachReserveItemVDto

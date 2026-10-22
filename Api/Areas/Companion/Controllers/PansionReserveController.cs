@@ -11,10 +11,12 @@ namespace Api.Areas.Pansion.Controllers
     /// مدیریت رزرو نمایندگان
     /// </summary>
     /// 
-    [Area("Comapnion")]
+    [Area("Companion")]
     [Route("api/[area]/[controller]")]
+    [Route("api/Comapnion/[controller]")] // مسیر قدیمی (غلط املایی) موقتاً برای کلاینت‌های فعلی
     [ApiController]
     [Authorize]
+    [Api.Filters.RequireCompanionScope]
     public class PansionReserveController : ControllerBase
     {
         private readonly IPansionReserveService _PansionReserveService;

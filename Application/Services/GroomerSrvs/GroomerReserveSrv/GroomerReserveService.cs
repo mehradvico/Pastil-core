@@ -600,7 +600,11 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
         /// </summary>
         private async Task<(PackageSet Set, string Error)> BuildSetAsync(IReadOnlyList<long> packageIds, long? expectedGroomerId)
         {
-            var ids = (packageIds ?? Array.Empty<long>()).Where(id => id > 0).Distinct().ToList();
+            var requested = (packageIds ?? Array.Empty<long>()).Where(id => id > 0).ToList();
+            var ids = requested.Distinct().ToList();
+            // یکتایی بر اساس شناسه‌ی «بسته» است: چند بسته از یک خدمت مجاز است، ولی تکرار همان بسته رد می‌شود.
+            if (ids.Count != requested.Count)
+                return (null, Resource.Notification.GroomerReserveDuplicateService);
             if (ids.Count == 0)
                 return (null, Resource.Notification.GroomerReservePackageInvalid);
             if (ids.Count > GroomerReserveRules.MaxPackages)
@@ -616,9 +620,6 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             }
             if (packages.Select(p => p.GroomerId).Distinct().Count() > 1)
                 return (null, Resource.Notification.GroomerReservePackageInvalid);
-            if (packages.Select(p => p.GroomerServiceId).Distinct().Count() != packages.Count)
-                return (null, Resource.Notification.GroomerReserveDuplicateService);
-
             var duration = packages.Sum(p => GroomerReserveRules.EffectiveDuration(p.DurationMinutes));
             if (duration > GroomerReserveRules.MaxTotalMinutes)
                 return (null, Resource.Notification.GroomerReserveTooLong);

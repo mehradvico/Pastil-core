@@ -634,7 +634,11 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
         /// </summary>
         private async Task<(PackageSet Set, string Error)> BuildSetAsync(IReadOnlyList<long> packageIds, long? expectedClinicId, int? mode)
         {
-            var ids = (packageIds ?? Array.Empty<long>()).Where(id => id > 0).Distinct().ToList();
+            var requested = (packageIds ?? Array.Empty<long>()).Where(id => id > 0).ToList();
+            var ids = requested.Distinct().ToList();
+            // یکتایی بر اساس شناسه‌ی «بسته» است: چند بسته از یک خدمت مجاز است، ولی تکرار همان بسته رد می‌شود.
+            if (ids.Count != requested.Count)
+                return (null, Resource.Notification.ClinicReserveDuplicateService);
             if (ids.Count == 0)
                 return (null, Resource.Notification.ClinicReservePackageInvalid);
             if (ids.Count > ClinicReserveRules.MaxPackages)
@@ -652,9 +656,6 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             }
             if (packages.Select(p => p.ClinicId).Distinct().Count() > 1)
                 return (null, Resource.Notification.ClinicReservePackageInvalid);
-            if (packages.Select(p => p.ClinicServiceId).Distinct().Count() != packages.Count)
-                return (null, Resource.Notification.ClinicReserveDuplicateService);
-
             var duration = packages.Sum(p => ClinicReserveRules.EffectiveDuration(p.DurationMinutes));
             if (duration > ClinicReserveRules.MaxTotalMinutes)
                 return (null, Resource.Notification.ClinicReserveTooLong);

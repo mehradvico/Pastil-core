@@ -16,6 +16,7 @@ namespace Api.Areas.Companion.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
+    [Api.Filters.RequireCompanionScope]
     public class PansionPetController : ControllerBase
     {
         private readonly IPansionPetService _PansionPetService;
@@ -52,6 +53,12 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var agency = await _PansionPetService.FindAsyncDto(id);
+            if (agency.IsSuccess && agency.Data != null)
+            {
+                var owner = await _PansionService.FindAsyncVDto(agency.Data.PansionId);
+                if (!owner.IsSuccess || owner.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+                    return Ok(new BaseResultDto<PansionPetDto>(false, Resource.Notification.AccessDenied, null));
+            }
             return Ok(agency);
         }
 

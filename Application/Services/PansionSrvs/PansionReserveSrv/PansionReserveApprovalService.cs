@@ -50,6 +50,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             var check = Check(reserve, companionId);
             if (check != null)
                 return check;
+            // مهلت گذشته: تأیید پذیرفته نمی‌شود (job انقضا رزرو را لغو و پول را برمی‌گرداند)؛ رد هنوز مجاز است.
+            if (PansionReserveApprovalRules.IsOverdue(reserve.OwnerDecision, reserve.OwnerApprovalDeadline, DateTime.Now))
+                return new BaseResultDto(false, Resource.Notification.PansionReserveApprovalDeadlinePassed);
 
             reserve.OwnerDecision = (int)PansionReserveOwnerDecisionEnum.Approved;
             reserve.OwnerDecisionDate = DateTime.Now;
@@ -71,6 +74,56 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 return new BaseResultDto(false, Resource.Notification.PansionReserveRejectReasonRequired);
 
             return await CancelWithRefundAsync(reserveId, companionId, PansionReserveOwnerDecisionEnum.Rejected, reason, cancellationToken);
+        }
+
+        public async Task<BaseResultDto> CancelByOwnerAsync(long reserveId, string reason, long? companionId, CancellationToken cancellationToken = default)
+        {
+            reason = reason?.Trim();
+            if (string.IsNullOrWhiteSpace(reason))
+                return new BaseResultDto(false, Resource.Notification.PansionReserveCancelReasonRequired);
+
+            await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
+
+            var reserve = await LoadAsync(reserveId, cancellationToken);
+            if (reserve == null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            }
+            if (companionId.HasValue && reserve.Pansion?.CompanionId != companionId.Value)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+            }
+            // منتظر پاسخ از مسیر «رد» می‌رود؛ این مسیر برای تأییدشده/بدون‌نیاز‌به‌تأیید و تکمیل‌نشده است
+            if (!reserve.IsReserved || reserve.IsCancel ||
+                reserve.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete ||
+                !PansionReserveApprovalRules.CanComplete(reserve.OwnerDecision))
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return new BaseResultDto(false, Resource.Notification.PansionReserveCannotBeCancelledByOwner);
+            }
+
+            var now = DateTime.Now;
+            reserve.IsCancel = true;
+            reserve.CancelDate = now;
+            reserve.CancelDetail = reason;
+            reserve.OwnerDecisionReason = reason;
+            await _context.SaveChangesAsync(cancellationToken);
+
+            if (!await RefundAsync(reserve, cancellationToken))
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return new BaseResultDto(false, Resource.Notification.PansionReserveRefundFailed);
+            }
+            await transaction.CommitAsync(cancellationToken);
+
+            await SafeAsync(() => _clubPoints.PansionReserveReversedAsync(reserve.BookerId, reserve.Id, cancellationToken), reserve.Id, "club points reversal");
+            await SafeAsync(() => _tripService.CancelLinkedTripForPansionReserveAsync(reserve.Id), reserve.Id, "linked trip cancel");
+            await SafeAsync(() => _pushService.SendPushAsync(PushTypeEnum.PushPansionReserveRejected, reserve.BookerId,
+                token1: reserve.Pansion?.Name, token2: reason, token3: reserve.Id.ToString()), reserve.Id, "owner cancel push");
+
+            return new BaseResultDto(true, Resource.Notification.PansionReserveRejectedSuccessfully);
         }
 
         public async Task ExpireOverdueAsync(CancellationToken cancellationToken = default)

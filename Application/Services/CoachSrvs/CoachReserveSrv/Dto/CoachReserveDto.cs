@@ -34,6 +34,10 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Dto
         /// <summary>باقی‌مانده که حضوری در مربی پرداخت می‌شود.</summary>
         public double PayAtVenue { get; set; }
         public int DurationMinutes { get; set; }
+        /// <summary>مدت اقامت = بیشینه‌ی StayDays بسته‌ها (null اگر هیچ‌کدام نداشته باشند).</summary>
+        public int? StayDays { get; set; }
+        /// <summary>جمع تعداد جلسات بسته‌ها (null اگر هیچ‌کدام نداشته باشند).</summary>
+        public int? SessionCount { get; set; }
     }
 
     public class CoachAvailabilitySlotDto
@@ -71,6 +75,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Dto
     {
         public int RescheduleCount { get; set; }
         public DateTime? OriginalDoDate { get; set; }
+        public int? StayDays { get; set; }
+        public int? SessionCount { get; set; }
         public DateTime? CallStartDate { get; set; }
         public DateTime? CallEndDate { get; set; }
         public List<CoachReserveItemVDto> Items { get; set; } = new List<CoachReserveItemVDto>();

@@ -705,6 +705,16 @@ if (app.Environment.IsDevelopment())
 
 }
 app.UseForwardedHeaders();
+// DTOهای زمانی offset ندارند و ساعت محلی سرور هستند؛ کلاینت‌ها این هدر را برای صراحت قرارداد می‌خوانند (مثلاً +03:30).
+app.Use(async (httpContext, next) =>
+{
+    httpContext.Response.OnStarting(() =>
+    {
+        httpContext.Response.Headers["X-Pastil-Utc-Offset"] = DateTimeOffset.Now.ToString("zzz", System.Globalization.CultureInfo.InvariantCulture);
+        return Task.CompletedTask;
+    });
+    await next();
+});
 app.UseMiddleware<BffClientIpMiddleware>();
 app.UseHttpsRedirection();
 app.UseStaticFiles();

@@ -30,6 +30,7 @@ namespace Api.Controllers
         {
             dto.Approve = true;
             dto.Available = true;
+            dto.ShowToSite = true; // فقط پانسیونی که ادمین برای نمایش در سایت علامت زده (برای داده‌ی قدیمی: BackfillPansionShowToSite.sql)
             var search = _PansionService.Search(dto);
             return Ok(search);
         }
@@ -46,6 +47,9 @@ namespace Api.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var Pansion = await _PansionService.FindAsyncVDto(id);
+            // جزئیات عمومی فقط برای پانسیونِ تأییدشده و فعال (مثل فهرست عمومی)
+            if (Pansion.IsSuccess && Pansion.Data != null && (!Pansion.Data.Active || !Pansion.Data.Approve || !Pansion.Data.ShowToSite))
+                return Ok(new BaseResultDto<PansionVDto>(false, Resource.Notification.NothingFound, null));
             return Ok(Pansion);
         }
     }

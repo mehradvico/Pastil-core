@@ -151,6 +151,20 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
                 return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
+        public async Task<BaseResultDto> ReplyAsync(long commentId, string answer, long companionId)
+        {
+            answer = answer?.Trim();
+            if (string.IsNullOrWhiteSpace(answer) || answer.Length > 1000)
+                return new BaseResultDto(false, Resource.Notification.PansionCommentReplyInvalid);
+            var item = await _context.PansionComments.AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == commentId && !s.Pansion.Deleted && s.Pansion.CompanionId == companionId);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+            item.Answer = answer;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
         public PansionCommentSearchDto Search(PansionCommentInputDto baseSearchDto)
         {
             var model = BaseSaerch(baseSearchDto);
@@ -162,6 +176,8 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
             var query = _context.PansionComments.Include(s => s.Pansion).Include(s => s.User).AsQueryable().Where(s => !s.Pansion.Deleted);
             if (searchDto.PansionId.HasValue)
                 query = query.Where(s => s.PansionId == searchDto.PansionId);
+            if (searchDto.CompanionId.HasValue)
+                query = query.Where(s => s.Pansion.CompanionId == searchDto.CompanionId.Value);
             if (searchDto.UserId.HasValue)
                 query = query.Include(s => s.CommentLikes.Where(a => a.UserId == searchDto.UserId)).Where(s => s.UserId == searchDto.UserId);
             if (searchDto.AllStatus == false)
