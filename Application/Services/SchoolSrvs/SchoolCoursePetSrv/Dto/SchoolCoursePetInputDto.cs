@@ -7,5 +7,7 @@ namespace Application.Services.SchoolSrvs.SchoolCoursePetSrv.Dto
     {
         public long? SchoolCourseId { get; set; }
         public long? CompanionId { get; set; }
+        // فقط پنل نماینده: همه‌ی مدرسه‌های نمایندگی‌های «این کاربر» (Companion.OwnerId)؛ سمت کنترلر از توکن/کاربر پر می‌شود
+        public long? OwnerUserId { get; set; }
     }
 }

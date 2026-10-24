@@ -1,3 +1,4 @@
+using Application.Services.SchoolSrvs.SchoolOwnershipSrv;
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.SchoolSrvs.SchoolSrv.Dto;
@@ -18,8 +19,10 @@ namespace Api.Areas.Companion.Controllers
     {
         private readonly ISchoolService _schoolService;
         private readonly ICurrentUserHelper _currentUser;
-        public SchoolController(ISchoolService schoolService, ICurrentUserHelper currentUser)
+        private readonly ISchoolOwnershipService _ownership;
+        public SchoolController(ISchoolService schoolService, ICurrentUserHelper currentUser, ISchoolOwnershipService ownership)
         {
+            this._ownership = ownership;
             this._schoolService = schoolService;
             this._currentUser = currentUser;
         }
@@ -28,7 +31,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(SchoolSearchDto), 200)]
         public IActionResult Get([FromQuery] SchoolInputDto dto)
         {
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId;
+            dto.OwnerUserId = _currentUser.CurrentUser.UserId;
             var search = _schoolService.Search(dto);
             return Ok(search);
         }
@@ -38,9 +41,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var school = await _schoolService.FindAsyncVDto(id);
-            if (!school.IsSuccess ||
-                !_currentUser.CurrentUser.CompanionId.HasValue ||
-                school.Data?.CompanionId != _currentUser.CurrentUser.CompanionId.Value)
+            if (!school.IsSuccess || await _ownership.CompanionOfSchoolAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(school);
         }
@@ -49,9 +50,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolDto>), 200)]
         public async Task<IActionResult> Post(SchoolDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+            var companionId = await _ownership.ResolveCompanionForNewSchoolAsync(_currentUser.CurrentUser.UserId, dto.CompanionId);
+            if (!companionId.HasValue)
                 return Forbid();
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId.Value;
+            dto.CompanionId = companionId.Value;
             var result = await _schoolService.InsertAsyncDto(dto);
             return Ok(result);
         }
@@ -60,14 +62,12 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(SchoolDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return Forbid();
-
+            var companionId = await _ownership.CompanionOfSchoolAsync(dto.Id, _currentUser.CurrentUser.UserId);
             var existing = await _schoolService.FindAsyncVDto(dto.Id);
-            if (!existing.IsSuccess || existing.Data?.CompanionId != _currentUser.CurrentUser.CompanionId.Value)
+            if (!companionId.HasValue || !existing.IsSuccess)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
 
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId.Value;
+            dto.CompanionId = companionId.Value;
 
             // UpdateDto عمومی همه‌ی فیلدهای DTO را روی موجودیت می‌نویسد؛ فیلدهای تأیید/نمایش/امتیاز فقط با
             // ادمین یا سیستم عوض می‌شوند (Approve/ApprovalValue با SchoolApprove، Active با SchoolActive،
@@ -94,10 +94,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Delete(long id)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+            var companionId = await _ownership.CompanionOfSchoolAsync(id, _currentUser.CurrentUser.UserId);
+            if (!companionId.HasValue)
                 return Forbid();
-            var result = await _schoolService.SoftDeleteAsync(
-                id, _currentUser.CurrentUser.CompanionId.Value, _currentUser.CurrentUser.UserId);
+            var result = await _schoolService.SoftDeleteAsync(id, companionId.Value, _currentUser.CurrentUser.UserId);
             return Ok(result);
         }
     }

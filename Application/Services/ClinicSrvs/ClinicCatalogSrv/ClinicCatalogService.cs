@@ -4,6 +4,8 @@ using Application.Services.ClinicSrvs.ClinicCatalogSrv.Dto;
 using Application.Services.ClinicSrvs.ClinicCatalogSrv.Iface;
 using AutoMapper;
 using Entities.Entities.ClinicField;
+using Entities.Entities.ProviderField;
+using Application.Services.CompanionSrvs.AssistanceSrv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -67,13 +69,13 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv
                 if (ownerUserId.HasValue && ownerId.Value != ownerUserId.Value)
                     return new BaseResultDto<ClinicServiceVDto>(false, Resource.Notification.AccessDenied, null);
 
-                var assistance = await _context.Assistances.AsNoTracking().Where(a => a.Id == dto.AssistanceId && a.Active && !a.Deleted)
-                    .Select(a => new { a.IsGrooming }).FirstOrDefaultAsync();
+                var assistance = await _context.Assistances.AsNoTracking().Include(a => a.ProviderRole)
+                    .Where(a => a.Id == dto.AssistanceId && a.Active && !a.Deleted).FirstOrDefaultAsync();
                 if (assistance == null)
                     return new BaseResultDto<ClinicServiceVDto>(false, Resource.Notification.ClinicServiceAssistanceInvalid, null);
-                // خدمات گرومینگ فقط برای آرایشگاه است.
-                if (assistance.IsGrooming)
-                    return new BaseResultDto<ClinicServiceVDto>(false, Resource.Notification.ClinicServiceIsGrooming, null);
+                // خدمت فقط برای مراکزِ نقشِ مالکش قابل ثبت است (کلینیک خدمت مربی/آرایشگاه را نمی‌گیرد و برعکس).
+                if (!AssistanceRoleRules.IsAllowedForRole(assistance, ProviderRoleLabels.Clinic))
+                    return new BaseResultDto<ClinicServiceVDto>(false, Resource.Notification.AssistanceNotForRole, null);
                 if (await _context.ClinicServices.AnyAsync(s => s.ClinicId == dto.ClinicId && s.AssistanceId == dto.AssistanceId && !s.Deleted))
                     return new BaseResultDto<ClinicServiceVDto>(false, Resource.Notification.ClinicServiceAlreadyExists, null);
 

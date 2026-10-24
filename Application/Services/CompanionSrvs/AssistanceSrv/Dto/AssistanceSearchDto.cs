@@ -13,10 +13,14 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
             IsPersonal = dto.IsPersonal;
             AssistanceGroupId = dto.AssistanceGroupId;
             ShowToSite = dto.ShowToSite;
+            ProviderRoleId = dto.ProviderRoleId;
+            ProviderRole = dto.ProviderRole;
         }
 
         public bool? IsPersonal { get; set; }
         public long? AssistanceGroupId { get; set; }
         public bool? ShowToSite { get; set; }
+        public long? ProviderRoleId { get; set; }
+        public string ProviderRole { get; set; }
     }
 }

@@ -39,6 +39,8 @@ namespace Application.Services.SchoolSrvs.SchoolCoursePetSrv
                 model = model.Where(s => s.SchoolCourseId == baseSearchDto.SchoolCourseId.Value);
             if (baseSearchDto.CompanionId.HasValue)
                 model = model.Where(s => s.SchoolCourse.School.CompanionId == baseSearchDto.CompanionId.Value);
+            if (baseSearchDto.OwnerUserId.HasValue)
+                model = model.Where(s => s.SchoolCourse.School.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !s.SchoolCourse.School.Companion.Deleted);
 
             return new SchoolCoursePetSearchDto(baseSearchDto, model, mapper);
         }

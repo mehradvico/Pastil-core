@@ -1,3 +1,4 @@
+using Application.Services.SchoolSrvs.SchoolOwnershipSrv;
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.SchoolSrvs.SchoolSrv.Dto;
@@ -18,17 +19,22 @@ namespace Api.Areas.Companion.Controllers
     {
         private readonly ISchoolService _schoolService;
         private readonly ICurrentUserHelper _currentUser;
-        public SchoolActiveController(ISchoolService schoolService, ICurrentUserHelper currentUser)
+        private readonly ISchoolOwnershipService _ownership;
+        public SchoolActiveController(ISchoolService schoolService, ICurrentUserHelper currentUser, ISchoolOwnershipService ownership)
         {
+            this._ownership = ownership;
             this._schoolService = schoolService;
             this._currentUser = currentUser;
         }
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(SchoolActiveDto dto)
+        public async Task<IActionResult> Put(SchoolActiveDto dto)
         {
-            var result = _schoolService.UpdateSchoolActiveDto(dto, _currentUser.CurrentUser.CompanionId);
+            var companionId = await _ownership.CompanionOfSchoolAsync(dto.Id, _currentUser.CurrentUser.UserId);
+            if (!companionId.HasValue)
+                return Forbid();
+            var result = _schoolService.UpdateSchoolActiveDto(dto, companionId);
             return Ok(result);
         }
     }

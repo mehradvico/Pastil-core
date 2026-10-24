@@ -629,12 +629,14 @@ public static class ConfigureServices
         services.AddScoped<Application.Services.GroomerSrvs.IGroomerNotifier, Application.Services.GroomerSrvs.GroomerNotifier>();
         services.AddScoped<Application.Services.ClinicSrvs.IClinicNotifier, Application.Services.ClinicSrvs.ClinicNotifier>();
         services.AddScoped<Application.Services.CoachSrvs.ICoachNotifier, Application.Services.CoachSrvs.CoachNotifier>();
-        services.AddScoped<Application.Services.CoachSrvs.ICoachConsultationOnlineService, Application.Services.CoachSrvs.CoachConsultationOnlineService>();
+        services.AddScoped<Application.Services.ConsultationSrvs.ConsultationVenueSrv.IVenueConsultationService, Application.Services.ConsultationSrvs.ConsultationVenueSrv.VenueConsultationService>();
         services.AddScoped<Application.Services.ClinicSrvs.ClinicReserveItemSrv.Iface.IClinicReserveItemService, Application.Services.ClinicSrvs.ClinicReserveItemSrv.ClinicReserveItemService>();
         services.AddScoped<Application.Services.GroomerSrvs.GroomerReviewSrv.IGroomerReviewService, Application.Services.GroomerSrvs.GroomerReviewSrv.GroomerReviewService>();
         services.AddScoped<Application.Services.ClinicSrvs.ClinicReviewSrv.IClinicReviewService, Application.Services.ClinicSrvs.ClinicReviewSrv.ClinicReviewService>();
         services.AddScoped<Application.Services.CoachSrvs.CoachReviewSrv.ICoachReviewService, Application.Services.CoachSrvs.CoachReviewSrv.CoachReviewService>();
         services.AddScoped<ISchoolService, SchoolService>();
+        services.AddScoped<Application.Services.CompanionSrvs.CompanionPanelAccessSrv.ICompanionPanelAccessService, Application.Services.CompanionSrvs.CompanionPanelAccessSrv.CompanionPanelAccessService>();
+        services.AddScoped<Application.Services.SchoolSrvs.SchoolOwnershipSrv.ISchoolOwnershipService, Application.Services.SchoolSrvs.SchoolOwnershipSrv.SchoolOwnershipService>();
         services.AddScoped<ISchoolCourseService, SchoolCourseService>();
         services.AddScoped<ISchoolReserveService, SchoolReserveService>();
         services.AddScoped<Application.Services.SchoolSrvs.SchoolPictureSrv.Iface.ISchoolPictureService, Application.Services.SchoolSrvs.SchoolPictureSrv.SchoolPictureService>();
@@ -725,6 +727,7 @@ public static class ConfigureServices
         services.AddScoped<IPushNotificationService, PushNotificationService>();
         services.AddScoped<IPushScheduleService, PushScheduleService>();
         services.AddScoped<IPushSubscriptionService, PushSubscriptionService>();
+        services.AddScoped<Application.Services.CommonSrv.UserActivitySrv.IUserActivityService, Application.Services.CommonSrv.UserActivitySrv.UserActivityService>();
         services.AddScoped<IFcmSender, FcmSender>();
         services.AddScoped<ISignalRPushSender, NullSignalRPushSender>();
         services.AddScoped<IRebateService, RebateService>();

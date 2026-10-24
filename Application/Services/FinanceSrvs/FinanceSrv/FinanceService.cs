@@ -145,8 +145,8 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Completed
             };
             var consultationStats = _context.ConsultationPurchases
-                .Where(p => companionIds.Contains(p.CompanionId) && consultationPaidStatuses.Contains(p.Status))
-                .GroupBy(p => p.CompanionId)
+                .Where(p => p.CompanionId != null && companionIds.Contains(p.CompanionId.Value) && consultationPaidStatuses.Contains(p.Status))
+                .GroupBy(p => p.CompanionId.Value)
                 .Select(g => new { CompanionId = g.Key, Count = g.Count() })
                 .ToList()
                 .ToDictionary(x => x.CompanionId, x => x.Count);
@@ -204,7 +204,7 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 .Select(p => new ConsultationPackageFinanceVDto
                 {
                     Id = p.Id,
-                    CompanionId = p.CompanionId,
+                    CompanionId = p.CompanionId.Value,
                     Name = p.Name,
                     ChannelId = p.ChannelId,
                     DurationMinutes = p.DurationMinutes,

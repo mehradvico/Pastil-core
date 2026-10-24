@@ -14,6 +14,9 @@ namespace Entities.Entities.CoachField
         public bool Active { get; set; }
         public string ActivationValue { get; set; }
         public bool Deleted { get; set; }
+        // «من آنلاینم» برای مشاوره‌ی آنلاین فوری (اعتبار حداکثر ۳ ساعت)؛ مثل CompanionUser. قواعد: ConsultationOnlineRules
+        public bool ConsultationOnline { get; set; }
+        public System.DateTime? ConsultationOnlineExpiresAt { get; set; }
 
         public Coach Coach { get; set; }
         public User User { get; set; }

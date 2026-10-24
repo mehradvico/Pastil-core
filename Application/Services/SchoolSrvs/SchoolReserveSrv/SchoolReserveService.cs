@@ -62,7 +62,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             var course = await _context.SchoolCourses.AsNoTracking().FirstOrDefaultAsync(c => c.Id == schoolCourseId);
             if (course == null) return 0;
             if (!course.Capacity.HasValue) return null;
-            var taken = await _context.SchoolReserves.CountAsync(r => r.SchoolCourseId == schoolCourseId && !r.IsCancel);
+            var taken = await SchoolCourseRules.SeatTakers(_context.SchoolReserves.Where(r => r.SchoolCourseId == schoolCourseId), DateTime.Now).CountAsync();
             return Math.Max(course.Capacity.Value - taken, 0);
         }
 
@@ -103,6 +103,8 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                 model = model.Where(r => r.SchoolCourse.SchoolId == baseSearchDto.SchoolId.Value);
             if (baseSearchDto.CompanionId.HasValue)
                 model = model.Where(r => r.SchoolCourse.School.CompanionId == baseSearchDto.CompanionId.Value);
+            if (baseSearchDto.OwnerUserId.HasValue)
+                model = model.Where(r => r.SchoolCourse.School.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !r.SchoolCourse.School.Companion.Deleted);
             if (baseSearchDto.StatusId.HasValue)
                 model = model.Where(r => r.StatusId == baseSearchDto.StatusId.Value);
 
@@ -155,6 +157,15 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     if (!await SchoolCourseRules.IsRegistrationOpenAsync(_context, course.Id, DateTime.Now))
                         return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCourseRegistrationClosed, dto);
 
+                    // اگر نگه‌داشتنِ جای این ثبت‌نام تمام شده، تلاش دوباره فقط وقتی ممکن است که هنوز جایی خالی باشد
+                    if (course.Capacity.HasValue)
+                    {
+                        var othersTaking = await SchoolCourseRules.SeatTakers(
+                            _context.SchoolReserves.Where(r => r.SchoolCourseId == dto.SchoolCourseId && r.Id != existing.Id), DateTime.Now).CountAsync();
+                        if (othersTaking >= course.Capacity.Value)
+                            return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCourseCapacityFull, dto);
+                    }
+
                     // ثبت‌نامِ پرداخت‌نشده‌ی قبلی (کاربر از درگاه برگشت یا اصلاً به درگاه نرسید): به‌جای «قبلاً رزرو شده»
                     // همان ثبت‌نام برای پرداخت دوباره برمی‌گردد. تلاش‌های درگاهِ رهاشده کنار گذاشته می‌شوند و مبلغ مثل یک
                     // ثبت‌نام تازه از قیمت فعلی دوره شروع می‌شود (صفحه‌ی نهایی‌سازی کیف پول/تخفیف را دوباره اعمال می‌کند).
@@ -177,6 +188,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     existing.RebatePrice = 0;
                     existing.FromWallet = false;
                     existing.WalletPrice = 0;
+                    existing.CreateDate = DateTime.Now; // جای دوره دوباره برای UnpaidSeatHold نگه داشته می‌شود
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
                     return new BaseResultDto<SchoolReserveDto>(true, mapper.Map<SchoolReserveDto>(existing));
@@ -188,7 +200,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
 
                 if (course.Capacity.HasValue)
                 {
-                    var takenCount = await _context.SchoolReserves.CountAsync(r => r.SchoolCourseId == dto.SchoolCourseId && !r.IsCancel);
+                    var takenCount = await SchoolCourseRules.SeatTakers(_context.SchoolReserves.Where(r => r.SchoolCourseId == dto.SchoolCourseId), DateTime.Now).CountAsync();
                     if (takenCount >= course.Capacity.Value)
                     {
                         return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCourseCapacityFull, dto);
@@ -422,23 +434,68 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             if (!isAdmin && !isOwner)
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
-            if (dto.IsCancel)
+            if (!dto.IsCancel)
             {
-                if (string.IsNullOrWhiteSpace(dto.CancelDetail))
-                    return new BaseResultDto(false, Resource.Notification.PleaseEnterCancelDetail);
-
-                model.IsCancel = true;
-                model.CancelDetail = dto.CancelDetail;
-                model.CancelDate = DateTime.Now;
-                model.StatusId = (int)SchoolReserveStatusEnum.Cancelled;
+                await _context.SaveChangesAsync();
+                return new BaseResultDto(true);
             }
 
+            if (string.IsNullOrWhiteSpace(dto.CancelDetail))
+                return new BaseResultDto(false, Resource.Notification.PleaseEnterCancelDetail);
+            if (model.IsCancel)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            // کاربر فقط تا قبل از شروع دوره و تا وقتی «کامل‌شده» نشده لغو می‌کند؛ بعد از آن فقط ادمین
+            if (!isAdmin && (model.StatusId != (int)SchoolReserveStatusEnum.Paid ||
+                             !await SchoolCourseRules.IsRegistrationOpenAsync(_context, model.SchoolCourseId, DateTime.Now)))
+                return new BaseResultDto(false, Resource.Notification.YouCanNotCancelThisReservation);
+
+            // لغو + برگشت کل مبلغ پرداخت‌شده به کیف پول در یک تراکنش؛ اگر برگشت وجه نشد ثبت‌نام لغو نمی‌شود
+            await using var transaction = _context.CurrentTransaction == null
+                ? await _context.BeginTransactionAsync(IsolationLevel.Serializable)
+                : null;
+
+            model.IsCancel = true;
+            model.CancelDetail = dto.CancelDetail;
+            model.CancelDate = DateTime.Now;
+            model.StatusId = (int)SchoolReserveStatusEnum.Cancelled;
+            // سهم‌ها فقط وقتی صفر می‌شوند که هنوز در تسویه‌ای به نماینده پرداخت نشده باشند
+            if (!model.Permitted)
+            {
+                model.SiteShare = 0;
+                model.CompanionShare = 0;
+            }
             await _context.SaveChangesAsync();
 
-            if (dto.IsCancel)
-                await _tripService.CancelLinkedTripForSchoolReserveAsync(model.Id);
+            if (!await RefundAsync(model))
+                return new BaseResultDto(false, Resource.Notification.SchoolReserveRefundFailed);
 
+            if (transaction != null)
+                await transaction.CommitAsync();
+
+            await _tripService.CancelLinkedTripForSchoolReserveAsync(model.Id);
             return new BaseResultDto(true);
+        }
+
+        // برگشت کل مبلغ پرداخت‌شده (بعد از تخفیف؛ هم درگاه هم کیف پول) به کیف پول؛ کلید دفتر (Name) یکتاست پس تکرار پول را دوباره برنمی‌گرداند.
+        private async Task<bool> RefundAsync(SchoolReserve reserve)
+        {
+            var amount = reserve.PaymentPrice;
+            if (amount <= 0)
+                return true;
+            var ledgerName = SchoolReserveRules.RefundLedgerName(reserve.Id);
+            var exists = await _context.Wallets.AsNoTracking()
+                .AnyAsync(w => w.Name == ledgerName && w.UserId == reserve.BookerId && !w.Deleted);
+            if (exists)
+                return true;
+            var result = await _walletService.InsertAsyncDto(new WalletDto
+            {
+                Name = ledgerName,
+                Amount = amount,
+                IsIncrease = true,
+                UserId = reserve.BookerId,
+                Painding = false,
+            });
+            return result.IsSuccess;
         }
 
         // مدرسه‌ی صاحب دوره می‌تواند ثبت‌نام «پرداخت‌شده» و لغو‌نشده‌ی خودش را «کامل‌شده» کند؛ تغییرات دیگر فقط ادمین
@@ -489,7 +546,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     continue;
 
                 var enrolledBookerIds = await _context.SchoolReserves
-                    .Where(r => r.SchoolCourseId == session.SchoolCourseId && !r.IsCancel)
+                    .Where(r => r.SchoolCourseId == session.SchoolCourseId && r.IsReserved && !r.IsCancel)
                     .Select(r => r.BookerId)
                     .Distinct()
                     .ToListAsync(cancellationToken);

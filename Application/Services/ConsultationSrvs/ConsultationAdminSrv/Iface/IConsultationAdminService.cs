@@ -22,5 +22,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Iface
         Task<BaseResultDto<ConsultationPackageAdminVDto>> CreateClinicPackageAsync(long companionId, ConsultationPackageItemDto dto);
         Task<BaseResultDto<ConsultationPackageAdminVDto>> UpdateClinicPackageAsync(long companionId, ConsultationPackageItemDto dto);
         Task<BaseResultDto> DeleteClinicPackageAsync(long companionId, long id);
+
+        // کلینیک/مربی مستقل (kind = clinic | coach): فهرست مراکز با خلاصه‌ی بسته‌ها، بسته‌های یک مرکز با درصد سهم سایت، و حذف بسته
+        Task<BaseResultDto<List<ConsultationVenueAdminVDto>>> GetVenuesAsync(string kind, string q);
+        Task<BaseResultDto<List<ConsultationVenuePackageAdminVDto>>> GetVenuePackagesAsync(string kind, long venueId);
+        Task<BaseResultDto> DeleteVenuePackageAsync(string kind, long venueId, long id);
     }
 }

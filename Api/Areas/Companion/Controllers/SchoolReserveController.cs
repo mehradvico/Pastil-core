@@ -1,3 +1,4 @@
+using Application.Services.SchoolSrvs.SchoolOwnershipSrv;
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.SchoolSrvs.SchoolReserveSrv.Dto;
@@ -18,8 +19,10 @@ namespace Api.Areas.Companion.Controllers
     {
         private readonly ISchoolReserveService _schoolReserveService;
         private readonly ICurrentUserHelper _currentUser;
-        public SchoolReserveController(ISchoolReserveService schoolReserveService, ICurrentUserHelper currentUser)
+        private readonly ISchoolOwnershipService _ownership;
+        public SchoolReserveController(ISchoolReserveService schoolReserveService, ICurrentUserHelper currentUser, ISchoolOwnershipService ownership)
         {
+            this._ownership = ownership;
             this._schoolReserveService = schoolReserveService;
             this._currentUser = currentUser;
         }
@@ -28,7 +31,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(SchoolReserveSearchDto), 200)]
         public IActionResult Get([FromQuery] SchoolReserveInputDto dto)
         {
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId;
+            dto.OwnerUserId = _currentUser.CurrentUser.UserId;
             var search = _schoolReserveService.Search(dto);
             return Ok(search);
         }
@@ -38,7 +41,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Complete(long id)
         {
-            var companionId = _currentUser.CurrentUser.CompanionId;
+            var companionId = await _ownership.CompanionOfReserveAsync(id, _currentUser.CurrentUser.UserId);
             if (!companionId.HasValue)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(await _schoolReserveService.CompleteByCompanionAsync(id, companionId.Value));
@@ -49,9 +52,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var reserve = await _schoolReserveService.FindAsyncVDto(id);
-            var companionId = _currentUser.CurrentUser.CompanionId;
-            if (!reserve.IsSuccess || !companionId.HasValue ||
-                reserve.Data?.SchoolCourse?.School?.CompanionId != companionId.Value)
+            if (!reserve.IsSuccess || await _ownership.CompanionOfReserveAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(reserve);
         }

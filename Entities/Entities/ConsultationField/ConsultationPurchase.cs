@@ -11,7 +11,10 @@ namespace Entities.Entities
         public string PurchaseCode { get; set; }
         public long UserId { get; set; }
         public long ConsultationPackageId { get; set; }
-        public long CompanionId { get; set; }
+        // مالک: دقیقاً یکی از سه ستون پر است (CHECK در دیتابیس). نمایندگی قدیمی = CompanionId؛ مراکز مستقل = ClinicId / CoachId
+        public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
 
         public int ChannelId { get; set; }
         public int DurationMinutes { get; set; }
@@ -67,6 +70,8 @@ namespace Entities.Entities
         public User User { get; set; }
         public User AgentUser { get; set; }
         public Companion Companion { get; set; }
+        public ClinicField.Clinic Clinic { get; set; }
+        public CoachField.Coach Coach { get; set; }
         public ConsultationPackage ConsultationPackage { get; set; }
         public OnlineSession OnlineSession { get; set; }
         public Rebate Rebate { get; set; }

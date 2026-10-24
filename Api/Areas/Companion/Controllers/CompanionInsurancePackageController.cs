@@ -34,6 +34,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(CompanionInsurancePackageSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionInsurancePackageInputDto dto)
         {
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
             dto.CompanionId = _currentUserHelper.CurrentUser.CompanionId;
             var search = _companionAssistanceUserService.Search(dto);
             return Ok(search);

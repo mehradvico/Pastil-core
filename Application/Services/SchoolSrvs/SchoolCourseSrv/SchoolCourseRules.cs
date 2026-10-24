@@ -11,6 +11,17 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
     // قواعد زمان‌بندی دوره‌ی مدرسه: باز بودن ثبت‌نام و خلاصه‌ی «چند جلسه در هفته»
     public static class SchoolCourseRules
     {
+        /// <summary>ثبت‌نامِ پرداخت‌نشده فقط تا این مدت جا نگه می‌دارد؛ بعد از آن ظرفیت آزاد می‌شود (تا ساخت ثبت‌نام/تلاش دوباره).</summary>
+        public static readonly TimeSpan UnpaidSeatHold = TimeSpan.FromMinutes(15);
+
+        /// <summary>ثبت‌نام‌هایی که یک جای دوره را اشغال می‌کنند: پرداخت‌شده‌ی لغونشده، یا پرداخت‌نشده‌ی تازه (داخل UnpaidSeatHold).</summary>
+        public static IQueryable<Entities.Entities.SchoolField.SchoolReserve> SeatTakers(
+            IQueryable<Entities.Entities.SchoolField.SchoolReserve> reserves, DateTime now)
+        {
+            var holdSince = now - UnpaidSeatHold;
+            return reserves.Where(r => !r.IsCancel && (r.IsReserved || r.CreateDate >= holdSince));
+        }
+
         // شروع واقعی جلسه = تاریخ + ساعت شروع؛ ساعتِ نامعتبر = ابتدای همان روز
         public static DateTime SessionStart(DateTime sessionDate, string startTime) =>
             ReservationScheduleValidator.TryGetServiceStartDateTime(sessionDate, startTime, out var start)

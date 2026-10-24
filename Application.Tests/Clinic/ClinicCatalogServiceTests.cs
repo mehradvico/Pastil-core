@@ -24,7 +24,7 @@ public class ClinicCatalogServiceTests : IClassFixture<ClinicLocalDbFixture>
     {
         var seed = _fixture.Seed();
         using var context = _fixture.NewContext();
-        var assistance = new Assistance { Name = "Bath", Active = true, IsGrooming = false };
+        var assistance = new Assistance { Name = "Bath", Active = true, IsGrooming = false, ProviderRoleId = await AssistanceTestRoles.IdAsync(context, "Clinic") };
         context.Assistances.Add(assistance);
         await context.SaveChangesAsync();
         var core = new ClinicCoreService(context, _fixture.Mapper, NullLogger<ClinicCoreService>.Instance);

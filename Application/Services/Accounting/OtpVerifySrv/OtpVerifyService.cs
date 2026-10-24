@@ -214,6 +214,19 @@ namespace Application.Services.Accounting.OtpVerifySrv
                 return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
+        public async Task ConsumeAsync(string mobile, string email)
+        {
+            var newCode = GenerateHelper.RandomDigit(GenerateHelper.OtpLength);
+            var now = DateTime.Now;
+            await _context.OtpVerifies
+                .Where(s => (string.IsNullOrEmpty(mobile) == false && s.Mobile == mobile) || (string.IsNullOrEmpty(email) == false && s.Email == email))
+                .ExecuteUpdateAsync(set => set
+                    .SetProperty(s => s.Code, newCode)
+                    .SetProperty(s => s.Verify, (bool?)null)
+                    .SetProperty(s => s.TryCount, 0)
+                    .SetProperty(s => s.UpdateDate, now));
+        }
+
         public async Task<BaseResultDto> IsVerified(OtpVerifyVDto dto)
         {
             var errors = new List<Tuple<string, string>>();

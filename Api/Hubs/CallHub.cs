@@ -78,7 +78,9 @@ namespace Api.Hubs
             var isBooker = reserve.BookerId == userId.Value;
             var isCompanionOwner = reserve.CompanionAssistance.Companion.OwnerId == userId.Value;
             var isAssignedStaff = reserve.CompanionAssistanceUserId.HasValue &&
-                await _context.CompanionAssistanceUsers.AnyAsync(u => u.Id == reserve.CompanionAssistanceUserId.Value && u.UserId == userId.Value);
+                await _context.CompanionAssistanceUsers.AnyAsync(u => u.Id == reserve.CompanionAssistanceUserId.Value && u.UserId == userId.Value &&
+                    u.Active && !u.Deleted &&
+                    _context.CompanionUsers.Any(cu => cu.CompanionId == u.CompanionAssistance.CompanionId && cu.UserId == userId.Value && !cu.Deleted && cu.Active && cu.UserAccept == true));
 
             if (!isBooker && !isCompanionOwner && !isAssignedStaff)
             {
@@ -531,7 +533,9 @@ namespace Api.Hubs
             var isBooker = reserve.BookerId == userId.Value;
             var isCompanionOwner = reserve.CompanionAssistance.Companion.OwnerId == userId.Value;
             var isAssignedStaff = reserve.CompanionAssistanceUserId.HasValue &&
-                await _context.CompanionAssistanceUsers.AnyAsync(u => u.Id == reserve.CompanionAssistanceUserId.Value && u.UserId == userId.Value);
+                await _context.CompanionAssistanceUsers.AnyAsync(u => u.Id == reserve.CompanionAssistanceUserId.Value && u.UserId == userId.Value &&
+                    u.Active && !u.Deleted &&
+                    _context.CompanionUsers.Any(cu => cu.CompanionId == u.CompanionAssistance.CompanionId && cu.UserId == userId.Value && !cu.Deleted && cu.Active && cu.UserAccept == true));
             if (!isBooker && !isCompanionOwner && !isAssignedStaff)
             {
                 await Clients.Caller.SendAsync("callError", "شما دسترسی به این تماس ندارید.");

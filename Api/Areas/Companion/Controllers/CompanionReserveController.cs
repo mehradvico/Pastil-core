@@ -34,6 +34,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(CompanionReserveSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionReserveInputDto dto)
         {
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
             dto.CompanionId = _currentUserHelper.CurrentUser.CompanionId;
             var search = _companionReserveService.Search(dto);
             return Ok(search);

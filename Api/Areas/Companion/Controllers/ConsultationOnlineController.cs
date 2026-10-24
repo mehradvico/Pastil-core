@@ -1,6 +1,7 @@
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.CompanionSrvs.ConsultationOnlineSrv;
+using Application.Services.ConsultationSrvs.ConsultationOwnerSrv;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -37,12 +38,12 @@ namespace Api.Areas.Companion.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(BaseResultDto<ConsultationOnlineStatusDto>), 200)]
         public async Task<IActionResult> Get([FromQuery] long? companionId)
-            => Ok(await _service.GetMineAsync(_currentUser.CurrentUser.UserId, companionId));
+            => Ok(await _service.GetMineAsync(_currentUser.CurrentUser.UserId, companionId.HasValue ? ConsultationOwner.Companion(companionId.Value) : null));
 
         /// <summary>روشن/خاموش کردن وضعیت آنلاین من</summary>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<ConsultationOnlineStatusDto>), 200)]
         public async Task<IActionResult> Put([FromBody] ConsultationOnlineSetDto dto)
-            => Ok(await _service.SetMineAsync(_currentUser.CurrentUser.UserId, dto?.CompanionId, dto?.Online ?? false));
+            => Ok(await _service.SetMineAsync(_currentUser.CurrentUser.UserId, dto?.CompanionId is { } id ? ConsultationOwner.Companion(id) : null, dto?.Online ?? false));
     }
 }

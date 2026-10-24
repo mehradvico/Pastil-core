@@ -3,6 +3,7 @@ using Application.Common.Enumerable;
 using Application.Common.Helpers;
 using Application.Services.ConsultationSrvs.ConsultationBookingSrv.Dto;
 using Application.Services.ConsultationSrvs.ConsultationBookingSrv.Iface;
+using Application.Services.ConsultationSrvs.ConsultationOwnerSrv;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
@@ -26,11 +27,11 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
             _context = context;
         }
 
-        public async Task<BaseResultDto<List<ConsultationAvailabilityWindowDto>>> GetAvailabilityAsync(long companionId)
+        public async Task<BaseResultDto<List<ConsultationAvailabilityWindowDto>>> GetAvailabilityAsync(ConsultationOwner owner)
         {
             try
             {
-                return new BaseResultDto<List<ConsultationAvailabilityWindowDto>>(true, await LoadWindowsAsync(companionId));
+                return new BaseResultDto<List<ConsultationAvailabilityWindowDto>>(true, await LoadWindowsAsync(owner));
             }
             catch (Exception ex)
             {
@@ -38,7 +39,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
             }
         }
 
-        public async Task<BaseResultDto<List<ConsultationAvailabilityWindowDto>>> SaveAvailabilityAsync(long companionId, List<ConsultationAvailabilityWindowDto> windows)
+        public async Task<BaseResultDto<List<ConsultationAvailabilityWindowDto>>> SaveAvailabilityAsync(ConsultationOwner owner, List<ConsultationAvailabilityWindowDto> windows)
         {
             try
             {
@@ -59,7 +60,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
                 if (ConsultationBookingRules.HasOverlap(parsed.Select(p => (p.WeekDayId, p.Start, p.End))))
                     return new BaseResultDto<List<ConsultationAvailabilityWindowDto>>(false, Resource.Notification.ConsultationAvailabilityInvalid, null);
 
-                var companionExists = await _context.Companions.AsNoTracking().AnyAsync(s => s.Id == companionId && !s.Deleted);
+                var companionExists = await ConsultationOwners.ExistsAsync(_context, owner);
                 if (!companionExists)
                     return new BaseResultDto<List<ConsultationAvailabilityWindowDto>>(false, Resource.Notification.NothingFound, null);
 
@@ -69,25 +70,29 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
 
                 // جایگزینی کامل: ردیف‌های قبلی حذف نرم می‌شوند (رزروهای انجام‌شده به ردیف وابسته نیستند)
                 await _context.ConsultationAvailabilities
-                    .Where(s => s.CompanionId == companionId && !s.Deleted)
+                    .ForOwner(owner).Where(s => !s.Deleted)
                     .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.Deleted, true).SetProperty(s => s.Active, false));
 
                 var now = DateTime.Now;
-                await _context.ConsultationAvailabilities.AddRangeAsync(parsed.Select(p => new ConsultationAvailability
+                await _context.ConsultationAvailabilities.AddRangeAsync(parsed.Select(p =>
                 {
-                    CompanionId = companionId,
-                    WeekDayId = p.WeekDayId,
-                    StartMinute = p.Start,
-                    EndMinute = p.End,
-                    Capacity = p.Capacity,
-                    Active = true,
-                    CreateDate = now
+                    var window = new ConsultationAvailability
+                    {
+                        WeekDayId = p.WeekDayId,
+                        StartMinute = p.Start,
+                        EndMinute = p.End,
+                        Capacity = p.Capacity,
+                        Active = true,
+                        CreateDate = now
+                    };
+                    window.Assign(owner);
+                    return window;
                 }));
                 await _context.SaveChangesAsync();
                 if (transaction != null)
                     await transaction.CommitAsync();
 
-                return new BaseResultDto<List<ConsultationAvailabilityWindowDto>>(true, await LoadWindowsAsync(companionId));
+                return new BaseResultDto<List<ConsultationAvailabilityWindowDto>>(true, await LoadWindowsAsync(owner));
             }
             catch (Exception ex)
             {
@@ -105,8 +110,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
 
                 var now = DateTime.Now;
                 var day = date.Date;
-                var windows = await WindowsOfDayAsync(package.CompanionId, day);
-                var existing = await ExistingAsync(package.CompanionId, day, day.AddDays(1).AddMinutes(package.DurationMinutes), now);
+                var packageOwner = ConsultationOwner.Of(package).Value;
+                var windows = await WindowsOfDayAsync(packageOwner, day);
+                var existing = await ExistingAsync(packageOwner, day, day.AddDays(1).AddMinutes(package.DurationMinutes), now);
                 var slots = ConsultationBookingRules.BuildSlots(day, package.DurationMinutes, now, windows, existing)
                     .Select(s => new ConsultationSlotVDto { Start = s.Start, End = s.End, Available = s.Available })
                     .ToList();
@@ -137,11 +143,12 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
                 var now = DateTime.Now;
                 var first = now.Date;
                 var last = first.AddDays(ConsultationRules.BookingMaxDaysAhead);
+                var packageOwner = ConsultationOwner.Of(package).Value;
                 var allWindows = await _context.ConsultationAvailabilities.AsNoTracking()
-                    .Where(s => s.CompanionId == package.CompanionId && !s.Deleted && s.Active)
+                    .ForOwner(packageOwner).Where(s => !s.Deleted && s.Active)
                     .Select(s => new { s.WeekDayId, s.StartMinute, s.EndMinute, s.Capacity })
                     .ToListAsync();
-                var existing = await ExistingAsync(package.CompanionId, first, last.AddDays(1).AddMinutes(package.DurationMinutes), now);
+                var existing = await ExistingAsync(packageOwner, first, last.AddDays(1).AddMinutes(package.DurationMinutes), now);
 
                 var days = new List<ConsultationBookingDayVDto>();
                 for (var d = first; d <= last; d = d.AddDays(1))
@@ -167,11 +174,11 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
             }
         }
 
-        public async Task<ConsultationBookingRules.SlotProblem> CheckSlotAsync(long companionId, int durationMinutes, DateTime start, DateTime now)
+        public async Task<ConsultationBookingRules.SlotProblem> CheckSlotAsync(ConsultationOwner owner, int durationMinutes, DateTime start, DateTime now)
         {
-            var windows = await WindowsOfDayAsync(companionId, start.Date);
+            var windows = await WindowsOfDayAsync(owner, start.Date);
             var end = start.AddMinutes(durationMinutes);
-            var existing = await ExistingAsync(companionId, start, end, now);
+            var existing = await ExistingAsync(owner, start, end, now);
             var overlaps = ConsultationBookingRules.CountOverlaps(existing, start, end);
             return ConsultationBookingRules.CheckSlot(start, durationMinutes, now, windows, overlaps);
         }
@@ -196,29 +203,29 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
                 .FirstOrDefaultAsync(s => s.Id == packageId && !s.Deleted && s.Active && s.Bookable && s.Price > 0);
             if (package == null)
                 return null;
-            var open = await _context.Companions.AsNoTracking()
-                .AnyAsync(s => s.Id == package.CompanionId && !s.Deleted && s.Active && s.Approved);
+            var owner = ConsultationOwner.Of(package);
+            var open = owner.HasValue && await ConsultationOwners.IsOpenAsync(_context, owner.Value);
             return open ? package : null;
         }
 
-        private async Task<List<ConsultationBookingRules.Window>> WindowsOfDayAsync(long companionId, DateTime day)
+        private async Task<List<ConsultationBookingRules.Window>> WindowsOfDayAsync(ConsultationOwner owner, DateTime day)
         {
             var weekDay = ConsultationBookingRules.WeekDayId(day);
             return await _context.ConsultationAvailabilities.AsNoTracking()
-                .Where(s => s.CompanionId == companionId && s.WeekDayId == weekDay && !s.Deleted && s.Active)
+                .ForOwner(owner).Where(s => s.WeekDayId == weekDay && !s.Deleted && s.Active)
                 .Select(s => new ConsultationBookingRules.Window(s.StartMinute, s.EndMinute, s.Capacity))
                 .ToListAsync();
         }
 
         // رزروهای ساعت‌دارِ ظرفیت‌گیر: پرداخت‌شده، در جریان، و در انتظار پرداختِ تازه (تا BookingPendingHold)
-        private async Task<List<(DateTime Start, DateTime End)>> ExistingAsync(long companionId, DateTime from, DateTime to, DateTime now)
+        private async Task<List<(DateTime Start, DateTime End)>> ExistingAsync(ConsultationOwner owner, DateTime from, DateTime to, DateTime now)
         {
             var holdSince = now - ConsultationRules.BookingPendingHold;
             var pending = (int)ConsultationPurchaseStatusEnum.PendingPayment;
             var paid = (int)ConsultationPurchaseStatusEnum.Paid;
             var active = (int)ConsultationPurchaseStatusEnum.Active;
             var rows = await _context.ConsultationPurchases.AsNoTracking()
-                .Where(s => s.CompanionId == companionId && s.ScheduledStart != null && s.ScheduledEnd != null &&
+                .ForOwner(owner).Where(s => s.ScheduledStart != null && s.ScheduledEnd != null &&
                             s.ScheduledStart < to && s.ScheduledEnd > from &&
                             (s.Status == paid || s.Status == active || (s.Status == pending && s.CreateDate >= holdSince)))
                 .Select(s => new { Start = s.ScheduledStart.Value, End = s.ScheduledEnd.Value })
@@ -226,10 +233,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
             return rows.Select(r => (r.Start, r.End)).ToList();
         }
 
-        private async Task<List<ConsultationAvailabilityWindowDto>> LoadWindowsAsync(long companionId)
+        private async Task<List<ConsultationAvailabilityWindowDto>> LoadWindowsAsync(ConsultationOwner owner)
         {
             var rows = await _context.ConsultationAvailabilities.AsNoTracking()
-                .Where(s => s.CompanionId == companionId && !s.Deleted && s.Active)
+                .ForOwner(owner).Where(s => !s.Deleted && s.Active)
                 .OrderBy(s => s.WeekDayId).ThenBy(s => s.StartMinute)
                 .ToListAsync();
             return rows.Select(s => new ConsultationAvailabilityWindowDto

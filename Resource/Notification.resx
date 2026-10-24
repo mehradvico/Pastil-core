@@ -2692,4 +2692,22 @@
   <data name="PansionCommentReplyInvalid" xml:space="preserve">
     <value>The reply is empty or too long (max 1000 characters).</value>
   </data>
+  <data name="VenueConsultationVenueNotApproved" xml:space="preserve">
+    <value>The center must be active and approved before it can offer online consultation.</value>
+  </data>
+  <data name="SchoolReserveRefundFailed" xml:space="preserve">
+    <value>Refunding the enrollment failed; the enrollment was not cancelled.</value>
+  </data>
+  <data name="AssistanceProviderRoleRequired" xml:space="preserve">
+    <value>Select the provider role that owns this service.</value>
+  </data>
+  <data name="AssistanceProviderRoleInvalid" xml:space="preserve">
+    <value>The selected provider role is invalid.</value>
+  </data>
+  <data name="AssistanceProviderRoleInUse" xml:space="preserve">
+    <value>This service is already used by centers of another role, so its role cannot be changed.</value>
+  </data>
+  <data name="AssistanceNotForRole" xml:space="preserve">
+    <value>This service belongs to another provider role and cannot be used here.</value>
+  </data>
 </root>

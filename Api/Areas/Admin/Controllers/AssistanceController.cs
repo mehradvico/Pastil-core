@@ -59,7 +59,7 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto<AssistanceDto>), 200)]
         public async Task<IActionResult> Post(AssistanceDto dto)
         {
-            var result = await _assistanceService.InsertAsyncDto(dto);
+            var result = await _assistanceService.InsertValidatedAsync(dto);
             return Ok(result);
         }
 
@@ -70,9 +70,9 @@ namespace Api.Areas.Admin.Controllers
         /// </returns>
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(AssistanceDto dto)
+        public async Task<IActionResult> Put(AssistanceDto dto)
         {
-            var agency = _assistanceService.UpdateDto(dto);
+            var agency = await _assistanceService.UpdateValidatedAsync(dto);
             return Ok(agency);
         }
 

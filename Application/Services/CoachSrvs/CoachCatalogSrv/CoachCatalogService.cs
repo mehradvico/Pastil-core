@@ -4,6 +4,8 @@ using Application.Services.CoachSrvs.CoachCatalogSrv.Dto;
 using Application.Services.CoachSrvs.CoachCatalogSrv.Iface;
 using AutoMapper;
 using Entities.Entities.CoachField;
+using Entities.Entities.ProviderField;
+using Application.Services.CompanionSrvs.AssistanceSrv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -67,13 +69,13 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 if (ownerUserId.HasValue && ownerId.Value != ownerUserId.Value)
                     return new BaseResultDto<CoachServiceVDto>(false, Resource.Notification.AccessDenied, null);
 
-                var assistance = await _context.Assistances.AsNoTracking().Where(a => a.Id == dto.AssistanceId && a.Active && !a.Deleted)
-                    .Select(a => new { a.IsGrooming }).FirstOrDefaultAsync();
+                var assistance = await _context.Assistances.AsNoTracking().Include(a => a.ProviderRole)
+                    .Where(a => a.Id == dto.AssistanceId && a.Active && !a.Deleted).FirstOrDefaultAsync();
                 if (assistance == null)
                     return new BaseResultDto<CoachServiceVDto>(false, Resource.Notification.CoachServiceAssistanceInvalid, null);
-                // خدمات گرومینگ فقط برای آرایشگاه است.
-                if (assistance.IsGrooming)
-                    return new BaseResultDto<CoachServiceVDto>(false, Resource.Notification.CoachServiceIsGrooming, null);
+                // خدمت فقط برای مراکزِ نقشِ مالکش قابل ثبت است (کلینیک خدمت مربی/آرایشگاه را نمی‌گیرد و برعکس).
+                if (!AssistanceRoleRules.IsAllowedForRole(assistance, ProviderRoleLabels.Coach))
+                    return new BaseResultDto<CoachServiceVDto>(false, Resource.Notification.AssistanceNotForRole, null);
                 if (await _context.CoachServices.AnyAsync(s => s.CoachId == dto.CoachId && s.AssistanceId == dto.AssistanceId && !s.Deleted))
                     return new BaseResultDto<CoachServiceVDto>(false, Resource.Notification.CoachServiceAlreadyExists, null);
 

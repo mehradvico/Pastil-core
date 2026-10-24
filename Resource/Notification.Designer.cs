@@ -6355,6 +6355,30 @@ namespace Resource {
             }
         }
 
+        public static string AssistanceProviderRoleRequired {
+            get {
+                return ResourceManager.GetString("AssistanceProviderRoleRequired", resourceCulture);
+            }
+        }
+
+        public static string AssistanceProviderRoleInvalid {
+            get {
+                return ResourceManager.GetString("AssistanceProviderRoleInvalid", resourceCulture);
+            }
+        }
+
+        public static string AssistanceProviderRoleInUse {
+            get {
+                return ResourceManager.GetString("AssistanceProviderRoleInUse", resourceCulture);
+            }
+        }
+
+        public static string AssistanceNotForRole {
+            get {
+                return ResourceManager.GetString("AssistanceNotForRole", resourceCulture);
+            }
+        }
+
         public static string ClinicServiceIsGrooming {
             get {
                 return ResourceManager.GetString("ClinicServiceIsGrooming", resourceCulture);
@@ -6964,6 +6988,18 @@ namespace Resource {
         public static string PansionCommentReplyInvalid {
             get {
                 return ResourceManager.GetString("PansionCommentReplyInvalid", resourceCulture);
+            }
+        }
+
+        public static string VenueConsultationVenueNotApproved {
+            get {
+                return ResourceManager.GetString("VenueConsultationVenueNotApproved", resourceCulture);
+            }
+        }
+
+        public static string SchoolReserveRefundFailed {
+            get {
+                return ResourceManager.GetString("SchoolReserveRefundFailed", resourceCulture);
             }
         }
 

@@ -10,7 +10,7 @@ namespace Application.Services.Accounting.UserTokenSrv
     /// localStorage نگه می‌دارد و هنگام ورود و هر refresh می‌فرستد؛ سرور فقط هشِ آن را داخل ستون موجود
     /// UserToken.DeviceName ذخیره می‌کند (بدون تغییر schema): <c>panel:&lt;sha256&gt;</c>. نشستِ بدون deviceId
     /// (نسخه‌ی قدیمی پنل) فقط برچسب <c>panel:</c> می‌گیرد و گره نمی‌خورد. توکن‌های وب‌اپ/اپ موبایل
-    /// (DeviceName قدیمی «zand») اصلاً تحت تأثیر نیستند.
+    /// (DeviceName «vico»، قبلاً «zand») اصلاً تحت تأثیر نیستند.
     /// </summary>
     public static class PanelSessionDevice
     {

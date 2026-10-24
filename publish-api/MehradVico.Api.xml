@@ -1801,6 +1801,24 @@
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Complete(System.Int64)">
             <summary>تکمیل دستی مشاوره‌ی در جریان توسط ادمین</summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ConsultationVenueController">
+            <summary>
+            مشاوره‌ی آنلاین کلینیک/مربی مستقل (kind = clinic | coach)
+            </summary>
+            <remarks>
+            بسته‌ها مستقیماً روی ClinicId / CoachId کلید می‌خورند. درصد سهم سایت هر بسته با PUT Admin/FinanceConsultationPackage تنظیم می‌شود؛
+            خریدهای هر مرکز با GET Admin/ConsultationPurchase?ClinicId= یا ?CoachId=. دسترسی با RolePermission ناحیه‌ی Admin.
+            </remarks>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationVenueController.Get(System.String,System.String)">
+            <summary>فهرست کلینیک‌ها یا مربی‌ها با خلاصه‌ی بسته‌های مشاوره</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationVenueController.GetPackages(System.String,System.Int64)">
+            <summary>همه‌ی پکیج‌های مشاوره‌ی یک کلینیک/مربی با درصد سهم سایت</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationVenueController.DeletePackage(System.String,System.Int64,System.Int64)">
+            <summary>حذف پکیج یک کلینیک/مربی (حذف نرم؛ خریدهای قبلی دست‌نخورده می‌مانند)</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ContactUsController">
              <summary>
              ارتباط با ما
@@ -5739,6 +5757,11 @@
              حذف آیتم 
             </summary>  
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.UserAnalyticsController">
+            <summary>
+            آنالیز رفتار کاربر (ورود، روزهای فعال/بیکار، صفحات و کلیک‌ها) برای پنل
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.UserBankCardApproveController">
             <summary>
             تایید کارت بانکی کاربر
@@ -6141,7 +6164,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.Common.Controllers.FileController.#ctor(Application.Services.Filing.FileSrv.Iface.IFileService)">
+        <member name="M:Api.Areas.Common.Controllers.FileController.#ctor(Application.Services.Filing.FileSrv.Iface.IFileService,Application.Services.SchoolSrvs.SchoolCourseSrv.Iface.ISchoolCourseService,Application.Common.Interface.ICurrentUserHelper)">
             <summary>
             فایل
             </summary>
@@ -6210,6 +6233,45 @@
             محدوده در مپ
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicConsultationAvailabilityController">
+            <summary>
+            برنامه‌ی هفتگی رزرو «مشاوره آنلاین» کلینیک (پکیج‌های «قابل رزرو») با شناسه‌ی خودِ مرکز
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicConsultationAvailabilityController.Get(System.Int64)">
+            <summary>برنامه‌ی هفتگی این مرکز (WeekDayId ۱ شنبه … ۷ جمعه، ساعت «HH:mm»)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicConsultationAvailabilityController.Put(System.Int64,System.Collections.Generic.List{Application.Services.ConsultationSrvs.ConsultationBookingSrv.Dto.ConsultationAvailabilityWindowDto})">
+            <summary>جایگزینی کل برنامه‌ی هفتگی (لیست خالی = رزرو بسته). رزروهای قبلی دست نمی‌خورند.</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicConsultationOnlineController">
+            <summary>
+            «من آنلاینم» کلینیک برای مشاوره‌ی آنلاین فوری (اعتبار حداکثر ۳ ساعت)؛ با شناسه‌ی مرکز
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicConsultationOnlineController.Get(System.Int64)">
+            <summary>وضعیت آنلاین من در این مرکز</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicConsultationOnlineController.Put(Api.Areas.Companion.Controllers.ClinicConsultationOnlineSetDto)">
+            <summary>روشن/خاموش‌کردن وضعیت آنلاین من</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ClinicConsultationPackageController">
+            <summary>
+            پکیج‌های «مشاوره آنلاین» (چت / تماس) کلینیک با شناسه‌ی خودِ مرکز؛ همان سامانه‌ی مشاوره‌ی Companion با لنگر خودکار (جزئیات: backend/Docs/COACH_FA.md)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicConsultationPackageController.Get(System.Int64)">
+            <summary>پکیج‌های مشاوره‌ی این مرکز (فعال و غیرفعال)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicConsultationPackageController.Post(System.Int64,Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageItemDto)">
+            <summary>ساخت پکیج جدید (نام، کانال، مدت ثابت، قیمت، ...)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicConsultationPackageController.Put(System.Int64,Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageItemDto)">
+            <summary>ویرایش پکیج (dto.id الزامی؛ فعال/غیرفعال هم همین‌جا)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicConsultationPackageController.Delete(System.Int64,System.Int64)">
+            <summary>حذف نرم پکیج</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.ClinicController">
             <summary>
@@ -6292,17 +6354,44 @@
             پرسنل کلینیک‌های من
             </summary>
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachConsultationAvailabilityController">
+            <summary>
+            برنامه‌ی هفتگی رزرو «مشاوره آنلاین» مربی (پکیج‌های «قابل رزرو») با شناسه‌ی خودِ مرکز
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachConsultationAvailabilityController.Get(System.Int64)">
+            <summary>برنامه‌ی هفتگی این مرکز (WeekDayId ۱ شنبه … ۷ جمعه، ساعت «HH:mm»)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachConsultationAvailabilityController.Put(System.Int64,System.Collections.Generic.List{Application.Services.ConsultationSrvs.ConsultationBookingSrv.Dto.ConsultationAvailabilityWindowDto})">
+            <summary>جایگزینی کل برنامه‌ی هفتگی (لیست خالی = رزرو بسته). رزروهای قبلی دست نمی‌خورند.</summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.CoachConsultationOnlineController">
             <summary>
-            «من آنلاینم» مربی برای مشاوره‌ی آنلاین فوری (همان سامانه‌ی ConsultationOnline کلینیک؛ اعتبار حداکثر ۳ ساعت)
+            «من آنلاینم» مربی برای مشاوره‌ی آنلاین فوری (اعتبار حداکثر ۳ ساعت)؛ با شناسه‌ی مرکز
             </summary>
-            <remarks>با شناسه‌ی مربی کار می‌کند و به Companion قدیمیِ مربی (LegacyCompanionId) نگاشت می‌شود؛ مربی بدون آن خطای CoachConsultationUnavailable می‌گیرد.</remarks>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CoachConsultationOnlineController.Get(System.Int64)">
-            <summary>وضعیت آنلاین من در این مربی</summary>
+            <summary>وضعیت آنلاین من در این مرکز</summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.CoachConsultationOnlineController.Put(Api.Areas.Companion.Controllers.CoachConsultationOnlineSetDto)">
             <summary>روشن/خاموش‌کردن وضعیت آنلاین من</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.CoachConsultationPackageController">
+            <summary>
+            پکیج‌های «مشاوره آنلاین» (چت / تماس) مربی با شناسه‌ی خودِ مرکز؛ همان سامانه‌ی مشاوره‌ی Companion با لنگر خودکار (جزئیات: backend/Docs/COACH_FA.md)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachConsultationPackageController.Get(System.Int64)">
+            <summary>پکیج‌های مشاوره‌ی این مرکز (فعال و غیرفعال)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachConsultationPackageController.Post(System.Int64,Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageItemDto)">
+            <summary>ساخت پکیج جدید (نام، کانال، مدت ثابت، قیمت، ...)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachConsultationPackageController.Put(System.Int64,Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageItemDto)">
+            <summary>ویرایش پکیج (dto.id الزامی؛ فعال/غیرفعال هم همین‌جا)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachConsultationPackageController.Delete(System.Int64,System.Int64)">
+            <summary>حذف نرم پکیج</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CoachController">
             <summary>
@@ -8395,6 +8484,13 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CompanionPanelAccessController">
+            <summary>
+            آیا کاربر جاری اجازه‌ی ورود به پنل/اپ نماینده را دارد؟ (ارائه‌دهنده، مالک مرکز یا عضو فعال تیم)
+            </summary>
+            <remarks>همیشه HTTP 200؛ اپ نماینده بعد از ورود این را می‌پرسد و اگر canEnter=false بود کاربر را به اپ مشتری برمی‌گرداند.
+            بقیه‌ی endpointهای ناحیه‌ی Companion برای چنین کاربری 403 می‌دهند.</remarks>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.CompanionReportController">
             <summary>
             مدیریت گزارشات تخلف نمایندگان
@@ -8620,8 +8716,8 @@
             وضعیت آنلاین‌بودن کلینیک برای مشاوره آنلاین (عمومی)
             </summary>
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.ConsultationOnlineController.Get(System.Int64)">
-            <summary>آیا الان کسی از تیم این کلینیک برای مشاوره آنلاین است</summary>
+        <member name="M:Api.Areas.EndUser.Controllers.ConsultationOnlineController.Get(System.Nullable{System.Int64},System.Nullable{System.Int64},System.Nullable{System.Int64})">
+            <summary>آیا الان کسی از تیم این مرکز برای مشاوره آنلاین است (دقیقاً یکی از companionId / clinicId / coachId)</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.ConsultationPackageController">
             <summary>
@@ -10146,6 +10242,11 @@
             تغییر وضعیت کاربر
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.UserActivityController">
+            <summary>
+            ثبت رویدادهای رفتاری کاربر (batch) از وب‌اپ/اپ موبایل
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.UserBankCardController">
             <summary>
             مدیریت کارت های بانکی کاربر ها
@@ -11327,6 +11428,11 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Controllers.ClinicConsultationPackagesController">
+            <summary>
+            پکیج‌های قابل خرید «مشاوره آنلاین» (چت / تماس) یک کلینیک با شناسه‌ی مرکز؛ خرید با همان EndUser/ConsultationPurchase (packageId)
+            </summary>
+        </member>
         <member name="T:Api.Controllers.ClinicController">
             <summary>
             کلینیک‌ها (عمومی): فقط کلینیک‌های تأییدشده و فعال
@@ -11389,6 +11495,11 @@
         <member name="M:Api.Controllers.ClubRewardController.Get(Application.Services.Accounting.ClubRewardSrv.Dto.ClubRewardInputDto)">
             <summary>
             جستجو
+            </summary>
+        </member>
+        <member name="T:Api.Controllers.CoachConsultationPackagesController">
+            <summary>
+            پکیج‌های قابل خرید «مشاوره آنلاین» (چت / تماس) یک مربی با شناسه‌ی مرکز؛ خرید با همان EndUser/ConsultationPurchase (packageId)
             </summary>
         </member>
         <member name="T:Api.Controllers.CoachController">
@@ -12530,6 +12641,13 @@
         <member name="T:Api.Controllers.WeekDayController">
             <summary>
             فهرست ثابت روزهای هفته — برای کاربر نهایی (مثلاً انتخاب برنامه‌ی هفتگی سرویس پت‌رسان)
+            </summary>
+        </member>
+        <member name="T:Api.Filters.CompanionAreaAccessFilter">
+            <summary>
+            ورود به «پنل/اپ نماینده»: همه‌ی endpointهای ناحیه‌ی Companion فقط برای ارائه‌دهنده، مالک یک مرکز یا عضو فعال تیم یک مرکز باز است.
+            کاربر عادی (مشتری) که هیچ‌کدام را ندارد 403 می‌گیرد؛ ادمین مستثناست. endpointهای AllowAnonymous و درخواست‌های احراز‌نشده
+            به همان [Authorize] سپرده می‌شوند. وضعیت ورود را بدون خطا با GET api/EndUser/CompanionPanelAccess بپرسید.
             </summary>
         </member>
         <member name="T:Api.Filters.RequireCompanionScopeAttribute">

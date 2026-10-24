@@ -121,7 +121,35 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
 
         public static IQueryable<GroupRow> ConsultationGroups(IDataBaseContext context, IReadOnlyCollection<long> companionIds)
             => SettlementSources.ConsultationPurchases(context, companionIds)
-                .GroupBy(p => p.CompanionId)
+                .GroupBy(p => p.CompanionId.Value)
+                .Select(g => new GroupRow
+                {
+                    Key = g.Key,
+                    Count = g.Count(),
+                    UnsettledCount = g.Count(x => !x.Permitted),
+                    ProviderShare = g.Sum(x => x.CompanionShare),
+                    SiteShare = g.Sum(x => x.SiteShare),
+                    SettledShare = g.Sum(x => x.Permitted ? x.CompanionShare : 0d),
+                    UnsettledShare = g.Sum(x => x.Permitted ? 0d : x.CompanionShare),
+                });
+
+        public static IQueryable<GroupRow> ClinicConsultationGroups(IDataBaseContext context, IReadOnlyCollection<long> clinicIds)
+            => SettlementSources.ClinicConsultationPurchases(context, clinicIds)
+                .GroupBy(p => p.ClinicId.Value)
+                .Select(g => new GroupRow
+                {
+                    Key = g.Key,
+                    Count = g.Count(),
+                    UnsettledCount = g.Count(x => !x.Permitted),
+                    ProviderShare = g.Sum(x => x.CompanionShare),
+                    SiteShare = g.Sum(x => x.SiteShare),
+                    SettledShare = g.Sum(x => x.Permitted ? x.CompanionShare : 0d),
+                    UnsettledShare = g.Sum(x => x.Permitted ? 0d : x.CompanionShare),
+                });
+
+        public static IQueryable<GroupRow> CoachConsultationGroups(IDataBaseContext context, IReadOnlyCollection<long> coachIds)
+            => SettlementSources.CoachConsultationPurchases(context, coachIds)
+                .GroupBy(p => p.CoachId.Value)
                 .Select(g => new GroupRow
                 {
                     Key = g.Key,

@@ -102,7 +102,8 @@ namespace Application.Services.ProductSrvs.WalletSrv
                 foreach (var row in _context.CoachReserves.AsNoTracking().Where(s => coachReserveIds.Contains(s.Id)).Select(s => new { s.Id, s.ReserveCode }).ToList())
                     codes.CoachReserves[row.Id] = row.ReserveCode;
 
-            var schoolReserveIds = Ids(inputs.Select(i => i.SchoolReserveId));
+            var schoolReserveIds = Ids(inputs.Select(i => i.SchoolReserveId)
+                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.SchoolReserveRefundPrefix))));
             if (schoolReserveIds.Count > 0)
                 foreach (var row in _context.SchoolReserves.AsNoTracking().Where(s => schoolReserveIds.Contains(s.Id)).Select(s => new { s.Id, s.ReserveCode }).ToList())
                     codes.SchoolReserves[row.Id] = row.ReserveCode;

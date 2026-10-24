@@ -7,7 +7,10 @@ namespace Entities.Entities
     // (طراحی: backend/Docs/ONLINE_CONSULTATION_PACKAGES_FA.md). هر کلینیک زیر هر کانال هر تعداد پکیج می‌تواند داشته باشد.
     public class ConsultationPackage : Id_Field
     {
-        public long CompanionId { get; set; }
+        // مالک: دقیقاً یکی از سه ستون پر است (CHECK در دیتابیس). نمایندگی قدیمی = CompanionId؛ مراکز مستقل = ClinicId / CoachId
+        public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
         // مقدار OnlineSessionChannelEnum (۱ چت، ۲ تماس درون‌برنامه، ۳ تماس تصویری، ۴ تماس تلفنی)
         public int ChannelId { get; set; }
         // یکی از مدت‌های ثابت (ConsultationRules.AllowedDurations)
@@ -29,6 +32,8 @@ namespace Entities.Entities
         public DateTime? UpdateDate { get; set; }
 
         public Companion Companion { get; set; }
+        public ClinicField.Clinic Clinic { get; set; }
+        public CoachField.Coach Coach { get; set; }
         public Picture Picture { get; set; }
     }
 }

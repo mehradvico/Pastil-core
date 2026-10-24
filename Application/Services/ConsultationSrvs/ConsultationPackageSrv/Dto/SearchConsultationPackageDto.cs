@@ -5,7 +5,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto
 {
     public class SearchConsultationPackageDto : Name_FieldDto
     {
-        public long CompanionId { get; set; }
+        public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
+        // نام مرکز مالک (نمایندگی / کلینیک / مربی)
         public string CompanionName { get; set; }
         public int ChannelId { get; set; }
         public int DurationMinutes { get; set; }

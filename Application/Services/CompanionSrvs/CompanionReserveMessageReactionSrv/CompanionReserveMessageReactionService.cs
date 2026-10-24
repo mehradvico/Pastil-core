@@ -46,7 +46,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
                     return new BaseResultDto<CompanionReserveMessageReactionVDto>(false, Resource.Notification.NothingFound, null);
                 }
 
-                if (!isAdmin && !IsParticipant(item.CompanionReserveMessage.CompanionReserve, userId))
+                if (!isAdmin && !await IsParticipantAsync(item.CompanionReserveMessage.CompanionReserve, userId))
                 {
                     return new BaseResultDto<CompanionReserveMessageReactionVDto>(false, Resource.Notification.AccessDenied, null);
                 }
@@ -71,7 +71,9 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
                 model = model.Where(s =>
                     s.CompanionReserveMessage.CompanionReserve.BookerId == userId ||
                     s.CompanionReserveMessage.CompanionReserve.CompanionAssistance.Companion.OwnerId == userId ||
-                    (s.CompanionReserveMessage.CompanionReserve.CompanionAssistanceUserId.HasValue && s.CompanionReserveMessage.CompanionReserve.CompanionAssistanceUser.UserId == userId));
+                    (s.CompanionReserveMessage.CompanionReserve.CompanionAssistanceUserId.HasValue && s.CompanionReserveMessage.CompanionReserve.CompanionAssistanceUser.UserId == userId &&
+                     s.CompanionReserveMessage.CompanionReserve.CompanionAssistanceUser.Active && !s.CompanionReserveMessage.CompanionReserve.CompanionAssistanceUser.Deleted &&
+                     _context.CompanionUsers.Any(cu => cu.CompanionId == s.CompanionReserveMessage.CompanionReserve.CompanionAssistance.CompanionId && cu.UserId == userId && !cu.Deleted && cu.Active && cu.UserAccept == true)));
             }
 
             if (dto.CompanionReserveMessageId.HasValue)
@@ -139,7 +141,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
                     return new BaseResultDto<CompanionReserveMessageReactionDto>(false, Resource.Notification.NothingFound, dto);
                 }
 
-                if (!isAdmin && !IsParticipant(message.CompanionReserve, userId))
+                if (!isAdmin && !await IsParticipantAsync(message.CompanionReserve, userId))
                 {
                     return new BaseResultDto<CompanionReserveMessageReactionDto>(false, Resource.Notification.AccessDenied, dto);
                 }
@@ -217,11 +219,25 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
             return DeleteDto(dto.Id);
         }
 
-        private static bool IsParticipant(CompanionReserve reserve, long userId)
+        // کارمند تخصیص‌یافته فقط وقتی شرکت‌کننده است که تخصیصش فعال و عضویتش در نمایندگی هنوز فعال و تأییدشده باشد
+        // (عضویت/تخصیص غیرفعال‌شده نباید به گفتگوی رزرو دسترسی نگه دارد)
+        private async Task<bool> IsParticipantAsync(CompanionReserve reserve, long userId)
         {
-            return reserve.BookerId == userId ||
-                   reserve.CompanionAssistance.Companion.OwnerId == userId ||
-                   (reserve.CompanionAssistanceUserId.HasValue && reserve.CompanionAssistanceUser.UserId == userId);
+            if (reserve.BookerId == userId)
+                return true;
+
+            if (reserve.CompanionAssistance?.Companion?.OwnerId == userId)
+                return true;
+
+            if (reserve.CompanionAssistanceUserId.HasValue && reserve.CompanionAssistanceUser?.UserId == userId &&
+                reserve.CompanionAssistanceUser.Active && !reserve.CompanionAssistanceUser.Deleted)
+            {
+                var companionId = reserve.CompanionAssistance.CompanionId;
+                return await _context.CompanionUsers.AsNoTracking().AnyAsync(cu =>
+                    cu.CompanionId == companionId && cu.UserId == userId && !cu.Deleted && cu.Active && cu.UserAccept == true);
+            }
+
+            return false;
         }
 
         private IQueryable<CompanionReserveMessage> GetMessageQuery()

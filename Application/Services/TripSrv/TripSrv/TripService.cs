@@ -2579,7 +2579,7 @@ namespace Application.Services.TripSrv.TripSrv
 
             var reserve = await _context.SchoolReserves.AsNoTracking()
                 .Include(r => r.SchoolCourse).ThenInclude(c => c.SchoolCourseSessions)
-                .FirstOrDefaultAsync(r => r.Id == dto.SchoolReserveId && r.BookerId == userId && !r.IsCancel);
+                .FirstOrDefaultAsync(r => r.Id == dto.SchoolReserveId && r.BookerId == userId && r.IsReserved && !r.IsCancel);
             if (reserve == null)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
 

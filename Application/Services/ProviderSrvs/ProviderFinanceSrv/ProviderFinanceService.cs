@@ -532,7 +532,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             if (clinicIds.Count == 0)
                 return new List<ProviderPendingItemVDto>();
 
-            return await SettlementSources.ClinicReserves(_context, clinicIds)
+            var items = await SettlementSources.ClinicReserves(_context, clinicIds)
                 .Where(r => !r.Permitted)
                 .OrderBy(r => r.Id)
                 .Select(r => new ProviderPendingItemVDto
@@ -549,6 +549,24 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                     StatusLabel = "Complete",
                 })
                 .ToListAsync();
+            items.AddRange(await SettlementSources.ClinicConsultationPurchases(_context, clinicIds)
+                .Where(p => !p.Permitted)
+                .OrderBy(p => p.Id)
+                .Select(p => new ProviderPendingItemVDto
+                {
+                    VenueId = p.ClinicId.Value,
+                    VenueName = p.Clinic.Name,
+                    Type = "Consultation",
+                    Code = p.PurchaseCode,
+                    BookerFullName = (p.User.FirstName + " " + p.User.LastName).Trim(),
+                    PaymentPrice = p.PaymentPrice,
+                    CommissionPercent = p.CommissionPercent,
+                    SiteShare = p.SiteShare,
+                    ProviderShare = p.CompanionShare,
+                    StatusLabel = "Complete",
+                })
+                .ToListAsync());
+            return items;
         }
         private async Task<List<ProviderPendingItemVDto>> PendingCoachItemsAsync(long providerId)
         {
@@ -559,7 +577,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             if (coachIds.Count == 0)
                 return new List<ProviderPendingItemVDto>();
 
-            return await SettlementSources.CoachReserves(_context, coachIds)
+            var items = await SettlementSources.CoachReserves(_context, coachIds)
                 .Where(r => !r.Permitted)
                 .OrderBy(r => r.Id)
                 .Select(r => new ProviderPendingItemVDto
@@ -576,6 +594,24 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                     StatusLabel = "Complete",
                 })
                 .ToListAsync();
+            items.AddRange(await SettlementSources.CoachConsultationPurchases(_context, coachIds)
+                .Where(p => !p.Permitted)
+                .OrderBy(p => p.Id)
+                .Select(p => new ProviderPendingItemVDto
+                {
+                    VenueId = p.CoachId.Value,
+                    VenueName = p.Coach.Name,
+                    Type = "Consultation",
+                    Code = p.PurchaseCode,
+                    BookerFullName = (p.User.FirstName + " " + p.User.LastName).Trim(),
+                    PaymentPrice = p.PaymentPrice,
+                    CommissionPercent = p.CommissionPercent,
+                    SiteShare = p.SiteShare,
+                    ProviderShare = p.CompanionShare,
+                    StatusLabel = "Complete",
+                })
+                .ToListAsync());
+            return items;
         }
 
         private async Task<List<ProviderPendingItemVDto>> PendingStoreItemsAsync(long providerId)
@@ -674,17 +710,18 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             var result = new Dictionary<long, Totals>();
             if (clinicIds.Count == 0)
                 return result;
-            foreach (var row in await ProviderFinanceQueries.ClinicReserveGroups(_context, clinicIds).ToListAsync())
+            var rows = (await ProviderFinanceQueries.ClinicReserveGroups(_context, clinicIds).ToListAsync())
+                .Concat(await ProviderFinanceQueries.ClinicConsultationGroups(_context, clinicIds).ToListAsync());
+            foreach (var row in rows)
             {
-                result[row.Key] = new Totals
-                {
-                    Count = row.Count,
-                    UnsettledCount = row.UnsettledCount,
-                    ProviderShare = row.ProviderShare,
-                    SiteShare = row.SiteShare,
-                    SettledShare = row.SettledShare,
-                    UnsettledShare = row.UnsettledShare,
-                };
+                if (!result.TryGetValue(row.Key, out var t))
+                    result[row.Key] = t = new Totals();
+                t.Count += row.Count;
+                t.UnsettledCount += row.UnsettledCount;
+                t.ProviderShare += row.ProviderShare;
+                t.SiteShare += row.SiteShare;
+                t.SettledShare += row.SettledShare;
+                t.UnsettledShare += row.UnsettledShare;
             }
             return result;
         }
@@ -693,17 +730,18 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             var result = new Dictionary<long, Totals>();
             if (coachIds.Count == 0)
                 return result;
-            foreach (var row in await ProviderFinanceQueries.CoachReserveGroups(_context, coachIds).ToListAsync())
+            var rows = (await ProviderFinanceQueries.CoachReserveGroups(_context, coachIds).ToListAsync())
+                .Concat(await ProviderFinanceQueries.CoachConsultationGroups(_context, coachIds).ToListAsync());
+            foreach (var row in rows)
             {
-                result[row.Key] = new Totals
-                {
-                    Count = row.Count,
-                    UnsettledCount = row.UnsettledCount,
-                    ProviderShare = row.ProviderShare,
-                    SiteShare = row.SiteShare,
-                    SettledShare = row.SettledShare,
-                    UnsettledShare = row.UnsettledShare,
-                };
+                if (!result.TryGetValue(row.Key, out var t))
+                    result[row.Key] = t = new Totals();
+                t.Count += row.Count;
+                t.UnsettledCount += row.UnsettledCount;
+                t.ProviderShare += row.ProviderShare;
+                t.SiteShare += row.SiteShare;
+                t.SettledShare += row.SettledShare;
+                t.UnsettledShare += row.UnsettledShare;
             }
             return result;
         }

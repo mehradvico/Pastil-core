@@ -8,6 +8,7 @@ using Application.Common.Service;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceSrv.Iface;
 using Application.Services.CompanionSrv.CompanionAssistanceTypeSrv.Iface;
+using Application.Services.CompanionSrvs.AssistanceSrv;
 using Application.Services.CompanionSrvs.CompanionAssistanceSrv.Dto;
 using Application.Services.Dto;
 using Application.Services.Setting.CodeSrv.Iface;
@@ -125,6 +126,13 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
             return new CompanionAssistanceSearchDto(baseSearchDto, model, mapper);
         }
 
+        // نماینده‌ی قدیمی فقط خدمت‌های بدون نقش/Clinic/Pansion/School را می‌گیرد؛ خدمت آرایشگاه و مربی پشته‌ی جدا دارد.
+        private async Task<bool> AssistanceAllowedForCompanionAsync(long assistanceId)
+        {
+            var assistance = await _context.Assistances.AsNoTracking().Include(a => a.ProviderRole).FirstOrDefaultAsync(a => a.Id == assistanceId);
+            return AssistanceRoleRules.IsAllowedForRole(assistance, AssistanceRoleRules.LegacyCompanion);
+        }
+
         public override async Task<BaseResultDto<CompanionAssistanceDto>> InsertAsyncDto(CompanionAssistanceDto dto)
         {
             try
@@ -134,8 +142,8 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                 {
                     return modelCheker;
                 }
-                if (await _context.Assistances.AnyAsync(a => a.Id == dto.AssistanceId && a.IsGrooming))
-                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.CompanionAssistanceGroomingNotAllowed, dto);
+                if (!await AssistanceAllowedForCompanionAsync(dto.AssistanceId))
+                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.AssistanceNotForRole, dto);
                 bool exists = await _context.CompanionAssistances.AnyAsync(a => a.CompanionId == dto.CompanionId && a.AssistanceId == dto.AssistanceId && a.Deleted != true);
 
                 if (exists)
@@ -174,8 +182,8 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceSrv
                     return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.NothingFound, dto);
                 if (companionId.HasValue && item.CompanionId != companionId.Value)
                     return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.AccessDenied, dto);
-                if (item.AssistanceId != dto.AssistanceId && await _context.Assistances.AnyAsync(a => a.Id == dto.AssistanceId && a.IsGrooming))
-                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.CompanionAssistanceGroomingNotAllowed, dto);
+                if (item.AssistanceId != dto.AssistanceId && !await AssistanceAllowedForCompanionAsync(dto.AssistanceId))
+                    return new BaseResultDto<CompanionAssistanceDto>(false, Resource.Notification.AssistanceNotForRole, dto);
                 item.Active = dto.Active;
                 item.AssistanceId = dto.AssistanceId;
                 item.IsSinglePackage = dto.IsSinglePackage;

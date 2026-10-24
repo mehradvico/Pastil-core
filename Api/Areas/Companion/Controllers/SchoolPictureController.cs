@@ -1,3 +1,4 @@
+using Application.Services.SchoolSrvs.SchoolOwnershipSrv;
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.SchoolSrvs.SchoolPictureSrv.Dto;
@@ -22,8 +23,11 @@ namespace Api.Areas.Companion.Controllers
         private readonly ISchoolService _SchoolService;
         private readonly ICurrentUserHelper _currentUser;
 
-        public SchoolPictureController(ISchoolPictureService SchoolPictureService, ISchoolService SchoolService, ICurrentUserHelper currentUser)
+        private readonly ISchoolOwnershipService _ownership;
+
+        public SchoolPictureController(ISchoolPictureService SchoolPictureService, ISchoolService SchoolService, ICurrentUserHelper currentUser, ISchoolOwnershipService ownership)
         {
+            this._ownership = ownership;
             this.SchoolPictureService = SchoolPictureService;
             this._SchoolService = SchoolService;
             this._currentUser = currentUser;
@@ -47,7 +51,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(SchoolPictureSearchDto), 200)]
         public IActionResult Get([FromQuery] SchoolPictureInputDto dto)
         {
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId;
+            dto.OwnerUserId = _currentUser.CurrentUser.UserId;
             var SchoolPicture = SchoolPictureService.Search(dto);
             return Ok(SchoolPicture);
         }
@@ -61,7 +65,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Post(SchoolPictureDto SchoolPictureDto)
         {
             var school = await _SchoolService.FindAsyncVDto(SchoolPictureDto.SchoolId);
-            if (!school.IsSuccess || school.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+            if (!school.IsSuccess || await _ownership.CompanionOfSchoolAsync(school.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, SchoolPictureDto));
 
             var result = await SchoolPictureService.InsertAsyncDto(SchoolPictureDto);
@@ -80,7 +84,7 @@ namespace Api.Areas.Companion.Controllers
             if (!existing.IsSuccess)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, SchoolPictureDto));
             var school = await _SchoolService.FindAsyncVDto(existing.Data.SchoolId);
-            if (!school.IsSuccess || school.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+            if (!school.IsSuccess || await _ownership.CompanionOfSchoolAsync(school.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, SchoolPictureDto));
 
             SchoolPictureDto.SchoolId = existing.Data.SchoolId;
@@ -101,7 +105,7 @@ namespace Api.Areas.Companion.Controllers
             if (!existing.IsSuccess)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, default!));
             var school = await _SchoolService.FindAsyncVDto(existing.Data.SchoolId);
-            if (!school.IsSuccess || school.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+            if (!school.IsSuccess || await _ownership.CompanionOfSchoolAsync(school.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, default!));
 
             var result = SchoolPictureService.DeleteDto(id);

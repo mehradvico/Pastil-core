@@ -111,6 +111,7 @@
             "MissingProduct",
             "ConsultationPurchase",
             "ConsultationPackage",
+            "ConsultationVenue",
             "ProductOrder",
             "PushMessage",
             "Rebate",
@@ -172,7 +173,7 @@
 
             AddGroup(result, "UserManager",
             [
-                S("User", "UserStats", "UserDebt"),
+                S("User", "UserStats", "UserDebt", "UserAnalytics"),
                 S("UserPet", "UserPetRecord", "UserPetPicture"),
                 S("UserMemory"),
             ]);
@@ -285,7 +286,7 @@
                     "CompanionReserveUnified", "CompanionReserveAssign", "CompanionReserveAssignee",
                     "CompanionReserveChangeState", "CompanionReserveReschedule", "CompanionReserveCancel",
                     "CompanionReserveExcel", "CompanionReserveComment",
-                    "ConsultationPurchase", "ConsultationPackage"),
+                    "ConsultationPurchase", "ConsultationPackage", "ConsultationVenue"),
                 S("CompanionReservePackage"),
                 S("ClinicReservePackage"),
                 S("PansionReserve",

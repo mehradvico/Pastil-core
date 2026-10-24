@@ -4,6 +4,8 @@ using Application.Services.GroomerSrvs.GroomerCatalogSrv.Dto;
 using Application.Services.GroomerSrvs.GroomerCatalogSrv.Iface;
 using AutoMapper;
 using Entities.Entities.GroomerField;
+using Entities.Entities.ProviderField;
+using Application.Services.CompanionSrvs.AssistanceSrv;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -67,11 +69,11 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
                 if (ownerUserId.HasValue && ownerId.Value != ownerUserId.Value)
                     return new BaseResultDto<GroomerServiceVDto>(false, Resource.Notification.AccessDenied, null);
 
-                var assistance = await _context.Assistances.AsNoTracking().Where(a => a.Id == dto.AssistanceId && a.Active && !a.Deleted)
-                    .Select(a => new { a.IsGrooming }).FirstOrDefaultAsync();
+                var assistance = await _context.Assistances.AsNoTracking().Include(a => a.ProviderRole)
+                    .Where(a => a.Id == dto.AssistanceId && a.Active && !a.Deleted).FirstOrDefaultAsync();
                 if (assistance == null)
                     return new BaseResultDto<GroomerServiceVDto>(false, Resource.Notification.GroomerServiceAssistanceInvalid, null);
-                if (!assistance.IsGrooming)
+                if (!AssistanceRoleRules.IsAllowedForRole(assistance, ProviderRoleLabels.Groomer))
                     return new BaseResultDto<GroomerServiceVDto>(false, Resource.Notification.GroomerServiceNotGrooming, null);
                 if (await _context.GroomerServices.AnyAsync(s => s.GroomerId == dto.GroomerId && s.AssistanceId == dto.AssistanceId && !s.Deleted))
                     return new BaseResultDto<GroomerServiceVDto>(false, Resource.Notification.GroomerServiceAlreadyExists, null);

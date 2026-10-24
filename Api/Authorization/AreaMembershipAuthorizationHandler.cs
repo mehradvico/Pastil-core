@@ -78,7 +78,9 @@ public sealed class AreaMembershipAuthorizationHandler : AuthorizationHandler<Ar
             _audit.Observed("AreaNonMember", user?.UserId, detail: $"{requirement.Area}:{(enforce ? "denied" : "allowed_audit_mode")}");
         }
 
-        if (!enforce)
+        // ناحیه‌ی Companion با CompanionAreaAccessFilter (بررسی دیتابیسی: ارائه‌دهنده / مالک مرکز / عضو تیم) اعمال می‌شود؛ قاعده‌ی توکنیِ بالا
+        // (CompanionId/IsCompanionUser) مالکان کلینیک/مربی/آرایشگاه و ارائه‌دهنده‌های بدون Companion را اشتباهاً رد می‌کرد، پس برای Companion هرگز رد نمی‌کند.
+        if (!enforce || string.Equals(requirement.Area, "Companion", StringComparison.OrdinalIgnoreCase))
             context.Succeed(requirement);
 
         return Task.CompletedTask;

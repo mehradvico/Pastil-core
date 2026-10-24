@@ -32,7 +32,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
         {
             if (!capacity.HasValue)
                 return null;
-            var takenCount = await _context.SchoolReserves.CountAsync(r => r.SchoolCourseId == courseId && !r.IsCancel);
+            var takenCount = await SchoolCourseRules.SeatTakers(_context.SchoolReserves.Where(r => r.SchoolCourseId == courseId), DateTime.Now).CountAsync();
             return capacity.Value - takenCount;
         }
 
@@ -104,6 +104,10 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
 
             if (baseSearchDto.SchoolId.HasValue)
                 model = model.Where(c => c.SchoolId == baseSearchDto.SchoolId.Value);
+            if (baseSearchDto.CompanionId.HasValue)
+                model = model.Where(c => c.School.CompanionId == baseSearchDto.CompanionId.Value);
+            if (baseSearchDto.OwnerUserId.HasValue)
+                model = model.Where(c => c.School.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !c.School.Companion.Deleted);
             if (baseSearchDto.CourseTypeId.HasValue)
                 model = model.Where(c => c.CourseTypeId == baseSearchDto.CourseTypeId.Value);
             if (baseSearchDto.PetId.HasValue)
@@ -124,8 +128,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             var result = new SchoolCourseSearchDto(baseSearchDto, model, mapper);
 
             var courseIds = result.List.Select(c => c.Id).ToList();
-            var takenCounts = _context.SchoolReserves
-                .Where(r => courseIds.Contains(r.SchoolCourseId) && !r.IsCancel)
+            var takenCounts = SchoolCourseRules.SeatTakers(_context.SchoolReserves.Where(r => courseIds.Contains(r.SchoolCourseId)), DateTime.Now)
                 .GroupBy(r => r.SchoolCourseId)
                 .Select(g => new { g.Key, Count = g.Count() })
                 .ToDictionary(x => x.Key, x => x.Count);
@@ -193,6 +196,24 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             if (dto.SessionCount < definedCount)
                 return new BaseResultDto(false, Resource.Notification.SchoolCourseSessionCountBelowDefined);
             return base.UpdateDto(dto);
+        }
+
+        public async Task<bool> CanReadLessonFileAsync(long fileId, long userId, long? companionId, bool isAdmin)
+        {
+            // ویدیوی حذف‌شده هم محافظت‌شده می‌ماند (شناسه‌اش قبلاً در پاسخ عمومی دوره بوده)
+            var courses = await _context.SchoolCourseVideos.AsNoTracking()
+                .Where(v => v.FileId == fileId)
+                .Select(v => new { v.SchoolCourseId, v.SchoolCourse.School.CompanionId })
+                .ToListAsync();
+            if (courses.Count == 0)
+                return true;
+            if (isAdmin)
+                return true;
+            if (companionId.HasValue && courses.Any(c => c.CompanionId == companionId.Value))
+                return true;
+            var courseIds = courses.Select(c => c.SchoolCourseId).ToList();
+            return await _context.SchoolReserves.AsNoTracking().AnyAsync(r =>
+                courseIds.Contains(r.SchoolCourseId) && r.BookerId == userId && r.IsReserved && !r.IsCancel);
         }
 
         public async Task<BaseResultDto> UpdateActiveAsync(long id, bool active, long? companionId = null)

@@ -23,11 +23,12 @@
 - در Quote/رزرو: `StayDays` = **بیشینه‌ی** StayDays بسته‌های انتخابی، `SessionCount` = **جمع** جلسات؛ روی `CoachReserve` snapshot می‌شوند و در جزئیات رزرو برمی‌گردند.
 - وقتی بسته‌ها StayDays دارند (Mode=۳۸)، سقف ۷۲۰ دقیقه‌ای برای مجموع مدت اعمال نمی‌شود؛ برای Mode=۳۷ و ۳۹ همچنان هست.
 
-## «من آنلاینم» و مشاوره‌ی آنلاین فوری
-- مشاوره‌ی فوری (کلید «همین الان آنلاینم»، اعتبار ۳ ساعت، بسته‌های چت/تماس/تصویری با قیمت جدا، صف جلسه) مال سامانه‌ی `ConsultationOnline/Package/Purchase/Session` است که روی **Companion** ساخته شده، نه روی Coach. مربیِ منتقل‌شده با `Coach.LegacyCompanionId` به همان سامانه وصل می‌ماند.
-- endpoint مخصوص مربی: `GET/PUT /api/Companion/CoachConsultationOnline` (`?coachId=` و بدنه‌ی `{coachId, online}`)؛ مالک یا عضو فعال مربی مجاز است و به Companion قدیمی نگاشت می‌شود. مربی بدون Companion قدیمی خطای `CoachConsultationUnavailable` می‌گیرد.
-- `legacyCompanionId` در جزئیات عمومی مربی هم برمی‌گردد (کلید `GET /api/EndUser/ConsultationPackage?companionId=` و خرید مشاوره برای مشتری). بسته‌ها، خرید و جلسه همچنان با شناسه‌ی Companion‌اند.
-- محدودیت: مربیِ تازه‌ساخته (بدون Companion قدیمی) مشاوره‌ی فوری ندارد؛ برای آن‌ها یا باید Companion پشتیبان ساخته شود یا سامانه‌ی مشاوره روی Coach هم بنا شود.
+## مشاوره‌ی آنلاین فوری با شناسه‌ی مرکز («من آنلاینم»، بسته‌ی چت/تماس)
+- سامانه‌ی مشاوره (`ConsultationPackage/Purchase/Availability`، جلسه، کیف پول، CallHub) برای مربی و کلینیک **مستقیماً روی خودِ مرکز** کلید می‌خورد (`CoachId` / `ClinicId`؛ هر ردیف دقیقاً یک مالک دارد: `CompanionId` یا `ClinicId` یا `CoachId`) و دیگر Companion لنگری وجود ندارد. «آنلاینم» روی `CoachUsers/ClinicUsers` (تیم خود مرکز) ذخیره می‌شود. جزئیات و مسیر دیپلوی: `CONSULTATION_VENUE_OWNERS_FA.md`.
+- مشتری: `GET /api/Coach/{id}/ConsultationPackages` و `GET /api/Clinic/{id}/ConsultationPackages` (همان قالب بسته‌ی قدیمی: id، channelId، durationMinutes، price، name، description، picture، companionOnline، bookable). خرید با `POST /api/EndUser/ConsultationPurchase` و `packageId`؛ جلسه/چت/تماس مثل قبل.
+- مالک/عضو فعال: `GET/POST/PUT/DELETE /api/Companion/CoachConsultationPackage?coachId=` (و `ClinicConsultationPackage?clinicId=`)، `GET/PUT /api/Companion/CoachConsultationOnline` (و `ClinicConsultationOnline`) با بدنه‌ی `{coachId|clinicId, online}`، و برنامه‌ی رزرو `GET/PUT /api/Companion/CoachConsultationAvailability?coachId=` (و `ClinicConsultationAvailability?clinicId=`).
+- `ServiceOnline` در پاسخ عمومی فقط وقتی true است که یا بسته‌ی رزرو آنلاین (Mode=۳۷) رزروشدنی داشته باشد یا بسته‌ی مشاوره‌ی فوری فعال با قیمت مثبت.
+- تسویه‌ی مشاوره‌ی «تکمیل‌شده» در استخر **همان ارائه‌دهنده‌ی مربی/کلینیک** (نوع ۵ / ۴) انجام می‌شود (`SettlementConsultation`)، نه استخر نمایندگی قدیمی.
 
 ## فلو
 رزرو ← پرداخت (کد تخفیف/کیف پول/درگاه) ← منتظر تأیید مربی (۱۲ ساعت؛ رد یا بی‌پاسخی = لغو + برگشت کل مبلغ به کیف پول، job `CoachReserveExpireOverdue` هر ۵ دقیقه) ← تکمیل ← امتیاز باشگاه ← نظر ← تسویه با ارائه‌دهنده (استخر مستقل «مربی‌ها»).

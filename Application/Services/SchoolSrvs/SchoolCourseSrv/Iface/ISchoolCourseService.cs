@@ -21,5 +21,8 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Iface
         Task<BaseResultDto> DeleteVideoAsync(long id, long? companionId = null);
 
         Task<List<SearchSchoolCourseDto>> SearchMinAsync(SearchRequestDto request);
+
+        // فایل درس (ویدیوی دوره): فقط ادمین، نماینده‌ی صاحب مدرسه، یا ثبت‌نام‌شده‌ی پرداخت‌کرده؛ فایل غیردرسی همیشه true
+        Task<bool> CanReadLessonFileAsync(long fileId, long userId, long? companionId, bool isAdmin);
     }
 }

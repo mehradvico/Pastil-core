@@ -9,7 +9,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto
     {
         public long Id { get; set; }
         public string PurchaseCode { get; set; }
-        public long CompanionId { get; set; }
+        // مالک خرید: دقیقاً یکی پر است؛ CompanionName نام همان مرکز است
+        public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
         public string CompanionName { get; set; }
         public string PackageName { get; set; }
         public int ChannelId { get; set; }

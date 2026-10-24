@@ -87,6 +87,19 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                             SiteShare = l.ClinicReserve.SiteShare,
                             ProviderShare = l.ClinicReserve.ProviderShare,
                         }).ToListAsync());
+                    items.AddRange(await _context.SettlementConsultations.AsNoTracking()
+                        .Where(l => l.SettlementId == settlementId && l.ConsultationPurchase.ClinicId != null)
+                        .OrderBy(l => l.Id)
+                        .Select(l => new SettlementItemVDto
+                        {
+                            Type = "Consultation",
+                            Code = l.ConsultationPurchase.PurchaseCode,
+                            VenueName = l.ConsultationPurchase.Clinic.Name,
+                            BookerFullName = (l.ConsultationPurchase.User.FirstName + " " + l.ConsultationPurchase.User.LastName).Trim(),
+                            PaymentPrice = l.ConsultationPurchase.PaymentPrice,
+                            SiteShare = l.ConsultationPurchase.SiteShare,
+                            ProviderShare = l.ConsultationPurchase.CompanionShare,
+                        }).ToListAsync());
                     break;
 
                 case SettlementKindEnum.Coach:
@@ -102,6 +115,19 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                             PaymentPrice = l.CoachReserve.PaymentPrice,
                             SiteShare = l.CoachReserve.SiteShare,
                             ProviderShare = l.CoachReserve.ProviderShare,
+                        }).ToListAsync());
+                    items.AddRange(await _context.SettlementConsultations.AsNoTracking()
+                        .Where(l => l.SettlementId == settlementId && l.ConsultationPurchase.CoachId != null)
+                        .OrderBy(l => l.Id)
+                        .Select(l => new SettlementItemVDto
+                        {
+                            Type = "Consultation",
+                            Code = l.ConsultationPurchase.PurchaseCode,
+                            VenueName = l.ConsultationPurchase.Coach.Name,
+                            BookerFullName = (l.ConsultationPurchase.User.FirstName + " " + l.ConsultationPurchase.User.LastName).Trim(),
+                            PaymentPrice = l.ConsultationPurchase.PaymentPrice,
+                            SiteShare = l.ConsultationPurchase.SiteShare,
+                            ProviderShare = l.ConsultationPurchase.CompanionShare,
                         }).ToListAsync());
                     break;
 
@@ -460,11 +486,20 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && !r.IsCancel && r.Status == complete)
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.Permitted, true)));
 
+
+            var consultations = await SettlementSources.ClinicConsultationPurchases(_context, clinicIds)
+                .Where(p => !p.Permitted).Select(p => new { p.Id, p.CompanionShare }).ToListAsync();
+            var consultationCompleted = (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Completed;
+            await MarkAsync(consultations.Select(x => x.Id), ids => _context.ConsultationPurchases
+                .Where(p => ids.Contains(p.Id) && !p.Permitted && p.Status == consultationCompleted)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.Permitted, true)));
+            await _context.SettlementConsultations.AddRangeAsync(consultations.Select(x => new SettlementConsultation { SettlementId = settlementId, ConsultationPurchaseId = x.Id }));
+
             var links = reserves.Select(x => new SettlementClinic { SettlementId = settlementId, ClinicReserveId = x.Id }).ToList();
             await _context.SettlementClinics.AddRangeAsync(links);
             await _context.SaveChangesAsync();
 
-            return new PoolResult(reserves.Sum(x => x.ProviderShare), links.Count);
+            return new PoolResult(reserves.Sum(x => x.ProviderShare) + consultations.Sum(x => x.CompanionShare), links.Count + consultations.Count);
         }
         private async Task<PoolResult> SettleCoachPoolAsync(long settlementId, long providerId)
         {
@@ -483,11 +518,20 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && !r.IsCancel && r.Status == complete)
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.Permitted, true)));
 
+
+            var consultations = await SettlementSources.CoachConsultationPurchases(_context, coachIds)
+                .Where(p => !p.Permitted).Select(p => new { p.Id, p.CompanionShare }).ToListAsync();
+            var consultationCompleted = (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Completed;
+            await MarkAsync(consultations.Select(x => x.Id), ids => _context.ConsultationPurchases
+                .Where(p => ids.Contains(p.Id) && !p.Permitted && p.Status == consultationCompleted)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.Permitted, true)));
+            await _context.SettlementConsultations.AddRangeAsync(consultations.Select(x => new SettlementConsultation { SettlementId = settlementId, ConsultationPurchaseId = x.Id }));
+
             var links = reserves.Select(x => new SettlementCoach { SettlementId = settlementId, CoachReserveId = x.Id }).ToList();
             await _context.SettlementCoaches.AddRangeAsync(links);
             await _context.SaveChangesAsync();
 
-            return new PoolResult(reserves.Sum(x => x.ProviderShare), links.Count);
+            return new PoolResult(reserves.Sum(x => x.ProviderShare) + consultations.Sum(x => x.CompanionShare), links.Count + consultations.Count);
         }
 
         /// <summary>سفارش‌های تسویه‌نشده‌ی همه‌ی فروشگاه‌های ارائه‌دهنده.</summary>

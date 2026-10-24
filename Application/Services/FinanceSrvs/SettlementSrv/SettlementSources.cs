@@ -41,7 +41,23 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
         {
             var completed = (int)ConsultationPurchaseStatusEnum.Completed;
             return context.ConsultationPurchases
-                .Where(p => companionIds.Contains(p.CompanionId) && p.Status == completed);
+                .Where(p => p.CompanionId != null && companionIds.Contains(p.CompanionId.Value) && p.Status == completed);
+        }
+
+        /// <summary>مشاوره‌ی آنلاین کلینیک‌های مستقل: فقط «تکمیل‌شده» (مثل نمایندگی قدیمی).</summary>
+        public static IQueryable<ConsultationPurchase> ClinicConsultationPurchases(IDataBaseContext context, IReadOnlyCollection<long> clinicIds)
+        {
+            var completed = (int)ConsultationPurchaseStatusEnum.Completed;
+            return context.ConsultationPurchases
+                .Where(p => p.ClinicId != null && clinicIds.Contains(p.ClinicId.Value) && p.Status == completed);
+        }
+
+        /// <summary>مشاوره‌ی آنلاین مربی‌های مستقل: فقط «تکمیل‌شده».</summary>
+        public static IQueryable<ConsultationPurchase> CoachConsultationPurchases(IDataBaseContext context, IReadOnlyCollection<long> coachIds)
+        {
+            var completed = (int)ConsultationPurchaseStatusEnum.Completed;
+            return context.ConsultationPurchases
+                .Where(p => p.CoachId != null && coachIds.Contains(p.CoachId.Value) && p.Status == completed);
         }
 
         /// <summary>ثبت‌نام دوره‌ی مدرسه: رزروشده و لغونشده.</summary>

@@ -1,4 +1,5 @@
 using Application.Common.Dto.Result;
+using Application.Services.ConsultationSrvs.ConsultationOwnerSrv;
 using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto;
 using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -26,7 +27,12 @@ namespace Api.Areas.EndUser.Controllers
         [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(typeof(BaseResultDto<List<ConsultationPackagePublicVDto>>), 200)]
-        public async Task<IActionResult> Get([FromQuery] long companionId)
-            => Ok(await _service.GetPublicAsync(companionId));
+        public async Task<IActionResult> Get([FromQuery] long? companionId, [FromQuery] long? clinicId, [FromQuery] long? coachId)
+        {
+            var owner = ConsultationOwner.From(companionId, clinicId, coachId);
+            return owner.HasValue
+                ? Ok(await _service.GetPublicAsync(owner.Value))
+                : Ok(new BaseResultDto<List<ConsultationPackagePublicVDto>>(false, Resource.Notification.InvalidData, null));
+        }
     }
 }

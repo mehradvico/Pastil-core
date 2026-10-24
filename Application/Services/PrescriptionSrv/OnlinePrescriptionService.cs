@@ -31,7 +31,7 @@ namespace Application.Services.PrescriptionSrv
         }
 
         // هدف تشخیص‌داده‌شده: دقیقاً یکی از رزرو/خرید + مالکیت‌ها
-        private sealed record Resolved(long? ReserveId, long? PurchaseId, long CompanionId, long BookerId, long? AgentUserId, bool Writable, long? ClinicReserveId = null, long? ClinicId = null);
+        private sealed record Resolved(long? ReserveId, long? PurchaseId, long? CompanionId, long BookerId, long? AgentUserId, bool Writable, long? ClinicReserveId = null, long? ClinicId = null, long? CoachId = null);
 
         private async Task<Resolved> ResolveAsync(PrescriptionTargetDto target)
         {
@@ -65,13 +65,13 @@ namespace Application.Services.PrescriptionSrv
                 ? purchasesQuery.Where(s => s.Id == target.ConsultationPurchaseId.Value)
                 : purchasesQuery.Where(s => s.OnlineSessionId == target.OnlineSessionId.Value);
             var p = await purchaseFilter
-                .Select(s => new { s.Id, s.UserId, s.CompanionId, s.AgentUserId, s.Status })
+                .Select(s => new { s.Id, s.UserId, s.CompanionId, s.ClinicId, s.CoachId, s.AgentUserId, s.Status })
                 .FirstOrDefaultAsync();
             if (p == null)
                 return null;
             // نسخه‌ی مشاوره فقط بعد از شروع مشاوره توسط نماینده (در جریان یا پایان‌یافته) ثبت می‌شود
             var writable = p.Status == (int)ConsultationPurchaseStatusEnum.Active || p.Status == (int)ConsultationPurchaseStatusEnum.Completed;
-            return new Resolved(null, p.Id, p.CompanionId, p.UserId, p.AgentUserId, writable);
+            return new Resolved(null, p.Id, p.CompanionId, p.UserId, p.AgentUserId, writable, null, p.ClinicId, p.CoachId);
         }
 
         private async Task<bool> IsCompanionSideAsync(Resolved target, long userId)
@@ -84,6 +84,13 @@ namespace Application.Services.PrescriptionSrv
                     return true;
                 return await _context.ClinicUsers.AsNoTracking().AnyAsync(s =>
                     s.ClinicId == target.ClinicId && s.UserId == userId && !s.Deleted && s.Active && s.UserAccept == true);
+            }
+            if (target.CoachId.HasValue)
+            {
+                if (await _context.Coaches.AsNoTracking().AnyAsync(s => s.Id == target.CoachId && s.OwnerId == userId))
+                    return true;
+                return await _context.CoachUsers.AsNoTracking().AnyAsync(s =>
+                    s.CoachId == target.CoachId && s.UserId == userId && !s.Deleted && s.Active && s.UserAccept == true);
             }
             var isOwner = await _context.Companions.AsNoTracking().AnyAsync(s => s.Id == target.CompanionId && s.OwnerId == userId);
             if (isOwner)

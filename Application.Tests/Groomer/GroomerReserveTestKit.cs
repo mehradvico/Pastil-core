@@ -159,7 +159,8 @@ public static class GroomerReserveTestKit
     }
 
     /// <summary>زمان نوبتِ فردا ساعت مشخص (همیشه در آینده و بیرون از MinLead).</summary>
-    public static DateTime Tomorrow(int hour, int minute = 0) => DateTime.Today.AddDays(1).AddHours(hour).AddMinutes(minute);
+    /// <summary>فردا؛ شب‌ها (بعد از ساعت ۲۰) پس‌فردا، تا «لغو رایگان ۱۲ ساعته» و بقیه‌ی قواعد به ساعت اجرای تست وابسته نشوند.</summary>
+    public static DateTime Tomorrow(int hour, int minute = 0) => DateTime.Today.AddDays(DateTime.Now.Hour >= 20 ? 2 : 1).AddHours(hour).AddMinutes(minute);
 
     public static Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveInputDto Input(World world, DateTime doDate) => new()
     {

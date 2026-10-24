@@ -1760,7 +1760,8 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     s.Active &&
                     s.UserAccept == true);
 
-            if (!activeMembership)
+            // مالک نمایندگی (مثل خواندن رزرو) بدون ردیف عضویت هم مجاز است؛ نیروی تخصیص‌یافته باید عضویت فعال داشته باشد
+            if (!isCompanionOwner && !activeMembership)
             {
                 return new BaseResultDto<CompanionReserveOperatorDto>(
                     false,

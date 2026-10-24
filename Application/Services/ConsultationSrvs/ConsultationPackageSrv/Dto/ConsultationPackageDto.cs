@@ -29,7 +29,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto
     public class ConsultationPackagePublicVDto
     {
         public long Id { get; set; }
-        public long CompanionId { get; set; }
+        // مالک پکیج: دقیقاً یکی پر است (نمایندگی قدیمی / کلینیک / مربی)
+        public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
         public int ChannelId { get; set; }
         public int DurationMinutes { get; set; }
         public double Price { get; set; }

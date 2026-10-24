@@ -8,6 +8,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto
     public class ConsultationPurchaseAdminInputDto : BaseInputDto
     {
         public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
         public long? UserId { get; set; }
         public int? Status { get; set; }
         public int? ChannelId { get; set; }
@@ -19,7 +21,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto
     {
         public long Id { get; set; }
         public string PurchaseCode { get; set; }
-        public long CompanionId { get; set; }
+        // مالک خرید: دقیقاً یکی پر است؛ CompanionName نام همان مرکز است
+        public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
         public string CompanionName { get; set; }
         public long UserId { get; set; }
         public string UserFullName { get; set; }
@@ -108,6 +113,36 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto
         public string Description { get; set; }
         public long? PictureId { get; set; }
         public PictureVDto Picture { get; set; }
+        public int SortOrder { get; set; }
+    }
+
+    // کلینیک/مربی مستقل با خلاصه‌ی بسته‌های مشاوره‌اش (نمای ادمین). Kind = clinic | coach
+    public class ConsultationVenueAdminVDto
+    {
+        public string Kind { get; set; }
+        public long VenueId { get; set; }
+        public string VenueName { get; set; }
+        public int ActivePackages { get; set; }
+        public double MinPrice { get; set; }
+        public double MaxPrice { get; set; }
+        public int PurchasesCount { get; set; }
+    }
+
+    // پکیج مشاوره‌ی یک کلینیک/مربی مستقل با درصد سهم سایت (تنظیم درصد: PUT Admin/FinanceConsultationPackage)
+    public class ConsultationVenuePackageAdminVDto
+    {
+        public long Id { get; set; }
+        public string Kind { get; set; }
+        public long VenueId { get; set; }
+        public string VenueName { get; set; }
+        public int ChannelId { get; set; }
+        public int DurationMinutes { get; set; }
+        public double Price { get; set; }
+        public bool Active { get; set; }
+        public bool Bookable { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public decimal CommissionPercent { get; set; }
         public int SortOrder { get; set; }
     }
 

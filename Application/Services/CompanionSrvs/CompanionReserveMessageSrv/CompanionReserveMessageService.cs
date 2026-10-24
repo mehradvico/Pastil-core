@@ -56,7 +56,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
                     return new BaseResultDto<CompanionReserveMessageVDto>(false, Resource.Notification.NothingFound, null);
                 }
 
-                if (!isAdmin && !IsParticipant(item.CompanionReserve, userId))
+                if (!isAdmin && !await IsParticipantAsync(item.CompanionReserve, userId))
                 {
                     return new BaseResultDto<CompanionReserveMessageVDto>(false, Resource.Notification.AccessDenied, null);
                 }
@@ -81,7 +81,9 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
                 model = model.Where(s =>
                     s.CompanionReserve.BookerId == userId ||
                     s.CompanionReserve.CompanionAssistance.Companion.OwnerId == userId ||
-                    (s.CompanionReserve.CompanionAssistanceUserId.HasValue && s.CompanionReserve.CompanionAssistanceUser.UserId == userId));
+                    (s.CompanionReserve.CompanionAssistanceUserId.HasValue && s.CompanionReserve.CompanionAssistanceUser.UserId == userId &&
+                     s.CompanionReserve.CompanionAssistanceUser.Active && !s.CompanionReserve.CompanionAssistanceUser.Deleted &&
+                     _context.CompanionUsers.Any(cu => cu.CompanionId == s.CompanionReserve.CompanionAssistance.CompanionId && cu.UserId == userId && !cu.Deleted && cu.Active && cu.UserAccept == true)));
             }
 
             if (dto.CompanionReserveId.HasValue)
@@ -177,7 +179,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
                     return new BaseResultDto<CompanionReserveMessageDto>(false, Resource.Notification.CompanionReserveChatNotAvailable, dto);
                 }
 
-                if (!isAdmin && (!dto.SenderUserId.HasValue || dto.SenderUserId.Value != userId || !IsParticipant(reserve, userId)))
+                if (!isAdmin && (!dto.SenderUserId.HasValue || dto.SenderUserId.Value != userId || !await IsParticipantAsync(reserve, userId)))
                 {
                     return new BaseResultDto<CompanionReserveMessageDto>(false, Resource.Notification.AccessDenied, dto);
                 }
@@ -208,7 +210,10 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
                 await _context.SaveChangesAsync();
 
                 var senderIsBooker = reserve.BookerId == dto.SenderUserId.Value;
-                var representativeUserId = reserve.CompanionAssistanceUser?.UserId ?? reserve.CompanionAssistance.Companion.OwnerId;
+                var assigneeActive = reserve.CompanionAssistanceUser != null && reserve.CompanionAssistanceUser.Active && !reserve.CompanionAssistanceUser.Deleted &&
+                    await _context.CompanionUsers.AsNoTracking().AnyAsync(cu => cu.CompanionId == reserve.CompanionAssistance.CompanionId &&
+                        cu.UserId == reserve.CompanionAssistanceUser.UserId && !cu.Deleted && cu.Active && cu.UserAccept == true);
+                var representativeUserId = assigneeActive ? reserve.CompanionAssistanceUser.UserId : reserve.CompanionAssistance.Companion.OwnerId;
                 var receiverUserId = senderIsBooker ? representativeUserId : reserve.BookerId;
                 var senderName = senderIsBooker ? reserve.Booker?.FirstName : reserve.CompanionAssistance.Companion.Name;
 
@@ -241,7 +246,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
                 }
 
-                if ((!isAdmin && !IsParticipant(item.CompanionReserve, userId)) || item.SenderUserId == null || item.SenderUserId == userId)
+                if ((!isAdmin && !await IsParticipantAsync(item.CompanionReserve, userId)) || item.SenderUserId == null || item.SenderUserId == userId)
                 {
                     return new BaseResultDto(false, Resource.Notification.AccessDenied);
                 }
@@ -275,7 +280,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
                 }
 
-                if (!isAdmin && !IsParticipant(reserve, userId))
+                if (!isAdmin && !await IsParticipantAsync(reserve, userId))
                 {
                     return new BaseResultDto(false, Resource.Notification.AccessDenied);
                 }
@@ -390,9 +395,9 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
             return DeleteDto(dto.Id);
         }
 
-        // چک مجاز بودن دقیقاً همون منطق سه‌حالته‌ی Api/Hubs/CallHub.cs:JoinCall - رزروکننده، صاحب
-        // Companion، یا کارمند تخصیص‌یافته، هر سه طرف مجاز به دیدن/شرکت در گفتگو هستن.
-        private static bool IsParticipant(CompanionReserve reserve, long userId)
+        // کارمند تخصیص‌یافته فقط وقتی شرکت‌کننده است که تخصیصش فعال و عضویتش در نمایندگی هنوز فعال و تأییدشده باشد
+        // (عضویت/تخصیص غیرفعال‌شده نباید به گفتگوی رزرو دسترسی نگه دارد)
+        private async Task<bool> IsParticipantAsync(CompanionReserve reserve, long userId)
         {
             if (reserve.BookerId == userId)
                 return true;
@@ -400,8 +405,13 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
             if (reserve.CompanionAssistance?.Companion?.OwnerId == userId)
                 return true;
 
-            if (reserve.CompanionAssistanceUserId.HasValue && reserve.CompanionAssistanceUser?.UserId == userId)
-                return true;
+            if (reserve.CompanionAssistanceUserId.HasValue && reserve.CompanionAssistanceUser?.UserId == userId &&
+                reserve.CompanionAssistanceUser.Active && !reserve.CompanionAssistanceUser.Deleted)
+            {
+                var companionId = reserve.CompanionAssistance.CompanionId;
+                return await _context.CompanionUsers.AsNoTracking().AnyAsync(cu =>
+                    cu.CompanionId == companionId && cu.UserId == userId && !cu.Deleted && cu.Active && cu.UserAccept == true);
+            }
 
             return false;
         }

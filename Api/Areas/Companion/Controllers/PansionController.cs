@@ -34,6 +34,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(PansionSearchDto), 200)]
         public IActionResult Get([FromQuery] PansionInputDto dto)
         {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
             dto.CompanionId = _currentUser.CurrentUser.CompanionId;
             var search = _PansionService.Search(dto);
             return Ok(search);

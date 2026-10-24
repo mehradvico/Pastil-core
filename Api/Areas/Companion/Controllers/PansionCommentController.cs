@@ -37,6 +37,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(PansionCommentSearchDto), 200)]
         public IActionResult Get([FromQuery] PansionCommentInputDto dto)
         {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
             dto.CompanionId = _currentUser.CurrentUser.CompanionId;
             dto.UserId = null;
             dto.AllStatus = true;

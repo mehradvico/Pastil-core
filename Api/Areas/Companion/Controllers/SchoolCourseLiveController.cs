@@ -1,3 +1,4 @@
+using Application.Services.SchoolSrvs.SchoolOwnershipSrv;
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.SchoolSrvs.SchoolCourseLiveSrv.Dto;
@@ -20,8 +21,11 @@ namespace Api.Areas.Companion.Controllers
         private readonly ISchoolCourseLiveService _liveService;
         private readonly ICurrentUserHelper _currentUser;
 
-        public SchoolCourseLiveController(ISchoolCourseLiveService liveService, ICurrentUserHelper currentUser)
+        private readonly ISchoolOwnershipService _ownership;
+
+        public SchoolCourseLiveController(ISchoolCourseLiveService liveService, ICurrentUserHelper currentUser, ISchoolOwnershipService ownership)
         {
+            this._ownership = ownership;
             _liveService = liveService;
             _currentUser = currentUser;
         }
@@ -31,7 +35,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolCourseLiveSessionVDto>), 200)]
         public async Task<IActionResult> GetForSession(long schoolCourseSessionId)
         {
-            var companionId = _currentUser.CurrentUser.CompanionId;
+            var companionId = await _ownership.CompanionOfSessionAsync(schoolCourseSessionId, _currentUser.CurrentUser.UserId);
             if (!companionId.HasValue)
                 return Ok(new BaseResultDto<SchoolCourseLiveSessionVDto>(false, Resource.Notification.AccessDenied, null));
 
@@ -43,7 +47,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolLiveTokenVDto>), 200)]
         public async Task<IActionResult> Start(SchoolLiveStartDto dto)
         {
-            var companionId = _currentUser.CurrentUser.CompanionId;
+            var companionId = await _ownership.CompanionOfSessionAsync(dto.SchoolCourseSessionId, _currentUser.CurrentUser.UserId);
             if (!companionId.HasValue)
                 return Ok(new BaseResultDto<SchoolLiveTokenVDto>(false, Resource.Notification.AccessDenied, null));
 
@@ -55,7 +59,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> End(long liveSessionId)
         {
-            var companionId = _currentUser.CurrentUser.CompanionId;
+            var companionId = await _ownership.CompanionOfLiveSessionAsync(liveSessionId, _currentUser.CurrentUser.UserId);
             if (!companionId.HasValue)
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
 
@@ -68,7 +72,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<List<SchoolLiveParticipantVDto>>), 200)]
         public async Task<IActionResult> GetParticipants(long liveSessionId)
         {
-            var companionId = _currentUser.CurrentUser.CompanionId;
+            var companionId = await _ownership.CompanionOfLiveSessionAsync(liveSessionId, _currentUser.CurrentUser.UserId);
             if (!companionId.HasValue)
                 return Ok(new BaseResultDto<List<SchoolLiveParticipantVDto>>(false, Resource.Notification.AccessDenied, null));
 

@@ -60,6 +60,8 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
 
             if (baseSearchDto.CompanionId.HasValue)
                 model = model.Where(s => s.CompanionId == baseSearchDto.CompanionId.Value);
+            if (baseSearchDto.OwnerUserId.HasValue)
+                model = model.Where(s => s.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !s.Companion.Deleted);
             if (baseSearchDto.Approve.HasValue)
                 model = model.Where(s => s.Approve == baseSearchDto.Approve.Value);
             if (baseSearchDto.ShowToSite.HasValue)

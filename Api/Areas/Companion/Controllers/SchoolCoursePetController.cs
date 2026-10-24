@@ -1,3 +1,4 @@
+using Application.Services.SchoolSrvs.SchoolOwnershipSrv;
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.SchoolSrvs.SchoolCoursePetSrv.Dto;
@@ -22,8 +23,11 @@ namespace Api.Areas.Companion.Controllers
         private readonly ISchoolCourseService _SchoolCourseService;
         private readonly ICurrentUserHelper _currentUser;
 
-        public SchoolCoursePetController(ISchoolCoursePetService SchoolCoursePetService, ISchoolCourseService SchoolCourseService, ICurrentUserHelper currentUser)
+        private readonly ISchoolOwnershipService _ownership;
+
+        public SchoolCoursePetController(ISchoolCoursePetService SchoolCoursePetService, ISchoolCourseService SchoolCourseService, ICurrentUserHelper currentUser, ISchoolOwnershipService ownership)
         {
+            this._ownership = ownership;
             this._SchoolCoursePetService = SchoolCoursePetService;
             this._SchoolCourseService = SchoolCourseService;
             this._currentUser = currentUser;
@@ -31,16 +35,14 @@ namespace Api.Areas.Companion.Controllers
 
         private async Task<bool> OwnsCourseAsync(long courseId)
         {
-            var course = await _SchoolCourseService.FindAsyncVDto(courseId);
-            return course.IsSuccess && _currentUser.CurrentUser.CompanionId.HasValue &&
-                course.Data?.School?.CompanionId == _currentUser.CurrentUser.CompanionId.Value;
+            return await _ownership.CompanionOfCourseAsync(courseId, _currentUser.CurrentUser.UserId) != null;
         }
 
         [HttpGet()]
         [ProducesResponseType(typeof(SchoolCoursePetSearchDto), 200)]
         public IActionResult Get([FromQuery] SchoolCoursePetInputDto dto)
         {
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId;
+            dto.OwnerUserId = _currentUser.CurrentUser.UserId;
             var search = _SchoolCoursePetService.Search(dto);
             return Ok(search);
         }
@@ -49,6 +51,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolCoursePetVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
+            if (await _ownership.CompanionOfCoursePetAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             var item = await _SchoolCoursePetService.FindAsyncVDto(id);
             return Ok(item);
         }

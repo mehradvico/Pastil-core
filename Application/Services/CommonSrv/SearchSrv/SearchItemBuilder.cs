@@ -192,7 +192,7 @@ namespace Application.Services.CommonSrv.SearchSrv
                     SubTitle = $"{Resource.Notification.SearchResultTypeConsultationPackage} · {package.CompanionName}",
                     Picture = package.Picture,
                     Score = Score(request, package.Name, package.CompanionName, package.Description) + 3,
-                    Url = $"/consultations/buy?companionId={package.CompanionId}&packageId={package.Id}",
+                    Url = $"/consultations/buy?{(package.ClinicId.HasValue ? $"clinicId={package.ClinicId}" : package.CoachId.HasValue ? $"coachId={package.CoachId}" : $"companionId={package.CompanionId}")}&packageId={package.Id}",
                     MatchedBy = MatchField(q, ("name", package.Name), ("companion", package.CompanionName), ("description", package.Description))
                 }));
             }

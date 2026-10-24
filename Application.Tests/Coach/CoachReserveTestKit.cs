@@ -127,7 +127,7 @@ public static class CoachReserveTestKit
         var seed = fixture.Seed();
         using var context = fixture.NewContext();
 
-        var assistance = new Assistance { Name = "Bath", Active = true, IsGrooming = false };
+        var assistance = new Assistance { Name = "Bath", Active = true, IsGrooming = false, ProviderRoleId = await AssistanceTestRoles.IdAsync(context, "Coach") };
         context.Assistances.Add(assistance);
         var weekDays = Enumerable.Range(1, 7).Select(number => new WeekDay { Name = "d" + number, Label = "d" + number, Number = number }).ToList();
         context.WeekDays.AddRange(weekDays);
@@ -160,7 +160,8 @@ public static class CoachReserveTestKit
     }
 
     /// <summary>زمان نوبتِ فردا ساعت مشخص (همیشه در آینده و بیرون از MinLead).</summary>
-    public static DateTime Tomorrow(int hour, int minute = 0) => DateTime.Today.AddDays(1).AddHours(hour).AddMinutes(minute);
+    /// <summary>فردا؛ شب‌ها (بعد از ساعت ۲۰) پس‌فردا، تا «لغو رایگان ۱۲ ساعته» و بقیه‌ی قواعد به ساعت اجرای تست وابسته نشوند.</summary>
+    public static DateTime Tomorrow(int hour, int minute = 0) => DateTime.Today.AddDays(DateTime.Now.Hour >= 20 ? 2 : 1).AddHours(hour).AddMinutes(minute);
 
     public static Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveInputDto Input(World world, DateTime doDate) => new()
     {

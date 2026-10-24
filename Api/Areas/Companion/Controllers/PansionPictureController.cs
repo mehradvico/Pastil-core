@@ -54,6 +54,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(PansionPictureSearchDto), 200)]
         public IActionResult Get([FromQuery] PansionPictureInputDto dto)
         {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
             dto.CompanionId = _currentUser.CurrentUser.CompanionId;
             var PansionPicture = PansionPictureService.Search(dto);
             return Ok(PansionPicture);

@@ -221,7 +221,7 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 TokenExpires = user.Role.Label == RoleEnum.Admin.ToString() && isAdmin ? configuration["JWtConfig:expires_admin_minutes"] : configuration["JWtConfig:expires_user_minutes"],
                 RefreshExpires = user.Role.Label == RoleEnum.Admin.ToString() && isAdmin ? configuration["JWtConfig:refresh_expires_admin_minutes"] : configuration["JWtConfig:refresh_expires_user_minutes"],
                 Provider = "windows",
-                DeviceName = "zand"
+                DeviceName = "vico"
             };
             return createToken;
         }

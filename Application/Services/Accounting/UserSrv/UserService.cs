@@ -838,15 +838,26 @@ namespace Application.Services.UserSrv
             }
         }
 
+        // فقط ارائه‌دهنده‌ها (Provider ثبت‌شده با UserId) از تغییر/فراموشی/بازنویسی رمز استفاده می‌کنند؛ برای بقیه همان پاسخ «نامعتبر»
+        // برمی‌گردد تا از روی پاسخ نشود فهمید شماره‌ای ثبت‌شده است یا نه.
+        private Task<bool> IsProviderUserAsync(long userId) =>
+            _context.Providers.AsNoTracking().AnyAsync(p => p.UserId == userId && !p.Deleted);
+
         public async Task<BaseResultDto> ChangePassword(ChangePasswordDto user)
         {
+            if (user == null || string.IsNullOrWhiteSpace(user.Mobile) || string.IsNullOrEmpty(user.OldPassword) || string.IsNullOrEmpty(user.NewPassword))
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
+
             user.NewPassword = await user.NewPassword.ToEnglishDigitsAsync();
             if (!await RegixHelper.IsPassword(user.NewPassword))
 
                 return new BaseResultDto(isSuccess: false, val1: Resource.Notification.ThePasswordIsWrong, val2: nameof(user.NewPassword));
 
-            user.Mobile = await user.Mobile.ToEnglishDigitsAsync();
+            user.Mobile = (await user.Mobile.ToEnglishDigitsAsync()).Trim();
             user.OldPassword = await user.OldPassword.ToEnglishDigitsAsync();
+            if (user.OldPassword == user.NewPassword)
+                return new BaseResultDto(isSuccess: false, val1: Resource.Notification.InvalidData, val2: nameof(user.NewPassword));
+
             var item = await _context.Users.FirstOrDefaultAsync(s =>
                 (s.Mobile == user.Mobile || s.Email == user.Mobile) &&
                 !s.Deleted &&
@@ -854,6 +865,11 @@ namespace Application.Services.UserSrv
             if (item == null)
             {
                 _audit.Failure("ChangePassword", subject: user.Mobile, detail: "user_not_found");
+                return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
+            }
+            if (!await IsProviderUserAsync(item.Id))
+            {
+                _audit.Failure("ChangePassword", item.Id, user.Mobile, "not_provider");
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
             }
 
@@ -884,18 +900,31 @@ namespace Application.Services.UserSrv
         }
         public async Task<BaseResultDto> ForgetPassword(ForgetPasswordDto dto)
         {
-            dto.Mobile = await dto.Mobile.ToEnglishDigitsAsync();
-            dto.Email = await dto.Email.ToEnglishDigitsAsync();
+            if (dto == null)
+                return new BaseResultDto(false, val: Resource.Notification.InvalidData);
+            dto.Mobile = (await dto.Mobile.ToEnglishDigitsAsync())?.Trim();
+            dto.Email = (await dto.Email.ToEnglishDigitsAsync())?.Trim();
+            // دقیقاً یک شناسه (موبایل یا ایمیل)؛ دو شناسه‌ی ناهمخوان می‌توانست کد یک نفر را برای حساب نفر دیگر استفاده کند
+            var hasMobile = !string.IsNullOrEmpty(dto.Mobile);
+            var hasEmail = !string.IsNullOrEmpty(dto.Email);
+            if (hasMobile == hasEmail)
+                return new BaseResultDto(false, val: Resource.Notification.InvalidData);
             var item = await _context.Users.FirstOrDefaultAsync(s =>
-                        (((!string.IsNullOrEmpty(s.Mobile)) && s.Mobile.Equals(dto.Mobile)) ||
-                        ((!string.IsNullOrEmpty(s.Email)) && s.Email.Equals(dto.Email)))
+                        (hasMobile ? s.Mobile == dto.Mobile : s.Email == dto.Email)
                         && s.Deleted != true && s.Locked != true);
+            if (item != null && !await IsProviderUserAsync(item.Id))
+            {
+                _audit.Failure("ForgetPassword", item.Id, dto.Mobile ?? dto.Email, "not_provider");
+                item = null;
+            }
             if (item != null)
             {
-                await otpVerifyService.InsertAsyncDto(new OtpVerifyVDto() { Type = MessageTypeEnum.ForgetPassword, Mobile = item.Mobile, Email = item.Email });
+                await otpVerifyService.InsertAsyncDto(new OtpVerifyVDto() { Type = MessageTypeEnum.ForgetPassword, Mobile = hasMobile ? item.Mobile : null, Email = hasEmail ? item.Email : null });
                 var messages = new List<Tuple<string, string>>();
-                messages.Add(new Tuple<string, string>(Resource.Notification.TheRecoveryCodeWasEmailed, nameof(dto.Email)));
-                messages.Add(new Tuple<string, string>(Resource.Notification.TheRecoveryCodeWasSentBySMS, nameof(dto.Mobile)));
+                if (hasEmail)
+                    messages.Add(new Tuple<string, string>(Resource.Notification.TheRecoveryCodeWasEmailed, nameof(dto.Email)));
+                if (hasMobile)
+                    messages.Add(new Tuple<string, string>(Resource.Notification.TheRecoveryCodeWasSentBySMS, nameof(dto.Mobile)));
 
                 return new BaseResultDto(isSuccess: true, messages: messages);
 
@@ -904,8 +933,10 @@ namespace Application.Services.UserSrv
         }
         public async Task<BaseResultDto> ResetPassword(ResetPasswordDto dto)
         {
-            dto.Mobile = await dto.Mobile.ToEnglishDigitsAsync();
-            dto.Email = await dto.Email.ToEnglishDigitsAsync();
+            if (dto == null || string.IsNullOrEmpty(dto.Password))
+                return new BaseResultDto(false, val: Resource.Notification.InvalidData);
+            dto.Mobile = (await dto.Mobile.ToEnglishDigitsAsync())?.Trim();
+            dto.Email = (await dto.Email.ToEnglishDigitsAsync())?.Trim();
             dto.Code = await dto.Code.ToEnglishDigitsAsync();
             dto.Password = await dto.Password.ToEnglishDigitsAsync();
 
@@ -914,7 +945,10 @@ namespace Application.Services.UserSrv
                 return new BaseResultDto(isSuccess: false, val1: Resource.Notification.ThePasswordIsWrong, val2: nameof(dto.Password));
             }
 
-            if (string.IsNullOrEmpty(dto.Mobile) && string.IsNullOrEmpty(dto.Email))
+            // دقیقاً یک شناسه: کد OTP و حساب هدف باید از همان یک شناسه باشند (قبلاً موبایل خودِ مهاجم + ایمیل قربانی ممکن بود حساب قربانی را ریست کند)
+            var hasMobile = !string.IsNullOrEmpty(dto.Mobile);
+            var hasEmail = !string.IsNullOrEmpty(dto.Email);
+            if (hasMobile == hasEmail)
             {
                 return new BaseResultDto(false, val: Resource.Notification.InvalidData);
             }
@@ -929,9 +963,13 @@ namespace Application.Services.UserSrv
                 return new BaseResultDto(isSuccess: false, val1: Resource.Notification.TheCodeIsWrong, val2: nameof(dto.Code));
             }
             var item = await _context.Users.FirstOrDefaultAsync(s =>
-                        (((!string.IsNullOrEmpty(s.Mobile)) && s.Mobile.Equals(dto.Mobile)) ||
-                        ((!string.IsNullOrEmpty(s.Email)) && s.Email.Equals(dto.Email)))
+                        (hasMobile ? s.Mobile == dto.Mobile : s.Email == dto.Email)
                         && s.Deleted != true && s.Locked != true);
+            if (item != null && !await IsProviderUserAsync(item.Id))
+            {
+                _audit.Failure("ResetPassword", item.Id, dto.Mobile ?? dto.Email, "not_provider");
+                return new BaseResultDto(false, val: Resource.Notification.InvalidData);
+            }
             if (item != null)
             {
 
@@ -943,6 +981,7 @@ namespace Application.Services.UserSrv
                 _context.Users.Update(item);
                 await _context.SaveChangesAsync();
                 _loginThrottle.Reset("pwd:" + item.Id);
+                await otpVerifyService.ConsumeAsync(dto.Mobile, dto.Email); // یک‌بار مصرف: همان کد دوباره قابل استفاده نیست
                 _audit.Success("ResetPassword", item.Id, dto.Mobile ?? dto.Email);
                 return await userTokenSevice.ResetTokenAsync(item);
 

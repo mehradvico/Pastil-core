@@ -1,3 +1,4 @@
+using Application.Services.ConsultationSrvs.ConsultationOwnerSrv;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
@@ -49,24 +50,24 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
             if (purchase.ScheduledStart.HasValue)
             {
                 var when = FormatScheduled(purchase.ScheduledStart.Value);
-                foreach (var agentId in await AgentUserIdsAsync(purchase.CompanionId))
+                foreach (var agentId in await AgentUserIdsAsync(purchase))
                 {
                     await SendOnceAsync(PushTypeEnum.PushConsultationBookedAgent, agentId, purchase.Id,
                         buyerName, purchase.Id.ToString(), channelLabel, when);
                 }
                 await SendOnceAsync(PushTypeEnum.PushConsultationBookedUser, purchase.UserId, purchase.Id,
-                    purchase.Companion?.Name ?? string.Empty, purchase.Id.ToString(), when);
+                    VenueName(purchase), purchase.Id.ToString(), when);
                 return;
             }
 
-            foreach (var agentId in await AgentUserIdsAsync(purchase.CompanionId))
+            foreach (var agentId in await AgentUserIdsAsync(purchase))
             {
                 await SendOnceAsync(PushTypeEnum.PushConsultationPurchasedAgent, agentId, purchase.Id,
                     buyerName, purchase.Id.ToString(), channelLabel, purchase.DurationMinutes.ToString(Persian));
             }
 
             await SendOnceAsync(PushTypeEnum.PushConsultationPurchasedUser, purchase.UserId, purchase.Id,
-                purchase.Companion?.Name ?? string.Empty, purchase.Id.ToString());
+                VenueName(purchase), purchase.Id.ToString());
         }
 
         public async Task<int> NotifyBookingRemindersAsync()
@@ -78,6 +79,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
                 .Where(s => s.Status == paid && s.ScheduledStart != null && s.ScheduledStart > now && s.ScheduledStart <= until)
                 .Include(s => s.User)
                 .Include(s => s.Companion)
+                .Include(s => s.Clinic)
+                .Include(s => s.Coach)
                 .OrderBy(s => s.ScheduledStart)
                 .Take(BatchSize)
                 .ToListAsync();
@@ -89,14 +92,13 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
                 {
                     // کاربر: با نام کلینیک؛ نمایندگان: با نام کاربر. مقصد کلیک: صفحه‌ی مشاوره‌های هر طرف
                     await SendOnceAsync(PushTypeEnum.PushConsultationBookingReminder, purchase.UserId, purchase.Id,
-                        purchase.Companion?.Name ?? string.Empty, purchase.Id.ToString(), UserPagePath);
+                        VenueName(purchase), purchase.Id.ToString(), UserPagePath);
 
                     // اگر مشاوره به نماینده‌ای تخصیص دارد: او و مالک؛ وگرنه همه‌ی نمایندگان مجاز
-                    var owners = await _context.Companions.AsNoTracking()
-                        .Where(c => c.Id == purchase.CompanionId && !c.Deleted).Select(c => c.OwnerId).ToListAsync();
+                    var owners = await OwnerUserIdsAsync(purchase);
                     var recipients = purchase.AgentUserId.HasValue
                         ? owners.Append(purchase.AgentUserId.Value).Distinct().ToList()
-                        : await AgentUserIdsAsync(purchase.CompanionId);
+                        : await AgentUserIdsAsync(purchase);
                     foreach (var agentId in recipients)
                     {
                         await SendOnceAsync(PushTypeEnum.PushConsultationBookingReminder, agentId, purchase.Id,
@@ -116,7 +118,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
                 return;
 
             await SendOnceAsync(PushTypeEnum.PushConsultationExpiredRefund, purchase.UserId, purchase.Id,
-                purchase.Companion?.Name ?? string.Empty, purchase.Id.ToString());
+                VenueName(purchase), purchase.Id.ToString());
         }
 
         public async Task<int> NotifyPendingPurchasesAsync()
@@ -206,7 +208,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
             var taker = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == takerUserId);
             var takerName = FullName(taker);
             var buyerName = FullName(purchase.User);
-            foreach (var agentId in await AgentUserIdsAsync(purchase.CompanionId))
+            foreach (var agentId in await AgentUserIdsAsync(purchase))
             {
                 if (agentId == takerUserId)
                     continue;
@@ -239,11 +241,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
             {
                 try
                 {
-                    var owners = await _context.Companions.AsNoTracking()
-                        .Where(c => c.Id == purchase.CompanionId && !c.Deleted).Select(c => c.OwnerId).ToListAsync();
+                    var owners = await OwnerUserIdsAsync(purchase);
                     var recipients = purchase.AgentUserId.HasValue
                         ? owners.Append(purchase.AgentUserId.Value).Distinct().ToList()
-                        : await AgentUserIdsAsync(purchase.CompanionId);
+                        : await AgentUserIdsAsync(purchase);
 
                     var minutes = ((int)UnclaimedAfter.TotalMinutes).ToString(Persian);
                     foreach (var userId in recipients)
@@ -263,21 +264,26 @@ namespace Application.Services.ConsultationSrvs.ConsultationNotificationSrv
             _context.ConsultationPurchases.AsNoTracking()
                 .Include(s => s.User)
                 .Include(s => s.Companion)
+                .Include(s => s.Clinic)
+                .Include(s => s.Coach)
                 .FirstOrDefaultAsync(s => s.Id == purchaseId);
+
+        private static string VenueName(ConsultationPurchase purchase) =>
+            purchase.Companion?.Name ?? purchase.Clinic?.Name ?? purchase.Coach?.Name ?? string.Empty;
+
+        private async Task<List<long>> OwnerUserIdsAsync(ConsultationPurchase purchase)
+        {
+            var owner = ConsultationOwner.Of(purchase);
+            var ownerUserId = owner.HasValue ? await ConsultationOwners.OwnerUserIdAsync(_context, owner.Value) : null;
+            return ownerUserId.HasValue ? new List<long> { ownerUserId.Value } : new List<long>();
+        }
 
         // نمایندگان مجاز کلینیک: مالک + همه‌ی اعضای فعال و تأییدشده‌ی تیم (همان تعریف در ConsultationSessionService؛
         // قبلاً فقط کارکنان خدمت ۱۵ بودند، پس اپراتورها هیچ پوشی برای مشاوره‌ی جدید/بی‌صاحب نمی‌گرفتند)
-        private async Task<List<long>> AgentUserIdsAsync(long companionId)
+        private async Task<List<long>> AgentUserIdsAsync(ConsultationPurchase purchase)
         {
-            var owners = await _context.Companions.AsNoTracking()
-                .Where(s => s.Id == companionId && !s.Deleted)
-                .Select(s => s.OwnerId)
-                .ToListAsync();
-            var members = await _context.CompanionUsers.AsNoTracking()
-                .Where(s => s.CompanionId == companionId && s.Active && s.UserAccept == true && !s.Deleted)
-                .Select(s => s.UserId)
-                .ToListAsync();
-            return owners.Concat(members).Distinct().ToList();
+            var owner = ConsultationOwner.Of(purchase);
+            return owner.HasValue ? await ConsultationOwners.AgentUserIdsAsync(_context, owner.Value) : new List<long>();
         }
 
         // هر (کاربر، نوع پوش، خرید) فقط یک‌بار: token2 همیشه شناسه‌ی خرید است

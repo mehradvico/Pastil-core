@@ -1,3 +1,4 @@
+using Application.Services.SchoolSrvs.SchoolOwnershipSrv;
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.SchoolSrvs.SchoolCourseSrv.Dto;
@@ -20,8 +21,10 @@ namespace Api.Areas.Companion.Controllers
         private readonly ISchoolCourseService _schoolCourseService;
         private readonly ISchoolService _schoolService;
         private readonly ICurrentUserHelper _currentUser;
-        public SchoolCourseController(ISchoolCourseService schoolCourseService, ISchoolService schoolService, ICurrentUserHelper currentUser)
+        private readonly ISchoolOwnershipService _ownership;
+        public SchoolCourseController(ISchoolCourseService schoolCourseService, ISchoolService schoolService, ICurrentUserHelper currentUser, ISchoolOwnershipService ownership)
         {
+            this._ownership = ownership;
             this._schoolCourseService = schoolCourseService;
             this._schoolService = schoolService;
             this._currentUser = currentUser;
@@ -29,17 +32,16 @@ namespace Api.Areas.Companion.Controllers
 
         private async Task<bool> OwnsSchoolAsync(long schoolId)
         {
-            var school = await _schoolService.FindAsyncVDto(schoolId);
-            return school.IsSuccess && _currentUser.CurrentUser.CompanionId.HasValue &&
-                school.Data?.CompanionId == _currentUser.CurrentUser.CompanionId.Value;
+            return await _ownership.CompanionOfSchoolAsync(schoolId, _currentUser.CurrentUser.UserId) != null;
         }
 
         [HttpGet()]
         [ProducesResponseType(typeof(SchoolCourseSearchDto), 200)]
         public async Task<IActionResult> Get([FromQuery] SchoolCourseInputDto dto)
         {
-            if (dto.SchoolId.HasValue && !await OwnsSchoolAsync(dto.SchoolId.Value))
+            if (dto.SchoolId.HasValue && await _ownership.CompanionOfSchoolAsync(dto.SchoolId.Value, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                 return Forbid();
+            dto.OwnerUserId = _currentUser.CurrentUser.UserId;
             var search = _schoolCourseService.Search(dto);
             return Ok(search);
         }
@@ -49,7 +51,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var course = await _schoolCourseService.FindAsyncVDto(id);
-            if (!course.IsSuccess || !await OwnsSchoolAsync(course.Data.SchoolId))
+            if (!course.IsSuccess || await _ownership.CompanionOfSchoolAsync(course.Data.SchoolId, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(course);
         }
@@ -87,7 +89,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> PutActive(long id, bool active)
         {
-            var result = await _schoolCourseService.UpdateActiveAsync(id, active, _currentUser.CurrentUser.CompanionId);
+            var companionId = await _ownership.CompanionOfCourseAsync(id, _currentUser.CurrentUser.UserId);
+            if (!companionId.HasValue)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
+            var result = await _schoolCourseService.UpdateActiveAsync(id, active, companionId);
             return Ok(result);
         }
     }

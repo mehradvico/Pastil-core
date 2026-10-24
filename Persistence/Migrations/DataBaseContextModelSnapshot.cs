@@ -250,6 +250,9 @@ namespace Persistence.Migrations
                     b.Property<long?>("PictureId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ProviderRoleId")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("ShowToSite")
                         .HasColumnType("bit");
 
@@ -261,6 +264,8 @@ namespace Persistence.Migrations
                     b.HasIndex("AssistanceGroupId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("ProviderRoleId");
 
                     b.ToTable("Assistances");
                 });
@@ -1851,6 +1856,12 @@ namespace Persistence.Migrations
                     b.Property<long>("ClinicId")
                         .HasColumnType("bigint");
 
+                    b.Property<bool>("ConsultationOnline")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ConsultationOnlineExpiresAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
@@ -2813,6 +2824,12 @@ namespace Persistence.Migrations
 
                     b.Property<long>("CoachId")
                         .HasColumnType("bigint");
+
+                    b.Property<bool>("ConsultationOnline")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ConsultationOnlineExpiresAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
@@ -4344,7 +4361,13 @@ namespace Persistence.Migrations
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
-                    b.Property<long>("CompanionId")
+                    b.Property<long?>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CoachId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CompanionId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("CreateDate")
@@ -4364,9 +4387,16 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClinicId", "WeekDayId");
+
+                    b.HasIndex("CoachId", "WeekDayId");
+
                     b.HasIndex("CompanionId", "WeekDayId");
 
-                    b.ToTable("ConsultationAvailabilities");
+                    b.ToTable("ConsultationAvailabilities", t =>
+                        {
+                            t.HasCheckConstraint("CK_ConsultationAvailabilities_Owner", "(CASE WHEN [CompanionId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [ClinicId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [CoachId] IS NULL THEN 0 ELSE 1 END) = 1");
+                        });
                 });
 
             modelBuilder.Entity("Entities.Entities.ConsultationPackage", b =>
@@ -4386,11 +4416,17 @@ namespace Persistence.Migrations
                     b.Property<int>("ChannelId")
                         .HasColumnType("int");
 
+                    b.Property<long?>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CoachId")
+                        .HasColumnType("bigint");
+
                     b.Property<decimal>("CommissionPercent")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<long>("CompanionId")
+                    b.Property<long?>("CompanionId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("CreateDate")
@@ -4426,9 +4462,16 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PictureId");
 
+                    b.HasIndex("ClinicId", "ChannelId");
+
+                    b.HasIndex("CoachId", "ChannelId");
+
                     b.HasIndex("CompanionId", "ChannelId");
 
-                    b.ToTable("ConsultationPackages");
+                    b.ToTable("ConsultationPackages", t =>
+                        {
+                            t.HasCheckConstraint("CK_ConsultationPackages_Owner", "(CASE WHEN [CompanionId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [ClinicId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [CoachId] IS NULL THEN 0 ELSE 1 END) = 1");
+                        });
                 });
 
             modelBuilder.Entity("Entities.Entities.ConsultationPurchase", b =>
@@ -4452,11 +4495,17 @@ namespace Persistence.Migrations
                     b.Property<int>("ChannelId")
                         .HasColumnType("int");
 
+                    b.Property<long?>("ClinicId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CoachId")
+                        .HasColumnType("bigint");
+
                     b.Property<decimal>("CommissionPercent")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<long>("CompanionId")
+                    b.Property<long?>("CompanionId")
                         .HasColumnType("bigint");
 
                     b.Property<double>("CompanionShare")
@@ -4562,6 +4611,14 @@ namespace Persistence.Migrations
 
                     b.HasIndex("RebateId");
 
+                    b.HasIndex("ClinicId", "ScheduledStart");
+
+                    b.HasIndex("ClinicId", "Status");
+
+                    b.HasIndex("CoachId", "ScheduledStart");
+
+                    b.HasIndex("CoachId", "Status");
+
                     b.HasIndex("CompanionId", "ScheduledStart");
 
                     b.HasIndex("CompanionId", "Status");
@@ -4572,7 +4629,10 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId", "Status");
 
-                    b.ToTable("ConsultationPurchases");
+                    b.ToTable("ConsultationPurchases", t =>
+                        {
+                            t.HasCheckConstraint("CK_ConsultationPurchases_Owner", "(CASE WHEN [CompanionId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [ClinicId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [CoachId] IS NULL THEN 0 ELSE 1 END) = 1");
+                        });
                 });
 
             modelBuilder.Entity("Entities.Entities.ContactUs", b =>
@@ -12202,6 +12262,30 @@ namespace Persistence.Migrations
                     b.ToTable("SettlementCompanions");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SettlementConsultation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ConsultationPurchaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SettlementId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsultationPurchaseId")
+                        .IsUnique();
+
+                    b.HasIndex("SettlementId");
+
+                    b.ToTable("SettlementConsultations");
+                });
+
             modelBuilder.Entity("Entities.Entities.SettlementGroomer", b =>
                 {
                     b.Property<long>("Id")
@@ -13493,6 +13577,50 @@ namespace Persistence.Migrations
                     b.ToTable("TripStops");
                 });
 
+            modelBuilder.Entity("Entities.Entities.UserActivityEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Platform")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Screen")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Target")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreateDate");
+
+                    b.ToTable("UserActivityEvents");
+                });
+
             modelBuilder.Entity("Entities.Entities.UserBankCard", b =>
                 {
                     b.Property<long>("Id")
@@ -14436,9 +14564,16 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("PictureId");
 
+                    b.HasOne("Entities.Entities.ProviderField.ProviderRole", "ProviderRole")
+                        .WithMany()
+                        .HasForeignKey("ProviderRoleId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("AssistanceGroup");
 
                     b.Navigation("Picture");
+
+                    b.Navigation("ProviderRole");
                 });
 
             modelBuilder.Entity("Entities.Entities.AssistanceQuestionnaire", b =>
@@ -16229,27 +16364,53 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.ConsultationAvailability", b =>
                 {
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany()
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Companion", "Companion")
                         .WithMany()
                         .HasForeignKey("CompanionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("Coach");
 
                     b.Navigation("Companion");
                 });
 
             modelBuilder.Entity("Entities.Entities.ConsultationPackage", b =>
                 {
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany()
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Companion", "Companion")
                         .WithMany()
                         .HasForeignKey("CompanionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Entities.Entities.Picture", "Picture")
                         .WithMany()
                         .HasForeignKey("PictureId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("Coach");
 
                     b.Navigation("Companion");
 
@@ -16263,11 +16424,20 @@ namespace Persistence.Migrations
                         .HasForeignKey("AgentUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Entities.Entities.ClinicField.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.CoachField.Coach", "Coach")
+                        .WithMany()
+                        .HasForeignKey("CoachId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Companion", "Companion")
                         .WithMany()
                         .HasForeignKey("CompanionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Entities.Entities.ConsultationPackage", "ConsultationPackage")
                         .WithMany()
@@ -16292,6 +16462,10 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("AgentUser");
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("Coach");
 
                     b.Navigation("Companion");
 
@@ -19328,6 +19502,25 @@ namespace Persistence.Migrations
                     b.Navigation("PansionReserve");
 
                     b.Navigation("SchoolReserve");
+
+                    b.Navigation("Settlement");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SettlementConsultation", b =>
+                {
+                    b.HasOne("Entities.Entities.ConsultationPurchase", "ConsultationPurchase")
+                        .WithMany()
+                        .HasForeignKey("ConsultationPurchaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Settlement", "Settlement")
+                        .WithMany()
+                        .HasForeignKey("SettlementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ConsultationPurchase");
 
                     b.Navigation("Settlement");
                 });

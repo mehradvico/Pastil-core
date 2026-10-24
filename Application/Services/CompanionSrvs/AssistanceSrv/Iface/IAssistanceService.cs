@@ -11,6 +11,8 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Iface
     public interface IAssistanceService : ICommonSrv<Assistance, AssistanceDto>
     {
         AssistanceSearchDto Search(AssistanceInputDto baseSearchDto);
+        Task<BaseResultDto<AssistanceDto>> InsertValidatedAsync(AssistanceDto dto);
+        Task<BaseResultDto> UpdateValidatedAsync(AssistanceDto dto);
         Task<BaseResultDto<AssistanceVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
         Task<List<SearchAssistanceDto>> SearchMinAsync(SearchRequestDto request);

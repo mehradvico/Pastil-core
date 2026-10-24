@@ -1,6 +1,7 @@
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.ConsultationSrvs.ConsultationBookingSrv.Dto;
+using Application.Services.ConsultationSrvs.ConsultationOwnerSrv;
 using Application.Services.ConsultationSrvs.ConsultationBookingSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,7 +45,7 @@ namespace Api.Areas.Companion.Controllers
             if (CompanionId is not { } companionId)
                 return Forbid();
 
-            return Ok(await _service.GetAvailabilityAsync(companionId));
+            return Ok(await _service.GetAvailabilityAsync(ConsultationOwner.Companion(companionId)));
         }
 
         /// <summary>جایگزینی کل برنامه‌ی هفتگی (لیست خالی = رزرو بسته). رزروهای قبلی دست نمی‌خورند.</summary>
@@ -55,7 +56,7 @@ namespace Api.Areas.Companion.Controllers
             if (CompanionId is not { } companionId)
                 return Forbid();
 
-            return Ok(await _service.SaveAvailabilityAsync(companionId, windows));
+            return Ok(await _service.SaveAvailabilityAsync(ConsultationOwner.Companion(companionId), windows));
         }
     }
 }

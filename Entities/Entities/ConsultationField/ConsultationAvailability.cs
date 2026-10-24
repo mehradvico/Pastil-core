@@ -8,7 +8,10 @@ namespace Entities.Entities
     // Capacity = تعداد مشاوره‌ی هم‌زمان (معمولاً تعداد نمایندگان آماده در آن بازه). طراحی: backend/Docs/ONLINE_CONSULTATION_BOOKING_FA.md
     public class ConsultationAvailability : Id_Field
     {
-        public long CompanionId { get; set; }
+        // مالک: دقیقاً یکی از سه ستون پر است (CHECK در دیتابیس). نمایندگی قدیمی = CompanionId؛ مراکز مستقل = ClinicId / CoachId
+        public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
         public int WeekDayId { get; set; }
         public int StartMinute { get; set; }
         public int EndMinute { get; set; }
@@ -18,5 +21,7 @@ namespace Entities.Entities
         public DateTime CreateDate { get; set; }
 
         public Companion Companion { get; set; }
+        public ClinicField.Clinic Clinic { get; set; }
+        public CoachField.Coach Coach { get; set; }
     }
 }

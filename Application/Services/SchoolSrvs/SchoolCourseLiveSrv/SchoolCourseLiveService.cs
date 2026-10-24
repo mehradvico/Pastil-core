@@ -93,7 +93,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
                 return new BaseResultDto<SchoolCourseLiveSessionVDto>(false, Resource.Notification.NothingFound, null);
 
             var enrolled = await _context.SchoolReserves.AnyAsync(r =>
-                r.SchoolCourseId == session.SchoolCourseId && r.BookerId == userId && !r.IsCancel);
+                r.SchoolCourseId == session.SchoolCourseId && r.BookerId == userId && r.IsReserved && !r.IsCancel);
             if (!enrolled)
                 return new BaseResultDto<SchoolCourseLiveSessionVDto>(false, Resource.Notification.AccessDenied, null);
 
@@ -230,7 +230,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
                 return false;
 
             return await _context.SchoolReserves.AnyAsync(r =>
-                r.SchoolCourseId == courseId.Value && r.BookerId == userId && r.UserPetId == userPetId && !r.IsCancel);
+                r.SchoolCourseId == courseId.Value && r.BookerId == userId && r.UserPetId == userPetId && r.IsReserved && !r.IsCancel);
         }
 
         public async Task<BaseResultDto<SchoolLiveTokenVDto>> GetViewerTokenAsync(long liveSessionId, long userId)
@@ -242,7 +242,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
                 return new BaseResultDto<SchoolLiveTokenVDto>(false, Resource.Notification.NothingFound, null);
 
             var courseId = item.SchoolCourseSession.SchoolCourseId;
-            var enrolled = await _context.SchoolReserves.AnyAsync(r => r.SchoolCourseId == courseId && r.BookerId == userId && !r.IsCancel);
+            var enrolled = await _context.SchoolReserves.AnyAsync(r => r.SchoolCourseId == courseId && r.BookerId == userId && r.IsReserved && !r.IsCancel);
             if (!enrolled)
                 return new BaseResultDto<SchoolLiveTokenVDto>(false, Resource.Notification.AccessDenied, null);
 
@@ -274,7 +274,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
                 .Include(r => r.UserPet).ThenInclude(p => p.PetBreed)
                 .Include(r => r.UserPet).ThenInclude(p => p.Picture)
                 .Include(r => r.Booker)
-                .Where(r => r.SchoolCourseId == courseId && !r.IsCancel)
+                .Where(r => r.SchoolCourseId == courseId && r.IsReserved && !r.IsCancel)
                 .ToListAsync();
 
             var presentIds = _tracker.GetPresentUserPetIds(liveSessionId);
@@ -312,7 +312,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
             var courseId = await _context.SchoolCourseLiveSessions.Where(l => l.Id == liveSessionId)
                 .Select(l => l.SchoolCourseSession.SchoolCourseId).FirstOrDefaultAsync();
             var isCompanionOwner = await IsCompanionOwnerByUserIdAsync(liveSessionId, userId);
-            var isEnrolled = await _context.SchoolReserves.AnyAsync(r => r.SchoolCourseId == courseId && r.BookerId == userId && !r.IsCancel);
+            var isEnrolled = await _context.SchoolReserves.AnyAsync(r => r.SchoolCourseId == courseId && r.BookerId == userId && r.IsReserved && !r.IsCancel);
             if (!isCompanionOwner && !isEnrolled)
                 return new BaseResultDto<SchoolLiveCommentDto>(false, Resource.Notification.AccessDenied, null);
 
@@ -345,7 +345,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
             var courseId = await _context.SchoolCourseLiveSessions.Where(l => l.Id == liveSessionId)
                 .Select(l => l.SchoolCourseSession.SchoolCourseId).FirstOrDefaultAsync();
             var isCompanionOwner = await IsCompanionOwnerByUserIdAsync(liveSessionId, userId);
-            var isEnrolled = await _context.SchoolReserves.AnyAsync(r => r.SchoolCourseId == courseId && r.BookerId == userId && !r.IsCancel);
+            var isEnrolled = await _context.SchoolReserves.AnyAsync(r => r.SchoolCourseId == courseId && r.BookerId == userId && r.IsReserved && !r.IsCancel);
             if (!isCompanionOwner && !isEnrolled)
                 return new BaseResultDto<List<SchoolLiveCommentDto>>(false, Resource.Notification.AccessDenied, null);
 
@@ -444,7 +444,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
                     continue;
 
                 var enrolledBookerIds = await _context.SchoolReserves
-                    .Where(r => r.SchoolCourseId == session.SchoolCourseId && !r.IsCancel)
+                    .Where(r => r.SchoolCourseId == session.SchoolCourseId && r.IsReserved && !r.IsCancel)
                     .Select(r => r.BookerId)
                     .Distinct()
                     .ToListAsync(cancellationToken);

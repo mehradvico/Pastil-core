@@ -33,7 +33,7 @@ public class ClinicReserveItemTests : IClassFixture<ClinicLocalDbFixture>
     private async Task<long> AddPackageAsync(World world, string assistanceName, double price, double pre)
     {
         using var context = _fixture.NewContext();
-        var assistance = new Assistance { Name = assistanceName, Active = true, IsGrooming = false };
+        var assistance = new Assistance { Name = assistanceName, Active = true, IsGrooming = false, ProviderRoleId = await AssistanceTestRoles.IdAsync(context, "Clinic") };
         context.Assistances.Add(assistance);
         await context.SaveChangesAsync();
         var catalog = new ClinicCatalogService(context, _fixture.Mapper, NullLogger<ClinicCatalogService>.Instance);

@@ -162,6 +162,7 @@ namespace Persistence.Interface
         public DbSet<OtpVerify> OtpVerifies { get; set; }
         public DbSet<Pansion> Pansions { get; set; }
         public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
+        public DbSet<UserActivityEvent> UserActivityEvents { get; set; }
         public DbSet<PansionComment> PansionComments { get; set; }
         public DbSet<PansionPet> PansionPets { get; set; }
         public DbSet<PansionPicture> PansionPictures { get; set; }
@@ -214,6 +215,7 @@ namespace Persistence.Interface
         public DbSet<ClinicReserveItem> ClinicReserveItems { get; set; }
         public DbSet<SettlementClinic> SettlementClinics { get; set; }
         public DbSet<SettlementCoach> SettlementCoaches { get; set; }
+        public DbSet<SettlementConsultation> SettlementConsultations { get; set; }
         public DbSet<PansionReserve> PansionReserves { get; set; }
         public DbSet<PetResanService> PetResanServices { get; set; }
         public DbSet<PetResanServiceSchedule> PetResanServiceSchedules { get; set; }

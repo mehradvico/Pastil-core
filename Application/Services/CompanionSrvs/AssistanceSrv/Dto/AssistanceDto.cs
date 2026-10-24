@@ -12,5 +12,7 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
         public bool Active { get; set; }
         public bool ShowToSite { get; set; }
         public bool IsGrooming { get; set; }
+        /// <summary>نقش مالک خدمت (ProviderRole)؛ برای خدمت جدید الزامی است. IsGrooming از روی نقش Groomer تنظیم می‌شود.</summary>
+        public long? ProviderRoleId { get; set; }
     }
 }

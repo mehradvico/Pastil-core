@@ -341,6 +341,8 @@ builder.Services
         options.Conventions.Add(new AdminAreaAuthorizationConvention());
         // endpoint بدون احراز هویت هیچ‌وقت اطلاعات شخصی کاربران دیگر را برنمی‌گرداند (ScrubAnonymousUserPiiFilter)
         options.Filters.Add<ScrubAnonymousUserPiiFilter>();
+        // پنل/اپ نماینده فقط برای ارائه‌دهنده، مالک مرکز یا عضو فعال تیم (CompanionAreaAccessFilter)
+        options.Filters.Add<Api.Filters.CompanionAreaAccessFilter>();
     })
     .AddJsonOptions(options =>
     {

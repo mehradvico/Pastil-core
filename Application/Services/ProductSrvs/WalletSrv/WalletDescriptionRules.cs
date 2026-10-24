@@ -53,6 +53,7 @@ namespace Application.Services.ProductSrvs.WalletSrv
         public const string PaymentRefundPrefix = "PaymentRefund:";
         public const string PansionReserveRefundPrefix = "PansionReserveRefund:";
         public const string GroomerReserveRefundPrefix = "GroomerReserveRefund:";
+        public const string SchoolReserveRefundPrefix = "SchoolReserveRefund:";
         public const string ClinicReserveRefundPrefix = "ClinicReserveRefund:";
         public const string CoachReserveRefundPrefix = "CoachReserveRefund:";
         public const string ConsultationRefundPrefix = "ConsultationRefund:";
@@ -87,7 +88,7 @@ namespace Application.Services.ProductSrvs.WalletSrv
         }
 
         public static bool IsLedgerKey(string name) =>
-            TryGetLedgerValue(name, PaymentRefundPrefix, out _) || TryGetLedgerValue(name, PansionReserveRefundPrefix, out _) || TryGetLedgerValue(name, GroomerReserveRefundPrefix, out _) || TryGetLedgerValue(name, ClinicReserveRefundPrefix, out _) || TryGetLedgerValue(name, CoachReserveRefundPrefix, out _) ||
+            TryGetLedgerValue(name, PaymentRefundPrefix, out _) || TryGetLedgerValue(name, PansionReserveRefundPrefix, out _) || TryGetLedgerValue(name, GroomerReserveRefundPrefix, out _) || TryGetLedgerValue(name, SchoolReserveRefundPrefix, out _) || TryGetLedgerValue(name, ClinicReserveRefundPrefix, out _) || TryGetLedgerValue(name, CoachReserveRefundPrefix, out _) ||
             TryGetLedgerValue(name, ConsultationRefundPrefix, out _) || TryGetLedgerValue(name, CompanionPackageRefundPrefix, out _) || TryGetLedgerValue(name, ClinicPackageRefundPrefix, out _) ||
             TryGetLedgerValue(name, OrderCancelRefundPrefix, out _) || TryGetLedgerValue(name, OrderItemRefundPrefix, out _) ||
             TryGetLedgerValue(name, ReferralBonusPrefix, out _) || TryGetLedgerValue(name, AdminManualPrefix, out _) ||
@@ -143,6 +144,10 @@ namespace Application.Services.ProductSrvs.WalletSrv
             if (id.HasValue)
                 return string.Format(Resource.Pattern.WalletReasonCancelRefundFor,
                     string.Format(Resource.Pattern.WalletTargetGroomerReserve, Code(codes.GroomerReserves, id.Value)));
+            id = TryGetLedgerId(name, SchoolReserveRefundPrefix);
+            if (id.HasValue)
+                return string.Format(Resource.Pattern.WalletReasonCancelRefundFor,
+                    string.Format(Resource.Pattern.WalletTargetSchoolReserve, Code(codes.SchoolReserves, id.Value)));
             id = TryGetLedgerId(name, ClinicReserveRefundPrefix);
             if (id.HasValue)
                 return string.Format(Resource.Pattern.WalletReasonCancelRefundFor,

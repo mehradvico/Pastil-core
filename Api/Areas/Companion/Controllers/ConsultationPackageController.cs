@@ -1,6 +1,7 @@
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
 using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto;
+using Application.Services.ConsultationSrvs.ConsultationOwnerSrv;
 using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,7 +45,7 @@ namespace Api.Areas.Companion.Controllers
             if (CompanionId is not { } companionId)
                 return Forbid();
 
-            return Ok(await _service.GetListAsync(companionId));
+            return Ok(await _service.GetListAsync(ConsultationOwner.Companion(companionId)));
         }
 
         /// <summary>ساخت یک پکیج جدید (نام، کانال، مدت از فهرست ثابت، قیمت، توضیح و تصویر اختیاری)</summary>
@@ -55,7 +56,7 @@ namespace Api.Areas.Companion.Controllers
             if (CompanionId is not { } companionId)
                 return Forbid();
 
-            return Ok(await _service.CreateAsync(companionId, dto));
+            return Ok(await _service.CreateAsync(ConsultationOwner.Companion(companionId), dto));
         }
 
         /// <summary>ویرایش یک پکیج (dto.id الزامی است؛ فعال/غیرفعال کردن هم با همین)</summary>
@@ -66,7 +67,7 @@ namespace Api.Areas.Companion.Controllers
             if (CompanionId is not { } companionId)
                 return Forbid();
 
-            return Ok(await _service.UpdateAsync(companionId, dto));
+            return Ok(await _service.UpdateAsync(ConsultationOwner.Companion(companionId), dto));
         }
 
         /// <summary>حذف پکیج؛ خریدهای قبلی نام و قیمت خودشان را نگه داشته‌اند</summary>
@@ -77,7 +78,7 @@ namespace Api.Areas.Companion.Controllers
             if (CompanionId is not { } companionId)
                 return Forbid();
 
-            return Ok(await _service.DeleteAsync(companionId, id));
+            return Ok(await _service.DeleteAsync(ConsultationOwner.Companion(companionId), id));
         }
     }
 }

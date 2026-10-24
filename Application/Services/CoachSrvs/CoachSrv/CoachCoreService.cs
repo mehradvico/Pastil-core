@@ -160,8 +160,12 @@ namespace Application.Services.CoachSrvs.CoachSrv
             input.OwnerId = null;
             input.ShowToSite = null;
             var result = Search(input);
+            var onlineIds = OnlineBookableIds(result.List.Select(item => item.Id).ToList());
             foreach (var item in result.List)
+            {
                 Sanitize(item);
+                item.ServiceOnline = item.ServiceOnline && onlineIds.Contains(item.Id);
+            }
             return result;
         }
 
@@ -172,12 +176,41 @@ namespace Application.Services.CoachSrvs.CoachSrv
                 return new BaseResultDto<CoachVDto>(false, Resource.Notification.NothingFound, null);
             var view = found.Data;
             Sanitize(view);
+            view.ServiceOnline = view.ServiceOnline && OnlineBookableIds(new List<long> { view.Id }).Contains(view.Id);
             view.Owner = null;
             view.Provider = null;
             view.ActivationValue = null;
-            // LegacyCompanionId عمداً می‌ماند: کلید سامانه‌ی مشاوره‌ی آنلاین (ConsultationPackage/Purchase) هنوز Companion است.
+            view.LegacyCompanionId = null;
             view.DeleteDate = null;
             return new BaseResultDto<CoachVDto>(true, view);
+        }
+
+        /// <summary>
+        /// «آنلاین» فقط وقتی به مشتری نشان داده می‌شود که حداقل یک بسته‌ی فعال واقعاً در حالت آنلاین (Mode=۳۷) رزروشدنی باشد، یا بسته‌ی مشاوره‌ی آنلاین فوری داشته باشد:
+        /// بسته‌ی بدون ردیف قیمت همه‌ی حالت‌ها را دارد، بسته‌ی دارای ردیف فقط حالت‌های لیست‌شده را. پرچم ذخیره‌شده‌ی ServiceOnline دست‌نخورده می‌ماند.
+        /// </summary>
+        private HashSet<long> OnlineBookableIds(IReadOnlyCollection<long> ids)
+        {
+            if (ids.Count == 0)
+                return new HashSet<long>();
+            var online = (int)Entities.Entities.CoachField.CoachServiceModeEnum.Online;
+            var result = _context.CoachServicePackages.AsNoTracking()
+                .Where(p => !p.Deleted && p.Active
+                            && !p.CoachService.Deleted && p.CoachService.Active && p.CoachService.Approved
+                            && ids.Contains(p.CoachService.CoachId)
+                            && (!p.Types.Any(t => !t.Deleted) || p.Types.Any(t => !t.Deleted && t.Mode == online)))
+                .Select(p => p.CoachService.CoachId)
+                .Distinct()
+                .ToList()
+                .ToHashSet();
+            // یا مرکز بسته‌ی مشاوره‌ی آنلاین فوری (چت/تماس) فعال با قیمت مثبت دارد (روی خودِ مرکز کلید خورده)
+            var consultation = _context.ConsultationPackages.AsNoTracking()
+                .Where(p => p.CoachId != null && ids.Contains(p.CoachId.Value) && !p.Deleted && p.Active && p.Price > 0)
+                .Select(p => p.CoachId.Value)
+                .Distinct()
+                .ToList();
+            result.UnionWith(consultation);
+            return result;
         }
 
         private static void Sanitize(CoachMinVDto item)

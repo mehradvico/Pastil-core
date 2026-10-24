@@ -12,6 +12,9 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv.Dto
         public bool Active { get; set; }
         public bool ShowToSite { get; set; }
         public bool IsGrooming { get; set; }
+        public long? ProviderRoleId { get; set; }
+        public string ProviderRoleName { get; set; }
+        public string ProviderRoleLabel { get; set; }
 
         public AssistanceGroupVDto AssistanceGroup { get; set; }
         public PictureVDto Picture { get; set; }

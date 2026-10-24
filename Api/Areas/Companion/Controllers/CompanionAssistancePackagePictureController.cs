@@ -50,6 +50,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(CompanionAssistancePackagePictureSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionAssistancePackagePictureInputDto dto)
         {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
             dto.CompanionId = _currentUser.CurrentUser.CompanionId;
             var companionassistancepackagePicture = companionassistancepackagePictureService.SearchDto(dto);
             return Ok(companionassistancepackagePicture);

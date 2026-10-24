@@ -3,6 +3,7 @@ using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
+using Application.Services.ConsultationSrvs.ConsultationOwnerSrv;
 using Application.Services.ConsultationSrvs.ConsultationPurchaseSrv;
 using Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto;
 using Application.Services.ConsultationSrvs.ConsultationSessionSrv.Iface;
@@ -38,34 +39,18 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
         // قبلاً فقط کسی که رویش «خدمت مشاوره آنلاین» (Assistance ۱۵) فعال بود حساب می‌شد؛ اپراتورهایی که این خدمت
         // رویشان فعال نیست هیچ‌وقت اجازه‌ی دیدن/شروع/تخصیص مشاوره را نداشتند (درخواست:
         // CONSULTATION_ASSIGN_TO_OPERATOR_REQUEST_FA.md). حالا عضویت ساده در تیم کلینیک کافی است.
-        private IQueryable<long> AgentCompanionIds(long userId)
-        {
-            var owned = _context.Companions.AsNoTracking()
-                .Where(s => s.OwnerId == userId && !s.Deleted)
-                .Select(s => s.Id);
-            var member = _context.CompanionUsers.AsNoTracking()
-                .Where(s => s.UserId == userId && s.Active && s.UserAccept == true && !s.Deleted)
-                .Select(s => s.CompanionId);
-            return owned.Union(member);
-        }
+        // (نمایندگی قدیمی، کلینیک مستقل و مربی مستقل هر سه؛ مالک یا عضو فعال و تأییدشده‌ی تیم)
+        private Task<AgentOwnerIds> AgentOwnersAsync(long userId) => ConsultationOwners.OwnerIdsOfAgentAsync(_context, userId);
 
         // اعضای قابل‌تخصیص یک کلینیک (مالک + همه‌ی اعضای فعال و تأییدشده‌ی تیم)؛ هم برای ساخت assignableAgents
         // و هم برای اعتبارسنجی targetUserId در AssignAsync استفاده می‌شود تا دو جا رفتار متفاوت نداشته باشند.
-        private async Task<List<long>> AssignableUserIdsAsync(long companionId)
-        {
-            var ownerId = await _context.Companions.AsNoTracking()
-                .Where(c => c.Id == companionId).Select(c => (long?)c.OwnerId).FirstOrDefaultAsync();
-            var memberIds = await _context.CompanionUsers.AsNoTracking()
-                .Where(x => x.CompanionId == companionId && x.Active && x.UserAccept == true && !x.Deleted)
-                .Select(x => x.UserId)
-                .ToListAsync();
-            if (ownerId.HasValue)
-                memberIds.Add(ownerId.Value);
-            return memberIds.Distinct().ToList();
-        }
+        private Task<List<long>> AssignableUserIdsAsync(ConsultationOwner owner) => ConsultationOwners.AgentUserIdsAsync(_context, owner);
 
-        private Task<bool> IsOwnerAsync(long userId, long companionId) =>
-            _context.Companions.AsNoTracking().AnyAsync(s => s.Id == companionId && s.OwnerId == userId && !s.Deleted);
+        private async Task<bool> IsOwnerAsync(long userId, ConsultationPurchase purchase)
+        {
+            var owner = ConsultationOwner.Of(purchase);
+            return owner.HasValue && await ConsultationOwners.IsOwnerAsync(_context, userId, owner.Value);
+        }
 
         public async Task<BaseResultDto<List<ConsultationAgentItemVDto>>> GetForAgentAsync(long agentUserId)
         {
@@ -74,26 +59,27 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 var now = DateTime.Now;
                 var paid = (int)ConsultationPurchaseStatusEnum.Paid;
                 var active = (int)ConsultationPurchaseStatusEnum.Active;
-                var companionIds = AgentCompanionIds(agentUserId);
+                var agentOwners = await AgentOwnersAsync(agentUserId);
 
-                var rows = await _context.ConsultationPurchases.AsNoTracking()
-                    .Where(s => companionIds.Contains(s.CompanionId) && (s.Status == paid || s.Status == active))
+                var rows = await agentOwners.Filter(_context.ConsultationPurchases.AsNoTracking())
+                    .Where(s => s.Status == paid || s.Status == active)
                     .Include(s => s.User).ThenInclude(u => u.Picture)
                     .Include(s => s.Companion)
+                    .Include(s => s.Clinic)
+                    .Include(s => s.Coach)
                     .OrderBy(s => s.Status == active ? 0 : 1)
                     .ThenBy(s => s.ScheduledStart ?? s.PaidDate)
                     .Take(100)
                     .ToListAsync();
 
-                var ownedIds = await _context.Companions.AsNoTracking()
-                    .Where(s => s.OwnerId == agentUserId && !s.Deleted).Select(s => s.Id).ToListAsync();
+                var owned = await ConsultationOwners.OwnedIdsAsync(_context, agentUserId);
 
                 // مالک هر کلینیک: فهرست نمایندگان قابل تخصیص (مالک + همه‌ی اعضای فعال و تأییدشده‌ی تیم، از جمله اپراتورها)
-                var assignable = new Dictionary<long, List<ConsultationAssignableAgentVDto>>();
-                foreach (var companionId in ownedIds.Where(id => rows.Any(r => r.CompanionId == id)))
+                var assignable = new Dictionary<ConsultationOwner, List<ConsultationAssignableAgentVDto>>();
+                foreach (var ownedOwner in owned.All().Where(o => rows.Any(r => ConsultationOwner.Of(r) == o)))
                 {
-                    var ids = await AssignableUserIdsAsync(companionId);
-                    assignable[companionId] = (await _context.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).ToListAsync())
+                    var ids = await AssignableUserIdsAsync(ownedOwner);
+                    assignable[ownedOwner] = (await _context.Users.AsNoTracking().Where(u => ids.Contains(u.Id)).ToListAsync())
                         .Select(u => new ConsultationAssignableAgentVDto { UserId = u.Id, FullName = $"{u.FirstName} {u.LastName}".Trim() }).ToList();
                 }
                 var agentIds = rows.Where(r => r.AgentUserId.HasValue).Select(r => r.AgentUserId.Value).Distinct().ToList();
@@ -122,7 +108,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     Id = s.Id,
                     PurchaseCode = s.PurchaseCode,
                     CompanionId = s.CompanionId,
-                    CompanionName = s.Companion?.Name,
+                    ClinicId = s.ClinicId,
+                    CoachId = s.CoachId,
+                    CompanionName = s.Companion?.Name ?? s.Clinic?.Name ?? s.Coach?.Name,
                     PackageName = s.PackageName,
                     ChannelId = s.ChannelId,
                     DurationMinutes = s.DurationMinutes,
@@ -142,10 +130,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     AgentName = s.AgentUserId.HasValue && agentNames.TryGetValue(s.AgentUserId.Value, out var an) ? an : null,
                     // تخصیص‌یافته به دیگری ⇒ فقط او یا مالک «شروع» را می‌بیند
                     CanStart = ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now, s.ScheduledStart) &&
-                               (!s.AgentUserId.HasValue || s.AgentUserId == agentUserId || ownedIds.Contains(s.CompanionId)),
-                    CanAssign = s.Status == paid && ownedIds.Contains(s.CompanionId) && ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now),
-                    AssignableAgents = s.Status == paid && assignable.TryGetValue(s.CompanionId, out var al) ? al : null,
-                    CanEnter = ConsultationPurchaseRules.CanAgentEnter(s.Status, s.ExpireDate, now, s.AgentUserId, agentUserId, ownedIds.Contains(s.CompanionId)),
+                               (!s.AgentUserId.HasValue || s.AgentUserId == agentUserId || owned.Contains(s)),
+                    CanAssign = s.Status == paid && owned.Contains(s) && ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now),
+                    AssignableAgents = s.Status == paid && ConsultationOwner.Of(s) is { } rowOwner && assignable.TryGetValue(rowOwner, out var al) ? al : null,
+                    CanEnter = ConsultationPurchaseRules.CanAgentEnter(s.Status, s.ExpireDate, now, s.AgentUserId, agentUserId, owned.Contains(s)),
                     CustomerPets = customerPets.TryGetValue(s.UserId, out var pets) ? pets : new List<ConsultationCustomerPetVDto>(),
                     ServerNow = now
                 }).ToList();
@@ -168,12 +156,12 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 if (purchase == null)
                     return Fail(Resource.Notification.NothingFound);
 
-                if (!await AgentCompanionIds(agentUserId).ContainsAsync(purchase.CompanionId))
+                if (!(await AgentOwnersAsync(agentUserId)).Contains(purchase))
                     return Fail(Resource.Notification.AccessDenied);
 
                 // تخصیص‌یافته به نماینده‌ی دیگر: فقط او یا مالک می‌تواند شروع کند
                 if (purchase.Status == (int)ConsultationPurchaseStatusEnum.Paid && purchase.AgentUserId.HasValue &&
-                    purchase.AgentUserId != agentUserId && !await IsOwnerAsync(agentUserId, purchase.CompanionId))
+                    purchase.AgentUserId != agentUserId && !await IsOwnerAsync(agentUserId, purchase))
                     return Fail(Resource.Notification.AccessDenied);
 
                 var now = DateTime.Now;
@@ -242,7 +230,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 var purchase = await _context.ConsultationPurchases.AsNoTracking().FirstOrDefaultAsync(s => s.Id == purchaseId);
                 if (purchase == null)
                     return FailBool(Resource.Notification.NothingFound);
-                if (!await IsOwnerAsync(ownerUserId, purchase.CompanionId))
+                if (!await IsOwnerAsync(ownerUserId, purchase))
                     return FailBool(Resource.Notification.AccessDenied);
 
                 var now = DateTime.Now;
@@ -251,7 +239,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
 
                 if (targetUserId.HasValue)
                 {
-                    var assignableIds = await AssignableUserIdsAsync(purchase.CompanionId);
+                    var assignableIds = await AssignableUserIdsAsync(ConsultationOwner.Of(purchase).Value);
                     if (!assignableIds.Contains(targetUserId.Value))
                         return FailBool(Resource.Notification.InvalidData);
                 }
@@ -286,7 +274,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     return Fail(Resource.Notification.NothingFound);
 
                 var now = DateTime.Now;
-                var isOwner = await IsOwnerAsync(agentUserId, purchase.CompanionId);
+                var isOwner = await IsOwnerAsync(agentUserId, purchase);
                 if (purchase.AgentUserId != agentUserId && !isOwner)
                     return Fail(Resource.Notification.AccessDenied);
                 if (!ConsultationPurchaseRules.IsWindowOpen(purchase.Status, purchase.ExpireDate, now))
@@ -311,7 +299,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 if (purchase == null || !purchase.OnlineSessionId.HasValue)
                     return Fail(Resource.Notification.NothingFound);
 
-                var isOwner = await IsOwnerAsync(agentUserId, purchase.CompanionId);
+                var isOwner = await IsOwnerAsync(agentUserId, purchase);
                 if (purchase.AgentUserId != agentUserId && !isOwner)
                     return Fail(Resource.Notification.AccessDenied);
 
@@ -346,6 +334,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 var rows = await _context.ConsultationPurchases.AsNoTracking()
                     .Where(s => s.UserId == userId && s.Status == active && s.OnlineSessionId != null && s.ExpireDate > now)
                     .Include(s => s.Companion)
+                    .Include(s => s.Clinic)
+                    .Include(s => s.Coach)
                     .Include(s => s.AgentUser)
                     .OrderBy(s => s.ExpireDate)
                     .Take(10)
@@ -361,7 +351,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     StartDate = s.StartDate ?? now,
                     ExpireDate = s.ExpireDate.Value,
                     ServerNow = now,
-                    CompanionName = s.Companion?.Name,
+                    CompanionName = s.Companion?.Name ?? s.Clinic?.Name ?? s.Coach?.Name,
                     AgentFullName = $"{s.AgentUser?.FirstName} {s.AgentUser?.LastName}".Trim()
                 }).ToList();
 

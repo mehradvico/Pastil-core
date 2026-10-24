@@ -36,7 +36,7 @@ public class ClinicPhase3Tests : IClassFixture<ClinicLocalDbFixture>
     private async Task<long> AddSecondPackageAsync(World world, double price, double pre)
     {
         using var context = _fixture.NewContext();
-        var assistance = new Assistance { Name = "Cut", Active = true, IsGrooming = false };
+        var assistance = new Assistance { Name = "Cut", Active = true, IsGrooming = false, ProviderRoleId = await AssistanceTestRoles.IdAsync(context, "Clinic") };
         context.Assistances.Add(assistance);
         await context.SaveChangesAsync();
         var catalog = new ClinicCatalogService(context, _fixture.Mapper, NullLogger<ClinicCatalogService>.Instance);

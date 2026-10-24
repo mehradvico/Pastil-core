@@ -314,6 +314,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<Clinic> Clinics { get; set; }
         public DbSet<Coach> Coaches { get; set; }
         public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
+        public DbSet<UserActivityEvent> UserActivityEvents { get; set; }
         public DbSet<ClinicType> ClinicTypes { get; set; }
         public DbSet<ClinicUser> ClinicUsers { get; set; }
         public DbSet<CoachUser> CoachUsers { get; set; }
@@ -343,6 +344,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<ClinicReserveItem> ClinicReserveItems { get; set; }
         public DbSet<SettlementClinic> SettlementClinics { get; set; }
         public DbSet<SettlementCoach> SettlementCoaches { get; set; }
+        public DbSet<SettlementConsultation> SettlementConsultations { get; set; }
         public DbSet<PansionReserve> PansionReserves { get; set; }
         public DbSet<PetResanService> PetResanServices { get; set; }
         public DbSet<PetResanServiceSchedule> PetResanServiceSchedules { get; set; }
@@ -497,6 +499,14 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasIndex(item => item.Key).IsUnique();
                 entity.HasIndex(item => item.ExpireDate);
             });
+            modelBuilder.Entity<UserActivityEvent>(entity =>
+            {
+                entity.Property(item => item.Type).HasMaxLength(20).IsRequired();
+                entity.Property(item => item.Screen).HasMaxLength(300);
+                entity.Property(item => item.Target).HasMaxLength(200);
+                entity.Property(item => item.Platform).HasMaxLength(20);
+                entity.HasIndex(item => new { item.UserId, item.CreateDate });
+            });
             modelBuilder.HasSequence<long>("PaymentCodeSequence");
             modelBuilder.HasSequence<long>("BusinessCodeSequence");
 
@@ -526,11 +536,16 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             modelBuilder.Entity<ConsultationPackage>(entity =>
             {
                 entity.HasOne(item => item.Companion).WithMany().HasForeignKey(item => item.CompanionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Clinic).WithMany().HasForeignKey(item => item.ClinicId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Coach).WithMany().HasForeignKey(item => item.CoachId).OnDelete(DeleteBehavior.Restrict);
+                entity.ToTable(t => t.HasCheckConstraint("CK_ConsultationPackages_Owner", "(CASE WHEN [CompanionId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [ClinicId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [CoachId] IS NULL THEN 0 ELSE 1 END) = 1"));
                 entity.Property(item => item.Name).HasMaxLength(100);
                 entity.Property(item => item.Description).HasMaxLength(500);
                 entity.HasOne(item => item.Picture).WithMany().HasForeignKey(item => item.PictureId).OnDelete(DeleteBehavior.Restrict);
                 // هر کلینیک زیر هر کانال هر تعداد پکیج نام‌دار می‌تواند داشته باشد؛ فقط ایندکس جست‌وجو
                 entity.HasIndex(item => new { item.CompanionId, item.ChannelId });
+                entity.HasIndex(item => new { item.ClinicId, item.ChannelId });
+                entity.HasIndex(item => new { item.CoachId, item.ChannelId });
             });
             modelBuilder.Entity<ConsultationPurchase>(entity =>
             {
@@ -541,6 +556,9 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasOne(item => item.User).WithMany().HasForeignKey(item => item.UserId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(item => item.AgentUser).WithMany().HasForeignKey(item => item.AgentUserId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(item => item.Companion).WithMany().HasForeignKey(item => item.CompanionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Clinic).WithMany().HasForeignKey(item => item.ClinicId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Coach).WithMany().HasForeignKey(item => item.CoachId).OnDelete(DeleteBehavior.Restrict);
+                entity.ToTable(t => t.HasCheckConstraint("CK_ConsultationPurchases_Owner", "(CASE WHEN [CompanionId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [ClinicId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [CoachId] IS NULL THEN 0 ELSE 1 END) = 1"));
                 entity.HasOne(item => item.ConsultationPackage).WithMany().HasForeignKey(item => item.ConsultationPackageId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(item => item.OnlineSession).WithMany().HasForeignKey(item => item.OnlineSessionId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(item => item.Rebate).WithMany().HasForeignKey(item => item.RebateId).OnDelete(DeleteBehavior.Restrict);
@@ -550,6 +568,18 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasIndex(item => new { item.Status, item.ExpireDate });
                 // شمارش هم‌پوشانی اسلات‌های رزرو یک کلینیک
                 entity.HasIndex(item => new { item.CompanionId, item.ScheduledStart });
+                entity.HasIndex(item => new { item.ClinicId, item.Status });
+                entity.HasIndex(item => new { item.CoachId, item.Status });
+                entity.HasIndex(item => new { item.ClinicId, item.ScheduledStart });
+                entity.HasIndex(item => new { item.CoachId, item.ScheduledStart });
+            });
+            modelBuilder.Entity<SettlementConsultation>(entity =>
+            {
+                // هر خرید مشاوره فقط در یک تسویه پرداخت می‌شود.
+                entity.HasIndex(item => item.ConsultationPurchaseId).IsUnique();
+                entity.HasIndex(item => item.SettlementId);
+                entity.HasOne(item => item.Settlement).WithMany().HasForeignKey(item => item.SettlementId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.ConsultationPurchase).WithMany().HasForeignKey(item => item.ConsultationPurchaseId).OnDelete(DeleteBehavior.Restrict);
             });
             modelBuilder.Entity<CompanionReservePackageItem>(entity =>
             {
@@ -579,7 +609,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             modelBuilder.Entity<ConsultationAvailability>(entity =>
             {
                 entity.HasOne(item => item.Companion).WithMany().HasForeignKey(item => item.CompanionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Clinic).WithMany().HasForeignKey(item => item.ClinicId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(item => item.Coach).WithMany().HasForeignKey(item => item.CoachId).OnDelete(DeleteBehavior.Restrict);
+                entity.ToTable(t => t.HasCheckConstraint("CK_ConsultationAvailabilities_Owner", "(CASE WHEN [CompanionId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [ClinicId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [CoachId] IS NULL THEN 0 ELSE 1 END) = 1"));
                 entity.HasIndex(item => new { item.CompanionId, item.WeekDayId });
+                entity.HasIndex(item => new { item.ClinicId, item.WeekDayId });
+                entity.HasIndex(item => new { item.CoachId, item.WeekDayId });
             });
             modelBuilder.Entity<OnlineSessionMessage>(entity =>
             {
@@ -1432,6 +1467,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 .WithMany(x => x.CompanionUsers)
                 .HasForeignKey(x => x.ExpertiseId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Assistance>(entity =>
+            {
+                entity.HasOne(x => x.ProviderRole).WithMany().HasForeignKey(x => x.ProviderRoleId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => x.ProviderRoleId);
+            });
 
             modelBuilder.Entity<Expertise>()
                 .HasOne(x => x.ProviderRole)

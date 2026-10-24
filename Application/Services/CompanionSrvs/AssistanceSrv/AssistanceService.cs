@@ -6,6 +6,7 @@ using Application.Services.CompanionSrvs.AssistanceSrv.Iface;
 using Application.Services.Filing.PictureSrv.Dto;
 using AutoMapper;
 using Entities.Entities;
+using Entities.Entities.ProviderField;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv
                 .AsNoTracking()
                 .Include(s => s.AssistanceGroup)
                 .Include(s => s.Picture)
+                .Include(s => s.ProviderRole)
                 .FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
 
             if (item != null)
@@ -55,12 +57,71 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv
             return new BaseResultDto(true);
         }
 
+        private static readonly string[] AssignableRoleLabels =
+        {
+            ProviderRoleLabels.Groomer, ProviderRoleLabels.Clinic, ProviderRoleLabels.Coach,
+            ProviderRoleLabels.Pansion, ProviderRoleLabels.School,
+        };
+
+        /// <summary>نقش معتبر برای خدمت؛ برمی‌گرداند Label یا null اگر نامعتبر باشد.</summary>
+        private async Task<string> RoleLabelAsync(long roleId) =>
+            await _context.ProviderRoles.AsNoTracking()
+                .Where(x => x.Id == roleId && !x.Deleted && x.Active && AssignableRoleLabels.Contains(x.Label))
+                .Select(x => x.Label).FirstOrDefaultAsync();
+
+        public async Task<BaseResultDto<AssistanceDto>> InsertValidatedAsync(AssistanceDto dto)
+        {
+            if (!dto.ProviderRoleId.HasValue || dto.ProviderRoleId.Value <= 0)
+                return new BaseResultDto<AssistanceDto>(false, Resource.Notification.AssistanceProviderRoleRequired, nameof(dto.ProviderRoleId), dto);
+            var label = await RoleLabelAsync(dto.ProviderRoleId.Value);
+            if (label == null)
+                return new BaseResultDto<AssistanceDto>(false, Resource.Notification.AssistanceProviderRoleInvalid, nameof(dto.ProviderRoleId), dto);
+            dto.IsGrooming = label == ProviderRoleLabels.Groomer;
+            return await InsertAsyncDto(dto);
+        }
+
+        public async Task<BaseResultDto> UpdateValidatedAsync(AssistanceDto dto)
+        {
+            var current = await _context.Assistances.AsNoTracking()
+                .Where(x => x.Id == dto.Id && !x.Deleted).Select(x => new { x.ProviderRoleId }).FirstOrDefaultAsync();
+            if (current == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            if (!dto.ProviderRoleId.HasValue || dto.ProviderRoleId.Value <= 0)
+            {
+                // خدمتِ قدیمیِ بدون نقش را می‌توان بدون نقش نگه داشت، ولی نمی‌شود نقشِ موجود را برداشت.
+                if (current.ProviderRoleId.HasValue)
+                    return new BaseResultDto(false, Resource.Notification.AssistanceProviderRoleRequired, nameof(dto.ProviderRoleId));
+                dto.ProviderRoleId = null;
+                return UpdateDto(dto);
+            }
+
+            var label = await RoleLabelAsync(dto.ProviderRoleId.Value);
+            if (label == null)
+                return new BaseResultDto(false, Resource.Notification.AssistanceProviderRoleInvalid, nameof(dto.ProviderRoleId));
+
+            if (current.ProviderRoleId != dto.ProviderRoleId)
+            {
+                // تغییر نقشِ خدمتی که مرکزی از نقش دیگر هم‌اکنون با آن کار می‌کند، آن مراکز را بی‌صاحب می‌کند.
+                var usedByOtherRole =
+                    (label != ProviderRoleLabels.Clinic && await _context.ClinicServices.AnyAsync(s => s.AssistanceId == dto.Id && !s.Deleted)) ||
+                    (label != ProviderRoleLabels.Coach && await _context.CoachServices.AnyAsync(s => s.AssistanceId == dto.Id && !s.Deleted)) ||
+                    (label != ProviderRoleLabels.Groomer && await _context.GroomerServices.AnyAsync(s => s.AssistanceId == dto.Id && !s.Deleted));
+                if (usedByOtherRole)
+                    return new BaseResultDto(false, Resource.Notification.AssistanceProviderRoleInUse, nameof(dto.ProviderRoleId));
+            }
+
+            dto.IsGrooming = label == ProviderRoleLabels.Groomer;
+            return UpdateDto(dto);
+        }
+
         public AssistanceSearchDto Search(AssistanceInputDto baseSearchDto)
         {
             var model = _context.Assistances
                 .AsNoTracking()
                 .Include(s => s.AssistanceGroup)
                 .Include(s => s.Picture)
+                .Include(s => s.ProviderRole)
                 .Where(s => !s.Deleted)
                 .AsQueryable();
 
@@ -87,9 +148,23 @@ namespace Application.Services.CompanionSrvs.AssistanceSrv
                 model = model.Where(s => s.IsPersonal == baseSearchDto.IsPersonal.Value);
             }
 
-            if (baseSearchDto.IsGrooming.HasValue)
+            if (!string.IsNullOrWhiteSpace(baseSearchDto.ProviderRole))
+            {
+                // فیلتر نقش (کلید ثابت) بر IsGrooming غلبه دارد؛ قاعده‌ی یکپارچه در AssistanceRoleRules.
+                model = model.ForRole(baseSearchDto.ProviderRole.Trim());
+            }
+            else if (baseSearchDto.IsGrooming.HasValue)
             {
                 model = model.Where(s => s.IsGrooming == baseSearchDto.IsGrooming.Value);
+            }
+
+            if (baseSearchDto.ProviderRoleId == 0)
+            {
+                model = model.Where(s => s.ProviderRoleId == null);
+            }
+            else if (baseSearchDto.ProviderRoleId.HasValue)
+            {
+                model = model.Where(s => s.ProviderRoleId == baseSearchDto.ProviderRoleId.Value);
             }
 
             if (baseSearchDto.AssistanceGroupId.HasValue)

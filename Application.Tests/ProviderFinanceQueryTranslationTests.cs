@@ -36,6 +36,16 @@ public class ProviderFinanceQueryTranslationTests
     }
 
     [Fact]
+    public void VenueConsultationQueries_TranslateToSql()
+    {
+        using var context = CreateContext();
+        Assert.Contains("GROUP BY", ProviderFinanceQueries.ClinicConsultationGroups(context, Ids).ToQueryString());
+        Assert.Contains("GROUP BY", ProviderFinanceQueries.CoachConsultationGroups(context, Ids).ToQueryString());
+        Assert.NotEmpty(SettlementSources.ClinicConsultationPurchases(context, Ids).Where(p => !p.Permitted).ToQueryString());
+        Assert.NotEmpty(SettlementSources.CoachConsultationPurchases(context, Ids).Where(p => !p.Permitted).ToQueryString());
+    }
+
+    [Fact]
     public void StoreAndSettlementQueries_TranslateToSql()
     {
         using var context = CreateContext();

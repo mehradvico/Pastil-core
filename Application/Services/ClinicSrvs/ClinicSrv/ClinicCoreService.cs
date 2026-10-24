@@ -165,8 +165,12 @@ namespace Application.Services.ClinicSrvs.ClinicSrv
             input.OwnerId = null;
             input.ShowToSite = null;
             var result = Search(input);
+            var onlineIds = OnlineBookableIds(result.List.Select(item => item.Id).ToList());
             foreach (var item in result.List)
+            {
                 Sanitize(item);
+                item.ServiceOnline = item.ServiceOnline && onlineIds.Contains(item.Id);
+            }
             return result;
         }
 
@@ -177,12 +181,41 @@ namespace Application.Services.ClinicSrvs.ClinicSrv
                 return new BaseResultDto<ClinicVDto>(false, Resource.Notification.NothingFound, null);
             var view = found.Data;
             Sanitize(view);
+            view.ServiceOnline = view.ServiceOnline && OnlineBookableIds(new List<long> { view.Id }).Contains(view.Id);
             view.Owner = null;
             view.Provider = null;
             view.ActivationValue = null;
             view.LegacyCompanionId = null;
             view.DeleteDate = null;
             return new BaseResultDto<ClinicVDto>(true, view);
+        }
+
+        /// <summary>
+        /// «آنلاین» فقط وقتی به مشتری نشان داده می‌شود که حداقل یک بسته‌ی فعال واقعاً در حالت آنلاین (Mode=۳۷) رزروشدنی باشد، یا بسته‌ی مشاوره‌ی آنلاین فوری داشته باشد:
+        /// بسته‌ی بدون ردیف قیمت همه‌ی حالت‌ها را دارد، بسته‌ی دارای ردیف فقط حالت‌های لیست‌شده را. پرچم ذخیره‌شده‌ی ServiceOnline دست‌نخورده می‌ماند.
+        /// </summary>
+        private HashSet<long> OnlineBookableIds(IReadOnlyCollection<long> ids)
+        {
+            if (ids.Count == 0)
+                return new HashSet<long>();
+            var online = (int)Entities.Entities.ClinicField.ClinicServiceModeEnum.Online;
+            var result = _context.ClinicServicePackages.AsNoTracking()
+                .Where(p => !p.Deleted && p.Active
+                            && !p.ClinicService.Deleted && p.ClinicService.Active && p.ClinicService.Approved
+                            && ids.Contains(p.ClinicService.ClinicId)
+                            && (!p.Types.Any(t => !t.Deleted) || p.Types.Any(t => !t.Deleted && t.Mode == online)))
+                .Select(p => p.ClinicService.ClinicId)
+                .Distinct()
+                .ToList()
+                .ToHashSet();
+            // یا مرکز بسته‌ی مشاوره‌ی آنلاین فوری (چت/تماس) فعال با قیمت مثبت دارد (روی خودِ مرکز کلید خورده)
+            var consultation = _context.ConsultationPackages.AsNoTracking()
+                .Where(p => p.ClinicId != null && ids.Contains(p.ClinicId.Value) && !p.Deleted && p.Active && p.Price > 0)
+                .Select(p => p.ClinicId.Value)
+                .Distinct()
+                .ToList();
+            result.UnionWith(consultation);
+            return result;
         }
 
         private static void Sanitize(ClinicMinVDto item)

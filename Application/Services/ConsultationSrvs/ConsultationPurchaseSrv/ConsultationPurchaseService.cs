@@ -3,6 +3,7 @@ using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Services.ConsultationSrvs.ConsultationNotificationSrv.Iface;
+using Application.Services.ConsultationSrvs.ConsultationOwnerSrv;
 using Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto;
 using Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface;
 using Application.Services.Order.PaymentSrv;
@@ -75,8 +76,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                 if (package == null)
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
 
-                var clinicOpen = await _context.Companions.AsNoTracking()
-                    .AnyAsync(s => s.Id == package.CompanionId && !s.Deleted && s.Active && s.Approved);
+                var packageOwner = ConsultationOwner.Of(package);
+                var clinicOpen = packageOwner.HasValue && await ConsultationOwners.IsOpenAsync(_context, packageOwner.Value);
                 if (!clinicOpen)
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
 
@@ -95,7 +96,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                 {
                     // الان هیچ نماینده/مربی‌ای آنلاین نیست: نمی‌توان پکیج آنلاین این کلینیک/مدرسه را خرید
                     // (اجباری سمت سرور؛ فرانت هم باید صفحه‌ی پکیج را وقتی آفلاین است پیش‌تر مسدود کند)
-                    var companionOnline = await _onlineService.GetPublicAsync(package.CompanionId);
+                    var companionOnline = await _onlineService.GetPublicAsync(packageOwner.Value);
                     if (!companionOnline.Online)
                         return new BaseResultDto(false, Resource.Notification.ConsultationCompanionOffline);
                 }
@@ -124,7 +125,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     // خرید تکراری اشتباهی: همان کلینیک و همان کانال، در حالی که یکی پرداخت‌شده/در جریان دارد
                     // (رزروهای ساعت‌دار آینده مانع خرید فوری نیستند؛ فقط خرید فوریِ باز حساب می‌شود)
                     var sameChannelId = await _context.ConsultationPurchases.AsNoTracking()
-                        .Where(s => s.UserId == userId && s.CompanionId == package.CompanionId && s.ChannelId == package.ChannelId &&
+                        .ForOwner(packageOwner.Value).Where(s => s.UserId == userId && s.ChannelId == package.ChannelId &&
                                     s.ScheduledStart == null && (s.Status == paid || s.Status == active))
                         .Select(s => (long?)s.Id)
                         .FirstOrDefaultAsync();
@@ -210,7 +211,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                 {
                     var now = DateTime.Now;
                     var end = scheduledStart.Value.AddMinutes(package.DurationMinutes);
-                    var problem = await _booking.CheckSlotAsync(package.CompanionId, package.DurationMinutes, scheduledStart.Value, now);
+                    var problem = await _booking.CheckSlotAsync(packageOwner.Value, package.DurationMinutes, scheduledStart.Value, now);
                     switch (problem)
                     {
                         case ConsultationBookingSrv.ConsultationBookingRules.SlotProblem.None:
@@ -233,6 +234,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     UserId = userId,
                     ConsultationPackageId = package.Id,
                     CompanionId = package.CompanionId,
+                    ClinicId = package.ClinicId,
+                    CoachId = package.CoachId,
                     ChannelId = package.ChannelId,
                     DurationMinutes = package.DurationMinutes,
                     PackageName = package.Name,
@@ -309,7 +312,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     .Where(s => s.UserId == userId)
                     .OrderByDescending(s => s.Id)
                     .Take(50)
-                    .Select(s => new { Purchase = s, CompanionName = s.Companion.Name })
+                    .Select(s => new { Purchase = s, CompanionName = s.Companion != null ? s.Companion.Name : s.Clinic != null ? s.Clinic.Name : s.Coach.Name })
                     .ToListAsync();
                 return new BaseResultDto<List<ConsultationPurchaseVDto>>(true, rows.Select(r => ToVDto(r.Purchase, r.CompanionName, now)).ToList());
             }
@@ -325,7 +328,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             {
                 var row = await _context.ConsultationPurchases.AsNoTracking()
                     .Where(s => s.Id == id && s.UserId == userId)
-                    .Select(s => new { Purchase = s, CompanionName = s.Companion.Name })
+                    .Select(s => new { Purchase = s, CompanionName = s.Companion != null ? s.Companion.Name : s.Clinic != null ? s.Clinic.Name : s.Coach.Name })
                     .FirstOrDefaultAsync();
                 if (row == null)
                     return new BaseResultDto<ConsultationPurchaseVDto>(false, Resource.Notification.NothingFound, null);
@@ -598,6 +601,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             Id = s.Id,
             PurchaseCode = s.PurchaseCode,
             CompanionId = s.CompanionId,
+            ClinicId = s.ClinicId,
+            CoachId = s.CoachId,
             CompanionName = companionName,
             PackageName = s.PackageName,
             ChannelId = s.ChannelId,

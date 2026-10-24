@@ -19,7 +19,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto
     {
         public long Id { get; set; }
         public string PurchaseCode { get; set; }
-        public long CompanionId { get; set; }
+        // مالک خرید: دقیقاً یکی پر است (نمایندگی قدیمی / کلینیک / مربی)؛ CompanionName نام همان مرکز است
+        public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
         public string CompanionName { get; set; }
         // نام پکیج در لحظه‌ی خرید
         public string PackageName { get; set; }

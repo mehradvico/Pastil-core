@@ -1,6 +1,7 @@
 using Application.Common.Dto.Result;
 using Application.Common.Helpers;
 using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto;
+using Application.Services.ConsultationSrvs.ConsultationOwnerSrv;
 using Application.Services.ConsultationSrvs.ConsultationPackageSrv.Iface;
 using Application.Services.Filing.PictureSrv.Dto;
 using Entities.Entities;
@@ -26,11 +27,11 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
             _onlineService = onlineService;
         }
 
-        public async Task<BaseResultDto<List<ConsultationPackageItemDto>>> GetListAsync(long companionId)
+        public async Task<BaseResultDto<List<ConsultationPackageItemDto>>> GetListAsync(ConsultationOwner owner)
         {
             try
             {
-                return new BaseResultDto<List<ConsultationPackageItemDto>>(true, await LoadListAsync(companionId));
+                return new BaseResultDto<List<ConsultationPackageItemDto>>(true, await LoadListAsync(owner));
             }
             catch (Exception ex)
             {
@@ -38,23 +39,22 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
             }
         }
 
-        public async Task<BaseResultDto<ConsultationPackageItemDto>> CreateAsync(long companionId, ConsultationPackageItemDto dto)
+        public async Task<BaseResultDto<ConsultationPackageItemDto>> CreateAsync(ConsultationOwner owner, ConsultationPackageItemDto dto)
         {
             try
             {
-                var invalid = await ValidateAsync<ConsultationPackageItemDto>(companionId, dto, isUpdate: false);
+                var invalid = await ValidateAsync<ConsultationPackageItemDto>(owner, dto, isUpdate: false);
                 if (invalid != null)
                     return invalid;
 
                 var now = DateTime.Now;
                 var nextOrder = await _context.ConsultationPackages.AsNoTracking()
-                    .Where(s => s.CompanionId == companionId && !s.Deleted && s.ChannelId == dto.ChannelId)
+                    .ForOwner(owner).Where(s => !s.Deleted && s.ChannelId == dto.ChannelId)
                     .Select(s => (int?)s.SortOrder)
                     .MaxAsync() ?? 0;
 
                 var row = new ConsultationPackage
                 {
-                    CompanionId = companionId,
                     ChannelId = dto.ChannelId,
                     DurationMinutes = dto.DurationMinutes,
                     Price = dto.Price,
@@ -66,10 +66,11 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                     SortOrder = dto.SortOrder > 0 ? dto.SortOrder : nextOrder + 1,
                     CreateDate = now
                 };
+                row.Assign(owner);
                 await _context.ConsultationPackages.AddAsync(row);
                 await _context.SaveChangesAsync();
 
-                return new BaseResultDto<ConsultationPackageItemDto>(true, await LoadOneAsync(companionId, row.Id));
+                return new BaseResultDto<ConsultationPackageItemDto>(true, await LoadOneAsync(owner, row.Id));
             }
             catch (Exception ex)
             {
@@ -77,19 +78,19 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
             }
         }
 
-        public async Task<BaseResultDto<ConsultationPackageItemDto>> UpdateAsync(long companionId, ConsultationPackageItemDto dto)
+        public async Task<BaseResultDto<ConsultationPackageItemDto>> UpdateAsync(ConsultationOwner owner, ConsultationPackageItemDto dto)
         {
             try
             {
                 if (dto == null || dto.Id <= 0)
                     return new BaseResultDto<ConsultationPackageItemDto>(false, Resource.Notification.InvalidData, null);
 
-                var invalid = await ValidateAsync<ConsultationPackageItemDto>(companionId, dto, isUpdate: true);
+                var invalid = await ValidateAsync<ConsultationPackageItemDto>(owner, dto, isUpdate: true);
                 if (invalid != null)
                     return invalid;
 
                 var row = await _context.ConsultationPackages.AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.Id == dto.Id && s.CompanionId == companionId && !s.Deleted);
+                    .ForOwner(owner).FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
                 if (row == null)
                     return new BaseResultDto<ConsultationPackageItemDto>(false, Resource.Notification.NothingFound, null);
 
@@ -109,7 +110,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                 _context.ConsultationPackages.Update(row);
                 await _context.SaveChangesAsync();
 
-                return new BaseResultDto<ConsultationPackageItemDto>(true, await LoadOneAsync(companionId, row.Id));
+                return new BaseResultDto<ConsultationPackageItemDto>(true, await LoadOneAsync(owner, row.Id));
             }
             catch (Exception ex)
             {
@@ -117,12 +118,12 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
             }
         }
 
-        public async Task<BaseResultDto> DeleteAsync(long companionId, long id)
+        public async Task<BaseResultDto> DeleteAsync(ConsultationOwner owner, long id)
         {
             try
             {
                 var affected = await _context.ConsultationPackages
-                    .Where(s => s.Id == id && s.CompanionId == companionId && !s.Deleted)
+                    .ForOwner(owner).Where(s => s.Id == id && !s.Deleted)
                     .ExecuteUpdateAsync(setters => setters
                         .SetProperty(s => s.Deleted, true)
                         .SetProperty(s => s.Active, false)
@@ -137,22 +138,23 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
             }
         }
 
-        public async Task<BaseResultDto<List<ConsultationPackagePublicVDto>>> GetPublicAsync(long companionId)
+        public async Task<BaseResultDto<List<ConsultationPackagePublicVDto>>> GetPublicAsync(ConsultationOwner owner)
         {
             try
             {
-                var companionOpen = await _context.Companions.AsNoTracking()
-                    .AnyAsync(s => s.Id == companionId && !s.Deleted && s.Active && s.Approved);
+                var companionOpen = await ConsultationOwners.IsOpenAsync(_context, owner);
                 if (!companionOpen)
                     return new BaseResultDto<List<ConsultationPackagePublicVDto>>(true, new List<ConsultationPackagePublicVDto>());
 
                 var list = await _context.ConsultationPackages.AsNoTracking()
-                    .Where(s => s.CompanionId == companionId && !s.Deleted && s.Active && s.Price > 0)
+                    .ForOwner(owner).Where(s => !s.Deleted && s.Active && s.Price > 0)
                     .OrderBy(s => s.ChannelId).ThenBy(s => s.SortOrder).ThenBy(s => s.DurationMinutes).ThenBy(s => s.Id)
                     .Select(s => new ConsultationPackagePublicVDto
                     {
                         Id = s.Id,
                         CompanionId = s.CompanionId,
+                        ClinicId = s.ClinicId,
+                        CoachId = s.CoachId,
                         ChannelId = s.ChannelId,
                         DurationMinutes = s.DurationMinutes,
                         Price = s.Price,
@@ -171,7 +173,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                     })
                     .ToListAsync();
 
-                var online = (await _onlineService.GetPublicAsync(companionId)).Online;
+                var online = (await _onlineService.GetPublicAsync(owner)).Online;
                 list.ForEach(s => s.CompanionOnline = online);
 
                 return new BaseResultDto<List<ConsultationPackagePublicVDto>>(true, list);
@@ -185,10 +187,12 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
         public async Task<List<SearchConsultationPackageDto>> SearchMinAsync(SearchRequestDto request)
         {
             var predicate = SearchQueryHelper.ContainsAny<ConsultationPackage>(request.SearchTerms,
-                item => item.Name, item => item.Description, item => item.Companion.Name);
+                item => item.Name, item => item.Description, item => item.Companion.Name, item => item.Clinic.Name, item => item.Coach.Name);
             var query = _context.ConsultationPackages.AsNoTracking()
                 .Where(s => !s.Deleted && s.Active && s.Price > 0 &&
-                            !s.Companion.Deleted && s.Companion.Active && s.Companion.Approved);
+                            ((s.Companion != null && !s.Companion.Deleted && s.Companion.Active && s.Companion.Approved)
+                             || (s.Clinic != null && !s.Clinic.Deleted && s.Clinic.Active && s.Clinic.Approved)
+                             || (s.Coach != null && !s.Coach.Deleted && s.Coach.Active && s.Coach.Approved)));
             return await query.Where(predicate)
                 .OrderBy(s => s.ChannelId).ThenBy(s => s.SortOrder)
                 .Take(SearchQueryHelper.CandidateCount(request.ConsultationPackageCount))
@@ -197,7 +201,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                     Id = s.Id,
                     Name = s.Name,
                     CompanionId = s.CompanionId,
-                    CompanionName = s.Companion.Name,
+                    ClinicId = s.ClinicId,
+                    CoachId = s.CoachId,
+                    CompanionName = s.Companion != null ? s.Companion.Name : s.Clinic != null ? s.Clinic.Name : s.Coach.Name,
                     ChannelId = s.ChannelId,
                     DurationMinutes = s.DurationMinutes,
                     Price = s.Price,
@@ -208,7 +214,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
         }
 
         // null یعنی معتبر؛ غیر از آن پاسخ خطای آماده‌ی برگشتی
-        private async Task<BaseResultDto<T>> ValidateAsync<T>(long companionId, ConsultationPackageItemDto dto, bool isUpdate) where T : class
+        private async Task<BaseResultDto<T>> ValidateAsync<T>(ConsultationOwner owner, ConsultationPackageItemDto dto, bool isUpdate) where T : class
         {
             switch (ConsultationPackageRules.Validate(dto))
             {
@@ -227,7 +233,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                     return new BaseResultDto<T>(false, Resource.Notification.InvalidData, null);
             }
 
-            var companionExists = await _context.Companions.AsNoTracking().AnyAsync(s => s.Id == companionId && !s.Deleted);
+            var companionExists = await ConsultationOwners.ExistsAsync(_context, owner);
             if (!companionExists)
                 return new BaseResultDto<T>(false, Resource.Notification.NothingFound, null);
 
@@ -241,7 +247,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
             // نام تکراری زیر همان کانال (بدون حساسیت به حروف/فاصله) - ویرایش خودِ پکیج تکراری حساب نمی‌شود
             var key = ConsultationPackageRules.NameKey(dto.Name);
             var sameChannelNames = await _context.ConsultationPackages.AsNoTracking()
-                .Where(s => s.CompanionId == companionId && !s.Deleted && s.ChannelId == dto.ChannelId && (!isUpdate || s.Id != dto.Id))
+                .ForOwner(owner).Where(s => !s.Deleted && s.ChannelId == dto.ChannelId && (!isUpdate || s.Id != dto.Id))
                 .Select(s => s.Name)
                 .ToListAsync();
             if (sameChannelNames.Any(name => ConsultationPackageRules.NameKey(name) == key))
@@ -273,15 +279,15 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                 }
             });
 
-        private async Task<List<ConsultationPackageItemDto>> LoadListAsync(long companionId) =>
+        private async Task<List<ConsultationPackageItemDto>> LoadListAsync(ConsultationOwner owner) =>
             await ProjectItems(_context.ConsultationPackages.AsNoTracking()
-                    .Where(s => s.CompanionId == companionId && !s.Deleted)
+                    .ForOwner(owner).Where(s => !s.Deleted)
                     .OrderBy(s => s.ChannelId).ThenBy(s => s.SortOrder).ThenBy(s => s.DurationMinutes).ThenBy(s => s.Id))
                 .ToListAsync();
 
-        private async Task<ConsultationPackageItemDto> LoadOneAsync(long companionId, long id) =>
+        private async Task<ConsultationPackageItemDto> LoadOneAsync(ConsultationOwner owner, long id) =>
             await ProjectItems(_context.ConsultationPackages.AsNoTracking()
-                    .Where(s => s.Id == id && s.CompanionId == companionId))
+                    .ForOwner(owner).Where(s => s.Id == id))
                 .FirstOrDefaultAsync();
     }
 }

@@ -2692,4 +2692,22 @@
   <data name="PansionCommentReplyInvalid" xml:space="preserve">
     <value>پاسخ خالی یا طولانی‌تر از ۱۰۰۰ کاراکتر است.</value>
   </data>
+  <data name="VenueConsultationVenueNotApproved" xml:space="preserve">
+    <value>مرکز باید فعال و تأییدشده باشد تا مشاوره‌ی آنلاین ارائه دهد.</value>
+  </data>
+  <data name="SchoolReserveRefundFailed" xml:space="preserve">
+    <value>برگشت وجه ثبت‌نام انجام نشد؛ ثبت‌نام لغو نشد.</value>
+  </data>
+  <data name="AssistanceProviderRoleRequired" xml:space="preserve">
+    <value>نقش مالک خدمت را انتخاب کنید.</value>
+  </data>
+  <data name="AssistanceProviderRoleInvalid" xml:space="preserve">
+    <value>نقش انتخاب‌شده معتبر نیست.</value>
+  </data>
+  <data name="AssistanceProviderRoleInUse" xml:space="preserve">
+    <value>این خدمت هم‌اکنون توسط مراکز نقش دیگری استفاده می‌شود و نقش آن قابل تغییر نیست.</value>
+  </data>
+  <data name="AssistanceNotForRole" xml:space="preserve">
+    <value>این خدمت متعلق به نقش دیگری است و برای این مرکز قابل ثبت نیست.</value>
+  </data>
 </root>

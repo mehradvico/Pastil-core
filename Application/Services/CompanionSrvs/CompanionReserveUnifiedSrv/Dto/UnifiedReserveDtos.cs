@@ -29,7 +29,10 @@ namespace Application.Services.CompanionSrvs.CompanionReserveUnifiedSrv.Dto
         public string Code { get; set; }
         public string BookerName { get; set; }
         public string BookerMobile { get; set; }
-        public long CompanionId { get; set; }
+        // مالک: خدمت همیشه نمایندگی قدیمی است؛ مشاوره می‌تواند نمایندگی / کلینیک / مربی باشد (دقیقاً یکی پر است)
+        public long? CompanionId { get; set; }
+        public long? ClinicId { get; set; }
+        public long? CoachId { get; set; }
         public string CompanionName { get; set; }
         // نام خدمت (رزرو خدمت) یا نام پکیج (مشاوره)
         public string Title { get; set; }
