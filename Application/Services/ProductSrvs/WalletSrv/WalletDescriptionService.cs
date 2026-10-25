@@ -87,17 +87,20 @@ namespace Application.Services.ProductSrvs.WalletSrv
                     codes.PansionReserves[row.Id] = row.ReserveCode;
 
             var groomerReserveIds = Ids(inputs.Select(i => i.GroomerReserveId)
-                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.GroomerReserveRefundPrefix))));
+                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.GroomerReserveRefundPrefix)))
+                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.GroomerDebtPrefix))));
             if (groomerReserveIds.Count > 0)
                 foreach (var row in _context.GroomerReserves.AsNoTracking().Where(s => groomerReserveIds.Contains(s.Id)).Select(s => new { s.Id, s.ReserveCode }).ToList())
                     codes.GroomerReserves[row.Id] = row.ReserveCode;
             var clinicReserveIds = Ids(inputs.Select(i => i.ClinicReserveId)
-                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.ClinicReserveRefundPrefix))));
+                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.ClinicReserveRefundPrefix)))
+                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.ClinicDebtPrefix))));
             if (clinicReserveIds.Count > 0)
                 foreach (var row in _context.ClinicReserves.AsNoTracking().Where(s => clinicReserveIds.Contains(s.Id)).Select(s => new { s.Id, s.ReserveCode }).ToList())
                     codes.ClinicReserves[row.Id] = row.ReserveCode;
             var coachReserveIds = Ids(inputs.Select(i => i.CoachReserveId)
-                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.CoachReserveRefundPrefix))));
+                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.CoachReserveRefundPrefix)))
+                .Concat(inputs.Select(i => WalletDescriptionRules.TryGetLedgerId(i.Name, WalletDescriptionRules.CoachDebtPrefix))));
             if (coachReserveIds.Count > 0)
                 foreach (var row in _context.CoachReserves.AsNoTracking().Where(s => coachReserveIds.Contains(s.Id)).Select(s => new { s.Id, s.ReserveCode }).ToList())
                     codes.CoachReserves[row.Id] = row.ReserveCode;

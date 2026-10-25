@@ -148,6 +148,7 @@ namespace Persistence.Context
 
             modelBuilder.Entity<ClinicReserve>(entity =>
             {
+                entity.Property(item => item.CompleteDetail).HasMaxLength(500);
                 entity.Property(item => item.ReserveCode).HasMaxLength(40);
                 entity.Property(item => item.BookerNote).HasMaxLength(500);
                 entity.Property(item => item.CommissionPercent).HasPrecision(5, 2);

@@ -144,6 +144,10 @@ public class VenueConsultationTests : IClassFixture<CoachLocalDbFixture>
         // فهرست هر مرکز فقط مال خودش است
         Assert.Equal(2, (await service.GetListAsync(VenueKind.Coach, coachId, seed.OwnerUserId)).Data.Count);
         Assert.Single((await service.GetListAsync(VenueKind.Clinic, clinicId, seed.OwnerUserId)).Data);
+        // بسته‌ی کلینیک/مربی تا تأیید ادمین عمومی نیست
+        Assert.All(rows, p => Assert.False(p.Approved));
+        Assert.Empty((await service.GetPublicAsync(VenueKind.Coach, coachId)).Data);
+        await ApproveAllAsync();
         Assert.Equal(2, (await service.GetPublicAsync(VenueKind.Coach, coachId)).Data.Count);
         var publicRow = (await service.GetPublicAsync(VenueKind.Clinic, clinicId)).Data.Single();
         Assert.Equal(clinicId, publicRow.ClinicId);
@@ -155,6 +159,35 @@ public class VenueConsultationTests : IClassFixture<CoachLocalDbFixture>
         Assert.False((await service.DeleteAsync(VenueKind.Clinic, clinicId, seed.OwnerUserId, firstId)).IsSuccess);
         Assert.True((await service.DeleteAsync(VenueKind.Coach, coachId, seed.OwnerUserId, firstId)).IsSuccess);
         Assert.Single((await service.GetListAsync(VenueKind.Coach, coachId, seed.OwnerUserId)).Data);
+    }
+
+    private async Task ApproveAllAsync()
+    {
+        using var ctx = _fixture.NewContext();
+        await ctx.ConsultationPackages.Where(p => !p.Approved).ExecuteUpdateAsync(x => x.SetProperty(p => p.Approved, true));
+    }
+
+    [Fact]
+    public async Task Packages_EditingContent_NeedsReapproval()
+    {
+        if (!_fixture.Available) return;
+        var seed = _fixture.Seed();
+        var service = NewService();
+        var coachId = await AddCoachAsync(seed);
+        var created = (await service.CreateAsync(VenueKind.Coach, coachId, seed.OwnerUserId, Package(1, 150_000, "Chat"))).Data;
+        Assert.False(created.Approved);
+        await ApproveAllAsync();
+        Assert.Single((await service.GetPublicAsync(VenueKind.Coach, coachId)).Data);
+
+        // فقط تغییر ترتیب: تأیید می‌ماند
+        var same = Package(1, 150_000, "Chat"); same.Id = created.Id; same.SortOrder = 5;
+        // هر درخواست کانتکست خودش را دارد (مثل محیط واقعی)
+        Assert.True((await NewService().UpdateAsync(VenueKind.Coach, coachId, seed.OwnerUserId, same)).Data.Approved);
+
+        // تغییر قیمت: دوباره در انتظار تأیید
+        var priced = Package(1, 180_000, "Chat"); priced.Id = created.Id;
+        Assert.False((await NewService().UpdateAsync(VenueKind.Coach, coachId, seed.OwnerUserId, priced)).Data.Approved);
+        Assert.Empty((await NewService().GetPublicAsync(VenueKind.Coach, coachId)).Data);
     }
 
     [Fact]
@@ -205,6 +238,7 @@ public class VenueConsultationTests : IClassFixture<CoachLocalDbFixture>
 
         // پکیج عمومی مربی چراغ آنلاین را از همین جدول می‌گیرد
         await service.CreateAsync(VenueKind.Coach, coachId, seed.OwnerUserId, Package(1, 150_000, "Chat"));
+        await ApproveAllAsync();
         Assert.True((await service.GetPublicAsync(VenueKind.Coach, coachId)).Data.Single().CompanionOnline);
     }
 

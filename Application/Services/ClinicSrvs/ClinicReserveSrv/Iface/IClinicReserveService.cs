@@ -35,7 +35,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv.Iface
         Task<BaseResultDto<ClinicReserveVDto>> RescheduleAsync(long id, DateTime newDoDate, long? ownerUserId);
 
         /// <summary>تکمیل رزرو توسط مالک (ownerUserId) یا ادمین (null) بعد از زمان نوبت.</summary>
-        Task<BaseResultDto> CompleteAsync(long id, long? ownerUserId);
+        /// <summary>تکمیل با بدنه‌ی اختیاری مبلغ نهایی/دریافتی در محل؛ userId = مالک یا پرسنل انتخاب‌شده، null = ادمین.</summary>
+        Task<BaseResultDto<ClinicReserveVDto>> CompleteAsync(long id, long? userId, Application.Services.ReserveCompleteSrv.ReserveCompleteDto dto = null);
     }
 
     public interface IClinicReserveApprovalService

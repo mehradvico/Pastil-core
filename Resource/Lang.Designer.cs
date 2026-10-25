@@ -63,6 +63,24 @@ namespace Resource {
         /// <summary>
         ///   Looks up a localized string similar to ConsultationChannelChat.
         /// </summary>
+        public static string VenueMemberOwnerRole {
+            get {
+                return ResourceManager.GetString("VenueMemberOwnerRole", resourceCulture);
+            }
+        }
+
+        public static string VenueMemberDefaultRole {
+            get {
+                return ResourceManager.GetString("VenueMemberDefaultRole", resourceCulture);
+            }
+        }
+
+        public static string VenueMemberRoleSeparator {
+            get {
+                return ResourceManager.GetString("VenueMemberRoleSeparator", resourceCulture);
+            }
+        }
+
         public static string ConsultationChannelChat {
             get {
                 return ResourceManager.GetString("ConsultationChannelChat", resourceCulture);

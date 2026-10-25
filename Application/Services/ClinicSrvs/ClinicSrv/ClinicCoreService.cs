@@ -210,7 +210,7 @@ namespace Application.Services.ClinicSrvs.ClinicSrv
                 .ToHashSet();
             // یا مرکز بسته‌ی مشاوره‌ی آنلاین فوری (چت/تماس) فعال با قیمت مثبت دارد (روی خودِ مرکز کلید خورده)
             var consultation = _context.ConsultationPackages.AsNoTracking()
-                .Where(p => p.ClinicId != null && ids.Contains(p.ClinicId.Value) && !p.Deleted && p.Active && p.Price > 0)
+                .Where(p => p.ClinicId != null && ids.Contains(p.ClinicId.Value) && !p.Deleted && p.Active && p.Approved && p.Price > 0)
                 .Select(p => p.ClinicId.Value)
                 .Distinct()
                 .ToList();

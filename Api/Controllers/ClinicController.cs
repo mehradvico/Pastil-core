@@ -5,6 +5,7 @@ using Application.Services.ClinicSrvs.ClinicProfileSrv.Dto;
 using Application.Services.ClinicSrvs.ClinicProfileSrv.Iface;
 using Application.Services.ClinicSrvs.ClinicSrv.Dto;
 using Application.Services.ClinicSrvs.ClinicSrv.Iface;
+using Application.Services.VenueMemberSrv;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,9 +22,11 @@ namespace Api.Controllers
         private readonly IClinicCoreService _service;
         private readonly IClinicCatalogService _catalog;
         private readonly IClinicProfileService _profile;
+        private readonly IVenueMemberService _members;
 
-        public ClinicController(IClinicCoreService service, IClinicCatalogService catalog, IClinicProfileService profile)
+        public ClinicController(IClinicCoreService service, IClinicCatalogService catalog, IClinicProfileService profile, IVenueMemberService members)
         {
+            _members = members;
             _service = service;
             _catalog = catalog;
             _profile = profile;
@@ -68,6 +71,17 @@ namespace Api.Controllers
             if (!(await _service.FindPublicAsync(id)).IsSuccess)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(await _profile.GetPicturesAsync(id));
+        }
+
+        /// <summary>اعضای مرکز (کارت «اعضای مرکز»): مالک + پرسنل پذیرفته‌شده و فعال؛ فقط نام، عکس و عنوان نقش</summary>
+        /// <remarks>pageSize پیش‌فرض و حداکثر ۵۰؛ مرکزِ بدون عضو = data خالی. پاسخ ۶۰ ثانیه cache می‌شود.</remarks>
+        [HttpGet("{id:long}/Members")]
+        [ProducesResponseType(typeof(BaseResultDto<List<VenueMemberVDto>>), 200)]
+        public async Task<IActionResult> Members(long id, int? page = null, int? pageSize = null)
+        {
+            if (!(await _service.FindPublicAsync(id)).IsSuccess)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
+            return Ok(await _members.ClinicMembersAsync(id, page, pageSize));
         }
     }
 }

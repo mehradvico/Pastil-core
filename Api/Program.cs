@@ -657,7 +657,7 @@ recurringJobManager.AddOrUpdate<Application.Services.FinanceSrvs.UserBankCardSrv
 if (Persistence.Security.SensitiveDataProtector.IsConfigured)
     Hangfire.BackgroundJob.Enqueue<Application.Services.FinanceSrvs.UserBankCardSrv.Iface.IUserBankCardProtectionService>(service => service.ProtectExistingAsync());
 else
-    app.Logger.LogWarning("Security:BankCardEncryptionKey (PASTIL_BANKCARD_ENCRYPTION_KEY) is not configured: bank card numbers and sheba are stored WITHOUT encryption.");
+    app.Logger.LogWarning("Security:BankCardEncryptionKey (PASTIL_BANKCARD_ENCRYPTION_KEY) is not configured: bank cards are unencrypted and provider onboarding identity/document uploads are disabled.");
 recurringJobManager.AddOrUpdate<Application.Services.Accounting.UserPetSrv.Iface.IUserPetService>(
     "PetBirthdayPush",
     service => service.SendBirthdayPushesAsync(CancellationToken.None),

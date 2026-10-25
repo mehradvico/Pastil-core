@@ -44,7 +44,7 @@ namespace Application.Services.CompanionSrvs.CompanionPanelAccessSrv
 
         public async Task<CompanionPanelAccessVDto> GetAsync(long userId)
         {
-            var isProvider = await _context.Providers.AsNoTracking().AnyAsync(p => p.UserId == userId && !p.Deleted);
+            var isProvider = await _context.Providers.AsNoTracking().AnyAsync(p => p.UserId == userId && !p.Deleted && p.Active && p.Approved);
 
             var ownsCenter =
                 await _context.Companions.AsNoTracking().AnyAsync(c => c.OwnerId == userId && !c.Deleted) ||

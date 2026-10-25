@@ -36,6 +36,6 @@ namespace Api.Areas.EndUser.Controllers
         [HttpPost("Pay")]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Pay([FromBody] ReserveDebtPayDto dto)
-            => Ok(await _service.PayFromWalletAsync(_currentUser.CurrentUser.UserId, dto?.ReserveId ?? 0));
+            => Ok(await _service.PayFromWalletAsync(_currentUser.CurrentUser.UserId, dto?.ReserveId ?? 0, (ReserveDebtKindEnum)(dto?.Kind ?? 0)));
     }
 }

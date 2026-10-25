@@ -123,6 +123,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto
         public long VenueId { get; set; }
         public string VenueName { get; set; }
         public int ActivePackages { get; set; }
+        // بسته‌های فعالِ در انتظار تأیید ادمین
+        public int PendingPackages { get; set; }
         public double MinPrice { get; set; }
         public double MaxPrice { get; set; }
         public int PurchasesCount { get; set; }
@@ -139,6 +141,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto
         public int DurationMinutes { get; set; }
         public double Price { get; set; }
         public bool Active { get; set; }
+        public bool Approved { get; set; }
         public bool Bookable { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }

@@ -27,5 +27,6 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Iface
         Task<BaseResultDto<List<ConsultationVenueAdminVDto>>> GetVenuesAsync(string kind, string q);
         Task<BaseResultDto<List<ConsultationVenuePackageAdminVDto>>> GetVenuePackagesAsync(string kind, long venueId);
         Task<BaseResultDto> DeleteVenuePackageAsync(string kind, long venueId, long id);
+        Task<BaseResultDto> ApproveVenuePackageAsync(string kind, long venueId, long id, bool approved);
     }
 }

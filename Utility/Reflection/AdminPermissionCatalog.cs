@@ -193,7 +193,7 @@
                     "CompanionPet", "CompanionTime", "CompanionZone", "CompanionComment", "CompanionReport", "Agency"),
                 S("CompanionUser", "CompanionUserAvailable"),
                 S("CompanionType"),
-                S("Provider", "ProviderRoleAssignment", "ProviderSubscription", "ProviderVenue", "ProviderOverview"),
+                S("Provider", "ProviderRoleAssignment", "ProviderSubscription", "ProviderVenue", "ProviderOverview", "ProviderOnboarding"),
                 S("ProviderRole"),
                 S("Store", "StoreApproval", "StoreUser", "StoreComment"),
                 S("SubscriptionPlan"),

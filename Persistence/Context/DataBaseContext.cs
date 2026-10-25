@@ -235,6 +235,9 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<CompanionUser> CompanionUsers { get; set; }
         public DbSet<CompanionUserExpertise> CompanionUserExpertises { get; set; }
         public DbSet<Provider> Providers { get; set; }
+        public DbSet<ProviderOnboardingApplication> ProviderOnboardingApplications { get; set; }
+        public DbSet<ProviderOnboardingDocument> ProviderOnboardingDocuments { get; set; }
+        public DbSet<ProviderOnboardingEvent> ProviderOnboardingEvents { get; set; }
         public DbSet<ProviderRole> ProviderRoles { get; set; }
         public DbSet<ProviderRoleAssignment> ProviderRoleAssignments { get; set; }
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
@@ -1448,6 +1451,48 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasOne(x => x.Provider).WithMany(x => x.RoleAssignments).HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(x => x.ProviderRole).WithMany(x => x.Assignments).HasForeignKey(x => x.ProviderRoleId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasIndex(x => new { x.ProviderId, x.ProviderRoleId }).IsUnique().HasFilter("[Deleted] = 0");
+            });
+            modelBuilder.Entity<ProviderOnboardingApplication>(entity =>
+            {
+                entity.Property(x => x.Kind).IsRequired().HasMaxLength(20);
+                entity.Property(x => x.RoleLabel).HasMaxLength(50);
+                entity.Property(x => x.Status).IsRequired().HasMaxLength(30);
+                entity.Property(x => x.FirstName).HasMaxLength(100);
+                entity.Property(x => x.LastName).HasMaxLength(100);
+                entity.Property(x => x.NationalCode).HasMaxLength(512).HasConversion(
+                    value => SensitiveDataProtector.Protect(value),
+                    value => SensitiveDataProtector.Unprotect(value));
+                entity.Property(x => x.BirthDate).HasMaxLength(512).HasConversion(
+                    value => SensitiveDataProtector.Protect(value),
+                    value => SensitiveDataProtector.Unprotect(value));
+                entity.Property(x => x.ApplicantType).HasMaxLength(20);
+                entity.Property(x => x.CompanyName).HasMaxLength(200);
+                entity.Property(x => x.CompanyNationalId).HasMaxLength(20);
+                entity.Property(x => x.City).HasMaxLength(100);
+                entity.Property(x => x.BusinessName).HasMaxLength(200);
+                entity.Property(x => x.BusinessAddress).HasMaxLength(500);
+                entity.Property(x => x.BusinessPhone).HasMaxLength(30);
+                entity.Property(x => x.ReviewerNote).HasMaxLength(2000);
+                entity.HasIndex(x => new { x.UserId, x.Kind, x.Status });
+                entity.HasIndex(x => new { x.Kind, x.Status, x.SubmittedAt });
+            });
+            modelBuilder.Entity<ProviderOnboardingDocument>(entity =>
+            {
+                entity.Property(x => x.Kind).IsRequired().HasMaxLength(50);
+                entity.Property(x => x.FileName).IsRequired().HasMaxLength(200);
+                entity.Property(x => x.ContentType).IsRequired().HasMaxLength(50);
+                entity.Property(x => x.ProtectedContent).IsRequired();
+                entity.HasOne(x => x.Application).WithMany(x => x.Documents)
+                    .HasForeignKey(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(x => new { x.ApplicationId, x.Kind }).IsUnique();
+            });
+            modelBuilder.Entity<ProviderOnboardingEvent>(entity =>
+            {
+                entity.Property(x => x.Status).IsRequired().HasMaxLength(30);
+                entity.Property(x => x.Note).HasMaxLength(2000);
+                entity.HasOne(x => x.Application).WithMany(x => x.Events)
+                    .HasForeignKey(x => x.ApplicationId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(x => new { x.ApplicationId, x.CreatedAt });
             });
             modelBuilder.Entity<SubscriptionPlan>(entity =>
             {

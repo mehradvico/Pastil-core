@@ -39,6 +39,15 @@
 **ادمین (نیاز به Permission Sync)**
 - `GET /api/Admin/ConsultationVenue/{clinic|coach}?q=` فهرست مرکزها با خلاصه‌ی بسته‌ها.
 - `GET|DELETE /api/Admin/ConsultationVenue/{kind}/{venueId}/Packages`.
+- `PUT /api/Admin/ConsultationVenue/{kind}/{venueId}/Packages/Approve?id=&approved=true|false` تأیید/لغو تأیید بسته (۲۰۲۶-۱۰-۲۵، migration `ConsultationPackageApproved`).
+
+### تأیید ادمین برای بسته‌ها (۲۰۲۶-۱۰-۲۵)
+- ستون `ConsultationPackages.Approved`؛ بسته‌های موجود هنگام migration تأییدشده می‌شوند (default 1).
+- بسته‌ی جدید کلینیک/مربی با `Approved=false` ساخته می‌شود؛ بسته‌ی Companion همیشه `true`.
+- ویرایش محتوایی نماینده (کانال، مدت، قیمت، نام، توضیح، تصویر، قابل‌رزرو) تأیید را دوباره `false` می‌کند؛ روشن/خاموش و ترتیب نه.
+- نمایش عمومی، جست‌وجو، خرید، رزرو و نشان «مشاوره آنلاین» کلینیک/مربی فقط بسته‌ی `Active && Approved` را حساب می‌کنند.
+- نماینده فیلد `approved` را در پاسخ فهرست بسته‌هایش می‌بیند (فقط خواندنی) تا «در انتظار تأیید» نمایش دهد.
+- پنل: خریدهای مشاوره ← تب «کلینیک/مربی مستقل» (`/admin/consultationvenue`) ← مرکز ← دکمه‌ی «تأیید پکیج».
 - فیلتر خریدها: `GET /api/Admin/ConsultationPurchase?ClinicId=|CoachId=`.
 - درصد سهم سایت هر بسته: `PUT /api/Admin/FinanceConsultationPackage` (بدون تغییر). پنل: `/admin/consultationvenue`.
 

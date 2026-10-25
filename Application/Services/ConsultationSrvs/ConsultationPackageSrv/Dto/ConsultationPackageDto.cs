@@ -12,6 +12,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto
         public int DurationMinutes { get; set; }
         public double Price { get; set; }
         public bool Active { get; set; }
+        // فقط خواندنی برای نماینده؛ با PUT Admin/ConsultationVenue/{kind}/{venueId}/Packages/Approve عوض می‌شود
+        public bool Approved { get; set; }
         // «قابل رزرو»: true ⇒ کاربر هنگام خرید ساعت انتخاب می‌کند (بازه‌های کاری: /api/Companion/ConsultationAvailability).
         // در ورودی null یعنی «تغییر نده» (ویرایش) / false (ساخت)؛ در خروجی همیشه true/false است.
         public bool? Bookable { get; set; }

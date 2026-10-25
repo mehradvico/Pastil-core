@@ -363,4 +363,13 @@
   <data name="ConsultationChannelPhone" xml:space="preserve">
     <value>Phone call</value>
   </data>
+  <data name="VenueMemberOwnerRole" xml:space="preserve">
+    <value>Center manager</value>
+  </data>
+  <data name="VenueMemberDefaultRole" xml:space="preserve">
+    <value>Team member</value>
+  </data>
+  <data name="VenueMemberRoleSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
 </root>

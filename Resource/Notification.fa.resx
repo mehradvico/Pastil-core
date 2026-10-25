@@ -2710,4 +2710,16 @@
   <data name="AssistanceNotForRole" xml:space="preserve">
     <value>این خدمت متعلق به نقش دیگری است و برای این مرکز قابل ثبت نیست.</value>
   </data>
+  <data name="ReserveCompleteDetailTooLong" xml:space="preserve">
+    <value>توضیحات حداکثر ۵۰۰ کاراکتر است.</value>
+  </data>
+  <data name="ReserveCompleteFinalAmountInvalid" xml:space="preserve">
+    <value>مبلغ نهایی باید صفر یا بیشتر باشد.</value>
+  </data>
+  <data name="ReserveCompleteFinalBelowOnline" xml:space="preserve">
+    <value>مبلغ نهایی نمی‌تواند کمتر از مبلغی باشد که مشتری آنلاین پرداخت کرده است.</value>
+  </data>
+  <data name="ReserveCompleteReceivedInvalid" xml:space="preserve">
+    <value>مبلغ دریافتی در محل باید بین صفر و «مبلغ نهایی منهای پرداخت آنلاین» باشد.</value>
+  </data>
 </root>

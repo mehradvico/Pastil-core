@@ -59,6 +59,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                     DurationMinutes = dto.DurationMinutes,
                     Price = dto.Price,
                     Active = dto.Active,
+                    // بسته‌ی کلینیک/مربی تا تأیید ادمین به کاربر نمایش داده نمی‌شود
+                    Approved = owner.Kind == ConsultationOwnerKind.Companion,
                     Bookable = dto.Bookable ?? false,
                     Name = ConsultationPackageRules.NormalizeName(dto.Name),
                     Description = ConsultationPackageRules.NormalizeDescription(dto.Description),
@@ -94,6 +96,14 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                 if (row == null)
                     return new BaseResultDto<ConsultationPackageItemDto>(false, Resource.Notification.NothingFound, null);
 
+                // تغییر محتوایی بسته‌ی کلینیک/مربی دوباره به تأیید ادمین نیاز دارد (روشن/خاموش کردن و ترتیب نه)
+                if (owner.Kind != ConsultationOwnerKind.Companion && row.Approved && (
+                        row.ChannelId != dto.ChannelId || row.DurationMinutes != dto.DurationMinutes || row.Price != dto.Price
+                        || row.Name != ConsultationPackageRules.NormalizeName(dto.Name)
+                        || row.Description != ConsultationPackageRules.NormalizeDescription(dto.Description)
+                        || row.PictureId != (dto.PictureId is > 0 ? dto.PictureId : null)
+                        || (dto.Bookable.HasValue && row.Bookable != dto.Bookable.Value)))
+                    row.Approved = false;
                 row.ChannelId = dto.ChannelId;
                 row.DurationMinutes = dto.DurationMinutes;
                 row.Price = dto.Price;
@@ -147,7 +157,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                     return new BaseResultDto<List<ConsultationPackagePublicVDto>>(true, new List<ConsultationPackagePublicVDto>());
 
                 var list = await _context.ConsultationPackages.AsNoTracking()
-                    .ForOwner(owner).Where(s => !s.Deleted && s.Active && s.Price > 0)
+                    .ForOwner(owner).Where(s => !s.Deleted && s.Active && s.Approved && s.Price > 0)
                     .OrderBy(s => s.ChannelId).ThenBy(s => s.SortOrder).ThenBy(s => s.DurationMinutes).ThenBy(s => s.Id)
                     .Select(s => new ConsultationPackagePublicVDto
                     {
@@ -189,7 +199,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
             var predicate = SearchQueryHelper.ContainsAny<ConsultationPackage>(request.SearchTerms,
                 item => item.Name, item => item.Description, item => item.Companion.Name, item => item.Clinic.Name, item => item.Coach.Name);
             var query = _context.ConsultationPackages.AsNoTracking()
-                .Where(s => !s.Deleted && s.Active && s.Price > 0 &&
+                .Where(s => !s.Deleted && s.Active && s.Approved && s.Price > 0 &&
                             ((s.Companion != null && !s.Companion.Deleted && s.Companion.Active && s.Companion.Approved)
                              || (s.Clinic != null && !s.Clinic.Deleted && s.Clinic.Active && s.Clinic.Approved)
                              || (s.Coach != null && !s.Coach.Deleted && s.Coach.Active && s.Coach.Approved)));
@@ -264,6 +274,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                 DurationMinutes = s.DurationMinutes,
                 Price = s.Price,
                 Active = s.Active,
+                Approved = s.Approved,
                 Bookable = s.Bookable,
                 Name = s.Name,
                 Description = s.Description,

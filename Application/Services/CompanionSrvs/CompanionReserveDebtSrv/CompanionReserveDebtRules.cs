@@ -27,9 +27,14 @@ namespace Application.Services.CompanionSrvs.CompanionReserveDebtSrv
             if (userId <= 0)
                 return false;
             var threshold = now.AddDays(-LockAfterDays);
-            return await context.CompanionReserves.AsNoTracking().AnyAsync(r =>
-                r.BookerId == userId && r.OperatorUnpaid && r.OperatorDebtPaidDate == null && !r.IsCancel &&
-                r.OperatorUnpaidDate != null && r.OperatorUnpaidDate <= threshold);
+            if (await context.CompanionReserves.AsNoTracking().AnyAsync(r =>
+                    r.BookerId == userId && r.OperatorUnpaid && r.OperatorDebtPaidDate == null && !r.IsCancel &&
+                    r.OperatorUnpaidDate != null && r.OperatorUnpaidDate <= threshold))
+                return true;
+            // بدهی «دریافت‌نشده»ی تکمیل رزرو مربی/کلینیک/آرایشگاه هم همین قفل را دارد
+            return await VenueReserveDebtQueries.Overdue(context.CoachReserves.AsNoTracking(), userId, now).AnyAsync()
+                   || await VenueReserveDebtQueries.Overdue(context.ClinicReserves.AsNoTracking(), userId, now).AnyAsync()
+                   || await VenueReserveDebtQueries.Overdue(context.GroomerReserves.AsNoTracking(), userId, now).AnyAsync();
         }
 
         // سهم سایت از مبلغی که بعداً پرداخت شده (کمیسیون خدمت)
@@ -61,6 +66,12 @@ namespace Application.Services.CompanionSrvs.CompanionReserveDebtSrv
         // کلید یکتای پوش «کسر شد» برای هر رزرو
         public static string CollectedKey(long reserveId) =>
             string.Create(System.Globalization.CultureInfo.InvariantCulture, $"debtpaid:{reserveId}");
+
+        // رزروهای مربی/کلینیک/آرایشگاه شناسه‌ی جدا دارند؛ کلید همراه (kind=0) همان کلید قدیمی می‌ماند
+        public static string CollectedKey(long reserveId, ReserveDebtKindEnum kind) =>
+            kind == ReserveDebtKindEnum.Companion
+                ? CollectedKey(reserveId)
+                : string.Create(System.Globalization.CultureInfo.InvariantCulture, $"debtpaid:{(int)kind}-{reserveId}");
 
         // پرداخت از کیف پول فقط وقتی موجودی کل بدهی را پوشش دهد (با تلورانس ۰٫۰۱ مثل PayFromWalletAsync)
         public static bool WalletCovers(double balance, double amount) => balance + 0.01 >= amount;

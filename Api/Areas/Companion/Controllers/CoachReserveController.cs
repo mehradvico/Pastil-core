@@ -3,7 +3,9 @@ using Application.Common.Interface;
 using Application.Services.CoachSrvs.CoachReserveSrv.Dto;
 using Application.Services.CoachSrvs.CoachReserveSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
+using Application.Services.ReserveCompleteSrv;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Api.Areas.Companion.Controllers
 {
@@ -59,9 +61,12 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CoachReserveVDto>), 200)]
         public async Task<IActionResult> Reschedule(CoachReserveRescheduleDto dto) => Ok(await _service.RescheduleAsync(dto.Id, dto.NewDoDate, UserId));
 
-        /// <summary>تکمیل رزرو بعد از انجام خدمت</summary>
+        /// <summary>تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو)</summary>
+        /// <remarks>بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده.
+        /// طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
         [HttpPut("Complete")]
-        [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public async Task<IActionResult> Complete(long id) => Ok(await _service.CompleteAsync(id, UserId));
+        [ProducesResponseType(typeof(BaseResultDto<CoachReserveVDto>), 200)]
+        public async Task<IActionResult> Complete(long id, [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] ReserveCompleteDto dto = null)
+            => Ok(await _service.CompleteAsync(id, UserId, dto));
     }
 }

@@ -4,6 +4,7 @@ using Application.Common.Enumerable.Code;
 using Application.Services.Accounting.ScoreTransactionSrv.Iface;
 using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveDebtSrv;
+using Application.Services.ReserveCompleteSrv;
 using Application.Services.GroomerSrvs.GroomerReserveSrv.Dto;
 using Application.Services.GroomerSrvs.GroomerReserveSrv.Iface;
 using Application.Services.Order.PaymentSrv;
@@ -31,6 +32,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
         private readonly IScoreTransactionService _scoreService;
         private readonly IClubPointIntegrationService _clubPoints;
         private readonly ILogger<GroomerReserveService> _logger;
+        private readonly ICompanionReserveDebtService _debtService;
 
         public GroomerReserveService(
             IDataBaseContext context,
@@ -39,7 +41,8 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             IGroomerNotifier notifier,
             IScoreTransactionService scoreService,
             IClubPointIntegrationService clubPoints,
-            ILogger<GroomerReserveService> logger)
+            ILogger<GroomerReserveService> logger,
+            ICompanionReserveDebtService debtService = null)
         {
             _context = context;
             _walletService = walletService;
@@ -48,6 +51,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             _scoreService = scoreService;
             _clubPoints = clubPoints;
             _logger = logger;
+            _debtService = debtService;
         }
 
         // ------------------------------------------------------------------ قیمت و زمان‌های آزاد
@@ -565,29 +569,59 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
 
         // ------------------------------------------------------------------ تکمیل
 
-        public async Task<BaseResultDto> CompleteAsync(long id, long? ownerUserId)
+        public async Task<BaseResultDto<GroomerReserveVDto>> CompleteAsync(long id, long? userId, ReserveCompleteDto dto = null)
         {
-            var reserve = await _context.GroomerReserves.AsTracking()
-                .Include(r => r.Groomer)
-                .FirstOrDefaultAsync(r => r.Id == id);
+            var reserve = await _context.GroomerReserves.AsNoTracking()
+                .Where(r => r.Id == id)
+                .Select(r => new { r.Status, r.IsReserved, r.IsCancel, r.OwnerDecision, r.DoDate, r.Price, r.OnlineAmount, r.BookerId, r.AssigneeUserId, r.Groomer.OwnerId })
+                .FirstOrDefaultAsync();
             if (reserve == null)
-                return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (ownerUserId.HasValue && reserve.Groomer.OwnerId != ownerUserId.Value)
-                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+                return Fail(Resource.Notification.NothingFound);
+            // فقط مالک یا پرسنلِ انتخاب‌شده‌ی همین رزرو (userId خالی = ادمین)
+            if (!ReserveCompleteRules.CanComplete(userId, reserve.OwnerId, reserve.AssigneeUserId))
+                return Fail(Resource.Notification.AccessDenied);
             if (reserve.Status == (int)GroomerReserveStatusEnum.Complete)
-                return new BaseResultDto(false, Resource.Notification.GroomerReserveAlreadyCompleted);
+                return Fail(Resource.Notification.GroomerReserveAlreadyCompleted);
             if (!reserve.IsReserved || reserve.IsCancel)
-                return new BaseResultDto(false, Resource.Notification.GroomerReserveNotPaid);
+                return Fail(Resource.Notification.GroomerReserveNotPaid);
             if (!GroomerReserveRules.CanComplete(reserve.OwnerDecision))
-                return new BaseResultDto(false, Resource.Notification.GroomerReserveAwaitingOwnerApproval);
+                return Fail(Resource.Notification.GroomerReserveAwaitingOwnerApproval);
             if (reserve.DoDate > DateTime.Now)
-                return new BaseResultDto(false, Resource.Notification.GroomerReserveNotStartedYet);
+                return Fail(Resource.Notification.GroomerReserveNotStartedYet);
 
-            reserve.Status = (int)GroomerReserveStatusEnum.Complete;
-            reserve.DoneDate = DateTime.Now;
-            await _context.SaveChangesAsync();
-            await SafeAsync(() => _clubPoints.GroomerReserveCompletedAsync(reserve.BookerId, reserve.Id), reserve.Id, "club points");
-            return new BaseResultDto(true, Resource.Notification.Success);
+            // بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده (رفتار نسخه‌های قبلی اپ)
+            var result = ReserveCompleteRules.Evaluate(reserve.Price, reserve.OnlineAmount, dto);
+            if (result.Error != null)
+                return Fail(result.Error);
+
+            var now = DateTime.Now;
+            // گذار اتمی: درخواست هم‌زمان دوم چیزی تغییر نمی‌دهد و «قبلاً تکمیل شده» می‌گیرد
+            var completeStatus = (int)GroomerReserveStatusEnum.Complete;
+            var updated = await _context.GroomerReserves
+                .Where(r => r.Id == id && r.Status != completeStatus && r.IsReserved && !r.IsCancel)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Status, completeStatus)
+                    .SetProperty(r => r.DoneDate, (DateTime?)now)
+                    .SetProperty(r => r.FinalAmount, (double?)result.FinalAmount)
+                    .SetProperty(r => r.ReceivedAtVenue, result.ReceivedAtVenue)
+                    .SetProperty(r => r.NotReceived, result.NotReceived)
+                    .SetProperty(r => r.DebtAmount, result.DebtAmount)
+                    .SetProperty(r => r.DebtPaidDate, (DateTime?)null)
+                    .SetProperty(r => r.DebtPaidByWallet, false)
+                    .SetProperty(r => r.CompleteDetail, result.Detail)
+                    .SetProperty(r => r.CompletedByUserId, userId));
+            if (updated == 0)
+                return Fail(Resource.Notification.GroomerReserveAlreadyCompleted);
+
+            await SafeAsync(() => _clubPoints.GroomerReserveCompletedAsync(reserve.BookerId, id), id, "club points");
+            // بدهی ثبت شد: همان سیاست بدهی همراه (کسر فوری از کیف پول، job هر ۵ دقیقه، یادآوری، قفل بعد از ۷ روز)
+            if (result.NotReceived && _debtService != null)
+                await SafeAsync(() => _debtService.CollectForUserAsync(reserve.BookerId), id, "unpaid debt auto collect");
+
+            var item = await Project(_context.GroomerReserves.AsNoTracking().Where(r => r.Id == id)).FirstOrDefaultAsync();
+            if (item != null)
+                Finish(item, DateTime.Now);
+            return new BaseResultDto<GroomerReserveVDto>(true, Resource.Notification.Success, item);
         }
 
         // ------------------------------------------------------------------ کمکی
@@ -824,6 +858,13 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
                 CreateDate = r.CreateDate,
                 PaidDate = r.PaidDate,
                 DoneDate = r.DoneDate,
+                FinalAmount = r.FinalAmount ?? r.Price,
+                ReceivedAtVenue = r.ReceivedAtVenue,
+                NotReceived = r.NotReceived,
+                CompleteDetail = r.CompleteDetail,
+                CompletedAt = r.DoneDate,
+                DebtAmount = r.DebtAmount,
+                DebtPaidDate = r.DebtPaidDate,
                 OwnerDecision = r.OwnerDecision,
                 OwnerDecisionDate = r.OwnerDecisionDate,
                 OwnerDecisionReason = r.OwnerDecisionReason,

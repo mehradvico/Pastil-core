@@ -622,6 +622,7 @@ public static class ConfigureServices
         services.AddScoped<Application.Services.CoachSrvs.CoachProfileSrv.Iface.ICoachProfileService, Application.Services.CoachSrvs.CoachProfileSrv.CoachProfileService>();
         services.AddScoped<Application.Services.GroomerSrvs.GroomerReserveSrv.Iface.IGroomerReserveService, Application.Services.GroomerSrvs.GroomerReserveSrv.GroomerReserveService>();
         services.AddScoped<Application.Services.ClinicSrvs.ClinicReserveSrv.Iface.IClinicReserveService, Application.Services.ClinicSrvs.ClinicReserveSrv.ClinicReserveService>();
+        services.AddScoped<Application.Services.VenueMemberSrv.IVenueMemberService, Application.Services.VenueMemberSrv.VenueMemberService>();
         services.AddScoped<Application.Services.CoachSrvs.CoachReserveSrv.Iface.ICoachReserveService, Application.Services.CoachSrvs.CoachReserveSrv.CoachReserveService>();
         services.AddScoped<Application.Services.GroomerSrvs.GroomerReserveSrv.Iface.IGroomerReserveApprovalService, Application.Services.GroomerSrvs.GroomerReserveSrv.GroomerReserveApprovalService>();
         services.AddScoped<Application.Services.ClinicSrvs.ClinicReserveSrv.Iface.IClinicReserveApprovalService, Application.Services.ClinicSrvs.ClinicReserveSrv.ClinicReserveApprovalService>();

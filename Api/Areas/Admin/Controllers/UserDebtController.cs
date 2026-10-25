@@ -28,11 +28,11 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Get(long userId)
             => Ok(await _service.GetMyDebtsAsync(userId));
 
-        /// <summary>صفر کردن بدهی یک رزرو</summary>
+        /// <summary>صفر کردن بدهی یک رزرو (kind: ۰ همراه، ۱ مربی، ۲ کلینیک، ۳ آرایشگاه)</summary>
         [HttpPut("WriteOff/{reserveId}")]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public async Task<IActionResult> WriteOff(long reserveId)
-            => Ok(await _service.WriteOffAsync(reserveId));
+        public async Task<IActionResult> WriteOff(long reserveId, [FromQuery] int kind = 0)
+            => Ok(await _service.WriteOffAsync(reserveId, (ReserveDebtKindEnum)kind));
 
         /// <summary>صفر کردن همه‌ی بدهی‌های باز کاربر</summary>
         [HttpPut("WriteOffAll/{userId}")]

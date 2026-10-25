@@ -9,7 +9,7 @@ namespace Entities.Entities.GroomerField
     /// مبلغ آنلاین (OnlineAmount) = پیش‌پرداخت بسته (یا کل قیمت اگر پیش‌پرداخت ندارد) + هزینه‌ی دریافت/تحویل؛
     /// باقی‌مانده (Price − OnlineAmount) حضوری در آرایشگاه پرداخت می‌شود و در حسابداری سایت نمی‌آید.
     /// </summary>
-    public class GroomerReserve : Id_Field
+    public class GroomerReserve : Id_Field, IVenueCompletableReserve
     {
         public string ReserveCode { get; set; }
         public long GroomerId { get; set; }
@@ -64,6 +64,16 @@ namespace Entities.Entities.GroomerField
         public DateTime CreateDate { get; set; }
         public DateTime? PaidDate { get; set; }
         public DateTime? DoneDate { get; set; }
+
+        // ---- ثبت نتیجه‌ی تکمیل (IVenueCompletableReserve)
+        public double? FinalAmount { get; set; }
+        public double ReceivedAtVenue { get; set; }
+        public bool NotReceived { get; set; }
+        public string CompleteDetail { get; set; }
+        public long? CompletedByUserId { get; set; }
+        public double DebtAmount { get; set; }
+        public DateTime? DebtPaidDate { get; set; }
+        public bool DebtPaidByWallet { get; set; }
         /// <summary>تعداد دفعات تغییر زمان توسط آرایشگاه/ادمین؛ زمان اولیه در OriginalDoDate می‌ماند.</summary>
         public int RescheduleCount { get; set; }
         public DateTime? OriginalDoDate { get; set; }

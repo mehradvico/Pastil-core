@@ -363,4 +363,13 @@
   <data name="ConsultationChannelPhone" xml:space="preserve">
     <value>تماس تلفنی</value>
   </data>
+  <data name="VenueMemberOwnerRole" xml:space="preserve">
+    <value>مدیر مرکز</value>
+  </data>
+  <data name="VenueMemberDefaultRole" xml:space="preserve">
+    <value>عضو تیم</value>
+  </data>
+  <data name="VenueMemberRoleSeparator" xml:space="preserve">
+    <value>، </value>
+  </data>
 </root>

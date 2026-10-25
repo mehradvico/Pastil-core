@@ -35,7 +35,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Iface
         Task<BaseResultDto<CoachReserveVDto>> RescheduleAsync(long id, DateTime newDoDate, long? ownerUserId);
 
         /// <summary>تکمیل رزرو توسط مالک (ownerUserId) یا ادمین (null) بعد از زمان نوبت.</summary>
-        Task<BaseResultDto> CompleteAsync(long id, long? ownerUserId);
+        /// <summary>تکمیل با بدنه‌ی اختیاری مبلغ نهایی/دریافتی در محل؛ userId = مالک یا پرسنل انتخاب‌شده، null = ادمین.</summary>
+        Task<BaseResultDto<CoachReserveVDto>> CompleteAsync(long id, long? userId, Application.Services.ReserveCompleteSrv.ReserveCompleteDto dto = null);
     }
 
     public interface ICoachReserveApprovalService

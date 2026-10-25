@@ -27,6 +27,8 @@ namespace Entities.Entities
         // false = رفتار قبلی: خرید فوری و شروع توسط نماینده.
         public bool Bookable { get; set; }
         public bool Active { get; set; }
+        // تأیید ادمین برای بسته‌های کلینیک/مربی (بسته‌های Companion همیشه true). هر ویرایش محتوایی نماینده آن را دوباره false می‌کند.
+        public bool Approved { get; set; }
         public bool Deleted { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime? UpdateDate { get; set; }

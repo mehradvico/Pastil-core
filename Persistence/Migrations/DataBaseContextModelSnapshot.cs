@@ -1260,7 +1260,23 @@ namespace Persistence.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
+                    b.Property<string>("CompleteDetail")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("CompletedByUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("DebtAmount")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("DebtPaidByWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DebtPaidDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DoDate")
@@ -1274,6 +1290,9 @@ namespace Persistence.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<double?>("FinalAmount")
+                        .HasColumnType("float");
 
                     b.Property<bool>("FromWallet")
                         .HasColumnType("bit");
@@ -1289,6 +1308,9 @@ namespace Persistence.Migrations
 
                     b.Property<int>("Mode")
                         .HasColumnType("int");
+
+                    b.Property<bool>("NotReceived")
+                        .HasColumnType("bit");
 
                     b.Property<double>("OnlineAmount")
                         .HasColumnType("float");
@@ -1330,6 +1352,9 @@ namespace Persistence.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<double>("RebatePrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ReceivedAtVenue")
                         .HasColumnType("float");
 
                     b.Property<int>("RescheduleCount")
@@ -2268,7 +2293,23 @@ namespace Persistence.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
+                    b.Property<string>("CompleteDetail")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("CompletedByUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("DebtAmount")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("DebtPaidByWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DebtPaidDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DoDate")
@@ -2282,6 +2323,9 @@ namespace Persistence.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<double?>("FinalAmount")
+                        .HasColumnType("float");
 
                     b.Property<bool>("FromWallet")
                         .HasColumnType("bit");
@@ -2297,6 +2341,9 @@ namespace Persistence.Migrations
 
                     b.Property<int>("Mode")
                         .HasColumnType("int");
+
+                    b.Property<bool>("NotReceived")
+                        .HasColumnType("bit");
 
                     b.Property<double>("OnlineAmount")
                         .HasColumnType("float");
@@ -2338,6 +2385,9 @@ namespace Persistence.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<double>("RebatePrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ReceivedAtVenue")
                         .HasColumnType("float");
 
                     b.Property<int>("RescheduleCount")
@@ -4410,6 +4460,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("Approved")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("Bookable")
                         .HasColumnType("bit");
 
@@ -6000,7 +6053,23 @@ namespace Persistence.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
+                    b.Property<string>("CompleteDetail")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("CompletedByUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("DebtAmount")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("DebtPaidByWallet")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("DebtPaidDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DoDate")
@@ -6014,6 +6083,9 @@ namespace Persistence.Migrations
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<double?>("FinalAmount")
+                        .HasColumnType("float");
 
                     b.Property<bool>("FromWallet")
                         .HasColumnType("bit");
@@ -6041,6 +6113,9 @@ namespace Persistence.Migrations
 
                     b.Property<DateTime?>("LastRescheduleDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("NotReceived")
+                        .HasColumnType("bit");
 
                     b.Property<double>("OnlineAmount")
                         .HasColumnType("float");
@@ -6088,6 +6163,9 @@ namespace Persistence.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<double>("RebatePrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("ReceivedAtVenue")
                         .HasColumnType("float");
 
                     b.Property<int>("RescheduleCount")
@@ -10715,6 +10793,186 @@ namespace Persistence.Migrations
                         .HasFilter("[Deleted] = 0");
 
                     b.ToTable("Providers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderOnboardingApplication", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ApplicantType")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("BirthDate")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<string>("BusinessAddress")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("BusinessName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("BusinessPhone")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CompanyName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("CompanyNationalId")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DetailsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NationalCode")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<long?>("ProviderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("ReviewedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReviewerNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("RoleLabel")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Kind", "Status", "SubmittedAt");
+
+                    b.HasIndex("UserId", "Kind", "Status");
+
+                    b.ToTable("ProviderOnboardingApplications");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderOnboardingDocument", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ProtectedContent")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId", "Kind")
+                        .IsUnique();
+
+                    b.ToTable("ProviderOnboardingDocuments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderOnboardingEvent", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ActorUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ApplicationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId", "CreatedAt");
+
+                    b.ToTable("ProviderOnboardingEvents");
                 });
 
             modelBuilder.Entity("Entities.Entities.ProviderField.ProviderRole", b =>
@@ -18947,6 +19205,28 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderOnboardingDocument", b =>
+                {
+                    b.HasOne("Entities.Entities.ProviderField.ProviderOnboardingApplication", "Application")
+                        .WithMany("Documents")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderOnboardingEvent", b =>
+                {
+                    b.HasOne("Entities.Entities.ProviderField.ProviderOnboardingApplication", "Application")
+                        .WithMany("Events")
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+                });
+
             modelBuilder.Entity("Entities.Entities.ProviderField.ProviderRoleAssignment", b =>
                 {
                     b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
@@ -21149,6 +21429,13 @@ namespace Persistence.Migrations
                     b.Navigation("Stores");
 
                     b.Navigation("Subscriptions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderOnboardingApplication", b =>
+                {
+                    b.Navigation("Documents");
+
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("Entities.Entities.ProviderField.ProviderRole", b =>

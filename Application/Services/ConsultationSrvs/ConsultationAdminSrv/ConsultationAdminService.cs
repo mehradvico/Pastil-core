@@ -298,7 +298,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
                     .Where(s => !s.Deleted && s.Active && (isClinic
                         ? s.ClinicId != null && ids.Contains(s.ClinicId.Value)
                         : s.CoachId != null && ids.Contains(s.CoachId.Value)))
-                    .Select(s => new { VenueId = isClinic ? s.ClinicId.Value : s.CoachId.Value, s.Price })
+                    .Select(s => new { VenueId = isClinic ? s.ClinicId.Value : s.CoachId.Value, s.Price, s.Approved })
                     .ToListAsync();
                 var counts = await _context.ConsultationPurchases.AsNoTracking()
                     .Where(s => isClinic
@@ -312,6 +312,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
                 {
                     var mine = packages.Where(p => p.VenueId == v.VenueId).ToList();
                     v.ActivePackages = mine.Count;
+                    v.PendingPackages = mine.Count(p => !p.Approved);
                     v.MinPrice = mine.Count > 0 ? mine.Min(p => p.Price) : 0;
                     v.MaxPrice = mine.Count > 0 ? mine.Max(p => p.Price) : 0;
                     v.PurchasesCount = counts.TryGetValue(v.VenueId, out var n) ? n : 0;
@@ -342,7 +343,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
                 return new BaseResultDto<List<ConsultationVenuePackageAdminVDto>>(true, rows.Select(s => new ConsultationVenuePackageAdminVDto
                 {
                     Id = s.Id, Kind = kindName, VenueId = venueId, VenueName = name, ChannelId = s.ChannelId,
-                    DurationMinutes = s.DurationMinutes, Price = s.Price, Active = s.Active, Bookable = s.Bookable,
+                    DurationMinutes = s.DurationMinutes, Price = s.Price, Active = s.Active, Approved = s.Approved, Bookable = s.Bookable,
                     Name = s.Name, Description = s.Description, CommissionPercent = s.CommissionPercent, SortOrder = s.SortOrder,
                 }).ToList());
             }
@@ -358,6 +359,28 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
             if (!owner.HasValue || !await ConsultationOwners.ExistsAsync(_context, owner.Value))
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             return await _packageService.DeleteAsync(owner.Value, id);
+        }
+
+        public async Task<BaseResultDto> ApproveVenuePackageAsync(string kind, long venueId, long id, bool approved)
+        {
+            try
+            {
+                var owner = ParseVenue(kind, venueId);
+                if (!owner.HasValue)
+                    return new BaseResultDto(false, Resource.Notification.NothingFound);
+                var affected = await _context.ConsultationPackages
+                    .ForOwner(owner.Value).Where(s => s.Id == id && !s.Deleted)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(s => s.Approved, approved)
+                        .SetProperty(s => s.UpdateDate, (DateTime?)DateTime.Now));
+                return affected == 0
+                    ? new BaseResultDto(false, Resource.Notification.NothingFound)
+                    : new BaseResultDto(true, Resource.Notification.Success);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto(false, ExceptionResultHelper.ToClientMessage(ex));
+            }
         }
 
         private Task<string> GetClinicNameAsync(long companionId) =>

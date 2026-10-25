@@ -2710,4 +2710,16 @@
   <data name="AssistanceNotForRole" xml:space="preserve">
     <value>This service belongs to another provider role and cannot be used here.</value>
   </data>
+  <data name="ReserveCompleteDetailTooLong" xml:space="preserve">
+    <value>Detail must be at most 500 characters.</value>
+  </data>
+  <data name="ReserveCompleteFinalAmountInvalid" xml:space="preserve">
+    <value>Final amount must be zero or more.</value>
+  </data>
+  <data name="ReserveCompleteFinalBelowOnline" xml:space="preserve">
+    <value>Final amount cannot be less than the amount the customer already paid online.</value>
+  </data>
+  <data name="ReserveCompleteReceivedInvalid" xml:space="preserve">
+    <value>Amount received at venue must be between zero and the final amount minus the online payment.</value>
+  </data>
 </root>

@@ -30,6 +30,6 @@ namespace Api.Areas.Companion.Controllers
         [HttpPut("MarkPaid")]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> MarkPaid([FromBody] ReserveDebtMarkPaidDto dto)
-            => Ok(await _service.MarkPaidByClinicAsync(_currentUser.CurrentUser.UserId, dto?.ReserveId ?? 0));
+            => Ok(await _service.MarkPaidByClinicAsync(_currentUser.CurrentUser.UserId, dto?.ReserveId ?? 0, (ReserveDebtKindEnum)(dto?.Kind ?? 0)));
     }
 }

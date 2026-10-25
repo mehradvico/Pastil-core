@@ -45,5 +45,11 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> DeletePackage(string kind, long venueId, [FromQuery] long id)
             => Ok(await _service.DeleteVenuePackageAsync(kind, venueId, id));
+
+        /// <summary>تأیید یا لغو تأیید پکیج یک کلینیک/مربی؛ فقط پکیج تأییدشده به کاربر نمایش داده و فروخته می‌شود</summary>
+        [HttpPut("{kind}/{venueId}/Packages/Approve")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> ApprovePackage(string kind, long venueId, [FromQuery] long id, [FromQuery] bool approved = true)
+            => Ok(await _service.ApproveVenuePackageAsync(kind, venueId, id, approved));
     }
 }

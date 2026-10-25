@@ -6763,6 +6763,30 @@ namespace Resource {
             }
         }
 
+        public static string ReserveCompleteDetailTooLong {
+            get {
+                return ResourceManager.GetString("ReserveCompleteDetailTooLong", resourceCulture);
+            }
+        }
+
+        public static string ReserveCompleteFinalAmountInvalid {
+            get {
+                return ResourceManager.GetString("ReserveCompleteFinalAmountInvalid", resourceCulture);
+            }
+        }
+
+        public static string ReserveCompleteFinalBelowOnline {
+            get {
+                return ResourceManager.GetString("ReserveCompleteFinalBelowOnline", resourceCulture);
+            }
+        }
+
+        public static string ReserveCompleteReceivedInvalid {
+            get {
+                return ResourceManager.GetString("ReserveCompleteReceivedInvalid", resourceCulture);
+            }
+        }
+
         public static string CoachReserveAlreadyCompleted {
             get {
                 return ResourceManager.GetString("CoachReserveAlreadyCompleted", resourceCulture);

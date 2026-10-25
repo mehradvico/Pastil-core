@@ -45,7 +45,7 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Reject(GroomerReserveReasonDto dto) => Ok(await _approval.RejectAsync(dto.Id, dto.Reason, null));
 
         [HttpPut("Complete")]
-        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        [ProducesResponseType(typeof(BaseResultDto<GroomerReserveVDto>), 200)]
         public async Task<IActionResult> Complete(long id) => Ok(await _service.CompleteAsync(id, null));
 
         /// <summary>تغییر زمان نوبت (به کاربر پوش و پیامک می‌رود)</summary>

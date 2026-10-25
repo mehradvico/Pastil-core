@@ -200,7 +200,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
         private async Task<ConsultationPackage> LoadBookablePackageAsync(long packageId)
         {
             var package = await _context.ConsultationPackages.AsNoTracking()
-                .FirstOrDefaultAsync(s => s.Id == packageId && !s.Deleted && s.Active && s.Bookable && s.Price > 0);
+                .FirstOrDefaultAsync(s => s.Id == packageId && !s.Deleted && s.Active && s.Approved && s.Bookable && s.Price > 0);
             if (package == null)
                 return null;
             var owner = ConsultationOwner.Of(package);

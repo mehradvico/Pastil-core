@@ -4,6 +4,7 @@ using Application.Common.Enumerable.Code;
 using Application.Services.Accounting.ScoreTransactionSrv.Iface;
 using Application.Services.PastilClubSrvs.PointEventSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveDebtSrv;
+using Application.Services.ReserveCompleteSrv;
 using Application.Services.ClinicSrvs.ClinicReserveSrv.Dto;
 using Application.Services.ClinicSrvs.ClinicReserveSrv.Iface;
 using Application.Services.Order.PaymentSrv;
@@ -31,6 +32,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
         private readonly IScoreTransactionService _scoreService;
         private readonly IClubPointIntegrationService _clubPoints;
         private readonly ILogger<ClinicReserveService> _logger;
+        private readonly ICompanionReserveDebtService _debtService;
 
         public ClinicReserveService(
             IDataBaseContext context,
@@ -39,7 +41,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             IClinicNotifier notifier,
             IScoreTransactionService scoreService,
             IClubPointIntegrationService clubPoints,
-            ILogger<ClinicReserveService> logger)
+            ILogger<ClinicReserveService> logger,
+            ICompanionReserveDebtService debtService = null)
         {
             _context = context;
             _walletService = walletService;
@@ -48,6 +51,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             _scoreService = scoreService;
             _clubPoints = clubPoints;
             _logger = logger;
+            _debtService = debtService;
         }
 
         // ------------------------------------------------------------------ قیمت و زمان‌های آزاد
@@ -599,29 +603,59 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
 
         // ------------------------------------------------------------------ تکمیل
 
-        public async Task<BaseResultDto> CompleteAsync(long id, long? ownerUserId)
+        public async Task<BaseResultDto<ClinicReserveVDto>> CompleteAsync(long id, long? userId, ReserveCompleteDto dto = null)
         {
-            var reserve = await _context.ClinicReserves.AsTracking()
-                .Include(r => r.Clinic)
-                .FirstOrDefaultAsync(r => r.Id == id);
+            var reserve = await _context.ClinicReserves.AsNoTracking()
+                .Where(r => r.Id == id)
+                .Select(r => new { r.Status, r.IsReserved, r.IsCancel, r.OwnerDecision, r.DoDate, r.Price, r.OnlineAmount, r.BookerId, r.AssigneeUserId, r.Clinic.OwnerId })
+                .FirstOrDefaultAsync();
             if (reserve == null)
-                return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (ownerUserId.HasValue && reserve.Clinic.OwnerId != ownerUserId.Value)
-                return new BaseResultDto(false, Resource.Notification.AccessDenied);
+                return Fail(Resource.Notification.NothingFound);
+            // فقط مالک یا پرسنلِ انتخاب‌شده‌ی همین رزرو (userId خالی = ادمین)
+            if (!ReserveCompleteRules.CanComplete(userId, reserve.OwnerId, reserve.AssigneeUserId))
+                return Fail(Resource.Notification.AccessDenied);
             if (reserve.Status == (int)ClinicReserveStatusEnum.Complete)
-                return new BaseResultDto(false, Resource.Notification.ClinicReserveAlreadyCompleted);
+                return Fail(Resource.Notification.ClinicReserveAlreadyCompleted);
             if (!reserve.IsReserved || reserve.IsCancel)
-                return new BaseResultDto(false, Resource.Notification.ClinicReserveNotPaid);
+                return Fail(Resource.Notification.ClinicReserveNotPaid);
             if (!ClinicReserveRules.CanComplete(reserve.OwnerDecision))
-                return new BaseResultDto(false, Resource.Notification.ClinicReserveAwaitingOwnerApproval);
+                return Fail(Resource.Notification.ClinicReserveAwaitingOwnerApproval);
             if (reserve.DoDate > DateTime.Now)
-                return new BaseResultDto(false, Resource.Notification.ClinicReserveNotStartedYet);
+                return Fail(Resource.Notification.ClinicReserveNotStartedYet);
 
-            reserve.Status = (int)ClinicReserveStatusEnum.Complete;
-            reserve.DoneDate = DateTime.Now;
-            await _context.SaveChangesAsync();
-            await SafeAsync(() => _clubPoints.ClinicReserveCompletedAsync(reserve.BookerId, reserve.Id), reserve.Id, "club points");
-            return new BaseResultDto(true, Resource.Notification.Success);
+            // بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده (رفتار نسخه‌های قبلی اپ)
+            var result = ReserveCompleteRules.Evaluate(reserve.Price, reserve.OnlineAmount, dto);
+            if (result.Error != null)
+                return Fail(result.Error);
+
+            var now = DateTime.Now;
+            // گذار اتمی: درخواست هم‌زمان دوم چیزی تغییر نمی‌دهد و «قبلاً تکمیل شده» می‌گیرد
+            var completeStatus = (int)ClinicReserveStatusEnum.Complete;
+            var updated = await _context.ClinicReserves
+                .Where(r => r.Id == id && r.Status != completeStatus && r.IsReserved && !r.IsCancel)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Status, completeStatus)
+                    .SetProperty(r => r.DoneDate, (DateTime?)now)
+                    .SetProperty(r => r.FinalAmount, (double?)result.FinalAmount)
+                    .SetProperty(r => r.ReceivedAtVenue, result.ReceivedAtVenue)
+                    .SetProperty(r => r.NotReceived, result.NotReceived)
+                    .SetProperty(r => r.DebtAmount, result.DebtAmount)
+                    .SetProperty(r => r.DebtPaidDate, (DateTime?)null)
+                    .SetProperty(r => r.DebtPaidByWallet, false)
+                    .SetProperty(r => r.CompleteDetail, result.Detail)
+                    .SetProperty(r => r.CompletedByUserId, userId));
+            if (updated == 0)
+                return Fail(Resource.Notification.ClinicReserveAlreadyCompleted);
+
+            await SafeAsync(() => _clubPoints.ClinicReserveCompletedAsync(reserve.BookerId, id), id, "club points");
+            // بدهی ثبت شد: همان سیاست بدهی همراه (کسر فوری از کیف پول، job هر ۵ دقیقه، یادآوری، قفل بعد از ۷ روز)
+            if (result.NotReceived && _debtService != null)
+                await SafeAsync(() => _debtService.CollectForUserAsync(reserve.BookerId), id, "unpaid debt auto collect");
+
+            var item = await Project(_context.ClinicReserves.AsNoTracking().Where(r => r.Id == id)).FirstOrDefaultAsync();
+            if (item != null)
+                Finish(item, DateTime.Now);
+            return new BaseResultDto<ClinicReserveVDto>(true, Resource.Notification.Success, item);
         }
 
         // ------------------------------------------------------------------ کمکی
@@ -886,6 +920,13 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 CreateDate = r.CreateDate,
                 PaidDate = r.PaidDate,
                 DoneDate = r.DoneDate,
+                FinalAmount = r.FinalAmount ?? r.Price,
+                ReceivedAtVenue = r.ReceivedAtVenue,
+                NotReceived = r.NotReceived,
+                CompleteDetail = r.CompleteDetail,
+                CompletedAt = r.DoneDate,
+                DebtAmount = r.DebtAmount,
+                DebtPaidDate = r.DebtPaidDate,
                 OwnerDecision = r.OwnerDecision,
                 OwnerDecisionDate = r.OwnerDecisionDate,
                 OwnerDecisionReason = r.OwnerDecisionReason,

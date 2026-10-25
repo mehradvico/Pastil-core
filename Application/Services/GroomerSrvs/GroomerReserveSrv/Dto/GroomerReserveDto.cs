@@ -116,6 +116,18 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv.Dto
         public DateTime CreateDate { get; set; }
         public DateTime? PaidDate { get; set; }
         public DateTime? DoneDate { get; set; }
+        /// <summary>مبلغ نهایی ثبت‌شده موقع تکمیل؛ برای رزرو تکمیل‌نشده/قدیمی = Price.</summary>
+        public double FinalAmount { get; set; }
+        /// <summary>مبلغ دریافتی در محل که ارائه‌دهنده ثبت کرد.</summary>
+        public double ReceivedAtVenue { get; set; }
+        /// <summary>true = باقی‌مانده دریافت نشد و بدهی مشتری شد (DebtAmount).</summary>
+        public bool NotReceived { get; set; }
+        public string CompleteDetail { get; set; }
+        /// <summary>زمان تکمیل (همان DoneDate).</summary>
+        public DateTime? CompletedAt { get; set; }
+        public double DebtAmount { get; set; }
+        /// <summary>زمان تسویه‌ی بدهی (کیف پول، دریافت مستقیم یا صفر کردن ادمین)؛ null = بدهی باز.</summary>
+        public DateTime? DebtPaidDate { get; set; }
         public int OwnerDecision { get; set; }
         public DateTime? OwnerDecisionDate { get; set; }
         public string OwnerDecisionReason { get; set; }

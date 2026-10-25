@@ -64,10 +64,16 @@ namespace Application.Services.ProductSrvs.WalletSrv
         public const string ReferralBonusPrefix = "ReferralBonus:";
         public const string AdminManualPrefix = "AdminManual:";
         public const string CompanionDebtPrefix = "CompanionDebt:";
+        public const string CoachDebtPrefix = "CoachDebt:";
+        public const string ClinicDebtPrefix = "ClinicDebt:";
+        public const string GroomerDebtPrefix = "GroomerDebt:";
         public const string TripCancelRefundPrefix = "TripCancelRefund:";
 
         public static string AdminManualName(string note) => AdminManualPrefix + (note ?? string.Empty).Trim();
         public static string CompanionDebtName(long companionReserveId) => CompanionDebtPrefix + companionReserveId;
+        public static string CoachDebtName(long coachReserveId) => CoachDebtPrefix + coachReserveId;
+        public static string ClinicDebtName(long clinicReserveId) => ClinicDebtPrefix + clinicReserveId;
+        public static string GroomerDebtName(long groomerReserveId) => GroomerDebtPrefix + groomerReserveId;
         public static string TripCancelRefundName(long tripId) => TripCancelRefundPrefix + tripId;
 
         public static bool TryGetLedgerValue(string name, string prefix, out string value)
@@ -92,7 +98,8 @@ namespace Application.Services.ProductSrvs.WalletSrv
             TryGetLedgerValue(name, ConsultationRefundPrefix, out _) || TryGetLedgerValue(name, CompanionPackageRefundPrefix, out _) || TryGetLedgerValue(name, ClinicPackageRefundPrefix, out _) ||
             TryGetLedgerValue(name, OrderCancelRefundPrefix, out _) || TryGetLedgerValue(name, OrderItemRefundPrefix, out _) ||
             TryGetLedgerValue(name, ReferralBonusPrefix, out _) || TryGetLedgerValue(name, AdminManualPrefix, out _) ||
-            TryGetLedgerValue(name, CompanionDebtPrefix, out _) || TryGetLedgerValue(name, TripCancelRefundPrefix, out _);
+            TryGetLedgerValue(name, CompanionDebtPrefix, out _) || TryGetLedgerValue(name, TripCancelRefundPrefix, out _) ||
+            TryGetLedgerValue(name, CoachDebtPrefix, out _) || TryGetLedgerValue(name, ClinicDebtPrefix, out _) || TryGetLedgerValue(name, GroomerDebtPrefix, out _);
 
         public static string Describe(WalletDescribeInput wallet, WalletCodeLookup codes)
         {
@@ -212,6 +219,21 @@ namespace Application.Services.ProductSrvs.WalletSrv
             if (id.HasValue)
                 return string.Format(Resource.Pattern.WalletReasonCompanionDebt,
                     string.Format(Resource.Pattern.WalletTargetCompanionReserve, Code(codes.CompanionReserves, id.Value)));
+
+            id = TryGetLedgerId(name, CoachDebtPrefix);
+            if (id.HasValue)
+                return string.Format(Resource.Pattern.WalletReasonCompanionDebt,
+                    string.Format(Resource.Pattern.WalletTargetCoachReserve, Code(codes.CoachReserves, id.Value)));
+
+            id = TryGetLedgerId(name, ClinicDebtPrefix);
+            if (id.HasValue)
+                return string.Format(Resource.Pattern.WalletReasonCompanionDebt,
+                    string.Format(Resource.Pattern.WalletTargetClinicReserve, Code(codes.ClinicReserves, id.Value)));
+
+            id = TryGetLedgerId(name, GroomerDebtPrefix);
+            if (id.HasValue)
+                return string.Format(Resource.Pattern.WalletReasonCompanionDebt,
+                    string.Format(Resource.Pattern.WalletTargetGroomerReserve, Code(codes.GroomerReserves, id.Value)));
 
             return null;
         }

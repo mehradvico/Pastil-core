@@ -72,7 +72,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     return new BaseResultDto(false, Resource.Notification.UnpaidDebtLocked);
 
                 var package = await _context.ConsultationPackages.AsNoTracking()
-                    .FirstOrDefaultAsync(s => s.Id == dto.PackageId && !s.Deleted && s.Active && s.Price > 0);
+                    .FirstOrDefaultAsync(s => s.Id == dto.PackageId && !s.Deleted && s.Active && s.Approved && s.Price > 0);
                 if (package == null)
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
 

@@ -106,6 +106,9 @@ namespace Persistence.Interface
         public DbSet<CompanionUser> CompanionUsers { get; set; }
         public DbSet<CompanionUserExpertise> CompanionUserExpertises { get; set; }
         public DbSet<Provider> Providers { get; set; }
+        public DbSet<ProviderOnboardingApplication> ProviderOnboardingApplications { get; set; }
+        public DbSet<ProviderOnboardingDocument> ProviderOnboardingDocuments { get; set; }
+        public DbSet<ProviderOnboardingEvent> ProviderOnboardingEvents { get; set; }
         public DbSet<ProviderRole> ProviderRoles { get; set; }
         public DbSet<ProviderRoleAssignment> ProviderRoleAssignments { get; set; }
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }

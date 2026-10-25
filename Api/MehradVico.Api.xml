@@ -1819,6 +1819,9 @@
         <member name="M:Api.Areas.Admin.Controllers.ConsultationVenueController.DeletePackage(System.String,System.Int64,System.Int64)">
             <summary>حذف پکیج یک کلینیک/مربی (حذف نرم؛ خریدهای قبلی دست‌نخورده می‌مانند)</summary>
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationVenueController.ApprovePackage(System.String,System.Int64,System.Int64,System.Boolean)">
+            <summary>تأیید یا لغو تأیید پکیج یک کلینیک/مربی؛ فقط پکیج تأییدشده به کاربر نمایش داده و فروخته می‌شود</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ContactUsController">
              <summary>
              ارتباط با ما
@@ -5854,8 +5857,8 @@
         <member name="M:Api.Areas.Admin.Controllers.UserDebtController.Get(System.Int64)">
             <summary>بدهی‌های باز کاربر + موجودی کیف پول</summary>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.UserDebtController.WriteOff(System.Int64)">
-            <summary>صفر کردن بدهی یک رزرو</summary>
+        <member name="M:Api.Areas.Admin.Controllers.UserDebtController.WriteOff(System.Int64,System.Int32)">
+            <summary>صفر کردن بدهی یک رزرو (kind: ۰ همراه، ۱ مربی، ۲ کلینیک، ۳ آرایشگاه)</summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.UserDebtController.WriteOffAll(System.Int64)">
             <summary>صفر کردن همه‌ی بدهی‌های باز کاربر</summary>
@@ -6306,8 +6309,10 @@
         <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Reschedule(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveRescheduleDto)">
             <summary>تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد کلینیک</summary>
         </member>
-        <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Complete(System.Int64)">
-            <summary>تکمیل رزرو بعد از انجام خدمت</summary>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Complete(System.Int64,Application.Services.ReserveCompleteSrv.ReserveCompleteDto)">
+            <summary>تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو)</summary>
+            <remarks>بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده.
+            طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.ClinicReservePackageController">
             <summary>
@@ -6426,8 +6431,10 @@
         <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Reschedule(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveRescheduleDto)">
             <summary>تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد مربی</summary>
         </member>
-        <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Complete(System.Int64)">
-            <summary>تکمیل رزرو بعد از انجام خدمت</summary>
+        <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Complete(System.Int64,Application.Services.ReserveCompleteSrv.ReserveCompleteDto)">
+            <summary>تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو)</summary>
+            <remarks>بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده.
+            طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CoachReviewController">
             <summary>
@@ -7294,8 +7301,10 @@
         <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Reschedule(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveRescheduleDto)">
             <summary>تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد آرایشگاه</summary>
         </member>
-        <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Complete(System.Int64)">
-            <summary>تکمیل رزرو بعد از انجام خدمت</summary>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Complete(System.Int64,Application.Services.ReserveCompleteSrv.ReserveCompleteDto)">
+            <summary>تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو)</summary>
+            <remarks>بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده.
+            طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.GroomerReviewController">
             <summary>
@@ -11444,6 +11453,10 @@
         <member name="M:Api.Controllers.ClinicController.Services(System.Int64,System.String)">
             <summary>خدمات و بسته‌های قیمتی قابل رزرو؛ petSize (Small/Medium/Large) بسته‌ها را فیلتر می‌کند</summary>
         </member>
+        <member name="M:Api.Controllers.ClinicController.Members(System.Int64,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>اعضای مرکز (کارت «اعضای مرکز»): مالک + پرسنل پذیرفته‌شده و فعال؛ فقط نام، عکس و عنوان نقش</summary>
+            <remarks>pageSize پیش‌فرض و حداکثر ۵۰؛ مرکزِ بدون عضو = data خالی. پاسخ ۶۰ ثانیه cache می‌شود.</remarks>
+        </member>
         <member name="T:Api.Controllers.ClinicReserveMessageAttachmentController">
             <summary>
             مدیریت فایل‌های پیام چت خدمات آنلاین
@@ -11512,6 +11525,10 @@
         </member>
         <member name="M:Api.Controllers.CoachController.Services(System.Int64,System.String)">
             <summary>خدمات و بسته‌های قیمتی قابل رزرو؛ petSize (Small/Medium/Large) بسته‌ها را فیلتر می‌کند</summary>
+        </member>
+        <member name="M:Api.Controllers.CoachController.Members(System.Int64,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>اعضای مرکز (کارت «اعضای مرکز»): مالک + پرسنل پذیرفته‌شده و فعال؛ فقط نام، عکس و عنوان نقش</summary>
+            <remarks>pageSize پیش‌فرض و حداکثر ۵۰؛ مرکزِ بدون عضو = data خالی. پاسخ ۶۰ ثانیه cache می‌شود.</remarks>
         </member>
         <member name="T:Api.Controllers.CoachReserveMessageAttachmentController">
             <summary>
