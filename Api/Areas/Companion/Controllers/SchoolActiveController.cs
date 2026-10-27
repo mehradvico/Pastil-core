@@ -31,10 +31,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(SchoolActiveDto dto)
         {
-            var companionId = await _ownership.CompanionOfSchoolAsync(dto.Id, _currentUser.CurrentUser.UserId);
-            if (!companionId.HasValue)
+            var ownedSchoolId = await _ownership.SchoolOfSchoolAsync(dto.Id, _currentUser.CurrentUser.UserId);
+            if (!ownedSchoolId.HasValue)
                 return Forbid();
-            var result = _schoolService.UpdateSchoolActiveDto(dto, companionId);
+            var result = _schoolService.UpdateSchoolActiveDto(dto, ownedSchoolId);
             return Ok(result);
         }
     }

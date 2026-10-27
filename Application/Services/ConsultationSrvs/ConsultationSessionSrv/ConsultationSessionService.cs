@@ -52,6 +52,28 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
             return owner.HasValue && await ConsultationOwners.IsOwnerAsync(_context, userId, owner.Value);
         }
 
+        public async Task<BaseResultDto<List<ConsultationPetProfileVDto>>> GetPetProfilesAsync(long agentUserId, long purchaseId)
+        {
+            try
+            {
+                var agentOwners = await AgentOwnersAsync(agentUserId);
+                // فقط نماینده‌ی مجاز همان کلینیک/مربی/نمایندگی (مالک یا عضو تیم) این خرید را پیدا می‌کند
+                var purchase = await agentOwners.Filter(_context.ConsultationPurchases.AsNoTracking())
+                    .Where(s => s.Id == purchaseId)
+                    .Select(s => new { s.Id, s.UserId })
+                    .FirstOrDefaultAsync();
+                if (purchase == null)
+                    return new BaseResultDto<List<ConsultationPetProfileVDto>>(false, Resource.Notification.NothingFound, null);
+
+                var list = await ConsultationPetProfiles.BuildAsync(_context, purchase.Id, purchase.UserId);
+                return new BaseResultDto<List<ConsultationPetProfileVDto>>(true, list);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<List<ConsultationPetProfileVDto>>(false, ExceptionResultHelper.ToClientMessage(ex), null);
+            }
+        }
+
         public async Task<BaseResultDto<List<ConsultationAgentItemVDto>>> GetForAgentAsync(long agentUserId)
         {
             try
@@ -86,8 +108,21 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                 var agentNames = (await _context.Users.AsNoTracking().Where(u => agentIds.Contains(u.Id)).ToListAsync())
                     .ToDictionary(u => u.Id, u => $"{u.FirstName} {u.LastName}".Trim());
 
-                // پت‌های همه‌ی مشتری‌های همین صف؛ خرید مشاوره خودش شناسه‌ی پت ندارد (طراحی مستندشده)، پس فهرست
-                // کامل پت‌های مشتری را می‌دهیم تا نماینده حین گفتگو انتخاب کند سابقه مال کدام پت است.
+                // پت‌های انتخاب‌شده‌ی هر خرید (از ۲۰۲۶-۱۰-۲۷)؛ برای خریدهای قدیمی‌تر که پتی ندارند، همه‌ی پت‌های مشتری
+                var purchaseIds = rows.Select(r => r.Id).ToList();
+                var selectedPets = (await _context.ConsultationPurchasePets.AsNoTracking()
+                        .Where(p => purchaseIds.Contains(p.ConsultationPurchaseId))
+                        .Include(p => p.UserPet).ThenInclude(p => p.Pet)
+                        .Include(p => p.UserPet).ThenInclude(p => p.Picture)
+                        .ToListAsync())
+                    .GroupBy(p => p.ConsultationPurchaseId)
+                    .ToDictionary(g => g.Key, g => g.Select(p => new ConsultationCustomerPetVDto
+                    {
+                        UserPetId = p.UserPetId,
+                        Name = p.UserPet?.Name,
+                        PetName = p.UserPet?.Pet?.Name,
+                        Picture = ToPictureVDto(p.UserPet?.Picture)
+                    }).ToList());
                 var customerUserIds = rows.Select(r => r.UserId).Distinct().ToList();
                 var customerPets = (await _context.UserPets.AsNoTracking()
                         .Where(p => customerUserIds.Contains(p.UserId) && !p.Deleted)
@@ -134,7 +169,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv
                     CanAssign = s.Status == paid && owned.Contains(s) && ConsultationPurchaseRules.CanStart(s.Status, s.StartDeadline, now),
                     AssignableAgents = s.Status == paid && ConsultationOwner.Of(s) is { } rowOwner && assignable.TryGetValue(rowOwner, out var al) ? al : null,
                     CanEnter = ConsultationPurchaseRules.CanAgentEnter(s.Status, s.ExpireDate, now, s.AgentUserId, agentUserId, owned.Contains(s)),
-                    CustomerPets = customerPets.TryGetValue(s.UserId, out var pets) ? pets : new List<ConsultationCustomerPetVDto>(),
+                    HasSelectedPets = selectedPets.ContainsKey(s.Id),
+                    CustomerPets = selectedPets.TryGetValue(s.Id, out var chosen) ? chosen
+                        : customerPets.TryGetValue(s.UserId, out var pets) ? pets : new List<ConsultationCustomerPetVDto>(),
                     ServerNow = now
                 }).ToList();
 

@@ -1,4 +1,4 @@
-﻿using Entities.Entities.CommonField;
+using Entities.Entities.CommonField;
 using Entities.Entities.Security;
 using System;
 using System.Collections.Generic;
@@ -26,5 +26,6 @@ namespace Entities.Entities.ProviderField
         public ICollection<GroomerField.Groomer> Groomers { get; set; }
         public ICollection<ClinicField.Clinic> Clinics { get; set; }
         public ICollection<CoachField.Coach> Coaches { get; set; }
+        public ICollection<SchoolField.School> Schools { get; set; }
     }
 }

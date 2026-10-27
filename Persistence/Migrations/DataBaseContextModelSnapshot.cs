@@ -4688,6 +4688,33 @@ namespace Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Entities.Entities.ConsultationPurchasePet", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ConsultationPurchaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("UserPetId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserPetId");
+
+                    b.HasIndex("ConsultationPurchaseId", "UserPetId")
+                        .IsUnique();
+
+                    b.ToTable("ConsultationPurchasePets");
+                });
+
             modelBuilder.Entity("Entities.Entities.ContactUs", b =>
                 {
                     b.Property<long>("Id")
@@ -11603,7 +11630,7 @@ namespace Persistence.Migrations
                     b.Property<int>("CommentCount")
                         .HasColumnType("int");
 
-                    b.Property<long>("CompanionId")
+                    b.Property<long?>("CompanionId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime?>("DeleteDate")
@@ -11625,6 +11652,9 @@ namespace Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<long?>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ProviderId")
                         .HasColumnType("bigint");
 
                     b.Property<double>("RateAvg")
@@ -11652,6 +11682,8 @@ namespace Persistence.Migrations
                     b.HasIndex("CompanionId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("ProviderId");
 
                     b.HasIndex("StateId");
 
@@ -16736,6 +16768,25 @@ namespace Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ConsultationPurchasePet", b =>
+                {
+                    b.HasOne("Entities.Entities.ConsultationPurchase", "ConsultationPurchase")
+                        .WithMany("Pets")
+                        .HasForeignKey("ConsultationPurchaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.UserPet", "UserPet")
+                        .WithMany()
+                        .HasForeignKey("UserPetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ConsultationPurchase");
+
+                    b.Navigation("UserPet");
+                });
+
             modelBuilder.Entity("Entities.Entities.ContactUs", b =>
                 {
                     b.HasOne("Entities.Entities.ContactUsGroup", "ContactUsGroup")
@@ -19398,13 +19449,15 @@ namespace Persistence.Migrations
 
                     b.HasOne("Entities.Entities.Companion", "Companion")
                         .WithMany()
-                        .HasForeignKey("CompanionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("CompanionId");
 
                     b.HasOne("Entities.Entities.Picture", "Picture")
                         .WithMany()
                         .HasForeignKey("PictureId");
+
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("Schools")
+                        .HasForeignKey("ProviderId");
 
                     b.HasOne("Entities.Entities.State", "State")
                         .WithMany()
@@ -19417,6 +19470,8 @@ namespace Persistence.Migrations
                     b.Navigation("Companion");
 
                     b.Navigation("Picture");
+
+                    b.Navigation("Provider");
 
                     b.Navigation("State");
                 });
@@ -21129,6 +21184,11 @@ namespace Persistence.Migrations
                     b.Navigation("Reactions");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ConsultationPurchase", b =>
+                {
+                    b.Navigation("Pets");
+                });
+
             modelBuilder.Entity("Entities.Entities.ContactUs", b =>
                 {
                     b.Navigation("ContactUsItems");
@@ -21425,6 +21485,8 @@ namespace Persistence.Migrations
                     b.Navigation("Groomers");
 
                     b.Navigation("RoleAssignments");
+
+                    b.Navigation("Schools");
 
                     b.Navigation("Stores");
 

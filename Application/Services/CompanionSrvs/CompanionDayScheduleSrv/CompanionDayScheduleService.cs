@@ -234,7 +234,7 @@ namespace Application.Services.CompanionSrvs.CompanionDayScheduleSrv
             if (rows.Count == 0)
                 return new List<DayScheduleItemVDto>();
 
-            // پروفایل پت‌ها: مشاوره پت مشخصی ندارد؛ پت‌های فعال مشتری برای آماده‌شدن نماینده
+            // پروفایل پت‌ها: از ۲۰۲۶-۱۰-۲۷ فقط پت(های) انتخاب‌شده‌ی هر خرید؛ خریدهای قدیمی‌تر همه‌ی پت‌های فعال مشتری
             var customerIds = rows.Select(c => c.UserId).Distinct().ToList();
             var pets = (await _context.UserPets.AsNoTracking()
                     .Where(p => customerIds.Contains(p.UserId) && !p.Deleted)
@@ -242,6 +242,17 @@ namespace Application.Services.CompanionSrvs.CompanionDayScheduleSrv
                     .ToListAsync())
                 .GroupBy(p => p.UserId)
                 .ToDictionary(g => g.Key, g => g.Take(MaxConsultationCustomerPets).Select(p => ToPet(p, now)).ToList());
+
+            var rowIds = rows.Select(c => c.Id).ToList();
+            var selected = (await _context.ConsultationPurchasePets.AsNoTracking()
+                    .Where(p => rowIds.Contains(p.ConsultationPurchaseId))
+                    .Include(p => p.UserPet).ThenInclude(p => p.Pet)
+                    .Include(p => p.UserPet).ThenInclude(p => p.PetBreed)
+                    .Include(p => p.UserPet).ThenInclude(p => p.PetBreed2)
+                    .Include(p => p.UserPet).ThenInclude(p => p.Picture)
+                    .ToListAsync())
+                .GroupBy(p => p.ConsultationPurchaseId)
+                .ToDictionary(g => g.Key, g => g.Select(p => p.UserPet).ToList());
 
             return rows.Select(c => new DayScheduleItemVDto
             {
@@ -256,7 +267,8 @@ namespace Application.Services.CompanionSrvs.CompanionDayScheduleSrv
                 Title = c.PackageName,
                 IsOnline = true,
                 Customer = ToCustomer(c.User),
-                Pets = pets.TryGetValue(c.UserId, out var list) ? list : new List<DayPetVDto>(),
+                Pets = selected.TryGetValue(c.Id, out var chosen) ? chosen.Select(p => ToPet(p, now)).ToList()
+                    : pets.TryGetValue(c.UserId, out var list) ? list : new List<DayPetVDto>(),
                 Assignee = c.AgentUserId.HasValue ? new DayAssigneeVDto
                 {
                     UserId = c.AgentUserId.Value,

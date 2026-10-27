@@ -163,7 +163,22 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
 
         public static IQueryable<GroupRow> SchoolReserveGroups(IDataBaseContext context, IReadOnlyCollection<long> companionIds)
             => SettlementSources.SchoolReserves(context, companionIds)
-                .GroupBy(r => r.SchoolCourse.School.CompanionId)
+                .GroupBy(r => r.SchoolCourse.School.CompanionId.Value)
+                .Select(g => new GroupRow
+                {
+                    Key = g.Key,
+                    Count = g.Count(),
+                    UnsettledCount = g.Count(x => !x.Permitted),
+                    ProviderShare = g.Sum(x => x.CompanionShare),
+                    SiteShare = g.Sum(x => x.SiteShare),
+                    SettledShare = g.Sum(x => x.Permitted ? x.CompanionShare : 0d),
+                    UnsettledShare = g.Sum(x => x.Permitted ? 0d : x.CompanionShare),
+                });
+
+        /// <summary>ثبت‌نام مدرسه‌های فقط-ارائه‌دهنده (بدون نمایندگی)؛ Key = ProviderId. به استخر «نمایندگی» همان ارائه‌دهنده اضافه می‌شود.</summary>
+        public static IQueryable<GroupRow> ProviderSchoolReserveGroups(IDataBaseContext context, IReadOnlyCollection<long> providerIds)
+            => SettlementSources.ProviderSchoolReserves(context, providerIds)
+                .GroupBy(r => r.SchoolCourse.School.ProviderId.Value)
                 .Select(g => new GroupRow
                 {
                     Key = g.Key,

@@ -5,7 +5,9 @@ namespace Application.Services.SchoolSrvs.SchoolSrv.Dto
 {
     public class SchoolDto : Name_FieldDto
     {
-        public long CompanionId { get; set; }
+        // مالک: ارائه‌دهنده (اصلی) و/یا نمایندگی (قدیمی)؛ سمت سرور از کاربر پر می‌شود و ورودی کلاینت نادیده گرفته می‌شود
+        public long? CompanionId { get; set; }
+        public long? ProviderId { get; set; }
         public bool Active { get; set; }
         public bool ShowToSite { get; set; }
         public bool Approve { get; set; }

@@ -452,4 +452,47 @@ public class VenueConsultationTests : IClassFixture<CoachLocalDbFixture>
         Assert.False(await TryInsertAsync(1, 1, null));
         Assert.False(await TryInsertAsync(null, 1, 1));
     }
+    [Fact]
+    public async Task PetProfiles_OnlySelectedPets_WithHistory_AndOnlyForTheVenuesAgents()
+    {
+        if (!_fixture.Available) return;
+        var seed = _fixture.Seed();
+        var coachId = await AddCoachAsync(seed);
+        var otherCoachId = await AddCoachAsync(seed, ownerId: seed.OtherUserId);
+        var purchaseId = await AddPurchaseAsync(ConsultationOwner.Coach(coachId), seed.OtherUserId, ConsultationPurchaseStatusEnum.Paid);
+        var pastId = await AddPurchaseAsync(ConsultationOwner.Coach(otherCoachId), seed.OtherUserId, ConsultationPurchaseStatusEnum.Completed);
+
+        long chosenPet, otherPet;
+        using (var context = _fixture.NewContext())
+        {
+            var chosen = new UserPet { Name = "Rex", PetId = seed.PetId, UserId = seed.OtherUserId, Size = "Small", SpecificDisease = "allergy", Birthday = DateTime.Now.AddYears(-2) };
+            var other = new UserPet { Name = "Kitty", PetId = seed.PetId, UserId = seed.OtherUserId, Size = "Small", Birthday = DateTime.Now.AddYears(-1) };
+            context.UserPets.AddRange(chosen, other);
+            await context.SaveChangesAsync();
+            chosenPet = chosen.Id; otherPet = other.Id;
+            context.UserPetRecords.Add(new UserPetRecord { UserPetId = chosenPet, OperatorId = seed.OwnerUserId, Name = "vaccinated", CreateDate = DateTime.Now });
+            context.ConsultationPurchasePets.Add(new ConsultationPurchasePet { ConsultationPurchaseId = purchaseId, UserPetId = chosenPet, CreateDate = DateTime.Now });
+            context.ConsultationPurchasePets.Add(new ConsultationPurchasePet { ConsultationPurchaseId = pastId, UserPetId = chosenPet, CreateDate = DateTime.Now });
+            await context.SaveChangesAsync();
+        }
+
+        // صف نماینده: فقط پت انتخاب‌شده، نه همه‌ی پت‌های مشتری
+        var row = (await NewSessions().GetForAgentAsync(seed.OwnerUserId)).Data.Single(x => x.Id == purchaseId);
+        Assert.True(row.HasSelectedPets);
+        Assert.Equal(new[] { chosenPet }, row.CustomerPets.Select(p => p.UserPetId));
+
+        // پروفایل کامل با سابقه‌ی ثبت‌شده و مشاوره‌ی قبلی
+        var profiles = await NewSessions().GetPetProfilesAsync(seed.OwnerUserId, purchaseId);
+        Assert.True(profiles.IsSuccess);
+        var profile = Assert.Single(profiles.Data);
+        Assert.Equal(chosenPet, profile.UserPetId);
+        Assert.Equal("allergy", profile.SpecificDisease);
+        Assert.Contains(profile.Records, r => r.Text == "vaccinated");
+        Assert.Contains(profile.PastConsultations, c => c.Id == pastId);
+        Assert.DoesNotContain(profile.PastConsultations, c => c.Id == purchaseId);
+        Assert.DoesNotContain(profiles.Data, p => p.UserPetId == otherPet);
+
+        // نماینده‌ی مرکز دیگر به پروفایل پت‌های این خرید دسترسی ندارد
+        Assert.False((await NewSessions().GetPetProfilesAsync(seed.LikerUserId, purchaseId)).IsSuccess);
+    }
 }

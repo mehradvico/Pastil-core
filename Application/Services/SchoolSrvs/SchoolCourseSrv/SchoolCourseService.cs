@@ -107,7 +107,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             if (baseSearchDto.CompanionId.HasValue)
                 model = model.Where(c => c.School.CompanionId == baseSearchDto.CompanionId.Value);
             if (baseSearchDto.OwnerUserId.HasValue)
-                model = model.Where(c => c.School.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !c.School.Companion.Deleted);
+                model = model.Where(c => ((c.School.Provider != null && c.School.Provider.UserId == baseSearchDto.OwnerUserId.Value && !c.School.Provider.Deleted) || (c.School.Companion != null && c.School.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !c.School.Companion.Deleted)));
             if (baseSearchDto.CourseTypeId.HasValue)
                 model = model.Where(c => c.CourseTypeId == baseSearchDto.CourseTypeId.Value);
             if (baseSearchDto.PetId.HasValue)
@@ -203,7 +203,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             // ویدیوی حذف‌شده هم محافظت‌شده می‌ماند (شناسه‌اش قبلاً در پاسخ عمومی دوره بوده)
             var courses = await _context.SchoolCourseVideos.AsNoTracking()
                 .Where(v => v.FileId == fileId)
-                .Select(v => new { v.SchoolCourseId, v.SchoolCourse.School.CompanionId })
+                .Select(v => new { v.SchoolCourseId, v.SchoolCourse.School.CompanionId, ProviderUserId = v.SchoolCourse.School.Provider != null && !v.SchoolCourse.School.Provider.Deleted ? (long?)v.SchoolCourse.School.Provider.UserId : null })
                 .ToListAsync();
             if (courses.Count == 0)
                 return true;
@@ -211,17 +211,20 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
                 return true;
             if (companionId.HasValue && courses.Any(c => c.CompanionId == companionId.Value))
                 return true;
+            // مالکِ ارائه‌دهنده‌ی مدرسه (مدرسه‌های بدون نمایندگی)
+            if (courses.Any(c => c.ProviderUserId == userId))
+                return true;
             var courseIds = courses.Select(c => c.SchoolCourseId).ToList();
             return await _context.SchoolReserves.AsNoTracking().AnyAsync(r =>
                 courseIds.Contains(r.SchoolCourseId) && r.BookerId == userId && r.IsReserved && !r.IsCancel);
         }
 
-        public async Task<BaseResultDto> UpdateActiveAsync(long id, bool active, long? companionId = null)
+        public async Task<BaseResultDto> UpdateActiveAsync(long id, bool active, long? ownedSchoolId = null)
         {
             var item = await _context.SchoolCourses.Include(c => c.School).AsTracking().FirstOrDefaultAsync(c => c.Id == id);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (companionId.HasValue && item.School.CompanionId != companionId.Value)
+            if (ownedSchoolId.HasValue && item.SchoolId != ownedSchoolId.Value)
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
             item.Active = active;
@@ -229,16 +232,16 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             return new BaseResultDto(true);
         }
 
-        private async Task<bool> CanManageCourseAsync(long courseId, long? companionId)
+        private async Task<bool> CanManageCourseAsync(long courseId, long? ownedSchoolId)
         {
-            if (!companionId.HasValue) return true;
+            if (!ownedSchoolId.HasValue) return true;
             return await _context.SchoolCourses.Include(c => c.School)
-                .AnyAsync(c => c.Id == courseId && c.School.CompanionId == companionId.Value);
+                .AnyAsync(c => c.Id == courseId && c.SchoolId == ownedSchoolId.Value);
         }
 
-        public async Task<BaseResultDto<SchoolCourseSessionDto>> UpsertSessionAsync(SchoolCourseSessionDto dto, long? companionId = null)
+        public async Task<BaseResultDto<SchoolCourseSessionDto>> UpsertSessionAsync(SchoolCourseSessionDto dto, long? ownedSchoolId = null)
         {
-            if (!await CanManageCourseAsync(dto.SchoolCourseId, companionId))
+            if (!await CanManageCourseAsync(dto.SchoolCourseId, ownedSchoolId))
                 return new BaseResultDto<SchoolCourseSessionDto>(false, Resource.Notification.AccessDenied, dto);
 
             // لینک کلاس در پنل ادمین/وب‌اپ به‌صورت href رندر می‌شود؛ `javascript:` و امثال آن (XSS ذخیره‌شده علیه ادمین) رد می‌شود.
@@ -290,12 +293,12 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             return new BaseResultDto<SchoolCourseSessionDto>(true, mapper.Map<SchoolCourseSessionDto>(item));
         }
 
-        public async Task<BaseResultDto> DeleteSessionAsync(long id, long? companionId = null)
+        public async Task<BaseResultDto> DeleteSessionAsync(long id, long? ownedSchoolId = null)
         {
             var item = await _context.SchoolCourseSessions.Include(s => s.SchoolCourse).ThenInclude(c => c.School).AsTracking().FirstOrDefaultAsync(s => s.Id == id);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (companionId.HasValue && item.SchoolCourse.School.CompanionId != companionId.Value)
+            if (ownedSchoolId.HasValue && item.SchoolCourse.SchoolId != ownedSchoolId.Value)
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
             item.Deleted = true;
@@ -303,9 +306,9 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             return new BaseResultDto(true);
         }
 
-        public async Task<BaseResultDto<SchoolCourseVideoDto>> UpsertVideoAsync(SchoolCourseVideoDto dto, long? companionId = null)
+        public async Task<BaseResultDto<SchoolCourseVideoDto>> UpsertVideoAsync(SchoolCourseVideoDto dto, long? ownedSchoolId = null)
         {
-            if (!await CanManageCourseAsync(dto.SchoolCourseId, companionId))
+            if (!await CanManageCourseAsync(dto.SchoolCourseId, ownedSchoolId))
                 return new BaseResultDto<SchoolCourseVideoDto>(false, Resource.Notification.AccessDenied, dto);
             if (dto.FileId <= 0)
                 return new BaseResultDto<SchoolCourseVideoDto>(false, Resource.Notification.InvalidData, dto);
@@ -332,12 +335,12 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             return new BaseResultDto<SchoolCourseVideoDto>(true, mapper.Map<SchoolCourseVideoDto>(item));
         }
 
-        public async Task<BaseResultDto> DeleteVideoAsync(long id, long? companionId = null)
+        public async Task<BaseResultDto> DeleteVideoAsync(long id, long? ownedSchoolId = null)
         {
             var item = await _context.SchoolCourseVideos.Include(v => v.SchoolCourse).ThenInclude(c => c.School).AsTracking().FirstOrDefaultAsync(v => v.Id == id);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (companionId.HasValue && item.SchoolCourse.School.CompanionId != companionId.Value)
+            if (ownedSchoolId.HasValue && item.SchoolCourse.SchoolId != ownedSchoolId.Value)
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
             item.Deleted = true;

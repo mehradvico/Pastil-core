@@ -41,10 +41,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Complete(long id)
         {
-            var companionId = await _ownership.CompanionOfReserveAsync(id, _currentUser.CurrentUser.UserId);
-            if (!companionId.HasValue)
+            var ownedSchoolId = await _ownership.SchoolOfReserveAsync(id, _currentUser.CurrentUser.UserId);
+            if (!ownedSchoolId.HasValue)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
-            return Ok(await _schoolReserveService.CompleteByCompanionAsync(id, companionId.Value));
+            return Ok(await _schoolReserveService.CompleteByCompanionAsync(id, ownedSchoolId.Value));
         }
 
         [HttpGet("{id}")]
@@ -52,7 +52,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var reserve = await _schoolReserveService.FindAsyncVDto(id);
-            if (!reserve.IsSuccess || await _ownership.CompanionOfReserveAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
+            if (!reserve.IsSuccess || await _ownership.SchoolOfReserveAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(reserve);
         }

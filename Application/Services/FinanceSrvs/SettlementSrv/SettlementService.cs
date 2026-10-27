@@ -1,4 +1,4 @@
-﻿using Application.Common.Dto.Result;
+using Application.Common.Dto.Result;
 using Application.Common.Helpers;
 using Application.Common.Service;
 using Application.Services.FinanceSrvs.SettlementSrv.Dto;
@@ -183,7 +183,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                     {
                         Type = "School",
                         Code = l.SchoolReserve.ReserveCode,
-                        VenueName = null,
+                        VenueName = l.SchoolReserve.SchoolCourse.School.Name,
                         BookerFullName = (l.SchoolReserve.Booker.FirstName + " " + l.SchoolReserve.Booker.LastName).Trim(),
                         PaymentPrice = l.SchoolReserve.PaymentPrice,
                         SiteShare = l.SchoolReserve.SiteShare,
@@ -399,8 +399,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 .Where(c => c.ProviderId == providerId)
                 .Select(c => c.Id)
                 .ToListAsync();
-            if (companionIds.Count == 0)
-                return new PoolResult(0, 0);
+            // مدرسه‌ی فقط-ارائه‌دهنده (بدون نمایندگی) هم در همین استخر است؛ پس نبودِ نمایندگی یعنی خالی بودن استخر نیست
 
             var reserves = await SettlementSources.CompanionReserves(_context, companionIds)
                 .Where(r => !r.Permitted).Select(r => new { r.Id, r.CompanionShare }).ToListAsync();
@@ -410,6 +409,8 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 .Where(p => !p.Permitted).Select(p => new { p.Id, p.CompanionShare }).ToListAsync();
             var schools = await SettlementSources.SchoolReserves(_context, companionIds)
                 .Where(r => !r.Permitted).Select(r => new { r.Id, r.CompanionShare }).ToListAsync();
+            schools.AddRange(await SettlementSources.ProviderSchoolReserves(_context, providerId)
+                .Where(r => !r.Permitted).Select(r => new { r.Id, r.CompanionShare }).ToListAsync());
 
             var completed = (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Completed;
 

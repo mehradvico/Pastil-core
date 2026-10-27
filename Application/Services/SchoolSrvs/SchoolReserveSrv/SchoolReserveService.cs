@@ -104,7 +104,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             if (baseSearchDto.CompanionId.HasValue)
                 model = model.Where(r => r.SchoolCourse.School.CompanionId == baseSearchDto.CompanionId.Value);
             if (baseSearchDto.OwnerUserId.HasValue)
-                model = model.Where(r => r.SchoolCourse.School.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !r.SchoolCourse.School.Companion.Deleted);
+                model = model.Where(r => ((r.SchoolCourse.School.Provider != null && r.SchoolCourse.School.Provider.UserId == baseSearchDto.OwnerUserId.Value && !r.SchoolCourse.School.Provider.Deleted) || (r.SchoolCourse.School.Companion != null && r.SchoolCourse.School.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !r.SchoolCourse.School.Companion.Deleted)));
             if (baseSearchDto.StatusId.HasValue)
                 model = model.Where(r => r.StatusId == baseSearchDto.StatusId.Value);
 
@@ -499,11 +499,11 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
         }
 
         // مدرسه‌ی صاحب دوره می‌تواند ثبت‌نام «پرداخت‌شده» و لغو‌نشده‌ی خودش را «کامل‌شده» کند؛ تغییرات دیگر فقط ادمین
-        public async Task<BaseResultDto> CompleteByCompanionAsync(long id, long companionId)
+        public async Task<BaseResultDto> CompleteByCompanionAsync(long id, long ownedSchoolId)
         {
             var paid = (int)SchoolReserveStatusEnum.Paid;
             var done = await _context.SchoolReserves
-                .Where(s => s.Id == id && s.IsReserved && !s.IsCancel && s.StatusId == paid && s.SchoolCourse.School.CompanionId == companionId)
+                .Where(s => s.Id == id && s.IsReserved && !s.IsCancel && s.StatusId == paid && s.SchoolCourse.SchoolId == ownedSchoolId)
                 .ExecuteUpdateAsync(x => x.SetProperty(r => r.StatusId, (int)SchoolReserveStatusEnum.Complete));
             return done == 0 ? new BaseResultDto(false, Resource.Notification.NothingFound) : new BaseResultDto(true);
         }

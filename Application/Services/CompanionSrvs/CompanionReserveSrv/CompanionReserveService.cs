@@ -1,4 +1,4 @@
-﻿using Application.Common.Dto.Result;
+using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Enumerable.Message;
@@ -1879,12 +1879,14 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                 item.OperatorFinalPrice = dto.OperatorStuffPrice + dto.OperatorWagesPrice;
                 item.PaymentPrice = item.OperatorFinalPrice;
 
-                // پرداخت‌نشده: فقط برای رزرو «کامل‌شده» با مبلغ نهایی > ۰؛ ۷ روز مهلت از همین لحظه شروع می‌شود
+                // پرداخت‌نشده: فقط برای رزرو «کامل‌شده» که بعد از کسر پرداخت آنلاین مانده‌ی > ۰ دارد؛ ۷ روز مهلت از همین لحظه شروع می‌شود
+                var unpaidRemainder = Application.Services.CompanionSrvs.CompanionReserveDebtSrv.CompanionReserveDebtRules
+                    .UnpaidRemainder(item.OperatorFinalPrice, item.PrePaymentPrice, item.RebatePrice);
                 var recordAsUnpaid = dto.OperatorUnpaid
                     && dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete
-                    && item.OperatorFinalPrice > 0;
+                    && unpaidRemainder > 0;
                 item.OperatorUnpaid = recordAsUnpaid;
-                item.OperatorUnpaidAmount = recordAsUnpaid ? item.OperatorFinalPrice : 0;
+                item.OperatorUnpaidAmount = recordAsUnpaid ? unpaidRemainder : 0;
                 item.OperatorUnpaidDate = recordAsUnpaid ? DateTime.Now : null;
                 item.OperatorDebtPaidDate = null;
                 item.OperatorDebtPaidByWallet = false;

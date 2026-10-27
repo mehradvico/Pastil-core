@@ -192,4 +192,15 @@ public class ConsultationPurchaseRulesTests
         Assert.Equal("CNS-20260921-1200-0042", ConsultationPurchaseRules.NewPurchaseCode(Now, 10042));
         Assert.Equal("ConsultationRefund:77", ConsultationPurchaseRules.RefundLedgerName(77));
     }
+
+    [Fact]
+    public void NormalizePetIds_RequiresOneToFiveDistinctPositiveIds()
+    {
+        Assert.Null(ConsultationPurchaseRules.NormalizePetIds(null));
+        Assert.Null(ConsultationPurchaseRules.NormalizePetIds(new long[0]));
+        Assert.Null(ConsultationPurchaseRules.NormalizePetIds(new long[] { 0 }));
+        Assert.Null(ConsultationPurchaseRules.NormalizePetIds(new long[] { 1, 2, 3, 4, 5, 6 }));
+        Assert.Equal(new long[] { 7, 8 }, ConsultationPurchaseRules.NormalizePetIds(new long[] { 7, 8, 7 }));
+        Assert.Equal(5, ConsultationPurchaseRules.NormalizePetIds(new long[] { 1, 2, 3, 4, 5, 5 }).Count);
+    }
 }

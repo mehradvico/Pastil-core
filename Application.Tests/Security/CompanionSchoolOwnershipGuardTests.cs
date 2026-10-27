@@ -39,8 +39,8 @@ public class CompanionSchoolOwnershipGuardTests
     public void School_reserve_detail_checks_ownership()
     {
         var source = Read("SchoolReserveController.cs");
-        // مالکیت با مالک نمایندگیِ همان رزرو از دیتابیس سنجیده می‌شود (نه CompanionId توکن)
-        Assert.Contains("_ownership.CompanionOfReserveAsync(id", source);
+        // مالکیت با مالکِ ارائه‌دهنده/نمایندگیِ مدرسه‌ی همان رزرو از دیتابیس سنجیده می‌شود (نه CompanionId توکن)
+        Assert.Contains("_ownership.SchoolOfReserveAsync(id", source);
         Assert.DoesNotContain("CurrentUser.CompanionId", source);
     }
 

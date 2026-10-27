@@ -65,7 +65,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Post(SchoolPictureDto SchoolPictureDto)
         {
             var school = await _SchoolService.FindAsyncVDto(SchoolPictureDto.SchoolId);
-            if (!school.IsSuccess || await _ownership.CompanionOfSchoolAsync(school.Data.Id, _currentUser.CurrentUser.UserId) == null)
+            if (!school.IsSuccess || await _ownership.SchoolOfSchoolAsync(school.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, SchoolPictureDto));
 
             var result = await SchoolPictureService.InsertAsyncDto(SchoolPictureDto);
@@ -84,7 +84,7 @@ namespace Api.Areas.Companion.Controllers
             if (!existing.IsSuccess)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, SchoolPictureDto));
             var school = await _SchoolService.FindAsyncVDto(existing.Data.SchoolId);
-            if (!school.IsSuccess || await _ownership.CompanionOfSchoolAsync(school.Data.Id, _currentUser.CurrentUser.UserId) == null)
+            if (!school.IsSuccess || await _ownership.SchoolOfSchoolAsync(school.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, SchoolPictureDto));
 
             SchoolPictureDto.SchoolId = existing.Data.SchoolId;
@@ -105,7 +105,7 @@ namespace Api.Areas.Companion.Controllers
             if (!existing.IsSuccess)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, default!));
             var school = await _SchoolService.FindAsyncVDto(existing.Data.SchoolId);
-            if (!school.IsSuccess || await _ownership.CompanionOfSchoolAsync(school.Data.Id, _currentUser.CurrentUser.UserId) == null)
+            if (!school.IsSuccess || await _ownership.SchoolOfSchoolAsync(school.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<SchoolPictureDto>(false, Resource.Notification.AccessDenied, default!));
 
             var result = SchoolPictureService.DeleteDto(id);

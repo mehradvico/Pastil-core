@@ -2722,4 +2722,16 @@
   <data name="ReserveCompleteReceivedInvalid" xml:space="preserve">
     <value>Amount received at venue must be between zero and the final amount minus the online payment.</value>
   </data>
+  <data name="SchoolNeedsProviderRole" xml:space="preserve">
+    <value>To add a school your provider account must be active and approved and have the approved School role. Please contact Pastil support.</value>
+  </data>
+  <data name="SchoolChooseCompanion" xml:space="preserve">
+    <value>You own several agencies; please choose which agency the school belongs to.</value>
+  </data>
+  <data name="ConsultationPetRequired" xml:space="preserve">
+    <value>Choose at least one pet for the consultation (up to 5 pets).</value>
+  </data>
+  <data name="ConsultationPetInvalid" xml:space="preserve">
+    <value>The selected pet does not belong to you or has been deleted.</value>
+  </data>
 </root>

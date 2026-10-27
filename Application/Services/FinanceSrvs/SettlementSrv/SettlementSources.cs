@@ -61,9 +61,25 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
         }
 
         /// <summary>ثبت‌نام دوره‌ی مدرسه: رزروشده و لغونشده.</summary>
+        /// <summary>ثبت‌نام مدرسه‌های زیر نمایندگی (مدرسه‌های قدیمی/دارای CompanionId)؛ در مجموع هر نمایندگی حساب می‌شوند.</summary>
         public static IQueryable<SchoolReserve> SchoolReserves(IDataBaseContext context, IReadOnlyCollection<long> companionIds)
             => context.SchoolReserves
-                .Where(r => r.IsReserved && !r.IsCancel && companionIds.Contains(r.SchoolCourse.School.CompanionId));
+                .Where(r => r.IsReserved && !r.IsCancel && r.SchoolCourse.School.CompanionId != null
+                            && companionIds.Contains(r.SchoolCourse.School.CompanionId.Value));
+
+        /// <summary>
+        /// ثبت‌نام مدرسه‌هایی که فقط به ارائه‌دهنده وصل‌اند (بدون نمایندگی، ۲۰۲۶-۱۰-۲۶)؛ در استخر «نمایندگی» همان ارائه‌دهنده تسویه می‌شوند
+        /// (همان لینک SettlementCompanion.SchoolReserveId). مدرسه‌ی دارای CompanionId از مسیر SchoolReserves می‌آید تا دوبار شمرده نشود.
+        /// </summary>
+        public static IQueryable<SchoolReserve> ProviderSchoolReserves(IDataBaseContext context, long providerId)
+            => context.SchoolReserves
+                .Where(r => r.IsReserved && !r.IsCancel && r.SchoolCourse.School.CompanionId == null
+                            && r.SchoolCourse.School.ProviderId == providerId);
+
+        public static IQueryable<SchoolReserve> ProviderSchoolReserves(IDataBaseContext context, IReadOnlyCollection<long> providerIds)
+            => context.SchoolReserves
+                .Where(r => r.IsReserved && !r.IsCancel && r.SchoolCourse.School.CompanionId == null
+                            && r.SchoolCourse.School.ProviderId != null && providerIds.Contains(r.SchoolCourse.School.ProviderId.Value));
 
         /// <summary>رزرو آرایشگاه: فقط «تکمیل‌شده»، پرداخت‌شده و لغونشده (بعد از تکمیل دیگر خطر لغو/برگشت وجه ندارد).</summary>
         public static IQueryable<Entities.Entities.GroomerField.GroomerReserve> GroomerReserves(IDataBaseContext context, IReadOnlyCollection<long> groomerIds)

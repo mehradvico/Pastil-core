@@ -225,6 +225,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<OnlineSessionMessage> OnlineSessionMessages { get; set; }
         public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
         public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
+        public DbSet<ConsultationPurchasePet> ConsultationPurchasePets { get; set; }
         public DbSet<ConsultationAvailability> ConsultationAvailabilities { get; set; }
         public DbSet<PetMicrochipRequest> PetMicrochipRequests { get; set; }
         public DbSet<CompanionReservePackageItem> CompanionReservePackageItems { get; set; }
@@ -704,6 +705,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             modelBuilder.Entity<ConsultationPackage>()
                 .Property(item => item.CommissionPercent)
                 .HasPrecision(5, 2);
+            modelBuilder.Entity<ConsultationPurchasePet>(entity =>
+            {
+                entity.HasOne(item => item.ConsultationPurchase).WithMany(item => item.Pets).HasForeignKey(item => item.ConsultationPurchaseId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(item => item.UserPet).WithMany().HasForeignKey(item => item.UserPetId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(item => new { item.ConsultationPurchaseId, item.UserPetId }).IsUnique();
+            });
             modelBuilder.Entity<ConsultationPurchase>()
                 .Property(item => item.CommissionPercent)
                 .HasPrecision(5, 2);

@@ -1,4 +1,4 @@
-﻿using Application.Common.Dto.LocationPoint;
+using Application.Common.Dto.LocationPoint;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Services.Accounting.ClubRewardSrv.Dto;
@@ -643,7 +643,9 @@ namespace Application.Maping
 
             //School
             CreateMap<School, SchoolDto>().ReverseMap();
-            CreateMap<School, SchoolVDto>();
+            CreateMap<School, SchoolVDto>()
+                .ForMember(d => d.ProviderName, o => o.MapFrom(s => s.Provider != null && s.Provider.User != null
+                    ? ((s.Provider.User.FirstName ?? "") + " " + (s.Provider.User.LastName ?? "")).Trim() : null));
             CreateMap<School, SchoolActiveDto>().ReverseMap();
             CreateMap<School, SchoolApproveDto>().ReverseMap();
 

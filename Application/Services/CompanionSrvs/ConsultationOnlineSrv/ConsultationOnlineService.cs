@@ -189,6 +189,7 @@ namespace Application.Services.CompanionSrvs.ConsultationOnlineSrv
 
         public async Task<ConsultationOnlineStatusDto> GetPublicAsync(ConsultationOwner owner)
         {
+            owner = await ConsultationOwners.ResolvePublicAsync(_context, owner);
             var now = DateTime.Now;
             var id = owner.Id;
             List<Flag> rows;

@@ -105,6 +105,15 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                 if (user == null)
                     return new BaseResultDto(false, Resource.Notification.UserNotFound);
 
+                // مشاوره برای پت(های) خود کاربر خریده می‌شود؛ نماینده پروفایل و سابقه‌ی همین پت‌ها را می‌بیند
+                var petIds = ConsultationPurchaseRules.NormalizePetIds(dto.UserPetIds);
+                if (petIds == null)
+                    return new BaseResultDto(false, Resource.Notification.ConsultationPetRequired);
+                var ownedPetCount = await _context.UserPets.AsNoTracking()
+                    .CountAsync(p => petIds.Contains(p.Id) && p.UserId == userId && !p.Deleted);
+                if (ownedPetCount != petIds.Count)
+                    return new BaseResultDto(false, Resource.Notification.ConsultationPetInvalid);
+
                 var paid = (int)ConsultationPurchaseStatusEnum.Paid;
                 var active = (int)ConsultationPurchaseStatusEnum.Active;
                 var purchaseLabel = PaymentCallbackTypeEnum.ConsultationPurchase.ToString();
@@ -248,7 +257,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     RebateId = rebateId,
                     RebatePrice = amounts.RebatePrice,
                     Discount = amounts.RebatePrice,
-                    CreateDate = DateTime.Now
+                    CreateDate = DateTime.Now,
+                    Pets = petIds.Select(id => new ConsultationPurchasePet { UserPetId = id, CreateDate = DateTime.Now }).ToList()
                 };
                 if (!await TryInsertWithUniqueCodeAsync(purchase))
                     return new BaseResultDto(false, Resource.Notification.Unsuccess);
@@ -314,7 +324,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     .Take(50)
                     .Select(s => new { Purchase = s, CompanionName = s.Companion != null ? s.Companion.Name : s.Clinic != null ? s.Clinic.Name : s.Coach.Name })
                     .ToListAsync();
-                return new BaseResultDto<List<ConsultationPurchaseVDto>>(true, rows.Select(r => ToVDto(r.Purchase, r.CompanionName, now)).ToList());
+                var pets = await LoadPetsAsync(rows.Select(r => r.Purchase.Id).ToList());
+                return new BaseResultDto<List<ConsultationPurchaseVDto>>(true, rows.Select(r => WithPets(ToVDto(r.Purchase, r.CompanionName, now), pets)).ToList());
             }
             catch (Exception ex)
             {
@@ -332,7 +343,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     .FirstOrDefaultAsync();
                 if (row == null)
                     return new BaseResultDto<ConsultationPurchaseVDto>(false, Resource.Notification.NothingFound, null);
-                return new BaseResultDto<ConsultationPurchaseVDto>(true, ToVDto(row.Purchase, row.CompanionName, DateTime.Now));
+                var pets = await LoadPetsAsync(new List<long> { row.Purchase.Id });
+                return new BaseResultDto<ConsultationPurchaseVDto>(true, WithPets(ToVDto(row.Purchase, row.CompanionName, DateTime.Now), pets));
             }
             catch (Exception ex)
             {
@@ -575,6 +587,35 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
             return true;
         }
 
+        // پت‌های هر خرید (برای «مشاوره‌های من» کاربر)
+        private async Task<Dictionary<long, List<Dto.ConsultationPurchasePetVDto>>> LoadPetsAsync(List<long> purchaseIds)
+        {
+            if (purchaseIds.Count == 0)
+                return new Dictionary<long, List<Dto.ConsultationPurchasePetVDto>>();
+            var rows = await _context.ConsultationPurchasePets.AsNoTracking()
+                .Where(p => purchaseIds.Contains(p.ConsultationPurchaseId))
+                .Select(p => new
+                {
+                    p.ConsultationPurchaseId,
+                    Pet = new Dto.ConsultationPurchasePetVDto
+                    {
+                        UserPetId = p.UserPetId,
+                        Name = p.UserPet.Name,
+                        PetName = p.UserPet.Pet.Name,
+                        PictureUrl = p.UserPet.Picture == null ? null : p.UserPet.Picture.Url + "/" + p.UserPet.Picture.Name
+                    }
+                })
+                .ToListAsync();
+            return rows.GroupBy(r => r.ConsultationPurchaseId).ToDictionary(g => g.Key, g => g.Select(r => r.Pet).ToList());
+        }
+
+        private static ConsultationPurchaseVDto WithPets(ConsultationPurchaseVDto vdto, Dictionary<long, List<Dto.ConsultationPurchasePetVDto>> pets)
+        {
+            if (pets.TryGetValue(vdto.Id, out var list))
+                vdto.Pets = list;
+            return vdto;
+        }
+
         private async Task<bool> TryInsertWithUniqueCodeAsync(ConsultationPurchase purchase)
         {
             for (var attempt = 0; attempt < 3; attempt++)
@@ -591,6 +632,12 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     // برخورد نادر با ایندکس یکتای PurchaseCode: موجودیت ناموفق را رها و کد جدید امتحان می‌شود
                     _context.Entry(purchase).State = EntityState.Detached;
                     purchase.Id = 0;
+                    foreach (var pet in purchase.Pets ?? new List<ConsultationPurchasePet>())
+                    {
+                        _context.Entry(pet).State = EntityState.Detached;
+                        pet.Id = 0;
+                        pet.ConsultationPurchaseId = 0;
+                    }
                 }
             }
             return false;

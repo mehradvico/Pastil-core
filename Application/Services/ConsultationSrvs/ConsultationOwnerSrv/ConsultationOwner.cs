@@ -97,6 +97,26 @@ namespace Application.Services.ConsultationSrvs.ConsultationOwnerSrv
         }
 
         /// <summary>مرکز وجود دارد و حذف نشده (فعال/تأییدشدن بررسی نمی‌شود).</summary>
+        /// <summary>
+        /// برای نمایش عمومی: Companion قدیمی که به کلینیک/مربی منتقل شده (LegacyCompanionId) و خودش دیگر بسته‌ای ندارد،
+        /// بسته‌ها و وضعیت آنلاین همان مرکز را نشان می‌دهد؛ صفحه‌ی قدیمی نمایندگی خالی نمی‌ماند. در غیر این صورت همان مالک برمی‌گردد.
+        /// </summary>
+        public static async Task<ConsultationOwner> ResolvePublicAsync(IDataBaseContext context, ConsultationOwner owner)
+        {
+            if (owner.Kind != ConsultationOwnerKind.Companion)
+                return owner;
+            var id = owner.Id;
+            if (await context.ConsultationPackages.AsNoTracking().AnyAsync(s => s.CompanionId == id && !s.Deleted))
+                return owner;
+            var clinicId = await context.Clinics.AsNoTracking()
+                .Where(c => c.LegacyCompanionId == id && !c.Deleted).Select(c => (long?)c.Id).FirstOrDefaultAsync();
+            if (clinicId.HasValue)
+                return ConsultationOwner.Clinic(clinicId.Value);
+            var coachId = await context.Coaches.AsNoTracking()
+                .Where(c => c.LegacyCompanionId == id && !c.Deleted).Select(c => (long?)c.Id).FirstOrDefaultAsync();
+            return coachId.HasValue ? ConsultationOwner.Coach(coachId.Value) : owner;
+        }
+
         public static Task<bool> ExistsAsync(IDataBaseContext context, ConsultationOwner owner)
         {
             var id = owner.Id;

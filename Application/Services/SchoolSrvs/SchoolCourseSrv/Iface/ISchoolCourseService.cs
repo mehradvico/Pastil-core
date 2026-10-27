@@ -12,13 +12,13 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Iface
     {
         SchoolCourseSearchDto Search(SchoolCourseInputDto baseSearchDto);
         Task<BaseResultDto<SchoolCourseVDto>> FindAsyncVDto(long id);
-        Task<BaseResultDto> UpdateActiveAsync(long id, bool active, long? companionId = null);
+        Task<BaseResultDto> UpdateActiveAsync(long id, bool active, long? ownedSchoolId = null);
 
-        Task<BaseResultDto<SchoolCourseSessionDto>> UpsertSessionAsync(SchoolCourseSessionDto dto, long? companionId = null);
-        Task<BaseResultDto> DeleteSessionAsync(long id, long? companionId = null);
+        Task<BaseResultDto<SchoolCourseSessionDto>> UpsertSessionAsync(SchoolCourseSessionDto dto, long? ownedSchoolId = null);
+        Task<BaseResultDto> DeleteSessionAsync(long id, long? ownedSchoolId = null);
 
-        Task<BaseResultDto<SchoolCourseVideoDto>> UpsertVideoAsync(SchoolCourseVideoDto dto, long? companionId = null);
-        Task<BaseResultDto> DeleteVideoAsync(long id, long? companionId = null);
+        Task<BaseResultDto<SchoolCourseVideoDto>> UpsertVideoAsync(SchoolCourseVideoDto dto, long? ownedSchoolId = null);
+        Task<BaseResultDto> DeleteVideoAsync(long id, long? ownedSchoolId = null);
 
         Task<List<SearchSchoolCourseDto>> SearchMinAsync(SearchRequestDto request);
 

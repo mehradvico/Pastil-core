@@ -75,5 +75,7 @@ namespace Entities.Entities
         public ConsultationPackage ConsultationPackage { get; set; }
         public OnlineSession OnlineSession { get; set; }
         public Rebate Rebate { get; set; }
+        // پت‌های این مشاوره (حداقل یکی برای خریدهای جدید)
+        public System.Collections.Generic.ICollection<ConsultationPurchasePet> Pets { get; set; }
     }
 }

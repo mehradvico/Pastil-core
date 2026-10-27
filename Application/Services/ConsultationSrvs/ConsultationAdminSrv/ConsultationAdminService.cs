@@ -106,6 +106,64 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv
             }
         }
 
+        public async Task<BaseResultDto<List<ConsultationSessionSrv.Dto.ConsultationPetProfileVDto>>> GetPurchasePetsAsync(long id)
+        {
+            try
+            {
+                var userId = await _context.ConsultationPurchases.AsNoTracking()
+                    .Where(s => s.Id == id)
+                    .Select(s => (long?)s.UserId)
+                    .FirstOrDefaultAsync();
+                if (userId == null)
+                    return new BaseResultDto<List<ConsultationSessionSrv.Dto.ConsultationPetProfileVDto>>(false, Resource.Notification.NothingFound, null);
+                var list = await ConsultationSessionSrv.ConsultationPetProfiles.BuildAsync(_context, id, userId.Value);
+                return new BaseResultDto<List<ConsultationSessionSrv.Dto.ConsultationPetProfileVDto>>(true, list);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<List<ConsultationSessionSrv.Dto.ConsultationPetProfileVDto>>(false, ExceptionResultHelper.ToClientMessage(ex), null);
+            }
+        }
+
+        public async Task<BaseResultDto<List<ConsultationAdminMessageVDto>>> GetPurchaseMessagesAsync(long id)
+        {
+            try
+            {
+                var purchase = await _context.ConsultationPurchases.AsNoTracking()
+                    .Where(s => s.Id == id)
+                    .Select(s => new { s.UserId, s.OnlineSessionId })
+                    .FirstOrDefaultAsync();
+                if (purchase == null)
+                    return new BaseResultDto<List<ConsultationAdminMessageVDto>>(false, Resource.Notification.NothingFound, null);
+                if (purchase.OnlineSessionId == null)
+                    return new BaseResultDto<List<ConsultationAdminMessageVDto>>(true, new List<ConsultationAdminMessageVDto>());
+
+                var messages = await _context.OnlineSessionMessages.AsNoTracking()
+                    .Where(m => m.OnlineSessionId == purchase.OnlineSessionId)
+                    .OrderBy(m => m.CreateDate).ThenBy(m => m.Id)
+                    .Select(m => new ConsultationAdminMessageVDto
+                    {
+                        Id = m.Id,
+                        SenderUserId = m.SenderUserId,
+                        SenderName = (m.SenderUser.FirstName + " " + m.SenderUser.LastName).Trim(),
+                        IsCustomer = m.SenderUserId == purchase.UserId,
+                        Content = m.Content,
+                        ImageUrl = m.ImageUrl,
+                        ImageThumbnailUrl = m.ImageThumbnailUrl,
+                        Deleted = m.Deleted,
+                        CreateDate = m.CreateDate,
+                        DeliveredDate = m.DeliveredDate,
+                        ReadDate = m.ReadDate
+                    })
+                    .ToListAsync();
+                return new BaseResultDto<List<ConsultationAdminMessageVDto>>(true, messages);
+            }
+            catch (Exception ex)
+            {
+                return new BaseResultDto<List<ConsultationAdminMessageVDto>>(false, ExceptionResultHelper.ToClientMessage(ex), null);
+            }
+        }
+
         public async Task<BaseResultDto<ConsultationPurchaseAdminSummaryDto>> GetPurchaseSummaryAsync(ConsultationPurchaseAdminInputDto dto)
         {
             try

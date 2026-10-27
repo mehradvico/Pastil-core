@@ -2,6 +2,7 @@
 using Application.Services.AgencySrvs.AgencySrv.Dto;
 using Application.Services.AgencySrvs.AgencySrv.Iface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Persistence.Interface;
 using System;
 using System.Collections.Generic;
@@ -13,10 +14,12 @@ namespace Application.Services.AgencySrvs.AgencySrv
     public class AgencyService : IAgencyService
     {
         private readonly IDataBaseContext _context;
+        private readonly ILogger<AgencyService> _logger;
 
-        public AgencyService(IDataBaseContext context)
+        public AgencyService(IDataBaseContext context, ILogger<AgencyService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<AgencySearchVDto> SearchAsync(AgencyInputDto input)
@@ -32,9 +35,19 @@ namespace Application.Services.AgencySrvs.AgencySrv
             // نتواند کل فهرست ادمین را با خطای SQL از کار بیندازد.
             foreach (var source in AgencyQueries.Sources(_context, input))
             {
-                total += await source.CountAsync();
-                candidates.AddRange(await AgencyQueries.Order(source, input.SortBy, now)
-                    .Take(take).AsNoTracking().ToListAsync());
+                // خطای یک نوع (مثلاً ستونی که migrationاش روی دیتابیس اعمال نشده) فقط همان نوع را از لیست حذف می‌کند، نه کل لیست ادمین را.
+                try
+                {
+                    var count = await source.CountAsync();
+                    var rows = await AgencyQueries.Order(source, input.SortBy, now)
+                        .Take(take).AsNoTracking().ToListAsync();
+                    total += count;
+                    candidates.AddRange(rows);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Agency list: one center kind failed to load and was skipped");
+                }
             }
 
             var ordered = input.SortBy switch

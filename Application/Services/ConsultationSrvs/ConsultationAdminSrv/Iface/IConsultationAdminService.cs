@@ -11,6 +11,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Iface
     {
         Task<BaseResultDto<ConsultationPurchaseAdminSearchDto>> SearchPurchasesAsync(ConsultationPurchaseAdminInputDto dto);
         Task<BaseResultDto<ConsultationPurchaseAdminVDto>> GetPurchaseAsync(long id);
+        // پیام‌های چت جلسه‌ی آنلاین یک خرید (فقط خواندن، حذف‌شده‌ها هم با علامت)
+        Task<BaseResultDto<List<ConsultationAdminMessageVDto>>> GetPurchaseMessagesAsync(long id);
+        // پروفایل و سابقه‌ی پزشکی پت(های) یک خرید (همان داده‌ای که نماینده می‌بیند)
+        Task<BaseResultDto<List<ConsultationSessionSrv.Dto.ConsultationPetProfileVDto>>> GetPurchasePetsAsync(long id);
         // خلاصه‌ی مالی و مدت برای همان فیلترهای جستجوی خریدها
         Task<BaseResultDto<ConsultationPurchaseAdminSummaryDto>> GetPurchaseSummaryAsync(ConsultationPurchaseAdminInputDto dto);
         // همه‌ی کلینیک‌های فعال (با q برای جستجو)؛ کلینیک بدون بسته هم دیده می‌شود تا ادمین برایش تعریف کند

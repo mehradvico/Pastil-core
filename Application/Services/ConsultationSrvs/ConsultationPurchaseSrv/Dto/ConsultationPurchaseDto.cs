@@ -1,5 +1,6 @@
 using Application.Common.Enumerable;
 using System;
+using System.Collections.Generic;
 
 namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto
 {
@@ -13,6 +14,18 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto
         // فقط برای پکیج «قابل رزرو» (Bookable) و الزامی؛ ساعت شروع مشاوره (ساعت سرور/ایران، روی شبکه‌ی ۱۵ دقیقه‌ای، مثلاً 2026-10-03T16:00:00).
         // برای پکیج فوری نادیده گرفته می‌شود.
         public DateTime? ScheduledStart { get; set; }
+        // الزامی: پت(های) خود کاربر که مشاوره برایشان است (UserPet.Id؛ ۱ تا ۵، یکتا)
+        public List<long> UserPetIds { get; set; }
+    }
+
+    // پتی که مشاوره برایش خریده شده (خلاصه برای کاربر)
+    public class ConsultationPurchasePetVDto
+    {
+        public long UserPetId { get; set; }
+        public string Name { get; set; }
+        // نوع حیوان (سگ، گربه، …)
+        public string PetName { get; set; }
+        public string PictureUrl { get; set; }
     }
 
     public class ConsultationPurchaseVDto
@@ -50,6 +63,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Dto
         public int? Rate { get; set; }
         public string ReviewText { get; set; }
         public DateTime? ReviewedAt { get; set; }
+        // پت(هایی) که مشاوره برایشان است؛ خریدهای قدیمی‌تر از ۲۰۲۶-۱۰-۲۷ خالی‌اند
+        public List<ConsultationPurchasePetVDto> Pets { get; set; } = new();
     }
 
     public class ConsultationPurchaseReviewDto

@@ -35,11 +35,11 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolCourseLiveSessionVDto>), 200)]
         public async Task<IActionResult> GetForSession(long schoolCourseSessionId)
         {
-            var companionId = await _ownership.CompanionOfSessionAsync(schoolCourseSessionId, _currentUser.CurrentUser.UserId);
-            if (!companionId.HasValue)
+            var ownedSchoolId = await _ownership.SchoolOfSessionAsync(schoolCourseSessionId, _currentUser.CurrentUser.UserId);
+            if (!ownedSchoolId.HasValue)
                 return Ok(new BaseResultDto<SchoolCourseLiveSessionVDto>(false, Resource.Notification.AccessDenied, null));
 
-            var result = await _liveService.GetOrCreateForCompanionAsync(schoolCourseSessionId, companionId.Value);
+            var result = await _liveService.GetOrCreateForCompanionAsync(schoolCourseSessionId, ownedSchoolId.Value);
             return Ok(result);
         }
 
@@ -47,11 +47,11 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolLiveTokenVDto>), 200)]
         public async Task<IActionResult> Start(SchoolLiveStartDto dto)
         {
-            var companionId = await _ownership.CompanionOfSessionAsync(dto.SchoolCourseSessionId, _currentUser.CurrentUser.UserId);
-            if (!companionId.HasValue)
+            var ownedSchoolId = await _ownership.SchoolOfSessionAsync(dto.SchoolCourseSessionId, _currentUser.CurrentUser.UserId);
+            if (!ownedSchoolId.HasValue)
                 return Ok(new BaseResultDto<SchoolLiveTokenVDto>(false, Resource.Notification.AccessDenied, null));
 
-            var result = await _liveService.StartAsync(dto, companionId.Value);
+            var result = await _liveService.StartAsync(dto, ownedSchoolId.Value);
             return Ok(result);
         }
 
@@ -59,11 +59,11 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> End(long liveSessionId)
         {
-            var companionId = await _ownership.CompanionOfLiveSessionAsync(liveSessionId, _currentUser.CurrentUser.UserId);
-            if (!companionId.HasValue)
+            var ownedSchoolId = await _ownership.SchoolOfLiveSessionAsync(liveSessionId, _currentUser.CurrentUser.UserId);
+            if (!ownedSchoolId.HasValue)
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
 
-            var result = await _liveService.EndAsync(liveSessionId, companionId.Value);
+            var result = await _liveService.EndAsync(liveSessionId, ownedSchoolId.Value);
             return Ok(result);
         }
 
@@ -72,11 +72,11 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<List<SchoolLiveParticipantVDto>>), 200)]
         public async Task<IActionResult> GetParticipants(long liveSessionId)
         {
-            var companionId = await _ownership.CompanionOfLiveSessionAsync(liveSessionId, _currentUser.CurrentUser.UserId);
-            if (!companionId.HasValue)
+            var ownedSchoolId = await _ownership.SchoolOfLiveSessionAsync(liveSessionId, _currentUser.CurrentUser.UserId);
+            if (!ownedSchoolId.HasValue)
                 return Ok(new BaseResultDto<List<SchoolLiveParticipantVDto>>(false, Resource.Notification.AccessDenied, null));
 
-            var result = await _liveService.GetParticipantsAsync(liveSessionId, companionId.Value);
+            var result = await _liveService.GetParticipantsAsync(liveSessionId, ownedSchoolId.Value);
             return Ok(result);
         }
 

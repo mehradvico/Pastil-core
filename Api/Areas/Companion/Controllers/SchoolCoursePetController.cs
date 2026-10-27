@@ -35,7 +35,7 @@ namespace Api.Areas.Companion.Controllers
 
         private async Task<bool> OwnsCourseAsync(long courseId)
         {
-            return await _ownership.CompanionOfCourseAsync(courseId, _currentUser.CurrentUser.UserId) != null;
+            return await _ownership.SchoolOfCourseAsync(courseId, _currentUser.CurrentUser.UserId) != null;
         }
 
         [HttpGet()]
@@ -51,7 +51,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolCoursePetVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            if (await _ownership.CompanionOfCoursePetAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
+            if (await _ownership.SchoolOfCoursePetAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             var item = await _SchoolCoursePetService.FindAsyncVDto(id);
             return Ok(item);

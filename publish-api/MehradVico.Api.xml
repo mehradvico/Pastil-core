@@ -1795,6 +1795,12 @@
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Get(System.Int64)">
             <summary>جزئیات یک خرید</summary>
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Pets(System.Int64)">
+            <summary>پت(های) این مشاوره با پروفایل و سابقه‌ی پزشکی (فقط خواندن)</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Messages(System.Int64)">
+            <summary>پیام‌های چت جلسه‌ی آنلاین این خرید (فقط خواندن)</summary>
+        </member>
         <member name="M:Api.Areas.Admin.Controllers.ConsultationPurchaseController.Cancel(System.Int64,Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto.ConsultationAdminCancelDto)">
             <summary>لغو دستی توسط ادمین + بازپرداخت کامل به کیف پول کاربر (فقط پرداخت‌شده یا در جریان)</summary>
         </member>
@@ -4687,6 +4693,11 @@
             اتصال یک آرایشگاه (Groomer) به ارائه‌دهنده
             </summary>
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignSchool(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
+            <summary>
+            اتصال مدرسه به ارائه‌دهنده (نیازمند نقش تأییدشده‌ی School)
+            </summary>
+        </member>
         <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignClinic(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
             <summary>
             اتصال یک کلینیک (Clinic) به ارائه‌دهنده
@@ -7229,6 +7240,9 @@
             <summary>
             «مشاوره‌های من» برای نماینده: فهرست خریدهای مشاوره‌ی کلینیک، شروع و ورود دوباره در پنجره‌ی زمانی
             </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ConsultationSessionController.Pets(System.Int64)">
+            <summary>پروفایل کامل و سابقه‌ی پزشکی پت(های) این مشاوره (سوابق، مراجعات کلینیک، مشاوره‌های قبلی)</summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.ConsultationSessionController.Start(System.Int64)">
             <summary>شروع مشاوره: پنجره‌ی ۳۰/۶۰ دقیقه‌ای از همین لحظه حساب می‌شود (فقط یک‌بار)</summary>

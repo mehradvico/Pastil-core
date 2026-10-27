@@ -31,10 +31,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolCourseSessionDto>), 200)]
         public async Task<IActionResult> Post(SchoolCourseSessionDto dto)
         {
-            var companionId = dto.SchoolCourseId > 0 ? (dto.Id > 0 ? await _ownership.CompanionOfSessionAsync(dto.Id, _currentUser.CurrentUser.UserId) : await _ownership.CompanionOfCourseAsync(dto.SchoolCourseId, _currentUser.CurrentUser.UserId)) : null;
-            if (!companionId.HasValue)
+            var ownedSchoolId = dto.SchoolCourseId > 0 ? (dto.Id > 0 ? await _ownership.SchoolOfSessionAsync(dto.Id, _currentUser.CurrentUser.UserId) : await _ownership.SchoolOfCourseAsync(dto.SchoolCourseId, _currentUser.CurrentUser.UserId)) : null;
+            if (!ownedSchoolId.HasValue)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
-            var result = await _schoolCourseService.UpsertSessionAsync(dto, companionId);
+            var result = await _schoolCourseService.UpsertSessionAsync(dto, ownedSchoolId);
             return Ok(result);
         }
 
@@ -42,10 +42,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolCourseSessionDto>), 200)]
         public async Task<IActionResult> Put(SchoolCourseSessionDto dto)
         {
-            var companionId = dto.SchoolCourseId > 0 ? (dto.Id > 0 ? await _ownership.CompanionOfSessionAsync(dto.Id, _currentUser.CurrentUser.UserId) : await _ownership.CompanionOfCourseAsync(dto.SchoolCourseId, _currentUser.CurrentUser.UserId)) : null;
-            if (!companionId.HasValue)
+            var ownedSchoolId = dto.SchoolCourseId > 0 ? (dto.Id > 0 ? await _ownership.SchoolOfSessionAsync(dto.Id, _currentUser.CurrentUser.UserId) : await _ownership.SchoolOfCourseAsync(dto.SchoolCourseId, _currentUser.CurrentUser.UserId)) : null;
+            if (!ownedSchoolId.HasValue)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
-            var result = await _schoolCourseService.UpsertSessionAsync(dto, companionId);
+            var result = await _schoolCourseService.UpsertSessionAsync(dto, ownedSchoolId);
             return Ok(result);
         }
 
@@ -53,10 +53,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Delete(long id)
         {
-            var companionId = await _ownership.CompanionOfSessionAsync(id, _currentUser.CurrentUser.UserId);
-            if (!companionId.HasValue)
+            var ownedSchoolId = await _ownership.SchoolOfSessionAsync(id, _currentUser.CurrentUser.UserId);
+            if (!ownedSchoolId.HasValue)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
-            var result = await _schoolCourseService.DeleteSessionAsync(id, companionId);
+            var result = await _schoolCourseService.DeleteSessionAsync(id, ownedSchoolId);
             return Ok(result);
         }
     }

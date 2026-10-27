@@ -159,4 +159,20 @@ namespace Application.Services.ConsultationSrvs.ConsultationAdminSrv.Dto
         public double MaxPrice { get; set; }
         public int PurchasesCount { get; set; }
     }
+
+    // یک پیام چت مشاوره برای نمایش فقط‌خواندنی به ادمین؛ IsCustomer یعنی فرستنده همان خریدار است
+    public class ConsultationAdminMessageVDto
+    {
+        public long Id { get; set; }
+        public long SenderUserId { get; set; }
+        public string SenderName { get; set; }
+        public bool IsCustomer { get; set; }
+        public string Content { get; set; }
+        public string ImageUrl { get; set; }
+        public string ImageThumbnailUrl { get; set; }
+        public bool Deleted { get; set; }
+        public DateTime CreateDate { get; set; }
+        public DateTime? DeliveredDate { get; set; }
+        public DateTime? ReadDate { get; set; }
+    }
 }

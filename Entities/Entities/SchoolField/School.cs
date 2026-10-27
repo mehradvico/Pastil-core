@@ -6,11 +6,13 @@ using System.Collections.Generic;
 
 namespace Entities.Entities.SchoolField
 {
-    // مدرسه‌ی تربیت پت - همیشه توسط یک «مربی» (Companion) اداره می‌شود؛ کاتالوگ دوره‌ها
+    // مدرسه‌ی تربیت پت - مالک آن «ارائه‌دهنده» (ProviderId) است (۲۰۲۶-۱۰-۲۶)؛ CompanionId برای مدرسه‌های قدیمی می‌ماند و اختیاری است.
+    // دست‌کم یکی از ProviderId / CompanionId پر است. کاتالوگ دوره‌ها
     // (SchoolCourse) روی همین رکورد تعریف می‌شوند، نه یک قیمت تخت مثل Pansion.
     public class School : Name_Field
     {
-        public long CompanionId { get; set; }
+        public long? CompanionId { get; set; }
+        public long? ProviderId { get; set; }
         public bool Active { get; set; }
         public bool ShowToSite { get; set; }
         public bool Approve { get; set; }
@@ -34,6 +36,7 @@ namespace Entities.Entities.SchoolField
         public string Regulations { get; set; }
 
         public Companion Companion { get; set; }
+        public ProviderField.Provider Provider { get; set; }
         public State State { get; set; }
         public City City { get; set; }
         public Picture Picture { get; set; }

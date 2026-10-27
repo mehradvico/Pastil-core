@@ -38,6 +38,13 @@ namespace Application.Services.CompanionSrvs.CompanionReserveDebtSrv
         }
 
         // سهم سایت از مبلغی که بعداً پرداخت شده (کمیسیون خدمت)
+        /// <summary>
+        /// مانده‌ی حضوری که با «دریافت نشد» بدهی کاربر می‌شود: مبلغ نهایی منهای آنچه کاربر آنلاین پرداخته
+        /// (پیش‌پرداخت + تخفیف کد که سهم سایت است). قبلاً کل مبلغ نهایی بدهی می‌شد و پیش‌پرداخت دوبار گرفته می‌شد.
+        /// </summary>
+        public static double UnpaidRemainder(double finalPrice, double prePaymentPrice, double rebatePrice) =>
+            Math.Max(0, Math.Round(finalPrice - (prePaymentPrice + rebatePrice), 2));
+
         public static double SiteShareOf(double amount, decimal commissionPercent)
             => (double)((decimal)amount * commissionPercent / 100m);
 

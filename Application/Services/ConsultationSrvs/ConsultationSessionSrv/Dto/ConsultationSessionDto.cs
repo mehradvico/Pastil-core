@@ -42,9 +42,11 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto
         public string AgentName { get; set; }
         // نمایندگان قابل تخصیص (فقط وقتی CanAssign = true)
         public List<ConsultationAssignableAgentVDto> AssignableAgents { get; set; }
-        // پت‌های همین مشتری (خرید مشاوره شناسه‌ی پت ندارد؛ نماینده حین گفتگو خودش تشخیص می‌دهد
-        // سابقه‌ای که می‌نویسد مال کدام پت است — POST /api/Operator/UserPetRecord با یکی از همین‌ها)
+        // پت(های) این مشاوره. از ۲۰۲۶-۱۰-۲۷ کاربر هنگام خرید پت(ها) را انتخاب می‌کند و فقط همان‌ها می‌آیند
+        // (HasSelectedPets = true)؛ برای خریدهای قدیمی‌تر همه‌ی پت‌های مشتری (HasSelectedPets = false).
+        // پروفایل کامل و سابقه‌ی پزشکی: GET /api/Companion/ConsultationSession/{id}/Pets
         public List<ConsultationCustomerPetVDto> CustomerPets { get; set; }
+        public bool HasSelectedPets { get; set; }
         public DateTime ServerNow { get; set; }
     }
 
@@ -54,6 +56,54 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto
         public string Name { get; set; }
         public string PetName { get; set; }
         public PictureVDto Picture { get; set; }
+    }
+
+    // پروفایل کامل پت برای نماینده‌ی کلینیک/مربی در یک مشاوره‌ی آنلاین
+    public class ConsultationPetProfileVDto
+    {
+        public long UserPetId { get; set; }
+        public string Name { get; set; }
+        // نوع حیوان (سگ، گربه، …)
+        public string PetName { get; set; }
+        public string BreedName { get; set; }
+        public string Breed2Name { get; set; }
+        public bool IsMixBreed { get; set; }
+        public bool IsMale { get; set; }
+        public bool IsSterile { get; set; }
+        public DateTime Birthday { get; set; }
+        // سن به ماه؛ متن «۲ سال و ۳ ماه» را کلاینت می‌سازد
+        public int AgeMonths { get; set; }
+        public string Size { get; set; }
+        public string Weight { get; set; }
+        public string MicroChipCode { get; set; }
+        // بیماری/داروی خاصی که خود صاحب پت ثبت کرده
+        public string SpecificDisease { get; set; }
+        public string SpecificMedicine { get; set; }
+        public PictureVDto Picture { get; set; }
+        // سوابق ثبت‌شده توسط کلینیک‌ها/اپراتورها (UserPetRecord)، جدیدترین اول
+        public List<ConsultationPetRecordVDto> Records { get; set; } = new();
+        // مراجعات تکمیل‌شده‌ی کلینیک (حضوری/در محل/آنلاین)، جدیدترین اول
+        public List<ConsultationPetVisitVDto> ClinicVisits { get; set; } = new();
+        // مشاوره‌های آنلاین قبلی همین پت (به‌جز همین خرید)، جدیدترین اول
+        public List<ConsultationPetVisitVDto> PastConsultations { get; set; } = new();
+    }
+
+    public class ConsultationPetRecordVDto
+    {
+        public long Id { get; set; }
+        public string Text { get; set; }
+        public string OperatorName { get; set; }
+        public DateTime CreateDate { get; set; }
+    }
+
+    public class ConsultationPetVisitVDto
+    {
+        public long Id { get; set; }
+        public DateTime Date { get; set; }
+        public string VenueName { get; set; }
+        public string Title { get; set; }
+        // یادداشت تکمیل (فقط مراجعه‌ی کلینیک)
+        public string Note { get; set; }
     }
 
     public class ConsultationAssignableAgentVDto

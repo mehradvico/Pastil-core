@@ -41,7 +41,7 @@ namespace Application.Services.SchoolSrvs.SchoolPictureSrv
                 model = model.Where(s => s.School.CompanionId == searchDto.CompanionId.Value);
             }
             if (searchDto.OwnerUserId.HasValue)
-                model = model.Where(s => s.School.Companion.OwnerId == searchDto.OwnerUserId.Value && !s.School.Companion.Deleted);
+                model = model.Where(s => ((s.School.Provider != null && s.School.Provider.UserId == searchDto.OwnerUserId.Value && !s.School.Provider.Deleted) || (s.School.Companion != null && s.School.Companion.OwnerId == searchDto.OwnerUserId.Value && !s.School.Companion.Deleted)));
             return new SchoolPictureSearchDto(searchDto, model, mapper);
         }
     }

@@ -11,7 +11,10 @@ namespace Application.Services.SchoolSrvs.SchoolSrv.Dto
 {
     public class SchoolVDto : Name_FieldDto
     {
-        public long CompanionId { get; set; }
+        public long? CompanionId { get; set; }
+        public long? ProviderId { get; set; }
+        // نام ارائه‌دهنده‌ی مالک (نام کاربرِ ارائه‌دهنده)
+        public string ProviderName { get; set; }
         public bool Active { get; set; }
         public bool ShowToSite { get; set; }
         public bool Approve { get; set; }

@@ -173,7 +173,8 @@ namespace Application.Services.CompanionSrvs.OnlineSessionSrv
                     var companionIds = await AgentCompanionIdsAsync(current);
                     var customerIds = _context.CompanionReserves.Where(r => companionIds.Contains(r.CompanionAssistance.CompanionId)).Select(r => r.BookerId)
                         .Concat(_context.PansionReserves.Where(r => companionIds.Contains(r.Pansion.CompanionId)).Select(r => r.BookerId))
-                        .Concat(_context.SchoolReserves.Where(r => companionIds.Contains(r.SchoolCourse.School.CompanionId)).Select(r => r.BookerId))
+                        .Concat(_context.SchoolReserves.Where(r => (r.SchoolCourse.School.CompanionId != null && companionIds.Contains(r.SchoolCourse.School.CompanionId.Value))
+                            || (r.SchoolCourse.School.Provider != null && r.SchoolCourse.School.Provider.UserId == current.UserId)).Select(r => r.BookerId))
                         .Concat(_context.OnlineSessions.Where(o => o.InitiatorUserId == current.UserId).Select(o => o.TargetUserId));
                     scoped = baseQuery.Where(s => customerIds.Contains(s.Id)
                         && ((s.FirstName + " " + s.LastName).Contains(q) || s.Mobile.Contains(q)));

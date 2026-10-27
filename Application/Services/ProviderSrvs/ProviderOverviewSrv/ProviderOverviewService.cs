@@ -1,4 +1,4 @@
-﻿using Application.Common.Dto.Result;
+using Application.Common.Dto.Result;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.ProviderSrvs.ProviderFinanceSrv.Dto;
 using Application.Services.ProviderSrvs.ProviderFinanceSrv.Iface;
@@ -118,8 +118,8 @@ namespace Application.Services.ProviderSrvs.ProviderOverviewSrv
 
             var ids = companions.Select(x => x.Id).ToList();
             var schoolCounts = await _context.Schools.AsNoTracking()
-                .Where(s => ids.Contains(s.CompanionId) && !s.Deleted)
-                .GroupBy(s => s.CompanionId)
+                .Where(s => s.CompanionId != null && ids.Contains(s.CompanionId.Value) && !s.Deleted)
+                .GroupBy(s => s.CompanionId.Value)
                 .Select(g => new { CompanionId = g.Key, Count = g.Count() })
                 .ToListAsync();
 

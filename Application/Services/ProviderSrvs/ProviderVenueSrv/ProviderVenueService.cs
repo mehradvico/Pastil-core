@@ -1,4 +1,4 @@
-﻿using Application.Common.Dto.Result;
+using Application.Common.Dto.Result;
 using Application.Services.ProviderSrvs.ProviderVenueSrv.Dto;
 using Application.Services.ProviderSrvs.ProviderVenueSrv.Iface;
 using Application.Services.ProviderSrvs.ProviderSubscriptionSyncSrv.Iface;
@@ -54,6 +54,10 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
                     .Where(x => x.ProviderId == providerId && !x.Deleted)
                     .Select(x => new ProviderVenueVDto { Id = x.Id, Name = x.Name, Active = x.Active, Approved = x.Approved })
                     .ToListAsync(),
+                Schools = await _context.Schools.AsNoTracking()
+                    .Where(x => x.ProviderId == providerId && !x.Deleted)
+                    .Select(x => new ProviderVenueVDto { Id = x.Id, Name = x.Name, Active = x.Active, Approved = x.Approve })
+                    .ToListAsync(),
                 Stores = await _context.Stores.AsNoTracking()
                     .Where(x => x.ProviderId == providerId && !x.Deleted)
                     .Select(x => new ProviderVenueVDto { Id = x.Id, Name = x.Name, Active = x.Active, Approved = x.Approved })
@@ -67,7 +71,7 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
         {
             if (!await _context.Providers.AnyAsync(x => x.Id == dto.ProviderId && !x.Deleted))
                 return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
-            var item = await _context.Companions.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
+            var item = await _context.Companions.AsTracking().FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.CompanionNotFound);
             item.ProviderId = dto.ProviderId;
@@ -83,7 +87,7 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             var provider = await _context.Providers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ProviderId && !x.Deleted);
             if (provider == null)
                 return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
-            var item = await _context.Groomers.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
+            var item = await _context.Groomers.AsTracking().FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (!await HasRoleAsync(provider.Id, ProviderRoleLabels.Groomer))
@@ -101,7 +105,7 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             var provider = await _context.Providers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ProviderId && !x.Deleted);
             if (provider == null)
                 return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
-            var item = await _context.Clinics.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
+            var item = await _context.Clinics.AsTracking().FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (!await HasRoleAsync(provider.Id, ProviderRoleLabels.Clinic))
@@ -118,7 +122,7 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             var provider = await _context.Providers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.ProviderId && !x.Deleted);
             if (provider == null)
                 return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
-            var item = await _context.Coaches.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
+            var item = await _context.Coaches.AsTracking().FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (!await HasRoleAsync(provider.Id, ProviderRoleLabels.Coach))
@@ -130,11 +134,32 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
             return new BaseResultDto(true);
         }
 
+        /// <summary>
+        /// مدرسه را به ارائه‌دهنده وصل می‌کند (مالک مدرسه = کاربر ارائه‌دهنده). نمایندگی قبلی (اگر بود) برای سابقه می‌ماند،
+        /// ولی تسویه‌ی مدرسه‌ی دارای نمایندگی همچنان از استخر همان نمایندگی است؛ برای انتقال کامل، CompanionId را ادمین خالی می‌کند (detachCompanion).
+        /// </summary>
+        public async Task<BaseResultDto> AssignSchoolAsync(ProviderVenueAssignDto dto)
+        {
+            if (!await _context.Providers.AnyAsync(x => x.Id == dto.ProviderId && !x.Deleted))
+                return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
+            var item = await _context.Schools.AsTracking().FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (!await HasRoleAsync(dto.ProviderId, ProviderRoleLabels.School))
+                return new BaseResultDto(false, Resource.Notification.ProviderRoleRequired);
+            item.ProviderId = dto.ProviderId;
+            // نمایندگی‌ای که مال همین ارائه‌دهنده نیست جدا می‌شود تا مالکیت و تسویه دوگانه نشود
+            if (item.CompanionId.HasValue && !await _context.Companions.AnyAsync(c => c.Id == item.CompanionId.Value && c.ProviderId == dto.ProviderId))
+                item.CompanionId = null;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
         public async Task<BaseResultDto> AssignStoreAsync(ProviderVenueAssignDto dto)
         {
             if (!await _context.Providers.AnyAsync(x => x.Id == dto.ProviderId && !x.Deleted))
                 return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
-            var item = await _context.Stores.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
+            var item = await _context.Stores.AsTracking().FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             if (!await HasRoleAsync(dto.ProviderId, ProviderRoleLabels.Store))

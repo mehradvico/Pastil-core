@@ -38,4 +38,14 @@ public class CompanionReserveDebtRulesTests
         Assert.Equal(20, CompanionReserveDebtRules.SiteShareOf(100, 20m));
         Assert.Equal(0, CompanionReserveDebtRules.SiteShareOf(100, 0m));
     }
+
+    [Fact]
+    public void Unpaid_remainder_excludes_what_was_paid_online()
+    {
+        // ۶۵۰ نهایی، ۲۰۰ پیش‌پرداخت آنلاین + ۵۰ تخفیف کد ⇒ ۴۰۰ بدهی (نه ۶۵۰)
+        Assert.Equal(400, CompanionReserveDebtRules.UnpaidRemainder(650, 200, 50));
+        Assert.Equal(650, CompanionReserveDebtRules.UnpaidRemainder(650, 0, 0));
+        // مبلغ نهایی کمتر از پرداخت آنلاین: بدهی منفی نمی‌شود
+        Assert.Equal(0, CompanionReserveDebtRules.UnpaidRemainder(100, 200, 0));
+    }
 }

@@ -39,6 +39,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             var item = await _context.Schools
                 .Include(s => s.Picture)
                 .Include(s => s.Companion).ThenInclude(s => s.Owner)
+                .Include(s => s.Provider).ThenInclude(p => p.User)
                 .Include(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.SchoolCourses.Where(c => !c.Deleted))
                 .Include(s => s.SchoolPictures.Where(p => !p.Deleted)).ThenInclude(p => p.Picture)
@@ -53,6 +54,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             var model = _context.Schools
                 .Include(s => s.Picture)
                 .Include(s => s.Companion)
+                .Include(s => s.Provider).ThenInclude(p => p.User)
                 .Include(s => s.City).ThenInclude(s => s.State)
                 .AsQueryable();
             // حذف‌شده‌ها فقط وقتی ادمین صریحاً بخواهد (onlyDeleted) دیده می‌شوند؛ برای بقیه‌ی فراخوان‌ها هرگز.
@@ -60,8 +62,10 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
 
             if (baseSearchDto.CompanionId.HasValue)
                 model = model.Where(s => s.CompanionId == baseSearchDto.CompanionId.Value);
+            if (baseSearchDto.ProviderId.HasValue)
+                model = model.Where(s => s.ProviderId == baseSearchDto.ProviderId.Value);
             if (baseSearchDto.OwnerUserId.HasValue)
-                model = model.Where(s => s.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !s.Companion.Deleted);
+                model = model.Where(s => ((s.Provider != null && s.Provider.UserId == baseSearchDto.OwnerUserId.Value && !s.Provider.Deleted) || (s.Companion != null && s.Companion.OwnerId == baseSearchDto.OwnerUserId.Value && !s.Companion.Deleted)));
             if (baseSearchDto.Approve.HasValue)
                 model = model.Where(s => s.Approve == baseSearchDto.Approve.Value);
             if (baseSearchDto.ShowToSite.HasValue)
@@ -103,6 +107,10 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             var locationError = ValidateLocation(dto);
             if (locationError != null)
                 return new BaseResultDto(false, locationError);
+            if (!dto.ProviderId.HasValue && !dto.CompanionId.HasValue)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (dto.ProviderId.HasValue && !_context.Providers.Any(p => p.Id == dto.ProviderId.Value && !p.Deleted))
+                return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
             return base.UpdateDto(dto);
         }
 
@@ -115,8 +123,12 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             if (locationError != null)
                 return new BaseResultDto<SchoolDto>(false, locationError, dto);
 
-            var companion = await _context.Companions.FirstOrDefaultAsync(s => s.Id == dto.CompanionId && !s.Deleted && s.Active && s.Approved);
-            if (companion == null)
+            // دست‌کم یک مالک لازم است (کنترلر از SchoolOwnershipService پر می‌کند؛ ادمین هم باید یکی را بدهد)
+            if (!dto.ProviderId.HasValue && !dto.CompanionId.HasValue)
+                return new BaseResultDto<SchoolDto>(false, Resource.Notification.NothingFound, dto);
+            if (dto.ProviderId.HasValue && !await _context.Providers.AnyAsync(p => p.Id == dto.ProviderId.Value && !p.Deleted))
+                return new BaseResultDto<SchoolDto>(false, Resource.Notification.ProviderNotFound, dto);
+            if (dto.CompanionId.HasValue && !await _context.Companions.AnyAsync(s => s.Id == dto.CompanionId.Value && !s.Deleted && s.Active && s.Approved))
                 return new BaseResultDto<SchoolDto>(false, Resource.Notification.NothingFound, dto);
 
             var item = mapper.Map<School>(dto);
@@ -134,12 +146,12 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             return new BaseResultDto<SchoolDto>(true, mapper.Map<SchoolDto>(item));
         }
 
-        public BaseResultDto UpdateSchoolActiveDto(SchoolActiveDto dto, long? companionId = null)
+        public BaseResultDto UpdateSchoolActiveDto(SchoolActiveDto dto, long? ownedSchoolId = null)
         {
             var item = _context.Schools.FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (companionId.HasValue && item.CompanionId != companionId.Value)
+            if (ownedSchoolId.HasValue && item.Id != ownedSchoolId.Value)
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
             item.Active = dto.Active;
@@ -153,11 +165,11 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             if (!dto.Approve && string.IsNullOrWhiteSpace(dto.ApprovalValue))
                 return new BaseResultDto(false, Resource.Notification.PleaseEnterTheActivationValueReason);
 
+            // مدرسه‌ی جدید مالکش ارائه‌دهنده است و CompanionId ندارد؛ تأیید نباید به نمایندگی وابسته باشد.
             var item = await _context.Schools
-                .Include(s => s.Companion)
                 .AsTracking()
                 .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
-            if (item?.Companion == null)
+            if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
             item.Approve = dto.Approve;
@@ -187,10 +199,10 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             return new BaseResultDto(true);
         }
 
-        // حذف نرم توسط مالک کلینیک (companionId = کلینیک جاری کاربر) یا ادمین (companionId = null).
+        // حذف نرم توسط مالک (ownedSchoolId = همین مدرسه، بعد از بررسی مالکیت در SchoolOwnershipService) یا ادمین (null).
         // ردیف و دوره‌ها پاک نمی‌شوند: رزروها، تسویه‌ها و گزارش مالی می‌مانند؛ مدرسه از فهرست‌ها، جستجو و رزرو جدید حذف می‌شود.
         // تا وقتی ثبت‌نام «باز» (پرداخت‌شده، لغو/تکمیل‌نشده) دارد حذف نمی‌شود.
-        public async Task<BaseResultDto> SoftDeleteAsync(long id, long? companionId, long actorUserId)
+        public async Task<BaseResultDto> SoftDeleteAsync(long id, long? ownedSchoolId, long actorUserId)
         {
             try
             {
@@ -200,11 +212,8 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
                     .FirstOrDefaultAsync();
                 if (item == null)
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
-                if (companionId.HasValue && item.CompanionId != companionId.Value)
-                    return new BaseResultDto(false, Resource.Notification.AccessDenied);
-                // حذف توسط نماینده فقط برای «مالک» همان کلینیک (نه اعضای تیم)
-                if (companionId.HasValue &&
-                    !await _context.Companions.AsNoTracking().AnyAsync(c => c.Id == companionId.Value && c.OwnerId == actorUserId && !c.Deleted))
+                // مالکیت (فقط مالکِ ارائه‌دهنده/نمایندگی، نه اعضای تیم) در SchoolOwnershipService سنجیده شده است
+                if (ownedSchoolId.HasValue && item.Id != ownedSchoolId.Value)
                     return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
                 var paid = (int)SchoolReserveStatusEnum.Paid;
@@ -261,6 +270,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
                     Id = s.Id,
                     Name = s.Name,
                     CompanionId = s.CompanionId,
+                    ProviderId = s.ProviderId,
                     RateAvg = s.RateAvg,
                     RateCount = s.RateCount,
                     Picture = s.Picture == null ? null : new PictureVDto { Id = s.Picture.Id, Url = s.Picture.Url, OrginalName = s.Picture.OrginalName, GuidName = s.Picture.GuidName, Extension = s.Picture.Extension }

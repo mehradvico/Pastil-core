@@ -5728,6 +5728,18 @@ namespace Resource {
             }
         }
 
+        public static string ConsultationPetRequired {
+            get {
+                return ResourceManager.GetString("ConsultationPetRequired", resourceCulture);
+            }
+        }
+
+        public static string ConsultationPetInvalid {
+            get {
+                return ResourceManager.GetString("ConsultationPetInvalid", resourceCulture);
+            }
+        }
+
         public static string PortfolioTooManyPictures {
             get {
                 return ResourceManager.GetString("PortfolioTooManyPictures", resourceCulture);
@@ -7012,6 +7024,18 @@ namespace Resource {
         public static string PansionCommentReplyInvalid {
             get {
                 return ResourceManager.GetString("PansionCommentReplyInvalid", resourceCulture);
+            }
+        }
+
+        public static string SchoolNeedsProviderRole {
+            get {
+                return ResourceManager.GetString("SchoolNeedsProviderRole", resourceCulture);
+            }
+        }
+
+        public static string SchoolChooseCompanion {
+            get {
+                return ResourceManager.GetString("SchoolChooseCompanion", resourceCulture);
             }
         }
 

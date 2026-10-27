@@ -41,7 +41,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var school = await _schoolService.FindAsyncVDto(id);
-            if (!school.IsSuccess || await _ownership.CompanionOfSchoolAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
+            if (!school.IsSuccess || await _ownership.SchoolOfSchoolAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(school);
         }
@@ -50,10 +50,12 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolDto>), 200)]
         public async Task<IActionResult> Post(SchoolDto dto)
         {
-            var companionId = await _ownership.ResolveCompanionForNewSchoolAsync(_currentUser.CurrentUser.UserId, dto.CompanionId);
-            if (!companionId.HasValue)
-                return Forbid();
-            dto.CompanionId = companionId.Value;
+            // مالک مدرسه‌ی جدید = ارائه‌دهنده‌ی کاربر (نقش School)؛ نمایندگی اختیاری/قدیمی. خطا با پیام روشن، نه ۴۰۳ خالی.
+            var owner = await _ownership.ResolveOwnerForNewSchoolAsync(_currentUser.CurrentUser.UserId, dto.CompanionId);
+            if (!owner.Ok)
+                return Ok(new BaseResultDto<SchoolDto>(false, owner.Error, dto));
+            dto.ProviderId = owner.ProviderId;
+            dto.CompanionId = owner.CompanionId;
             var result = await _schoolService.InsertAsyncDto(dto);
             return Ok(result);
         }
@@ -62,12 +64,14 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(SchoolDto dto)
         {
-            var companionId = await _ownership.CompanionOfSchoolAsync(dto.Id, _currentUser.CurrentUser.UserId);
+            var ownedSchoolId = await _ownership.SchoolOfSchoolAsync(dto.Id, _currentUser.CurrentUser.UserId);
             var existing = await _schoolService.FindAsyncVDto(dto.Id);
-            if (!companionId.HasValue || !existing.IsSuccess)
+            if (!ownedSchoolId.HasValue || !existing.IsSuccess)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
 
-            dto.CompanionId = companionId.Value;
+            // مالکیت (ارائه‌دهنده/نمایندگی) فقط با ادمین عوض می‌شود
+            dto.CompanionId = existing.Data.CompanionId;
+            dto.ProviderId = existing.Data.ProviderId;
 
             // UpdateDto عمومی همه‌ی فیلدهای DTO را روی موجودیت می‌نویسد؛ فیلدهای تأیید/نمایش/امتیاز فقط با
             // ادمین یا سیستم عوض می‌شوند (Approve/ApprovalValue با SchoolApprove، Active با SchoolActive،
@@ -94,10 +98,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Delete(long id)
         {
-            var companionId = await _ownership.CompanionOfSchoolAsync(id, _currentUser.CurrentUser.UserId);
-            if (!companionId.HasValue)
+            var ownedSchoolId = await _ownership.SchoolOfSchoolAsync(id, _currentUser.CurrentUser.UserId);
+            if (!ownedSchoolId.HasValue)
                 return Forbid();
-            var result = await _schoolService.SoftDeleteAsync(id, companionId.Value, _currentUser.CurrentUser.UserId);
+            var result = await _schoolService.SoftDeleteAsync(id, ownedSchoolId.Value, _currentUser.CurrentUser.UserId);
             return Ok(result);
         }
     }

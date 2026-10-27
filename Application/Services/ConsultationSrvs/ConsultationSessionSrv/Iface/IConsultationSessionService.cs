@@ -10,6 +10,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationSessionSrv.Iface
         // خریدهای «پرداخت‌شده/در جریان» کلینیک‌هایی که این کاربر نماینده‌ی مجازشان است (مالک یا عضو تخصیص‌یافته روی خدمت ۱۵)
         Task<BaseResultDto<List<ConsultationAgentItemVDto>>> GetForAgentAsync(long agentUserId);
 
+        // پروفایل کامل و سابقه‌ی پزشکی پت(های) یک مشاوره برای نماینده‌ی مجاز همان کلینیک/مربی (هر وضعیتی)
+        Task<BaseResultDto<List<ConsultationPetProfileVDto>>> GetPetProfilesAsync(long agentUserId, long purchaseId);
+
         // «شروع» مشاوره توسط نماینده: Paid → Active (اتمی)، پنجره‌ی زمانی از همین لحظه، ساخت جلسه‌ی آنلاین
         Task<BaseResultDto<ConsultationSessionInfoVDto>> StartAsync(long agentUserId, long purchaseId);
 

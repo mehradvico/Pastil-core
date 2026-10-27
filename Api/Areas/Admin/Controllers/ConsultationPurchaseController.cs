@@ -4,6 +4,7 @@ using Application.Services.ConsultationSrvs.ConsultationAdminSrv.Iface;
 using Application.Services.ConsultationSrvs.ConsultationPurchaseSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Api.Areas.Admin.Controllers
@@ -44,6 +45,18 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto<ConsultationPurchaseAdminVDto>), 200)]
         public async Task<IActionResult> Get(long id)
             => Ok(await _service.GetPurchaseAsync(id));
+
+        /// <summary>پت(های) این مشاوره با پروفایل و سابقه‌ی پزشکی (فقط خواندن)</summary>
+        [HttpGet("{id}/Pets")]
+        [ProducesResponseType(typeof(BaseResultDto<List<Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto.ConsultationPetProfileVDto>>), 200)]
+        public async Task<IActionResult> Pets(long id)
+            => Ok(await _service.GetPurchasePetsAsync(id));
+
+        /// <summary>پیام‌های چت جلسه‌ی آنلاین این خرید (فقط خواندن)</summary>
+        [HttpGet("{id}/Messages")]
+        [ProducesResponseType(typeof(BaseResultDto<List<ConsultationAdminMessageVDto>>), 200)]
+        public async Task<IActionResult> Messages(long id)
+            => Ok(await _service.GetPurchaseMessagesAsync(id));
 
         /// <summary>لغو دستی توسط ادمین + بازپرداخت کامل به کیف پول کاربر (فقط پرداخت‌شده یا در جریان)</summary>
         [HttpPost("{id}/cancel")]

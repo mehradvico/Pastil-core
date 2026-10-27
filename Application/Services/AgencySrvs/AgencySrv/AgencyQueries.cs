@@ -353,24 +353,27 @@ namespace Application.Services.AgencySrvs.AgencySrv
             if (!string.IsNullOrWhiteSpace(input.Q))
             {
                 var q = input.Q.Trim();
-                model = model.Where(p => p.Name.Contains(q) || p.Companion.Phone == q);
+                model = model.Where(p => p.Name.Contains(q) || (p.Companion != null && p.Companion.Phone == q) || (p.Provider != null && p.Provider.User.Mobile == q));
             }
             if (input.Available.HasValue)
                 model = model.Where(p => p.Active == input.Available.Value);
             if (input.Approved.HasValue)
                 model = model.Where(p => p.Approve == input.Approved.Value);
             if (input.ProviderId.HasValue)
-                model = model.Where(p => p.Companion.ProviderId == input.ProviderId.Value);
+                model = model.Where(p => p.ProviderId == input.ProviderId.Value || (p.ProviderId == null && p.Companion.ProviderId == input.ProviderId.Value));
             if (input.ProviderRoleId.HasValue)
-                model = model.Where(p => p.Companion.Provider.RoleAssignments.Any(a => !a.Deleted && a.ProviderRoleId == input.ProviderRoleId.Value));
+                model = model.Where(p => p.ProviderId != null
+                    ? p.Provider.RoleAssignments.Any(a => !a.Deleted && a.ProviderRoleId == input.ProviderRoleId.Value)
+                    : p.Companion.Provider.RoleAssignments.Any(a => !a.Deleted && a.ProviderRoleId == input.ProviderRoleId.Value));
 
             return model.Select(p => new AgencyRow
             {
                 Kind = (int)AgencyKindEnum.School,
                 Id = p.Id,
                 Name = p.Name,
-                Phone = p.Companion.Phone,
-                ProviderId = p.Companion.ProviderId,
+                // مدرسه‌ی جدید مالکش ارائه‌دهنده است (CompanionId خالی)؛ مدرسه‌ی قدیمی از نمایندگی‌اش
+                Phone = p.Companion != null ? p.Companion.Phone : p.Provider.User.Mobile,
+                ProviderId = p.ProviderId ?? p.Companion.ProviderId,
                 Active = p.Active,
                 Approved = p.Approve,
                 ActivationValue = p.ApprovalValue,
@@ -379,10 +382,10 @@ namespace Application.Services.AgencySrvs.AgencySrv
                 RateCount = p.RateCount,
                 GoldAccountDate = null,
                 SilverAccountDate = null,
-                OwnerId = p.Companion.OwnerId,
-                OwnerFirstName = p.Companion.Owner.FirstName,
-                OwnerLastName = p.Companion.Owner.LastName,
-                OwnerMobile = p.Companion.Owner.Mobile,
+                OwnerId = p.Companion != null ? p.Companion.OwnerId : p.Provider != null ? p.Provider.UserId : 0,
+                OwnerFirstName = p.Companion != null ? p.Companion.Owner.FirstName : p.Provider.User.FirstName,
+                OwnerLastName = p.Companion != null ? p.Companion.Owner.LastName : p.Provider.User.LastName,
+                OwnerMobile = p.Companion != null ? p.Companion.Owner.Mobile : p.Provider.User.Mobile,
                 CityName = p.City.Name,
                 StateName = p.City.State.Name,
                 NeighborhoodName = null,

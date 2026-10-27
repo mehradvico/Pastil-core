@@ -152,6 +152,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
         {
             try
             {
+                owner = await ConsultationOwners.ResolvePublicAsync(_context, owner);
                 var companionOpen = await ConsultationOwners.IsOpenAsync(_context, owner);
                 if (!companionOpen)
                     return new BaseResultDto<List<ConsultationPackagePublicVDto>>(true, new List<ConsultationPackagePublicVDto>());

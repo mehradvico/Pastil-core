@@ -43,13 +43,13 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
             _logger = logger;
         }
 
-        private async Task<SchoolCourseSession> LoadOwnedSessionAsync(long schoolCourseSessionId, long companionId)
+        private async Task<SchoolCourseSession> LoadOwnedSessionAsync(long schoolCourseSessionId, long ownedSchoolId)
         {
             return await _context.SchoolCourseSessions
                 .Include(s => s.SchoolCourse).ThenInclude(c => c.School)
                 .FirstOrDefaultAsync(s => s.Id == schoolCourseSessionId
                     && !s.Deleted
-                    && s.SchoolCourse.School.CompanionId == companionId);
+                    && s.SchoolCourse.SchoolId == ownedSchoolId);
         }
 
         private async Task<SchoolCourseLiveSession> GetOrCreateRowAsync(long schoolCourseSessionId)
@@ -71,9 +71,9 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
             return item;
         }
 
-        public async Task<BaseResultDto<SchoolCourseLiveSessionVDto>> GetOrCreateForCompanionAsync(long schoolCourseSessionId, long companionId)
+        public async Task<BaseResultDto<SchoolCourseLiveSessionVDto>> GetOrCreateForCompanionAsync(long schoolCourseSessionId, long ownedSchoolId)
         {
-            var session = await LoadOwnedSessionAsync(schoolCourseSessionId, companionId);
+            var session = await LoadOwnedSessionAsync(schoolCourseSessionId, ownedSchoolId);
             if (session == null || session.SchoolCourse.CourseTypeId != (int)SchoolCourseTypeEnum.Live)
                 return new BaseResultDto<SchoolCourseLiveSessionVDto>(false, Resource.Notification.NothingFound, null);
 
@@ -105,13 +105,13 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
             return new BaseResultDto<SchoolCourseLiveSessionVDto>(true, _mapper.Map<SchoolCourseLiveSessionVDto>(item));
         }
 
-        public async Task<BaseResultDto<SchoolLiveTokenVDto>> StartAsync(SchoolLiveStartDto dto, long companionId)
+        public async Task<BaseResultDto<SchoolLiveTokenVDto>> StartAsync(SchoolLiveStartDto dto, long ownedSchoolId)
         {
             // بخش آنلاین مدرسه فعلاً غیرفعال است - کد کامل است، فقط اجرا (شروع پخش واقعی) مسدود است.
             if (!Application.Common.FeatureFlags.SchoolOnlineCoursesEnabled)
                 return new BaseResultDto<SchoolLiveTokenVDto>(false, Resource.Notification.FeatureTemporarilyDisabled, null);
 
-            var session = await LoadOwnedSessionAsync(dto.SchoolCourseSessionId, companionId);
+            var session = await LoadOwnedSessionAsync(dto.SchoolCourseSessionId, ownedSchoolId);
             if (session == null || session.SchoolCourse.CourseTypeId != (int)SchoolCourseTypeEnum.Live)
                 return new BaseResultDto<SchoolLiveTokenVDto>(false, Resource.Notification.NothingFound, null);
 
@@ -151,8 +151,9 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
                 await _context.SaveChangesAsync();
             }
 
-            var companion = await _context.Companions.FirstOrDefaultAsync(c => c.Id == companionId);
-            var token = _liveKit.GenerateAccessToken(item.RoomName, $"companion-{companionId}", companion?.Name, canPublish: true, canSubscribe: false);
+            // میزبان = خودِ مدرسه (مالک ممکن است ارائه‌دهنده‌ی بدون نمایندگی باشد)
+            var schoolName = await _context.Schools.AsNoTracking().Where(sc => sc.Id == ownedSchoolId).Select(sc => sc.Name).FirstOrDefaultAsync();
+            var token = _liveKit.GenerateAccessToken(item.RoomName, $"school-{ownedSchoolId}", schoolName, canPublish: true, canSubscribe: false);
 
             return new BaseResultDto<SchoolLiveTokenVDto>(true, new SchoolLiveTokenVDto
             {
@@ -163,12 +164,12 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
             });
         }
 
-        public async Task<BaseResultDto> EndAsync(long liveSessionId, long companionId)
+        public async Task<BaseResultDto> EndAsync(long liveSessionId, long ownedSchoolId)
         {
             var item = await _context.SchoolCourseLiveSessions.AsTracking()
                 .Include(l => l.SchoolCourseSession).ThenInclude(s => s.SchoolCourse).ThenInclude(c => c.School)
                 .FirstOrDefaultAsync(l => l.Id == liveSessionId);
-            if (item == null || item.SchoolCourseSession.SchoolCourse.School.CompanionId != companionId)
+            if (item == null || item.SchoolCourseSession.SchoolCourse.SchoolId != ownedSchoolId)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
             if (item.StatusId != (int)SchoolLiveStatusEnum.Live)
@@ -206,18 +207,18 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
             return new BaseResultDto(true);
         }
 
-        public async Task<bool> IsCompanionOwnerAsync(long liveSessionId, long companionId)
+        public async Task<bool> IsCompanionOwnerAsync(long liveSessionId, long ownedSchoolId)
         {
             return await _context.SchoolCourseLiveSessions
                 .Include(l => l.SchoolCourseSession).ThenInclude(s => s.SchoolCourse).ThenInclude(c => c.School)
-                .AnyAsync(l => l.Id == liveSessionId && l.SchoolCourseSession.SchoolCourse.School.CompanionId == companionId);
+                .AnyAsync(l => l.Id == liveSessionId && l.SchoolCourseSession.SchoolCourse.SchoolId == ownedSchoolId);
         }
 
         public async Task<bool> IsCompanionOwnerByUserIdAsync(long liveSessionId, long userId)
         {
             return await _context.SchoolCourseLiveSessions
                 .Include(l => l.SchoolCourseSession).ThenInclude(s => s.SchoolCourse).ThenInclude(c => c.School).ThenInclude(sc => sc.Companion)
-                .AnyAsync(l => l.Id == liveSessionId && l.SchoolCourseSession.SchoolCourse.School.Companion.OwnerId == userId);
+                .AnyAsync(l => l.Id == liveSessionId && ((l.SchoolCourseSession.SchoolCourse.School.Provider != null && l.SchoolCourseSession.SchoolCourse.School.Provider.UserId == userId && !l.SchoolCourseSession.SchoolCourse.School.Provider.Deleted) || (l.SchoolCourseSession.SchoolCourse.School.Companion != null && l.SchoolCourseSession.SchoolCourse.School.Companion.OwnerId == userId && !l.SchoolCourseSession.SchoolCourse.School.Companion.Deleted)));
         }
 
         public async Task<bool> IsEnrolledViewerAsync(long liveSessionId, long userId, long userPetId)
@@ -259,9 +260,9 @@ namespace Application.Services.SchoolSrvs.SchoolCourseLiveSrv
             });
         }
 
-        public async Task<BaseResultDto<List<SchoolLiveParticipantVDto>>> GetParticipantsAsync(long liveSessionId, long companionId)
+        public async Task<BaseResultDto<List<SchoolLiveParticipantVDto>>> GetParticipantsAsync(long liveSessionId, long ownedSchoolId)
         {
-            if (!await IsCompanionOwnerAsync(liveSessionId, companionId))
+            if (!await IsCompanionOwnerAsync(liveSessionId, ownedSchoolId))
                 return new BaseResultDto<List<SchoolLiveParticipantVDto>>(false, Resource.Notification.AccessDenied, null);
 
             var courseId = await _context.SchoolCourseLiveSessions

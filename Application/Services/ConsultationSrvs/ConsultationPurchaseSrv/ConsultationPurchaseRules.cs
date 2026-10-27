@@ -11,6 +11,20 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
     {
         public readonly record struct Amounts(double Price, double RebatePrice, double Payable, double Wallet, double Gateway);
 
+        // مشاوره برای پت(های) مشتری خریده می‌شود: حداقل یک و حداکثر MaxPets پت
+        public const int MaxPets = 5;
+
+        // شناسه‌های پت درخواستی را یکتا می‌کند؛ null یعنی خالی، نامعتبر (<=0) یا بیش از سقف
+        public static System.Collections.Generic.List<long> NormalizePetIds(System.Collections.Generic.IEnumerable<long> ids)
+        {
+            if (ids == null)
+                return null;
+            var list = System.Linq.Enumerable.ToList(System.Linq.Enumerable.Distinct(ids));
+            if (list.Count == 0 || list.Count > MaxPets || System.Linq.Enumerable.Any(list, id => id <= 0))
+                return null;
+            return list;
+        }
+
         // price = قیمت پکیج، rebatePrice = تخفیف پیشنهادی (سقف: کل قیمت)، walletBalance = موجودی قابل خرج (فقط نقد)
         public static Amounts ComputeAmounts(double price, double rebatePrice, bool fromWallet, double walletBalance)
         {

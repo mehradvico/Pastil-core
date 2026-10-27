@@ -62,6 +62,16 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
+        /// اتصال مدرسه به ارائه‌دهنده (نیازمند نقش تأییدشده‌ی School)
+        /// </summary>
+        [HttpPut("school")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> AssignSchool(ProviderVenueAssignDto dto)
+        {
+            return Ok(await _service.AssignSchoolAsync(dto));
+        }
+
+        /// <summary>
         /// اتصال یک کلینیک (Clinic) به ارائه‌دهنده
         /// </summary>
         [HttpPut("clinic")]

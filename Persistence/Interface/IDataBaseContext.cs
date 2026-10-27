@@ -94,6 +94,7 @@ namespace Persistence.Interface
         public DbSet<OnlineSessionMessage> OnlineSessionMessages { get; set; }
         public DbSet<ConsultationPackage> ConsultationPackages { get; set; }
         public DbSet<ConsultationPurchase> ConsultationPurchases { get; set; }
+        public DbSet<ConsultationPurchasePet> ConsultationPurchasePets { get; set; }
         public DbSet<ConsultationAvailability> ConsultationAvailabilities { get; set; }
         public DbSet<PetMicrochipRequest> PetMicrochipRequests { get; set; }
         public DbSet<CompanionReservePackageItem> CompanionReservePackageItems { get; set; }

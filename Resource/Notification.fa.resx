@@ -2722,4 +2722,16 @@
   <data name="ReserveCompleteReceivedInvalid" xml:space="preserve">
     <value>مبلغ دریافتی در محل باید بین صفر و «مبلغ نهایی منهای پرداخت آنلاین» باشد.</value>
   </data>
+  <data name="SchoolNeedsProviderRole" xml:space="preserve">
+    <value>برای افزودن مدرسه، حساب ارائه‌دهنده‌ی شما باید فعال و تأییدشده باشد و نقش «مدرسه» برایش تأیید شده باشد. با پشتیبانی پاستیل تماس بگیرید.</value>
+  </data>
+  <data name="SchoolChooseCompanion" xml:space="preserve">
+    <value>چند نمایندگی دارید؛ لطفاً نمایندگی‌ای را که مدرسه زیر آن ثبت شود انتخاب کنید.</value>
+  </data>
+  <data name="ConsultationPetRequired" xml:space="preserve">
+    <value>حداقل یک پت را برای مشاوره انتخاب کنید (حداکثر ۵ پت).</value>
+  </data>
+  <data name="ConsultationPetInvalid" xml:space="preserve">
+    <value>پت انتخاب‌شده متعلق به شما نیست یا حذف شده است.</value>
+  </data>
 </root>

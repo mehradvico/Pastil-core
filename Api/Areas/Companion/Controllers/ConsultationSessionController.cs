@@ -1,5 +1,6 @@
 using Application.Common.Dto.Result;
 using Application.Common.Interface;
+using System.Collections.Generic;
 using Application.Services.ConsultationSrvs.ConsultationSessionSrv.Dto;
 using Application.Services.ConsultationSrvs.ConsultationSessionSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -42,6 +43,12 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<List<ConsultationAgentItemVDto>>), 200)]
         public async Task<IActionResult> Get()
             => Ok(await _service.GetForAgentAsync(_currentUserHelper.CurrentUser.UserId));
+
+        /// <summary>پروفایل کامل و سابقه‌ی پزشکی پت(های) این مشاوره (سوابق، مراجعات کلینیک، مشاوره‌های قبلی)</summary>
+        [HttpGet("{purchaseId}/Pets")]
+        [ProducesResponseType(typeof(BaseResultDto<List<ConsultationPetProfileVDto>>), 200)]
+        public async Task<IActionResult> Pets(long purchaseId)
+            => Ok(await _service.GetPetProfilesAsync(_currentUserHelper.CurrentUser.UserId, purchaseId));
 
         /// <summary>شروع مشاوره: پنجره‌ی ۳۰/۶۰ دقیقه‌ای از همین لحظه حساب می‌شود (فقط یک‌بار)</summary>
         [HttpPost("{purchaseId}/Start")]

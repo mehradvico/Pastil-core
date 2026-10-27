@@ -45,6 +45,9 @@ namespace Api.Areas.Admin.Controllers
         [ProducesResponseType(typeof(BaseResultDto<SchoolDto>), 200)]
         public async Task<IActionResult> Post(SchoolDto dto)
         {
+            // پنل قدیمی ۰ می‌فرستاد؛ مالک = ارائه‌دهنده (الزامی در پنل)، نمایندگی اختیاری
+            if (dto.CompanionId <= 0) dto.CompanionId = null;
+            if (dto.ProviderId <= 0) dto.ProviderId = null;
             var result = await _schoolService.InsertAsyncDto(dto);
             return Ok(result);
         }
@@ -57,6 +60,13 @@ namespace Api.Areas.Admin.Controllers
             var existing = await _schoolService.FindAsyncVDto(dto.Id);
             if (!existing.IsSuccess)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
+            // ارائه‌دهنده‌ی مالک فقط از «اتصال مدرسه» (PUT Admin/ProviderVenue/school) عوض می‌شود؛ پنل قدیمی providerId نمی‌فرستد
+            // و بدون این خط مالک پاک می‌شد (CK_Schools_Owner هم مدرسه‌ی بدون مالک را رد می‌کند)
+            // ادمین می‌تواند ارائه‌دهنده را در ویرایشگر عوض کند؛ اگر نفرستاد، مالک ذخیره‌شده می‌ماند
+            if (dto.ProviderId is not > 0)
+                dto.ProviderId = existing.Data.ProviderId;
+            if (dto.CompanionId is not > 0)
+                dto.CompanionId = existing.Data.CompanionId;
             var school = _schoolService.UpdateDto(dto);
             return Ok(school);
         }

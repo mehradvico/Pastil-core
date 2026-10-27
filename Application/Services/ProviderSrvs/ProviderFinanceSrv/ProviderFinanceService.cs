@@ -1,4 +1,4 @@
-﻿using Application.Common.Dto.Result;
+using Application.Common.Dto.Result;
 using Application.Services.FinanceSrvs.FinanceCompanionSrv.Dto;
 using Application.Services.FinanceSrvs.FinanceCompanionSrv.Iface;
 using Application.Services.FinanceSrvs.FinanceStoreSrv.Dto;
@@ -138,6 +138,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             var clinicTotals = await ClinicTotalsAsync(clinicMap.Select(g => g.Id).ToList());
             var coachTotals = await CoachTotalsAsync(coachMap.Select(g => g.Id).ToList());
             var companionTotals = await CompanionTotalsAsync(companionMap.Select(c => c.Id).ToList());
+            var providerSchoolTotals = await ProviderSchoolTotalsAsync(providerIds);
             var storeData = await LoadStoreDataAsync(storeMap.Select(s => s.Id).ToList());
             var stats = await SettlementStatsAsync(providerIds);
 
@@ -155,6 +156,9 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 foreach (var c in companionMap.Where(c => c.ProviderId == p.Id))
                     if (companionTotals.TryGetValue(c.Id, out var t))
                         companionPool.Add(t);
+                // مدرسه‌های فقط-ارائه‌دهنده در همین استخر تسویه می‌شوند
+                if (providerSchoolTotals.TryGetValue(p.Id, out var schoolPool))
+                    companionPool.Add(schoolPool);
 
                 var storePool = StorePoolTotals(storeData, storeToProvider, p.Id, out _, out _);
 
@@ -311,6 +315,8 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 companionPool.Add(t);
                 venues.Add(ToVenue(SettlementKindEnum.Companion, c.Id, c.Name, c.Active, c.Deleted, t));
             }
+            if ((await ProviderSchoolTotalsAsync(new[] { providerId })).TryGetValue(providerId, out var providerSchools))
+                companionPool.Add(providerSchools);
 
             var groomerPool = new Totals();
             foreach (var g in groomers)
@@ -491,6 +497,24 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                     StatusLabel = r.StatusLabel,
                 }));
             }
+
+            // مدرسه‌های فقط-ارائه‌دهنده (بدون نمایندگی) — همان تعریف SettlementSources.ProviderSchoolReserves که تسویه می‌پردازد
+            items.AddRange(await SettlementSources.ProviderSchoolReserves(_context, providerId)
+                .Where(r => !r.Permitted)
+                .OrderBy(r => r.Id)
+                .Select(r => new ProviderPendingItemVDto
+                {
+                    VenueId = r.SchoolCourse.SchoolId,
+                    VenueName = r.SchoolCourse.School.Name,
+                    Type = "School",
+                    Code = r.ReserveCode,
+                    BookerFullName = ((r.Booker.FirstName ?? "") + " " + (r.Booker.LastName ?? "")).Trim(),
+                    PaymentPrice = r.PaymentPrice,
+                    CommissionPercent = r.SchoolCourse.CommissionPercent,
+                    SiteShare = r.SiteShare,
+                    ProviderShare = r.CompanionShare,
+                    StatusLabel = null,
+                }).ToListAsync());
             return items;
         }
 
@@ -681,6 +705,27 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             Merge(await ProviderFinanceQueries.ConsultationGroups(_context, companionIds).ToListAsync());
             Merge(await ProviderFinanceQueries.SchoolReserveGroups(_context, companionIds).ToListAsync());
 
+            return result;
+        }
+
+        /// <summary>مجموع ثبت‌نام مدرسه‌های فقط-ارائه‌دهنده (بدون نمایندگی) به‌ازای هر ارائه‌دهنده؛ جزو استخر «نمایندگی» است.</summary>
+        private async Task<Dictionary<long, Totals>> ProviderSchoolTotalsAsync(IReadOnlyCollection<long> providerIds)
+        {
+            var result = new Dictionary<long, Totals>();
+            if (providerIds.Count == 0)
+                return result;
+            foreach (var row in await ProviderFinanceQueries.ProviderSchoolReserveGroups(_context, providerIds).ToListAsync())
+            {
+                result[row.Key] = new Totals
+                {
+                    Count = row.Count,
+                    UnsettledCount = row.UnsettledCount,
+                    ProviderShare = row.ProviderShare,
+                    SiteShare = row.SiteShare,
+                    SettledShare = row.SettledShare,
+                    UnsettledShare = row.UnsettledShare,
+                };
+            }
             return result;
         }
 
