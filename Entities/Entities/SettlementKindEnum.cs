@@ -11,5 +11,7 @@ namespace Entities.Entities
         Groomer = 3,
         Clinic = 4,
         Coach = 5,
+        // مدرسه‌های ارائه‌دهنده (School.ProviderId)، جدا از استخر نمایندگی (۲۰۲۶-۱۰-۲۷)
+        School = 6,
     }
 }

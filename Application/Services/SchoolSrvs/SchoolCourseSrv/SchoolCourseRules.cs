@@ -38,14 +38,74 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
         public static bool IsRegistrationOpenByDate(DateTime? firstSessionStart, DateTime now) =>
             !firstSessionStart.HasValue || firstSessionStart.Value > now;
 
-        // ثبت‌نام و شروع پرداخت هر دو با همین چک رد می‌شوند (نه فقط مخفی کردن دکمه در فرانت)
-        public static async Task<bool> IsRegistrationOpenAsync(IDataBaseContext context, long courseId, DateTime now)
+        /// <summary>وضعیت ثبت‌نام دوره در لحظه‌ی now: باز است؟ و با چه قیمتی (ثبت‌نام دیرهنگامِ نسبی).</summary>
+        public sealed record EnrollmentWindow(bool Open, double Price, int RemainingSessions, int TotalSessions);
+
+        // قیمت نسبی: قیمت کامل × جلسه‌های باقی‌مانده / کل جلسه‌ها (گرد به تومان)
+        public static double ProratedPrice(double price, int remaining, int total) =>
+            total <= 0 || remaining >= total ? price : Math.Round(price * Math.Max(remaining, 0) / total);
+
+        /// <summary>
+        /// قاعده‌ی خالص: قبل از شروع جلسه‌ی اول همیشه باز با قیمت کامل. بعد از آن بر اساس LateEnrollmentMode:
+        /// بسته (پیش‌فرض/رفتار قبلی)، باز با قیمت کامل، یا باز با قیمت جلسه‌های باقی‌مانده — هر دو فقط تا شروع جلسه‌ی آخر.
+        /// </summary>
+        public static EnrollmentWindow Enrollment(double price, int lateEnrollmentMode, IReadOnlyCollection<DateTime> sessionStarts, DateTime now)
+        {
+            var total = sessionStarts?.Count ?? 0;
+            if (total == 0)
+                return new EnrollmentWindow(true, price, 0, 0); // دوره‌ی ویدیویی بدون جلسه
+            var remaining = sessionStarts.Count(s => s > now);
+            if (sessionStarts.Min() > now)
+                return new EnrollmentWindow(true, price, remaining, total);
+            var mode = (Application.Common.Enumerable.Code.SchoolLateEnrollmentEnum)lateEnrollmentMode;
+            if (remaining == 0 || mode == Application.Common.Enumerable.Code.SchoolLateEnrollmentEnum.Closed)
+                return new EnrollmentWindow(false, price, remaining, total);
+            return mode == Application.Common.Enumerable.Code.SchoolLateEnrollmentEnum.OpenProrated
+                ? new EnrollmentWindow(true, ProratedPrice(price, remaining, total), remaining, total)
+                : new EnrollmentWindow(true, price, remaining, total);
+        }
+
+        public static async Task<EnrollmentWindow> EnrollmentAsync(IDataBaseContext context, long courseId, DateTime now)
+        {
+            var course = await context.SchoolCourses.AsNoTracking()
+                .Where(c => c.Id == courseId)
+                .Select(c => new { c.Price, c.LateEnrollmentMode })
+                .FirstOrDefaultAsync();
+            if (course == null)
+                return new EnrollmentWindow(false, 0, 0, 0);
+            return Enrollment(course.Price, course.LateEnrollmentMode, await SessionStartsAsync(context, courseId), now);
+        }
+
+        public static async Task<List<DateTime>> SessionStartsAsync(IDataBaseContext context, long courseId)
         {
             var sessions = await context.SchoolCourseSessions.AsNoTracking()
                 .Where(s => s.SchoolCourseId == courseId && !s.Deleted)
                 .Select(s => new { s.SessionDate, s.StartTime })
                 .ToListAsync();
-            return IsRegistrationOpenByDate(FirstSessionStart(sessions.Select(s => (s.SessionDate, s.StartTime))), now);
+            return sessions.Select(s => SessionStart(s.SessionDate, s.StartTime)).ToList();
+        }
+
+        // ثبت‌نام و شروع پرداخت هر دو با همین چک رد می‌شوند (نه فقط مخفی کردن دکمه در فرانت)
+        public static async Task<bool> IsRegistrationOpenAsync(IDataBaseContext context, long courseId, DateTime now) =>
+            (await EnrollmentAsync(context, courseId, now)).Open;
+
+        /// <summary>جلسه‌ی اول شروع شده؟ (لغو توسط کاربر فقط قبل از آن)</summary>
+        public static async Task<bool> HasStartedAsync(IDataBaseContext context, long courseId, DateTime now)
+        {
+            var starts = await SessionStartsAsync(context, courseId);
+            return starts.Count > 0 && starts.Min() <= now;
+        }
+
+        /// <summary>
+        /// درصد برگشت وجه لغو توسط کاربر (قبل از شروع): تا FullRefundHoursBeforeStart ساعت قبل از جلسه‌ی اول ۱۰۰٪،
+        /// دیرتر LateCancelRefundPercent. دوره‌ی بدون جلسه ۱۰۰٪.
+        /// </summary>
+        public static int RefundPercent(DateTime? firstSessionStart, DateTime now, int fullRefundHoursBeforeStart, int lateCancelRefundPercent)
+        {
+            if (!firstSessionStart.HasValue)
+                return 100;
+            var hours = (firstSessionStart.Value - now).TotalHours;
+            return hours >= Math.Max(fullRefundHoursBeforeStart, 0) ? 100 : Math.Clamp(lateCancelRefundPercent, 0, 100);
         }
 
         // «جلسه در هفته» بر اساس هفته‌های تقویمیِ بازه‌ی دوره: ۲ جلسه با ۲ روز فاصله = ۱ هفته و ۲ جلسه در هفته.

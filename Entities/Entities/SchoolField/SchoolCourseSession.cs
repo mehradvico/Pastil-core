@@ -16,6 +16,8 @@ namespace Entities.Entities.SchoolField
         public DateTime? StartingPushSentDate { get; set; }
         // یادآوری «۵ دقیقه مانده» - جدا از StartingPushSentDate (که سرِ لحظه‌ی شروع می‌رود)
         public DateTime? ReminderPushSentDate { get; set; }
+        // یادآوری «فردا کلاس داری» (حدود ۲۴ ساعت قبل)
+        public DateTime? DayReminderPushSentDate { get; set; }
         public bool Active { get; set; }
         public bool Deleted { get; set; }
 

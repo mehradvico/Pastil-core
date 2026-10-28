@@ -139,6 +139,11 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             var coachTotals = await CoachTotalsAsync(coachMap.Select(g => g.Id).ToList());
             var companionTotals = await CompanionTotalsAsync(companionMap.Select(c => c.Id).ToList());
             var providerSchoolTotals = await ProviderSchoolTotalsAsync(providerIds);
+            var schoolCounts = await _context.Schools.AsNoTracking()
+                .Where(s => s.ProviderId != null && providerIds.Contains(s.ProviderId.Value) && !s.Deleted)
+                .GroupBy(s => s.ProviderId.Value)
+                .Select(g => new { ProviderId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.ProviderId, x => x.Count);
             var storeData = await LoadStoreDataAsync(storeMap.Select(s => s.Id).ToList());
             var stats = await SettlementStatsAsync(providerIds);
 
@@ -156,9 +161,6 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 foreach (var c in companionMap.Where(c => c.ProviderId == p.Id))
                     if (companionTotals.TryGetValue(c.Id, out var t))
                         companionPool.Add(t);
-                // مدرسه‌های فقط-ارائه‌دهنده در همین استخر تسویه می‌شوند
-                if (providerSchoolTotals.TryGetValue(p.Id, out var schoolPool))
-                    companionPool.Add(schoolPool);
 
                 var storePool = StorePoolTotals(storeData, storeToProvider, p.Id, out _, out _);
 
@@ -181,6 +183,9 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 foreach (var g in coachMap.Where(g => g.ProviderId == p.Id))
                     if (coachTotals.TryGetValue(g.Id, out var gt))
                         coachPool.Add(gt);
+                providerSchoolTotals.TryGetValue(p.Id, out var schoolPool);
+                schoolPool ??= new Totals();
+                stats.TryGetValue((p.Id, SettlementKindEnum.School), out var schs);
 
                 rows.Add(new ProviderFinanceRowVDto
                 {
@@ -194,15 +199,17 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                     GroomerCount = groomerMap.Count(g => g.ProviderId == p.Id && !g.Deleted),
                     ClinicCount = clinicMap.Count(g => g.ProviderId == p.Id && !g.Deleted),
                     CoachCount = coachMap.Count(g => g.ProviderId == p.Id && !g.Deleted),
+                    SchoolCount = schoolCounts.TryGetValue(p.Id, out var sc) ? sc : 0,
                     CompanionUnsettled = companionPool.UnsettledShare,
                     StoreUnsettled = storePool.UnsettledShare,
                     GroomerUnsettled = groomerPool.UnsettledShare,
                     ClinicUnsettled = clinicPool.UnsettledShare,
                     CoachUnsettled = coachPool.UnsettledShare,
-                    TotalUnsettled = companionPool.UnsettledShare + storePool.UnsettledShare + groomerPool.UnsettledShare + clinicPool.UnsettledShare + coachPool.UnsettledShare,
-                    TotalSettled = companionPool.SettledShare + storePool.SettledShare + groomerPool.SettledShare + clinicPool.SettledShare + coachPool.SettledShare,
-                    PaidOut = (cs?.Paid ?? 0) + (ss?.Paid ?? 0) + (gs?.Paid ?? 0) + (cls?.Paid ?? 0) + (cos?.Paid ?? 0),
-                    LastSettlementDate = new[] { cs?.Last, ss?.Last, gs?.Last, cls?.Last, cos?.Last }.Max(),
+                    SchoolUnsettled = schoolPool.UnsettledShare,
+                    TotalUnsettled = companionPool.UnsettledShare + storePool.UnsettledShare + groomerPool.UnsettledShare + clinicPool.UnsettledShare + coachPool.UnsettledShare + schoolPool.UnsettledShare,
+                    TotalSettled = companionPool.SettledShare + storePool.SettledShare + groomerPool.SettledShare + clinicPool.SettledShare + coachPool.SettledShare + schoolPool.SettledShare,
+                    PaidOut = (cs?.Paid ?? 0) + (ss?.Paid ?? 0) + (gs?.Paid ?? 0) + (cls?.Paid ?? 0) + (cos?.Paid ?? 0) + (schs?.Paid ?? 0),
+                    LastSettlementDate = new[] { cs?.Last, ss?.Last, gs?.Last, cls?.Last, cos?.Last, schs?.Last }.Max(),
                     HasApprovedCard = usersWithCard.Contains(p.UserId),
                 });
             }
@@ -255,7 +262,12 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 .OrderBy(g => g.Id).Take(UnassignedVenueLimit)
                 .Select(g => new ProviderUnassignedVenueVDto { Kind = SettlementKindEnum.Coach, Id = g.Id, Name = g.Name })
                 .ToListAsync();
-            return companions.Concat(stores).Concat(groomers).Concat(clinics).Concat(coaches).ToList();
+            var schools = await _context.Schools.AsNoTracking()
+                .Where(g => g.ProviderId == null && !g.Deleted)
+                .OrderBy(g => g.Id).Take(UnassignedVenueLimit)
+                .Select(g => new ProviderUnassignedVenueVDto { Kind = SettlementKindEnum.School, Id = g.Id, Name = g.Name })
+                .ToListAsync();
+            return companions.Concat(stores).Concat(groomers).Concat(clinics).Concat(coaches).Concat(schools).ToList();
         }
 
         // ------------------------------------------------------------------ جزئیات
@@ -315,8 +327,6 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 companionPool.Add(t);
                 venues.Add(ToVenue(SettlementKindEnum.Companion, c.Id, c.Name, c.Active, c.Deleted, t));
             }
-            if ((await ProviderSchoolTotalsAsync(new[] { providerId })).TryGetValue(providerId, out var providerSchools))
-                companionPool.Add(providerSchools);
 
             var groomerPool = new Totals();
             foreach (var g in groomers)
@@ -344,6 +354,23 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 venues.Add(ToVenue(SettlementKindEnum.Coach, g.Id, g.Name, g.Active, g.Deleted, t));
             }
 
+            // مدرسه‌ها: هر مدرسه یک ردیف، مجموعشان استخر «مدرسه»
+            var schoolPool = new Totals();
+            var schoolRows = await _context.Schools.AsNoTracking()
+                .Where(s => s.ProviderId == providerId)
+                .OrderBy(s => s.Id)
+                .Select(s => new { s.Id, s.Name, s.Active, s.Deleted })
+                .ToListAsync();
+            var schoolTotals = (await ProviderFinanceQueries.SchoolReserveGroupsBySchool(_context, providerId).ToListAsync())
+                .ToDictionary(r => r.Key, r => new Totals { Count = r.Count, UnsettledCount = r.UnsettledCount, ProviderShare = r.ProviderShare, SiteShare = r.SiteShare, SettledShare = r.SettledShare, UnsettledShare = r.UnsettledShare });
+            foreach (var s in schoolRows)
+            {
+                schoolTotals.TryGetValue(s.Id, out var t);
+                t ??= new Totals();
+                schoolPool.Add(t);
+                venues.Add(ToVenue(SettlementKindEnum.School, s.Id, s.Name, s.Active, s.Deleted, t));
+            }
+
             var storePool = StorePoolTotals(storeData, storeToProvider, providerId, out var notReceived, out var shared);
             foreach (var s in stores)
             {
@@ -358,6 +385,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             stats.TryGetValue((providerId, SettlementKindEnum.Groomer), out var gs);
             stats.TryGetValue((providerId, SettlementKindEnum.Clinic), out var cls);
             stats.TryGetValue((providerId, SettlementKindEnum.Coach), out var cos);
+            stats.TryGetValue((providerId, SettlementKindEnum.School), out var schs);
 
             var detail = new ProviderFinanceDetailVDto
             {
@@ -371,6 +399,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 GroomerPool = ToSummary(SettlementKindEnum.Groomer, groomerPool, gs, 0, 0),
                 ClinicPool = ToSummary(SettlementKindEnum.Clinic, clinicPool, cls, 0, 0),
                 CoachPool = ToSummary(SettlementKindEnum.Coach, coachPool, cos, 0, 0),
+                SchoolPool = ToSummary(SettlementKindEnum.School, schoolPool, schs, 0, 0),
                 Venues = venues,
                 Cards = GetCards(provider.UserId),
             };
@@ -443,6 +472,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 SettlementKindEnum.Groomer => await PendingGroomerItemsAsync(providerId),
                 SettlementKindEnum.Clinic => await PendingClinicItemsAsync(providerId),
                 SettlementKindEnum.Coach => await PendingCoachItemsAsync(providerId),
+                SettlementKindEnum.School => await PendingSchoolItemsAsync(providerId),
                 _ => await PendingStoreItemsAsync(providerId),
             };
 
@@ -483,7 +513,13 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 var finance = await _financeCompanion.SearchAsync(new FinanceCompanionInputDto { CompanionId = c.Id, Permitted = false });
                 if (!finance.IsSuccess || finance.Data == null)
                     continue;
-                items.AddRange(finance.Data.FinanceCompanionReserves.Select(r => new ProviderPendingItemVDto
+                // ثبت‌نام مدرسه‌ی دارای ارائه‌دهنده در استخر جدای «مدرسه» است
+                var providerSchoolReserveIds = await _context.SchoolReserves.AsNoTracking()
+                    .Where(r => r.SchoolCourse.School.ProviderId != null && r.SchoolCourse.School.CompanionId == c.Id)
+                    .Select(r => r.Id.ToString()).ToListAsync();
+                items.AddRange(finance.Data.FinanceCompanionReserves
+                    .Where(r => !(r.IsSchool && providerSchoolReserveIds.Contains(r.ReserveId)))
+                    .Select(r => new ProviderPendingItemVDto
                 {
                     VenueId = c.Id,
                     VenueName = c.Name,
@@ -498,23 +534,6 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 }));
             }
 
-            // مدرسه‌های فقط-ارائه‌دهنده (بدون نمایندگی) — همان تعریف SettlementSources.ProviderSchoolReserves که تسویه می‌پردازد
-            items.AddRange(await SettlementSources.ProviderSchoolReserves(_context, providerId)
-                .Where(r => !r.Permitted)
-                .OrderBy(r => r.Id)
-                .Select(r => new ProviderPendingItemVDto
-                {
-                    VenueId = r.SchoolCourse.SchoolId,
-                    VenueName = r.SchoolCourse.School.Name,
-                    Type = "School",
-                    Code = r.ReserveCode,
-                    BookerFullName = ((r.Booker.FirstName ?? "") + " " + (r.Booker.LastName ?? "")).Trim(),
-                    PaymentPrice = r.PaymentPrice,
-                    CommissionPercent = r.SchoolCourse.CommissionPercent,
-                    SiteShare = r.SiteShare,
-                    ProviderShare = r.CompanionShare,
-                    StatusLabel = null,
-                }).ToListAsync());
             return items;
         }
 
@@ -592,6 +611,27 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 .ToListAsync());
             return items;
         }
+        /// <summary>ثبت‌نام‌های تسویه‌نشده‌ی مدرسه‌های ارائه‌دهنده؛ همان تعریف SettlementSources.ProviderSchoolReserves که تسویه می‌پردازد.</summary>
+        private async Task<List<ProviderPendingItemVDto>> PendingSchoolItemsAsync(long providerId)
+        {
+            return await SettlementSources.ProviderSchoolReserves(_context, providerId)
+                .Where(r => !r.Permitted)
+                .OrderBy(r => r.Id)
+                .Select(r => new ProviderPendingItemVDto
+                {
+                    VenueId = r.SchoolCourse.SchoolId,
+                    VenueName = r.SchoolCourse.School.Name,
+                    Type = "School",
+                    Code = r.ReserveCode,
+                    BookerFullName = ((r.Booker.FirstName ?? "") + " " + (r.Booker.LastName ?? "")).Trim(),
+                    PaymentPrice = r.PaymentPrice,
+                    CommissionPercent = r.SchoolCourse.CommissionPercent,
+                    SiteShare = r.SiteShare,
+                    ProviderShare = r.CompanionShare,
+                    StatusLabel = null,
+                }).ToListAsync();
+        }
+
         private async Task<List<ProviderPendingItemVDto>> PendingCoachItemsAsync(long providerId)
         {
             var coachIds = await _context.Coaches.AsNoTracking()

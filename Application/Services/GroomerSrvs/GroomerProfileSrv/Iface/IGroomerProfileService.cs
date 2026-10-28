@@ -15,6 +15,7 @@ namespace Application.Services.GroomerSrvs.GroomerProfileSrv.Iface
         Task<BaseResultDto<GroomerStaffVDto>> AddStaffAsync(GroomerStaffAddDto dto, long? ownerUserId);
         Task<BaseResultDto> SetStaffActiveAsync(long staffId, bool active, long? ownerUserId);
         Task<BaseResultDto> RemoveStaffAsync(long staffId, long? ownerUserId);
+        Task<BaseResultDto<GroomerStaffVDto>> SetStaffExpertiseAsync(GroomerStaffExpertiseDto dto, long? ownerUserId);
 
         /// <summary>دعوت‌نامه‌های منتظر پاسخِ کاربر جاری.</summary>
         Task<List<GroomerStaffInviteVDto>> ListInvitesAsync(long userId);

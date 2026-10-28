@@ -30,5 +30,12 @@ namespace Api.Controllers
             dto.Available = true;
             return Ok(expertiseService.Search(dto));
         }
+
+        /// <summary>
+        /// گروه‌های تخصص (نقش‌های ارائه‌دهنده: کلینیک، مربی، آرایشگاه، پانسیون، مدرسه) برای فیلتر لیست تخصص‌ها در پنل/اپ نماینده
+        /// </summary>
+        [HttpGet("groups")]
+        [ProducesResponseType(typeof(System.Collections.Generic.List<Application.Services.CompanionSrvs.ExpertiseSrv.Dto.ExpertiseGroupDto>), 200)]
+        public async System.Threading.Tasks.Task<IActionResult> Groups() => Ok(await expertiseService.GroupsAsync());
     }
 }

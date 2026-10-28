@@ -39,6 +39,13 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Active(long id, bool active) => Ok(await _service.SetStaffActiveAsync(id, active, UserId));
 
+        /// <summary>
+        /// نقش/تخصص‌های یک عضو تیم (شناسه‌ها از GET api/Expertise?ProviderRole=Coach؛ حداکثر ۱۰، لیست خالی = پاک کردن). فقط مالک/مدیر مرکز.
+        /// </summary>
+        [HttpPut("Expertise")]
+        [ProducesResponseType(typeof(BaseResultDto<CoachStaffVDto>), 200)]
+        public async Task<IActionResult> Expertise(CoachStaffExpertiseDto dto) => Ok(await _service.SetStaffExpertiseAsync(dto, UserId));
+
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Delete(long id) => Ok(await _service.RemoveStaffAsync(id, UserId));

@@ -7,12 +7,25 @@ namespace Application.Services.CoachSrvs.CoachProfileSrv.Dto
     public class CoachStaffAddDto
     {
         public long CoachId { get; set; }
+        /// <summary>اختیاری: نقش/تخصص‌های عضو (شناسه‌های GET api/Expertise؛ حداکثر ۱۰)</summary>
+        public List<long> ExpertiseIds { get; set; } = new();
         /// <summary>کاربر باید قبلاً در پاستیل ثبت‌نام کرده باشد.</summary>
         public string Mobile { get; set; }
     }
 
+    /// <summary>تعیین نقش/تخصص‌های یک عضو تیم (PUT …/CoachUser/Expertise)؛ لیست خالی = پاک کردن</summary>
+    public class CoachStaffExpertiseDto
+    {
+        public long Id { get; set; }
+        public List<long> ExpertiseIds { get; set; } = new();
+    }
+
     public class CoachStaffVDto
     {
+        // نقش/تخصص‌ها (۲۰۲۶-۱۰-۲۸): ExpertiseId = اصلی؛ ExpertiseName = متن آماده‌ی نمایش («دامپزشک، جراح»)
+        public long? ExpertiseId { get; set; }
+        public List<Application.Services.CompanionSrvs.ExpertiseSrv.Dto.ExpertiseVDto> Expertises { get; set; } = new();
+        public string ExpertiseName { get; set; }
         public long Id { get; set; }
         public long CoachId { get; set; }
         public long UserId { get; set; }

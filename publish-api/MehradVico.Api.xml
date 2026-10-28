@@ -4985,6 +4985,17 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.SchoolCourseRateController">
+            <summary>
+            نظر/امتیاز دوره‌های مدرسه (۲۰۲۶-۱۰-۲۸): امتیاز همان لحظه حساب می‌شود؛ ادمین با رد کردن، نظر را پنهان و از میانگین خارج می‌کند.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SchoolCourseRateController.Status(System.Int64,System.Boolean)">
+            <summary>تأیید (accept=true) یا رد نظر</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SchoolCourseRateController.Dashboard(System.Int64)">
+            <summary>داشبورد یک مدرسه (همان داشبورد ارائه‌دهنده)</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.SchoolCourseSessionController">
             <summary>
             جلسات زنده‌ی دوره‌ی مدرسه
@@ -6370,6 +6381,11 @@
             پرسنل کلینیک‌های من
             </summary>
         </member>
+        <member name="M:Api.Areas.Companion.Controllers.ClinicUserController.Expertise(Application.Services.ClinicSrvs.ClinicProfileSrv.Dto.ClinicStaffExpertiseDto)">
+            <summary>
+            نقش/تخصص‌های یک عضو تیم (شناسه‌ها از GET api/Expertise?ProviderRole=Clinic؛ حداکثر ۱۰، لیست خالی = پاک کردن). فقط مالک/مدیر مرکز.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.CoachConsultationAvailabilityController">
             <summary>
             برنامه‌ی هفتگی رزرو «مشاوره آنلاین» مربی (پکیج‌های «قابل رزرو») با شناسه‌ی خودِ مرکز
@@ -6476,6 +6492,11 @@
         <member name="T:Api.Areas.Companion.Controllers.CoachUserController">
             <summary>
             پرسنل مربی‌های من
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.CoachUserController.Expertise(Application.Services.CoachSrvs.CoachProfileSrv.Dto.CoachStaffExpertiseDto)">
+            <summary>
+            نقش/تخصص‌های یک عضو تیم (شناسه‌ها از GET api/Expertise?ProviderRole=Coach؛ حداکثر ۱۰، لیست خالی = پاک کردن). فقط مالک/مدیر مرکز.
             </summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CompanionAssistanceController">
@@ -7351,6 +7372,11 @@
             پرسنل آرایشگاه‌های من
             </summary>
         </member>
+        <member name="M:Api.Areas.Companion.Controllers.GroomerUserController.Expertise(Application.Services.GroomerSrvs.GroomerProfileSrv.Dto.GroomerStaffExpertiseDto)">
+            <summary>
+            نقش/تخصص‌های یک عضو تیم (شناسه‌ها از GET api/Expertise?ProviderRole=Groomer؛ حداکثر ۱۰، لیست خالی = پاک کردن). فقط مالک/مدیر مرکز.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.OnlinePrescriptionController">
             <summary>
             نسخه‌ی پزشک برای رزرو آنلاین / مشاوره (نماینده و همکار)
@@ -7574,6 +7600,12 @@
             جلسات زنده‌ی دوره‌ی مدرسه‌ی خودِ نماینده
             </summary>
         </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolCourseSessionController.Schedule(Application.Services.SchoolSrvs.SchoolCourseSrv.Dto.SchoolCourseScheduleDto)">
+            <summary>
+            تعیین یک‌جای روزهای دوره: «این دوره n جلسه است» (SessionCount) و روزها/ساعت‌ها انتخاب می‌شوند.
+            جلسه‌های آینده با این لیست جایگزین می‌شوند؛ جلسه‌های گذشته/دارای حضور و غیاب می‌مانند و جمع باید برابر SessionCount باشد.
+            </summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.SchoolCourseVideoController">
             <summary>
             ویدیوهای دوره‌ی مدرسه‌ی خودِ نماینده
@@ -7624,6 +7656,54 @@
         </member>
         <member name="M:Api.Areas.Companion.Controllers.SchoolReserveController.Complete(System.Int64)">
             <summary>ثبت «کامل‌شده» برای ثبت‌نام پرداخت‌شده‌ی دوره‌ی مدرسه‌ی خودِ نماینده</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolSettlementController">
+            <summary>
+            تاریخچه‌ی تسویه‌ی مدرسه‌های من (تسویه‌ی ارائه‌دهنده در استخر مدرسه)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolSettlementController.Items(System.Int64)">
+            <summary>ریز تسویه‌ی خودم</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.SchoolTeachingController">
+            <summary>
+            مدیریت آموزشی دوره‌های مدرسه برای ارائه‌دهنده و مدرس‌ها (۲۰۲۶-۱۰-۲۸): مدرس‌ها، حضور و غیاب، مهارت‌ها و کارنامه،
+            گواهی، لیست انتظار، امتیازها و داشبورد مدرسه.
+            </summary>
+            <remarks>
+            «مالک» = کاربرِ ارائه‌دهنده (یا مالک نمایندگیِ مدرسه‌ی قدیمی). «مدرس» = مالک یا مدرس فعالِ همان دوره.
+            مدیریت مدرس‌ها، لیست انتظار و داشبورد فقط برای مالک؛ حضور و غیاب، کارنامه و گواهی برای مدرس هم.
+            </remarks>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.Instructors(System.Int64)">
+            <summary>مدرس‌های دوره</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.AddInstructor(Application.Services.SchoolSrvs.SchoolTeachingSrv.SchoolInstructorAddDto)">
+            <summary>افزودن مدرس با موبایل (IsLead = مدرس اصلی؛ فقط یکی)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.MyCourses">
+            <summary>شناسه‌ی دوره‌هایی که من مدرسشان هستم (مدرسِ غیرمالک از این‌جا دوره‌هایش را پیدا می‌کند)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.Roster(System.Int64)">
+            <summary>لیست حاضرین یک جلسه با وضعیت حضور ثبت‌شده</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.Attendance(Application.Services.SchoolSrvs.SchoolTeachingSrv.SchoolAttendanceSaveDto)">
+            <summary>ثبت/ویرایش حضور و غیاب یک جلسه؛ غایب‌ها یک‌بار پوش «جلسه را از دست دادید» می‌گیرند</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.UpsertSkill(Application.Services.SchoolSrvs.SchoolTeachingSrv.SchoolSkillDto)">
+            <summary>افزودن (Id = 0) یا ویرایش مهارت دوره</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.Progress(Application.Services.SchoolSrvs.SchoolTeachingSrv.SchoolProgressSaveDto)">
+            <summary>ثبت نمره‌ی مهارت‌ها (۱ تا ۵) برای یک ثبت‌نام؛ اختیاری برای یک جلسه‌ی مشخص</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.Report(System.Int64)">
+            <summary>کارنامه‌ی یک ثبت‌نام (حضور، مهارت‌ها، گواهی)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.Certificate(System.Int64)">
+            <summary>صدور گواهی پایان دوره (ثبت‌نام «کامل‌شده» در دوره‌ی دارای گواهی؛ تکرار = همان گواهی)</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolTeachingController.Dashboard(System.Int64)">
+            <summary>داشبورد مدرسه: ثبت‌نام، پر شدن ظرفیت، لیست انتظار، درآمد، درصد حضور و امتیاز هر دوره</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.SettlementController">
              <summary>
@@ -8000,6 +8080,12 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.CallIceServersController">
+            <summary>
+            iceServers (STUN + TURN با credential) برای ساخت RTCPeerConnection همه‌ی تماس‌ها (رزرو، جلسه‌ی آنلاین/مشاوره، کلینیک، مربی).
+            کلاینت قبل از هر تماس می‌گیرد؛ پاسخ کش نشود چون credential کوتاه‌عمر است.
+            </summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CallPendingController">
             <summary>
@@ -9827,6 +9913,23 @@
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.SchoolCourseLiveController.GetToken(System.Int64)">
             <summary>توکن ورود LiveKit (فقط تماشا) - اگر مربی هنوز شروع نکرده، StatusId=۱ برمی‌گردد؛ صفحه باید منتظر بماند.</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.SchoolLearningController">
+            <summary>
+            مدرسه برای مالک پت (۲۰۲۶-۱۰-۲۸): لیست انتظار دوره‌ی پر، کارنامه‌ی پیشرفت/حضور/گواهی ثبت‌نام خودم، امتیاز به دوره.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.SchoolLearningController.Waitlist">
+            <summary>لیست انتظارهای من (با جایگاه در صف)</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.SchoolLearningController.JoinWaitlist(Application.Services.SchoolSrvs.SchoolWaitlistSrv.SchoolWaitlistJoinDto)">
+            <summary>عضویت در لیست انتظار دوره‌ی پر (فقط وقتی ظرفیت پر است)</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.SchoolLearningController.Report(System.Int64)">
+            <summary>کارنامه‌ی ثبت‌نام خودم: حضور و غیاب، نمره‌ی مهارت‌ها و گواهی</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.SchoolLearningController.Rate(Application.Services.SchoolSrvs.SchoolInsightSrv.SchoolCourseRateDto)">
+            <summary>امتیاز و نظر به دوره (فقط ثبت‌نام «کامل‌شده»؛ ارسال دوباره = ویرایش)</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.SchoolReserveCancelController">
             <summary>
@@ -11948,6 +12051,11 @@
             جستجوی تخصص‌های قابل انتخاب
             </summary>
         </member>
+        <member name="M:Api.Controllers.ExpertiseController.Groups">
+            <summary>
+            گروه‌های تخصص (نقش‌های ارائه‌دهنده: کلینیک، مربی، آرایشگاه، پانسیون، مدرسه) برای فیلتر لیست تخصص‌ها در پنل/اپ نماینده
+            </summary>
+        </member>
         <member name="T:Api.Controllers.FeatureController">
             <summary>
             مرتبط با بنر ها
@@ -12509,6 +12617,15 @@
             چون کاربرِ لاگین‌شده در کار نیست - امنیتش با اعتبارسنجی JWT هدر Authorization (طبق مستندات
             LiveKit) تأمین می‌شود، نه احراز هویت معمول اپلیکیشن.
             </summary>
+        </member>
+        <member name="T:Api.Controllers.SchoolPublicController">
+            <summary>اطلاعات عمومی مدرسه بدون ورود (۲۰۲۶-۱۰-۲۸): نظرها/امتیازهای دوره و استعلام گواهی.</summary>
+        </member>
+        <member name="M:Api.Controllers.SchoolPublicController.CourseRates(System.Int64,System.Int32)">
+            <summary>نظرها و امتیازهای یک دوره (نظرهای ردشده نمی‌آیند)</summary>
+        </member>
+        <member name="M:Api.Controllers.SchoolPublicController.Certificate(System.String)">
+            <summary>استعلام گواهی پایان دوره با کد (مثلاً PSC-AB12CD34)</summary>
         </member>
         <member name="T:Api.Controllers.SearchController">
             <summary>

@@ -257,7 +257,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 input.ProviderId = -1;
                 return Search(input);
             }
-            if (kind == SettlementKindEnum.Coach)
+            if (kind == SettlementKindEnum.Coach || kind == SettlementKindEnum.School)
             {
                 // مربی ستون قدیمی ندارد؛ بدون ارائه‌دهنده چیزی برای نمایش نیست.
                 input.ProviderId = -1;
@@ -315,6 +315,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 SettlementKindEnum.Groomer => await _context.Groomers.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
                 SettlementKindEnum.Clinic => await _context.Clinics.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
                 SettlementKindEnum.Coach => await _context.Coaches.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
+                SettlementKindEnum.School => await _context.Schools.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
                 _ => await _context.Stores.AsNoTracking().Where(s => s.Id == venueId).Select(s => s.ProviderId).FirstOrDefaultAsync(),
             };
         }
@@ -368,6 +369,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                     SettlementKindEnum.Groomer => await SettleGroomerPoolAsync(item.Id, provider.Id),
                     SettlementKindEnum.Clinic => await SettleClinicPoolAsync(item.Id, provider.Id),
                     SettlementKindEnum.Coach => await SettleCoachPoolAsync(item.Id, provider.Id),
+                    SettlementKindEnum.School => await SettleSchoolPoolAsync(item.Id, provider.Id),
                     _ => await SettleStorePoolAsync(item.Id, provider.Id),
                 };
 
@@ -399,7 +401,8 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 .Where(c => c.ProviderId == providerId)
                 .Select(c => c.Id)
                 .ToListAsync();
-            // مدرسه‌ی فقط-ارائه‌دهنده (بدون نمایندگی) هم در همین استخر است؛ پس نبودِ نمایندگی یعنی خالی بودن استخر نیست
+            if (companionIds.Count == 0)
+                return new PoolResult(0, 0);
 
             var reserves = await SettlementSources.CompanionReserves(_context, companionIds)
                 .Where(r => !r.Permitted).Select(r => new { r.Id, r.CompanionShare }).ToListAsync();
@@ -409,8 +412,6 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 .Where(p => !p.Permitted).Select(p => new { p.Id, p.CompanionShare }).ToListAsync();
             var schools = await SettlementSources.SchoolReserves(_context, companionIds)
                 .Where(r => !r.Permitted).Select(r => new { r.Id, r.CompanionShare }).ToListAsync();
-            schools.AddRange(await SettlementSources.ProviderSchoolReserves(_context, providerId)
-                .Where(r => !r.Permitted).Select(r => new { r.Id, r.CompanionShare }).ToListAsync());
 
             var completed = (int)Common.Enumerable.ConsultationPurchaseStatusEnum.Completed;
 
@@ -429,7 +430,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 .Where(p => ids.Contains(p.Id) && !p.Permitted && p.Status == completed)
                 .ExecuteUpdateAsync(s => s.SetProperty(p => p.Permitted, true)));
             await MarkAsync(schools.Select(x => x.Id), ids => _context.SchoolReserves
-                .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && !r.IsCancel)
+                .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && (!r.IsCancel || r.CompanionShare > 0))
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.Permitted, true)));
 
             var links = new List<SettlementCompanion>();
@@ -533,6 +534,24 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
             await _context.SaveChangesAsync();
 
             return new PoolResult(reserves.Sum(x => x.ProviderShare) + consultations.Sum(x => x.CompanionShare), links.Count + consultations.Count);
+        }
+
+        /// <summary>ثبت‌نام‌های تسویه‌نشده‌ی همه‌ی مدرسه‌های ارائه‌دهنده (حذف‌شده‌ها هم: پولشان هنوز بدهی است).</summary>
+        private async Task<PoolResult> SettleSchoolPoolAsync(long settlementId, long providerId)
+        {
+            var schools = await SettlementSources.ProviderSchoolReserves(_context, providerId)
+                .Where(r => !r.Permitted).Select(r => new { r.Id, r.CompanionShare }).ToListAsync();
+            if (schools.Count == 0)
+                return new PoolResult(0, 0);
+
+            await MarkAsync(schools.Select(x => x.Id), ids => _context.SchoolReserves
+                .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && (!r.IsCancel || r.CompanionShare > 0))
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.Permitted, true)));
+
+            var links = schools.Select(x => new SettlementCompanion { SettlementId = settlementId, SchoolReserveId = x.Id }).ToList();
+            await _context.SettlementCompanions.AddRangeAsync(links);
+            await _context.SaveChangesAsync();
+            return new PoolResult(schools.Sum(x => x.CompanionShare), links.Count);
         }
 
         /// <summary>سفارش‌های تسویه‌نشده‌ی همه‌ی فروشگاه‌های ارائه‌دهنده.</summary>

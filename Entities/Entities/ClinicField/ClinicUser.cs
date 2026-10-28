@@ -18,6 +18,11 @@ namespace Entities.Entities.ClinicField
         public bool ConsultationOnline { get; set; }
         public System.DateTime? ConsultationOnlineExpiresAt { get; set; }
 
+        // نقش/تخصص عضو تیم (۲۰۲۶-۱۰-۲۸)، مثل CompanionUser: ExpertiseId = تخصص اصلی (اولین مورد)، فهرست کامل در Expertises
+        public long? ExpertiseId { get; set; }
+        public CompanionField.Expertise Expertise { get; set; }
+        public System.Collections.Generic.ICollection<ClinicUserExpertise> Expertises { get; set; }
+
         public Clinic Clinic { get; set; }
         public User User { get; set; }
     }

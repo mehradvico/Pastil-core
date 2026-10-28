@@ -1,4 +1,4 @@
-﻿BEGIN TRANSACTION;
+BEGIN TRANSACTION;
 ALTER TABLE [ConsultationPackages] ADD [Approved] bit NOT NULL DEFAULT CAST(1 AS bit);
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])

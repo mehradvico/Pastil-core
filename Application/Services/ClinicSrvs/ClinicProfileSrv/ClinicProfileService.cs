@@ -51,7 +51,12 @@ namespace Application.Services.ClinicSrvs.ClinicProfileSrv
                     Id = u.Id, ClinicId = u.ClinicId, UserId = u.UserId,
                     FirstName = u.User.FirstName, LastName = u.User.LastName, Mobile = u.User.Mobile,
                     Active = u.Active, ActivationValue = u.ActivationValue, UserAccept = u.UserAccept, InviteDate = u.InviteDate,
+                    ExpertiseId = u.ExpertiseId,
+                    Expertises = u.Expertises.Where(e => e.Expertise.Active && !e.Expertise.Deleted).OrderBy(e => e.Id)
+                        .Select(e => new Application.Services.CompanionSrvs.ExpertiseSrv.Dto.ExpertiseVDto { Id = e.ExpertiseId, Name = e.Expertise.Name, Active = true })
+                        .ToList(),
                 }).ToListAsync();
+            list.ForEach(x => x.ExpertiseName = Application.Services.CompanionSrvs.ExpertiseSrv.StaffExpertiseRules.JoinNames(x.Expertises.Select(e => e.Name)));
             return new BaseResultDto<List<ClinicStaffVDto>>(true, list);
         }
 
@@ -90,7 +95,12 @@ namespace Application.Services.ClinicSrvs.ClinicProfileSrv
                 staff.InviteDate = now;
                 if (existing == null)
                     await _context.ClinicUsers.AddAsync(staff);
+                var addExpertises = await Application.Services.CompanionSrvs.ExpertiseSrv.StaffExpertiseRules.ResolveAsync(_context, dto.ExpertiseIds);
+                if (addExpertises == null)
+                    return new BaseResultDto<ClinicStaffVDto>(false, Resource.Notification.StaffExpertiseInvalid, null);
                 await _context.SaveChangesAsync();
+                if (addExpertises.Count > 0)
+                    await ReplaceStaffExpertisesAsync(staff.Id, addExpertises);
                 await RefreshStaffCountAsync(dto.ClinicId);
                 if (_notifier != null)
                     await _notifier.StaffInvitedAsync(dto.ClinicId, user.Id);
@@ -120,6 +130,35 @@ namespace Application.Services.ClinicSrvs.ClinicProfileSrv
             await _context.ClinicUsers.Where(u => u.Id == staffId).ExecuteUpdateAsync(s => s.SetProperty(u => u.Active, active));
             await RefreshStaffCountAsync(staff.ClinicId);
             return new BaseResultDto(true);
+        }
+
+        /// <summary>نقش/تخصص‌های یک عضو تیم را جایگزین می‌کند (فقط مالک/مدیر مرکز). لیست خالی = پاک کردن.</summary>
+        public async Task<BaseResultDto<ClinicStaffVDto>> SetStaffExpertiseAsync(ClinicStaffExpertiseDto dto, long? ownerUserId)
+        {
+            var staff = await _context.ClinicUsers.AsNoTracking().Where(u => u.Id == (dto == null ? 0 : dto.Id) && !u.Deleted)
+                .Select(u => new { u.Id, u.ClinicId }).FirstOrDefaultAsync();
+            if (staff == null)
+                return new BaseResultDto<ClinicStaffVDto>(false, Resource.Notification.NothingFound, null);
+            var denied = await CheckClinicAccessAsync(staff.ClinicId, ownerUserId);
+            if (denied != null)
+                return new BaseResultDto<ClinicStaffVDto>(false, denied.Messages, null);
+            var expertises = await Application.Services.CompanionSrvs.ExpertiseSrv.StaffExpertiseRules.ResolveAsync(_context, dto.ExpertiseIds);
+            if (expertises == null)
+                return new BaseResultDto<ClinicStaffVDto>(false, Resource.Notification.StaffExpertiseInvalid, null);
+            await ReplaceStaffExpertisesAsync(staff.Id, expertises);
+            var list = await ListStaffAsync(staff.ClinicId, ownerUserId);
+            return new BaseResultDto<ClinicStaffVDto>(true, list.Data?.FirstOrDefault(x => x.Id == staff.Id));
+        }
+
+        // جایگزینی کامل ردیف‌های تخصص + تخصص اصلی (اولین مورد)
+        private async Task ReplaceStaffExpertisesAsync(long staffId, List<Entities.Entities.CompanionField.Expertise> expertises)
+        {
+            await _context.ClinicUserExpertises.Where(e => e.ClinicUserId == staffId).ExecuteDeleteAsync();
+            if (expertises.Count > 0)
+                await _context.ClinicUserExpertises.AddRangeAsync(expertises.Select(e => new Entities.Entities.ClinicField.ClinicUserExpertise { ClinicUserId = staffId, ExpertiseId = e.Id }));
+            await _context.SaveChangesAsync();
+            long? primary = expertises.Count > 0 ? expertises[0].Id : null;
+            await _context.ClinicUsers.Where(u => u.Id == staffId).ExecuteUpdateAsync(x => x.SetProperty(u => u.ExpertiseId, primary));
         }
 
         public async Task<BaseResultDto> RemoveStaffAsync(long staffId, long? ownerUserId)

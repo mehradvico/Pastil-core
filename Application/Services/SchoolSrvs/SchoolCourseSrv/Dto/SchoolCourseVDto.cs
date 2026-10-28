@@ -19,6 +19,18 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Dto
         public long? PetId { get; set; }
         public long? PetBreedId { get; set; }
         public decimal CommissionPercent { get; set; }
+        public int Level { get; set; }
+        public long? PrerequisiteCourseId { get; set; }
+        public string PrerequisiteCourseName { get; set; }
+        public int LateEnrollmentMode { get; set; }
+        public int FullRefundHoursBeforeStart { get; set; }
+        public int LateCancelRefundPercent { get; set; }
+        public bool CertificateEnabled { get; set; }
+        public double RateAvg { get; set; }
+        public int RateCount { get; set; }
+        // قیمت ثبت‌نام همین الان (با ثبت‌نام دیرهنگامِ نسبی ممکن است از Price کمتر باشد)
+        public double EnrollPrice { get; set; }
+        public int RemainingSessions { get; set; }
         public bool Active { get; set; }
 
         public PetVDto Pet { get; set; }

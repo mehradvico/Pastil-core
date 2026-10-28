@@ -15,6 +15,11 @@ namespace Entities.Entities.GroomerField
         public string ActivationValue { get; set; }
         public bool Deleted { get; set; }
 
+        // نقش/تخصص عضو تیم (۲۰۲۶-۱۰-۲۸)، مثل CompanionUser: ExpertiseId = تخصص اصلی (اولین مورد)، فهرست کامل در Expertises
+        public long? ExpertiseId { get; set; }
+        public CompanionField.Expertise Expertise { get; set; }
+        public System.Collections.Generic.ICollection<GroomerUserExpertise> Expertises { get; set; }
+
         public Groomer Groomer { get; set; }
         public User User { get; set; }
     }

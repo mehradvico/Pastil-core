@@ -64,7 +64,12 @@ namespace Application.Services.VenueMemberSrv
                     .Where(s => s.ClinicService.ClinicId == clinicId && s.Active && !s.Deleted && !s.ClinicService.Deleted)
                     .OrderBy(s => s.Id)
                     .Select(s => new ServiceLink(s.UserId, s.ClinicService.Assistance.Name)).ToListAsync();
-                return await BuildAsync(ownerId, staff, services);
+                // نقش/تخصصی که مالک برای عضو تعیین کرده (۲۰۲۶-۱۰-۲۸) بر نام خدمت‌ها مقدم است
+                var roles = await _context.ClinicUserExpertises.AsNoTracking()
+                    .Where(e => e.ClinicUser.ClinicId == clinicId && !e.ClinicUser.Deleted && e.Expertise.Active && !e.Expertise.Deleted)
+                    .OrderBy(e => e.Id)
+                    .Select(e => new ServiceLink(e.ClinicUser.UserId, e.Expertise.Name)).ToListAsync();
+                return await BuildAsync(ownerId, staff, services, roles);
             });
 
         public Task<BaseResultDto<List<VenueMemberVDto>>> CoachMembersAsync(long coachId, int? page, int? pageSize) =>
@@ -78,7 +83,12 @@ namespace Application.Services.VenueMemberSrv
                     .Where(s => s.CoachService.CoachId == coachId && s.Active && !s.Deleted && !s.CoachService.Deleted)
                     .OrderBy(s => s.Id)
                     .Select(s => new ServiceLink(s.UserId, s.CoachService.Assistance.Name)).ToListAsync();
-                return await BuildAsync(ownerId, staff, services);
+                // نقش/تخصصی که مالک برای عضو تعیین کرده (۲۰۲۶-۱۰-۲۸) بر نام خدمت‌ها مقدم است
+                var roles = await _context.CoachUserExpertises.AsNoTracking()
+                    .Where(e => e.CoachUser.CoachId == coachId && !e.CoachUser.Deleted && e.Expertise.Active && !e.Expertise.Deleted)
+                    .OrderBy(e => e.Id)
+                    .Select(e => new ServiceLink(e.CoachUser.UserId, e.Expertise.Name)).ToListAsync();
+                return await BuildAsync(ownerId, staff, services, roles);
             });
 
         private sealed record ServiceLink(long UserId, string Name);
@@ -96,7 +106,7 @@ namespace Application.Services.VenueMemberSrv
             return new BaseResultDto<List<VenueMemberVDto>>(true, all.Skip(skip).Take(take).ToList());
         }
 
-        private async Task<List<VenueMemberVDto>> BuildAsync(long? ownerId, List<long> staffIds, List<ServiceLink> services)
+        private async Task<List<VenueMemberVDto>> BuildAsync(long? ownerId, List<long> staffIds, List<ServiceLink> services, List<ServiceLink> roles)
         {
             var ids = staffIds.ToList();
             if (ownerId.HasValue)
@@ -131,7 +141,8 @@ namespace Application.Services.VenueMemberSrv
                     FullName = VenueMemberRules.FullName(user.FirstName, user.LastName),
                     Picture = user.Picture,
                     RoleId = (int)(isOwner ? VenueMemberRoleEnum.Owner : VenueMemberRoleEnum.Member),
-                    RoleTitle = VenueMemberRules.RoleTitle(isOwner, services.Where(s => s.UserId == id).Select(s => s.Name)),
+                    RoleTitle = VenueMemberRules.RoleTitle(isOwner, services.Where(s => s.UserId == id).Select(s => s.Name),
+                        roles.Where(r => r.UserId == id).Select(r => r.Name)),
                     SortOrder = result.Count + 1,
                 });
             }
@@ -142,6 +153,7 @@ namespace Application.Services.VenueMemberSrv
     public static class VenueMemberRules
     {
         public const int MaxRoleServices = 2;
+        public const int MaxRoles = 3;
 
         public static (int Skip, int Take) Page(int? page, int? pageSize)
         {
@@ -156,11 +168,15 @@ namespace Application.Services.VenueMemberSrv
             return string.IsNullOrWhiteSpace(name) ? Resource.Lang.VenueMemberDefaultRole : name;
         }
 
-        // مالک = «مدیر مرکز»؛ پرسنل = تا ۲ نام خدمت، وگرنه «عضو تیم»
-        public static string RoleTitle(bool isOwner, IEnumerable<string> serviceNames)
+        // مالک = «مدیر مرکز»؛ پرسنل = نقش/تخصص‌های تعیین‌شده (تا ۳)، وگرنه تا ۲ نام خدمت، وگرنه «عضو تیم»
+        public static string RoleTitle(bool isOwner, IEnumerable<string> serviceNames, IEnumerable<string> roleNames = null)
         {
             if (isOwner)
                 return Resource.Lang.VenueMemberOwnerRole;
+            var roles = (roleNames ?? Enumerable.Empty<string>())
+                .Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n.Trim()).Distinct().Take(MaxRoles).ToList();
+            if (roles.Count > 0)
+                return string.Join(Resource.Lang.VenueMemberRoleSeparator, roles);
             var names = (serviceNames ?? Enumerable.Empty<string>())
                 .Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n.Trim()).Distinct().Take(MaxRoleServices).ToList();
             return names.Count == 0 ? Resource.Lang.VenueMemberDefaultRole : string.Join(Resource.Lang.VenueMemberRoleSeparator, names);

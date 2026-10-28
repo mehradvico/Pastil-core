@@ -2734,4 +2734,34 @@
   <data name="ConsultationPetInvalid" xml:space="preserve">
     <value>The selected pet does not belong to you or has been deleted.</value>
   </data>
+  <data name="SchoolCoursePrerequisiteRequired" xml:space="preserve">
+    <value>This course has a prerequisite; your pet must complete the prerequisite course first.</value>
+  </data>
+  <data name="SchoolWaitlistOnlyWhenFull" xml:space="preserve">
+    <value>This course still has free seats; please enroll directly.</value>
+  </data>
+  <data name="SchoolWaitlistAlreadyJoined" xml:space="preserve">
+    <value>This pet is already on this course's waiting list.</value>
+  </data>
+  <data name="SchoolSessionCountMismatch" xml:space="preserve">
+    <value>This course has {0} sessions; choose exactly {1} new days.</value>
+  </data>
+  <data name="SchoolSessionOverlap" xml:space="preserve">
+    <value>Two sessions overlap in time.</value>
+  </data>
+  <data name="SchoolCertificateNotAllowed" xml:space="preserve">
+    <value>A certificate is issued only for a completed enrollment in a course with certificates enabled.</value>
+  </data>
+  <data name="SchoolInstructorUserNotFound" xml:space="preserve">
+    <value>No Pastil user found with this mobile number.</value>
+  </data>
+  <data name="SchoolInstructorAlreadyAdded" xml:space="preserve">
+    <value>This user is already an instructor of this course.</value>
+  </data>
+  <data name="SchoolProgressScoreInvalid" xml:space="preserve">
+    <value>Score must be between 1 and 5.</value>
+  </data>
+  <data name="StaffExpertiseInvalid" xml:space="preserve">
+    <value>The selected roles/expertises are invalid (up to 10 active Pastil expertises).</value>
+  </data>
 </root>

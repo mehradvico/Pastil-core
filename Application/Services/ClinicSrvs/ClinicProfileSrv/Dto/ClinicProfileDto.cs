@@ -7,12 +7,25 @@ namespace Application.Services.ClinicSrvs.ClinicProfileSrv.Dto
     public class ClinicStaffAddDto
     {
         public long ClinicId { get; set; }
+        /// <summary>اختیاری: نقش/تخصص‌های عضو (شناسه‌های GET api/Expertise؛ حداکثر ۱۰)</summary>
+        public List<long> ExpertiseIds { get; set; } = new();
         /// <summary>کاربر باید قبلاً در پاستیل ثبت‌نام کرده باشد.</summary>
         public string Mobile { get; set; }
     }
 
+    /// <summary>تعیین نقش/تخصص‌های یک عضو تیم (PUT …/ClinicUser/Expertise)؛ لیست خالی = پاک کردن</summary>
+    public class ClinicStaffExpertiseDto
+    {
+        public long Id { get; set; }
+        public List<long> ExpertiseIds { get; set; } = new();
+    }
+
     public class ClinicStaffVDto
     {
+        // نقش/تخصص‌ها (۲۰۲۶-۱۰-۲۸): ExpertiseId = اصلی؛ ExpertiseName = متن آماده‌ی نمایش («دامپزشک، جراح»)
+        public long? ExpertiseId { get; set; }
+        public List<Application.Services.CompanionSrvs.ExpertiseSrv.Dto.ExpertiseVDto> Expertises { get; set; } = new();
+        public string ExpertiseName { get; set; }
         public long Id { get; set; }
         public long ClinicId { get; set; }
         public long UserId { get; set; }

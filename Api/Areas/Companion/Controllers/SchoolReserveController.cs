@@ -20,8 +20,11 @@ namespace Api.Areas.Companion.Controllers
         private readonly ISchoolReserveService _schoolReserveService;
         private readonly ICurrentUserHelper _currentUser;
         private readonly ISchoolOwnershipService _ownership;
-        public SchoolReserveController(ISchoolReserveService schoolReserveService, ICurrentUserHelper currentUser, ISchoolOwnershipService ownership)
+        private readonly Application.Services.SchoolSrvs.SchoolTeachingSrv.ISchoolTeachingService _teaching;
+        public SchoolReserveController(ISchoolReserveService schoolReserveService, ICurrentUserHelper currentUser, ISchoolOwnershipService ownership,
+            Application.Services.SchoolSrvs.SchoolTeachingSrv.ISchoolTeachingService teaching)
         {
+            this._teaching = teaching;
             this._ownership = ownership;
             this._schoolReserveService = schoolReserveService;
             this._currentUser = currentUser;
@@ -44,7 +47,11 @@ namespace Api.Areas.Companion.Controllers
             var ownedSchoolId = await _ownership.SchoolOfReserveAsync(id, _currentUser.CurrentUser.UserId);
             if (!ownedSchoolId.HasValue)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
-            return Ok(await _schoolReserveService.CompleteByCompanionAsync(id, ownedSchoolId.Value));
+            var result = await _schoolReserveService.CompleteByCompanionAsync(id, ownedSchoolId.Value);
+            // دوره‌ی دارای گواهی: گواهی پایان دوره خودکار صادر و به مالک پت پوش می‌شود
+            if (result.IsSuccess)
+                await _teaching.IssueCertificateIfEnabledAsync(id, _currentUser.CurrentUser.UserId);
+            return Ok(result);
         }
 
         [HttpGet("{id}")]

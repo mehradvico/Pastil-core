@@ -481,6 +481,9 @@ public static class ConfigureServices
         services.AddOptions<Application.Services.SchoolSrvs.SchoolCourseLiveSrv.LiveKitOptions>()
             .Configure<IConfiguration>((options, configuration) =>
                 configuration.GetSection(Application.Services.SchoolSrvs.SchoolCourseLiveSrv.LiveKitOptions.SectionName).Bind(options));
+        services.AddOptions<Application.Services.CommonSrv.CallIceSrv.CallIceOptions>()
+            .Configure<IConfiguration>((options, configuration) =>
+                configuration.GetSection(Application.Services.CommonSrv.CallIceSrv.CallIceOptions.SectionName).Bind(options));
         services.AddOptions<Application.Common.Storage.ObjectStorageOptions>()
             .Configure<IConfiguration>((options, configuration) =>
                 configuration.GetSection(Application.Common.Storage.ObjectStorageOptions.SectionName).Bind(options));
@@ -638,6 +641,10 @@ public static class ConfigureServices
         services.AddScoped<ISchoolService, SchoolService>();
         services.AddScoped<Application.Services.CompanionSrvs.CompanionPanelAccessSrv.ICompanionPanelAccessService, Application.Services.CompanionSrvs.CompanionPanelAccessSrv.CompanionPanelAccessService>();
         services.AddScoped<Application.Services.SchoolSrvs.SchoolOwnershipSrv.ISchoolOwnershipService, Application.Services.SchoolSrvs.SchoolOwnershipSrv.SchoolOwnershipService>();
+        // ویژگی‌های تکمیلی مدرسه (۲۰۲۶-۱۰-۲۸)
+        services.AddScoped<Application.Services.SchoolSrvs.SchoolWaitlistSrv.ISchoolWaitlistService, Application.Services.SchoolSrvs.SchoolWaitlistSrv.SchoolWaitlistService>();
+        services.AddScoped<Application.Services.SchoolSrvs.SchoolTeachingSrv.ISchoolTeachingService, Application.Services.SchoolSrvs.SchoolTeachingSrv.SchoolTeachingService>();
+        services.AddScoped<Application.Services.SchoolSrvs.SchoolInsightSrv.ISchoolInsightService, Application.Services.SchoolSrvs.SchoolInsightSrv.SchoolInsightService>();
         services.AddScoped<ISchoolCourseService, SchoolCourseService>();
         services.AddScoped<ISchoolReserveService, SchoolReserveService>();
         services.AddScoped<Application.Services.SchoolSrvs.SchoolPictureSrv.Iface.ISchoolPictureService, Application.Services.SchoolSrvs.SchoolPictureSrv.SchoolPictureService>();

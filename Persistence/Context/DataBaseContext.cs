@@ -1,4 +1,4 @@
-﻿using Entities.Entities;
+using Entities.Entities;
 using Entities.Entities.CompanionField;
 using Entities.Entities.GroomerField;
 using Entities.Entities.ClinicField;
@@ -360,6 +360,15 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<SchoolCourseVideo> SchoolCourseVideos { get; set; }
         public DbSet<SchoolPicture> SchoolPictures { get; set; }
         public DbSet<SchoolCoursePet> SchoolCoursePets { get; set; }
+        public DbSet<Entities.Entities.ClinicField.ClinicUserExpertise> ClinicUserExpertises { get; set; }
+        public DbSet<Entities.Entities.CoachField.CoachUserExpertise> CoachUserExpertises { get; set; }
+        public DbSet<Entities.Entities.GroomerField.GroomerUserExpertise> GroomerUserExpertises { get; set; }
+        public DbSet<SchoolCourseWaitlist> SchoolCourseWaitlists { get; set; }
+        public DbSet<SchoolAttendance> SchoolAttendances { get; set; }
+        public DbSet<SchoolCourseSkill> SchoolCourseSkills { get; set; }
+        public DbSet<SchoolProgress> SchoolProgresses { get; set; }
+        public DbSet<SchoolCertificate> SchoolCertificates { get; set; }
+        public DbSet<SchoolCourseInstructor> SchoolCourseInstructors { get; set; }
         public DbSet<SchoolCourseLiveSession> SchoolCourseLiveSessions { get; set; }
         public DbSet<SchoolLiveComment> SchoolLiveComments { get; set; }
         public DbSet<Entities.Entities.PrescriptionField.OnlinePrescription> OnlinePrescriptions { get; set; }
@@ -699,9 +708,78 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             modelBuilder.Entity<Store>()
                 .Property(item => item.CommissionPercent)
                 .HasPrecision(5, 2);
-            modelBuilder.Entity<SchoolCourse>()
-                .Property(item => item.CommissionPercent)
-                .HasPrecision(18, 2);
+            modelBuilder.Entity<SchoolCourse>(entity =>
+            {
+                entity.Property(item => item.CommissionPercent).HasPrecision(18, 2);
+                entity.HasOne(item => item.PrerequisiteCourse).WithMany().HasForeignKey(item => item.PrerequisiteCourseId).OnDelete(DeleteBehavior.Restrict);
+            });
+            // نقش/تخصص اعضای تیم کلینیک/مربی/آرایشگاه (۲۰۲۶-۱۰-۲۸)
+            modelBuilder.Entity<Entities.Entities.ClinicField.ClinicUserExpertise>(entity =>
+            {
+                entity.HasOne(i => i.ClinicUser).WithMany(u => u.Expertises).HasForeignKey(i => i.ClinicUserId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(i => i.Expertise).WithMany().HasForeignKey(i => i.ExpertiseId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(i => new { i.ClinicUserId, i.ExpertiseId }).IsUnique();
+            });
+            modelBuilder.Entity<Entities.Entities.ClinicField.ClinicUser>()
+                .HasOne(u => u.Expertise).WithMany().HasForeignKey(u => u.ExpertiseId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Entities.Entities.CoachField.CoachUserExpertise>(entity =>
+            {
+                entity.HasOne(i => i.CoachUser).WithMany(u => u.Expertises).HasForeignKey(i => i.CoachUserId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(i => i.Expertise).WithMany().HasForeignKey(i => i.ExpertiseId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(i => new { i.CoachUserId, i.ExpertiseId }).IsUnique();
+            });
+            modelBuilder.Entity<Entities.Entities.CoachField.CoachUser>()
+                .HasOne(u => u.Expertise).WithMany().HasForeignKey(u => u.ExpertiseId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Entities.Entities.GroomerField.GroomerUserExpertise>(entity =>
+            {
+                entity.HasOne(i => i.GroomerUser).WithMany(u => u.Expertises).HasForeignKey(i => i.GroomerUserId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(i => i.Expertise).WithMany().HasForeignKey(i => i.ExpertiseId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(i => new { i.GroomerUserId, i.ExpertiseId }).IsUnique();
+            });
+            modelBuilder.Entity<Entities.Entities.GroomerField.GroomerUser>()
+                .HasOne(u => u.Expertise).WithMany().HasForeignKey(u => u.ExpertiseId).OnDelete(DeleteBehavior.Restrict);
+            // ویژگی‌های تکمیلی مدرسه: همه Restrict تا مسیر حذف آبشاری چندگانه (دوره ← جلسه/ثبت‌نام) پیش نیاید
+            modelBuilder.Entity<SchoolCourseWaitlist>(entity =>
+            {
+                entity.HasOne(i => i.SchoolCourse).WithMany().HasForeignKey(i => i.SchoolCourseId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(i => i.User).WithMany().HasForeignKey(i => i.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(i => i.UserPet).WithMany().HasForeignKey(i => i.UserPetId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(i => new { i.SchoolCourseId, i.UserPetId }).IsUnique().HasFilter("[Deleted] = 0");
+            });
+            modelBuilder.Entity<SchoolAttendance>(entity =>
+            {
+                entity.HasOne(i => i.SchoolCourseSession).WithMany().HasForeignKey(i => i.SchoolCourseSessionId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(i => i.SchoolReserve).WithMany().HasForeignKey(i => i.SchoolReserveId).OnDelete(DeleteBehavior.Restrict);
+                entity.Property(i => i.Note).HasMaxLength(500);
+                entity.HasIndex(i => new { i.SchoolCourseSessionId, i.SchoolReserveId }).IsUnique();
+            });
+            modelBuilder.Entity<SchoolCourseSkill>(entity =>
+            {
+                entity.HasOne(i => i.SchoolCourse).WithMany(c => c.Skills).HasForeignKey(i => i.SchoolCourseId).OnDelete(DeleteBehavior.Restrict);
+                entity.Property(i => i.Name).IsRequired().HasMaxLength(100);
+            });
+            modelBuilder.Entity<SchoolProgress>(entity =>
+            {
+                entity.HasOne(i => i.SchoolReserve).WithMany().HasForeignKey(i => i.SchoolReserveId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(i => i.SchoolCourseSkill).WithMany().HasForeignKey(i => i.SchoolCourseSkillId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(i => i.SchoolCourseSession).WithMany().HasForeignKey(i => i.SchoolCourseSessionId).OnDelete(DeleteBehavior.Restrict);
+                entity.Property(i => i.Note).HasMaxLength(500);
+            });
+            modelBuilder.Entity<SchoolCertificate>(entity =>
+            {
+                entity.HasOne(i => i.SchoolReserve).WithMany().HasForeignKey(i => i.SchoolReserveId).OnDelete(DeleteBehavior.Restrict);
+                entity.Property(i => i.Code).IsRequired().HasMaxLength(20);
+                entity.HasIndex(i => i.Code).IsUnique();
+                entity.HasIndex(i => i.SchoolReserveId).IsUnique();
+            });
+            modelBuilder.Entity<SchoolCourseInstructor>(entity =>
+            {
+                entity.HasOne(i => i.SchoolCourse).WithMany(c => c.Instructors).HasForeignKey(i => i.SchoolCourseId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(i => i.User).WithMany().HasForeignKey(i => i.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(i => new { i.SchoolCourseId, i.UserId }).IsUnique().HasFilter("[Deleted] = 0");
+            });
+            modelBuilder.Entity<SchoolComment>()
+                .HasOne(i => i.SchoolCourse).WithMany().HasForeignKey(i => i.SchoolCourseId).OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<ConsultationPackage>()
                 .Property(item => item.CommissionPercent)
                 .HasPrecision(5, 2);

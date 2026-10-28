@@ -15,6 +15,7 @@ namespace Application.Services.CoachSrvs.CoachProfileSrv.Iface
         Task<BaseResultDto<CoachStaffVDto>> AddStaffAsync(CoachStaffAddDto dto, long? ownerUserId);
         Task<BaseResultDto> SetStaffActiveAsync(long staffId, bool active, long? ownerUserId);
         Task<BaseResultDto> RemoveStaffAsync(long staffId, long? ownerUserId);
+        Task<BaseResultDto<CoachStaffVDto>> SetStaffExpertiseAsync(CoachStaffExpertiseDto dto, long? ownerUserId);
 
         /// <summary>دعوت‌نامه‌های منتظر پاسخِ کاربر جاری.</summary>
         Task<List<CoachStaffInviteVDto>> ListInvitesAsync(long userId);

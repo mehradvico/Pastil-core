@@ -15,6 +15,7 @@ namespace Application.Services.ClinicSrvs.ClinicProfileSrv.Iface
         Task<BaseResultDto<ClinicStaffVDto>> AddStaffAsync(ClinicStaffAddDto dto, long? ownerUserId);
         Task<BaseResultDto> SetStaffActiveAsync(long staffId, bool active, long? ownerUserId);
         Task<BaseResultDto> RemoveStaffAsync(long staffId, long? ownerUserId);
+        Task<BaseResultDto<ClinicStaffVDto>> SetStaffExpertiseAsync(ClinicStaffExpertiseDto dto, long? ownerUserId);
 
         /// <summary>دعوت‌نامه‌های منتظر پاسخِ کاربر جاری.</summary>
         Task<List<ClinicStaffInviteVDto>> ListInvitesAsync(long userId);

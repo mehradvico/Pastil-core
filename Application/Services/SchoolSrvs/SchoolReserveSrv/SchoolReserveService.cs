@@ -143,6 +143,19 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.InvalidData, dto);
                 }
 
+                // پیش‌نیاز: همین پت باید دوره‌ی پیش‌نیاز را «کامل‌شده» داشته باشد
+                if (course.PrerequisiteCourseId.HasValue)
+                {
+                    var complete = (int)SchoolReserveStatusEnum.Complete;
+                    var passed = await _context.SchoolReserves.AsNoTracking().AnyAsync(r =>
+                        r.SchoolCourseId == course.PrerequisiteCourseId.Value && r.UserPetId == dto.UserPetId
+                        && r.IsReserved && !r.IsCancel && r.StatusId == complete);
+                    if (!passed)
+                        return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCoursePrerequisiteRequired, dto);
+                }
+
+                var enrollment = await SchoolCourseRules.EnrollmentAsync(_context, course.Id, DateTime.Now);
+
                 var existing = await _context.SchoolReserves.AsTracking().FirstOrDefaultAsync(r =>
                     r.SchoolCourseId == dto.SchoolCourseId && r.UserPetId == dto.UserPetId && !r.IsCancel);
                 if (existing != null)
@@ -154,7 +167,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                             (int)ResultCodeEnum.PaymentAlreadyPaid);
                     }
 
-                    if (!await SchoolCourseRules.IsRegistrationOpenAsync(_context, course.Id, DateTime.Now))
+                    if (!enrollment.Open)
                         return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCourseRegistrationClosed, dto);
 
                     // اگر نگه‌داشتنِ جای این ثبت‌نام تمام شده، تلاش دوباره فقط وقتی ممکن است که هنوز جایی خالی باشد
@@ -182,8 +195,8 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                         return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.PaymentPreviousAttemptVerifying, dto);
                     }
 
-                    existing.Price = course.Price;
-                    existing.PaymentPrice = course.Price;
+                    existing.Price = enrollment.Price;
+                    existing.PaymentPrice = enrollment.Price;
                     existing.RebateId = null;
                     existing.RebatePrice = 0;
                     existing.FromWallet = false;
@@ -194,8 +207,8 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     return new BaseResultDto<SchoolReserveDto>(true, mapper.Map<SchoolReserveDto>(existing));
                 }
 
-                // دوره‌ای که جلسه‌ی اولش شروع شده دیگر ثبت‌نام نمی‌گیرد
-                if (!await SchoolCourseRules.IsRegistrationOpenAsync(_context, course.Id, DateTime.Now))
+                // بعد از شروع جلسه‌ی اول فقط طبق LateEnrollmentMode (بسته / قیمت کامل / قیمت نسبی)
+                if (!enrollment.Open)
                     return new BaseResultDto<SchoolReserveDto>(false, Resource.Notification.SchoolCourseRegistrationClosed, dto);
 
                 if (course.Capacity.HasValue)
@@ -211,8 +224,8 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                 // تخفیف از بدنه پذیرفته نمی‌شود (RebatePrice منفی + حذف کد، مبلغ را پایین می‌آورد)؛ فقط SetRebateCode
                 item.RebateId = null;
                 item.RebatePrice = 0;
-                item.Price = course.Price;
-                item.PaymentPrice = course.Price;
+                item.Price = enrollment.Price;
+                item.PaymentPrice = enrollment.Price;
                 item.FromWallet = false;
                 item.WalletPrice = 0;
                 item.IsCancel = false;
@@ -225,6 +238,10 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                     await _context.GetNextBusinessCodeNumberAsync());
 
                 await _context.SchoolReserves.AddAsync(item);
+                // ثبت‌نام کرد: از لیست انتظار همین دوره بیرون می‌آید
+                await _context.SchoolCourseWaitlists
+                    .Where(w => w.SchoolCourseId == dto.SchoolCourseId && w.UserPetId == dto.UserPetId && !w.Deleted)
+                    .ExecuteUpdateAsync(x => x.SetProperty(w => w.Deleted, true));
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
@@ -446,8 +463,20 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                 return new BaseResultDto(false, Resource.Notification.InvalidData);
             // کاربر فقط تا قبل از شروع دوره و تا وقتی «کامل‌شده» نشده لغو می‌کند؛ بعد از آن فقط ادمین
             if (!isAdmin && (model.StatusId != (int)SchoolReserveStatusEnum.Paid ||
-                             !await SchoolCourseRules.IsRegistrationOpenAsync(_context, model.SchoolCourseId, DateTime.Now)))
+                             await SchoolCourseRules.HasStartedAsync(_context, model.SchoolCourseId, DateTime.Now)))
                 return new BaseResultDto(false, Resource.Notification.YouCanNotCancelThisReservation);
+
+            // سیاست لغو دوره: کاربر طبق فاصله تا جلسه‌ی اول درصدی پس می‌گیرد؛ لغو ادمین همیشه ۱۰۰٪
+            var refundPercent = 100;
+            if (!isAdmin)
+            {
+                var policy = await _context.SchoolCourses.AsNoTracking().Where(c => c.Id == model.SchoolCourseId)
+                    .Select(c => new { c.FullRefundHoursBeforeStart, c.LateCancelRefundPercent }).FirstAsync();
+                var starts = await SchoolCourseRules.SessionStartsAsync(_context, model.SchoolCourseId);
+                refundPercent = SchoolCourseRules.RefundPercent(starts.Count == 0 ? null : starts.Min(), DateTime.Now,
+                    policy.FullRefundHoursBeforeStart, policy.LateCancelRefundPercent);
+            }
+            var refundAmount = Math.Round(model.PaymentPrice * refundPercent / 100.0);
 
             // لغو + برگشت کل مبلغ پرداخت‌شده به کیف پول در یک تراکنش؛ اگر برگشت وجه نشد ثبت‌نام لغو نمی‌شود
             await using var transaction = _context.CurrentTransaction == null
@@ -458,28 +487,32 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
             model.CancelDetail = dto.CancelDetail;
             model.CancelDate = DateTime.Now;
             model.StatusId = (int)SchoolReserveStatusEnum.Cancelled;
-            // سهم‌ها فقط وقتی صفر می‌شوند که هنوز در تسویه‌ای به نماینده پرداخت نشده باشند
+            // سهم‌ها فقط وقتی تغییر می‌کنند که هنوز در تسویه‌ای پرداخت نشده باشند؛ برگشت جزئی ⇒ سهم‌ها به نسبت مبلغ نگه‌داشته‌شده
+            // (ثبت‌نام لغوشده با سهم مثبت همچنان در تسویه‌ی مدرسه می‌آید — SettlementSources)
             if (!model.Permitted)
             {
-                model.SiteShare = 0;
-                model.CompanionShare = 0;
+                var keptRatio = model.PaymentPrice > 0 ? Math.Max(0, model.PaymentPrice - refundAmount) / model.PaymentPrice : 0;
+                model.SiteShare = Math.Round(model.SiteShare * keptRatio);
+                model.CompanionShare = Math.Round(model.CompanionShare * keptRatio);
             }
             await _context.SaveChangesAsync();
 
-            if (!await RefundAsync(model))
+            if (!await RefundAsync(model, refundAmount))
                 return new BaseResultDto(false, Resource.Notification.SchoolReserveRefundFailed);
 
             if (transaction != null)
                 await transaction.CommitAsync();
 
             await _tripService.CancelLinkedTripForSchoolReserveAsync(model.Id);
+            // یک جا خالی شد: به لیست انتظار خبر می‌دهیم (خطا لغو را برنمی‌گرداند)
+            try { await Application.Services.SchoolSrvs.SchoolWaitlistSrv.SchoolWaitlistNotifier.NotifySeatOpenAsync(_context, _pushNotificationService, model.SchoolCourseId, DateTime.Now); }
+            catch (Exception ex) { _logger.LogError(ex, "Waitlist notify failed for school course {CourseId}.", model.SchoolCourseId); }
             return new BaseResultDto(true);
         }
 
-        // برگشت کل مبلغ پرداخت‌شده (بعد از تخفیف؛ هم درگاه هم کیف پول) به کیف پول؛ کلید دفتر (Name) یکتاست پس تکرار پول را دوباره برنمی‌گرداند.
-        private async Task<bool> RefundAsync(SchoolReserve reserve)
+        // برگشت مبلغ (کل یا بخشی طبق سیاست لغو) به کیف پول؛ کلید دفتر (Name) یکتاست پس تکرار پول را دوباره برنمی‌گرداند.
+        private async Task<bool> RefundAsync(SchoolReserve reserve, double amount)
         {
-            var amount = reserve.PaymentPrice;
             if (amount <= 0)
                 return true;
             var ledgerName = SchoolReserveRules.RefundLedgerName(reserve.Id);

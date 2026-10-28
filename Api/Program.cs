@@ -679,6 +679,12 @@ recurringJobManager.AddOrUpdate<Application.Services.SchoolSrvs.SchoolCourseLive
     service => service.SendClassReminderPushesAsync(CancellationToken.None),
     "*/1 * * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
+// یادآوری «فردا کلاس دارید» برای جلسه‌های مدرسه (حضوری و زنده)، هر ساعت
+recurringJobManager.AddOrUpdate<Application.Services.SchoolSrvs.SchoolTeachingSrv.ISchoolTeachingService>(
+    "SchoolClassDayBeforeReminder",
+    service => service.SendDayBeforeRemindersAsync(CancellationToken.None),
+    "15 * * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
 // سرویس هفتگی پت‌رسان دیگر job شبانه ندارد: سفر نوبت‌ها هنگام ثبت سرویس و با تکمیل/لغو نوبت قبلی ساخته می‌شود.
 // jobهای قدیمی از Hangfire حذف می‌شوند و یک بار پشتیبان، نوبتِ ردیف‌های بدون نوبت آینده را می‌سازد.
 recurringJobManager.RemoveIfExists("GeneratePetResanServiceTrips");

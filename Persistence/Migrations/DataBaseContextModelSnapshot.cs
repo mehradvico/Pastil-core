@@ -1890,6 +1890,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("ExpertiseId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("InviteDate")
                         .HasColumnType("datetime2");
 
@@ -1901,11 +1904,37 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExpertiseId");
+
                     b.HasIndex("UserId");
 
                     b.HasIndex("ClinicId", "UserId");
 
                     b.ToTable("ClinicUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicUserExpertise", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClinicUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ExpertiseId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpertiseId");
+
+                    b.HasIndex("ClinicUserId", "ExpertiseId")
+                        .IsUnique();
+
+                    b.ToTable("ClinicUserExpertises");
                 });
 
             modelBuilder.Entity("Entities.Entities.ClinicField.ClinicZone", b =>
@@ -2884,6 +2913,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("ExpertiseId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime?>("InviteDate")
                         .HasColumnType("datetime2");
 
@@ -2895,11 +2927,37 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExpertiseId");
+
                     b.HasIndex("UserId");
 
                     b.HasIndex("CoachId", "UserId");
 
                     b.ToTable("CoachUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachUserExpertise", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CoachUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ExpertiseId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpertiseId");
+
+                    b.HasIndex("CoachUserId", "ExpertiseId")
+                        .IsUnique();
+
+                    b.ToTable("CoachUserExpertises");
                 });
 
             modelBuilder.Entity("Entities.Entities.CoachField.CoachZone", b =>
@@ -6506,6 +6564,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("ExpertiseId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("GroomerId")
                         .HasColumnType("bigint");
 
@@ -6520,11 +6581,37 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ExpertiseId");
+
                     b.HasIndex("UserId");
 
                     b.HasIndex("GroomerId", "UserId");
 
                     b.ToTable("GroomerUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerUserExpertise", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ExpertiseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("GroomerUserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpertiseId");
+
+                    b.HasIndex("GroomerUserId", "ExpertiseId")
+                        .IsUnique();
+
+                    b.ToTable("GroomerUserExpertises");
                 });
 
             modelBuilder.Entity("Entities.Entities.GroomerField.GroomerZone", b =>
@@ -11690,6 +11777,82 @@ namespace Persistence.Migrations
                     b.ToTable("Schools");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolAttendance", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("MissedPushSentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("Present")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("RecordedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SchoolCourseSessionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SchoolReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolReserveId");
+
+                    b.HasIndex("SchoolCourseSessionId", "SchoolReserveId")
+                        .IsUnique();
+
+                    b.ToTable("SchoolAttendances");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCertificate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("IssueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("IssuedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SchoolReserveId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("SchoolReserveId")
+                        .IsUnique();
+
+                    b.ToTable("SchoolCertificates");
+                });
+
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourse", b =>
                 {
                     b.Property<long>("Id")
@@ -11704,6 +11867,9 @@ namespace Persistence.Migrations
                     b.Property<int?>("Capacity")
                         .HasColumnType("int");
 
+                    b.Property<bool>("CertificateEnabled")
+                        .HasColumnType("bit");
+
                     b.Property<decimal>("CommissionPercent")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -11717,6 +11883,18 @@ namespace Persistence.Migrations
                     b.Property<string>("Discription")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("FullRefundHoursBeforeStart")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LateCancelRefundPercent")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LateEnrollmentMode")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
@@ -11726,8 +11904,17 @@ namespace Persistence.Migrations
                     b.Property<long?>("PetId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("PrerequisiteCourseId")
+                        .HasColumnType("bigint");
+
                     b.Property<double>("Price")
                         .HasColumnType("float");
+
+                    b.Property<double>("RateAvg")
+                        .HasColumnType("float");
+
+                    b.Property<int>("RateCount")
+                        .HasColumnType("int");
 
                     b.Property<long>("SchoolId")
                         .HasColumnType("bigint");
@@ -11744,9 +11931,45 @@ namespace Persistence.Migrations
 
                     b.HasIndex("PetId");
 
+                    b.HasIndex("PrerequisiteCourseId");
+
                     b.HasIndex("SchoolId");
 
                     b.ToTable("SchoolCourses");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseInstructor", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsLead")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("SchoolCourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("SchoolCourseId", "UserId")
+                        .IsUnique()
+                        .HasFilter("[Deleted] = 0");
+
+                    b.ToTable("SchoolCourseInstructors");
                 });
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseLiveSession", b =>
@@ -11842,6 +12065,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("DayReminderPushSentDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
@@ -11871,6 +12097,35 @@ namespace Persistence.Migrations
                     b.HasIndex("SchoolCourseId");
 
                     b.ToTable("SchoolCourseSessions");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseSkill", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long>("SchoolCourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolCourseId");
+
+                    b.ToTable("SchoolCourseSkills");
                 });
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseVideo", b =>
@@ -11909,6 +12164,45 @@ namespace Persistence.Migrations
                     b.HasIndex("SchoolCourseId");
 
                     b.ToTable("SchoolCourseVideos");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseWaitlist", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("NotifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("SchoolCourseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserPetId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserPetId");
+
+                    b.HasIndex("SchoolCourseId", "UserPetId")
+                        .IsUnique()
+                        .HasFilter("[Deleted] = 0");
+
+                    b.ToTable("SchoolCourseWaitlists");
                 });
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolLiveComment", b =>
@@ -11970,6 +12264,47 @@ namespace Persistence.Migrations
                     b.HasIndex("SchoolId");
 
                     b.ToTable("SchoolPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolProgress", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("RecordedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SchoolCourseSessionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SchoolCourseSkillId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("SchoolReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolCourseSessionId");
+
+                    b.HasIndex("SchoolCourseSkillId");
+
+                    b.HasIndex("SchoolReserveId");
+
+                    b.ToTable("SchoolProgresses");
                 });
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolReserve", b =>
@@ -14694,11 +15029,16 @@ namespace Persistence.Migrations
                     b.Property<bool>("IsReserved")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("SchoolCourseId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("SchoolId")
                         .HasColumnType("bigint");
 
                     b.Property<long?>("SchoolReserveId")
                         .HasColumnType("bigint");
+
+                    b.HasIndex("SchoolCourseId");
 
                     b.HasIndex("SchoolId");
 
@@ -15469,6 +15809,11 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.CompanionField.Expertise", "Expertise")
+                        .WithMany()
+                        .HasForeignKey("ExpertiseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Security.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -15477,7 +15822,28 @@ namespace Persistence.Migrations
 
                     b.Navigation("Clinic");
 
+                    b.Navigation("Expertise");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicUserExpertise", b =>
+                {
+                    b.HasOne("Entities.Entities.ClinicField.ClinicUser", "ClinicUser")
+                        .WithMany("Expertises")
+                        .HasForeignKey("ClinicUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionField.Expertise", "Expertise")
+                        .WithMany()
+                        .HasForeignKey("ExpertiseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ClinicUser");
+
+                    b.Navigation("Expertise");
                 });
 
             modelBuilder.Entity("Entities.Entities.ClinicField.ClinicZone", b =>
@@ -15896,6 +16262,11 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.CompanionField.Expertise", "Expertise")
+                        .WithMany()
+                        .HasForeignKey("ExpertiseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Security.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -15904,7 +16275,28 @@ namespace Persistence.Migrations
 
                     b.Navigation("Coach");
 
+                    b.Navigation("Expertise");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachUserExpertise", b =>
+                {
+                    b.HasOne("Entities.Entities.CoachField.CoachUser", "CoachUser")
+                        .WithMany("Expertises")
+                        .HasForeignKey("CoachUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.CompanionField.Expertise", "Expertise")
+                        .WithMany()
+                        .HasForeignKey("ExpertiseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoachUser");
+
+                    b.Navigation("Expertise");
                 });
 
             modelBuilder.Entity("Entities.Entities.CoachField.CoachZone", b =>
@@ -17529,6 +17921,11 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.GroomerField.GroomerUser", b =>
                 {
+                    b.HasOne("Entities.Entities.CompanionField.Expertise", "Expertise")
+                        .WithMany()
+                        .HasForeignKey("ExpertiseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.GroomerField.Groomer", "Groomer")
                         .WithMany("GroomerUsers")
                         .HasForeignKey("GroomerId")
@@ -17541,9 +17938,30 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Expertise");
+
                     b.Navigation("Groomer");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerUserExpertise", b =>
+                {
+                    b.HasOne("Entities.Entities.CompanionField.Expertise", "Expertise")
+                        .WithMany()
+                        .HasForeignKey("ExpertiseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerUser", "GroomerUser")
+                        .WithMany("Expertises")
+                        .HasForeignKey("GroomerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Expertise");
+
+                    b.Navigation("GroomerUser");
                 });
 
             modelBuilder.Entity("Entities.Entities.GroomerField.GroomerZone", b =>
@@ -19476,6 +19894,36 @@ namespace Persistence.Migrations
                     b.Navigation("State");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolAttendance", b =>
+                {
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourseSession", "SchoolCourseSession")
+                        .WithMany()
+                        .HasForeignKey("SchoolCourseSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.SchoolField.SchoolReserve", "SchoolReserve")
+                        .WithMany()
+                        .HasForeignKey("SchoolReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SchoolCourseSession");
+
+                    b.Navigation("SchoolReserve");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCertificate", b =>
+                {
+                    b.HasOne("Entities.Entities.SchoolField.SchoolReserve", "SchoolReserve")
+                        .WithMany()
+                        .HasForeignKey("SchoolReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SchoolReserve");
+                });
+
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourse", b =>
                 {
                     b.HasOne("Entities.Entities.PetBreed", "PetBreed")
@@ -19485,6 +19933,11 @@ namespace Persistence.Migrations
                     b.HasOne("Entities.Entities.Pet", "Pet")
                         .WithMany()
                         .HasForeignKey("PetId");
+
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourse", "PrerequisiteCourse")
+                        .WithMany()
+                        .HasForeignKey("PrerequisiteCourseId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Entities.Entities.SchoolField.School", "School")
                         .WithMany("SchoolCourses")
@@ -19496,7 +19949,28 @@ namespace Persistence.Migrations
 
                     b.Navigation("PetBreed");
 
+                    b.Navigation("PrerequisiteCourse");
+
                     b.Navigation("School");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseInstructor", b =>
+                {
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourse", "SchoolCourse")
+                        .WithMany("Instructors")
+                        .HasForeignKey("SchoolCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SchoolCourse");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseLiveSession", b =>
@@ -19552,6 +20026,17 @@ namespace Persistence.Migrations
                     b.Navigation("SchoolCourse");
                 });
 
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseSkill", b =>
+                {
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourse", "SchoolCourse")
+                        .WithMany("Skills")
+                        .HasForeignKey("SchoolCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SchoolCourse");
+                });
+
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseVideo", b =>
                 {
                     b.HasOne("Entities.Entities.File", "File")
@@ -19569,6 +20054,33 @@ namespace Persistence.Migrations
                     b.Navigation("File");
 
                     b.Navigation("SchoolCourse");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseWaitlist", b =>
+                {
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourse", "SchoolCourse")
+                        .WithMany()
+                        .HasForeignKey("SchoolCourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.UserPet", "UserPet")
+                        .WithMany()
+                        .HasForeignKey("UserPetId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SchoolCourse");
+
+                    b.Navigation("User");
+
+                    b.Navigation("UserPet");
                 });
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolLiveComment", b =>
@@ -19607,6 +20119,32 @@ namespace Persistence.Migrations
                     b.Navigation("Picture");
 
                     b.Navigation("School");
+                });
+
+            modelBuilder.Entity("Entities.Entities.SchoolField.SchoolProgress", b =>
+                {
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourseSession", "SchoolCourseSession")
+                        .WithMany()
+                        .HasForeignKey("SchoolCourseSessionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourseSkill", "SchoolCourseSkill")
+                        .WithMany()
+                        .HasForeignKey("SchoolCourseSkillId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.SchoolField.SchoolReserve", "SchoolReserve")
+                        .WithMany()
+                        .HasForeignKey("SchoolReserveId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("SchoolCourseSession");
+
+                    b.Navigation("SchoolCourseSkill");
+
+                    b.Navigation("SchoolReserve");
                 });
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolReserve", b =>
@@ -20937,6 +21475,11 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.SchoolField.SchoolCourse", "SchoolCourse")
+                        .WithMany()
+                        .HasForeignKey("SchoolCourseId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.SchoolField.School", "School")
                         .WithMany("SchoolComments")
                         .HasForeignKey("SchoolId")
@@ -20948,6 +21491,8 @@ namespace Persistence.Migrations
                         .HasForeignKey("SchoolReserveId");
 
                     b.Navigation("School");
+
+                    b.Navigation("SchoolCourse");
 
                     b.Navigation("SchoolReserve");
                 });
@@ -21053,6 +21598,11 @@ namespace Persistence.Migrations
                     b.Navigation("Types");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ClinicField.ClinicUser", b =>
+                {
+                    b.Navigation("Expertises");
+                });
+
             modelBuilder.Entity("Entities.Entities.CoachField.Coach", b =>
                 {
                     b.Navigation("CoachComments");
@@ -21094,6 +21644,11 @@ namespace Persistence.Migrations
                     b.Navigation("Pictures");
 
                     b.Navigation("Types");
+                });
+
+            modelBuilder.Entity("Entities.Entities.CoachField.CoachUser", b =>
+                {
+                    b.Navigation("Expertises");
                 });
 
             modelBuilder.Entity("Entities.Entities.Code", b =>
@@ -21293,6 +21848,11 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.GroomerField.GroomerServicePackage", b =>
                 {
                     b.Navigation("Pictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.GroomerField.GroomerUser", b =>
+                {
+                    b.Navigation("Expertises");
                 });
 
             modelBuilder.Entity("Entities.Entities.LocationField.Park", b =>
@@ -21526,11 +22086,15 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourse", b =>
                 {
+                    b.Navigation("Instructors");
+
                     b.Navigation("SchoolCourseSessions");
 
                     b.Navigation("SchoolCourseVideos");
 
                     b.Navigation("SchoolReserves");
+
+                    b.Navigation("Skills");
                 });
 
             modelBuilder.Entity("Entities.Entities.SchoolField.SchoolCourseLiveSession", b =>

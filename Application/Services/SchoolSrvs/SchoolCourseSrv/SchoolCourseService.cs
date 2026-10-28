@@ -50,9 +50,12 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
                 .ThenBy(s => s.Id)
                 .ToList();
 
-            var firstStart = SchoolCourseRules.FirstSessionStart(liveSessions.Select(s => (s.SessionDate, s.StartTime)));
-            vdto.IsRegistrationOpen = vdto.Active &&
-                                      SchoolCourseRules.IsRegistrationOpenByDate(firstStart, DateTime.Now) &&
+            // باز بودن و قیمت ثبت‌نام همان قاعده‌ی ثبت‌نام واقعی (ثبت‌نام دیرهنگام: بسته / قیمت کامل / قیمت نسبی)
+            var enrollment = SchoolCourseRules.Enrollment(vdto.Price, vdto.LateEnrollmentMode,
+                liveSessions.Select(s => SchoolCourseRules.SessionStart(s.SessionDate, s.StartTime)).ToList(), DateTime.Now);
+            vdto.EnrollPrice = enrollment.Price;
+            vdto.RemainingSessions = enrollment.RemainingSessions;
+            vdto.IsRegistrationOpen = vdto.Active && enrollment.Open &&
                                       (!vdto.RemainingCapacity.HasValue || vdto.RemainingCapacity.Value > 0);
 
             var dates = liveSessions.Select(s => s.SessionDate).OrderBy(d => d).ToList();
@@ -72,6 +75,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
                 .Include(c => c.Pet)
                 .Include(c => c.PetBreed)
                 .Include(c => c.School)
+                .Include(c => c.PrerequisiteCourse)
                 .Include(c => c.SchoolCourseSessions.Where(s => !s.Deleted))
                 .Include(c => c.SchoolCourseVideos.Where(v => !v.Deleted))
                 .FirstOrDefaultAsync(c => c.Id == id && !c.Deleted);
@@ -178,9 +182,15 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             if (dto.CourseTypeId == (int)SchoolCourseTypeEnum.Live && !Application.Common.FeatureFlags.SchoolOnlineCoursesEnabled)
                 return new BaseResultDto<SchoolCourseDto>(false, Resource.Notification.FeatureTemporarilyDisabled, dto);
 
+            var policyError = await ValidateExtrasAsync(dto);
+            if (policyError != null)
+                return new BaseResultDto<SchoolCourseDto>(false, policyError, dto);
+
             var item = mapper.Map<SchoolCourse>(dto);
             item.Active = true;
             item.Deleted = false;
+            item.FullRefundHoursBeforeStart = dto.FullRefundHoursBeforeStart ?? 24;
+            item.LateCancelRefundPercent = dto.LateCancelRefundPercent ?? 50;
 
             await _context.SchoolCourses.AddAsync(item);
             await _context.SaveChangesAsync();
@@ -195,7 +205,98 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             var definedCount = _context.SchoolCourseSessions.Count(s => s.SchoolCourseId == dto.Id && !s.Deleted);
             if (dto.SessionCount < definedCount)
                 return new BaseResultDto(false, Resource.Notification.SchoolCourseSessionCountBelowDefined);
+            var policyError = ValidateExtrasAsync(dto).GetAwaiter().GetResult();
+            if (policyError != null)
+                return new BaseResultDto(false, policyError);
+            // سیاست لغو نیامده = مقدار ذخیره‌شده (کلاینت قدیمی این فیلدها را نمی‌فرستد)؛ امتیاز دوره فقط از نظرها
+            var stored = _context.SchoolCourses.AsNoTracking().Where(c => c.Id == dto.Id)
+                .Select(c => new { c.FullRefundHoursBeforeStart, c.LateCancelRefundPercent }).FirstOrDefault();
+            dto.FullRefundHoursBeforeStart ??= stored?.FullRefundHoursBeforeStart ?? 24;
+            dto.LateCancelRefundPercent ??= stored?.LateCancelRefundPercent ?? 50;
             return base.UpdateDto(dto);
+        }
+
+        // سطح، پیش‌نیاز (دوره‌ی دیگرِ همین مدرسه، نه خودش)، حالت ثبت‌نام دیرهنگام و سیاست لغو
+        private async Task<string> ValidateExtrasAsync(SchoolCourseDto dto)
+        {
+            if (!Enum.IsDefined(typeof(SchoolCourseLevelEnum), dto.Level) || !Enum.IsDefined(typeof(SchoolLateEnrollmentEnum), dto.LateEnrollmentMode))
+                return Resource.Notification.InvalidData;
+            if (dto.FullRefundHoursBeforeStart is < 0 or > 720 || dto.LateCancelRefundPercent is < 0 or > 100)
+                return Resource.Notification.InvalidData;
+            if (dto.PrerequisiteCourseId.HasValue)
+            {
+                if (dto.PrerequisiteCourseId.Value == dto.Id)
+                    return Resource.Notification.InvalidData;
+                var schoolId = dto.SchoolId > 0 ? dto.SchoolId
+                    : await _context.SchoolCourses.AsNoTracking().Where(c => c.Id == dto.Id).Select(c => c.SchoolId).FirstOrDefaultAsync();
+                if (!await _context.SchoolCourses.AnyAsync(c => c.Id == dto.PrerequisiteCourseId.Value && c.SchoolId == schoolId && !c.Deleted))
+                    return Resource.Notification.NothingFound;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// «این دوره n جلسه است و روزهایش این‌ها»: همه‌ی جلسه‌های آینده‌ی دوره با لیست ارسالی جایگزین می‌شوند.
+        /// جلسه‌های شروع‌شده/گذشته و جلسه‌هایی که حضور و غیاب یا کلاس زنده دارند دست نمی‌خورند و جزو شمارش‌اند؛
+        /// جمعشان باید دقیقاً برابر «تعداد جلسات» دوره باشد. هر روز ساعت خودش را دارد.
+        /// </summary>
+        public async Task<BaseResultDto<List<SchoolCourseSessionDto>>> SetScheduleAsync(SchoolCourseScheduleDto dto, long? ownedSchoolId = null)
+        {
+            if (dto == null || dto.Sessions == null || dto.Sessions.Count == 0)
+                return new BaseResultDto<List<SchoolCourseSessionDto>>(false, Resource.Notification.InvalidData, null);
+            if (!await CanManageCourseAsync(dto.SchoolCourseId, ownedSchoolId))
+                return new BaseResultDto<List<SchoolCourseSessionDto>>(false, Resource.Notification.AccessDenied, null);
+            var course = await _context.SchoolCourses.AsNoTracking().FirstOrDefaultAsync(c => c.Id == dto.SchoolCourseId && !c.Deleted);
+            if (course == null)
+                return new BaseResultDto<List<SchoolCourseSessionDto>>(false, Resource.Notification.NothingFound, null);
+
+            var now = DateTime.Now;
+            var slots = new List<(DateTime Date, string Start, string End, DateTime StartAt, DateTime EndAt)>();
+            foreach (var s in dto.Sessions)
+            {
+                var start = s.StartTime?.Trim();
+                var end = s.EndTime?.Trim();
+                if (!ReservationScheduleValidator.TryGetServiceTimeRange(start, end, out _, out _))
+                    return new BaseResultDto<List<SchoolCourseSessionDto>>(false, Resource.Notification.ToTimeMustBeBiggerThanFromTime, null);
+                var startAt = SchoolCourseRules.SessionStart(s.SessionDate, start);
+                if (startAt <= now)
+                    return new BaseResultDto<List<SchoolCourseSessionDto>>(false, Resource.Notification.SchoolSessionMustBeInFuture, null);
+                slots.Add((s.SessionDate.Date, start, end, startAt, SchoolCourseRules.SessionStart(s.SessionDate, end)));
+            }
+            // هم‌پوشانی دو جلسه‌ی یک روز (یا تکرار همان زمان)
+            var ordered = slots.OrderBy(x => x.StartAt).ToList();
+            for (var i = 1; i < ordered.Count; i++)
+                if (ordered[i].StartAt < ordered[i - 1].EndAt)
+                    return new BaseResultDto<List<SchoolCourseSessionDto>>(false, Resource.Notification.SchoolSessionOverlap, null);
+
+            var existing = await _context.SchoolCourseSessions.AsTracking()
+                .Where(s => s.SchoolCourseId == course.Id && !s.Deleted).ToListAsync();
+            var lockedIds = (await _context.SchoolAttendances.AsNoTracking()
+                    .Where(a => a.SchoolCourseSession.SchoolCourseId == course.Id).Select(a => a.SchoolCourseSessionId)
+                    .Concat(_context.SchoolCourseLiveSessions.AsNoTracking()
+                        .Where(l => l.SchoolCourseSession.SchoolCourseId == course.Id).Select(l => l.SchoolCourseSessionId))
+                    .ToListAsync()).ToHashSet();
+            var kept = existing.Where(s => SchoolCourseRules.SessionStart(s.SessionDate, s.StartTime) <= now || lockedIds.Contains(s.Id)).ToList();
+            if (kept.Count + slots.Count != course.SessionCount)
+                return new BaseResultDto<List<SchoolCourseSessionDto>>(false,
+                    string.Format(Resource.Notification.SchoolSessionCountMismatch, course.SessionCount, course.SessionCount - kept.Count), null);
+
+            foreach (var s in existing.Except(kept))
+                s.Deleted = true;
+            var meetingUrl = existing.Select(s => s.MeetingUrl).FirstOrDefault(u => !string.IsNullOrEmpty(u));
+            foreach (var slot in ordered)
+                await _context.SchoolCourseSessions.AddAsync(new SchoolCourseSession
+                {
+                    SchoolCourseId = course.Id, SessionDate = slot.Date, StartTime = slot.Start, EndTime = slot.End,
+                    MeetingUrl = meetingUrl, Active = true, Deleted = false,
+                });
+            await _context.SaveChangesAsync();
+
+            var all = await _context.SchoolCourseSessions.AsNoTracking()
+                .Where(s => s.SchoolCourseId == course.Id && !s.Deleted).ToListAsync();
+            return new BaseResultDto<List<SchoolCourseSessionDto>>(true, all
+                .OrderBy(s => SchoolCourseRules.SessionStart(s.SessionDate, s.StartTime))
+                .Select(s => mapper.Map<SchoolCourseSessionDto>(s)).ToList());
         }
 
         public async Task<bool> CanReadLessonFileAsync(long fileId, long userId, long? companionId, bool isAdmin)

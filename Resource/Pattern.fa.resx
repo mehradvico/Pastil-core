@@ -759,4 +759,16 @@
   <data name="PushCoachOnlineReserveReminderAtTime" xml:space="preserve">
     <value>وقت ارائه خدمت آنلاین {2} برای «{0}» در «{1}» فرا رسیده است.</value>
   </data>
+  <data name="PushSchoolWaitlistSeatOpen" xml:space="preserve">
+    <value>در دوره‌ی «{0}» جا باز شد؛ زودتر ثبت‌نام کنید.</value>
+  </data>
+  <data name="PushSchoolClassReminderDayBefore" xml:space="preserve">
+    <value>جلسه‌ی دوره‌ی «{0}» فردا ساعت {1} برگزار می‌شود.</value>
+  </data>
+  <data name="PushSchoolSessionMissed" xml:space="preserve">
+    <value>در جلسه‌ی دوره‌ی «{0}» غایب بودید.</value>
+  </data>
+  <data name="PushSchoolCertificateIssued" xml:space="preserve">
+    <value>گواهی دوره‌ی «{0}» برای {1} صادر شد. کد: {2}</value>
+  </data>
 </root>

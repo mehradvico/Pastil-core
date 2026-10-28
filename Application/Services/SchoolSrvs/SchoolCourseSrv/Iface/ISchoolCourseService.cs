@@ -14,6 +14,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Iface
         Task<BaseResultDto<SchoolCourseVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto> UpdateActiveAsync(long id, bool active, long? ownedSchoolId = null);
 
+        Task<BaseResultDto<List<SchoolCourseSessionDto>>> SetScheduleAsync(SchoolCourseScheduleDto dto, long? ownedSchoolId = null);
         Task<BaseResultDto<SchoolCourseSessionDto>> UpsertSessionAsync(SchoolCourseSessionDto dto, long? ownedSchoolId = null);
         Task<BaseResultDto> DeleteSessionAsync(long id, long? ownedSchoolId = null);
 

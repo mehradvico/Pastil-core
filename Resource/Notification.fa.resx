@@ -2734,4 +2734,34 @@
   <data name="ConsultationPetInvalid" xml:space="preserve">
     <value>پت انتخاب‌شده متعلق به شما نیست یا حذف شده است.</value>
   </data>
+  <data name="SchoolCoursePrerequisiteRequired" xml:space="preserve">
+    <value>این دوره پیش‌نیاز دارد؛ پت شما باید ابتدا دوره‌ی پیش‌نیاز را کامل کرده باشد.</value>
+  </data>
+  <data name="SchoolWaitlistOnlyWhenFull" xml:space="preserve">
+    <value>این دوره هنوز جای خالی دارد؛ مستقیم ثبت‌نام کنید.</value>
+  </data>
+  <data name="SchoolWaitlistAlreadyJoined" xml:space="preserve">
+    <value>این پت قبلاً در لیست انتظار این دوره است.</value>
+  </data>
+  <data name="SchoolSessionCountMismatch" xml:space="preserve">
+    <value>این دوره {0} جلسه است؛ باید دقیقاً {1} روز جدید انتخاب کنید.</value>
+  </data>
+  <data name="SchoolSessionOverlap" xml:space="preserve">
+    <value>زمان دو جلسه با هم تداخل دارد.</value>
+  </data>
+  <data name="SchoolCertificateNotAllowed" xml:space="preserve">
+    <value>گواهی فقط برای ثبت‌نام «کامل‌شده» در دوره‌ی دارای گواهی صادر می‌شود.</value>
+  </data>
+  <data name="SchoolInstructorUserNotFound" xml:space="preserve">
+    <value>کاربری با این شماره موبایل در پاستیل پیدا نشد.</value>
+  </data>
+  <data name="SchoolInstructorAlreadyAdded" xml:space="preserve">
+    <value>این کاربر قبلاً مدرس همین دوره است.</value>
+  </data>
+  <data name="SchoolProgressScoreInvalid" xml:space="preserve">
+    <value>نمره باید بین ۱ تا ۵ باشد.</value>
+  </data>
+  <data name="StaffExpertiseInvalid" xml:space="preserve">
+    <value>نقش/تخصص انتخاب‌شده معتبر نیست (حداکثر ۱۰ مورد از تخصص‌های فعال پاستیل).</value>
+  </data>
 </root>

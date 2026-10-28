@@ -1,4 +1,4 @@
-﻿using Application.Common.Dto.Result;
+using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Enumerable.Message;
@@ -246,6 +246,8 @@ namespace Application.Services.UserSrv
                         .Select(x => JoinExpertiseNames(x.Primary, x.All))
                         .FirstOrDefault();
 
+                    if (string.IsNullOrWhiteSpace(assignedExpertise))
+                        assignedExpertise = VenueAssignedExpertiseAsync(item.Id).GetAwaiter().GetResult();
                     var canSetExpertise = CanHaveExpertise(item.Id);
                     if (string.IsNullOrWhiteSpace(assignedExpertise) &&
                         !canSetExpertise &&
@@ -1031,6 +1033,8 @@ namespace Application.Services.UserSrv
                     currentUser.Expertise = await ResolveProfileExpertiseAsync(
                         userToken.User.Id,
                         userToken.User.Expertise);
+                    // نگاشت فقط نمایندگی را می‌شناسد؛ مالک/پرسنل کلینیک، مربی، آرایشگاه و ارائه‌دهنده هم تخصص می‌گذارند
+                    currentUser.CanSetExpertise = currentUser.CanSetExpertise || await CanHaveExpertiseAsync(userToken.User.Id);
 
                     return currentUser;
                 }
@@ -1265,7 +1269,7 @@ namespace Application.Services.UserSrv
 
         private bool CanHaveExpertise(long userId)
         {
-            return _context.Companions.Any(companion =>
+            return VenueExpertiseUserIds().Any(id => id == userId) || _context.Companions.Any(companion =>
                        companion.OwnerId == userId &&
                        !companion.Deleted &&
                        companion.Active &&
@@ -1282,7 +1286,7 @@ namespace Application.Services.UserSrv
 
         private async Task<bool> CanHaveExpertiseAsync(long userId)
         {
-            return await _context.Companions.AsNoTracking().AnyAsync(companion =>
+            return await VenueExpertiseUserIds().AnyAsync(id => id == userId) || await _context.Companions.AsNoTracking().AnyAsync(companion =>
                        companion.OwnerId == userId &&
                        !companion.Deleted &&
                        companion.Active &&
@@ -1295,6 +1299,34 @@ namespace Application.Services.UserSrv
                        !companionUser.Companion.Deleted &&
                        companionUser.Companion.Active &&
                        companionUser.Companion.Approved);
+        }
+
+        // مالک یا عضو پذیرفته‌شده‌ی فعالِ کلینیک/مربی/آرایشگاه، یا کاربرِ ارائه‌دهنده‌ی فعال (۲۰۲۶-۱۰-۲۸).
+        // قبلاً فقط نمایندگی (Companion) حساب می‌شد و صاحبان/پرسنل مرکزهای جدید نمی‌توانستند تخصص بگذارند.
+        private IQueryable<long> VenueExpertiseUserIds() =>
+            _context.Clinics.Where(c => !c.Deleted && c.Active && c.Approved).Select(c => c.OwnerId)
+                .Concat(_context.Coaches.Where(c => !c.Deleted && c.Active && c.Approved).Select(c => c.OwnerId))
+                .Concat(_context.Groomers.Where(c => !c.Deleted && c.Active && c.Approved).Select(c => c.OwnerId))
+                .Concat(_context.ClinicUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true && !u.Clinic.Deleted).Select(u => u.UserId))
+                .Concat(_context.CoachUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true && !u.Coach.Deleted).Select(u => u.UserId))
+                .Concat(_context.GroomerUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true && !u.Groomer.Deleted).Select(u => u.UserId))
+                .Concat(_context.Providers.Where(p => !p.Deleted && p.Active).Select(p => p.UserId));
+
+        // نقش‌هایی که مالکِ کلینیک/مربی/آرایشگاه برای این عضو تعیین کرده (تازه‌ترین عضویت)؛ null = هیچ
+        private async Task<string> VenueAssignedExpertiseAsync(long userId)
+        {
+            var names = await _context.ClinicUserExpertises.AsNoTracking()
+                .Where(e => e.ClinicUser.UserId == userId && !e.ClinicUser.Deleted && e.ClinicUser.UserAccept != false && e.Expertise.Active && !e.Expertise.Deleted)
+                .OrderByDescending(e => e.ClinicUserId).ThenBy(e => e.Id).Select(e => e.Expertise.Name).ToListAsync();
+            if (names.Count == 0)
+                names = await _context.CoachUserExpertises.AsNoTracking()
+                    .Where(e => e.CoachUser.UserId == userId && !e.CoachUser.Deleted && e.CoachUser.UserAccept != false && e.Expertise.Active && !e.Expertise.Deleted)
+                    .OrderByDescending(e => e.CoachUserId).ThenBy(e => e.Id).Select(e => e.Expertise.Name).ToListAsync();
+            if (names.Count == 0)
+                names = await _context.GroomerUserExpertises.AsNoTracking()
+                    .Where(e => e.GroomerUser.UserId == userId && !e.GroomerUser.Deleted && e.GroomerUser.UserAccept != false && e.Expertise.Active && !e.Expertise.Deleted)
+                    .OrderByDescending(e => e.GroomerUserId).ThenBy(e => e.Id).Select(e => e.Expertise.Name).ToListAsync();
+            return Application.Services.CompanionSrvs.ExpertiseSrv.StaffExpertiseRules.JoinNames(names);
         }
 
         private async Task<string> ResolveProfileExpertiseAsync(
@@ -1326,6 +1358,9 @@ namespace Application.Services.UserSrv
             var assignedText = assignedExpertise == null ? null : JoinExpertiseNames(assignedExpertise.Primary, assignedExpertise.All);
             if (!string.IsNullOrWhiteSpace(assignedText))
                 return assignedText;
+            var venueAssigned = await VenueAssignedExpertiseAsync(userId);
+            if (!string.IsNullOrWhiteSpace(venueAssigned))
+                return venueAssigned;
 
             return await CanHaveExpertiseAsync(userId)
                 ? storedExpertise

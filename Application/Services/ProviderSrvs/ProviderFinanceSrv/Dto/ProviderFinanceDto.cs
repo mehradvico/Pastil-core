@@ -58,11 +58,13 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv.Dto
         public int GroomerCount { get; set; }
         public int ClinicCount { get; set; }
         public int CoachCount { get; set; }
+        public int SchoolCount { get; set; }
         public double CompanionUnsettled { get; set; }
         public double StoreUnsettled { get; set; }
         public double GroomerUnsettled { get; set; }
         public double ClinicUnsettled { get; set; }
         public double CoachUnsettled { get; set; }
+        public double SchoolUnsettled { get; set; }
         public double TotalUnsettled { get; set; }
         public double TotalSettled { get; set; }
         public double PaidOut { get; set; }
@@ -110,6 +112,8 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv.Dto
         public ProviderPoolSummaryVDto GroomerPool { get; set; }
         public ProviderPoolSummaryVDto ClinicPool { get; set; }
         public ProviderPoolSummaryVDto CoachPool { get; set; }
+        // ثبت‌نام مدرسه‌های ارائه‌دهنده (SettlementKindEnum.School)
+        public ProviderPoolSummaryVDto SchoolPool { get; set; }
         public List<ProviderFinanceVenueVDto> Venues { get; set; } = new List<ProviderFinanceVenueVDto>();
         public List<ProviderFinanceCardVDto> Cards { get; set; } = new List<ProviderFinanceCardVDto>();
     }

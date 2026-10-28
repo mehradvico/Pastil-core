@@ -1,4 +1,4 @@
-﻿BEGIN TRANSACTION;
+BEGIN TRANSACTION;
 ALTER TABLE [Schools] DROP CONSTRAINT [FK_Schools_Companions_CompanionId];
 
 DECLARE @var0 sysname;

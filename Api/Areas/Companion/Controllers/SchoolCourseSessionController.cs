@@ -59,5 +59,19 @@ namespace Api.Areas.Companion.Controllers
             var result = await _schoolCourseService.DeleteSessionAsync(id, ownedSchoolId);
             return Ok(result);
         }
+
+        /// <summary>
+        /// تعیین یک‌جای روزهای دوره: «این دوره n جلسه است» (SessionCount) و روزها/ساعت‌ها انتخاب می‌شوند.
+        /// جلسه‌های آینده با این لیست جایگزین می‌شوند؛ جلسه‌های گذشته/دارای حضور و غیاب می‌مانند و جمع باید برابر SessionCount باشد.
+        /// </summary>
+        [HttpPut("Schedule")]
+        [ProducesResponseType(typeof(BaseResultDto<List<SchoolCourseSessionDto>>), 200)]
+        public async Task<IActionResult> Schedule(SchoolCourseScheduleDto dto)
+        {
+            var ownedSchoolId = dto?.SchoolCourseId > 0 ? await _ownership.SchoolOfCourseAsync(dto.SchoolCourseId, _currentUser.CurrentUser.UserId) : null;
+            if (!ownedSchoolId.HasValue)
+                return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
+            return Ok(await _schoolCourseService.SetScheduleAsync(dto, ownedSchoolId));
+        }
     }
 }

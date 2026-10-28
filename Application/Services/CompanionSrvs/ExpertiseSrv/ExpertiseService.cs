@@ -49,6 +49,13 @@ namespace Application.Services.CompanionSrvs.ExpertiseSrv
                 query = query.Where(x => x.ProviderRoleId == null);
             else if (dto.ProviderRoleId.HasValue)
                 query = query.Where(x => x.ProviderRoleId == dto.ProviderRoleId.Value);
+            // فیلتر با برچسب نقش (Clinic/Coach/Groomer/…) برای پنل/اپ نماینده که شناسه‌ی نقش را ندارد.
+            // تخصص‌های عمومی (بدون نقش) هم برای همه‌ی نقش‌ها می‌آیند.
+            if (!string.IsNullOrWhiteSpace(dto.ProviderRole))
+            {
+                var label = dto.ProviderRole.Trim();
+                query = query.Where(x => x.ProviderRoleId == null || x.ProviderRole.Label == label);
+            }
 
             if (dto.Available.HasValue)
                 query = query.Where(x => x.Active == dto.Available.Value);

@@ -1,4 +1,4 @@
-﻿using Entities.Entities;
+using Entities.Entities;
 using Entities.Entities.CompanionField;
 using Entities.Entities.GroomerField;
 using Entities.Entities.ClinicField;
@@ -231,6 +231,15 @@ namespace Persistence.Interface
         public DbSet<SchoolCourseVideo> SchoolCourseVideos { get; set; }
         public DbSet<SchoolPicture> SchoolPictures { get; set; }
         public DbSet<SchoolCoursePet> SchoolCoursePets { get; set; }
+        public DbSet<Entities.Entities.ClinicField.ClinicUserExpertise> ClinicUserExpertises { get; set; }
+        public DbSet<Entities.Entities.CoachField.CoachUserExpertise> CoachUserExpertises { get; set; }
+        public DbSet<Entities.Entities.GroomerField.GroomerUserExpertise> GroomerUserExpertises { get; set; }
+        public DbSet<SchoolCourseWaitlist> SchoolCourseWaitlists { get; set; }
+        public DbSet<SchoolAttendance> SchoolAttendances { get; set; }
+        public DbSet<SchoolCourseSkill> SchoolCourseSkills { get; set; }
+        public DbSet<SchoolProgress> SchoolProgresses { get; set; }
+        public DbSet<SchoolCertificate> SchoolCertificates { get; set; }
+        public DbSet<SchoolCourseInstructor> SchoolCourseInstructors { get; set; }
         public DbSet<SchoolCourseLiveSession> SchoolCourseLiveSessions { get; set; }
         public DbSet<SchoolLiveComment> SchoolLiveComments { get; set; }
         public DbSet<SchoolReserve> SchoolReserves { get; set; }

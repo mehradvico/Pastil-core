@@ -265,5 +265,13 @@ namespace Application.Common.Enumerable.Code
         PushCoachOnlineReserveReminderBefore = 167,
         /// <summary>به مربی/پزشک: زمان رزرو آنلاین رسید. Token1 = نام مشتری، Token2 = بسته، Token3 = نحوه‌ی ارائه، Token4 = شناسه‌ی رزرو مربی.</summary>
         PushCoachOnlineReserveReminderAtTime = 168,
+        /// <summary>به افراد لیست انتظار: در دوره جا خالی شد. Token1 = نام دوره، Token2 = شناسه‌ی دوره.</summary>
+        PushSchoolWaitlistSeatOpen = 169,
+        /// <summary>یادآوری یک روز قبل از جلسه‌ی مدرسه. Token1 = نام دوره، Token2 = ساعت، Token3 = شناسه‌ی دوره.</summary>
+        PushSchoolClassReminderDayBefore = 170,
+        /// <summary>به ثبت‌نام‌کننده‌ی غایب. Token1 = نام دوره، Token2 = شناسه‌ی دوره.</summary>
+        PushSchoolSessionMissed = 171,
+        /// <summary>گواهی پایان دوره صادر شد. Token1 = نام دوره، Token2 = نام پت، Token3 = کد گواهی.</summary>
+        PushSchoolCertificateIssued = 172,
     }
 }

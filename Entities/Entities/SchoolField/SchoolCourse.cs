@@ -20,6 +20,21 @@ namespace Entities.Entities.SchoolField
         public long? PetId { get; set; }
         public long? PetBreedId { get; set; }
         public decimal CommissionPercent { get; set; }
+        // ---- ویژگی‌های تکمیلی (۲۰۲۶-۱۰-۲۸)
+        // سطح: Application.Common.Enumerable.Code.SchoolCourseLevelEnum (۰ = نامشخص)
+        public int Level { get; set; }
+        // پیش‌نیاز: همان پت باید این دوره را «کامل‌شده» داشته باشد
+        public long? PrerequisiteCourseId { get; set; }
+        // ثبت‌نام بعد از شروع: SchoolLateEnrollmentEnum (۰ = بسته، ۱ = باز با قیمت کامل، ۲ = باز با قیمت جلسه‌های باقی‌مانده)
+        public int LateEnrollmentMode { get; set; }
+        // سیاست لغو: تا این چند ساعت قبل از شروع، برگشت کامل؛ دیرتر (ولی قبل از شروع) این درصد برمی‌گردد
+        public int FullRefundHoursBeforeStart { get; set; }
+        public int LateCancelRefundPercent { get; set; }
+        // صدور گواهی پایان دوره برای ثبت‌نام‌های کامل‌شده
+        public bool CertificateEnabled { get; set; }
+        // امتیاز خودِ دوره (از نظرهای دارای SchoolCourseId)
+        public double RateAvg { get; set; }
+        public int RateCount { get; set; }
         public bool Active { get; set; }
         public bool Deleted { get; set; }
 
@@ -29,5 +44,8 @@ namespace Entities.Entities.SchoolField
         public ICollection<SchoolCourseSession> SchoolCourseSessions { get; set; }
         public ICollection<SchoolCourseVideo> SchoolCourseVideos { get; set; }
         public ICollection<SchoolReserve> SchoolReserves { get; set; }
+        public SchoolCourse PrerequisiteCourse { get; set; }
+        public ICollection<SchoolCourseSkill> Skills { get; set; }
+        public ICollection<SchoolCourseInstructor> Instructors { get; set; }
     }
 }

@@ -708,4 +708,16 @@
   <data name="PushCoachOnlineReserveReminderAtTime" xml:space="preserve">
     <value>It is time to provide the {2} online service for {0} at {1}.</value>
   </data>
+  <data name="PushSchoolWaitlistSeatOpen" xml:space="preserve">
+    <value>A seat opened in "{0}"; enroll soon.</value>
+  </data>
+  <data name="PushSchoolClassReminderDayBefore" xml:space="preserve">
+    <value>The "{0}" class is tomorrow at {1}.</value>
+  </data>
+  <data name="PushSchoolSessionMissed" xml:space="preserve">
+    <value>You missed a session of "{0}".</value>
+  </data>
+  <data name="PushSchoolCertificateIssued" xml:space="preserve">
+    <value>The "{0}" certificate for {1} was issued. Code: {2}</value>
+  </data>
 </root>

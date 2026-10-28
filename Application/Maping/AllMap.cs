@@ -650,7 +650,8 @@ namespace Application.Maping
             CreateMap<School, SchoolApproveDto>().ReverseMap();
 
             CreateMap<SchoolCourse, SchoolCourseDto>().ReverseMap();
-            CreateMap<SchoolCourse, SchoolCourseVDto>();
+            CreateMap<SchoolCourse, SchoolCourseVDto>()
+                .ForMember(d => d.PrerequisiteCourseName, o => o.MapFrom(s => s.PrerequisiteCourse != null ? s.PrerequisiteCourse.Name : null));
             CreateMap<SchoolCourseSession, SchoolCourseSessionDto>().ReverseMap();
             CreateMap<SchoolCourseVideo, SchoolCourseVideoDto>().ReverseMap();
             CreateMap<SchoolPictureDto, SchoolPicture>().ForMember(x => x.Id, opt => opt.Ignore()).ForMember(x => x.Picture, opt => opt.Ignore());
