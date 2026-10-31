@@ -6331,10 +6331,11 @@
         <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Reschedule(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveRescheduleDto)">
             <summary>تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد کلینیک</summary>
         </member>
-        <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Complete(System.Int64,Application.Services.ReserveCompleteSrv.ReserveCompleteDto)">
+        <member name="M:Api.Areas.Companion.Controllers.ClinicReserveController.Assign(Application.Services.VenueOperatorSrv.VenueReserveAssignDto)">
             <summary>تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو)</summary>
             <remarks>بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده.
             طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
+            <summary>سپردن رزرو پرداخت‌شده به یکی از پرسنل (یا خود مالک)؛ assigneeUserId خالی = برداشتن پرسنل. پرسنل در پنل اپراتور می‌بیند و پوش می‌گیرد.</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.ClinicReservePackageController">
             <summary>
@@ -6458,10 +6459,11 @@
         <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Reschedule(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveRescheduleDto)">
             <summary>تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد مربی</summary>
         </member>
-        <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Complete(System.Int64,Application.Services.ReserveCompleteSrv.ReserveCompleteDto)">
+        <member name="M:Api.Areas.Companion.Controllers.CoachReserveController.Assign(Application.Services.VenueOperatorSrv.VenueReserveAssignDto)">
             <summary>تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو)</summary>
             <remarks>بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده.
             طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
+            <summary>سپردن رزرو پرداخت‌شده به یکی از پرسنل (یا خود مالک)؛ assigneeUserId خالی = برداشتن پرسنل. پرسنل در پنل اپراتور می‌بیند و پوش می‌گیرد.</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.CoachReviewController">
             <summary>
@@ -7336,10 +7338,11 @@
         <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Reschedule(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveRescheduleDto)">
             <summary>تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد آرایشگاه</summary>
         </member>
-        <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Complete(System.Int64,Application.Services.ReserveCompleteSrv.ReserveCompleteDto)">
+        <member name="M:Api.Areas.Companion.Controllers.GroomerReserveController.Assign(Application.Services.VenueOperatorSrv.VenueReserveAssignDto)">
             <summary>تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو)</summary>
             <remarks>بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده.
             طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
+            <summary>سپردن رزرو پرداخت‌شده به یکی از پرسنل (یا خود مالک)؛ assigneeUserId خالی = برداشتن پرسنل. پرسنل در پنل اپراتور می‌بیند و پوش می‌گیرد.</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.GroomerReviewController">
             <summary>
@@ -10626,6 +10629,30 @@
             حداقل و حداکثر مبلغ شارژ کیف پول (تومان) برای اعتبارسنجی فرم
             </summary>
         </member>
+        <member name="T:Api.Areas.Operator.Controllers.ClinicReserveController">
+            <summary>
+            پنل اپراتور: رزروهای کلینیک که به من (پرسنل) سپرده شده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Operator.Controllers.ClinicReserveController.Get(Application.Services.ClinicSrvs.ClinicReserveSrv.Dto.ClinicReserveSearchInputDto)">
+            <summary>فقط رزروهای پرداخت‌شده‌ای که به من سپرده شده (تا وقتی عضو فعال مرکز هستم)</summary>
+        </member>
+        <member name="M:Api.Areas.Operator.Controllers.ClinicReserveController.Complete(System.Int64,Application.Services.ReserveCompleteSrv.ReserveCompleteDto)">
+            <summary>تکمیل رزرو بعد از انجام خدمت (همان قواعد مالک؛ فقط پرسنل همین رزرو)</summary>
+            <remarks>بدنه اختیاری: finalAmount، receivedAtVenue، notReceived، detail. طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
+        </member>
+        <member name="T:Api.Areas.Operator.Controllers.CoachReserveController">
+            <summary>
+            پنل اپراتور: رزروهای مربی که به من (پرسنل) سپرده شده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Operator.Controllers.CoachReserveController.Get(Application.Services.CoachSrvs.CoachReserveSrv.Dto.CoachReserveSearchInputDto)">
+            <summary>فقط رزروهای پرداخت‌شده‌ای که به من سپرده شده (تا وقتی عضو فعال مرکز هستم)</summary>
+        </member>
+        <member name="M:Api.Areas.Operator.Controllers.CoachReserveController.Complete(System.Int64,Application.Services.ReserveCompleteSrv.ReserveCompleteDto)">
+            <summary>تکمیل رزرو بعد از انجام خدمت (همان قواعد مالک؛ فقط پرسنل همین رزرو)</summary>
+            <remarks>بدنه اختیاری: finalAmount، receivedAtVenue، notReceived، detail. طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
+        </member>
         <member name="T:Api.Areas.Operator.Controllers.CompanionReserveController">
             <summary>
             مدیریت  رزرو نمایندگان
@@ -10659,6 +10686,18 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.Operator.Controllers.GroomerReserveController">
+            <summary>
+            پنل اپراتور: رزروهای آرایشگاه که به من (پرسنل) سپرده شده
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Operator.Controllers.GroomerReserveController.Get(Application.Services.GroomerSrvs.GroomerReserveSrv.Dto.GroomerReserveSearchInputDto)">
+            <summary>فقط رزروهای پرداخت‌شده‌ای که به من سپرده شده (تا وقتی عضو فعال مرکز هستم)</summary>
+        </member>
+        <member name="M:Api.Areas.Operator.Controllers.GroomerReserveController.Complete(System.Int64,Application.Services.ReserveCompleteSrv.ReserveCompleteDto)">
+            <summary>تکمیل رزرو بعد از انجام خدمت (همان قواعد مالک؛ فقط پرسنل همین رزرو)</summary>
+            <remarks>بدنه اختیاری: finalAmount، receivedAtVenue، notReceived، detail. طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
+        </member>
         <member name="T:Api.Areas.Operator.Controllers.UserPetRecordController">
              <summary>
              مدیریت تاریخچه پت ها
@@ -10689,6 +10728,11 @@
             <summary>
             آیتم جدید
             </summary>  
+        </member>
+        <member name="T:Api.Areas.Operator.Controllers.WorkplaceController">
+            <summary>
+            مرکزهایی (کلینیک/آرایشگاه/مربی) که من پرسنل یا مالک آن‌ها هستم؛ اپ با لیست غیرخالی منوی پنل اپراتور را نشان می‌دهد
+            </summary>
         </member>
         <member name="T:Api.Areas.Seller.Controllers.AiProductMatchController">
             <summary>

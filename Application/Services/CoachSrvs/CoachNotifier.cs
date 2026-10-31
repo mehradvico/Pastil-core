@@ -28,6 +28,8 @@ namespace Application.Services.CoachSrvs
         Task ReserveRescheduledAsync(long reserveId, bool byOwner, DateTime oldDoDate);
         /// <summary>سفر پت‌رسانِ متصل با رزرو جابه‌جا شد: به راننده‌ی پذیرنده (اگر بود) خبر می‌دهد (همان قالب پیامک/پوش تغییر زمان Companion).</summary>
         Task StaffInvitedAsync(long coachId, long userId);
+        /// <summary>به پرسنلی که مالک رزرو را به او سپرد (همان قالب «رزرو به شما اختصاص داده شد»، مسیر /operator). Token1 = نام خدمت، Token2 = نام مشتری.</summary>
+        Task ReserveAssignedAsync(long reserveId);
     }
 
     public class CoachNotifier : ICoachNotifier
@@ -185,6 +187,20 @@ namespace Application.Services.CoachSrvs
                 if (coachName == null || user == null)
                     return;
                 await _push.SendPushAsync(PushTypeEnum.PushCoachStaffInvite, userId, token1: coachName);
+            });
+        }
+
+        public async Task ReserveAssignedAsync(long reserveId)
+        {
+            await SafeAsync(nameof(ReserveAssignedAsync), async () =>
+            {
+                var r = await _context.CoachReserves.AsNoTracking().Where(x => x.Id == reserveId)
+                    .Select(x => new { x.AssigneeUserId, ServiceName = x.CoachService.Assistance.Name, BookerName = (x.Booker.FirstName + " " + x.Booker.LastName).Trim() })
+                    .FirstOrDefaultAsync();
+                if (r?.AssigneeUserId == null)
+                    return;
+                await _push.SendPushAsync(PushTypeEnum.PushCompanionReserveAssigned, r.AssigneeUserId.Value,
+                    token1: r.ServiceName, token2: r.BookerName);
             });
         }
 

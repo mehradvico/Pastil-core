@@ -4,6 +4,7 @@ using Application.Services.GroomerSrvs.GroomerReserveSrv.Dto;
 using Application.Services.GroomerSrvs.GroomerReserveSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
 using Application.Services.ReserveCompleteSrv;
+using Application.Services.VenueOperatorSrv;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -64,6 +65,11 @@ namespace Api.Areas.Companion.Controllers
         /// <summary>تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو)</summary>
         /// <remarks>بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده.
         /// طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md</remarks>
+        /// <summary>سپردن رزرو پرداخت‌شده به یکی از پرسنل (یا خود مالک)؛ assigneeUserId خالی = برداشتن پرسنل. پرسنل در پنل اپراتور می‌بیند و پوش می‌گیرد.</summary>
+        [HttpPut("Assign")]
+        [ProducesResponseType(typeof(BaseResultDto<GroomerReserveVDto>), 200)]
+        public async Task<IActionResult> Assign(VenueReserveAssignDto dto) => Ok(await _service.AssignAsync(dto.Id, dto.AssigneeUserId, UserId));
+
         [HttpPut("Complete")]
         [ProducesResponseType(typeof(BaseResultDto<GroomerReserveVDto>), 200)]
         public async Task<IActionResult> Complete(long id, [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] ReserveCompleteDto dto = null)

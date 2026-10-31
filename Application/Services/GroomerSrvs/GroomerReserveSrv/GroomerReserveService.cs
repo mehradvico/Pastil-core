@@ -347,6 +347,15 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
                 query = query.Where(r => r.Groomer.ProviderId == input.ProviderId.Value);
             if (input.OwnerUserId.HasValue)
                 query = query.Where(r => r.Groomer.OwnerId == input.OwnerUserId.Value);
+            if (input.AssigneeUserId.HasValue)
+            {
+                // پنل اپراتور: فقط تا وقتی کاربر مالک یا عضو پذیرفته‌شده‌ی فعال مرکز است.
+                var assignee = input.AssigneeUserId.Value;
+                query = query.Where(r => r.AssigneeUserId == assignee &&
+                    (r.Groomer.OwnerId == assignee || r.Groomer.GroomerUsers.Any(u => u.UserId == assignee && !u.Deleted && u.Active && u.UserAccept == true)));
+            }
+            if (input.Unassigned == true)
+                query = query.Where(r => r.AssigneeUserId == null);
             if (input.UserPetId.HasValue)
                 query = query.Where(r => r.UserPetId == input.UserPetId.Value);
             if (input.Status.HasValue)
@@ -400,6 +409,86 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
                 item.Permitted = false;
             }
             return new BaseResultDto<GroomerReserveVDto>(true, item);
+        }
+
+        public async Task<BaseResultDto<GroomerReserveVDto>> FindForAssigneeAsync(long id, long userId)
+        {
+            var allowed = await _context.GroomerReserves.AsNoTracking().AnyAsync(r =>
+                r.Id == id && r.IsReserved && r.AssigneeUserId == userId &&
+                (r.Groomer.OwnerId == userId || r.Groomer.GroomerUsers.Any(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true)));
+            if (!allowed)
+                return Fail(Resource.Notification.NothingFound);
+            var result = await FindAsync(id, null, null);
+            if (result.IsSuccess && result.Data != null)
+            {
+                // پرسنل سهم‌های حسابداری مرکز را نمی‌بیند.
+                result.Data.ProviderShare = 0;
+                result.Data.SiteShare = 0;
+                result.Data.CommissionPercent = 0;
+            }
+            return result;
+        }
+
+        public async Task<BaseResultDto<GroomerReserveVDto>> AssignAsync(long id, long? assigneeUserId, long? ownerUserId)
+        {
+            try
+            {
+                await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
+                var reserve = await _context.GroomerReserves.AsTracking()
+                    .Include(r => r.Groomer)
+                    .FirstOrDefaultAsync(r => r.Id == id);
+                if (reserve == null)
+                {
+                    await transaction.RollbackAsync();
+                    return Fail(Resource.Notification.NothingFound);
+                }
+                if (ownerUserId.HasValue && reserve.Groomer.OwnerId != ownerUserId.Value)
+                {
+                    await transaction.RollbackAsync();
+                    return Fail(Resource.Notification.AccessDenied);
+                }
+                if (!reserve.IsReserved || reserve.IsCancel || reserve.Status == (int)GroomerReserveStatusEnum.Complete)
+                {
+                    await transaction.RollbackAsync();
+                    return Fail(Resource.Notification.VenueReserveAssignNotAllowed);
+                }
+                if (reserve.AssigneeUserId == assigneeUserId)
+                {
+                    await transaction.RollbackAsync();
+                    return await FindAsync(reserve.Id, null, ownerUserId);
+                }
+
+                var error = await ValidateAssigneeAsync(assigneeUserId, reserve.GroomerServiceId, reserve.GroomerId);
+                if (error != null)
+                {
+                    await transaction.RollbackAsync();
+                    return Fail(error);
+                }
+                if (assigneeUserId.HasValue)
+                {
+                    var busy = await _context.GroomerReserves.AsNoTracking().AnyAsync(r =>
+                        r.Id != reserve.Id && r.AssigneeUserId == assigneeUserId && r.IsReserved && !r.IsCancel &&
+                        r.DoDate < reserve.EndDate && r.EndDate > reserve.DoDate);
+                    if (busy)
+                    {
+                        await transaction.RollbackAsync();
+                        return Fail(Resource.Notification.VenueReserveAssigneeBusy);
+                    }
+                }
+
+                reserve.AssigneeUserId = assigneeUserId;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                if (assigneeUserId.HasValue && assigneeUserId.Value != reserve.Groomer.OwnerId)
+                    await _notifier.ReserveAssignedAsync(reserve.Id);
+                return await FindAsync(reserve.Id, null, ownerUserId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Assigning groomer reserve {ReserveId} failed.", id);
+                return Fail(Resource.Notification.Unsuccess);
+            }
         }
 
         // ------------------------------------------------------------------ تخفیف و کیف پول
@@ -746,18 +835,21 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             return null;
         }
 
-        private async Task<string> ValidateAssigneeAsync(long? assigneeUserId, PackageInfo package)
+        private Task<string> ValidateAssigneeAsync(long? assigneeUserId, PackageInfo package) =>
+            ValidateAssigneeAsync(assigneeUserId, package.GroomerServiceId, package.GroomerId);
+
+        private async Task<string> ValidateAssigneeAsync(long? assigneeUserId, long groomerServiceId, long groomerId)
         {
             if (!assigneeUserId.HasValue)
                 return null;
             var serviceUsers = await _context.GroomerServiceUsers.AsNoTracking()
-                .Where(u => u.GroomerServiceId == package.GroomerServiceId && !u.Deleted && u.Active).Select(u => u.UserId).ToListAsync();
+                .Where(u => u.GroomerServiceId == groomerServiceId && !u.Deleted && u.Active).Select(u => u.UserId).ToListAsync();
             if (serviceUsers.Count > 0)
                 return serviceUsers.Contains(assigneeUserId.Value) ? null : Resource.Notification.GroomerReserveAssigneeInvalid;
 
             var allowed = await _context.GroomerUsers.AsNoTracking()
-                .Where(u => u.GroomerId == package.GroomerId && !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId).ToListAsync();
-            allowed.Add(await _context.Groomers.AsNoTracking().Where(g => g.Id == package.GroomerId).Select(g => g.OwnerId).FirstAsync());
+                .Where(u => u.GroomerId == groomerId && !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId).ToListAsync();
+            allowed.Add(await _context.Groomers.AsNoTracking().Where(g => g.Id == groomerId).Select(g => g.OwnerId).FirstAsync());
             return allowed.Contains(assigneeUserId.Value) ? null : Resource.Notification.GroomerReserveAssigneeInvalid;
         }
 

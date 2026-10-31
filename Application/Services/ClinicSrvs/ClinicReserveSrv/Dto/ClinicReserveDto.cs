@@ -157,6 +157,10 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv.Dto
         public long? ProviderId { get; set; }
         /// <summary>فقط رزروهای کلینیک‌های این مالک (اپ نماینده).</summary>
         public long? OwnerUserId { get; set; }
+        /// <summary>فقط رزروهای سپرده‌شده به این پرسنل (پنل اپراتور؛ سرور پر می‌کند).</summary>
+        public long? AssigneeUserId { get; set; }
+        /// <summary>true = فقط رزروهایی که هنوز پرسنل ندارند.</summary>
+        public bool? Unassigned { get; set; }
         public long? UserPetId { get; set; }
         public int? Status { get; set; }
         public int? OwnerDecision { get; set; }

@@ -2764,4 +2764,10 @@
   <data name="StaffExpertiseInvalid" xml:space="preserve">
     <value>نقش/تخصص انتخاب‌شده معتبر نیست (حداکثر ۱۰ مورد از تخصص‌های فعال پاستیل).</value>
   </data>
+  <data name="VenueReserveAssignNotAllowed" xml:space="preserve">
+    <value>فقط رزرو پرداخت‌شده، فعال و تکمیل‌نشده را می‌توان به پرسنل سپرد.</value>
+  </data>
+  <data name="VenueReserveAssigneeBusy" xml:space="preserve">
+    <value>این پرسنل در همین زمان رزرو دیگری دارد.</value>
+  </data>
 </root>

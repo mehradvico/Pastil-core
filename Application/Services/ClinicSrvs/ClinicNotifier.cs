@@ -29,6 +29,8 @@ namespace Application.Services.ClinicSrvs
         /// <summary>سفر پت‌رسانِ متصل با رزرو جابه‌جا شد: به راننده‌ی پذیرنده (اگر بود) خبر می‌دهد (همان قالب پیامک/پوش تغییر زمان Companion).</summary>
         Task TripRescheduledForDriverAsync(long reserveId, long tripId);
         Task StaffInvitedAsync(long clinicId, long userId);
+        /// <summary>به پرسنلی که مالک رزرو را به او سپرد (همان قالب «رزرو به شما اختصاص داده شد»، مسیر /operator). Token1 = نام خدمت، Token2 = نام مشتری.</summary>
+        Task ReserveAssignedAsync(long reserveId);
     }
 
     public class ClinicNotifier : IClinicNotifier
@@ -203,6 +205,20 @@ namespace Application.Services.ClinicSrvs
                 if (clinicName == null || user == null)
                     return;
                 await _push.SendPushAsync(PushTypeEnum.PushClinicStaffInvite, userId, token1: clinicName);
+            });
+        }
+
+        public async Task ReserveAssignedAsync(long reserveId)
+        {
+            await SafeAsync(nameof(ReserveAssignedAsync), async () =>
+            {
+                var r = await _context.ClinicReserves.AsNoTracking().Where(x => x.Id == reserveId)
+                    .Select(x => new { x.AssigneeUserId, ServiceName = x.ClinicService.Assistance.Name, BookerName = (x.Booker.FirstName + " " + x.Booker.LastName).Trim() })
+                    .FirstOrDefaultAsync();
+                if (r?.AssigneeUserId == null)
+                    return;
+                await _push.SendPushAsync(PushTypeEnum.PushCompanionReserveAssigned, r.AssigneeUserId.Value,
+                    token1: r.ServiceName, token2: r.BookerName);
             });
         }
 

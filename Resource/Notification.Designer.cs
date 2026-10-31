@@ -7111,5 +7111,17 @@ namespace Resource {
             }
         }
 
+        public static string VenueReserveAssignNotAllowed {
+            get {
+                return ResourceManager.GetString("VenueReserveAssignNotAllowed", resourceCulture);
+            }
+        }
+
+        public static string VenueReserveAssigneeBusy {
+            get {
+                return ResourceManager.GetString("VenueReserveAssigneeBusy", resourceCulture);
+            }
+        }
+
     }
 }

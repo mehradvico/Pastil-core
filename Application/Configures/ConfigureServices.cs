@@ -633,6 +633,7 @@ public static class ConfigureServices
         services.AddScoped<Application.Services.GroomerSrvs.IGroomerNotifier, Application.Services.GroomerSrvs.GroomerNotifier>();
         services.AddScoped<Application.Services.ClinicSrvs.IClinicNotifier, Application.Services.ClinicSrvs.ClinicNotifier>();
         services.AddScoped<Application.Services.CoachSrvs.ICoachNotifier, Application.Services.CoachSrvs.CoachNotifier>();
+        services.AddScoped<Application.Services.VenueOperatorSrv.IVenueOperatorService, Application.Services.VenueOperatorSrv.VenueOperatorService>();
         services.AddScoped<Application.Services.ConsultationSrvs.ConsultationVenueSrv.IVenueConsultationService, Application.Services.ConsultationSrvs.ConsultationVenueSrv.VenueConsultationService>();
         services.AddScoped<Application.Services.ClinicSrvs.ClinicReserveItemSrv.Iface.IClinicReserveItemService, Application.Services.ClinicSrvs.ClinicReserveItemSrv.ClinicReserveItemService>();
         services.AddScoped<Application.Services.GroomerSrvs.GroomerReviewSrv.IGroomerReviewService, Application.Services.GroomerSrvs.GroomerReviewSrv.GroomerReviewService>();

@@ -2764,4 +2764,10 @@
   <data name="StaffExpertiseInvalid" xml:space="preserve">
     <value>The selected roles/expertises are invalid (up to 10 active Pastil expertises).</value>
   </data>
+  <data name="VenueReserveAssignNotAllowed" xml:space="preserve">
+    <value>Only a paid, active and uncompleted reservation can be assigned to staff.</value>
+  </data>
+  <data name="VenueReserveAssigneeBusy" xml:space="preserve">
+    <value>This staff member already has another reservation at the same time.</value>
+  </data>
 </root>

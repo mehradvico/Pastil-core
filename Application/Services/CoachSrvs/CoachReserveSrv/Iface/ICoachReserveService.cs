@@ -24,6 +24,12 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Iface
         /// <summary>bookerId / ownerUserId (هر کدام پر باشد) دسترسی را به همان کاربر محدود می‌کند؛ هر دو خالی = ادمین.</summary>
         Task<BaseResultDto<CoachReserveVDto>> FindAsync(long id, long? bookerId, long? ownerUserId);
 
+        /// <summary>جزئیات برای پنل اپراتور: فقط اگر رزرو پرداخت‌شده به همین پرسنل سپرده شده و او هنوز عضو فعال مرکز است؛ سهم‌های حسابداری صفر می‌شود.</summary>
+        Task<BaseResultDto<CoachReserveVDto>> FindForAssigneeAsync(long id, long userId);
+
+        /// <summary>سپردن/عوض‌کردن/برداشتن پرسنل رزرو پرداخت‌شده توسط مالک (ownerUserId) یا ادمین (null)؛ null برای assigneeUserId = بدون پرسنل. پرسنل جدید پوش می‌گیرد.</summary>
+        Task<BaseResultDto<CoachReserveVDto>> AssignAsync(long id, long? assigneeUserId, long? ownerUserId);
+
         Task<BaseResultDto> SetRebateCodeAsync(long id, string rebateCode, long bookerId);
         Task<BaseResultDto> ClearRebateAsync(long id, long bookerId);
         Task<BaseResultDto> SetWalletAsync(long id, bool fromWallet, long bookerId);

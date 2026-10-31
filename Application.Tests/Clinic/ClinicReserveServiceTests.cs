@@ -254,6 +254,55 @@ public class ClinicReserveServiceTests : IClassFixture<ClinicLocalDbFixture>
     }
 
     [Fact]
+    public async Task Assign_ThenStaffSeesOnlyOwnReserves_UntilRemoved()
+    {
+        if (!_fixture.Available) return;
+        var world = await BuildWorldAsync(_fixture);
+        var staffId = world.Seed.OtherUserId;
+        var created = await NewReserveService(_fixture).CreateAsync(Input(world, Tomorrow(10)), world.BookerId);
+        Assert.True(created.IsSuccess);
+        var reserveId = created.Data.Id;
+
+        // پرداخت‌نشده قابل سپردن نیست؛ غیرعضو هم نه؛ و مالکِ دیگر دسترسی ندارد
+        Assert.False((await NewReserveService(_fixture).AssignAsync(reserveId, world.Seed.OwnerUserId, world.Seed.OwnerUserId)).IsSuccess);
+        await PayAsync(_fixture, reserveId);
+        Assert.False((await NewReserveService(_fixture).AssignAsync(reserveId, staffId, world.Seed.OwnerUserId)).IsSuccess);
+        Assert.False((await NewReserveService(_fixture).AssignAsync(reserveId, world.Seed.OwnerUserId, staffId)).IsSuccess);
+
+        using (var context = _fixture.NewContext())
+        {
+            context.ClinicUsers.Add(new ClinicUser { ClinicId = world.ClinicId, UserId = staffId, Active = true, UserAccept = true });
+            await context.SaveChangesAsync();
+        }
+        var (push, pushProxy) = NewPush();
+        var assigned = await NewReserveService(_fixture, push: push).AssignAsync(reserveId, staffId, world.Seed.OwnerUserId);
+        Assert.True(assigned.IsSuccess);
+        Assert.Equal(staffId, assigned.Data.AssigneeUserId);
+        Assert.Contains("ReserveAssignedAsync", pushProxy.Calls);
+
+        var mine = NewReserveService(_fixture).Search(new ClinicReserveSearchInputDto { AssigneeUserId = staffId, OnlyPaid = true, PageIndex = 1, PageSize = 20 });
+        Assert.Equal(reserveId, Assert.Single(mine.List).Id);
+        Assert.Empty(NewReserveService(_fixture).Search(new ClinicReserveSearchInputDto { AssigneeUserId = world.Seed.OwnerUserId, OnlyPaid = true, PageIndex = 1, PageSize = 20 }).List);
+        var detail = await NewReserveService(_fixture).FindForAssigneeAsync(reserveId, staffId);
+        Assert.True(detail.IsSuccess);
+        Assert.Equal(0, detail.Data.ProviderShare);
+        Assert.False((await NewReserveService(_fixture).FindForAssigneeAsync(reserveId, world.BookerId)).IsSuccess);
+
+        // پرسنلِ حذف‌شده دیگر رزرو را نمی‌بیند؛ مالک می‌تواند پرسنل را بردارد
+        using (var context = _fixture.NewContext())
+        {
+            var member = await context.ClinicUsers.AsTracking().FirstAsync(u => u.ClinicId == world.ClinicId && u.UserId == staffId);
+            member.Deleted = true;
+            await context.SaveChangesAsync();
+        }
+        Assert.False((await NewReserveService(_fixture).FindForAssigneeAsync(reserveId, staffId)).IsSuccess);
+        var cleared = await NewReserveService(_fixture).AssignAsync(reserveId, null, world.Seed.OwnerUserId);
+        Assert.True(cleared.IsSuccess);
+        Assert.Null(cleared.Data.AssigneeUserId);
+        Assert.Contains(NewReserveService(_fixture).Search(new ClinicReserveSearchInputDto { OwnerUserId = world.Seed.OwnerUserId, Unassigned = true, PageIndex = 1, PageSize = 20 }).List, r => r.Id == reserveId);
+    }
+
+    [Fact]
     public async Task Quote_MatchesCreate_AndRejectsUnofferedMode()
     {
         if (!_fixture.Available) return;

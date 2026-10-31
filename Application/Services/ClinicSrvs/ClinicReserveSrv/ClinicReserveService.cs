@@ -379,6 +379,15 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 query = query.Where(r => r.Clinic.ProviderId == input.ProviderId.Value);
             if (input.OwnerUserId.HasValue)
                 query = query.Where(r => r.Clinic.OwnerId == input.OwnerUserId.Value);
+            if (input.AssigneeUserId.HasValue)
+            {
+                // پنل اپراتور: فقط تا وقتی کاربر مالک یا عضو پذیرفته‌شده‌ی فعال مرکز است.
+                var assignee = input.AssigneeUserId.Value;
+                query = query.Where(r => r.AssigneeUserId == assignee &&
+                    (r.Clinic.OwnerId == assignee || r.Clinic.ClinicUsers.Any(u => u.UserId == assignee && !u.Deleted && u.Active && u.UserAccept == true)));
+            }
+            if (input.Unassigned == true)
+                query = query.Where(r => r.AssigneeUserId == null);
             if (input.UserPetId.HasValue)
                 query = query.Where(r => r.UserPetId == input.UserPetId.Value);
             if (input.Status.HasValue)
@@ -434,6 +443,86 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 item.Permitted = false;
             }
             return new BaseResultDto<ClinicReserveVDto>(true, item);
+        }
+
+        public async Task<BaseResultDto<ClinicReserveVDto>> FindForAssigneeAsync(long id, long userId)
+        {
+            var allowed = await _context.ClinicReserves.AsNoTracking().AnyAsync(r =>
+                r.Id == id && r.IsReserved && r.AssigneeUserId == userId &&
+                (r.Clinic.OwnerId == userId || r.Clinic.ClinicUsers.Any(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true)));
+            if (!allowed)
+                return Fail(Resource.Notification.NothingFound);
+            var result = await FindAsync(id, null, null);
+            if (result.IsSuccess && result.Data != null)
+            {
+                // پرسنل سهم‌های حسابداری مرکز را نمی‌بیند.
+                result.Data.ProviderShare = 0;
+                result.Data.SiteShare = 0;
+                result.Data.CommissionPercent = 0;
+            }
+            return result;
+        }
+
+        public async Task<BaseResultDto<ClinicReserveVDto>> AssignAsync(long id, long? assigneeUserId, long? ownerUserId)
+        {
+            try
+            {
+                await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
+                var reserve = await _context.ClinicReserves.AsTracking()
+                    .Include(r => r.Clinic)
+                    .FirstOrDefaultAsync(r => r.Id == id);
+                if (reserve == null)
+                {
+                    await transaction.RollbackAsync();
+                    return Fail(Resource.Notification.NothingFound);
+                }
+                if (ownerUserId.HasValue && reserve.Clinic.OwnerId != ownerUserId.Value)
+                {
+                    await transaction.RollbackAsync();
+                    return Fail(Resource.Notification.AccessDenied);
+                }
+                if (!reserve.IsReserved || reserve.IsCancel || reserve.Status == (int)ClinicReserveStatusEnum.Complete)
+                {
+                    await transaction.RollbackAsync();
+                    return Fail(Resource.Notification.VenueReserveAssignNotAllowed);
+                }
+                if (reserve.AssigneeUserId == assigneeUserId)
+                {
+                    await transaction.RollbackAsync();
+                    return await FindAsync(reserve.Id, null, ownerUserId);
+                }
+
+                var error = await ValidateAssigneeAsync(assigneeUserId, reserve.ClinicServiceId, reserve.ClinicId);
+                if (error != null)
+                {
+                    await transaction.RollbackAsync();
+                    return Fail(error);
+                }
+                if (assigneeUserId.HasValue)
+                {
+                    var busy = await _context.ClinicReserves.AsNoTracking().AnyAsync(r =>
+                        r.Id != reserve.Id && r.AssigneeUserId == assigneeUserId && r.IsReserved && !r.IsCancel &&
+                        r.DoDate < reserve.EndDate && r.EndDate > reserve.DoDate);
+                    if (busy)
+                    {
+                        await transaction.RollbackAsync();
+                        return Fail(Resource.Notification.VenueReserveAssigneeBusy);
+                    }
+                }
+
+                reserve.AssigneeUserId = assigneeUserId;
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                if (assigneeUserId.HasValue && assigneeUserId.Value != reserve.Clinic.OwnerId)
+                    await _notifier.ReserveAssignedAsync(reserve.Id);
+                return await FindAsync(reserve.Id, null, ownerUserId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Assigning clinic reserve {ReserveId} failed.", id);
+                return Fail(Resource.Notification.Unsuccess);
+            }
         }
 
         // ------------------------------------------------------------------ تخفیف و کیف پول
@@ -810,18 +899,21 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             return null;
         }
 
-        private async Task<string> ValidateAssigneeAsync(long? assigneeUserId, PackageInfo package)
+        private Task<string> ValidateAssigneeAsync(long? assigneeUserId, PackageInfo package) =>
+            ValidateAssigneeAsync(assigneeUserId, package.ClinicServiceId, package.ClinicId);
+
+        private async Task<string> ValidateAssigneeAsync(long? assigneeUserId, long clinicServiceId, long clinicId)
         {
             if (!assigneeUserId.HasValue)
                 return null;
             var serviceUsers = await _context.ClinicServiceUsers.AsNoTracking()
-                .Where(u => u.ClinicServiceId == package.ClinicServiceId && !u.Deleted && u.Active).Select(u => u.UserId).ToListAsync();
+                .Where(u => u.ClinicServiceId == clinicServiceId && !u.Deleted && u.Active).Select(u => u.UserId).ToListAsync();
             if (serviceUsers.Count > 0)
                 return serviceUsers.Contains(assigneeUserId.Value) ? null : Resource.Notification.ClinicReserveAssigneeInvalid;
 
             var allowed = await _context.ClinicUsers.AsNoTracking()
-                .Where(u => u.ClinicId == package.ClinicId && !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId).ToListAsync();
-            allowed.Add(await _context.Clinics.AsNoTracking().Where(g => g.Id == package.ClinicId).Select(g => g.OwnerId).FirstAsync());
+                .Where(u => u.ClinicId == clinicId && !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId).ToListAsync();
+            allowed.Add(await _context.Clinics.AsNoTracking().Where(g => g.Id == clinicId).Select(g => g.OwnerId).FirstAsync());
             return allowed.Contains(assigneeUserId.Value) ? null : Resource.Notification.ClinicReserveAssigneeInvalid;
         }
 

@@ -27,6 +27,8 @@ namespace Application.Services.GroomerSrvs
         Task ReserveCancelledByAdminAsync(long reserveId, string reason);
         Task ReserveRescheduledAsync(long reserveId, bool byOwner);
         Task StaffInvitedAsync(long groomerId, long userId);
+        /// <summary>به پرسنلی که مالک رزرو را به او سپرد (همان قالب «رزرو به شما اختصاص داده شد»، مسیر /operator). Token1 = نام خدمت، Token2 = نام مشتری.</summary>
+        Task ReserveAssignedAsync(long reserveId);
     }
 
     public class GroomerNotifier : IGroomerNotifier
@@ -186,6 +188,20 @@ namespace Application.Services.GroomerSrvs
                 await _push.SendPushAsync(PushTypeEnum.PushGroomerStaffInvite, userId, token1: groomerName);
                 await _sms.SendMessageAsync(MessageTypeEnum.GroomerStaffInvite, user.Mobile, null,
                     token1: Rules.SmsText(user.FirstName), token2: Rules.SmsText(groomerName));
+            });
+        }
+
+        public async Task ReserveAssignedAsync(long reserveId)
+        {
+            await SafeAsync(nameof(ReserveAssignedAsync), async () =>
+            {
+                var r = await _context.GroomerReserves.AsNoTracking().Where(x => x.Id == reserveId)
+                    .Select(x => new { x.AssigneeUserId, ServiceName = x.GroomerService.Assistance.Name, BookerName = (x.Booker.FirstName + " " + x.Booker.LastName).Trim() })
+                    .FirstOrDefaultAsync();
+                if (r?.AssigneeUserId == null)
+                    return;
+                await _push.SendPushAsync(PushTypeEnum.PushCompanionReserveAssigned, r.AssigneeUserId.Value,
+                    token1: r.ServiceName, token2: r.BookerName);
             });
         }
 
