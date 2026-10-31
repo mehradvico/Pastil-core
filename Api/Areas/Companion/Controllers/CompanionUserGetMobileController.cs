@@ -6,6 +6,7 @@ using Application.Services.CompanionSrvs.CompanionUserSrv.Iface;
 using Application.Services.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Api.Areas.Companion.Controllers
 {
@@ -35,12 +36,19 @@ namespace Api.Areas.Companion.Controllers
         /// </summary>
         ///
         [HttpGet("{mobile}")]
+        [EnableRateLimiting("AccountLookup")]
         [ProducesResponseType(typeof(BaseResultDto<UserMinVDto>), 200)]
         public IActionResult Get(string mobile)
         {
             if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
                 return Forbid();
             var CompanionUser = _userService.GetUserMinByMobile(mobile);
+            // برای افزودن همکار فقط نام/تصویر لازم است؛ ایمیل و کد معرفِ کاربرِ دیگر به نماینده نمی‌رسد
+            if (CompanionUser.Data != null)
+            {
+                CompanionUser.Data.Email = null;
+                CompanionUser.Data.ReferralCode = null;
+            }
             return Ok(CompanionUser);
         }
     }

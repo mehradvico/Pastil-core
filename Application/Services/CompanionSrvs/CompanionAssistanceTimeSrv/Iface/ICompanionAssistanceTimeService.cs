@@ -13,7 +13,7 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceTimeSrv.Iface
         Task<BaseResultDto<CompanionAssistanceTimeVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto<CompanionAssistanceTimeUpdateListDto>> GetListAsync(long companionAssistanceId);
         Task<BaseResultDto> InsertUpdateListAsync(CompanionAssistanceTimeUpdateListDto dto, long? companionId = null);
-        Task<BaseResultDto> ActiveAsync(CompanionAssistanceTimeDto dto);
+        Task<BaseResultDto> ActiveAsync(CompanionAssistanceTimeDto dto, long? companionId = null);
         Task<BaseResultDto> GetForTomarowAsync(CompanionAssistanceTimeInputDto baseSearchDto);
     }
 }

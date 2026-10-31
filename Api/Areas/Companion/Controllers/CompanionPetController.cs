@@ -37,6 +37,8 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var CompanionPet = await CompanionPetService.FindAsyncDto(id);
+            if (CompanionPet.IsSuccess && CompanionPet.Data?.CompanionId != _current.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<CompanionPetDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(CompanionPet);
         }
         /// <summary>

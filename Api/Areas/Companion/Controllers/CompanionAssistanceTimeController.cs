@@ -74,7 +74,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(CompanionAssistanceTimeDto dto)
         {
-            var agency = await _companionAssistanceTimeService.ActiveAsync(dto);
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var agency = await _companionAssistanceTimeService.ActiveAsync(dto, _currentUserHelper.CurrentUser.CompanionId.Value);
             return Ok(agency);
         }
     }

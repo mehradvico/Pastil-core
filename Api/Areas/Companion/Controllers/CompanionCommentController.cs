@@ -40,6 +40,8 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var role = await _CompanionCommentService.FindAsyncDto(id);
+            if (role.IsSuccess && role.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+                return Ok(new Application.Common.Dto.Result.BaseResultDto<CompanionCommentDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(role);
         }
         /// <summary>
@@ -64,9 +66,16 @@ namespace Api.Areas.Companion.Controllers
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
-        public IActionResult Put(CompanionCommentDto CompanionCommentDto)
+        public async Task<IActionResult> Put(CompanionCommentDto CompanionCommentDto)
         {
-            CompanionCommentDto.CompanionId = _currentUser.CurrentUser.CompanionId!.Value;
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var existing = await _CompanionCommentService.FindAsyncDto(CompanionCommentDto.Id);
+            if (!existing.IsSuccess || existing.Data == null || existing.Data.CompanionId != _currentUser.CurrentUser.CompanionId.Value)
+                return Ok(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.AccessDenied));
+            // نماینده فقط پاسخ می‌دهد؛ تأیید/رد نظرِ مربوط به خودش با ادمین است (وگرنه نظرهای منفی را مخفی می‌کرد)
+            CompanionCommentDto.StatusId = existing.Data.StatusId;
+            CompanionCommentDto.CompanionId = _currentUser.CurrentUser.CompanionId.Value;
             var dto = _CompanionCommentService.UpdateDto(CompanionCommentDto);
             return Ok(dto);
         }

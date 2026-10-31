@@ -1,5 +1,6 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Interface;
+using Application.Services.CompanionSrv.CompanionAssistanceSrv.Iface;
 using Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Dto;
 using Application.Services.CompanionSrv.CompanionAssistanceUserSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -18,10 +19,12 @@ namespace Api.Areas.Companion.Controllers
     public class CompanionAssistanceUserController : ControllerBase
     {
         private readonly ICompanionAssistanceUserService _companionAssistanceUserService;
+        private readonly ICompanionAssistanceService _companionAssistanceService;
         private readonly ICurrentUserHelper _currentUserHelper;
-        public CompanionAssistanceUserController(ICompanionAssistanceUserService companionAssistanceUserService, ICurrentUserHelper currentUserHelper)
+        public CompanionAssistanceUserController(ICompanionAssistanceUserService companionAssistanceUserService, ICompanionAssistanceService companionAssistanceService, ICurrentUserHelper currentUserHelper)
         {
             this._companionAssistanceUserService = companionAssistanceUserService;
+            this._companionAssistanceService = companionAssistanceService;
             this._currentUserHelper = currentUserHelper;
         }
 
@@ -34,7 +37,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(CompanionAssistanceUserSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionAssistanceUserInputDto dto)
         {
-
+            // بدون این، جستجو نیروهای همه‌ی مراکز را (با موبایل/ایمیل) برمی‌گرداند
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            dto.CompanionId = _currentUserHelper.CurrentUser.CompanionId.Value;
             var search = _companionAssistanceUserService.Search(dto);
             return Ok(search);
         }
@@ -65,6 +71,11 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CompanionAssistanceUserDto>), 200)]
         public async Task<IActionResult> Post(CompanionAssistanceUserDto dto)
         {
+            // خدمت باید مال مرکز همین نماینده باشد (سرویس فقط عضویت کاربرِ هدف در مرکزِ خدمت را چک می‌کند)
+            var assistance = await _companionAssistanceService.FindAsyncDto(dto.CompanionAssistanceId);
+            if (!assistance.IsSuccess || assistance.Data == null || !_currentUserHelper.CurrentUser.CompanionId.HasValue ||
+                assistance.Data.CompanionId != _currentUserHelper.CurrentUser.CompanionId.Value)
+                return Ok(new BaseResultDto<CompanionAssistanceUserDto>(false, Resource.Notification.AccessDenied, dto));
             dto.Active = false;
             var result = await _companionAssistanceUserService.InsertAsyncDto(dto);
             return Ok(result);

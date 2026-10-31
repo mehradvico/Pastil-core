@@ -338,18 +338,17 @@ namespace Application.Services.CompanionSrv.CompanionAssistanceTimeSrv
                 return new BaseResultDto(false);
             }
         }
-        public async Task<BaseResultDto> ActiveAsync(CompanionAssistanceTimeDto dto)
+        public async Task<BaseResultDto> ActiveAsync(CompanionAssistanceTimeDto dto, long? companionId = null)
         {
-            var item = await _context.CompanionAssistanceTimes.FirstOrDefaultAsync(s => s.Id == dto.Id);
+            var item = await _context.CompanionAssistanceTimes.AsTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.Id &&
+                    (!companionId.HasValue || s.CompanionAssistance.CompanionId == companionId.Value));
             if (item == null)
-            {
-                item.Active = dto.Active;
-                _context.CompanionAssistanceTimes.Update(item);
-                _context.SaveChanges();
-                return new BaseResultDto(true);
-            }
-            return new BaseResultDto(false);
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
 
+            item.Active = dto.Active;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
         }
     }
 }
