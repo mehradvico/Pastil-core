@@ -35,7 +35,10 @@ namespace Api.Areas.Pansion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(PansionReserveStatusDto dto)
         {
-            var Pansion = await _PansionReserveService.UpdatePansionReserveStatusDto(dto, _currentUserHelper.CurrentUser.CompanionId);
+            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var Pansion = await _PansionReserveService.UpdatePansionReserveStatusDto(dto, _currentUserHelper.CurrentUser.CompanionId.Value);
             return Ok(Pansion);
         }
     }

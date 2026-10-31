@@ -41,6 +41,9 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var SchoolPicture = await SchoolPictureService.FindAsyncVDto(id);
+            if (SchoolPicture.IsSuccess && SchoolPicture.Data != null &&
+                await _ownership.SchoolOfSchoolAsync(SchoolPicture.Data.SchoolId, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(SchoolPicture);
         }
         /// <summary>

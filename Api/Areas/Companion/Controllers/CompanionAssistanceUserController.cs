@@ -96,6 +96,8 @@ namespace Api.Areas.Companion.Controllers
 
             dto.Active = false;
             dto.CompanionAssistanceId = existing.Data!.CompanionAssistanceId;
+            // کاربرِ نیرو با ویرایش عوض نمی‌شود (چک عضویتِ مرکز فقط موقع ثبت انجام می‌شود)
+            dto.UserId = existing.Data.UserId;
             var agency = _companionAssistanceUserService.UpdateDto(dto);
             return Ok(agency);
         }

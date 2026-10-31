@@ -59,7 +59,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Post(CompanionTimeUpdateListDto dto)
         {
-            var result = await _companionTimeService.InsertUpdateListAsync(dto, _currentUserHelper.CurrentUser.CompanionId);
+            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var result = await _companionTimeService.InsertUpdateListAsync(dto, _currentUserHelper.CurrentUser.CompanionId.Value);
             return Ok(result);
         }
     }

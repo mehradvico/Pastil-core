@@ -47,6 +47,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(CompanionTypeSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionTypeInputDto dto)
         {
+            // CompanionId خالی یعنی سرویس فیلتر مرکز را نمی‌گذارد و رکورد همه‌ی مراکز برمی‌گردد
+            if (!_current.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             dto.CompanionId = _current.CurrentUser.CompanionId;
             var search = CompanionTypeService.Search(dto);
             return Ok(search);
@@ -73,10 +76,14 @@ namespace Api.Areas.Companion.Controllers
         /// 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResultDto<CompanionTypeDto>), 200)]
-        public IActionResult Put(CompanionTypeDto CompanionTypeDto)
+        public async Task<IActionResult> Put(CompanionTypeDto CompanionTypeDto)
         {
             if (!_current.CurrentUser.CompanionId.HasValue)
                 return Forbid();
+            // مالکیت روی رکورد ذخیره‌شده؛ وگرنه با Id نوعِ مرکز دیگر، آن رکورد به مرکز فرستنده منتقل می‌شد
+            var existing = await CompanionTypeService.FindAsyncDto(CompanionTypeDto.Id);
+            if (!existing.IsSuccess || existing.Data?.CompanionId != _current.CurrentUser.CompanionId.Value)
+                return Ok(new BaseResultDto<CompanionTypeDto>(false, Resource.Notification.AccessDenied, default!));
             CompanionTypeDto.CompanionId = _current.CurrentUser.CompanionId.Value;
             var result = CompanionTypeService.UpdateDto(CompanionTypeDto);
             return Ok(result);

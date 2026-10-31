@@ -31,7 +31,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(CompanionInsurancePackageSaleManualPayDto), 200)]
         public async Task<IActionResult> Put(CompanionInsurancePackageSaleManualPayDto dto)
         {
-            var result = await _tripService.CompanionInsurancePackageSaleManualPayAsync(dto, _currentUserHelper.CurrentUser.CompanionId);
+            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var result = await _tripService.CompanionInsurancePackageSaleManualPayAsync(dto, _currentUserHelper.CurrentUser.CompanionId.Value);
             return Ok(result);
         }
     }

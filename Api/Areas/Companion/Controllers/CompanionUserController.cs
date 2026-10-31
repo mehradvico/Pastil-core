@@ -50,6 +50,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(CompanionUserSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionUserInputDto dto)
         {
+            // CompanionId خالی یعنی سرویس فیلتر مرکز را نمی‌گذارد و رکورد همه‌ی مراکز برمی‌گردد
+            if (!CurrentUserDto.CompanionId.HasValue)
+                return Forbid();
             dto.CompanionId = CurrentUserDto.CompanionId;
             var CompanionUser = CompanionUserService.SearchDto(dto);
             return Ok(CompanionUser);

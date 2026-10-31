@@ -49,6 +49,10 @@ namespace Api.Areas.Companion.Controllers
         [HttpPut("Reply")]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Reply([FromBody] PansionCommentReplyDto dto)
-            => Ok(await _service.ReplyAsync(dto?.Id ?? 0, dto?.Answer, _currentUser.CurrentUser.CompanionId!.Value));
+        {
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            return Ok(await _service.ReplyAsync(dto?.Id ?? 0, dto?.Answer, _currentUser.CurrentUser.CompanionId.Value));
+        }
     }
 }

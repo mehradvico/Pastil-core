@@ -35,7 +35,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public IActionResult Put(PansionActiveDto dto)
         {
-            var Pansion = _PansionService.UpdatePansionActiveDto(dto, _currentUserHelper.CurrentUser.CompanionId);
+            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var Pansion = _PansionService.UpdatePansionActiveDto(dto, _currentUserHelper.CurrentUser.CompanionId.Value);
             return Ok(Pansion);
         }
     }

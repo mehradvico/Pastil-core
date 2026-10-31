@@ -36,6 +36,9 @@ namespace Api.Areas.Companion.Controllers
         public IActionResult Get([FromQuery] CompanionAssistanceInputDto dto)
         {
 
+            // CompanionId خالی یعنی سرویس فیلتر مرکز را نمی‌گذارد و رکورد همه‌ی مراکز برمی‌گردد
+            if (!_currentUserDto.CompanionId.HasValue)
+                return Forbid();
             dto.CompanionId = _currentUserDto.CompanionId;
             var search = _companionAssistanceService.Search(dto);
             return Ok(search);
@@ -72,6 +75,8 @@ namespace Api.Areas.Companion.Controllers
                 return Forbid();
             dto.Active = false;
             dto.CompanionId = _currentUserDto.CompanionId.Value;
+            // تأیید خدمت فقط با ادمین (سرویس Approved را از DTO می‌گیرد)
+            dto.Approved = false;
             var result = await _companionAssistanceService.InsertAsyncDto(dto);
             return Ok(result);
         }
@@ -86,7 +91,10 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Put(CompanionAssistanceDto dto)
         {
             dto.Active = false;
-            var companion = await _companionAssistanceService.UpdateAsyncDto(dto, _currentUserDto.CompanionId);
+            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
+            if (!_currentUserDto.CompanionId.HasValue)
+                return Forbid();
+            var companion = await _companionAssistanceService.UpdateAsyncDto(dto, _currentUserDto.CompanionId.Value);
             return Ok(companion);
         }
 

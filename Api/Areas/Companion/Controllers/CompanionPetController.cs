@@ -49,6 +49,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(CompanionPetSearchDto), 200)]
         public IActionResult Get([FromQuery] CompanionPetInputDto dto)
         {
+            // CompanionId خالی یعنی سرویس فیلتر مرکز را نمی‌گذارد و رکورد همه‌ی مراکز برمی‌گردد
+            if (!_current.CurrentUser.CompanionId.HasValue)
+                return Forbid();
             dto.CompanionId = _current.CurrentUser.CompanionId;
             var search = CompanionPetService.Search(dto);
             return Ok(search);

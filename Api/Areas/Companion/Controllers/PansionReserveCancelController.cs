@@ -37,7 +37,10 @@ namespace Api.Areas.Pansion.Controllers
             // مرکز فقط می‌تواند لغو کند (برگرداندن لغو با ادمین است)؛ کل مبلغ به کیف پول مشتری برمی‌گردد و سفر متصل لغو می‌شود.
             if (dto == null || !dto.IsCancel)
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
-            return Ok(await _approvalService.CancelByOwnerAsync(dto.Id, dto.CancelDetail, _currentUser.CurrentUser.CompanionId, HttpContext.RequestAborted));
+            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
+            if (!_currentUser.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            return Ok(await _approvalService.CancelByOwnerAsync(dto.Id, dto.CancelDetail, _currentUser.CurrentUser.CompanionId.Value, HttpContext.RequestAborted));
         }
     }
 }

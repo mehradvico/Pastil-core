@@ -34,7 +34,10 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(CompanionReserveChangeStateDto dto)
         {
-            var companion = await _companionReserveService.UpdateReserveStateDto(dto, _currentUserHelper.CurrentUser.CompanionId);
+            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
+            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
+                return Forbid();
+            var companion = await _companionReserveService.UpdateReserveStateDto(dto, _currentUserHelper.CurrentUser.CompanionId.Value);
             return Ok(companion);
         }
     }

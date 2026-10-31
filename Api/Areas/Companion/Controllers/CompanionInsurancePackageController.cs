@@ -53,6 +53,8 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Get(long id)
         {
             var agency = await _companionAssistanceUserService.FindAsyncDto(id);
+            if (agency.IsSuccess && agency.Data?.CompanionId != _currentUserHelper.CurrentUser.CompanionId)
+                return Ok(new BaseResultDto<CompanionInsurancePackageDto>(false, Resource.Notification.AccessDenied, default!));
             return Ok(agency);
         }
 
