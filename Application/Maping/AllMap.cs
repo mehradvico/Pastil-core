@@ -1118,7 +1118,7 @@ namespace Application.Maping
                         source.ProductOrder != null ? source.ProductOrder.OrderCode :
                         source.CompanionReserve != null ? source.CompanionReserve.ReserveCode :
                         source.PansionReserve != null ? source.PansionReserve.ReserveCode : null));
-            CreateMap<Wallet, Wallet>().ForMember(x => x.Id, y => y.Ignore()).ForMember(x => x.ProductOrderId, y => y.Ignore()).ForMember(x => x.ProductOrder, y => y.Ignore());
+            CreateMap<Wallet, Wallet>().ForMember(x => x.Id, y => y.Ignore()).ForMember(x => x.TransactionCode, y => y.Ignore()).ForMember(x => x.ProductOrderId, y => y.Ignore()).ForMember(x => x.ProductOrder, y => y.Ignore());
             //Wallet End ----------------------------------------------
         }
     }

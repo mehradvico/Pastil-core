@@ -470,7 +470,8 @@ namespace Application.Services.ProductSrvs.WalletSrv
             }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
             {
-                query = query.Where(s => s.Name.Contains(baseSearchDto.Q) || s.ProductOrderId == baseSearchDto.Q);
+                var q = baseSearchDto.Q.Trim();
+                query = query.Where(s => s.Name.Contains(q) || s.ProductOrderId == q || s.TransactionCode == q);
             }
 
             switch (baseSearchDto.SortBy)

@@ -721,6 +721,7 @@ public static class ConfigureServices
         services.AddScoped<IProductOrderService, ProductOrderService>();
         services.AddScoped<Application.Services.Order.ProductOrderSrv.Iface.IProductOrderAdjustmentService, Application.Services.Order.ProductOrderSrv.ProductOrderAdjustmentService>();
         services.AddScoped<Application.Services.Order.ShippingSrv.Iface.IShippingSlotService, Application.Services.Order.ShippingSrv.ShippingSlotService>();
+        services.AddScoped<Application.Services.Order.ShippingSrv.Iface.IStoreWorkingHourService, Application.Services.Order.ShippingSrv.StoreWorkingHourService>();
         services.AddScoped<Application.Services.CompanionSrvs.CompanionReserveSrv.Iface.ICompanionReserveRescheduleService, Application.Services.CompanionSrvs.CompanionReserveSrv.CompanionReserveRescheduleService>();
         services.AddScoped<Application.Services.PansionSrvs.PansionReserveSrv.Iface.IPansionReserveApprovalService, Application.Services.PansionSrvs.PansionReserveSrv.PansionReserveApprovalService>();
         services.AddScoped<Application.Services.TripSrv.TripOngoingSrv.ITripOngoingNotificationService, Application.Services.TripSrv.TripOngoingSrv.TripOngoingNotificationService>();

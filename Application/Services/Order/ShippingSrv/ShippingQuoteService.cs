@@ -24,6 +24,7 @@ namespace Application.Services.Order.ShippingSrv
         private readonly IDataBaseContext _context;
         private readonly IDeliveryService _deliveryService;
         private readonly IShippingSlotService _slotService;
+        private readonly IStoreWorkingHourService _workingHourService;
         private readonly IReadOnlyDictionary<ShippingProviderEnum, IShippingProvider> _providers;
         private readonly ShippingOptions _options;
         private readonly ILogger<ShippingQuoteService> _logger;
@@ -32,6 +33,7 @@ namespace Application.Services.Order.ShippingSrv
             IDataBaseContext context,
             IDeliveryService deliveryService,
             IShippingSlotService slotService,
+            IStoreWorkingHourService workingHourService,
             IEnumerable<IShippingProvider> providers,
             IOptions<ShippingOptions> options,
             ILogger<ShippingQuoteService> logger)
@@ -39,6 +41,7 @@ namespace Application.Services.Order.ShippingSrv
             _context = context;
             _deliveryService = deliveryService;
             _slotService = slotService;
+            _workingHourService = workingHourService;
             _providers = providers.ToDictionary(item => item.Provider);
             _options = options.Value;
             _logger = logger;
@@ -202,7 +205,8 @@ namespace Application.Services.Order.ShippingSrv
                 var expressStore = await _context.Stores.AsNoTracking()
                     .FirstOrDefaultAsync(item => item.Id == quote.CartStore.StoreId, cancellationToken);
                 if (!ShippingExpressRules.IsOpen(DateTime.UtcNow, _options.Express.OpenTime, _options.Express.CloseTime) ||
-                    !_options.Express.Enabled || expressStore?.ExpressShippingEnabled != true)
+                    !_options.Express.Enabled || expressStore?.ExpressShippingEnabled != true ||
+                    !await _workingHourService.IsOpenAsync(expressStore.Id, DateTime.UtcNow, cancellationToken))
                     return new BaseResultDto(false, Resource.Notification.ShippingExpressNotAvailable);
             }
             if (requiresSlot)
@@ -259,7 +263,8 @@ namespace Application.Services.Order.ShippingSrv
             {
                 // اکسپرس: بدون بازه؛ ولی هنوز باید فعال و در ساعت کاری باشد
                 if (!_options.Express.Enabled || cartStore.Store?.ExpressShippingEnabled != true ||
-                    !ShippingExpressRules.IsOpen(DateTime.UtcNow, _options.Express.OpenTime, _options.Express.CloseTime))
+                    !ShippingExpressRules.IsOpen(DateTime.UtcNow, _options.Express.OpenTime, _options.Express.CloseTime) ||
+                    !await _workingHourService.IsOpenAsync(cartStore.StoreId, DateTime.UtcNow, cancellationToken))
                     return new BaseResultDto(false, Resource.Notification.ShippingExpressNotAvailable);
             }
             else if (delivery.ShippingProvider == ShippingProviderEnum.Miare)
@@ -297,19 +302,21 @@ namespace Application.Services.Order.ShippingSrv
                 : new BaseResultDto(false, Resource.Notification.ShippingCartAmountInvalid);
         }
 
-        // اکسپرس: فعال بودن کلی + فروشگاه + ساعت کاری + فاصله‌ی مجاز (فروشگاه/آدرس باید مختصات داشته باشند)
-        private Task<bool> IsExpressAvailableAsync(CartStore cartStore, Cart cart, DateTime nowUtc, CancellationToken cancellationToken)
+        // اکسپرس: فعال بودن کلی + فروشگاه + ساعت کاری کلی + ساعت کاری خود فروشگاه + فاصله‌ی مجاز (فروشگاه/آدرس باید مختصات داشته باشند)
+        private async Task<bool> IsExpressAvailableAsync(CartStore cartStore, Cart cart, DateTime nowUtc, CancellationToken cancellationToken)
         {
             if (!_options.Express.Enabled || cartStore.Store?.ExpressShippingEnabled != true)
-                return Task.FromResult(false);
+                return false;
             if (!ShippingExpressRules.IsOpen(nowUtc, _options.Express.OpenTime, _options.Express.CloseTime))
-                return Task.FromResult(false);
+                return false;
             if (cartStore.Store.Location == null || cart.Address?.Location == null)
-                return Task.FromResult(false);
+                return false;
             var distanceKm = ShippingGeoRules.DistanceKm(
                 cartStore.Store.Location.Y, cartStore.Store.Location.X,
                 cart.Address.Location.Y, cart.Address.Location.X);
-            return Task.FromResult(ShippingExpressRules.IsWithinDistance(distanceKm, _options.Express.MaxDistanceKm));
+            if (!ShippingExpressRules.IsWithinDistance(distanceKm, _options.Express.MaxDistanceKm))
+                return false;
+            return await _workingHourService.IsOpenAsync(cartStore.StoreId, nowUtc, cancellationToken);
         }
 
         // اضافه‌ی اکسپرس = مبلغ سطح boost میاره (طبق GET /boost-levels/)؛ اگر Boost/سطحی نبود، مبلغ ثابت پاستیل

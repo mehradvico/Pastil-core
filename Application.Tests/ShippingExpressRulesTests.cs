@@ -20,6 +20,32 @@ public class ShippingExpressRulesTests
     public void Express_is_only_open_in_tehran_working_hours(int hour, int minute, bool expected)
         => Assert.Equal(expected, ShippingExpressRules.IsOpen(TehranToUtc(hour, minute), "09:00", "20:00"));
 
+    // ۲۰۲۶-۱۰-۱۰ = شنبه
+    private static readonly IReadOnlyCollection<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)> SaturdayTenToSix =
+        new List<(DayOfWeek, TimeSpan, TimeSpan)> { (DayOfWeek.Saturday, TimeSpan.FromHours(10), TimeSpan.FromHours(18)) };
+
+    [Theory]
+    [InlineData(10, 0, true)]
+    [InlineData(17, 59, true)]
+    [InlineData(18, 0, false)]   // پایان بازه شامل نمی‌شود
+    [InlineData(9, 59, false)]
+    public void Store_is_open_only_within_its_hours_for_today(int hour, int minute, bool expected)
+        => Assert.Equal(expected, ShippingExpressRules.IsStoreOpen(TehranToUtc(hour, minute), SaturdayTenToSix));
+
+    [Fact]
+    public void Store_without_hours_is_unrestricted()
+    {
+        Assert.True(ShippingExpressRules.IsStoreOpen(TehranToUtc(3), null));
+        Assert.True(ShippingExpressRules.IsStoreOpen(TehranToUtc(3), new List<(DayOfWeek, TimeSpan, TimeSpan)>()));
+    }
+
+    [Fact]
+    public void Day_missing_from_hours_is_closed()
+    {
+        var sundayOnly = new List<(DayOfWeek, TimeSpan, TimeSpan)> { (DayOfWeek.Sunday, TimeSpan.Zero, TimeSpan.FromHours(23)) };
+        Assert.False(ShippingExpressRules.IsStoreOpen(TehranToUtc(12), sundayOnly));
+    }
+
     [Fact]
     public void Invalid_hours_fall_back_to_nine_to_twenty()
     {

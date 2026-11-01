@@ -16,6 +16,8 @@ public class MerchantGatewayRulesTests
         var allowed = MerchantGatewayRules.AllowedBankIds(mainAdmin);
         Assert.Contains((long)MerchantEnum.zarinpal, allowed);
         Assert.Contains((long)MerchantEnum.pastilTest, allowed);
+        // پایانه‌ی تستی پارسیان فقط برای مدیر اصلی
+        Assert.Contains((long)MerchantEnum.parsian, allowed);
     }
 
     [Theory]

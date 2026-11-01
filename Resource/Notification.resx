@@ -930,6 +930,12 @@
   <data name="PaymentRefundedToWallet" xml:space="preserve">
     <value>Your bank payment succeeded but this item could not be registered; the full amount was returned to your Pastil wallet.</value>
   </data>
+  <data name="PaymentReversedToCard" xml:space="preserve">
+    <value>Your bank payment succeeded but this item could not be registered; the payment was reversed and the amount will be returned to your card by the bank.</value>
+  </data>
+  <data name="PaymentReverseInReview" xml:space="preserve">
+    <value>Your bank payment succeeded but this item could not be registered; returning the amount to your card is being reviewed and support will follow up.</value>
+  </data>
   <data name="PaymentTargetCancelled" xml:space="preserve">
     <value>This item has been cancelled and can no longer be paid.</value>
   </data>
@@ -2667,6 +2673,12 @@
   </data>
   <data name="CoachConsultationUnavailable" xml:space="preserve">
     <value>This coach is not connected to the online consultation system yet.</value>
+  </data>
+  <data name="LegacyCompanionConsultationDisabled" xml:space="preserve">
+    <value>Online consultation can no longer be set up for an agency; manage it from the clinic or coach panel.</value>
+  </data>
+  <data name="StoreWorkingHoursInvalid" xml:space="preserve">
+    <value>Invalid working hours; set one HH:mm range per day with start before end.</value>
   </data>
   <data name="PansionReserveApprovalDeadlinePassed" xml:space="preserve">
     <value>The response deadline has passed; the reserve will be cancelled automatically and the payment refunded.</value>

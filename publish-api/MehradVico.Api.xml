@@ -5376,6 +5376,21 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.StoreWorkingHourController">
+            <summary>
+            ساعت کاری هفتگی فروشگاه (خارج از آن ارسال اکسپرس ارائه نمی‌شود)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.StoreWorkingHourController.Get(System.Int64,System.Threading.CancellationToken)">
+            <summary>
+            ساعت کاری فروشگاه (روزهای بدون ردیف = تعطیل؛ لیست خالی = بدون محدودیت)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.StoreWorkingHourController.Put(System.Int64,System.Collections.Generic.List{Application.Services.Order.ShippingSrv.Dto.StoreWorkingHourDto},System.Threading.CancellationToken)">
+            <summary>
+            جایگزینی کل ساعت کاری هفته
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.StoryGroupController">
              <summary>
              استوری ها

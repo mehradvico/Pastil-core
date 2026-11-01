@@ -43,6 +43,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationBookingSrv
         {
             try
             {
+                // نمایندگی قدیمی دیگر نوبت مشاوره ثبت نمی‌کند (۲۰۲۶-۱۱-۰۱)
+                if (owner.Kind == ConsultationOwnerKind.Companion)
+                    return new BaseResultDto<List<ConsultationAvailabilityWindowDto>>(false, Resource.Notification.LegacyCompanionConsultationDisabled, null);
+
                 windows ??= new List<ConsultationAvailabilityWindowDto>();
                 if (windows.Count > MaxWindows)
                     return new BaseResultDto<List<ConsultationAvailabilityWindowDto>>(false, Resource.Notification.ConsultationAvailabilityInvalid, null);

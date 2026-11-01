@@ -13271,6 +13271,34 @@ namespace Persistence.Migrations
                     b.ToTable("ShippingSlots");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ShippingField.StoreWorkingHour", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<TimeSpan>("CloseTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("OpenTime")
+                        .HasColumnType("time");
+
+                    b.Property<long>("StoreId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StoreId", "DayOfWeek")
+                        .IsUnique();
+
+                    b.ToTable("StoreWorkingHours");
+                });
+
             modelBuilder.Entity("Entities.Entities.Sms", b =>
                 {
                     b.Property<long>("Id")
@@ -14688,6 +14716,10 @@ namespace Persistence.Migrations
                     b.Property<long?>("SchoolReserveId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("TransactionCode")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<long?>("TripId")
                         .HasColumnType("bigint");
 
@@ -14741,6 +14773,10 @@ namespace Persistence.Migrations
                         .HasFilter("[ProductOrderId] IS NOT NULL");
 
                     b.HasIndex("SchoolReserveId");
+
+                    b.HasIndex("TransactionCode")
+                        .IsUnique()
+                        .HasFilter("[TransactionCode] IS NOT NULL");
 
                     b.HasIndex("TripId")
                         .IsUnique()
@@ -20495,6 +20531,17 @@ namespace Persistence.Migrations
                     b.Navigation("Delivery");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ShippingField.StoreWorkingHour", b =>
+                {
+                    b.HasOne("Entities.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("Entities.Entities.Sms", b =>

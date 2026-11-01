@@ -930,6 +930,12 @@
   <data name="PaymentRefundedToWallet" xml:space="preserve">
     <value>پرداخت شما از بانک انجام شد ولی ثبت این مورد ممکن نشد؛ کل مبلغ به کیف پول پاستیل شما برگشت داده شد.</value>
   </data>
+  <data name="PaymentReversedToCard" xml:space="preserve">
+    <value>پرداخت شما از بانک انجام شد ولی ثبت این مورد ممکن نشد؛ تراکنش برگشت خورد و مبلغ از طرف بانک به کارت شما برمی‌گردد.</value>
+  </data>
+  <data name="PaymentReverseInReview" xml:space="preserve">
+    <value>پرداخت شما از بانک انجام شد ولی ثبت این مورد ممکن نشد؛ برگشت مبلغ به کارت شما در حال بررسی است و پشتیبانی پیگیری می‌کند.</value>
+  </data>
   <data name="PaymentTargetCancelled" xml:space="preserve">
     <value>این مورد لغو شده و دیگر قابل پرداخت نیست.</value>
   </data>
@@ -2667,6 +2673,12 @@
   </data>
   <data name="CoachConsultationUnavailable" xml:space="preserve">
     <value>این مربی هنوز به سامانه‌ی مشاوره‌ی آنلاین وصل نیست (مربی باید از نمایندگی قدیمی منتقل شده باشد).</value>
+  </data>
+  <data name="LegacyCompanionConsultationDisabled" xml:space="preserve">
+    <value>مشاوره‌ی آنلاین دیگر برای نمایندگی ثبت نمی‌شود؛ آن را از پنل کلینیک یا مربی مدیریت کنید.</value>
+  </data>
+  <data name="StoreWorkingHoursInvalid" xml:space="preserve">
+    <value>ساعت کاری نامعتبر است؛ هر روز فقط یک بازه با ساعت شروع کمتر از پایان (HH:mm) ثبت کنید.</value>
   </data>
   <data name="PansionReserveApprovalDeadlinePassed" xml:space="preserve">
     <value>مهلت پاسخ به این رزرو گذشته است؛ رزرو به‌زودی خودکار لغو و مبلغ به کیف پول مشتری برگردانده می‌شود.</value>

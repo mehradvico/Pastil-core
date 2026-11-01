@@ -16,6 +16,8 @@ namespace Application.Services.Order.MerchantSrv.Iface
         Task<BaseResultDto> CallbackAsync(Entities.Entities.Payment payment);
         // تطبیق بدون callback: فقط اگر درگاه پرداخت را تأیید کرد نتیجه ثبت می‌شود؛ «پرداخت نشده» هیچ اثری ندارد
         Task<BaseResultDto> ReconcileUnconfirmedAsync(Entities.Entities.Payment payment);
+        // برگشت وجه پرداخت تأییدشده‌ی اعمال‌نشده به کارت از طریق بانک (فعلاً فقط پارسیان)
+        Task<BaseResultDto> ReverseAsync(Entities.Entities.Payment payment);
         Task<BaseResultDto> UpdateSecureAsyncDto(MerchantDto dto);
     }
 }

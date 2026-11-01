@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using Persistence.Security;
@@ -96,6 +97,8 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
             NormalizeSlugs();
+            foreach (var wallet in PendingWalletsWithoutCode())
+                wallet.TransactionCode = CreateWalletTransactionCode(wallet, GetNextSequenceValue("BusinessCodeSequence"));
 
             try
             {
@@ -119,6 +122,10 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             CancellationToken cancellationToken = default)
         {
             NormalizeSlugs();
+            foreach (var wallet in PendingWalletsWithoutCode())
+                wallet.TransactionCode = CreateWalletTransactionCode(
+                    wallet,
+                    await GetNextSequenceValueAsync("BusinessCodeSequence", cancellationToken));
 
             try
             {
@@ -150,6 +157,43 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
 
                 if (!string.Equals(entry.Entity.Slug, normalizedSlug, StringComparison.Ordinal))
                     entry.Entity.Slug = normalizedSlug;
+            }
+        }
+
+        // هر ردیف کیف پولی که در همین SaveChanges درج می‌شود و هنوز کد ندارد (همه‌ی مسیرها: شارژ، پرداخت، بازگشت وجه، دستی)
+        private List<Wallet> PendingWalletsWithoutCode()
+        {
+            return ChangeTracker.Entries<Wallet>()
+                .Where(entry => entry.State == EntityState.Added && string.IsNullOrWhiteSpace(entry.Entity.TransactionCode))
+                .Select(entry => entry.Entity)
+                .ToList();
+        }
+
+        private static string CreateWalletTransactionCode(Wallet wallet, long sequenceNumber)
+        {
+            var createdAt = wallet.CreateDate == default ? DateTime.Now : wallet.CreateDate;
+            return BusinessCodeFormatter.Format("WLT", createdAt, sequenceNumber);
+        }
+
+        private long GetNextSequenceValue(string sequenceName)
+        {
+            var connection = Database.GetDbConnection();
+            var shouldCloseConnection = connection.State != ConnectionState.Open;
+
+            if (shouldCloseConnection)
+                connection.Open();
+
+            try
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = $"SELECT NEXT VALUE FOR dbo.{sequenceName};";
+                command.Transaction = Database.CurrentTransaction?.GetDbTransaction();
+                return Convert.ToInt64(command.ExecuteScalar());
+            }
+            finally
+            {
+                if (shouldCloseConnection)
+                    connection.Close();
             }
         }
 
@@ -252,6 +296,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<Delivery> Deliveries { get; set; }
         public DbSet<ShippingQuote> ShippingQuotes { get; set; }
         public DbSet<ShippingSlot> ShippingSlots { get; set; }
+        public DbSet<StoreWorkingHour> StoreWorkingHours { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<ShipmentEvent> ShipmentEvents { get; set; }
         public DbSet<DeliveryDistance> DeliveryDistances { get; set; }
@@ -1191,6 +1236,11 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
 
             modelBuilder.Entity<Wallet>(entity =>
             {
+                entity.Property(item => item.TransactionCode)
+                    .HasMaxLength(32);
+                entity.HasIndex(item => item.TransactionCode)
+                    .IsUnique()
+                    .HasFilter("[TransactionCode] IS NOT NULL");
                 entity.HasIndex(item => item.PaymentId)
                     .IsUnique()
                     .HasFilter("[PaymentId] IS NOT NULL");
@@ -1907,6 +1957,15 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             {
                 entity.Property(item => item.DayOfWeek).HasConversion<int>();
                 entity.HasIndex(item => new { item.DayOfWeek, item.StartTime, item.EndTime });
+            });
+            modelBuilder.Entity<StoreWorkingHour>(entity =>
+            {
+                entity.Property(item => item.DayOfWeek).HasConversion<int>();
+                entity.HasIndex(item => new { item.StoreId, item.DayOfWeek }).IsUnique();
+                entity.HasOne(item => item.Store)
+                    .WithMany()
+                    .HasForeignKey(item => item.StoreId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<CartStore>(entity =>
             {

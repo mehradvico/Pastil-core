@@ -124,6 +124,7 @@ namespace Persistence.Interface
         public DbSet<DeliveryDistance> DeliveryDistances { get; set; }
         public DbSet<ShippingQuote> ShippingQuotes { get; set; }
         public DbSet<ShippingSlot> ShippingSlots { get; set; }
+        public DbSet<StoreWorkingHour> StoreWorkingHours { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<ShipmentEvent> ShipmentEvents { get; set; }
         public DbSet<Detail> Details { get; set; }

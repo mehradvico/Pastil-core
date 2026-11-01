@@ -5,6 +5,8 @@ namespace Application.Services.Order.PaymentSrv
     public static class PaymentAmountHelper
     {
         public const double MinimumGatewayAmount = 10000;
+        // حداقل مبلغ خود پارسیان ۱٬۰۰۰ ریال است؛ برای تراکنش‌های تست پایانه‌ی پارسیان (فعلاً فقط مدیر اصلی) سقف ۱۰ هزار تومانی برداشته شده
+        public const double MinimumParsianAmount = 100;
 
         public static double GetWalletContribution(double walletBalance, double payableAmount)
         {

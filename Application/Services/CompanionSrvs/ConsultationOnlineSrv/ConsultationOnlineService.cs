@@ -160,6 +160,10 @@ namespace Application.Services.CompanionSrvs.ConsultationOnlineSrv
         {
             try
             {
+                // آنلاین شدن فقط برای کلینیک/مربی؛ مالک خالی یا Companion همان نمایندگی قدیمی است (خاموش کردن آزاد است)
+                if (online && (!owner.HasValue || owner.Value.Kind == ConsultationOwnerKind.Companion))
+                    return new BaseResultDto<ConsultationOnlineStatusDto>(false, Resource.Notification.LegacyCompanionConsultationDisabled, null);
+
                 var now = DateTime.Now;
                 var expiresAt = online ? ConsultationOnlineRules.ExpiresAt(now) : (DateTime?)null;
 

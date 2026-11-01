@@ -15,6 +15,7 @@ namespace Application.Services.ProductSrvs.WalletSrv.Dto
 {
     public class WalletVDto : Name_FieldDto
     {
+        public string TransactionCode { get; set; }
         public bool IsIncrease { get; set; }
         public double Amount { get; set; }
         public DateTime CreateDate { get; set; }

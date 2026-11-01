@@ -239,6 +239,32 @@ namespace Application.Services.Order.MerchantSrv
             return await SaveCallbackResultAsync(payment, result, false);
         }
 
+        // برگشت وجه یک پرداخت تأییدشده‌ی اعمال‌نشده به کارت مشتری از طریق خود بانک. فعلاً فقط پارسیان (سند ۱۰۰۱۲۱).
+        // IsSuccess = برگشت انجام شد؛ Code=PaymentVerificationPending = جواب قطعی نرسید؛ بقیه = برگشت انجام نشد/پشتیبانی نمی‌شود.
+        // نتیجه روی پرداخت ذخیره نمی‌شود؛ PaymentService وضعیت را خودش ثبت می‌کند.
+        public async Task<BaseResultDto> ReverseAsync(Payment payment)
+        {
+            if (payment == null || _paymentTestModeService.IsEnabled || string.IsNullOrWhiteSpace(payment.Token))
+                return new BaseResultDto(false);
+
+            var merchant = await _context.Merchants.AsTracking().Include(s => s.Bank)
+                .FirstOrDefaultAsync(s => s.Id == payment.MerchantId);
+            if (merchant == null || !merchant.Active || merchant.BankId != (long)MerchantEnum.parsian || _encryptionKey == null)
+                return new BaseResultDto(false);
+
+            await ProtectLegacySecretsAsync(merchant);
+            if (_gatewayResolver.Resolve(MerchantEnum.parsian) is not Application.Services.Order.PaymentGatewaySrv.Gateways.ParsianGateway parsian)
+                return new BaseResultDto(false);
+            var gatewayMerchant = TryCreateGatewayMerchant(merchant);
+            if (gatewayMerchant == null)
+                return new BaseResultDto(false);
+
+            var result = await parsian.ReverseAsync(payment, gatewayMerchant);
+            if (result.IsPending)
+                return new BaseResultDto(false, Resource.Notification.PaymentVerificationPending, (int)ResultCodeEnum.PaymentVerificationPending);
+            return new BaseResultDto(result.IsSuccess, result.Description);
+        }
+
         private async Task<BaseResultDto> SaveCallbackResultAsync(
             Payment payment,
             GatewayCallbackResultDto result,

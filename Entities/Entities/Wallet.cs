@@ -10,6 +10,8 @@ namespace Entities.Entities
 {
     public class Wallet : Name_Field
     {
+        // کد عمومی و یکتای هر تراکنش (WLT-14050726-1237-3320)؛ هنگام درج در DataBaseContext پر می‌شود
+        public string TransactionCode { get; set; }
         public bool IsIncrease { get; set; }
         public double Amount { get; set; }
         public DateTime CreateDate { get; set; }

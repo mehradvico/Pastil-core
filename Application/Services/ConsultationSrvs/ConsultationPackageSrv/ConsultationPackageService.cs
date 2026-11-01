@@ -43,6 +43,10 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
         {
             try
             {
+                // نمایندگی قدیمی دیگر مالک مشاوره نمی‌شود (۲۰۲۶-۱۱-۰۱)؛ خواندن و حذفِ داده‌ی قبلی آزاد است
+                if (owner.Kind == ConsultationOwnerKind.Companion)
+                    return new BaseResultDto<ConsultationPackageItemDto>(false, Resource.Notification.LegacyCompanionConsultationDisabled, null);
+
                 var invalid = await ValidateAsync<ConsultationPackageItemDto>(owner, dto, isUpdate: false);
                 if (invalid != null)
                     return invalid;
@@ -84,6 +88,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
         {
             try
             {
+                if (owner.Kind == ConsultationOwnerKind.Companion)
+                    return new BaseResultDto<ConsultationPackageItemDto>(false, Resource.Notification.LegacyCompanionConsultationDisabled, null);
+
                 if (dto == null || dto.Id <= 0)
                     return new BaseResultDto<ConsultationPackageItemDto>(false, Resource.Notification.InvalidData, null);
 

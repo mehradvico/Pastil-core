@@ -23,6 +23,16 @@ namespace Application.Services.Order.ShippingSrv
             return to > from ? local >= from && local < to : local >= from || local < to;
         }
 
+        // ساعت کاری خودِ فروشگاه (به وقت تهران، بازه‌ی [open, close) برای هر روز). بدون هیچ ردیف = بدون محدودیت؛
+        // با ردیف: روزی که ردیف ندارد تعطیل است.
+        public static bool IsStoreOpen(DateTime nowUtc, IReadOnlyCollection<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)> hours)
+        {
+            if (hours == null || hours.Count == 0)
+                return true;
+            var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(nowUtc, DateTimeKind.Utc), Tehran);
+            return hours.Any(item => item.Day == local.DayOfWeek && local.TimeOfDay >= item.Open && local.TimeOfDay < item.Close);
+        }
+
         // سطح boost: همان سطح تنظیم‌شده؛ اگر نبود بالاترین سطح کمتر از آن؛ اگر آن هم نبود کمترین سطح موجود؛ بدون سطح = null
         public static (int Level, double Amount)? ChooseBoost(IReadOnlyList<(int Level, double Amount)> levels, int configuredLevel)
         {

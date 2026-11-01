@@ -177,11 +177,17 @@ namespace Application.Services.Order.PaymentSrv
                     (dto.WalletAmount > 0 || dto.RebateAmount > 0) &&
                     Math.Abs(dto.GrossAmount - dto.RebateAmount - dto.WalletAmount) <= 0.01;
 
-                if (!isInternalSettlement && dto.Amount < 10000 && !_paymentTestModeService.IsEnabled)
+                var minimumAmount = PaymentAmountHelper.MinimumGatewayAmount;
+                if (!isInternalSettlement && dto.MerchantId > 0 &&
+                    await _context.Merchants.AsNoTracking().AnyAsync(s =>
+                        s.Id == dto.MerchantId.Value && s.BankId == (long)Common.Enumerable.MerchantEnum.parsian))
+                    minimumAmount = PaymentAmountHelper.MinimumParsianAmount;
+
+                if (!isInternalSettlement && dto.Amount < minimumAmount && !_paymentTestModeService.IsEnabled)
                 {
                     return new BaseResultDto(
                         false,
-                        string.Format(Resource.Pattern.AmountsLessT1CannotPaid, 10000));
+                        string.Format(Resource.Pattern.AmountsLessT1CannotPaid, minimumAmount));
                 }
 
                 if (dto.UserId == null || dto.UserId <= 0 ||
@@ -534,7 +540,11 @@ namespace Application.Services.Order.PaymentSrv
                         ? Resource.Notification.PaymentAttemptSuperseded
                         : payment.GatewayStatus == RefundedToWalletStatus
                             ? Resource.Notification.PaymentRefundedToWallet
-                            : Resource.Notification.Unsuccess;
+                            : payment.GatewayStatus == ReversedStatus
+                                ? Resource.Notification.PaymentReversedToCard
+                                : payment.GatewayStatus == ReverseUnknownStatus
+                                    ? Resource.Notification.PaymentReverseInReview
+                                    : Resource.Notification.Unsuccess;
                     return new BaseResultDto<PaymentDto>(
                         false,
                         failMessage,
@@ -670,8 +680,11 @@ namespace Application.Services.Order.PaymentSrv
                     s.AppliedDate != null))
             {
                 await transaction.RollbackAsync();
-                if (await RefundUnappliedToWalletAsync(lockedPayment))
-                    return new BaseResultDto<PaymentDto>(false, Resource.Notification.PaymentDuplicateRefundedToWallet, await MapPaymentForDisplayAsync(lockedPayment));
+                var duplicateRefund = await RefundUnappliedAsync(lockedPayment);
+                if (duplicateRefund != null)
+                    return new BaseResultDto<PaymentDto>(false,
+                        duplicateRefund == Resource.Notification.PaymentRefundedToWallet ? Resource.Notification.PaymentDuplicateRefundedToWallet : duplicateRefund,
+                        await MapPaymentForDisplayAsync(lockedPayment));
                 return new BaseResultDto<PaymentDto>(false, Resource.Notification.PaymentTargetAlreadyPaid, await MapPaymentForDisplayAsync(lockedPayment));
             }
 
@@ -679,8 +692,9 @@ namespace Application.Services.Order.PaymentSrv
             if (!snapshotValidation.IsSuccess)
             {
                 await transaction.RollbackAsync();
-                if (await RefundUnappliedToWalletAsync(lockedPayment))
-                    return new BaseResultDto<PaymentDto>(false, Resource.Notification.PaymentRefundedToWallet, await MapPaymentForDisplayAsync(lockedPayment));
+                var snapshotRefund = await RefundUnappliedAsync(lockedPayment);
+                if (snapshotRefund != null)
+                    return new BaseResultDto<PaymentDto>(false, snapshotRefund, await MapPaymentForDisplayAsync(lockedPayment));
                 return new BaseResultDto<PaymentDto>(false, snapshotValidation.Messages, await MapPaymentForDisplayAsync(lockedPayment));
             }
 
@@ -695,9 +709,9 @@ namespace Application.Services.Order.PaymentSrv
                             .SetProperty(s => s.IsSuccess, false)
                             .SetProperty(s => s.GatewayStatus, "WALLET_TARGET_FAILED"));
                 }
-                else if (await RefundUnappliedToWalletAsync(lockedPayment))
+                else if (await RefundUnappliedAsync(lockedPayment) is { } applyRefund)
                 {
-                    return new BaseResultDto<PaymentDto>(false, Resource.Notification.PaymentRefundedToWallet, await MapPaymentForDisplayAsync(lockedPayment));
+                    return new BaseResultDto<PaymentDto>(false, applyRefund, await MapPaymentForDisplayAsync(lockedPayment));
                 }
                 return new BaseResultDto<PaymentDto>(false, applyResult.Messages, await MapPaymentForDisplayAsync(lockedPayment));
             }
@@ -726,6 +740,10 @@ namespace Application.Services.Order.PaymentSrv
 
         private const string GatewaySuccessStatus = "SUCCESS";
         private const string RefundedToWalletStatus = "REFUNDED_TO_WALLET";
+        // برگشت وجه از طریق بانک (فعلاً پارسیان): در حال انجام / انجام شد / جواب قطعی نیامد (نیاز به پیگیری پشتیبانی)
+        private const string ReversingStatus = "REVERSING";
+        private const string ReversedStatus = "REVERSED";
+        private const string ReverseUnknownStatus = "REVERSE_UNKNOWN";
         private const int ReconcileBatchSize = 50;
         // کاربر حداقل ۱۰ دقیقه فرصت دارد خودش از درگاه برگردد؛ بعد از عمر درگاه (۳۰ دقیقه) callback پرداخت را EXPIRED می‌کند
         // verify ناموفقِ job ذخیره نمی‌شود (کاربر ممکن است هنوز در درگاه باشد)، پس ۳ دقیقه امن است؛ job هر ۵ دقیقه اجرا می‌شود
@@ -791,6 +809,78 @@ namespace Application.Services.Order.PaymentSrv
                 }
             }
             return applied;
+        }
+
+        // پرداخت تأییدشده‌ای که اعمال نشد: اول (فقط پارسیان) برگشت وجه به کارت از طریق بانک — مستند پارسیان این را الزامی می‌داند —
+        // و اگر بانک قطعاً رد کرد یا درگاه پشتیبانی نمی‌کند، برگشت به کیف پول. خروجی پیام کاربر است؛ null = هیچ برگشتی انجام نشد.
+        private async Task<string> RefundUnappliedAsync(Entities.Entities.Payment payment)
+        {
+            if (payment.GatewayStatus != GatewaySuccessStatus || !payment.IsOnline || payment.Amount <= 0 || payment.AppliedDate.HasValue)
+                return null;
+
+            var reversal = await TryReverseAtBankAsync(payment);
+            if (reversal != null)
+                return reversal;
+            return await RefundUnappliedToWalletAsync(payment) ? Resource.Notification.PaymentRefundedToWallet : null;
+        }
+
+        private async Task<string> TryReverseAtBankAsync(Entities.Entities.Payment payment)
+        {
+            var isParsian = await _context.Payments.AsNoTracking()
+                .AnyAsync(s => s.Id == payment.Id && s.Merchant.BankId == (long)Common.Enumerable.MerchantEnum.parsian);
+            if (!isParsian)
+                return null;
+
+            // اعمالِ rollback‌شده ممکن است موجودیت‌های tracked نیمه‌کاره گذاشته باشد
+            _context.Entry(payment).Context.ChangeTracker.Clear();
+
+            // claim: فقط یک درخواست هم‌زمان برگشت می‌زند؛ تماس بانک بیرون از تراکنش دیتابیس است
+            var claimed = await _context.Payments
+                .Where(s => s.Id == payment.Id && s.IsSuccess == true && s.AppliedDate == null && s.GatewayStatus == GatewaySuccessStatus)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.GatewayStatus, ReversingStatus));
+            if (claimed == 0)
+                return null;
+
+            BaseResultDto reverse;
+            try
+            {
+                reverse = await _merchantService.ReverseAsync(payment);
+            }
+            catch (Exception exception)
+            {
+                // خطای پیش از تماس بانک (تنظیمات/رمزگشایی): برگشت انجام نشده، کیف پول جایگزین است
+                _logger.LogError(exception, "Reversing payment {PaymentId} at the bank failed before reaching the gateway.", payment.Id);
+                reverse = new BaseResultDto(false);
+            }
+
+            if (reverse.IsSuccess || reverse.Code == (int)ResultCodeEnum.PaymentVerificationPending)
+            {
+                var status = reverse.IsSuccess ? ReversedStatus : ReverseUnknownStatus;
+                await _context.Payments.Where(s => s.Id == payment.Id && s.GatewayStatus == ReversingStatus)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(s => s.IsSuccess, false)
+                        .SetProperty(s => s.GatewayStatus, status));
+                payment.IsSuccess = false;
+                payment.GatewayStatus = status;
+                if (reverse.IsSuccess)
+                {
+                    _logger.LogWarning(
+                        "Verified payment {PaymentId} ({CallbackType}/{CallbackId}) could not be applied; {Amount} reversed to the card at the bank.",
+                        payment.Id, payment.CallBackTypeLabel, payment.CallBackId, payment.Amount);
+                    return Resource.Notification.PaymentReversedToCard;
+                }
+                // ممکن است برگشت انجام شده باشد: کیف پول شارژ نمی‌شود تا پول دوبار برنگردد؛ پشتیبانی با گزارش فروش پارسیان تطبیق می‌دهد
+                _logger.LogError(
+                    "Reversing payment {PaymentId} ({CallbackType}/{CallbackId}, {Amount}) got no definitive answer; status {Status} needs manual reconciliation.",
+                    payment.Id, payment.CallBackTypeLabel, payment.CallBackId, payment.Amount, ReverseUnknownStatus);
+                return Resource.Notification.PaymentReverseInReview;
+            }
+
+            // بانک قطعاً رد کرد (مثلاً گذشتن مهلت برگشت): پول نزد ما است و به کیف پول برمی‌گردد
+            await _context.Payments.Where(s => s.Id == payment.Id && s.GatewayStatus == ReversingStatus)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.GatewayStatus, GatewaySuccessStatus));
+            _logger.LogWarning("Bank reversal of payment {PaymentId} was refused ({Reason}); falling back to wallet refund.", payment.Id, reverse.Messages);
+            return null;
         }
 
         // بانک پول را قطعی کرده ولی اعمال روی هدف شکست خورد (مبلغ هدف عوض شده، کیف پول کافی نبود، هدف لغو شد، ...):

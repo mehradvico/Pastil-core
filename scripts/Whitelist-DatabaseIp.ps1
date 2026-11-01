@@ -209,6 +209,11 @@ if ($SaveCredential) {
 }
 
 if (-not $securePassword) {
+    # Launched from Pastil Deploy (stdin is a pipe nobody writes to): Read-Host would wait forever.
+    # Fail with a clear message instead; the key icon on the card opens a real console with -SaveCredential.
+    if ([Console]::IsInputRedirected) {
+        Stop-WithError 'No usable stored SSH credential, and no console to type the password in. Click the key icon on this card in Pastil Deploy to save the password, then run again.'
+    }
     $securePassword = Read-Host -Prompt "  SSH password for $ServerUser@$ServerHost" -AsSecureString
 }
 
