@@ -104,6 +104,7 @@ debt      = notReceived ? remainder − receivedAtVenue : 0
 | `ReserveCompleteFinalBelowOnline` | مبلغ نهایی نمی‌تواند کمتر از مبلغی باشد که مشتری آنلاین پرداخت کرده است. | `finalAmount < onlineAmount` |
 | `ReserveCompleteReceivedInvalid` | مبلغ دریافتی در محل باید بین صفر و «مبلغ نهایی منهای پرداخت آنلاین» باشد. | `receivedAtVenue` منفی یا بیشتر از باقی‌مانده |
 | `ReserveCompleteDetailTooLong` | توضیحات حداکثر ۵۰۰ کاراکتر است. | `detail` بلند |
+| `ReserveCompleteDebtAbovePrice` | بدهی ثبت‌شده برای مشتری نمی‌تواند بیشتر از باقی‌مانده‌ی قیمت رزرو (قیمت منهای پرداخت آنلاین) باشد. هزینه‌ی اضافه را در محل دریافت کنید. | (از ۱۴۰۵/۰۸/۱۱) `notReceived=true` و بدهی > `price − onlineAmount`؛ بدهی خودکار از کیف پول کسر می‌شود، پس سقف دارد. `finalAmount` بالاتر از قیمت بدون `notReceived` هنوز مجاز است. همین سقف روی `CompanionReserveOperatorUpdate` (پنل قدیمی) با `packagePrice` اعمال می‌شود. |
 | `{Coach\|Clinic\|Groomer}ReserveAlreadyCompleted` | این رزرو قبلاً تکمیل شده است. | تکمیل تکراری |
 | `AccessDenied` | (دسترسی ندارید) | نه مالک، نه پرسنل انتخاب‌شده |
 | `…ReserveNotPaid` / `…AwaitingOwnerApproval` / `…NotStartedYet` | (مثل قبل) | شرط‌های قبلی |

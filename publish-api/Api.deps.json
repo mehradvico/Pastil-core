@@ -1,11 +1,12 @@
 {
   "runtimeTarget": {
-    "name": ".NETCoreApp,Version=v9.0",
+    "name": ".NETCoreApp,Version=v9.0/linux-x64",
     "signature": ""
   },
   "compilationOptions": {},
   "targets": {
-    ".NETCoreApp,Version=v9.0": {
+    ".NETCoreApp,Version=v9.0": {},
+    ".NETCoreApp,Version=v9.0/linux-x64": {
       "Api/1.0.0": {
         "dependencies": {
           "Application": "1.0.0",
@@ -261,47 +262,8 @@
           }
         },
         "resources": {
-          "lib/netstandard2.0/ca/Hangfire.Core.resources.dll": {
-            "locale": "ca"
-          },
-          "lib/netstandard2.0/de/Hangfire.Core.resources.dll": {
-            "locale": "de"
-          },
-          "lib/netstandard2.0/es/Hangfire.Core.resources.dll": {
-            "locale": "es"
-          },
           "lib/netstandard2.0/fa/Hangfire.Core.resources.dll": {
             "locale": "fa"
-          },
-          "lib/netstandard2.0/fr/Hangfire.Core.resources.dll": {
-            "locale": "fr"
-          },
-          "lib/netstandard2.0/nb/Hangfire.Core.resources.dll": {
-            "locale": "nb"
-          },
-          "lib/netstandard2.0/nl/Hangfire.Core.resources.dll": {
-            "locale": "nl"
-          },
-          "lib/netstandard2.0/pt-BR/Hangfire.Core.resources.dll": {
-            "locale": "pt-BR"
-          },
-          "lib/netstandard2.0/pt-PT/Hangfire.Core.resources.dll": {
-            "locale": "pt-PT"
-          },
-          "lib/netstandard2.0/pt/Hangfire.Core.resources.dll": {
-            "locale": "pt"
-          },
-          "lib/netstandard2.0/sv/Hangfire.Core.resources.dll": {
-            "locale": "sv"
-          },
-          "lib/netstandard2.0/tr-TR/Hangfire.Core.resources.dll": {
-            "locale": "tr-TR"
-          },
-          "lib/netstandard2.0/zh-TW/Hangfire.Core.resources.dll": {
-            "locale": "zh-TW"
-          },
-          "lib/netstandard2.0/zh/Hangfire.Core.resources.dll": {
-            "locale": "zh"
           }
         }
       },
@@ -372,7 +334,6 @@
       "Microsoft.Data.SqlClient/5.1.6": {
         "dependencies": {
           "Azure.Identity": "1.11.4",
-          "Microsoft.Data.SqlClient.SNI.runtime": "5.1.1",
           "Microsoft.Identity.Client": "4.61.3",
           "Microsoft.IdentityModel.JsonWebTokens": "8.14.0",
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.0.1",
@@ -382,47 +343,9 @@
           "System.Runtime.Caching": "6.0.0"
         },
         "runtime": {
-          "lib/net6.0/Microsoft.Data.SqlClient.dll": {
-            "assemblyVersion": "5.0.0.0",
-            "fileVersion": "5.16.24240.5"
-          }
-        },
-        "runtimeTargets": {
           "runtimes/unix/lib/net6.0/Microsoft.Data.SqlClient.dll": {
-            "rid": "unix",
-            "assetType": "runtime",
             "assemblyVersion": "5.0.0.0",
             "fileVersion": "5.16.24240.5"
-          },
-          "runtimes/win/lib/net6.0/Microsoft.Data.SqlClient.dll": {
-            "rid": "win",
-            "assetType": "runtime",
-            "assemblyVersion": "5.0.0.0",
-            "fileVersion": "5.16.24240.5"
-          }
-        }
-      },
-      "Microsoft.Data.SqlClient.SNI.runtime/5.1.1": {
-        "runtimeTargets": {
-          "runtimes/win-arm/native/Microsoft.Data.SqlClient.SNI.dll": {
-            "rid": "win-arm",
-            "assetType": "native",
-            "fileVersion": "5.1.1.0"
-          },
-          "runtimes/win-arm64/native/Microsoft.Data.SqlClient.SNI.dll": {
-            "rid": "win-arm64",
-            "assetType": "native",
-            "fileVersion": "5.1.1.0"
-          },
-          "runtimes/win-x64/native/Microsoft.Data.SqlClient.SNI.dll": {
-            "rid": "win-x64",
-            "assetType": "native",
-            "fileVersion": "5.1.1.0"
-          },
-          "runtimes/win-x86/native/Microsoft.Data.SqlClient.SNI.dll": {
-            "rid": "win-x86",
-            "assetType": "native",
-            "fileVersion": "5.1.1.0"
           }
         }
       },
@@ -589,14 +512,6 @@
       "Microsoft.Win32.SystemEvents/6.0.0": {
         "runtime": {
           "lib/net6.0/Microsoft.Win32.SystemEvents.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.21.52210"
-          }
-        },
-        "runtimeTargets": {
-          "runtimes/win/lib/net6.0/Microsoft.Win32.SystemEvents.dll": {
-            "rid": "win",
-            "assetType": "runtime",
             "assemblyVersion": "6.0.0.0",
             "fileVersion": "6.0.21.52210"
           }
@@ -880,21 +795,7 @@
           "Microsoft.Win32.SystemEvents": "6.0.0"
         },
         "runtime": {
-          "lib/net6.0/System.Drawing.Common.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.21.52210"
-          }
-        },
-        "runtimeTargets": {
           "runtimes/unix/lib/net6.0/System.Drawing.Common.dll": {
-            "rid": "unix",
-            "assetType": "runtime",
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.21.52210"
-          },
-          "runtimes/win/lib/net6.0/System.Drawing.Common.dll": {
-            "rid": "win",
-            "assetType": "runtime",
             "assemblyVersion": "6.0.0.0",
             "fileVersion": "6.0.21.52210"
           }
@@ -929,14 +830,6 @@
             "assemblyVersion": "7.0.0.2",
             "fileVersion": "7.0.723.27404"
           }
-        },
-        "runtimeTargets": {
-          "runtimes/win/lib/net7.0/System.Management.dll": {
-            "rid": "win",
-            "assetType": "runtime",
-            "assemblyVersion": "7.0.0.2",
-            "fileVersion": "7.0.723.27404"
-          }
         }
       },
       "System.Memory.Data/1.0.2": {
@@ -956,14 +849,6 @@
             "assemblyVersion": "4.0.0.0",
             "fileVersion": "6.0.21.52210"
           }
-        },
-        "runtimeTargets": {
-          "runtimes/win/lib/net6.0/System.Runtime.Caching.dll": {
-            "rid": "win",
-            "assetType": "runtime",
-            "assemblyVersion": "4.0.0.0",
-            "fileVersion": "6.0.21.52210"
-          }
         }
       },
       "System.Security.Cryptography.Pkcs/9.0.18": {
@@ -972,27 +857,11 @@
             "assemblyVersion": "9.0.0.0",
             "fileVersion": "9.0.1826.31522"
           }
-        },
-        "runtimeTargets": {
-          "runtimes/win/lib/net9.0/System.Security.Cryptography.Pkcs.dll": {
-            "rid": "win",
-            "assetType": "runtime",
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.1826.31522"
-          }
         }
       },
       "System.Security.Cryptography.ProtectedData/6.0.0": {
         "runtime": {
           "lib/net6.0/System.Security.Cryptography.ProtectedData.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.21.52210"
-          }
-        },
-        "runtimeTargets": {
-          "runtimes/win/lib/net6.0/System.Security.Cryptography.ProtectedData.dll": {
-            "rid": "win",
-            "assetType": "runtime",
             "assemblyVersion": "6.0.0.0",
             "fileVersion": "6.0.21.52210"
           }
@@ -1029,47 +898,6 @@
             "assemblyVersion": "8.1.2.0",
             "fileVersion": "8.100.225.15402"
           }
-        },
-        "resources": {
-          "lib/net8.0/cs/System.ServiceModel.Http.resources.dll": {
-            "locale": "cs"
-          },
-          "lib/net8.0/de/System.ServiceModel.Http.resources.dll": {
-            "locale": "de"
-          },
-          "lib/net8.0/es/System.ServiceModel.Http.resources.dll": {
-            "locale": "es"
-          },
-          "lib/net8.0/fr/System.ServiceModel.Http.resources.dll": {
-            "locale": "fr"
-          },
-          "lib/net8.0/it/System.ServiceModel.Http.resources.dll": {
-            "locale": "it"
-          },
-          "lib/net8.0/ja/System.ServiceModel.Http.resources.dll": {
-            "locale": "ja"
-          },
-          "lib/net8.0/ko/System.ServiceModel.Http.resources.dll": {
-            "locale": "ko"
-          },
-          "lib/net8.0/pl/System.ServiceModel.Http.resources.dll": {
-            "locale": "pl"
-          },
-          "lib/net8.0/pt-BR/System.ServiceModel.Http.resources.dll": {
-            "locale": "pt-BR"
-          },
-          "lib/net8.0/ru/System.ServiceModel.Http.resources.dll": {
-            "locale": "ru"
-          },
-          "lib/net8.0/tr/System.ServiceModel.Http.resources.dll": {
-            "locale": "tr"
-          },
-          "lib/net8.0/zh-Hans/System.ServiceModel.Http.resources.dll": {
-            "locale": "zh-Hans"
-          },
-          "lib/net8.0/zh-Hant/System.ServiceModel.Http.resources.dll": {
-            "locale": "zh-Hant"
-          }
         }
       },
       "System.ServiceModel.NetFramingBase/8.1.2": {
@@ -1080,47 +908,6 @@
           "lib/net8.0/System.ServiceModel.NetFramingBase.dll": {
             "assemblyVersion": "8.1.2.0",
             "fileVersion": "8.100.225.15402"
-          }
-        },
-        "resources": {
-          "lib/net8.0/cs/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "cs"
-          },
-          "lib/net8.0/de/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "de"
-          },
-          "lib/net8.0/es/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "es"
-          },
-          "lib/net8.0/fr/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "fr"
-          },
-          "lib/net8.0/it/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "it"
-          },
-          "lib/net8.0/ja/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "ja"
-          },
-          "lib/net8.0/ko/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "ko"
-          },
-          "lib/net8.0/pl/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "pl"
-          },
-          "lib/net8.0/pt-BR/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "pt-BR"
-          },
-          "lib/net8.0/ru/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "ru"
-          },
-          "lib/net8.0/tr/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "tr"
-          },
-          "lib/net8.0/zh-Hans/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "zh-Hans"
-          },
-          "lib/net8.0/zh-Hant/System.ServiceModel.NetFramingBase.resources.dll": {
-            "locale": "zh-Hant"
           }
         }
       },
@@ -1133,47 +920,6 @@
           "lib/net8.0/System.ServiceModel.NetTcp.dll": {
             "assemblyVersion": "8.1.2.0",
             "fileVersion": "8.100.225.15402"
-          }
-        },
-        "resources": {
-          "lib/net8.0/cs/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "cs"
-          },
-          "lib/net8.0/de/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "de"
-          },
-          "lib/net8.0/es/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "es"
-          },
-          "lib/net8.0/fr/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "fr"
-          },
-          "lib/net8.0/it/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "it"
-          },
-          "lib/net8.0/ja/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "ja"
-          },
-          "lib/net8.0/ko/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "ko"
-          },
-          "lib/net8.0/pl/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "pl"
-          },
-          "lib/net8.0/pt-BR/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "pt-BR"
-          },
-          "lib/net8.0/ru/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "ru"
-          },
-          "lib/net8.0/tr/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "tr"
-          },
-          "lib/net8.0/zh-Hans/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "zh-Hans"
-          },
-          "lib/net8.0/zh-Hant/System.ServiceModel.NetTcp.resources.dll": {
-            "locale": "zh-Hant"
           }
         }
       },
@@ -1198,47 +944,6 @@
             "assemblyVersion": "4.0.0.0",
             "fileVersion": "8.100.225.15402"
           }
-        },
-        "resources": {
-          "lib/net8.0/cs/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "cs"
-          },
-          "lib/net8.0/de/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "de"
-          },
-          "lib/net8.0/es/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "es"
-          },
-          "lib/net8.0/fr/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "fr"
-          },
-          "lib/net8.0/it/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "it"
-          },
-          "lib/net8.0/ja/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "ja"
-          },
-          "lib/net8.0/ko/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "ko"
-          },
-          "lib/net8.0/pl/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "pl"
-          },
-          "lib/net8.0/pt-BR/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "pt-BR"
-          },
-          "lib/net8.0/ru/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "ru"
-          },
-          "lib/net8.0/tr/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "tr"
-          },
-          "lib/net8.0/zh-Hans/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "zh-Hans"
-          },
-          "lib/net8.0/zh-Hant/System.ServiceModel.Primitives.resources.dll": {
-            "locale": "zh-Hant"
-          }
         }
       },
       "System.Windows.Extensions/6.0.0": {
@@ -1247,14 +952,6 @@
         },
         "runtime": {
           "lib/net6.0/System.Windows.Extensions.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.21.52210"
-          }
-        },
-        "runtimeTargets": {
-          "runtimes/win/lib/net6.0/System.Windows.Extensions.dll": {
-            "rid": "win",
-            "assetType": "runtime",
             "assemblyVersion": "6.0.0.0",
             "fileVersion": "6.0.21.52210"
           }
@@ -1594,13 +1291,6 @@
       "sha512": "sha512-+pz7gIPh5ydsBcQvivt4R98PwJXer86fyQBBToIBLxZ5kuhW4N13Ijz87s9WpuPtF1vh4JesYCgpDPAOgkMhdg==",
       "path": "microsoft.data.sqlclient/5.1.6",
       "hashPath": "microsoft.data.sqlclient.5.1.6.nupkg.sha512"
-    },
-    "Microsoft.Data.SqlClient.SNI.runtime/5.1.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-wNGM5ZTQCa2blc9ikXQouybGiyMd6IHPVJvAlBEPtr6JepZEOYeDxGyprYvFVeOxlCXs7avridZQ0nYkHzQWCQ==",
-      "path": "microsoft.data.sqlclient.sni.runtime/5.1.1",
-      "hashPath": "microsoft.data.sqlclient.sni.runtime.5.1.1.nupkg.sha512"
     },
     "Microsoft.EntityFrameworkCore/9.0.0": {
       "type": "package",

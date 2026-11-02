@@ -2782,4 +2782,106 @@
   <data name="VenueReserveAssigneeBusy" xml:space="preserve">
     <value>این پرسنل در همین زمان رزرو دیگری دارد.</value>
   </data>
+  <data name="ReserveCompleteDebtAbovePrice" xml:space="preserve">
+    <value>بدهی ثبت‌شده برای مشتری نمی‌تواند بیشتر از باقی‌مانده‌ی قیمت رزرو (قیمت منهای پرداخت آنلاین) باشد. هزینه‌ی اضافه را در محل دریافت کنید.</value>
+  </data>
+  <data name="ProviderUserRoleNameRequired" xml:space="preserve">
+    <value>نام نقش را وارد کنید.</value>
+  </data>
+  <data name="ProviderUserRoleNameDuplicate" xml:space="preserve">
+    <value>نقشی با همین نام قبلاً ساخته شده است.</value>
+  </data>
+  <data name="ProviderUserRolePermissionInvalid" xml:space="preserve">
+    <value>دسترسی انتخاب‌شده معتبر نیست یا برای نمایندگی‌های شما تعریف نشده است.</value>
+  </data>
+  <data name="ProviderUserRoleInUse" xml:space="preserve">
+    <value>این نقش به کارمندانی داده شده است؛ اول نقش آن‌ها را عوض کنید.</value>
+  </data>
+  <data name="ProviderUserRoleNotFound" xml:space="preserve">
+    <value>نقش پیدا نشد.</value>
+  </data>
+  <data name="ProviderUserAlreadyExists" xml:space="preserve">
+    <value>این کاربر قبلاً به کارمندان شما اضافه یا دعوت شده است.</value>
+  </data>
+  <data name="ProviderUserCannotInviteSelf" xml:space="preserve">
+    <value>نمی‌توانید خودتان را به‌عنوان کارمند اضافه کنید.</value>
+  </data>
+  <data name="ProviderUserNotFound" xml:space="preserve">
+    <value>کارمند پیدا نشد.</value>
+  </data>
+  <data name="ProviderUserInviteNotFound" xml:space="preserve">
+    <value>دعوت‌نامه پیدا نشد.</value>
+  </data>
+  <data name="ProviderUserInviteAnswered" xml:space="preserve">
+    <value>به این دعوت‌نامه قبلاً پاسخ داده شده است.</value>
+  </data>
+  <data name="ProviderUserLimitReached" xml:space="preserve">
+    <value>به سقف تعداد مجاز رسیده‌اید.</value>
+  </data>
+  <data name="ProviderOwnerOnlyAction" xml:space="preserve">
+    <value>فقط مالک ارائه‌دهنده می‌تواند این کار را انجام دهد.</value>
+  </data>
+  <data name="ProviderActingAccessDenied" xml:space="preserve">
+    <value>به پنل این ارائه‌دهنده دسترسی ندارید یا دسترسی شما غیرفعال شده است.</value>
+  </data>
+  <data name="ProviderPermissionScopeStore" xml:space="preserve">
+    <value>فروشگاه</value>
+  </data>
+  <data name="ProviderPermissionScopeClinic" xml:space="preserve">
+    <value>کلینیک</value>
+  </data>
+  <data name="ProviderPermissionScopeGroomer" xml:space="preserve">
+    <value>آرایشگاه</value>
+  </data>
+  <data name="ProviderPermissionScopeCoach" xml:space="preserve">
+    <value>مربی</value>
+  </data>
+  <data name="ProviderPermissionScopePansion" xml:space="preserve">
+    <value>پانسیون</value>
+  </data>
+  <data name="ProviderPermissionScopeSchool" xml:space="preserve">
+    <value>مدرسه</value>
+  </data>
+  <data name="ProviderPermissionSectionProfile" xml:space="preserve">
+    <value>اطلاعات، ساعت کاری و تنظیمات</value>
+  </data>
+  <data name="ProviderPermissionSectionService" xml:space="preserve">
+    <value>خدمات و تعرفه‌ها</value>
+  </data>
+  <data name="ProviderPermissionSectionReserve" xml:space="preserve">
+    <value>رزروها</value>
+  </data>
+  <data name="ProviderPermissionSectionConsultation" xml:space="preserve">
+    <value>مشاوره‌ی آنلاین</value>
+  </data>
+  <data name="ProviderPermissionSectionReview" xml:space="preserve">
+    <value>نظرات</value>
+  </data>
+  <data name="ProviderPermissionSectionStaff" xml:space="preserve">
+    <value>پرسنل و اپراتورها</value>
+  </data>
+  <data name="ProviderPermissionSectionFinance" xml:space="preserve">
+    <value>حسابداری و تسویه</value>
+  </data>
+  <data name="ProviderPermissionSectionPortfolio" xml:space="preserve">
+    <value>نمونه‌کارها</value>
+  </data>
+  <data name="ProviderPermissionSectionCourse" xml:space="preserve">
+    <value>دوره‌ها و جلسات</value>
+  </data>
+  <data name="ProviderPermissionSectionProduct" xml:space="preserve">
+    <value>محصولات</value>
+  </data>
+  <data name="ProviderPermissionSectionOrder" xml:space="preserve">
+    <value>سفارش‌ها و ارسال</value>
+  </data>
+  <data name="ProviderPermissionSectionDiscount" xml:space="preserve">
+    <value>تخفیف‌ها</value>
+  </data>
+  <data name="ProviderPermissionLevelView" xml:space="preserve">
+    <value>مشاهده</value>
+  </data>
+  <data name="ProviderPermissionLevelManage" xml:space="preserve">
+    <value>مدیریت</value>
+  </data>
 </root>

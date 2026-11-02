@@ -27,5 +27,7 @@ namespace Entities.Entities.ProviderField
         public ICollection<ClinicField.Clinic> Clinics { get; set; }
         public ICollection<CoachField.Coach> Coaches { get; set; }
         public ICollection<SchoolField.School> Schools { get; set; }
+        public ICollection<ProviderUser> Users { get; set; }
+        public ICollection<ProviderUserRole> UserRoles { get; set; }
     }
 }

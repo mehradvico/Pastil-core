@@ -62,6 +62,12 @@ public sealed class AreaMembershipAuthorizationHandler : AuthorizationHandler<Ar
             return Task.CompletedTask;
 
         var user = _currentUser.CurrentUser;
+        // کارمند پنل ارائه‌دهنده با هدر X-Provider-Id: عضویت و دسترسیِ دقیق همان endpoint را ProviderPanelAccessFilter (سخت‌گیرانه، رد پیش‌فرض) چک می‌کند
+        if (IsProviderActingRequest(context, requirement.Area))
+        {
+            context.Succeed(requirement);
+            return Task.CompletedTask;
+        }
         if (AreaMembership.IsMember(requirement.Area, user))
         {
             context.Succeed(requirement);
@@ -78,11 +84,26 @@ public sealed class AreaMembershipAuthorizationHandler : AuthorizationHandler<Ar
             _audit.Observed("AreaNonMember", user?.UserId, detail: $"{requirement.Area}:{(enforce ? "denied" : "allowed_audit_mode")}");
         }
 
-        // ناحیه‌ی Companion با CompanionAreaAccessFilter (بررسی دیتابیسی: ارائه‌دهنده / مالک مرکز / عضو تیم) اعمال می‌شود؛ قاعده‌ی توکنیِ بالا
+        // ناحیه‌ی Companion با ProviderPanelAccessFilter (بررسی دیتابیسی: ارائه‌دهنده / مالک مرکز / عضو تیم) اعمال می‌شود؛ قاعده‌ی توکنیِ بالا
         // (CompanionId/IsCompanionUser) مالکان کلینیک/مربی/آرایشگاه و ارائه‌دهنده‌های بدون Companion را اشتباهاً رد می‌کرد، پس برای Companion هرگز رد نمی‌کند.
         if (!enforce || string.Equals(requirement.Area, "Companion", StringComparison.OrdinalIgnoreCase))
             context.Succeed(requirement);
 
         return Task.CompletedTask;
+    }
+
+    private static bool IsProviderActingRequest(AuthorizationHandlerContext context, string area)
+    {
+        if (!ProviderEndpointPolicy.IsProviderArea(area))
+            return false;
+        var http = context.Resource switch
+        {
+            Microsoft.AspNetCore.Http.HttpContext h => h,
+            Microsoft.AspNetCore.Mvc.Filters.AuthorizationFilterContext f => f.HttpContext,
+            _ => null,
+        };
+        return http != null &&
+            http.Request.Headers.TryGetValue(Application.Common.CurrentUser.ProviderActingContext.HeaderName, out var value) &&
+            !string.IsNullOrWhiteSpace(value);
     }
 }

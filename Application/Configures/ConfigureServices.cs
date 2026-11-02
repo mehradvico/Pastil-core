@@ -641,6 +641,7 @@ public static class ConfigureServices
         services.AddScoped<Application.Services.CoachSrvs.CoachReviewSrv.ICoachReviewService, Application.Services.CoachSrvs.CoachReviewSrv.CoachReviewService>();
         services.AddScoped<ISchoolService, SchoolService>();
         services.AddScoped<Application.Services.CompanionSrvs.CompanionPanelAccessSrv.ICompanionPanelAccessService, Application.Services.CompanionSrvs.CompanionPanelAccessSrv.CompanionPanelAccessService>();
+        services.AddScoped<Application.Services.ProviderSrvs.ProviderUserSrv.IProviderUserService, Application.Services.ProviderSrvs.ProviderUserSrv.ProviderUserService>();
         services.AddScoped<Application.Services.SchoolSrvs.SchoolOwnershipSrv.ISchoolOwnershipService, Application.Services.SchoolSrvs.SchoolOwnershipSrv.SchoolOwnershipService>();
         // ویژگی‌های تکمیلی مدرسه (۲۰۲۶-۱۰-۲۸)
         services.AddScoped<Application.Services.SchoolSrvs.SchoolWaitlistSrv.ISchoolWaitlistService, Application.Services.SchoolSrvs.SchoolWaitlistSrv.SchoolWaitlistService>();

@@ -11195,6 +11195,110 @@ namespace Persistence.Migrations
                     b.ToTable("ProviderSubscriptions");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderUser", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("InviteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("ProviderId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProviderUserRoleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool?>("UserAccept")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderUserRoleId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ProviderId", "UserId")
+                        .IsUnique()
+                        .HasFilter("[Deleted] = 0");
+
+                    b.ToTable("ProviderUsers");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderUserRole", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long>("ProviderId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderId", "Name")
+                        .IsUnique()
+                        .HasFilter("[Deleted] = 0");
+
+                    b.ToTable("ProviderUserRoles");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderUserRolePermission", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("PermissionKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long>("ProviderUserRoleId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderUserRoleId", "PermissionKey")
+                        .IsUnique();
+
+                    b.ToTable("ProviderUserRolePermissions");
+                });
+
             modelBuilder.Entity("Entities.Entities.ProviderField.SubscriptionPlan", b =>
                 {
                     b.Property<long>("Id")
@@ -19770,6 +19874,55 @@ namespace Persistence.Migrations
                     b.Navigation("Provider");
                 });
 
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderUser", b =>
+                {
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("Users")
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.ProviderField.ProviderUserRole", "ProviderUserRole")
+                        .WithMany("Users")
+                        .HasForeignKey("ProviderUserRoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Security.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Provider");
+
+                    b.Navigation("ProviderUserRole");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderUserRole", b =>
+                {
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Provider");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderUserRolePermission", b =>
+                {
+                    b.HasOne("Entities.Entities.ProviderField.ProviderUserRole", "ProviderUserRole")
+                        .WithMany("Permissions")
+                        .HasForeignKey("ProviderUserRoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProviderUserRole");
+                });
+
             modelBuilder.Entity("Entities.Entities.PushMessage", b =>
                 {
                     b.HasOne("Entities.Entities.Picture", "Picture")
@@ -22098,6 +22251,10 @@ namespace Persistence.Migrations
                     b.Navigation("Stores");
 
                     b.Navigation("Subscriptions");
+
+                    b.Navigation("UserRoles");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Entities.Entities.ProviderField.ProviderOnboardingApplication", b =>
@@ -22110,6 +22267,13 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Entities.Entities.ProviderField.ProviderRole", b =>
                 {
                     b.Navigation("Assignments");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProviderField.ProviderUserRole", b =>
+                {
+                    b.Navigation("Permissions");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Entities.Entities.ProviderField.SubscriptionPlan", b =>

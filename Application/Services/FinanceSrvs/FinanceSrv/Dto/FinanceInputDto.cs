@@ -12,5 +12,8 @@ namespace Application.Services.FinanceSrvs.FinanceSrv.Dto
     {
         public bool? IsCompanion { get; set; }
         public bool? HasCommission { get; set; }
+
+        /// <summary>فیلتر نوع مرکز در Venues: clinic | coach | groomer | pansion | school (خالی = همه)</summary>
+        public string VenueKind { get; set; }
     }
 }

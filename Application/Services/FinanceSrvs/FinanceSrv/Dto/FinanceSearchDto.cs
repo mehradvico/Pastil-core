@@ -12,5 +12,6 @@ namespace Application.Services.FinanceSrvs.FinanceSrv.Dto
     {
         public List<StoreFinanceVDto> Stores { get; set; } = new();
         public List<CompanionFinanceVDto> Companions { get; set; } = new();
+        public List<FinanceVenueVDto> Venues { get; set; } = new();
     }
 }

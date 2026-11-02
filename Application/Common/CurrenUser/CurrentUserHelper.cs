@@ -27,6 +27,11 @@ namespace Application.Common.CurrentUser
                 if (context?.User?.Identity?.IsAuthenticated != true)
                     return null;
 
+                // کارمند پنل ارائه‌دهنده که برای همین درخواست اعتبارسنجی شده (ProviderPanelAccessFilter): هویت مالک با ردِ کاربر واقعی
+                var acting = ProviderActingContext.Get(context);
+                if (acting != null)
+                    return acting;
+
                 var token = GetAccessToken(context);
                 if (string.IsNullOrWhiteSpace(token))
                     return null;

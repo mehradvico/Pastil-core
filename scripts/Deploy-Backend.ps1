@@ -643,13 +643,24 @@ try {
             Push-Location $BackendRoot
             try {
                 Write-Step "$name : dotnet restore"
-                $code = Invoke-NativeStreaming -Exe $dotnetExe -Arguments @('restore', $meta.Project)
+                # The containers are linux/amd64 (aspnet:9.0 built on this machine),
+                # so publish for linux-x64 only: drops the win-*/osx native and
+                # runtime-specific assemblies that can never load there.
+                $code = Invoke-NativeStreaming -Exe $dotnetExe -Arguments @('restore', $meta.Project, '-r', 'linux-x64')
                 if ($code -ne 0) { Stop-WithError "dotnet restore failed for $name (exit code $code)" }
                 Write-Ok 'Restore complete'
+
+                # dotnet publish -o never deletes files, so stale assemblies, old
+                # runtimes/ and language folders would otherwise pile up forever.
+                $publishPath = Join-Path $BackendRoot $meta.PublishDir
+                if (Test-Path -LiteralPath $publishPath) {
+                    Remove-Item -LiteralPath $publishPath -Recurse -Force
+                }
 
                 Write-Step "$name : dotnet publish (Release)"
                 $code = Invoke-NativeStreaming -Exe $dotnetExe -Arguments @(
                     'publish', $meta.Project, '-c', 'Release', '-o', $meta.PublishDir,
+                    '-r', 'linux-x64', '--self-contained', 'false',
                     '--no-restore', '/p:UseAppHost=false')
                 if ($code -ne 0) { Stop-WithError "dotnet publish failed for $name (exit code $code)" }
                 Write-Ok 'Publish complete'

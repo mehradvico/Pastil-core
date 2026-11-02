@@ -50,6 +50,10 @@ namespace Application.Services.ReserveCompleteSrv
             received = Math.Min(received, remainder);
 
             var debt = dto.NotReceived ? Math.Round(remainder - received, 2) : 0;
+            // بدهی خودکار از کیف پول مشتری کسر می‌شود؛ پس سقفش همان باقی‌مانده‌ی قیمتی است که مشتری پذیرفته (قیمت − آنلاین).
+            // هزینه‌ی اضافه بالاتر از قیمت رزرو باید در محل دریافت شود، نه بدهی.
+            if (debt > Math.Max(0, price - paidOnline) + Tolerance)
+                return Fail(Resource.Notification.ReserveCompleteDebtAbovePrice);
             var notReceived = dto.NotReceived && debt > 0;
             return new ReserveCompleteResult(null, final, received, notReceived, notReceived ? debt : 0, detail);
         }

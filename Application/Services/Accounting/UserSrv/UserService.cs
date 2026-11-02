@@ -168,6 +168,21 @@ namespace Application.Services.UserSrv
         }
 
 
+        public BaseResultDto UpdateSelfDto(UserDto dto)
+        {
+            var current = _context.Users.AsNoTracking()
+                .Where(s => s.Id == dto.Id && !s.Deleted)
+                .Select(s => new { s.Email, s.TwoFactorEnabled })
+                .FirstOrDefault();
+            if (current == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            // Over-posting: با توکن دزدیده‌شده نباید بشود ایمیل را عوض کرد (و با forgetpassword ایمیلی حساب را گرفت)
+            // یا تأیید دومرحله‌ای را خاموش کرد.
+            dto.Email = current.Email;
+            dto.TwoFactorEnabled = current.TwoFactorEnabled || dto.TwoFactorEnabled;
+            return UpdateDto(dto);
+        }
+
         public override BaseResultDto UpdateDto(UserDto dto)
         {
             try
@@ -534,6 +549,10 @@ namespace Application.Services.UserSrv
                 }
 
             }
+
+            // یک‌بار مصرف: کدی که با آن وارد شد تا پایان اعتبارش دوباره قابل استفاده نباشد (مثل ResetPassword)
+            if (!string.IsNullOrEmpty(user.Code) && codeVerified.IsSuccess)
+                await otpVerifyService.ConsumeAsync(item.Mobile, item.Email);
 
             var tokenResult = await userTokenSevice.ResetTokenAsync(
                 item,
@@ -1041,6 +1060,25 @@ namespace Application.Services.UserSrv
             }
 
             return null;
+        }
+
+        public async Task<CurrentUserDto> GetCurrentUserByIdAsync(long userId)
+        {
+            var user = await _context.Users.AsNoTracking()
+                .Include(s => s.CompanionUsers).ThenInclude(s => s.Companion)
+                .Include(s => s.CompanionUsers).ThenInclude(s => s.Expertise)
+                .Include(s => s.Picture).Include(s => s.Role)
+                .Include(s => s.Companions).Include(s => s.Driver)
+                .Include(s => s.UserCurrentLocation).ThenInclude(s => s.City)
+                .Include(s => s.UserCurrentLocation).ThenInclude(s => s.Neighborhood)
+                .Include(s => s.Stores)
+                .FirstOrDefaultAsync(x => x.Id == userId && !x.Deleted && !x.Locked);
+            if (user == null)
+                return null;
+            var currentUser = mapper.Map<CurrentUserDto>(user);
+            currentUser.Expertise = await ResolveProfileExpertiseAsync(user.Id, user.Expertise);
+            currentUser.CanSetExpertise = currentUser.CanSetExpertise || await CanHaveExpertiseAsync(user.Id);
+            return currentUser;
         }
 
         public List<UserVDto> GetWithRole(RoleEnum roleEnum)

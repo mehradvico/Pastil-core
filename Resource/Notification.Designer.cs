@@ -7153,5 +7153,308 @@ namespace Resource {
             }
         }
 
+        public static string ReserveCompleteDebtAbovePrice {
+            get {
+                return ResourceManager.GetString("ReserveCompleteDebtAbovePrice", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Role Name Required.
+        /// </summary>
+        public static string ProviderUserRoleNameRequired {
+            get {
+                return ResourceManager.GetString("ProviderUserRoleNameRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Role Name Duplicate.
+        /// </summary>
+        public static string ProviderUserRoleNameDuplicate {
+            get {
+                return ResourceManager.GetString("ProviderUserRoleNameDuplicate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Role Permission Invalid.
+        /// </summary>
+        public static string ProviderUserRolePermissionInvalid {
+            get {
+                return ResourceManager.GetString("ProviderUserRolePermissionInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Role In Use.
+        /// </summary>
+        public static string ProviderUserRoleInUse {
+            get {
+                return ResourceManager.GetString("ProviderUserRoleInUse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Role Not Found.
+        /// </summary>
+        public static string ProviderUserRoleNotFound {
+            get {
+                return ResourceManager.GetString("ProviderUserRoleNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Already Exists.
+        /// </summary>
+        public static string ProviderUserAlreadyExists {
+            get {
+                return ResourceManager.GetString("ProviderUserAlreadyExists", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Cannot Invite Self.
+        /// </summary>
+        public static string ProviderUserCannotInviteSelf {
+            get {
+                return ResourceManager.GetString("ProviderUserCannotInviteSelf", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Not Found.
+        /// </summary>
+        public static string ProviderUserNotFound {
+            get {
+                return ResourceManager.GetString("ProviderUserNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Invite Not Found.
+        /// </summary>
+        public static string ProviderUserInviteNotFound {
+            get {
+                return ResourceManager.GetString("ProviderUserInviteNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Invite Answered.
+        /// </summary>
+        public static string ProviderUserInviteAnswered {
+            get {
+                return ResourceManager.GetString("ProviderUserInviteAnswered", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider User Limit Reached.
+        /// </summary>
+        public static string ProviderUserLimitReached {
+            get {
+                return ResourceManager.GetString("ProviderUserLimitReached", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Owner Only Action.
+        /// </summary>
+        public static string ProviderOwnerOnlyAction {
+            get {
+                return ResourceManager.GetString("ProviderOwnerOnlyAction", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Acting Access Denied.
+        /// </summary>
+        public static string ProviderActingAccessDenied {
+            get {
+                return ResourceManager.GetString("ProviderActingAccessDenied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Scope Store.
+        /// </summary>
+        public static string ProviderPermissionScopeStore {
+            get {
+                return ResourceManager.GetString("ProviderPermissionScopeStore", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Scope Clinic.
+        /// </summary>
+        public static string ProviderPermissionScopeClinic {
+            get {
+                return ResourceManager.GetString("ProviderPermissionScopeClinic", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Scope Groomer.
+        /// </summary>
+        public static string ProviderPermissionScopeGroomer {
+            get {
+                return ResourceManager.GetString("ProviderPermissionScopeGroomer", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Scope Coach.
+        /// </summary>
+        public static string ProviderPermissionScopeCoach {
+            get {
+                return ResourceManager.GetString("ProviderPermissionScopeCoach", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Scope Pansion.
+        /// </summary>
+        public static string ProviderPermissionScopePansion {
+            get {
+                return ResourceManager.GetString("ProviderPermissionScopePansion", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Scope School.
+        /// </summary>
+        public static string ProviderPermissionScopeSchool {
+            get {
+                return ResourceManager.GetString("ProviderPermissionScopeSchool", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Profile.
+        /// </summary>
+        public static string ProviderPermissionSectionProfile {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionProfile", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Service.
+        /// </summary>
+        public static string ProviderPermissionSectionService {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionService", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Reserve.
+        /// </summary>
+        public static string ProviderPermissionSectionReserve {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionReserve", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Consultation.
+        /// </summary>
+        public static string ProviderPermissionSectionConsultation {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionConsultation", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Review.
+        /// </summary>
+        public static string ProviderPermissionSectionReview {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionReview", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Staff.
+        /// </summary>
+        public static string ProviderPermissionSectionStaff {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionStaff", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Finance.
+        /// </summary>
+        public static string ProviderPermissionSectionFinance {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionFinance", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Portfolio.
+        /// </summary>
+        public static string ProviderPermissionSectionPortfolio {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionPortfolio", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Course.
+        /// </summary>
+        public static string ProviderPermissionSectionCourse {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionCourse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Product.
+        /// </summary>
+        public static string ProviderPermissionSectionProduct {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionProduct", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Order.
+        /// </summary>
+        public static string ProviderPermissionSectionOrder {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionOrder", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Section Discount.
+        /// </summary>
+        public static string ProviderPermissionSectionDiscount {
+            get {
+                return ResourceManager.GetString("ProviderPermissionSectionDiscount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Level View.
+        /// </summary>
+        public static string ProviderPermissionLevelView {
+            get {
+                return ResourceManager.GetString("ProviderPermissionLevelView", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Permission Level Manage.
+        /// </summary>
+        public static string ProviderPermissionLevelManage {
+            get {
+                return ResourceManager.GetString("ProviderPermissionLevelManage", resourceCulture);
+            }
+        }
+
     }
 }

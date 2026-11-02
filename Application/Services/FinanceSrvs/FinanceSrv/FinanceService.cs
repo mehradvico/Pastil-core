@@ -181,7 +181,87 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 companions = companions.Where(c => c.HasCommission == dto.HasCommission.Value).ToList();
             }
 
-            return new FinanceSearchDto { Stores = stores, Companions = companions };
+            var venues = dto.IsCompanion == false ? new System.Collections.Generic.List<FinanceVenueVDto>() : BuildVenues(dto);
+
+            return new FinanceSearchDto { Stores = stores, Companions = companions, Venues = venues };
+        }
+
+        // تب «مراکز و متخصصین»: هر نوع مرکز از جدول خودش با کمیسیون و تعداد رزرو معتبر (پرداخت‌شده و لغونشده)
+        private System.Collections.Generic.List<FinanceVenueVDto> BuildVenues(FinanceInputDto dto)
+        {
+            var kind = (dto.VenueKind ?? string.Empty).Trim().ToLowerInvariant();
+            bool Wants(string k) => kind.Length == 0 || kind == k;
+            var q = string.IsNullOrWhiteSpace(dto.Q) ? null : dto.Q.Trim();
+            var venues = new System.Collections.Generic.List<FinanceVenueVDto>();
+
+            if (Wants("clinic"))
+            {
+                var counts = _context.ClinicReserves.Where(r => r.IsReserved && !r.IsCancel)
+                    .GroupBy(r => r.ClinicId).Select(g => new { g.Key, Count = g.Count() }).ToDictionary(x => x.Key, x => x.Count);
+                venues.AddRange(_context.Clinics.Where(c => !c.Deleted && (q == null || c.Name.Contains(q)))
+                    .Select(c => new FinanceVenueVDto { Kind = "clinic", Id = c.Id, Name = c.Name, PictureUrl = c.Picture != null ? c.Picture.Url : null, Active = c.Active, CommissionPercent = (decimal)c.CommissionPercent })
+                    .ToList()
+                    .Select(v => { v.ReserveCount = counts.TryGetValue(v.Id, out var n) ? n : 0; v.HasCommission = v.CommissionPercent > 0; return v; }));
+            }
+
+            if (Wants("coach"))
+            {
+                var counts = _context.CoachReserves.Where(r => r.IsReserved && !r.IsCancel)
+                    .GroupBy(r => r.CoachId).Select(g => new { g.Key, Count = g.Count() }).ToDictionary(x => x.Key, x => x.Count);
+                venues.AddRange(_context.Coaches.Where(c => !c.Deleted && (q == null || c.Name.Contains(q)))
+                    .Select(c => new FinanceVenueVDto { Kind = "coach", Id = c.Id, Name = c.Name, PictureUrl = c.Picture != null ? c.Picture.Url : null, Active = c.Active, CommissionPercent = (decimal)c.CommissionPercent })
+                    .ToList()
+                    .Select(v => { v.ReserveCount = counts.TryGetValue(v.Id, out var n) ? n : 0; v.HasCommission = v.CommissionPercent > 0; return v; }));
+            }
+
+            if (Wants("groomer"))
+            {
+                var counts = _context.GroomerReserves.Where(r => r.IsReserved && !r.IsCancel)
+                    .GroupBy(r => r.GroomerId).Select(g => new { g.Key, Count = g.Count() }).ToDictionary(x => x.Key, x => x.Count);
+                venues.AddRange(_context.Groomers.Where(c => !c.Deleted && (q == null || c.Name.Contains(q)))
+                    .Select(c => new FinanceVenueVDto { Kind = "groomer", Id = c.Id, Name = c.Name, PictureUrl = c.Picture != null ? c.Picture.Url : null, Active = c.Active, CommissionPercent = (decimal)c.CommissionPercent })
+                    .ToList()
+                    .Select(v => { v.ReserveCount = counts.TryGetValue(v.Id, out var n) ? n : 0; v.HasCommission = v.CommissionPercent > 0; return v; }));
+            }
+
+            if (Wants("pansion"))
+            {
+                var counts = _context.PansionReserves.Where(r => r.IsReserved && !r.IsCancel)
+                    .GroupBy(r => r.PansionId).Select(g => new { g.Key, Count = g.Count() }).ToDictionary(x => x.Key, x => x.Count);
+                venues.AddRange(_context.Pansions.Where(p => !p.Deleted && (q == null || p.Name.Contains(q)))
+                    .Select(p => new FinanceVenueVDto { Kind = "pansion", Id = p.Id, Name = p.Name, PictureUrl = p.Picture != null ? p.Picture.Url : null, Active = p.Active, DailyCommissionPercent = p.DailyCommissionPercent, HourlyCommissionPercent = p.HourlyCommissionPercent, CompanionId = p.CompanionId })
+                    .ToList()
+                    .Select(v => { v.ReserveCount = counts.TryGetValue(v.Id, out var n) ? n : 0; v.HasCommission = v.DailyCommissionPercent > 0 && v.HourlyCommissionPercent > 0; return v; }));
+            }
+
+            if (Wants("school"))
+            {
+                var courses = _context.SchoolCourses.Where(c => !c.Deleted)
+                    .GroupBy(c => c.SchoolId).Select(g => new { g.Key, Total = g.Count(), With = g.Count(c => c.CommissionPercent > 0) }).ToDictionary(x => x.Key);
+                var counts = (from r in _context.SchoolReserves
+                              join c in _context.SchoolCourses on r.SchoolCourseId equals c.Id
+                              where r.IsReserved && !r.IsCancel
+                              group r by c.SchoolId into g
+                              select new { g.Key, Count = g.Count() }).ToDictionary(x => x.Key, x => x.Count);
+                venues.AddRange(_context.Schools.Where(s => !s.Deleted && (q == null || s.Name.Contains(q)))
+                    .Select(s => new FinanceVenueVDto { Kind = "school", Id = s.Id, Name = s.Name, PictureUrl = s.Picture != null ? s.Picture.Url : null, Active = s.Active, CompanionId = s.CompanionId })
+                    .ToList()
+                    .Select(v =>
+                    {
+                        if (courses.TryGetValue(v.Id, out var c)) { v.CourseCount = c.Total; v.CoursesWithCommissionCount = c.With; }
+                        v.HasCommission = v.CourseCount > 0 && v.CourseCount == v.CoursesWithCommissionCount;
+                        v.ReserveCount = counts.TryGetValue(v.Id, out var n) ? n : 0;
+                        return v;
+                    }));
+            }
+
+            System.Collections.Generic.IEnumerable<FinanceVenueVDto> result = venues;
+            if (dto.Available.HasValue) result = result.Where(v => v.Active == dto.Available.Value);
+            if (dto.HasCommission.HasValue) result = result.Where(v => v.HasCommission == dto.HasCommission.Value);
+            result = dto.SortBy == Common.Enumerable.SortEnum.Old
+                ? result.OrderBy(v => v.Kind).ThenBy(v => v.Id)
+                : result.OrderByDescending(v => v.ReserveCount).ThenBy(v => v.Name);
+            return result.ToList();
         }
 
 

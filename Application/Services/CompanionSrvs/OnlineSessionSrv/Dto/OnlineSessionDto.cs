@@ -8,6 +8,8 @@ namespace Application.Services.CompanionSrvs.OnlineSessionSrv.Dto
     {
         public long TargetUserId { get; set; }
         public int ChannelId { get; set; }
+        /// <summary>اختیاری: شماره‌ی کامل کاربر (همان که در SearchUsers جستجو شد)؛ برای کاربری که مشتری مرکز نیست لازم است.</summary>
+        public string TargetMobile { get; set; }
     }
 
     public class OnlineSessionUserVDto

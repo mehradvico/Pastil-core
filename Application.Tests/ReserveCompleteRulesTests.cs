@@ -68,6 +68,17 @@ public class ReserveCompleteRulesTests
     }
 
     [Fact]
+    public void Debt_CappedAtPriceMinusOnline()
+    {
+        // بدهی ۸۰۰٬۰۰۰ (قیمت − آنلاین) مجاز است، بیشتر از آن نه؛ حتی اگر مبلغ نهایی بالاتر باشد
+        Assert.Null(Eval(new ReserveCompleteDto { FinalAmount = 1_500_000, ReceivedAtVenue = 700_000, NotReceived = true }).Error);
+        Assert.Equal(Resource.Notification.ReserveCompleteDebtAbovePrice,
+            Eval(new ReserveCompleteDto { FinalAmount = 500_000_000, NotReceived = true }).Error);
+        // بدون NotReceived مبلغ نهایی بالاتر فقط ثبت می‌شود و پولی از کیف پول کم نمی‌شود
+        Assert.Null(Eval(new ReserveCompleteDto { FinalAmount = 1_500_000 }).Error);
+    }
+
+    [Fact]
     public void FinalBelowOnline_HasSpecificError() =>
         Assert.Equal(Resource.Notification.ReserveCompleteFinalBelowOnline, Eval(new ReserveCompleteDto { FinalAmount = 100_000 }).Error);
 

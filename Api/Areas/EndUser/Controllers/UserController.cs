@@ -60,7 +60,7 @@ namespace Api.Areas.EndUser.Controllers
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             userDto.Mobile = _currentUserHelper.CurrentUser.Mobile;
             userDto.Password = null;
-            var dto = userService.UpdateDto(userDto);
+            var dto = userService.UpdateSelfDto(userDto);
             return Ok(dto);
         }
     }

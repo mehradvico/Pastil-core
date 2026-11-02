@@ -12,6 +12,8 @@ namespace Application.Services.Accounting.UserSrv.Iface
     public interface IUserService : ICommonSrv<User, UserDto>
     {
         UserVDto GetVDto(long userId);
+        /// <summary>ویرایش پروفایل توسط خود کاربر: ایمیل فقط از ChangeEmail (OTP) و تأیید دومرحله‌ای فقط روشن‌شدنی است.</summary>
+        BaseResultDto UpdateSelfDto(UserDto dto);
         public UserSearchDto Search(UserInputDto searchDto);
         Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action, long? tokenRoleId = null);
         Task<BaseResultDto> SignIn(SignInDto user);
@@ -21,6 +23,8 @@ namespace Application.Services.Accounting.UserSrv.Iface
         Task<BaseResultDto> ResetPassword(ResetPasswordDto dto);
         Task<UserDto> GetByMobileDto(string mobile);
         Task<CurrentUserDto> GetByTokenDto(string token);
+        /// <summary>همان CurrentUserDto ِ GetByTokenDto ولی برای یک کاربر مشخص (هویت مالک وقتی کارمند پنل به‌جای ارائه‌دهنده کار می‌کند).</summary>
+        Task<CurrentUserDto> GetCurrentUserByIdAsync(long userId);
         List<UserVDto> GetWithRole(RoleEnum roleEnum);
         Task<BaseResultDto> UserDetail(UserDetailDto user);
         Task<BaseResultDto> UserRole(string mobile);

@@ -121,13 +121,15 @@ namespace Application.Services.GroomerSrvs.GroomerProfileSrv
         public async Task<BaseResultDto> SetStaffActiveAsync(long staffId, bool active, long? ownerUserId)
         {
             var staff = await _context.GroomerUsers.AsNoTracking().Where(u => u.Id == staffId && !u.Deleted)
-                .Select(u => new { u.Id, u.GroomerId }).FirstOrDefaultAsync();
+                .Select(u => new { u.Id, u.GroomerId, u.UserId }).FirstOrDefaultAsync();
             if (staff == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             var denied = await CheckGroomerAccessAsync(staff.GroomerId, ownerUserId);
             if (denied != null)
                 return denied;
             await _context.GroomerUsers.Where(u => u.Id == staffId).ExecuteUpdateAsync(s => s.SetProperty(u => u.Active, active));
+            if (!active)
+                await UnassignStaffReservesAsync(staff.GroomerId, staff.UserId);
             await RefreshStaffCountAsync(staff.GroomerId);
             return new BaseResultDto(true);
         }
@@ -177,9 +179,16 @@ namespace Application.Services.GroomerSrvs.GroomerProfileSrv
             await _context.GroomerServiceUsers
                 .Where(u => u.UserId == staff.UserId && u.GroomerService.GroomerId == staff.GroomerId && !u.Deleted)
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.Deleted, true).SetProperty(u => u.Active, false));
+            await UnassignStaffReservesAsync(staff.GroomerId, staff.UserId);
             await RefreshStaffCountAsync(staff.GroomerId);
             return new BaseResultDto(true);
         }
+
+        // پرسنل حذف/غیرفعال‌شده نباید از راه AssigneeUserId به چت، تماس، تکمیل یا ثبت پرداخت بدهی رزروها دسترسی داشته باشد.
+        // سابقه‌ی انجام کار در CompletedByUserId می‌ماند؛ مالک رزروهای باز را دوباره تخصیص می‌دهد.
+        private Task UnassignStaffReservesAsync(long groomerId, long staffUserId) =>
+            _context.GroomerReserves.Where(r => r.GroomerId == groomerId && r.AssigneeUserId == staffUserId)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.AssigneeUserId, (long?)null));
 
         public async Task<List<GroomerStaffInviteVDto>> ListInvitesAsync(long userId) =>
             await _context.GroomerUsers.AsNoTracking()

@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <!-- Ship only English/Persian satellite resources instead of ~50 unused languages. -->
+    <SatelliteResourceLanguages>en;fa</SatelliteResourceLanguages>
     <ImplicitUsings>enable</ImplicitUsings> 
     <DocumentationFile>MehradVico.Api.xml</DocumentationFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

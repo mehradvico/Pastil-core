@@ -59,9 +59,22 @@ namespace Application.Services.CompanionSrvs.OnlineSessionSrv
                 if (!isAgent || !channelImplemented || dto.TargetUserId == current.UserId)
                     return new BaseResultDto<OnlineSessionVDto>(false, Resource.Notification.AccessDenied, null);
 
-                var targetExists = await _context.Users.AnyAsync(s => s.Id == dto.TargetUserId && !s.Deleted && !s.Locked);
-                if (!targetExists)
+                var target = await _context.Users.AsNoTracking()
+                    .Where(s => s.Id == dto.TargetUserId && !s.Deleted && !s.Locked)
+                    .Select(s => new { s.Mobile })
+                    .FirstOrDefaultAsync();
+                if (target == null)
                     return new BaseResultDto<OnlineSessionVDto>(false, Resource.Notification.NothingFound, null);
+                // قبلاً با پیمایش TargetUserId موبایل و پت‌های هر کاربری برمی‌گشت؛ حالا همان دامنه‌ی SearchUsers:
+                // مشتری خود مرکز، یا کاربری که نماینده شماره‌ی کاملش را می‌داند (TargetMobile).
+                var targetMobile = NormalizeFullMobile(dto.TargetMobile.ToEnglishDigits()?.Trim());
+                var knowsMobile = targetMobile != null && targetMobile == target.Mobile;
+                if (!knowsMobile)
+                {
+                    var companionIds = await AgentCompanionIdsAsync(current);
+                    if (!await CenterCustomerIds(companionIds, current.UserId).AnyAsync(id => id == dto.TargetUserId))
+                        return new BaseResultDto<OnlineSessionVDto>(false, Resource.Notification.AccessDenied, null);
+                }
 
                 var since = DateTime.Now - ActiveWindow;
                 var session = await _context.OnlineSessions
@@ -171,11 +184,7 @@ namespace Application.Services.CompanionSrvs.OnlineSessionSrv
                 else
                 {
                     var companionIds = await AgentCompanionIdsAsync(current);
-                    var customerIds = _context.CompanionReserves.Where(r => companionIds.Contains(r.CompanionAssistance.CompanionId)).Select(r => r.BookerId)
-                        .Concat(_context.PansionReserves.Where(r => companionIds.Contains(r.Pansion.CompanionId)).Select(r => r.BookerId))
-                        .Concat(_context.SchoolReserves.Where(r => (r.SchoolCourse.School.CompanionId != null && companionIds.Contains(r.SchoolCourse.School.CompanionId.Value))
-                            || (r.SchoolCourse.School.Provider != null && r.SchoolCourse.School.Provider.UserId == current.UserId)).Select(r => r.BookerId))
-                        .Concat(_context.OnlineSessions.Where(o => o.InitiatorUserId == current.UserId).Select(o => o.TargetUserId));
+                    var customerIds = CenterCustomerIds(companionIds, current.UserId);
                     scoped = baseQuery.Where(s => customerIds.Contains(s.Id)
                         && ((s.FirstName + " " + s.LastName).Contains(q) || s.Mobile.Contains(q)));
                 }
@@ -413,6 +422,17 @@ namespace Application.Services.CompanionSrvs.OnlineSessionSrv
             var onlyPhoneChars = (q ?? string.Empty).All(c => char.IsDigit(c) || c == '+' || c == ' ' || c == '-');
             return onlyPhoneChars && digits.Length == 11 && digits.StartsWith("09") ? digits : null;
         }
+
+        // مشتریان مرکز (رزرو خدمت/پانسیون/مدرسه/کلینیک/مربی/آرایشگاه یا جلسه‌ی آنلاین قبلی همین نماینده) — دامنه‌ی SearchUsers و StartAsync
+        private IQueryable<long> CenterCustomerIds(List<long> companionIds, long currentUserId) =>
+            _context.CompanionReserves.Where(r => companionIds.Contains(r.CompanionAssistance.CompanionId)).Select(r => r.BookerId)
+                .Concat(_context.ClinicReserves.Where(r => r.Clinic.OwnerId == currentUserId || r.AssigneeUserId == currentUserId).Select(r => r.BookerId))
+                .Concat(_context.CoachReserves.Where(r => r.Coach.OwnerId == currentUserId || r.AssigneeUserId == currentUserId).Select(r => r.BookerId))
+                .Concat(_context.GroomerReserves.Where(r => r.Groomer.OwnerId == currentUserId || r.AssigneeUserId == currentUserId).Select(r => r.BookerId))
+                .Concat(_context.PansionReserves.Where(r => companionIds.Contains(r.Pansion.CompanionId)).Select(r => r.BookerId))
+                .Concat(_context.SchoolReserves.Where(r => (r.SchoolCourse.School.CompanionId != null && companionIds.Contains(r.SchoolCourse.School.CompanionId.Value))
+                    || (r.SchoolCourse.School.Provider != null && r.SchoolCourse.School.Provider.UserId == currentUserId)).Select(r => r.BookerId))
+                .Concat(_context.OnlineSessions.Where(o => o.InitiatorUserId == currentUserId).Select(o => o.TargetUserId));
 
         // مراکزی که این کاربر صاحب یا کارمند فعالشان است
         private async Task<List<long>> AgentCompanionIdsAsync(Application.Services.Dto.CurrentUserDto current)

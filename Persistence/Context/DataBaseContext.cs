@@ -285,6 +285,9 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<ProviderOnboardingEvent> ProviderOnboardingEvents { get; set; }
         public DbSet<ProviderRole> ProviderRoles { get; set; }
         public DbSet<ProviderRoleAssignment> ProviderRoleAssignments { get; set; }
+        public DbSet<ProviderUser> ProviderUsers { get; set; }
+        public DbSet<ProviderUserRole> ProviderUserRoles { get; set; }
+        public DbSet<ProviderUserRolePermission> ProviderUserRolePermissions { get; set; }
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<ProviderSubscription> ProviderSubscriptions { get; set; }
         public DbSet<AssistanceExpertise> AssistanceExpertises { get; set; }
@@ -1586,6 +1589,28 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.HasOne(x => x.Provider).WithMany(x => x.RoleAssignments).HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(x => x.ProviderRole).WithMany(x => x.Assignments).HasForeignKey(x => x.ProviderRoleId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasIndex(x => new { x.ProviderId, x.ProviderRoleId }).IsUnique().HasFilter("[Deleted] = 0");
+            });
+            // کارمندان پنل ارائه‌دهنده + نقش‌ها/دسترسی‌هایی که فقط مالک ارائه‌دهنده تعریف می‌کند (ProviderUsers، ۲۰۲۶-۱۱-۰۳)
+            modelBuilder.Entity<ProviderUserRole>(entity =>
+            {
+                entity.Property(x => x.Name).IsRequired().HasMaxLength(100);
+                entity.Property(x => x.Description).HasMaxLength(500);
+                entity.HasOne(x => x.Provider).WithMany(x => x.UserRoles).HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => new { x.ProviderId, x.Name }).IsUnique().HasFilter("[Deleted] = 0");
+            });
+            modelBuilder.Entity<ProviderUserRolePermission>(entity =>
+            {
+                entity.Property(x => x.PermissionKey).IsRequired().HasMaxLength(100);
+                entity.HasOne(x => x.ProviderUserRole).WithMany(x => x.Permissions).HasForeignKey(x => x.ProviderUserRoleId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(x => new { x.ProviderUserRoleId, x.PermissionKey }).IsUnique();
+            });
+            modelBuilder.Entity<ProviderUser>(entity =>
+            {
+                entity.HasOne(x => x.Provider).WithMany(x => x.Users).HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(x => x.ProviderUserRole).WithMany(x => x.Users).HasForeignKey(x => x.ProviderUserRoleId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => new { x.ProviderId, x.UserId }).IsUnique().HasFilter("[Deleted] = 0");
+                entity.HasIndex(x => x.UserId);
             });
             modelBuilder.Entity<ProviderOnboardingApplication>(entity =>
             {

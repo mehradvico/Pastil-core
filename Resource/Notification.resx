@@ -2782,4 +2782,106 @@
   <data name="VenueReserveAssigneeBusy" xml:space="preserve">
     <value>This staff member already has another reservation at the same time.</value>
   </data>
+  <data name="ReserveCompleteDebtAbovePrice" xml:space="preserve">
+    <value>The customer debt cannot exceed the reserve's remaining price (price minus the online payment). Collect any extra charge at the venue.</value>
+  </data>
+  <data name="ProviderUserRoleNameRequired" xml:space="preserve">
+    <value>Provider User Role Name Required</value>
+  </data>
+  <data name="ProviderUserRoleNameDuplicate" xml:space="preserve">
+    <value>Provider User Role Name Duplicate</value>
+  </data>
+  <data name="ProviderUserRolePermissionInvalid" xml:space="preserve">
+    <value>Provider User Role Permission Invalid</value>
+  </data>
+  <data name="ProviderUserRoleInUse" xml:space="preserve">
+    <value>Provider User Role In Use</value>
+  </data>
+  <data name="ProviderUserRoleNotFound" xml:space="preserve">
+    <value>Provider User Role Not Found</value>
+  </data>
+  <data name="ProviderUserAlreadyExists" xml:space="preserve">
+    <value>Provider User Already Exists</value>
+  </data>
+  <data name="ProviderUserCannotInviteSelf" xml:space="preserve">
+    <value>Provider User Cannot Invite Self</value>
+  </data>
+  <data name="ProviderUserNotFound" xml:space="preserve">
+    <value>Provider User Not Found</value>
+  </data>
+  <data name="ProviderUserInviteNotFound" xml:space="preserve">
+    <value>Provider User Invite Not Found</value>
+  </data>
+  <data name="ProviderUserInviteAnswered" xml:space="preserve">
+    <value>Provider User Invite Answered</value>
+  </data>
+  <data name="ProviderUserLimitReached" xml:space="preserve">
+    <value>Provider User Limit Reached</value>
+  </data>
+  <data name="ProviderOwnerOnlyAction" xml:space="preserve">
+    <value>Provider Owner Only Action</value>
+  </data>
+  <data name="ProviderActingAccessDenied" xml:space="preserve">
+    <value>Provider Acting Access Denied</value>
+  </data>
+  <data name="ProviderPermissionScopeStore" xml:space="preserve">
+    <value>Provider Permission Scope Store</value>
+  </data>
+  <data name="ProviderPermissionScopeClinic" xml:space="preserve">
+    <value>Provider Permission Scope Clinic</value>
+  </data>
+  <data name="ProviderPermissionScopeGroomer" xml:space="preserve">
+    <value>Provider Permission Scope Groomer</value>
+  </data>
+  <data name="ProviderPermissionScopeCoach" xml:space="preserve">
+    <value>Provider Permission Scope Coach</value>
+  </data>
+  <data name="ProviderPermissionScopePansion" xml:space="preserve">
+    <value>Provider Permission Scope Pansion</value>
+  </data>
+  <data name="ProviderPermissionScopeSchool" xml:space="preserve">
+    <value>Provider Permission Scope School</value>
+  </data>
+  <data name="ProviderPermissionSectionProfile" xml:space="preserve">
+    <value>Provider Permission Section Profile</value>
+  </data>
+  <data name="ProviderPermissionSectionService" xml:space="preserve">
+    <value>Provider Permission Section Service</value>
+  </data>
+  <data name="ProviderPermissionSectionReserve" xml:space="preserve">
+    <value>Provider Permission Section Reserve</value>
+  </data>
+  <data name="ProviderPermissionSectionConsultation" xml:space="preserve">
+    <value>Provider Permission Section Consultation</value>
+  </data>
+  <data name="ProviderPermissionSectionReview" xml:space="preserve">
+    <value>Provider Permission Section Review</value>
+  </data>
+  <data name="ProviderPermissionSectionStaff" xml:space="preserve">
+    <value>Provider Permission Section Staff</value>
+  </data>
+  <data name="ProviderPermissionSectionFinance" xml:space="preserve">
+    <value>Provider Permission Section Finance</value>
+  </data>
+  <data name="ProviderPermissionSectionPortfolio" xml:space="preserve">
+    <value>Provider Permission Section Portfolio</value>
+  </data>
+  <data name="ProviderPermissionSectionCourse" xml:space="preserve">
+    <value>Provider Permission Section Course</value>
+  </data>
+  <data name="ProviderPermissionSectionProduct" xml:space="preserve">
+    <value>Provider Permission Section Product</value>
+  </data>
+  <data name="ProviderPermissionSectionOrder" xml:space="preserve">
+    <value>Provider Permission Section Order</value>
+  </data>
+  <data name="ProviderPermissionSectionDiscount" xml:space="preserve">
+    <value>Provider Permission Section Discount</value>
+  </data>
+  <data name="ProviderPermissionLevelView" xml:space="preserve">
+    <value>Provider Permission Level View</value>
+  </data>
+  <data name="ProviderPermissionLevelManage" xml:space="preserve">
+    <value>Provider Permission Level Manage</value>
+  </data>
 </root>

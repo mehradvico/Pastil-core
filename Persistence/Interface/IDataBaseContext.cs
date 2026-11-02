@@ -112,6 +112,9 @@ namespace Persistence.Interface
         public DbSet<ProviderOnboardingEvent> ProviderOnboardingEvents { get; set; }
         public DbSet<ProviderRole> ProviderRoles { get; set; }
         public DbSet<ProviderRoleAssignment> ProviderRoleAssignments { get; set; }
+        public DbSet<ProviderUser> ProviderUsers { get; set; }
+        public DbSet<ProviderUserRole> ProviderUserRoles { get; set; }
+        public DbSet<ProviderUserRolePermission> ProviderUserRolePermissions { get; set; }
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
         public DbSet<ProviderSubscription> ProviderSubscriptions { get; set; }
         public DbSet<AssistanceExpertise> AssistanceExpertises { get; set; }

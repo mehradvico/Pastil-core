@@ -1847,6 +1847,21 @@ namespace Application.Services.CompanionSrv.CompanionReserveSrv
                     dto);
             }
 
+            // بدهی «پرداخت‌نشده» خودکار از کیف پول مشتری کسر می‌شود؛ سقفش باقی‌مانده‌ی قیمت پکیجی است که مشتری رزرو کرده
+            if (dto.OperatorUnpaid && dto.OperatorStateId == (long)CompanionReserveOperatorStateEnum.OperatorState_Complete)
+            {
+                var requestedDebt = Application.Services.CompanionSrvs.CompanionReserveDebtSrv.CompanionReserveDebtRules
+                    .UnpaidRemainder(dto.OperatorStuffPrice + dto.OperatorWagesPrice, item.PrePaymentPrice, item.RebatePrice);
+                var debtCap = Math.Max(0, item.PackagePrice - (item.PrePaymentPrice + item.RebatePrice));
+                if (requestedDebt > debtCap + 0.01)
+                {
+                    return new BaseResultDto<CompanionReserveOperatorDto>(
+                        false,
+                        Resource.Notification.ReserveCompleteDebtAbovePrice,
+                        dto);
+                }
+            }
+
             var paidStateId = await _context.Codes
                 .AsNoTracking()
                 .Where(s => s.Label == CompanionReserveStateEnum.CompanianReserveState_Paid.ToString())

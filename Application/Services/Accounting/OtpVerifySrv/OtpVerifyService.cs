@@ -176,22 +176,33 @@ namespace Application.Services.Accounting.OtpVerifySrv
                             errors.Add(new Tuple<string, string>(string.Format(Resource.Pattern.WrongVrifyCodeCount, timeSpan), nameof(dto.Mobile)));
                             return new BaseResultDto(isSuccess: false, messages: errors);
                         }
-                        if (item.Code != dto.Code || item.UpdateDate < DateTime.Now.AddMinutes(-3))
+                        // هر حدس باید اول «نوبت» همین وضعیت را اتمی بگیرد (TryCount و Code همان که خواندیم)؛
+                        // قبلاً صدها درخواست هم‌زمان همه با همان کد زنده مقایسه می‌شدند و شمارنده‌ی تلاش عملاً دور زده می‌شد.
+                        var claimed = await _context.OtpVerifies
+                            .Where(s => s.Id == item.Id && s.TryCount == item.TryCount && s.Code == item.Code)
+                            .ExecuteUpdateAsync(set => set.SetProperty(s => s.TryCount, s => s.TryCount + 1));
+                        if (claimed == 0)
                         {
-                            item.Code = GenerateHelper.RandomDigit(GenerateHelper.OtpLength);
-                            item.UpdateDate = DateTime.Now;
-                            item.Verify = false;
-                            item.TryCount++;
-                            _context.OtpVerifies.Update(item);
-                            _context.SaveChanges();
                             errors.Add(new Tuple<string, string>(Resource.Notification.TheCodeIsWrong, nameof(dto.Code)));
                             return new BaseResultDto(isSuccess: false, messages: errors);
                         }
-                        item.UpdateDate = DateTime.Now;
-                        item.Verify = true;
-                        item.TryCount = 0;
-                        _context.OtpVerifies.Update(item);
-                        _context.SaveChanges();
+                        var now = DateTime.Now;
+                        if (item.Code != dto.Code || item.UpdateDate < now.AddMinutes(-3))
+                        {
+                            var newCode = GenerateHelper.RandomDigit(GenerateHelper.OtpLength);
+                            await _context.OtpVerifies.Where(s => s.Id == item.Id)
+                                .ExecuteUpdateAsync(set => set
+                                    .SetProperty(s => s.Code, newCode)
+                                    .SetProperty(s => s.UpdateDate, now)
+                                    .SetProperty(s => s.Verify, (bool?)false));
+                            errors.Add(new Tuple<string, string>(Resource.Notification.TheCodeIsWrong, nameof(dto.Code)));
+                            return new BaseResultDto(isSuccess: false, messages: errors);
+                        }
+                        await _context.OtpVerifies.Where(s => s.Id == item.Id)
+                            .ExecuteUpdateAsync(set => set
+                                .SetProperty(s => s.UpdateDate, now)
+                                .SetProperty(s => s.Verify, (bool?)true)
+                                .SetProperty(s => s.TryCount, 0));
                         var result = new OtpVerifyResultVDto();
                         result.Mobile = dto.Mobile;
                         result.Code = dto.Code;

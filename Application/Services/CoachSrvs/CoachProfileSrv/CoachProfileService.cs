@@ -121,13 +121,15 @@ namespace Application.Services.CoachSrvs.CoachProfileSrv
         public async Task<BaseResultDto> SetStaffActiveAsync(long staffId, bool active, long? ownerUserId)
         {
             var staff = await _context.CoachUsers.AsNoTracking().Where(u => u.Id == staffId && !u.Deleted)
-                .Select(u => new { u.Id, u.CoachId }).FirstOrDefaultAsync();
+                .Select(u => new { u.Id, u.CoachId, u.UserId }).FirstOrDefaultAsync();
             if (staff == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             var denied = await CheckCoachAccessAsync(staff.CoachId, ownerUserId);
             if (denied != null)
                 return denied;
             await _context.CoachUsers.Where(u => u.Id == staffId).ExecuteUpdateAsync(s => s.SetProperty(u => u.Active, active));
+            if (!active)
+                await UnassignStaffReservesAsync(staff.CoachId, staff.UserId);
             await RefreshStaffCountAsync(staff.CoachId);
             return new BaseResultDto(true);
         }
@@ -177,9 +179,16 @@ namespace Application.Services.CoachSrvs.CoachProfileSrv
             await _context.CoachServiceUsers
                 .Where(u => u.UserId == staff.UserId && u.CoachService.CoachId == staff.CoachId && !u.Deleted)
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.Deleted, true).SetProperty(u => u.Active, false));
+            await UnassignStaffReservesAsync(staff.CoachId, staff.UserId);
             await RefreshStaffCountAsync(staff.CoachId);
             return new BaseResultDto(true);
         }
+
+        // پرسنل حذف/غیرفعال‌شده نباید از راه AssigneeUserId به چت، تماس، تکمیل یا ثبت پرداخت بدهی رزروها دسترسی داشته باشد.
+        // سابقه‌ی انجام کار در CompletedByUserId می‌ماند؛ مالک رزروهای باز را دوباره تخصیص می‌دهد.
+        private Task UnassignStaffReservesAsync(long coachId, long staffUserId) =>
+            _context.CoachReserves.Where(r => r.CoachId == coachId && r.AssigneeUserId == staffUserId)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.AssigneeUserId, (long?)null));
 
         public async Task<List<CoachStaffInviteVDto>> ListInvitesAsync(long userId) =>
             await _context.CoachUsers.AsNoTracking()

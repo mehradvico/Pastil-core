@@ -7574,6 +7574,36 @@
         <member name="M:Api.Areas.Companion.Controllers.PansionSettlementController.Items(System.Int64)">
             <summary>ریز پانسیونیِ یک تسویه‌ی من (فقط ردیف‌های Type=Pansion)</summary>
         </member>
+        <member name="T:Api.Areas.Companion.Controllers.ProviderPermissionController">
+            <summary>
+            کاتالوگ دسترسی‌های پنل ارائه‌دهنده برای فرم ساخت نقش: نمایندگی (دسترسی مادر) ← بخش ← مشاهده/مدیریت.
+            فقط نمایندگی‌هایی برمی‌گردند که ارائه‌دهنده دارد. فقط مالک ارائه‌دهنده (کارمند پنل هرگز).
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ProviderUserController">
+            <summary>
+            کارمندان پنل ارائه‌دهنده (ProviderUser): دعوت با موبایل و نقش، تغییر نقش، فعال/غیرفعال و حذف. فقط مالک ارائه‌دهنده.
+            پرسنل/اپراتور مراکز جدا هستند و از ClinicUser / GroomerUser / CoachUser مدیریت می‌شوند.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ProviderUserController.Post(Application.Services.ProviderSrvs.ProviderUserSrv.Dto.ProviderUserInviteDto)">
+            <summary>دعوت کاربر با موبایل و یک نقش؛ تا خود کاربر نپذیرد هیچ دسترسی‌ای ندارد</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.ProviderUserRoleController">
+            <summary>
+            نقش‌های کارمندان پنل ارائه‌دهنده (مثلاً «مسئول کلینیک»، «حسابدار کلینیک») و دسترسی‌های هر نقش.
+            فقط مالک ارائه‌دهنده؛ هیچ کارمندی حتی با همه‌ی دسترسی‌ها نمی‌تواند نقش بسازد یا دسترسی بدهد.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ProviderUserRoleController.Post(Application.Services.ProviderSrvs.ProviderUserSrv.Dto.ProviderUserRoleInputDto)">
+            <summary>ساخت نقش جدید</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ProviderUserRoleController.Put(Application.Services.ProviderSrvs.ProviderUserSrv.Dto.ProviderUserRoleInputDto)">
+            <summary>ویرایش نام/توضیح و جایگزینی کامل دسترسی‌های نقش؛ از درخواست بعدیِ کارمندانِ همین نقش اثر می‌کند</summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.ProviderUserRoleController.Delete(System.Int64)">
+            <summary>حذف نقش (نقشی که به کارمندی داده شده حذف نمی‌شود)</summary>
+        </member>
         <member name="T:Api.Areas.Companion.Controllers.SchoolActiveController">
             <summary>
             فعال/غیرفعال کردن مدرسه‌ی خودِ نماینده
@@ -9873,6 +9903,26 @@
             اعلان موجودشدن محصولات مورد انتظار کاربر
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ProviderMembershipController">
+            <summary>
+            ارائه‌دهنده‌هایی که من کارمند فعال پنلشان هستم + کلیدهای دسترسی نقشم. منوی پنل فقط از روی Permissions ساخته شود
+            (بخشی که نیست اصلاً نمایش داده نشود) و هر درخواست پنل هدر X-Provider-Id بگیرد.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ProviderMembershipController.Delete(System.Int64)">
+            <summary>ترک همکاری با یک ارائه‌دهنده (id = ProviderUserId)</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.ProviderUserInviteController">
+            <summary>
+            دعوت‌نامه‌های کار در پنل یک ارائه‌دهنده (پذیرش یا رد توسط خود کاربر)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ProviderUserInviteController.Get">
+            <summary>دعوت‌نامه‌های منتظر پاسخ من</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ProviderUserInviteController.Put(System.Int64,System.Boolean)">
+            <summary>پذیرفتن (accept=true) یا رد دعوت</summary>
+        </member>
         <member name="M:Api.Areas.EndUser.Controllers.PushController.SubscribeFcm(Application.Services.CommonSrv.PushSubscriptionSrv.Dto.PushSubscribeFcmDto)">
             <summary>
             ثبت FCM Token اپ فلاتر (اندروید/iOS) — معادل subscribe برای وب‌اپ
@@ -11297,6 +11347,21 @@
              </summary>
             
         </member>
+        <member name="T:Api.Areas.Seller.Controllers.StoreWorkingHourController">
+            <summary>
+            ساعت کاری فروشگاهِ خودِ فروشنده (اپ نماینده)؛ خارج از آن ارسال اکسپرس ارائه نمی‌شود
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.StoreWorkingHourController.Get(System.Threading.CancellationToken)">
+            <summary>
+            ساعت کاری فروشگاه من (لیست خالی = بدون محدودیت)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.StoreWorkingHourController.Put(System.Collections.Generic.List{Application.Services.Order.ShippingSrv.Dto.StoreWorkingHourDto},System.Threading.CancellationToken)">
+            <summary>
+            جایگزینی کل ساعت کاری هفته‌ی فروشگاه من
+            </summary>
+        </member>
         <member name="T:Api.Authorization.AdminAreaAuthorizationConvention">
             <summary>
             Makes the API's Admin area deny every non-admin user by default.
@@ -11338,6 +11403,40 @@
         </member>
         <member name="M:Api.Authorization.PolicyNames.AreaMember(System.String)">
             <summary>عضویت در ناحیه‌ی Seller/Companion/Driver (فروشگاه/مرکز/راننده داشتن).</summary>
+        </member>
+        <member name="F:Api.Authorization.ProviderEndpointMode.OwnerOnly">
+            <summary>فقط خودِ مالک با هویت خودش. کارمند پنل (با هدر X-Provider-Id) هرگز، حتی با همه‌ی دسترسی‌ها.</summary>
+        </member>
+        <member name="F:Api.Authorization.ProviderEndpointMode.Permission">
+            <summary>مالک با هویت خودش؛ کارمند پنل فقط اگر نقشش کلید <see cref="P:Api.Authorization.ProviderEndpointRule.Permission"/> را داشته باشد.</summary>
+        </member>
+        <member name="F:Api.Authorization.ProviderEndpointMode.Personal">
+            <summary>کار شخصیِ خود کاربر (من آنلاینم، جلسه‌ی مشاوره‌ی من، نسخه‌ی من، ...): هدر جانشینی نادیده گرفته می‌شود و همیشه با هویت واقعی اجرا می‌شود.</summary>
+        </member>
+        <member name="F:Api.Authorization.ProviderEndpointMode.Lookup">
+            <summary>جدول‌های پایه‌ی بدون داده‌ی کسب‌وکار (روزهای هفته، برندها): هر عضو معتبر پنل.</summary>
+        </member>
+        <member name="T:Api.Authorization.ProviderEndpointRule">
+            <param name="StaffAllowed">پرسنل/اپراتور مرکز (ClinicUser/GroomerUser/CoachUser) بدون هدر هم می‌تواند صدا بزند؛ سرویس خودش دسترسی را محدود می‌کند.</param>
+        </member>
+        <member name="M:Api.Authorization.ProviderEndpointRule.#ctor(Api.Authorization.ProviderEndpointMode,System.String,System.Boolean)">
+            <param name="StaffAllowed">پرسنل/اپراتور مرکز (ClinicUser/GroomerUser/CoachUser) بدون هدر هم می‌تواند صدا بزند؛ سرویس خودش دسترسی را محدود می‌کند.</param>
+        </member>
+        <member name="P:Api.Authorization.ProviderEndpointRule.StaffAllowed">
+            <summary>پرسنل/اپراتور مرکز (ClinicUser/GroomerUser/CoachUser) بدون هدر هم می‌تواند صدا بزند؛ سرویس خودش دسترسی را محدود می‌کند.</summary>
+        </member>
+        <member name="T:Api.Authorization.ProviderEndpointPolicy">
+            <summary>
+            نگاشت تک‌تک کنترلرهای پنل ارائه‌دهنده (ناحیه‌های Companion و Seller) به دسترسی‌های کاتالوگ — هم‌ارز جدول Permission پنل ادمین،
+            ولی در کد تا با هر deploy همگام بماند و قابل بازبینی باشد. قاعده‌ی پیش‌فرض: GET = «مشاهده‌ی» بخش، بقیه‌ی متدها = «مدیریت» بخش.
+            کنترلرِ نگاشت‌نشده برای کارمند پنل بسته است (OwnerOnly)؛ تست ProviderEndpointPolicyTests هر کنترلر جدید بدون نگاشت را می‌گیرد.
+            </summary>
+        </member>
+        <member name="F:Api.Authorization.ProviderEndpointPolicy.VenueLifecycleOwnerOnly">
+            <summary>ساختن مرکز جدید و حذف کامل مرکز کار مالک است (روی اشتراک/تسویه‌ی خودِ ارائه‌دهنده اثر دارد).</summary>
+        </member>
+        <member name="F:Api.Authorization.ProviderEndpointPolicy.LookupReadOnly">
+            <summary>جدول‌های پایه: فقط خواندن برای کارمند؛ نوشتن (اگر endpointی داشته باشد) فقط مالک.</summary>
         </member>
         <member name="T:Api.Controllers.AccountController">
             <summary>
@@ -12850,11 +12949,17 @@
             فهرست ثابت روزهای هفته — برای کاربر نهایی (مثلاً انتخاب برنامه‌ی هفتگی سرویس پت‌رسان)
             </summary>
         </member>
-        <member name="T:Api.Filters.CompanionAreaAccessFilter">
+        <member name="T:Api.Filters.ProviderPanelAccessFilter">
             <summary>
-            ورود به «پنل/اپ نماینده»: همه‌ی endpointهای ناحیه‌ی Companion فقط برای ارائه‌دهنده، مالک یک مرکز یا عضو فعال تیم یک مرکز باز است.
-            کاربر عادی (مشتری) که هیچ‌کدام را ندارد 403 می‌گیرد؛ ادمین مستثناست. endpointهای AllowAnonymous و درخواست‌های احراز‌نشده
-            به همان [Authorize] سپرده می‌شوند. وضعیت ورود را بدون خطا با GET api/EndUser/CompanionPanelAccess بپرسید.
+            دروازه‌ی پنل ارائه‌دهنده (ناحیه‌های Companion و Seller). سه نوع کاربر:
+            <list type="number">
+            <item>مالک (ارائه‌دهنده یا مالک مرکز) بدون هدر: مثل قبل با هویت خودش؛ چک مالکیت هر endpoint داده را محدود می‌کند.</item>
+            <item>کارمند پنل (ProviderUser) با هدر <c>X-Provider-Id</c>: عضویت فعال + کلید دسترسیِ همین endpoint (<see cref="T:Api.Authorization.ProviderEndpointPolicy"/>) چک می‌شود؛
+            اگر قبول شد، هویت همین یک درخواست با مالک ارائه‌دهنده جایگزین می‌شود (ActorUserId = خود کارمند) تا همان چک‌های مالکیتِ موجود
+            داده را به ارائه‌دهنده‌ی خودش محدود کنند. endpointهای OwnerOnly (ساخت نقش/دسترسی، کارمند، مالی سطح مالک) همیشه رد می‌شوند.</item>
+            <item>پرسنل/اپراتور مرکز (ClinicUser/GroomerUser/CoachUser) بدون هدر: فقط endpointهای شخصی/اپراتوری؛ پنل اپراتور خودش در ناحیه‌ی Operator است.</item>
+            </list>
+            endpointهای AllowAnonymous و درخواست‌های احراز‌نشده به [Authorize] سپرده می‌شوند؛ ادمین مستثناست (هدر برایش اثری ندارد).
             </summary>
         </member>
         <member name="T:Api.Filters.RequireCompanionScopeAttribute">

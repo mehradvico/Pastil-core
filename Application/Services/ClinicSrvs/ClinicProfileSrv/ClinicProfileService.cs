@@ -121,13 +121,15 @@ namespace Application.Services.ClinicSrvs.ClinicProfileSrv
         public async Task<BaseResultDto> SetStaffActiveAsync(long staffId, bool active, long? ownerUserId)
         {
             var staff = await _context.ClinicUsers.AsNoTracking().Where(u => u.Id == staffId && !u.Deleted)
-                .Select(u => new { u.Id, u.ClinicId }).FirstOrDefaultAsync();
+                .Select(u => new { u.Id, u.ClinicId, u.UserId }).FirstOrDefaultAsync();
             if (staff == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             var denied = await CheckClinicAccessAsync(staff.ClinicId, ownerUserId);
             if (denied != null)
                 return denied;
             await _context.ClinicUsers.Where(u => u.Id == staffId).ExecuteUpdateAsync(s => s.SetProperty(u => u.Active, active));
+            if (!active)
+                await UnassignStaffReservesAsync(staff.ClinicId, staff.UserId);
             await RefreshStaffCountAsync(staff.ClinicId);
             return new BaseResultDto(true);
         }
@@ -177,9 +179,16 @@ namespace Application.Services.ClinicSrvs.ClinicProfileSrv
             await _context.ClinicServiceUsers
                 .Where(u => u.UserId == staff.UserId && u.ClinicService.ClinicId == staff.ClinicId && !u.Deleted)
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.Deleted, true).SetProperty(u => u.Active, false));
+            await UnassignStaffReservesAsync(staff.ClinicId, staff.UserId);
             await RefreshStaffCountAsync(staff.ClinicId);
             return new BaseResultDto(true);
         }
+
+        // پرسنل حذف/غیرفعال‌شده نباید از راه AssigneeUserId به چت، تماس، تکمیل یا ثبت پرداخت بدهی رزروها دسترسی داشته باشد.
+        // سابقه‌ی انجام کار در CompletedByUserId می‌ماند؛ مالک رزروهای باز را دوباره تخصیص می‌دهد.
+        private Task UnassignStaffReservesAsync(long clinicId, long staffUserId) =>
+            _context.ClinicReserves.Where(r => r.ClinicId == clinicId && r.AssigneeUserId == staffUserId)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.AssigneeUserId, (long?)null));
 
         public async Task<List<ClinicStaffInviteVDto>> ListInvitesAsync(long userId) =>
             await _context.ClinicUsers.AsNoTracking()

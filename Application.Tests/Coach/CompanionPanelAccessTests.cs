@@ -78,15 +78,19 @@ public class CompanionPanelAccessTests : IClassFixture<CoachLocalDbFixture>
         services.AddSingleton<ICurrentUserHelper>(FakeProxy<ICurrentUserHelper>.Create((m, _) =>
             m.Name == "get_CurrentUser" ? new CurrentUserDto { UserId = 7, RoleEnum = roleEnum } : null).Instance);
         services.AddSingleton<ICompanionPanelAccessService>(FakeProxy<ICompanionPanelAccessService>.Create((m, _) =>
-            m.Name == nameof(ICompanionPanelAccessService.CanEnterAsync) ? Task.FromResult(canEnter) : null).Instance);
+            m.Name == nameof(ICompanionPanelAccessService.CanEnterAsync) ? Task.FromResult(canEnter)
+            : m.Name == nameof(ICompanionPanelAccessService.EntryAsync) ? Task.FromResult(canEnter ? CompanionPanelEntry.Owner : CompanionPanelEntry.None)
+            : null).Instance);
         var http = new DefaultHttpContext { RequestServices = services.BuildServiceProvider() };
         if (authenticated)
             http.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim("UserId", "7") }, "test"));
 
         var descriptor = new ActionDescriptor { EndpointMetadata = allowAnonymous ? new List<object> { new AllowAnonymousAttribute() } : new List<object>() };
         descriptor.RouteValues["area"] = area;
+        descriptor.RouteValues["controller"] = "Clinic";
+        descriptor.RouteValues["action"] = "Get";
         var context = new AuthorizationFilterContext(new ActionContext(http, new RouteData(), descriptor), new List<IFilterMetadata>());
-        await new CompanionAreaAccessFilter().OnAuthorizationAsync(context);
+        await new ProviderPanelAccessFilter().OnAuthorizationAsync(context);
         return context.Result;
     }
 
