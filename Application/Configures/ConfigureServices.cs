@@ -602,6 +602,7 @@ public static class ConfigureServices
         services.AddScoped<INewsletterService, NewsletterService>();
         services.AddScoped<INoticeEventService, NoticeEventService>();
         services.AddScoped<INoticeService, NoticeService>();
+        services.AddScoped<IVenueReviewNotifier, VenueReviewNotifier>();
         services.AddScoped<INoticeRealtimePublisher, NullNoticeRealtimePublisher>();
         services.AddScoped<INotifyMessageService, NotifyMessageService>();
         services.AddScoped<IOnTokenChallenge, OnTokenChallenge>();

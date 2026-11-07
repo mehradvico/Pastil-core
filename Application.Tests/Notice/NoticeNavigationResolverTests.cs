@@ -15,6 +15,10 @@ public class NoticeNavigationResolverTests
     [InlineData("UserBankCard", 47, "/admin/userbankcard?userBankCardId=47")]
     [InlineData("PastilMatchProfile", 48, "/admin/pastilmatchprofile?profileId=48")]
     [InlineData("PastilMatchReport", 49, "/admin/pastilmatchreport?reportId=49")]
+    [InlineData("Clinic", 50, "/admin/clinic/detail-50")]
+    [InlineData("Coach", 51, "/admin/coach/detail-51")]
+    [InlineData("Groomer", 52, "/admin/groomer/detail-52")]
+    [InlineData("School", 53, "/admin/school/detail-53")]
     public void Resolve_UsesTheExactReferencedPanelItem(string referenceType, long referenceId, string expected)
     {
         var actual = NoticeNavigationResolver.Resolve("/admin/notice", "test", referenceType, referenceId);
@@ -41,5 +45,20 @@ public class NoticeNavigationResolverTests
         var route = NoticeNavigationResolver.Resolve("/admin/custom-notices", "Custom.Created", "Custom", 1);
 
         Assert.Equal("/admin/custom-notices", route);
+    }
+    [Theory]
+    [InlineData("VenueService", "Groomer", "/admin/groomer/detail-7")]
+    [InlineData("ConsultationPackage", "Clinic", "/admin/clinic/detail-7")]
+    [InlineData("ConsultationPackage", "Coach", "/admin/coach/detail-7")]
+    public void Resolve_SendsVenueReviewToTheVenueDetail(string referenceType, string venueKind, string expected)
+    {
+        var route = NoticeNavigationResolver.Resolve(
+            "/admin/companion",
+            "test",
+            referenceType,
+            99,
+            new Dictionary<string, string> { ["venueKind"] = venueKind, ["venueId"] = "7" });
+
+        Assert.Equal(expected, route);
     }
 }

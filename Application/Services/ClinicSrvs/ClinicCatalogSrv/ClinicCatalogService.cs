@@ -22,12 +22,14 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<ClinicCatalogService> _logger;
+        private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
 
-        public ClinicCatalogService(IDataBaseContext context, IMapper mapper, ILogger<ClinicCatalogService> logger)
+        public ClinicCatalogService(IDataBaseContext context, IMapper mapper, ILogger<ClinicCatalogService> logger, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _reviewNotifier = reviewNotifier;
         }
 
         // ------------------------------------------------------------------ لیست
@@ -92,6 +94,9 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv
                 };
                 await _context.ClinicServices.AddAsync(service);
                 await _context.SaveChangesAsync();
+                // خدمتِ تعریف‌شده توسط مالک منتظر تأیید است: اعلان ادمین
+                if (ownerUserId.HasValue && _reviewNotifier != null)
+                    await _reviewNotifier.ServiceSubmittedAsync("Clinic", dto.ClinicId, service.Id, ownerUserId);
 
                 var created = await ProjectAsync(_context.ClinicServices.AsNoTracking().Where(s => s.Id == service.Id), null, false);
                 return new BaseResultDto<ClinicServiceVDto>(true, created.First());

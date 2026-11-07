@@ -19,10 +19,12 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
     public class ConsultationPackageService : IConsultationPackageService
     {
         private readonly IDataBaseContext _context;
+        private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
         private readonly Application.Services.CompanionSrvs.ConsultationOnlineSrv.IConsultationOnlineService _onlineService;
 
-        public ConsultationPackageService(IDataBaseContext context, Application.Services.CompanionSrvs.ConsultationOnlineSrv.IConsultationOnlineService onlineService)
+        public ConsultationPackageService(IDataBaseContext context, Application.Services.CompanionSrvs.ConsultationOnlineSrv.IConsultationOnlineService onlineService, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null)
         {
+            _reviewNotifier = reviewNotifier;
             _context = context;
             _onlineService = onlineService;
         }
@@ -75,6 +77,9 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                 row.Assign(owner);
                 await _context.ConsultationPackages.AddAsync(row);
                 await _context.SaveChangesAsync();
+                // بسته‌ی کلینیک/مربی تا تأیید ادمین نمایش داده نمی‌شود: اعلان ادمین
+                if (!row.Approved && _reviewNotifier != null)
+                    await _reviewNotifier.ConsultationPackageAsync(true, owner.Kind.ToString(), owner.Id, row.Id, row.Name, null);
 
                 return new BaseResultDto<ConsultationPackageItemDto>(true, await LoadOneAsync(owner, row.Id));
             }
@@ -104,13 +109,17 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                     return new BaseResultDto<ConsultationPackageItemDto>(false, Resource.Notification.NothingFound, null);
 
                 // تغییر محتوایی بسته‌ی کلینیک/مربی دوباره به تأیید ادمین نیاز دارد (روشن/خاموش کردن و ترتیب نه)
+                var approvalReset = false;
                 if (owner.Kind != ConsultationOwnerKind.Companion && row.Approved && (
                         row.ChannelId != dto.ChannelId || row.DurationMinutes != dto.DurationMinutes || row.Price != dto.Price
                         || row.Name != ConsultationPackageRules.NormalizeName(dto.Name)
                         || row.Description != ConsultationPackageRules.NormalizeDescription(dto.Description)
                         || row.PictureId != (dto.PictureId is > 0 ? dto.PictureId : null)
                         || (dto.Bookable.HasValue && row.Bookable != dto.Bookable.Value)))
+                {
                     row.Approved = false;
+                    approvalReset = true;
+                }
                 row.ChannelId = dto.ChannelId;
                 row.DurationMinutes = dto.DurationMinutes;
                 row.Price = dto.Price;
@@ -126,6 +135,8 @@ namespace Application.Services.ConsultationSrvs.ConsultationPackageSrv
                 // کانتکست پروژه پیش‌فرض NoTracking است؛ Update صریح لازم است
                 _context.ConsultationPackages.Update(row);
                 await _context.SaveChangesAsync();
+                if (approvalReset && _reviewNotifier != null)
+                    await _reviewNotifier.ConsultationPackageAsync(false, owner.Kind.ToString(), owner.Id, row.Id, row.Name, null);
 
                 return new BaseResultDto<ConsultationPackageItemDto>(true, await LoadOneAsync(owner, row.Id));
             }

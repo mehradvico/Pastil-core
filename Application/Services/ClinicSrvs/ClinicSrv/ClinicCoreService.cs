@@ -23,13 +23,15 @@ namespace Application.Services.ClinicSrvs.ClinicSrv
         private readonly IMapper _mapper;
         private readonly ILogger<ClinicCoreService> _logger;
         private readonly IClinicNotifier _notifier;
+        private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
 
-        public ClinicCoreService(IDataBaseContext context, IMapper mapper, ILogger<ClinicCoreService> logger, IClinicNotifier notifier = null)
+        public ClinicCoreService(IDataBaseContext context, IMapper mapper, ILogger<ClinicCoreService> logger, IClinicNotifier notifier = null, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
             _notifier = notifier;
+            _reviewNotifier = reviewNotifier;
         }
 
         public ClinicSearchDto Search(ClinicInputDto input, bool onlyDeleted = false)
@@ -148,6 +150,9 @@ namespace Application.Services.ClinicSrvs.ClinicSrv
                 await _context.Clinics.AddAsync(item);
                 await _context.SaveChangesAsync();
                 await ReplaceTypesAsync(item.Id, dto.TypeIds);
+                // درخواست ارائه‌دهنده: اعلان ادمین برای بررسی و تأیید
+                if (!byAdmin && _reviewNotifier != null)
+                    await _reviewNotifier.VenueSubmittedAsync("Clinic", item.Id, item.Name, actorUserId);
                 return await FindAsyncVDto(item.Id);
             }
             catch (Exception ex)
@@ -289,6 +294,9 @@ namespace Application.Services.ClinicSrvs.ClinicSrv
                 await _context.SaveChangesAsync();
                 if (dto.TypeIds != null && dto.TypeIds.Count > 0)
                     await ReplaceTypesAsync(item.Id, dto.TypeIds);
+                // ویرایش مالک مرکز را غیرفعال کرد: ادمین باید دوباره بررسی و فعال کند
+                if (ownerUserId.HasValue && _reviewNotifier != null)
+                    await _reviewNotifier.VenueUpdatedAsync("Clinic", item.Id, item.Name, ownerUserId);
                 return new BaseResultDto(true);
             }
             catch (Exception ex)

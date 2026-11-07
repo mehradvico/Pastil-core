@@ -66,6 +66,17 @@ namespace Application.Services.Setting.NoticeSrv
                     return Query("/admin/pastilmatchprofile", "profileId", reference, configuredNavigationUrl);
                 case "PastilMatchReport":
                     return Query("/admin/pastilmatchreport", "reportId", reference, configuredNavigationUrl);
+                case "Clinic":
+                    return Detail("/admin/clinic/detail-", reference, configuredNavigationUrl);
+                case "Coach":
+                    return Detail("/admin/coach/detail-", reference, configuredNavigationUrl);
+                case "Groomer":
+                    return Detail("/admin/groomer/detail-", reference, configuredNavigationUrl);
+                case "School":
+                    return Detail("/admin/school/detail-", reference, configuredNavigationUrl);
+                case "VenueService":
+                case "ConsultationPackage":
+                    return VenueDetail(metadata, configuredNavigationUrl);
                 case "PetResanService":
                     return Detail("/admin/user/profile-", PositiveId(actorUserId), configuredNavigationUrl);
             }
@@ -78,6 +89,21 @@ namespace Application.Services.Setting.NoticeSrv
 
         private static string Query(string path, string name, long? id, string configuredNavigationUrl) =>
             id.HasValue ? $"{path}?{name}={id.Value}" : Fallback(configuredNavigationUrl);
+
+        // خدمت/بسته‌ی مشاوره در صفحه‌ی جزئیات مرکزش بررسی می‌شود (metadata: venueKind + venueId)
+        private static string VenueDetail(IReadOnlyDictionary<string, string> metadata, string configuredNavigationUrl)
+        {
+            string kind = null;
+            metadata?.TryGetValue("venueKind", out kind);
+            var prefix = (kind ?? string.Empty).Trim().ToLowerInvariant() switch
+            {
+                "clinic" => "/admin/clinic/detail-",
+                "coach" => "/admin/coach/detail-",
+                "groomer" => "/admin/groomer/detail-",
+                _ => null
+            };
+            return prefix == null ? Fallback(configuredNavigationUrl) : Detail(prefix, MetadataId(metadata, "venueId"), configuredNavigationUrl);
+        }
 
         private static string Fallback(string configuredNavigationUrl) =>
             string.IsNullOrWhiteSpace(configuredNavigationUrl) ? NoticeCenterRoute : configuredNavigationUrl.Trim();

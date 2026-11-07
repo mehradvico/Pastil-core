@@ -1748,7 +1748,7 @@
     <value>ساعت تحویل به پیک باید از الان تا اندکی قبل از پایان بازه‌ی تحویل مشتری باشد.</value>
   </data>
   <data name="ShipmentConfirmedSuccessfully" xml:space="preserve">
-    <value>آماده‌سازی تأیید شد و پیک میاره درخواست شد.</value>
+    <value>آماده‌سازی تأیید شد و پیک پاستیل درخواست شد.</value>
   </data>
   <data name="ShipmentCourierRequestFailed" xml:space="preserve">
     <value>درخواست پیک انجام نشد؛ دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.</value>
@@ -1760,16 +1760,16 @@
     <value>{0} تا {1}</value>
   </data>
   <data name="ShipmentMiareManualShipBlocked" xml:space="preserve">
-    <value>ارسال با میاره خودکار و هنگام تحویل کالا به پیک ثبت می‌شود؛ وضعیت را دستی تغییر ندهید.</value>
+    <value>ارسال با پیک پاستیل خودکار و هنگام تحویل کالا به پیک ثبت می‌شود؛ وضعیت را دستی تغییر ندهید.</value>
   </data>
   <data name="ShipmentCourierCanceledNote" xml:space="preserve">
-    <value>پیک میاره به‌خاطر تأخیر لغو شد؛ منتظر «آماده تحویل به پیک» دوباره‌ی فروشنده.</value>
+    <value>پیک پاستیل به‌خاطر تأخیر لغو شد؛ منتظر «آماده تحویل به پیک» دوباره‌ی فروشنده.</value>
   </data>
   <data name="ShipmentReturningNote" xml:space="preserve">
-    <value>کالا به مشتری تحویل داده نشد و پیک میاره آن را برمی‌گرداند (نیاز به پیگیری و استرداد).</value>
+    <value>کالا به مشتری تحویل داده نشد و پیک پاستیل آن را برمی‌گرداند (نیاز به پیگیری و استرداد).</value>
   </data>
   <data name="ShipmentCourierFailedNote" xml:space="preserve">
-    <value>سفر میاره لغو شد و زمان کافی برای درخواست دوباره نمانده است (نیاز به بررسی و استرداد).</value>
+    <value>سفر پیک پاستیل لغو شد و زمان کافی برای درخواست دوباره نمانده است (نیاز به بررسی و استرداد).</value>
   </data>
   <data name="ProductOrderPostTrackingRequiredHint" xml:space="preserve">
     <value>برای سفارش‌های ارسال با پست، ابتدا کد رهگیری را ثبت کنید.</value>

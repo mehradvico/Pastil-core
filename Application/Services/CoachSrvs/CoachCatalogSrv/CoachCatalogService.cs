@@ -23,12 +23,14 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<CoachCatalogService> _logger;
+        private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
 
-        public CoachCatalogService(IDataBaseContext context, IMapper mapper, ILogger<CoachCatalogService> logger)
+        public CoachCatalogService(IDataBaseContext context, IMapper mapper, ILogger<CoachCatalogService> logger, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _reviewNotifier = reviewNotifier;
         }
 
         // ------------------------------------------------------------------ لیست
@@ -93,6 +95,9 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 };
                 await _context.CoachServices.AddAsync(service);
                 await _context.SaveChangesAsync();
+                // خدمتِ تعریف‌شده توسط مالک منتظر تأیید است: اعلان ادمین
+                if (ownerUserId.HasValue && _reviewNotifier != null)
+                    await _reviewNotifier.ServiceSubmittedAsync("Coach", dto.CoachId, service.Id, ownerUserId);
 
                 var created = await ProjectAsync(_context.CoachServices.AsNoTracking().Where(s => s.Id == service.Id), null, false);
                 return new BaseResultDto<CoachServiceVDto>(true, created.First());

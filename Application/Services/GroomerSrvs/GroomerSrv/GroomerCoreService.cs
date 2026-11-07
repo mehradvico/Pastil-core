@@ -23,13 +23,15 @@ namespace Application.Services.GroomerSrvs.GroomerSrv
         private readonly IMapper _mapper;
         private readonly ILogger<GroomerCoreService> _logger;
         private readonly IGroomerNotifier _notifier;
+        private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
 
-        public GroomerCoreService(IDataBaseContext context, IMapper mapper, ILogger<GroomerCoreService> logger, IGroomerNotifier notifier = null)
+        public GroomerCoreService(IDataBaseContext context, IMapper mapper, ILogger<GroomerCoreService> logger, IGroomerNotifier notifier = null, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
             _notifier = notifier;
+            _reviewNotifier = reviewNotifier;
         }
 
         public GroomerSearchDto Search(GroomerInputDto input, bool onlyDeleted = false)
@@ -145,6 +147,9 @@ namespace Application.Services.GroomerSrvs.GroomerSrv
 
                 await _context.Groomers.AddAsync(item);
                 await _context.SaveChangesAsync();
+                // درخواست ارائه‌دهنده: اعلان ادمین برای بررسی و تأیید
+                if (!byAdmin && _reviewNotifier != null)
+                    await _reviewNotifier.VenueSubmittedAsync("Groomer", item.Id, item.Name, actorUserId);
                 return await FindAsyncVDto(item.Id);
             }
             catch (Exception ex)
@@ -253,6 +258,9 @@ namespace Application.Services.GroomerSrvs.GroomerSrv
                 }
 
                 await _context.SaveChangesAsync();
+                // ویرایش مالک مرکز را غیرفعال کرد: ادمین باید دوباره بررسی و فعال کند
+                if (ownerUserId.HasValue && _reviewNotifier != null)
+                    await _reviewNotifier.VenueUpdatedAsync("Groomer", item.Id, item.Name, ownerUserId);
                 return new BaseResultDto(true);
             }
             catch (Exception ex)

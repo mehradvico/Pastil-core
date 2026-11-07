@@ -23,13 +23,15 @@ namespace Application.Services.CoachSrvs.CoachSrv
         private readonly IMapper _mapper;
         private readonly ILogger<CoachCoreService> _logger;
         private readonly ICoachNotifier _notifier;
+        private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
 
-        public CoachCoreService(IDataBaseContext context, IMapper mapper, ILogger<CoachCoreService> logger, ICoachNotifier notifier = null)
+        public CoachCoreService(IDataBaseContext context, IMapper mapper, ILogger<CoachCoreService> logger, ICoachNotifier notifier = null, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
             _notifier = notifier;
+            _reviewNotifier = reviewNotifier;
         }
 
         public CoachSearchDto Search(CoachInputDto input, bool onlyDeleted = false)
@@ -143,6 +145,9 @@ namespace Application.Services.CoachSrvs.CoachSrv
 
                 await _context.Coaches.AddAsync(item);
                 await _context.SaveChangesAsync();
+                // درخواست ارائه‌دهنده: اعلان ادمین برای بررسی و تأیید
+                if (!byAdmin && _reviewNotifier != null)
+                    await _reviewNotifier.VenueSubmittedAsync("Coach", item.Id, item.Name, actorUserId);
                 return await FindAsyncVDto(item.Id);
             }
             catch (Exception ex)
@@ -283,6 +288,9 @@ namespace Application.Services.CoachSrvs.CoachSrv
                 }
 
                 await _context.SaveChangesAsync();
+                // ویرایش مالک مرکز را غیرفعال کرد: ادمین باید دوباره بررسی و فعال کند
+                if (ownerUserId.HasValue && _reviewNotifier != null)
+                    await _reviewNotifier.VenueUpdatedAsync("Coach", item.Id, item.Name, ownerUserId);
                 return new BaseResultDto(true);
             }
             catch (Exception ex)

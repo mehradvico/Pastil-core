@@ -43,6 +43,10 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
         /// فروشگاهِ همین ارائه‌دهنده که مالک عضوش است با کمترین شناسه، وگرنه اولین فروشگاه ارائه‌دهنده؛ بدون فروشگاه null.
         /// </summary>
         Task<long?> ResolveStoreIdAsync(long providerId, long ownerUserId);
+
+        // ---------------------------------------------- ادمین
+        /// <summary>کاربر مالکِ ارائه‌دهنده (Provider.UserId) برای اینکه ادمین همان عملیات مالک را روی همکاران انجام دهد؛ نبود/حذف‌شده = null.</summary>
+        Task<long?> OwnerUserIdAsync(long providerId);
     }
 
     /// <summary>
@@ -66,6 +70,10 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
             _context = context;
             _logger = logger;
         }
+
+        public async Task<long?> OwnerUserIdAsync(long providerId) =>
+            await _context.Providers.AsNoTracking().Where(p => p.Id == providerId && !p.Deleted)
+                .Select(p => (long?)p.UserId).FirstOrDefaultAsync();
 
         // ------------------------------------------------------------------ کمکی‌ها
 

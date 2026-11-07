@@ -69,11 +69,13 @@ namespace Application.Services.CompanionSrvs.CompanionPanelAccessSrv
                 await _context.Coaches.AsNoTracking().AnyAsync(c => c.OwnerId == userId && !c.Deleted) ||
                 await _context.Groomers.AsNoTracking().AnyAsync(c => c.OwnerId == userId && !c.Deleted);
 
+            // عضویت در مرکزی که خودِ کاربر مالکش است (مثلاً ردیف ClinicUser مالک برای مشاوره‌ی آنلاین) «پرسنل بودن» نیست؛
+            // وگرنه اپ برای مالک پیام «شما پرسنل یک مرکز هستید» نشان می‌دهد (Operator/Workplace هم مرکز مالک را IsOwner می‌دهد).
             var isStaff =
-                await _context.CompanionUsers.AsNoTracking().AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true) ||
-                await _context.ClinicUsers.AsNoTracking().AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true) ||
-                await _context.CoachUsers.AsNoTracking().AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true) ||
-                await _context.GroomerUsers.AsNoTracking().AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true);
+                await _context.CompanionUsers.AsNoTracking().AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true && u.Companion.OwnerId != userId) ||
+                await _context.ClinicUsers.AsNoTracking().AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true && u.Clinic.OwnerId != userId) ||
+                await _context.CoachUsers.AsNoTracking().AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true && u.Coach.OwnerId != userId) ||
+                await _context.GroomerUsers.AsNoTracking().AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true && u.Groomer.OwnerId != userId);
 
             var isProviderUser = await _context.ProviderUsers.AsNoTracking().AnyAsync(u =>
                 u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true && !u.ProviderUserRole.Deleted &&

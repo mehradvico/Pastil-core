@@ -451,13 +451,9 @@ namespace Application.Services.ProductSrvs.StoreSrv
             _productService.UpdateProductPriceAsync(Common.Enumerable.ProductUpdateTypeEnum.Store, id.ToString());
             return del;
         }
-        bool NameIsUnique(string name)
-        {
-            var item = _context.Stores.FirstOrDefault(x => x.Name == name);
-            if (item == null)
-                return true;
-            return false;
-        }
+        // فروشگاهِ حذف‌شده نباید نامش را قفل کند (همان قاعده‌ی مسیر ارسال مجدد درخواست).
+        bool NameIsUnique(string name) =>
+            !_context.Stores.Any(x => !x.Deleted && x.Name == name);
         public async Task SetMaxDiscountAsync(long storeId, int maxDiscount)
         {
             var item = await _context.Stores.AsTracking().FirstOrDefaultAsync(s => s.Id == storeId);

@@ -22,12 +22,14 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
         private readonly IDataBaseContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<GroomerCatalogService> _logger;
+        private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
 
-        public GroomerCatalogService(IDataBaseContext context, IMapper mapper, ILogger<GroomerCatalogService> logger)
+        public GroomerCatalogService(IDataBaseContext context, IMapper mapper, ILogger<GroomerCatalogService> logger, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _reviewNotifier = reviewNotifier;
         }
 
         // ------------------------------------------------------------------ لیست
@@ -91,6 +93,9 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
                 };
                 await _context.GroomerServices.AddAsync(service);
                 await _context.SaveChangesAsync();
+                // خدمتِ تعریف‌شده توسط مالک منتظر تأیید است: اعلان ادمین
+                if (ownerUserId.HasValue && _reviewNotifier != null)
+                    await _reviewNotifier.ServiceSubmittedAsync("Groomer", dto.GroomerId, service.Id, ownerUserId);
 
                 var created = await ProjectAsync(_context.GroomerServices.AsNoTracking().Where(s => s.Id == service.Id), null, false);
                 return new BaseResultDto<GroomerServiceVDto>(true, created.First());

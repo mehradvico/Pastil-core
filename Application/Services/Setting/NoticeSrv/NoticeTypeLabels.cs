@@ -43,5 +43,16 @@ namespace Application.Services.Setting.NoticeSrv
         public const string PastilMatchProfileSubmitted = "PastilMatch.ProfileSubmitted";
         public const string PastilMatchVerificationRequested = "PastilMatch.VerificationRequested";
         public const string PastilMatchReportSubmitted = "PastilMatch.ReportSubmitted";
+        // ثبت/ویرایش ارائه‌دهنده که تا تأیید ادمین غیرفعال می‌ماند (VenueReviewNotifier)
+        public const string ClinicSubmitted = "Clinic.Submitted";
+        public const string ClinicUpdated = "Clinic.Updated";
+        public const string CoachSubmitted = "Coach.Submitted";
+        public const string CoachUpdated = "Coach.Updated";
+        public const string GroomerSubmitted = "Groomer.Submitted";
+        public const string GroomerUpdated = "Groomer.Updated";
+        public const string SchoolSubmitted = "School.Submitted";
+        public const string VenueServiceSubmitted = "VenueService.Submitted";
+        public const string ConsultationPackageSubmitted = "ConsultationPackage.Submitted";
+        public const string ConsultationPackageUpdated = "ConsultationPackage.Updated";
     }
 }

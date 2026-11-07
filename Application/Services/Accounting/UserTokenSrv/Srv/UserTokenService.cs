@@ -243,6 +243,26 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             return (token.RefreshTokenExp - token.CreateDate).TotalMinutes > nonPersistent + 1;
         }
 
+        // «نماینده» = هر کاربری که با اپ نماینده کار می‌کند: صاحب مرکز قدیمی (Companion)، صاحب ارائه‌دهنده (Provider)،
+        // کارمند پذیرفته‌شده‌ی ارائه‌دهنده (ProviderUser) یا پرسنل پذیرفته‌شده‌ی کلینیک/مربی/آرایشگاه/مرکز.
+        private async Task<bool> IsPartnerAsync(long userId)
+        {
+            if (await _context.Providers.AnyAsync(p => p.UserId == userId && !p.Deleted && p.Active && p.Approved))
+                return true;
+            if (await _context.Companions.AnyAsync(c => c.OwnerId == userId && !c.Deleted && c.Active && c.Approved))
+                return true;
+            if (await _context.ProviderUsers.AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true
+                    && !u.Provider.Deleted && u.Provider.Active))
+                return true;
+            if (await _context.ClinicUsers.AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true))
+                return true;
+            if (await _context.CoachUsers.AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true))
+                return true;
+            if (await _context.GroomerUsers.AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true))
+                return true;
+            return await _context.CompanionUsers.AnyAsync(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true);
+        }
+
         private async Task RevokePanelSessionsAsync(long userId)
         {
             await _context.UserTokens
@@ -328,11 +348,11 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                     ? revocable.Where(x => x.DeviceName != null && x.DeviceName.StartsWith(PanelSessionDevice.Prefix))
                     : revocable.Where(x => x.DeviceName == null || !x.DeviceName.StartsWith(PanelSessionDevice.Prefix));
 
-                // پل موقت چندنشستی صاحب مرکز (SessionLimitRules): تازه‌ترین نشست‌های زنده می‌مانند، بقیه بسته می‌شوند
+                // چندنشستی نماینده (SessionLimitRules): تازه‌ترین نشست‌های زنده می‌مانند، بقیه بسته می‌شوند
                 var keep = SessionLimitRules.SessionsToKeepOnSignIn(
                     configuration[SessionLimitRules.ConfigKey],
                     isAdmin,
-                    !isAdmin && await _context.Companions.AnyAsync(c => c.OwnerId == user.Id && !c.Deleted && c.Active && c.Approved));
+                    !isAdmin && await IsPartnerAsync(user.Id));
                 if (keep > 0)
                 {
                     var now = DateTime.UtcNow;

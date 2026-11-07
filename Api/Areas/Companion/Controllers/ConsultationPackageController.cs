@@ -37,15 +37,14 @@ namespace Api.Areas.Companion.Controllers
             }
         }
 
-        /// <summary>همه‌ی پکیج‌های کلینیک من (فعال و غیرفعال) به ترتیب کانال، ترتیب نمایش و مدت</summary>
+        /// <summary>غیرفعال برای نماینده‌ی قدیمی (همیشه 403)؛ بسته‌ی آنلاین فقط برای کلینیک و مربی است</summary>
         [HttpGet]
         [ProducesResponseType(typeof(BaseResultDto<List<ConsultationPackageItemDto>>), 200)]
         public async Task<IActionResult> Get()
         {
-            if (CompanionId is not { } companionId)
-                return Forbid();
-
-            return Ok(await _service.GetListAsync(ConsultationOwner.Companion(companionId)));
+            // بسته‌ی آنلاین (مشاوره) فقط مال کلینیک و مربی است (Clinic/CoachConsultationPackage)؛ نماینده‌ی قدیمی
+            // (پانسیون/مدرسه/…) نه می‌بیند نه می‌سازد. 403 باعث می‌شود اپ ارائه‌دهنده تب «آنلاین» خدمات را اصلاً نشان ندهد.
+            return await Task.FromResult<IActionResult>(Forbid());
         }
 
         /// <summary>ساخت یک پکیج جدید (نام، کانال، مدت از فهرست ثابت، قیمت، توضیح و تصویر اختیاری)</summary>
@@ -53,10 +52,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<ConsultationPackageItemDto>), 200)]
         public async Task<IActionResult> Post([FromBody] ConsultationPackageItemDto dto)
         {
-            if (CompanionId is not { } companionId)
-                return Forbid();
-
-            return Ok(await _service.CreateAsync(ConsultationOwner.Companion(companionId), dto));
+            // بسته‌ی آنلاین (مشاوره) فقط مال کلینیک و مربی است (Clinic/CoachConsultationPackage)؛ نماینده‌ی قدیمی
+            // (پانسیون/مدرسه/…) نه می‌بیند نه می‌سازد. 403 باعث می‌شود اپ ارائه‌دهنده تب «آنلاین» خدمات را اصلاً نشان ندهد.
+            return await Task.FromResult<IActionResult>(Forbid());
         }
 
         /// <summary>ویرایش یک پکیج (dto.id الزامی است؛ فعال/غیرفعال کردن هم با همین)</summary>
@@ -64,10 +62,9 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<ConsultationPackageItemDto>), 200)]
         public async Task<IActionResult> Put([FromBody] ConsultationPackageItemDto dto)
         {
-            if (CompanionId is not { } companionId)
-                return Forbid();
-
-            return Ok(await _service.UpdateAsync(ConsultationOwner.Companion(companionId), dto));
+            // بسته‌ی آنلاین (مشاوره) فقط مال کلینیک و مربی است (Clinic/CoachConsultationPackage)؛ نماینده‌ی قدیمی
+            // (پانسیون/مدرسه/…) نه می‌بیند نه می‌سازد. 403 باعث می‌شود اپ ارائه‌دهنده تب «آنلاین» خدمات را اصلاً نشان ندهد.
+            return await Task.FromResult<IActionResult>(Forbid());
         }
 
         /// <summary>حذف پکیج؛ خریدهای قبلی نام و قیمت خودشان را نگه داشته‌اند</summary>

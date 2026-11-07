@@ -4668,6 +4668,57 @@
             حذف رکورد اشتباه از تاریخچه
             </summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProviderTeamController">
+            <summary>
+            همکاران (کارمندان پنل) و نقش‌های یک ارائه‌دهنده از دید ادمین: همان عملیاتی که مالک در پنل خودش دارد،
+            این‌بار به‌جای مالک و با همان قواعد امنیتی ProviderUserService (شناسه‌ی ارائه‌دهنده‌ی دیگر = «پیدا نشد»).
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderTeamController.Users(System.Int64)">
+            <summary>
+            همکاران ارائه‌دهنده (با نقش و وضعیت دعوت)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderTeamController.Roles(System.Int64)">
+            <summary>
+            نقش‌های ارائه‌دهنده (اختصاصی و آماده) با دسترسی‌ها
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderTeamController.Catalog(System.Int64)">
+            <summary>
+            کاتالوگ دسترسی‌های قابل‌انتخاب برای نقش (فقط نمایندگی‌هایی که ارائه‌دهنده دارد)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderTeamController.SaveRole(System.Int64,Application.Services.ProviderSrvs.ProviderUserSrv.Dto.ProviderUserRoleInputDto)">
+            <summary>
+            ساخت یا ویرایش نقش اختصاصی ارائه‌دهنده (Id = 0 یعنی جدید)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderTeamController.DeleteRole(System.Int64,System.Int64)">
+            <summary>
+            حذف نقش اختصاصی (اگر به همکاری داده شده باشد رد می‌شود)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderTeamController.Invite(System.Int64,Application.Services.ProviderSrvs.ProviderUserSrv.Dto.ProviderUserInviteDto)">
+            <summary>
+            دعوت همکار با موبایل و نقش
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderTeamController.ChangeRole(System.Int64,Application.Services.ProviderSrvs.ProviderUserSrv.Dto.ProviderUserRoleChangeDto)">
+            <summary>
+            تغییر نقش همکار
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderTeamController.SetActive(System.Int64,System.Int64,System.Boolean)">
+            <summary>
+            فعال/غیرفعال کردن همکار
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderTeamController.Remove(System.Int64,System.Int64)">
+            <summary>
+            حذف همکار
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ProviderUserRoleTemplateController">
             <summary>
             نقش‌های آماده‌ی کارمندان ارائه‌دهنده، زیر هر نمایندگی (Store/Clinic/Groomer/Coach/Pansion/School).
@@ -7304,7 +7355,7 @@
             </summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.ConsultationPackageController.Get">
-            <summary>همه‌ی پکیج‌های کلینیک من (فعال و غیرفعال) به ترتیب کانال، ترتیب نمایش و مدت</summary>
+            <summary>غیرفعال برای نماینده‌ی قدیمی (همیشه 403)؛ بسته‌ی آنلاین فقط برای کلینیک و مربی است</summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.ConsultationPackageController.Post(Application.Services.ConsultationSrvs.ConsultationPackageSrv.Dto.ConsultationPackageItemDto)">
             <summary>ساخت یک پکیج جدید (نام، کانال، مدت از فهرست ثابت، قیمت، توضیح و تصویر اختیاری)</summary>
