@@ -122,6 +122,11 @@ namespace Application.Services.PastilAISrv.Dto
         public string ProductRequestText { get; set; }
         public PastilAiProductRequestDraftDto ProductRequest { get; set; }
         /// <summary>
+        /// کارت نمایندگی‌های خدماتی (کلینیک، آرایشگاه، مربی، پانسیون، مدرسه) که با نیاز کاربر جور است؛
+        /// به ترتیب: نزدیک‌بودن به کاربر، پیشنهاد پاستیل (Suggested)، امتیاز و تعداد نظر.
+        /// </summary>
+        public List<PastilAiRecommendedVenueDto> RecommendedVenues { get; set; } = new();
+        /// <summary>
         /// پاسخ مربوط به خود پاستیل یا یک مشکل خدماتی/مالی است و کلاینت باید کارت تیکت‌سنتر را نمایش دهد.
         /// </summary>
         public bool SupportTicket { get; set; }
@@ -134,6 +139,25 @@ namespace Application.Services.PastilAISrv.Dto
         public long Price { get; set; }
         public int DiscountPercent { get; set; }
         public bool InStock { get; set; }
+        public PastilAiProductPictureDto Picture { get; set; }
+    }
+
+    public class PastilAiRecommendedVenueDto
+    {
+        /// <summary>clinic | groomer | coach | pansion | school (کلاینت مسیر صفحه را از روی آن می‌سازد).</summary>
+        public string Kind { get; set; }
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public double RateAvg { get; set; }
+        public int RateCount { get; set; }
+        /// <summary>نمایندگی پیشنهادی پاستیل.</summary>
+        public bool Suggested { get; set; }
+        public string CityName { get; set; }
+        public string AddressValue { get; set; }
+        /// <summary>فاصله از موقعیت ثبت‌شدهٔ کاربر (متر)؛ null اگر موقعیت کاربر یا نمایندگی ثبت نشده باشد.</summary>
+        public double? DistanceMeters { get; set; }
+        /// <summary>فقط پانسیون: true = مهد پت (نگهداری روزانه/ساعتی).</summary>
+        public bool? IsDaycare { get; set; }
         public PastilAiProductPictureDto Picture { get; set; }
     }
 

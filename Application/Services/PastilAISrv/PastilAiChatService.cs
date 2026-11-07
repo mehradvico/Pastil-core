@@ -7,6 +7,7 @@ using Entities.Entities.PastilAIField;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using NetTopologySuite.Geometries;
 using Persistence.Interface;
 using System.Data;
 using System.Text;
@@ -485,8 +486,14 @@ namespace Application.Services.PastilAISrv
                 (x.ProductLabel != null && x.ProductLabel != "" && question.Contains(x.ProductLabel)) ||
                 (x.SecondName != null && x.SecondName != "" && question.Contains(x.SecondName)));
             var productSearchTerm = GetProductSearchTerm(question);
-            var isProductLookup = productId.HasValue || IsSpecificProductRequest(question);
-            var context = new PastilAiContext();
+            // «برای سگم آرایش و اصلاح میخوام» درخواست خدمت است، نه کالا: واژه‌ی «میخوام» نباید آن را
+            // به جست‌وجوی کاتالوگ و کارت «محصول پیدا نشد» بکشاند. فقط وقتی کاربر نام یک کالای مشخص
+            // (شامپو، برس، ...) را هم آورده باشد، مسیر محصول در کنار خدمت فعال می‌ماند.
+            var venueKinds = GetVenueIntents(question);
+            var isProductLookup = productId.HasValue ||
+                                  (IsSpecificProductRequest(question) &&
+                                   (venueKinds.Count == 0 || !string.IsNullOrWhiteSpace(productSearchTerm)));
+            var context = new PastilAiContext { VenueKinds = venueKinds };
             var productQuery = activeProducts;
             productQuery = productId.HasValue
                 ? productQuery.Where(x => x.Id == productId.Value)
@@ -513,14 +520,14 @@ namespace Application.Services.PastilAISrv
             {
                 context.ProductIds.Add(product.Id);
                 sb.AppendLine($"محصول پاستیل: شناسه={product.Id}، نام={product.Name}، توضیح={product.Description}، " +
-                              $"قیمت ثبت‌شده={product.MinimumItemPrice ?? product.Price}، تخفیف={product.DiscountPercent} درصد، " +
+                              $"قیمت ثبت‌شده={product.MinimumItemPrice ?? product.Price} تومان، تخفیف={product.DiscountPercent} درصد، " +
                               $"موجودی قابل فروش={product.AvailableQuantity}");
             }
             // کارت محصول باید به نتیجهٔ واقعی جست‌وجوی کاتالوگ تکیه کند، نه به این‌که مدل
             // شناسه‌ای را در خروجی ساختاریافته برگرداند. این موضوع برای پرسش‌هایی مثل
             // «برس مخصوص سگ چی بخرم؟» ضروری است؛ مدل ممکن است راهنمایی کامل بدهد اما ID ندهد.
             context.UseCatalogProductCards = isProductLookup ||
-                                             (string.IsNullOrWhiteSpace(productSearchTerm) && products.Count > 0);
+                                             (venueKinds.Count == 0 && string.IsNullOrWhiteSpace(productSearchTerm) && products.Count > 0);
 
             if (!productId.HasValue && isProductLookup && products.Count == 0)
                 context.ProductRequestText = Truncate(question, 150);
@@ -539,9 +546,36 @@ namespace Application.Services.PastilAISrv
 
             var isMedicalCareRequest = ContainsMedicalCareIntent(question);
             var needsNearbyResults = ContainsNearbyIntent(question);
+            var location = venueKinds.Count > 0 || isMedicalCareRequest || needsNearbyResults
+                ? await _context.UserCurrentLocations.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken)
+                : null;
+
+            if (venueKinds.Count > 0)
+            {
+                context.Venues = await FindVenuesAsync(venueKinds, location?.Location, cancellationToken);
+                if (context.Venues.Count > 0)
+                {
+                    sb.AppendLine("نمایندگی‌های فعال پاستیل مرتبط با درخواست کاربر (به ترتیب پیشنهاد: نزدیکی به کاربر، پیشنهاد ویژهٔ پاستیل، امتیاز). کارت همین نمایندگی‌ها خودکار زیر پاسخ نمایش داده می‌شود:");
+                    foreach (var venue in context.Venues)
+                    {
+                        var distance = venue.DistanceMeters.HasValue
+                            ? $"، فاصله تقریبی={Math.Round(venue.DistanceMeters.Value / 1000, 1)} کیلومتر"
+                            : string.Empty;
+                        sb.AppendLine($"نمایندگی پاستیل ({VenueKindTitle(venue.Kind, venue.IsDaycare)}): id={venue.Id}، نام={venue.Name}، " +
+                                      $"امتیاز={Math.Round(venue.RateAvg, 1)} از {venue.RateCount} نظر، پیشنهاد ویژهٔ پاستیل={(venue.Suggested ? "بله" : "خیر")}، " +
+                                      $"شهر={venue.CityName}، آدرس={venue.AddressValue}{distance}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine($"برای نوع خدمت درخواستی ({string.Join("، ", venueKinds.Select(k => VenueKindTitle(k, null)))}) نمایندگی فعال و تأییدشده‌ای در پاستیل پیدا نشد؛ نام مرکز نساز.");
+                }
+                if (location == null)
+                    sb.AppendLine("موقعیت کاربر در پاستیل ثبت نشده؛ نمایندگی‌ها بر اساس پیشنهاد پاستیل و امتیاز مرتب شده‌اند. می‌توانی پیشنهاد کنی موقعیتش را ثبت کند تا نزدیک‌ترین‌ها نمایش داده شوند.");
+            }
+
             if (isMedicalCareRequest || needsNearbyResults)
             {
-                var location = await _context.UserCurrentLocations.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
 
                 if (isMedicalCareRequest)
                 {
@@ -592,7 +626,7 @@ namespace Application.Services.PastilAISrv
                     }).ToListAsync(cancellationToken);
 
                     foreach (var service in services)
-                        sb.AppendLine($"خدمت درمانی پاستیل: مرکزId={service.CompanionId}، مرکز={service.CompanionName}، خدمتId={service.AssistanceId}، خدمت={service.AssistanceName}، آدرس={service.AddressValue}، امتیاز={service.RateAvg} از {service.RateCount} نظر، قیمت پایهٔ پکیج فعال={service.FromPrice}");
+                        sb.AppendLine($"خدمت درمانی پاستیل: مرکزId={service.CompanionId}، مرکز={service.CompanionName}، خدمتId={service.AssistanceId}، خدمت={service.AssistanceName}، آدرس={service.AddressValue}، امتیاز={service.RateAvg} از {service.RateCount} نظر، قیمت پایهٔ پکیج فعال={(service.FromPrice.HasValue ? $"{service.FromPrice} تومان" : "نامشخص")}");
 
                     if (services.Count == 0)
                         sb.AppendLine("برای این جست‌وجوی درمانی، خدمت فعال و تأییدشده‌ای در دادهٔ پاستیل پیدا نشد؛ از ساختن نام مرکز یا خدمت خودداری کن.");
@@ -611,7 +645,7 @@ namespace Application.Services.PastilAISrv
                         foreach (var package in packages)
                         {
                             context.PackageIds.Add(package.Id);
-                            sb.AppendLine($"پکیج پاستیل: پکیجId={package.Id}، نام={package.Name}، قیمت={package.Price}، مربوط به خدمتId={package.CompanionAssistanceId}");
+                            sb.AppendLine($"پکیج پاستیل: پکیجId={package.Id}، نام={package.Name}، قیمت={package.Price} تومان، مربوط به خدمتId={package.CompanionAssistanceId}");
                         }
                     }
                 }
@@ -657,11 +691,17 @@ namespace Application.Services.PastilAISrv
             var metadata = new PastilAiRecommendationMetadata();
             // این مسیر را به تصمیم مدل وابسته نکنیم: در سؤال‌های مربوط به اپ پاستیل یا
             // مشکل خدماتی/مالی، کاربر همیشه باید راه مستقیمی به تیکت‌سنتر داشته باشد.
-            metadata.SupportTicket = IsSupportTicketIntent(question);
+            // استثنا: «آرایشگاه/پانسیون/کلینیک خوب برای سگم» یعنی کاربر دنبال خود خدمت است؛ این‌جا باید کارت
+            // نمایندگی‌ها بیاید نه تیکت، مگر این‌که صراحتاً مشکل، پیگیری یا موضوع مالی مطرح کرده باشد.
+            metadata.SupportTicket = IsSupportTicketIntent(question) &&
+                                     (context.VenueKinds.Count == 0 || ContainsExplicitSupportIntent(question));
             // پترسان یک سرویس داخلی است، نه محصول فروشگاه. در این سؤال‌ها نباید به‌خاطر
             // کلمات مشترکِ «پت»/«باکس» یا انتخاب مدل، کارت محصول نمایش داده شود.
             if (metadata.SupportTicket || response.IsEmergency || response.Scope == PastilAiScope.OutOfScope)
                 return metadata;
+
+            // کارت نمایندگی‌ها مستقیماً از نیت پیام و رتبه‌بندی دادهٔ واقعی می‌آید، نه از انتخاب مدل.
+            metadata.Venues = context.Venues;
 
             metadata.ProductRequestText = context.ProductRequestText;
             if (!string.IsNullOrWhiteSpace(metadata.ProductRequestText))
@@ -860,10 +900,12 @@ namespace Application.Services.PastilAISrv
             - دقیق، واقع‌بین و عمل‌گرا باش: علت‌های محتمل را از قطعی جدا کن، مراحل و بازهٔ زمانیِ امن بده و از کلی‌گویی بپرهیز.
             - از تاریخچهٔ مکالمه و مشخصات حیوان کاربر استفاده کن و چیزی را که قبلاً گفته دوباره نپرس.
             - برای پیشنهادهای خرید یا رزرو، دلیل ارتباط با هدف کاربر، محدودیت مهم و قدم بعدی را روشن کن.
+            - همهٔ قیمت‌های دادهٔ داخلی پاستیل به «تومان» هستند. قیمت را همیشه با واحد «تومان» بنویس و هرگز «ریال» نگو یا آن را به ریال تبدیل نکن.
             - داده یا قیمت قدیمی/ناکافی را قطعی جلوه نده. اگر دادهٔ لازم نداری، شفاف بگو چه اطلاعاتی لازم است یا راهنمایی عمومی مفید بده.
 
             ## کارت‌های قابل‌کلیک در اپ
             - فقط برای محصول یا پکیجی که مستقیماً به پیام کاربر مربوط است و در پاسخ واقعاً معرفی می‌کنی، شناسهٔ آن را در productIds یا packageIds قرار بده تا اپ کارت نمایش دهد.
+            - وقتی کاربر خدمتی مثل آرایش و اصلاح، دامپزشکی، تربیت/مربی، پانسیون یا مدرسه می‌خواهد، درخواستش «خدمت» است نه «محصول»: محصول پیشنهاد نده (مگر خودش کالا خواسته باشد) و productIds را خالی بگذار. اگر «نمایندگی پاستیل» در دادهٔ داخلی آمده، بهترین یک تا سه مورد را با نام واقعی، امتیاز و دلیل انتخاب (نزدیکی، پیشنهاد ویژهٔ پاستیل، امتیاز بالا) کوتاه معرفی کن و بگو کارتشان زیر همین پاسخ است و از همان‌جا می‌تواند پروفایل را ببیند و نوبت بگیرد. کاربر را به جست‌وجوی دستی در بخش‌های اپ حواله نده.
             - فقط از شناسه‌های صریح دادهٔ داخلی استفاده کن؛ هرگز شناسه نساز. حداکثر ۳ محصول و ۳ پکیج انتخاب کن. برای پاسخ‌های نامرتبط با خرید/رزرو، یا وضعیت فوریت پزشکی/خارج از حوزه، آرایه‌ها را خالی بگذار.
 
             ## پیش‌نویس درخواست محصول
@@ -1033,6 +1075,178 @@ namespace Application.Services.PastilAISrv
             };
         }
 
+        // ---------------- پیشنهاد نمایندگی‌های خدماتی (کلینیک/آرایشگاه/مربی/پانسیون/مدرسه) ----------------
+
+        private const string VenueClinic = "clinic";
+        private const string VenueGroomer = "groomer";
+        private const string VenueCoach = "coach";
+        private const string VenuePansion = "pansion";
+        private const string VenueSchool = "school";
+
+        /// <summary>تا این فاصله (متر) نمایندگی «نزدیک» حساب می‌شود و جلوتر از بقیه می‌آید.</summary>
+        private const double VenueNearRadiusMeters = 25_000;
+        private const int VenuesPerKind = 3;
+        private const int MaxVenueCards = 8;
+
+        private static readonly string[] GroomerIntentKeywords =
+        {
+            "آرایشگاه", "آرایش", "گرومینگ", "گرومر", "اصلاح مو", "اصلاح", "پیرایش", "شستشو", "شست و شو", "حمام",
+            "کوتاه کردن مو", "کوتاهی مو", "ناخن گرفتن", "ناخن گیری", "اسپا"
+        };
+
+        private static readonly string[] ClinicIntentKeywords =
+        {
+            "دامپزشک", "کلینیک", "ویزیت", "واکسن", "عقیم", "جراحی", "چکاپ", "چک آپ", "معاینه", "بیمارستان", "سونوگرافی", "رادیولوژی"
+        };
+
+        private static readonly string[] CoachIntentKeywords =
+        {
+            "مربی", "تربیت", "رفتارشناس", "اصلاح رفتار", "رفتار", "آموزش", "پارس", "گاز میگیر", "گاز می گیر", "فرمان پذیری", "اطاعت"
+        };
+
+        private static readonly string[] PansionIntentKeywords =
+        {
+            "پانسیون", "مهد", "هتل حیوان", "هتل پت", "مسافرت", "میرم سفر", "می روم سفر", "جای نگهداری", "مرکز نگهداری",
+            "نگهداری کنه", "نگهداری کنید", "نگهداری کنن", "نگهش دار", "بسپارم", "جا بذارم"
+        };
+
+        private static readonly string[] SchoolIntentKeywords =
+        {
+            "مدرسه", "کلاس", "دوره آموزش", "دوره تربیت", "تربیت", "آموزش"
+        };
+
+        private static string NormalizePersian(string value) =>
+            (value ?? string.Empty).Replace('ي', 'ی').Replace('ك', 'ک').Replace('‌', ' ');
+
+        private static bool ContainsAny(string value, IEnumerable<string> keywords) =>
+            keywords.Any(keyword => value.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>
+        /// نوع نمایندگی‌هایی که پیام کاربر به آن‌ها نیاز دارد. ترتیب خروجی همان ترتیب نمایش کارت‌هاست.
+        /// </summary>
+        private static List<string> GetVenueIntents(string question)
+        {
+            var kinds = new List<string>();
+            if (string.IsNullOrWhiteSpace(question)) return kinds;
+            var text = NormalizePersian(question);
+
+            // «اصلاح رفتار» کار مربی است، نه آرایشگاه.
+            var groomerText = text.Replace("اصلاح رفتار", " ");
+            if (ContainsAny(groomerText, GroomerIntentKeywords)) kinds.Add(VenueGroomer);
+            if (ContainsAny(text, ClinicIntentKeywords) || ContainsMedicalCareIntent(text)) kinds.Add(VenueClinic);
+            if (ContainsAny(text, CoachIntentKeywords)) kinds.Add(VenueCoach);
+            if (ContainsAny(text, SchoolIntentKeywords)) kinds.Add(VenueSchool);
+            if (ContainsAny(text, PansionIntentKeywords)) kinds.Add(VenuePansion);
+            return kinds;
+        }
+
+        private static string VenueKindTitle(string kind, bool? isDaycare) => kind switch
+        {
+            VenueClinic => "کلینیک دامپزشکی",
+            VenueGroomer => "آرایشگاه حیوانات",
+            VenueCoach => "مربی و رفتارشناس",
+            VenuePansion => isDaycare == true ? "مهد پت" : "پانسیون",
+            VenueSchool => "مدرسهٔ تربیت",
+            _ => kind
+        };
+
+        private async Task<List<PastilAiRecommendedVenueDto>> FindVenuesAsync(
+            IReadOnlyCollection<string> kinds,
+            Point userLocation,
+            CancellationToken cancellationToken)
+        {
+            var hasLocation = userLocation != null && !userLocation.IsEmpty;
+            // وقتی موقعیت کاربر نداریم یک نقطهٔ ساختگی می‌دهیم تا ترجمهٔ SQL معتبر بماند؛ hasLocation=false
+            // باعث می‌شود فاصله null شود و در ترتیب‌بندی اثری نداشته باشد.
+            var point = hasLocation ? userLocation : new Point(0, 0) { SRID = 4326 };
+            var result = new List<PastilAiRecommendedVenueDto>();
+
+            foreach (var kind in kinds.Distinct())
+            {
+                IQueryable<PastilAiRecommendedVenueDto> rows = kind switch
+                {
+                    VenueClinic => _context.Clinics.AsNoTracking()
+                        .Where(x => x.Active && x.Approved && x.ShowToSite && !x.Deleted)
+                        .Select(x => new PastilAiRecommendedVenueDto
+                        {
+                            Kind = VenueClinic, Id = x.Id, Name = x.Name, RateAvg = x.RateAvg, RateCount = x.RateCount,
+                            Suggested = x.Suggested, CityName = x.City.Name, AddressValue = x.AddressValue,
+                            DistanceMeters = hasLocation && x.Location != null ? x.Location.Distance(point) : (double?)null,
+                            Picture = x.Picture == null ? null : new PastilAiProductPictureDto { Url = x.Picture.Url, GuidName = x.Picture.GuidName, Extension = x.Picture.Extension }
+                        }),
+                    VenueGroomer => _context.Groomers.AsNoTracking()
+                        .Where(x => x.Active && x.Approved && x.ShowToSite && !x.Deleted)
+                        .Select(x => new PastilAiRecommendedVenueDto
+                        {
+                            Kind = VenueGroomer, Id = x.Id, Name = x.Name, RateAvg = x.RateAvg, RateCount = x.RateCount,
+                            Suggested = x.Suggested, CityName = x.City.Name, AddressValue = x.AddressValue,
+                            DistanceMeters = hasLocation && x.Location != null ? x.Location.Distance(point) : (double?)null,
+                            Picture = x.Picture == null ? null : new PastilAiProductPictureDto { Url = x.Picture.Url, GuidName = x.Picture.GuidName, Extension = x.Picture.Extension }
+                        }),
+                    VenueCoach => _context.Coaches.AsNoTracking()
+                        .Where(x => x.Active && x.Approved && x.ShowToSite && !x.Deleted)
+                        .Select(x => new PastilAiRecommendedVenueDto
+                        {
+                            Kind = VenueCoach, Id = x.Id, Name = x.Name, RateAvg = x.RateAvg, RateCount = x.RateCount,
+                            Suggested = x.Suggested, CityName = x.City.Name, AddressValue = x.AddressValue,
+                            DistanceMeters = hasLocation && x.Location != null ? x.Location.Distance(point) : (double?)null,
+                            Picture = x.Picture == null ? null : new PastilAiProductPictureDto { Url = x.Picture.Url, GuidName = x.Picture.GuidName, Extension = x.Picture.Extension }
+                        }),
+                    VenuePansion => _context.Pansions.AsNoTracking()
+                        .Where(x => x.Active && x.Approve && x.ShowToSite && !x.Deleted)
+                        .Select(x => new PastilAiRecommendedVenueDto
+                        {
+                            Kind = VenuePansion, Id = x.Id, Name = x.Name, RateAvg = x.RateAvg, RateCount = x.RateCount,
+                            Suggested = x.Suggested, CityName = x.City.Name, AddressValue = x.AddressValue,
+                            DistanceMeters = hasLocation && x.Location != null ? x.Location.Distance(point) : (double?)null,
+                            IsDaycare = x.IsDaycare,
+                            Picture = x.Picture == null ? null : new PastilAiProductPictureDto { Url = x.Picture.Url, GuidName = x.Picture.GuidName, Extension = x.Picture.Extension }
+                        }),
+                    VenueSchool => _context.Schools.AsNoTracking()
+                        .Where(x => x.Active && x.Approve && x.ShowToSite && !x.Deleted)
+                        .Select(x => new PastilAiRecommendedVenueDto
+                        {
+                            Kind = VenueSchool, Id = x.Id, Name = x.Name, RateAvg = x.RateAvg, RateCount = x.RateCount,
+                            Suggested = x.Suggested, CityName = x.City.Name, AddressValue = x.AddressValue,
+                            DistanceMeters = hasLocation && x.Location != null ? x.Location.Distance(point) : (double?)null,
+                            Picture = x.Picture == null ? null : new PastilAiProductPictureDto { Url = x.Picture.Url, GuidName = x.Picture.GuidName, Extension = x.Picture.Extension }
+                        }),
+                    _ => null
+                };
+                if (rows == null) continue;
+
+                // نزدیک‌ها اول (اگر موقعیت داریم)، بعد نمایندگی‌های پیشنهادی پاستیل، بعد امتیاز و تعداد نظر.
+                var top = await rows
+                    .OrderBy(x => x.DistanceMeters != null && x.DistanceMeters <= VenueNearRadiusMeters ? 0 : 1)
+                    .ThenByDescending(x => x.Suggested)
+                    .ThenByDescending(x => x.RateAvg)
+                    .ThenByDescending(x => x.RateCount)
+                    .ThenBy(x => x.DistanceMeters)
+                    .Take(VenuesPerKind)
+                    .ToListAsync(cancellationToken);
+                result.AddRange(top);
+            }
+
+            return result.Take(MaxVenueCards).ToList();
+        }
+
+        /// <summary>
+        /// کاربر صراحتاً مشکل/پیگیری/امور مالی یا سؤال دربارهٔ خود اپ دارد (نه فقط پیدا کردن یک خدمت).
+        /// </summary>
+        private static bool ContainsExplicitSupportIntent(string value)
+        {
+            var text = NormalizePersian(value);
+            return ContainsAny(text, SupportIntentKeywords) ||
+                   ContainsAny(text, PastilAppIntentKeywords) ||
+                   ContainsAny(text, FinancialIntentKeywords);
+        }
+
+        private static readonly string[] FinancialIntentKeywords =
+        {
+            "پرداخت", "تراکنش", "کیف پول", "امور مالی", "مالی", "واریز", "برداشت",
+            "بازگشت وجه", "استرداد", "فاکتور", "صورتحساب", "صورت حساب", "درگاه", "کد تخفیف", "لغو رزرو", "کنسل"
+        };
+
         private static string Truncate(string value, int max) =>
             string.IsNullOrEmpty(value) || value.Length <= max ? value : value[..max];
 
@@ -1044,12 +1258,15 @@ namespace Application.Services.PastilAISrv
             public bool UseCatalogProductCards { get; set; }
             public List<long> ProductIds { get; set; } = new();
             public List<long> PackageIds { get; set; } = new();
+            public List<string> VenueKinds { get; set; } = new();
+            public List<PastilAiRecommendedVenueDto> Venues { get; set; } = new();
         }
 
         private sealed class PastilAiRecommendationMetadata
         {
             public List<PastilAiRecommendedProductDto> Products { get; set; } = new();
             public List<PastilAiRecommendedPackageDto> Packages { get; set; } = new();
+            public List<PastilAiRecommendedVenueDto> Venues { get; set; } = new();
             public string ProductRequestText { get; set; }
             public PastilAiProductRequestDraftDto ProductRequest { get; set; }
             public bool SupportTicket { get; set; }
@@ -1138,6 +1355,7 @@ namespace Application.Services.PastilAISrv
                 : new(),
             RecommendedProducts = recommendations.Products,
             RecommendedPackages = recommendations.Packages,
+            RecommendedVenues = recommendations.Venues ?? new(),
             ProductRequestText = recommendations.ProductRequestText,
             ProductRequest = recommendations.ProductRequest,
             SupportTicket = recommendations.SupportTicket
