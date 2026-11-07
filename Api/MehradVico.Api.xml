@@ -4668,6 +4668,37 @@
             حذف رکورد اشتباه از تاریخچه
             </summary>
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProviderUserRoleTemplateController">
+            <summary>
+            نقش‌های آماده‌ی کارمندان ارائه‌دهنده، زیر هر نمایندگی (Store/Clinic/Groomer/Coach/Pansion/School).
+            هر ارائه‌دهنده فقط نقش‌های نمایندگی‌هایی را می‌بیند و می‌تواند به کارمندش بدهد که برایش فعال است.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderUserRoleTemplateController.Get(System.String)">
+            <summary>
+            فهرست نقش‌های آماده (scope خالی = همه‌ی نمایندگی‌ها)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderUserRoleTemplateController.Catalog">
+            <summary>
+            کاتالوگ کامل دسترسی‌ها (نمایندگی ← بخش ← مشاهده/مدیریت) برای فرم نقش
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderUserRoleTemplateController.Post(Application.Services.ProviderSrvs.ProviderUserSrv.Dto.ProviderUserRoleTemplateInputDto)">
+            <summary>
+            نقش آماده‌ی جدید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderUserRoleTemplateController.Put(Application.Services.ProviderSrvs.ProviderUserSrv.Dto.ProviderUserRoleTemplateInputDto)">
+            <summary>
+            ویرایش نام/توضیح/ترتیب و جایگزینی کامل دسترسی‌ها (نمایندگی عوض نمی‌شود)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderUserRoleTemplateController.Delete(System.Int64)">
+            <summary>
+            حذف نقش آماده (اگر به کارمندی داده شده باشد رد می‌شود)
+            </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ProviderVenueController">
             <summary>
             نمایندگی‌های یک ارائه‌دهنده (فروشگاه‌ها و نماینده‌ها) و اتصال آن‌ها
@@ -4696,6 +4727,16 @@
         <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignSchool(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
             <summary>
             اتصال مدرسه به ارائه‌دهنده (نیازمند نقش تأییدشده‌ی School)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignPansion(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
+            <summary>
+            اتصال پانسیون به ارائه‌دهنده (نیازمند نقش تأییدشده‌ی Pansion)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignCoach(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
+            <summary>
+            اتصال یک مربی (Coach) به ارائه‌دهنده (نیازمند نقش تأییدشده‌ی Coach؛ مالک = کاربر ارائه‌دهنده)
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.ProviderVenueController.AssignClinic(Application.Services.ProviderSrvs.ProviderVenueSrv.Dto.ProviderVenueAssignDto)">
@@ -7564,12 +7605,13 @@
         </member>
         <member name="T:Api.Areas.Companion.Controllers.PansionSettlementController">
             <summary>
-            تاریخچه‌ی تسویه‌ی پانسیون‌های من. پانسیون استخر جدا ندارد و در استخر «نمایندگی‌ها» (Kind=1) همراه رزرو خدمت، مشاوره و مدرسه تسویه می‌شود؛
-            این مسیر همان تسویه‌های ارائه‌دهنده‌ی کاربر را می‌دهد و ریز آن را فقط به ردیف‌های پانسیون (Type=Pansion) محدود می‌کند.
+            تاریخچه‌ی تسویه‌ی پانسیون‌های من. از ۲۰۲۶-۱۱-۰۳ پانسیونِ دارای ارائه‌دهنده استخر جدای «پانسیون» (Kind=7) دارد؛
+            تسویه‌های قدیمی‌تر (و پانسیون‌های فقط-نمایندگی) در استخر «نمایندگی‌ها» (Kind=1) همراه رزرو خدمت، مشاوره و مدرسه‌اند.
+            فهرست پیش‌فرض Kind=7 است و با kind=1 تاریخچه‌ی قدیمی داده می‌شود؛ ریز هر تسویه فقط ردیف‌های پانسیون (Type=Pansion) است.
             </summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.PansionSettlementController.Get(Application.Services.FinanceSrvs.SettlementSrv.Dto.SettlementInputDto)">
-            <summary>تسویه‌های ارائه‌دهنده‌ی من در استخر نمایندگی‌ها (شامل پانسیون)</summary>
+            <summary>تسویه‌های ارائه‌دهنده‌ی من: پیش‌فرض استخر «پانسیون» (۷)؛ kind=1 = تسویه‌های قدیمی استخر نمایندگی‌ها (شامل پانسیون)</summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.PansionSettlementController.Items(System.Int64)">
             <summary>ریز پانسیونیِ یک تسویه‌ی من (فقط ردیف‌های Type=Pansion)</summary>
@@ -8376,8 +8418,11 @@
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.CoachReserveController.Quote(System.Collections.Generic.List{System.Int64},System.Int32,System.Int64)">
             <summary>قیمت بسته (پیش‌پرداخت و باقی‌مانده‌ی حضوری) قبل از رزرو</summary>
-            <param name="mode">نحوه‌ی ارائه: ۳۷ آنلاین، ۳۸ حضوری در مربی، ۳۹ در محل مشتری؛ قیمت هر بسته به آن بستگی دارد.</param>
+            <param name="mode">نحوه‌ی ارائه: ۳۷ آنلاین، ۳۸ پانسیون آموزشی (در مرکز)، ۳۹ در محل مشتری؛ قیمت هر بسته به آن بستگی دارد.</param>
             <param name="packageIds">یک یا چند بسته (رزرو چندخدمتی؛ حداکثر ۵، هر خدمت یک‌بار). packageId قدیمی هم پذیرفته می‌شود.</param>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CoachReserveController.BoardingAvailability(System.Int64,System.Int64,System.DateTime,System.Int32)">
+            <summary>پانسیون آموزشی (mode=38): روزهایی که می‌شود پانسیون را شروع کرد (canStart)، جای خالی و ساعت کاری هر روز؛ از from به مدت days روز (حداکثر ۹۰).</summary>
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.CoachReserveController.Availability(System.Int64,System.DateTime,System.Int64,System.Nullable{System.Int64},System.Collections.Generic.List{System.Int64})">
             <summary>زمان‌های آزاد یک روز برای بسته‌ی انتخابی</summary>
@@ -8386,7 +8431,7 @@
             <summary>ثبت رزرو (پرداخت‌نشده)؛ بعد از آن کد تخفیف/کیف پول و پرداخت</summary>
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.CoachReserveController.Cancel(System.Int64)">
-            <summary>لغو رزرو: تا ۱۲ ساعت قبل از نوبت (یا تا قبل از تأیید مربی) با برگشت کل مبلغ به کیف پول</summary>
+            <summary>لغو رزرو: تا ۱۲ ساعت قبل از نوبت (پانسیون آموزشی: ۴۸ ساعت قبل از تحویل پت) یا تا قبل از تأیید مربی، با برگشت کل مبلغ به کیف پول</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.CoachReservePaymentController">
             <summary>
@@ -11333,13 +11378,16 @@
             مدیریت فروشنده ها
             </summary>
         </member>
-        <member name="M:Api.Areas.Seller.Controllers.StoreController.Get(System.Int64)">
+        <member name="M:Api.Areas.Seller.Controllers.StoreController.Current">
              <summary>
              اطلاعات آیتم
              </summary>
              <param name="id"></param>
              <returns></returns>
             
+            <summary>
+            فروشگاهِ جاری بدون شناسه: برای مالک فروشگاه خودش، برای کارمند ارائه‌دهنده (با هدر X-Provider-Id) فروشگاه همان ارائه‌دهنده
+            </summary>
         </member>
         <member name="M:Api.Areas.Seller.Controllers.StoreController.Put(Application.Services.ProductSrvs.StoreSrv.Dto.StoreDto)">
              <summary>

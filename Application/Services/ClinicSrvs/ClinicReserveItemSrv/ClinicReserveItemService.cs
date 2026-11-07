@@ -252,8 +252,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveItemSrv
                     return Fail<ClinicReserveItemsVDto>(Resource.Notification.ClinicReserveItemNotFound);
 
                 var petSize = await _context.UserPets.AsNoTracking().Where(p => p.Id == reserve.UserPetId).Select(p => p.Size).FirstOrDefaultAsync();
-                if (!string.IsNullOrWhiteSpace(package.PetSize) &&
-                    !string.Equals(package.PetSize, petSize?.Trim(), StringComparison.OrdinalIgnoreCase))
+                if (!VenuePetSizes.Matches(package.PetSize, petSize))
                     return Fail<ClinicReserveItemsVDto>(Resource.Notification.ClinicReservePetSizeMismatch);
 
                 var resolved = ClinicReserveRules.ResolveModePrice(

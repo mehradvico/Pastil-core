@@ -1,3 +1,4 @@
+using Application.Common.Helpers;
 using Application.Common.Dto.Result;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.ClinicSrvs.ClinicCatalogSrv.Dto;
@@ -219,12 +220,13 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv
                     Types = types.Select(x => new ClinicServicePackageType { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice }).ToList(),
                     PictureId = dto.PictureId,
                     Discription = dto.Discription?.Trim(),
-                    PetSize = NormalizePetSize(dto.PetSize),
+                    PetSize = PackageSizes(dto),
                     Active = true,
                 };
                 await _context.ClinicServicePackages.AddAsync(package);
                 await _context.SaveChangesAsync();
                 var created = _mapper.Map<ClinicServicePackageVDto>(package);
+                created.PetSizes = VenuePetSizes.Split(package.PetSize);
                 created.Types = types.Select(x => new ClinicPackageTypeVDto { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, ModeName = ModeName(x.Mode) }).ToList();
                 return new BaseResultDto<ClinicServicePackageVDto>(true, created);
             }
@@ -255,7 +257,7 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv
 
             var name = dto.Name.Trim();
             var description = dto.Discription?.Trim();
-            var size = NormalizePetSize(dto.PetSize);
+            var size = PackageSizes(dto);
             var types = NormalizeTypes(dto);
             var (basePrice, basePre) = BasePrice(dto, types);
             await _context.ClinicServicePackages.Where(p => p.Id == dto.Id && !p.Deleted)
@@ -349,7 +351,7 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv
                 if (types.Any(x => x.Price <= 0 || x.PrePaymentPrice < 0 || x.PrePaymentPrice > x.Price || double.IsNaN(x.Price) || double.IsInfinity(x.Price)))
                     return Resource.Notification.ClinicPackagePriceInvalid;
             }
-            if (!string.IsNullOrWhiteSpace(dto.PetSize) && NormalizePetSize(dto.PetSize) == null)
+            if (!VenuePetSizes.TryNormalizeSet(dto.PetSize, dto.PetSizes, out _))
                 return Resource.Notification.ClinicPackagePetSizeInvalid;
             if (dto.PictureId.HasValue && dto.PictureId.Value > 0 && !await _context.Pictures.AnyAsync(p => p.Id == dto.PictureId.Value))
                 return Resource.Notification.ClinicPictureInvalid;
@@ -377,12 +379,11 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv
         };
 
         /// <summary>اندازه‌ی نرمال‌شده؛ خالی یا نامعتبر = null (برای ورودی نامعتبر، ValidatePackageAsync قبلاً خطا می‌دهد).</summary>
-        private static string NormalizePetSize(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                return null;
-            return ClinicPetSizes.All.FirstOrDefault(s => string.Equals(s, value.Trim(), StringComparison.OrdinalIgnoreCase));
-        }
+        private static string NormalizePetSize(string value) => VenuePetSizes.One(value);
+
+        /// <summary>سایزهای بسته برای ذخیره («Small,Medium»؛ null = همه). ورودی نامعتبر را ValidatePackageAsync قبلاً رد کرده است.</summary>
+        private static string PackageSizes(ClinicServicePackageInputDto dto) =>
+            VenuePetSizes.TryNormalizeSet(dto.PetSize, dto.PetSizes, out var sizes) ? sizes : null;
 
         private async Task<List<ClinicServiceVDto>> ProjectAsync(IQueryable<ClinicService> query, string petSize, bool onlyActivePackages)
         {
@@ -391,7 +392,7 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv
                 s.Id, s.ClinicId, s.AssistanceId, AssistanceName = s.Assistance.Name, AssistancePicture = s.Assistance.Picture,
                 s.Active, s.Approved, s.ActivationValue, s.CommissionPercent, s.DurationMinutes, s.Description,
                 Packages = s.Packages
-                    .Where(p => !p.Deleted && (!onlyActivePackages || p.Active) && (petSize == null || p.PetSize == null || p.PetSize == petSize))
+                    .Where(p => !p.Deleted && (!onlyActivePackages || p.Active) && (petSize == null || p.PetSize == null || p.PetSize.Contains(petSize)))
                     .OrderBy(p => p.Price)
                     .Select(p => new { p.Id, p.ClinicServiceId, p.Name, p.Price, p.PrePaymentPrice, p.PictureId, p.Picture, p.Active, p.ActivationValue, p.Discription, p.PetSize, Types = p.Types.Where(x => !x.Deleted).OrderBy(x => x.Mode).Select(x => new { x.Id, x.Mode, x.Price, x.PrePaymentPrice }).ToList() })
                     .ToList(),
@@ -425,6 +426,7 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv
                     ActivationValue = p.ActivationValue,
                     Discription = p.Discription,
                     PetSize = p.PetSize,
+                    PetSizes = VenuePetSizes.Split(p.PetSize),
                     Types = p.Types.Select(x => new ClinicPackageTypeVDto { Id = x.Id, Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, ModeName = ModeName(x.Mode) }).ToList(),
                 }).ToList(),
             }).ToList();

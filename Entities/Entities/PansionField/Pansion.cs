@@ -16,7 +16,10 @@ namespace Entities.Entities.PansionField
         // نام قبلی: IsSchool - برای جلوگیری از تداخل با موجودیت جدید «مدرسه‌ی تربیت» تغییر نام یافت.
         // true = حالت «مهد پت» (نگهداری ساعتی/روزانه)، false/null = حالت پانسیون شبانه.
         public bool? IsDaycare { get; set; }
-        public long CompanionId { get; set; }
+        // مالک پانسیون «ارائه‌دهنده» (ProviderId) است (۲۰۲۶-۱۱-۰۳، مثل مدرسه)؛ CompanionId برای پانسیون‌های قدیمی می‌ماند و اختیاری است.
+        // دست‌کم یکی از ProviderId / CompanionId پر است (CK_Pansions_Owner).
+        public long? CompanionId { get; set; }
+        public long? ProviderId { get; set; }
         public bool Active {  get; set; }
         public bool ShowToSite { get; set; }
         public bool Approve { get; set; }
@@ -48,6 +51,7 @@ namespace Entities.Entities.PansionField
         public decimal DailyCommissionPercent { get; set; }
         public decimal HourlyCommissionPercent { get; set; }
         public Companion Companion { get; set; }
+        public ProviderField.Provider Provider { get; set; }
         public State State { get; set; }
         public City City { get; set; }  
         public Picture Picture { get; set; }

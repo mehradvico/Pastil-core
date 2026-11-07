@@ -13,5 +13,7 @@ namespace Entities.Entities
         Coach = 5,
         // مدرسه‌های ارائه‌دهنده (School.ProviderId)، جدا از استخر نمایندگی (۲۰۲۶-۱۰-۲۷)
         School = 6,
+        // پانسیون‌های ارائه‌دهنده (Pansion.ProviderId)، جدا از استخر نمایندگی (۲۰۲۶-۱۱-۰۳)
+        Pansion = 7,
     }
 }

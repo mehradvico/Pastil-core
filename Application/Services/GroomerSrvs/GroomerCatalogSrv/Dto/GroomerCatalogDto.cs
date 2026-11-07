@@ -41,6 +41,8 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv.Dto
         public string Discription { get; set; }
         /// <summary>Small/Medium/Large؛ خالی = همه‌ی سایزها.</summary>
         public string PetSize { get; set; }
+        /// <summary>چند سایز (Small/Medium/Large)؛ اگر پر باشد بر PetSize مقدم است. خالی یا هر سه = همه‌ی سایزها.</summary>
+        public List<string> PetSizes { get; set; }
     }
 
     public class GroomerServicePackageVDto
@@ -56,6 +58,8 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv.Dto
         public string ActivationValue { get; set; }
         public string Discription { get; set; }
         public string PetSize { get; set; }
+        /// <summary>سایزهای بسته به‌صورت لیست؛ خالی = همه‌ی سایزها. PetSize همان مقدار به‌صورت «Small,Medium» است.</summary>
+        public List<string> PetSizes { get; set; } = new List<string>();
     }
 
     public class GroomerServiceVDto

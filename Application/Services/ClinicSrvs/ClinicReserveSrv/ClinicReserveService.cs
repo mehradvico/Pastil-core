@@ -1,3 +1,4 @@
+using Application.Common.Helpers;
 using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
@@ -169,8 +170,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 if (accepted.Count > 0 && !accepted.Contains(pet.PetId))
                     return Fail(Resource.Notification.ClinicReservePetTypeNotAccepted);
                 // هر بسته‌ی انتخابی باید با سایز حیوان بخواند.
-                if (set.Packages.Any(p => !string.IsNullOrWhiteSpace(p.PetSize) &&
-                                          !string.Equals(p.PetSize, pet.Size?.Trim(), StringComparison.OrdinalIgnoreCase)))
+                if (set.Packages.Any(p => !VenuePetSizes.Matches(p.PetSize, pet.Size)))
                     return Fail(Resource.Notification.ClinicReservePetSizeMismatch);
 
                 var modeError = await ValidateModeAsync(dto, package, bookerId);

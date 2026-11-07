@@ -12,6 +12,9 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
     {
         public bool? IsDaycare { get; set; }
         public long? CompanionId { get; set; }
+        public long? ProviderId { get; set; }
+        // فقط پنل/اپ ارائه‌دهنده: همه‌ی پانسیون‌های «این کاربر»؛ سمت کنترلر از کاربر پر می‌شود
+        public long? OwnerUserId { get; set; }
         public bool? Approve { get; set; }
         public List<long> NeighborhoodIds { get; set; }
         public long? StateId { get; set; }

@@ -44,10 +44,10 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             _logger = logger;
         }
 
-        public async Task<BaseResultDto> ApproveAsync(long reserveId, long? companionId, CancellationToken cancellationToken = default)
+        public async Task<BaseResultDto> ApproveAsync(long reserveId, long? ownerUserId, CancellationToken cancellationToken = default)
         {
             var reserve = await LoadAsync(reserveId, cancellationToken);
-            var check = Check(reserve, companionId);
+            var check = await CheckAsync(reserve, ownerUserId, cancellationToken);
             if (check != null)
                 return check;
             // مهلت گذشته: تأیید پذیرفته نمی‌شود (job انقضا رزرو را لغو و پول را برمی‌گرداند)؛ رد هنوز مجاز است.
@@ -67,16 +67,16 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             return new BaseResultDto(true, Resource.Notification.PansionReserveApprovedSuccessfully);
         }
 
-        public async Task<BaseResultDto> RejectAsync(long reserveId, string reason, long? companionId, CancellationToken cancellationToken = default)
+        public async Task<BaseResultDto> RejectAsync(long reserveId, string reason, long? ownerUserId, CancellationToken cancellationToken = default)
         {
             reason = reason?.Trim();
             if (string.IsNullOrWhiteSpace(reason))
                 return new BaseResultDto(false, Resource.Notification.PansionReserveRejectReasonRequired);
 
-            return await CancelWithRefundAsync(reserveId, companionId, PansionReserveOwnerDecisionEnum.Rejected, reason, cancellationToken);
+            return await CancelWithRefundAsync(reserveId, ownerUserId, PansionReserveOwnerDecisionEnum.Rejected, reason, cancellationToken);
         }
 
-        public async Task<BaseResultDto> CancelByOwnerAsync(long reserveId, string reason, long? companionId, CancellationToken cancellationToken = default)
+        public async Task<BaseResultDto> CancelByOwnerAsync(long reserveId, string reason, long? ownerUserId, CancellationToken cancellationToken = default)
         {
             reason = reason?.Trim();
             if (string.IsNullOrWhiteSpace(reason))
@@ -90,7 +90,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 await transaction.RollbackAsync(cancellationToken);
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             }
-            if (companionId.HasValue && reserve.Pansion?.CompanionId != companionId.Value)
+            if (ownerUserId.HasValue && !await IsOwnerAsync(reserve.PansionId, ownerUserId.Value, cancellationToken))
             {
                 await transaction.RollbackAsync(cancellationToken);
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
@@ -155,12 +155,12 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
         // لغو رزرو + برگشت کل مبلغ پرداخت‌شده به کیف پول کاربر (در یک تراکنش؛ اگر برگشت پول نشد، لغو هم نمی‌شود)
         private async Task<BaseResultDto> CancelWithRefundAsync(
-            long reserveId, long? companionId, PansionReserveOwnerDecisionEnum decision, string reason, CancellationToken ct)
+            long reserveId, long? ownerUserId, PansionReserveOwnerDecisionEnum decision, string reason, CancellationToken ct)
         {
             await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
 
             var reserve = await LoadAsync(reserveId, ct);
-            var check = Check(reserve, companionId);
+            var check = await CheckAsync(reserve, ownerUserId, ct);
             if (check != null)
             {
                 await transaction.RollbackAsync(ct);
@@ -230,11 +230,15 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 .AsTracking()
                 .FirstOrDefaultAsync(r => r.Id == reserveId, ct);
 
-        private static BaseResultDto Check(PansionReserve reserve, long? companionId)
+        // مالک = کاربر ارائه‌دهنده‌ی پانسیون یا مالک نمایندگیِ پانسیون قدیمی (فعال و تأییدشده)
+        private Task<bool> IsOwnerAsync(long pansionId, long ownerUserId, CancellationToken ct) =>
+            Application.Services.PansionSrvs.PansionOwnershipSrv.PansionOwnershipService.OwnedPansionIds(_context, ownerUserId).AnyAsync(id => id == pansionId, ct);
+
+        private async Task<BaseResultDto> CheckAsync(PansionReserve reserve, long? ownerUserId, CancellationToken ct)
         {
             if (reserve == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (companionId.HasValue && reserve.Pansion?.CompanionId != companionId.Value)
+            if (ownerUserId.HasValue && !await IsOwnerAsync(reserve.PansionId, ownerUserId.Value, ct))
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
             if (!PansionReserveApprovalRules.CanDecide(reserve.IsReserved, reserve.IsCancel, reserve.OwnerDecision))
                 return new BaseResultDto(false, Resource.Notification.PansionReserveApprovalNotPending);

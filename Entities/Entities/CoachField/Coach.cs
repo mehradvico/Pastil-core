@@ -60,10 +60,12 @@ namespace Entities.Entities.CoachField
         public string WebsiteUrl { get; set; }
         /// <summary>خدمات در محل مشتری (با پوشش CoachZone).</summary>
         public bool ServiceAtHome { get; set; }
-        /// <summary>خدمات حضوری در خود مربی.</summary>
+        /// <summary>پانسیون آموزشی (در مرکز) — پت چند روز پیش مربی می‌ماند.</summary>
         public bool ServiceInPerson { get; set; }
         /// <summary>خدمات آنلاین (مشاوره‌ی تصویری/چت).</summary>
         public bool ServiceOnline { get; set; }
+        /// <summary>ظرفیت پت مقیم هم‌زمان در پانسیون آموزشی (Mode=۳۸)؛ ۰ = بدون سقف.</summary>
+        public int BoardingCapacity { get; set; }
         public bool HasParking { get; set; }
         public bool HasWaitingRoom { get; set; }
         public bool HasCamera { get; set; }

@@ -2029,6 +2029,11 @@ namespace Persistence.Migrations
                     b.Property<long?>("BackgroundPictureId")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("BoardingCapacity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<long>("CityId")
                         .HasColumnType("bigint");
 
@@ -2331,6 +2336,9 @@ namespace Persistence.Migrations
 
                     b.Property<DateTime>("CreateDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<double?>("DailyPrice")
+                        .HasColumnType("float");
 
                     b.Property<double>("DebtAmount")
                         .HasColumnType("float");
@@ -2789,6 +2797,9 @@ namespace Persistence.Migrations
 
                     b.Property<long>("CoachServicePackageId")
                         .HasColumnType("bigint");
+
+                    b.Property<double?>("DailyPrice")
+                        .HasColumnType("float");
 
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
@@ -7381,7 +7392,7 @@ namespace Persistence.Migrations
                     b.Property<int>("CommentCount")
                         .HasColumnType("int");
 
-                    b.Property<long>("CompanionId")
+                    b.Property<long?>("CompanionId")
                         .HasColumnType("bigint");
 
                     b.Property<decimal>("DailyCommissionPercent")
@@ -7425,6 +7436,9 @@ namespace Persistence.Migrations
                     b.Property<long?>("PictureId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ProviderId")
+                        .HasColumnType("bigint");
+
                     b.Property<double>("RateAvg")
                         .HasColumnType("float");
 
@@ -7453,6 +7467,8 @@ namespace Persistence.Migrations
                     b.HasIndex("CompanionId");
 
                     b.HasIndex("PictureId");
+
+                    b.HasIndex("ProviderId");
 
                     b.HasIndex("StateId");
 
@@ -11263,16 +11279,31 @@ namespace Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<long>("ProviderId")
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("ProviderId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("Scope")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ProviderId", "Name")
                         .IsUnique()
-                        .HasFilter("[Deleted] = 0");
+                        .HasFilter("[Deleted] = 0 AND [ProviderId] IS NOT NULL");
 
-                    b.ToTable("ProviderUserRoles");
+                    b.HasIndex("Scope", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_ProviderUserRoles_Template_Scope_Name")
+                        .HasFilter("[Deleted] = 0 AND [ProviderId] IS NULL");
+
+                    b.ToTable("ProviderUserRoles", t =>
+                        {
+                            t.HasCheckConstraint("CK_ProviderUserRoles_TemplateScope", "([ProviderId] IS NULL AND [Scope] IS NOT NULL) OR ([ProviderId] IS NOT NULL AND [Scope] IS NULL)");
+                        });
                 });
 
             modelBuilder.Entity("Entities.Entities.ProviderField.ProviderUserRolePermission", b =>
@@ -18368,13 +18399,15 @@ namespace Persistence.Migrations
 
                     b.HasOne("Entities.Entities.Companion", "Companion")
                         .WithMany("Pansions")
-                        .HasForeignKey("CompanionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("CompanionId");
 
                     b.HasOne("Entities.Entities.Picture", "Picture")
                         .WithMany()
                         .HasForeignKey("PictureId");
+
+                    b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
+                        .WithMany("Pansions")
+                        .HasForeignKey("ProviderId");
 
                     b.HasOne("Entities.Entities.State", "State")
                         .WithMany()
@@ -18387,6 +18420,8 @@ namespace Persistence.Migrations
                     b.Navigation("Companion");
 
                     b.Navigation("Picture");
+
+                    b.Navigation("Provider");
 
                     b.Navigation("State");
                 });
@@ -19906,8 +19941,7 @@ namespace Persistence.Migrations
                     b.HasOne("Entities.Entities.ProviderField.Provider", "Provider")
                         .WithMany("UserRoles")
                         .HasForeignKey("ProviderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Provider");
                 });
@@ -22243,6 +22277,8 @@ namespace Persistence.Migrations
                     b.Navigation("Companions");
 
                     b.Navigation("Groomers");
+
+                    b.Navigation("Pansions");
 
                     b.Navigation("RoleAssignments");
 

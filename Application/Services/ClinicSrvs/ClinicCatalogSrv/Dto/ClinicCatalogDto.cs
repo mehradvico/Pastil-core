@@ -55,6 +55,8 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv.Dto
         public string Discription { get; set; }
         /// <summary>Small/Medium/Large؛ خالی = همه‌ی سایزها.</summary>
         public string PetSize { get; set; }
+        /// <summary>چند سایز (Small/Medium/Large)؛ اگر پر باشد بر PetSize مقدم است. خالی یا هر سه = همه‌ی سایزها.</summary>
+        public List<string> PetSizes { get; set; }
         /// <summary>قیمت به‌ازای نحوه‌ی ارائه. اگر خالی باشد بسته همه‌ی حالت‌ها را با Price/PrePaymentPrice ارائه می‌دهد؛ اگر پر باشد فقط حالت‌های لیست‌شده (Price/PrePaymentPrice بسته = ارزان‌ترین حالت).</summary>
         public List<ClinicPackageTypeDto> Types { get; set; } = new List<ClinicPackageTypeDto>();
     }
@@ -72,6 +74,8 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv.Dto
         public string ActivationValue { get; set; }
         public string Discription { get; set; }
         public string PetSize { get; set; }
+        /// <summary>سایزهای بسته به‌صورت لیست؛ خالی = همه‌ی سایزها. PetSize همان مقدار به‌صورت «Small,Medium» است.</summary>
+        public List<string> PetSizes { get; set; } = new List<string>();
         public List<ClinicPackageTypeVDto> Types { get; set; } = new List<ClinicPackageTypeVDto>();
     }
 

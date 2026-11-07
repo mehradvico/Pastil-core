@@ -195,7 +195,7 @@
                 S("CompanionType"),
                 S("Provider", "ProviderRoleAssignment", "ProviderSubscription", "ProviderVenue", "ProviderOverview", "ProviderOnboarding"),
                 S("ProviderRole"),
-                S("Store", "StoreApproval", "StoreUser", "StoreComment"),
+                S("Store", "StoreApproval", "StoreUser", "StoreComment", "StoreWorkingHour"),
                 S("SubscriptionPlan"),
                 S("Assistance", "AssistanceExpertise"),
                 S("AssistanceGroup"),
@@ -223,7 +223,7 @@
                     "CoachUser", "CoachPicture", "CoachReview"),
                 S("School",
                     "SchoolActive", "SchoolApprove", "SchoolPicture",
-                    "SchoolCourse", "SchoolCourseSession", "SchoolCourseVideo", "SchoolCoursePet"),
+                    "SchoolCourse", "SchoolCourseSession", "SchoolCourseVideo", "SchoolCoursePet", "SchoolCourseRate"),
                 S("Notice"),
             ]);
 

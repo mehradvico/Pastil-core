@@ -15,7 +15,6 @@ namespace Api.Areas.Pansion.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
-    [Api.Filters.RequireCompanionScope]
     public class PansionReserveChangeStatusController : ControllerBase
     {
         private readonly IPansionReserveService _PansionReserveService;
@@ -35,10 +34,7 @@ namespace Api.Areas.Pansion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(PansionReserveStatusDto dto)
         {
-            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
-            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
-                return Forbid();
-            var Pansion = await _PansionReserveService.UpdatePansionReserveStatusDto(dto, _currentUserHelper.CurrentUser.CompanionId.Value);
+            var Pansion = await _PansionReserveService.UpdatePansionReserveStatusDto(dto, _currentUserHelper.CurrentUser.UserId);
             return Ok(Pansion);
         }
     }

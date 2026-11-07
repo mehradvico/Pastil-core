@@ -20,7 +20,6 @@ namespace Api.Areas.Companion.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
-    [Api.Filters.RequireCompanionScope]
     public class PansionCommentController : ControllerBase
     {
         private readonly IPansionCommentService _service;
@@ -37,9 +36,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(PansionCommentSearchDto), 200)]
         public IActionResult Get([FromQuery] PansionCommentInputDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId;
+            dto.OwnerUserId = _currentUser.CurrentUser.UserId;
             dto.UserId = null;
             dto.AllStatus = true;
             return Ok(_service.Search(dto));
@@ -50,9 +47,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Reply([FromBody] PansionCommentReplyDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return Forbid();
-            return Ok(await _service.ReplyAsync(dto?.Id ?? 0, dto?.Answer, _currentUser.CurrentUser.CompanionId.Value));
+            return Ok(await _service.ReplyAsync(dto?.Id ?? 0, dto?.Answer, _currentUser.CurrentUser.UserId));
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv.Iface
     {
         Task<BaseResultDto> UpdateDtoAsync(PansionCommentDto dto);
         // پاسخ مالک مرکز به یک نظر (فقط Answer؛ وضعیت تأیید دست‌نخورده می‌ماند). companionId = نمایندگیِ مالک.
-        Task<BaseResultDto> ReplyAsync(long commentId, string answer, long companionId);
+        Task<BaseResultDto> ReplyAsync(long commentId, string answer, long ownerUserId);
         PansionCommentSearchDto Search(PansionCommentInputDto baseSearchDto);
         Task UpdatePansionCommentRateAsync(long Id);
     }

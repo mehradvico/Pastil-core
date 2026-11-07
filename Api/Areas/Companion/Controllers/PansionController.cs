@@ -2,6 +2,7 @@
 using Application.Common.Interface;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Iface;
+using Application.Services.PansionSrvs.PansionOwnershipSrv;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,13 +16,14 @@ namespace Api.Areas.Companion.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
-    [Api.Filters.RequireCompanionScope]
     public class PansionController : ControllerBase
     {
         private readonly IPansionService _PansionService;
         private readonly ICurrentUserHelper _currentUser;
-        public PansionController(IPansionService PansionService, ICurrentUserHelper currentUser)
+        private readonly IPansionOwnershipService _ownership;
+        public PansionController(IPansionService PansionService, ICurrentUserHelper currentUser, IPansionOwnershipService ownership)
         {
+            this._ownership = ownership;
             this._PansionService = PansionService;
             this._currentUser = currentUser;    
         }
@@ -34,9 +36,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(PansionSearchDto), 200)]
         public IActionResult Get([FromQuery] PansionInputDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId;
+            dto.OwnerUserId = _currentUser.CurrentUser.UserId;
             var search = _PansionService.Search(dto);
             return Ok(search);
         }
@@ -54,8 +54,7 @@ namespace Api.Areas.Companion.Controllers
         {
             var Pansion = await _PansionService.FindAsyncVDto(id);
             if (!Pansion.IsSuccess ||
-                !_currentUser.CurrentUser.CompanionId.HasValue ||
-                Pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId.Value)
+                await _ownership.PansionOfPansionAsync(id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                 return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
             return Ok(Pansion);
         }
@@ -69,9 +68,12 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<PansionDto>), 200)]
         public async Task<IActionResult> Post(PansionDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return Forbid();
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId!.Value;
+            // مالک: ارائه‌دهنده‌ی کاربر با نقش تأییدشده‌ی «پانسیون»، وگرنه نمایندگی قدیمی‌اش
+            var owner = await _ownership.ResolveOwnerForNewPansionAsync(_currentUser.CurrentUser.UserId);
+            if (!owner.Ok)
+                return Ok(new BaseResultDto<PansionDto>(false, owner.Error, dto));
+            dto.ProviderId = owner.ProviderId;
+            dto.CompanionId = owner.CompanionId;
             var result = await _PansionService.InsertAsyncDto(dto);
             return Ok(result);
         }
@@ -85,13 +87,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(PansionDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return Forbid();
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId!.Value;
-            var Pansion = await _PansionService.ResubmitAsyncDto(
-                dto,
-                dto.CompanionId,
-                _currentUser.CurrentUser.UserId);
+            var Pansion = await _PansionService.ResubmitAsyncDto(dto, _currentUser.CurrentUser.UserId);
             return Ok(Pansion);
         }
 
@@ -104,10 +100,8 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Delete(long id)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return Forbid();
             var result = await _PansionService.SoftDeleteAsync(
-                id, _currentUser.CurrentUser.CompanionId.Value, _currentUser.CurrentUser.UserId);
+                id, _currentUser.CurrentUser.UserId, _currentUser.CurrentUser.UserId);
             return Ok(result);
         }
     }

@@ -613,11 +613,11 @@ namespace Application.Maping
             //Pansion
             CreateMap<Pansion, PansionDto>();
             CreateMap<PansionDto, Pansion>().ForMember(x => x.CommentCount, y => y.Ignore()).ForMember(x => x.RateAvg, y => y.Ignore()).ForMember(x => x.RateCount, y => y.Ignore());
-            CreateMap<Pansion, PansionVDto>();
+            CreateMap<Pansion, PansionVDto>()
+                .ForMember(x => x.ProviderName, o => o.MapFrom(m => m.Provider != null && m.Provider.User != null ? (m.Provider.User.FirstName + " " + m.Provider.User.LastName).Trim() : null));
             CreateMap<Pansion, PansionActiveDto>().ReverseMap();
             CreateMap<Pansion, PansionApproveDto>().ReverseMap();
             CreateMap<Pansion, PansionDto>().ReverseMap();
-            CreateMap<Pansion, PansionVDto>();
             CreateMap<Pansion, PansionMinVDto>();
             CreateMap<Pansion, PansionFinanceVDto>().ForMember(d => d.HasCommission, o => o.MapFrom(s => s.DailyCommissionPercent > 0 && s.HourlyCommissionPercent > 0));
             CreateMap<PansionComment, PansionCommentDto>().ReverseMap();

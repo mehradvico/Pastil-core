@@ -25,16 +25,31 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
         /// رزرو پانسیون/مهد: پرداخت‌شده، لغونشده، «تکمیل‌شده» و تأییدشده توسط مرکز (یا بدون نیاز به تأیید).
         /// رزروی که هنوز منتظر تأیید است ممکن است رد/منقضی شود و پولش به کیف پول برگردد؛ پس وارد استخر تسویه نمی‌شود.
         /// </summary>
-        public static IQueryable<PansionReserve> PansionReserves(IDataBaseContext context, IReadOnlyCollection<long> companionIds)
+        private static IQueryable<PansionReserve> SettleablePansionReserves(IDataBaseContext context)
         {
             var complete = (long)Application.Common.Enumerable.Code.PansionReserveStatusEnum.PansionReserveState_Complete;
             var notRequired = (int)Application.Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.NotRequired;
             var approved = (int)Application.Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.Approved;
             return context.PansionReserves
                 .Where(r => r.IsReserved && !r.IsCancel && r.StatusId == complete
-                            && (r.OwnerDecision == notRequired || r.OwnerDecision == approved)
-                            && companionIds.Contains(r.Pansion.CompanionId));
+                            && (r.OwnerDecision == notRequired || r.OwnerDecision == approved));
         }
+
+        /// <summary>
+        /// رزرو پانسیون‌های قدیمیِ بدون ارائه‌دهنده که فقط زیر نمایندگی‌اند؛ در مجموع همان نمایندگی حساب می‌شوند.
+        /// پانسیونِ دارای ProviderId در استخر جدای «پانسیون» است (ProviderPansionReserves) تا دوبار شمرده نشود.
+        /// </summary>
+        public static IQueryable<PansionReserve> PansionReserves(IDataBaseContext context, IReadOnlyCollection<long> companionIds)
+            => SettleablePansionReserves(context)
+                .Where(r => r.Pansion.ProviderId == null && r.Pansion.CompanionId != null
+                            && companionIds.Contains(r.Pansion.CompanionId.Value));
+
+        /// <summary>رزرو همه‌ی پانسیون‌های ارائه‌دهنده (Pansion.ProviderId، با یا بدون نمایندگی)؛ استخر جدای «پانسیون» (SettlementKindEnum.Pansion).</summary>
+        public static IQueryable<PansionReserve> ProviderPansionReserves(IDataBaseContext context, long providerId)
+            => SettleablePansionReserves(context).Where(r => r.Pansion.ProviderId == providerId);
+
+        public static IQueryable<PansionReserve> ProviderPansionReserves(IDataBaseContext context, IReadOnlyCollection<long> providerIds)
+            => SettleablePansionReserves(context).Where(r => r.Pansion.ProviderId != null && providerIds.Contains(r.Pansion.ProviderId.Value));
 
         /// <summary>مشاوره‌ی آنلاین: فقط «تکمیل‌شده» (بعد از آن دیگر قابل بازپرداخت نیست).</summary>
         public static IQueryable<ConsultationPurchase> ConsultationPurchases(IDataBaseContext context, IReadOnlyCollection<long> companionIds)

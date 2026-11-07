@@ -429,7 +429,8 @@ namespace Application.Services.CompanionSrvs.OnlineSessionSrv
                 .Concat(_context.ClinicReserves.Where(r => r.Clinic.OwnerId == currentUserId || r.AssigneeUserId == currentUserId).Select(r => r.BookerId))
                 .Concat(_context.CoachReserves.Where(r => r.Coach.OwnerId == currentUserId || r.AssigneeUserId == currentUserId).Select(r => r.BookerId))
                 .Concat(_context.GroomerReserves.Where(r => r.Groomer.OwnerId == currentUserId || r.AssigneeUserId == currentUserId).Select(r => r.BookerId))
-                .Concat(_context.PansionReserves.Where(r => companionIds.Contains(r.Pansion.CompanionId)).Select(r => r.BookerId))
+                .Concat(_context.PansionReserves.Where(r => (r.Pansion.CompanionId != null && companionIds.Contains(r.Pansion.CompanionId.Value))
+                    || (r.Pansion.Provider != null && r.Pansion.Provider.UserId == currentUserId)).Select(r => r.BookerId))
                 .Concat(_context.SchoolReserves.Where(r => (r.SchoolCourse.School.CompanionId != null && companionIds.Contains(r.SchoolCourse.School.CompanionId.Value))
                     || (r.SchoolCourse.School.Provider != null && r.SchoolCourse.School.Provider.UserId == currentUserId)).Select(r => r.BookerId))
                 .Concat(_context.OnlineSessions.Where(o => o.InitiatorUserId == currentUserId).Select(o => o.TargetUserId));

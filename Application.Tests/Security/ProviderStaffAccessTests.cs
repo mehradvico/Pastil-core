@@ -375,4 +375,102 @@ public class ProviderUserServiceTests : IClassFixture<CoachLocalDbFixture>
         Assert.NotNull(await NewService().ResolveActingAsync(b.OtherUserId, b.ProviderId));
         Assert.Null(await NewService().ResolveActingAsync(b.OtherUserId, a.ProviderId));
     }
+
+    private long AddStore(long providerId, long cityId, long? ownerUserId = null)
+    {
+        using var ctx = _fixture.NewContext();
+        var type = new Entities.Entities.Code { Name = "Shop", Label = "S" + Guid.NewGuid().ToString("N")[..8], Active = true };
+        ctx.Codes.Add(type);
+        ctx.SaveChanges();
+        var store = new Entities.Entities.Store { Name = "S", ReferralCode = "R" + Guid.NewGuid().ToString("N")[..8], ProviderId = providerId, TypeId = type.Id, CityId = cityId, CreateDate = DateTime.Now, Active = true, Approved = true };
+        if (ownerUserId != null)
+            store.Users = new List<Entities.Entities.Security.User> { Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsTracking(ctx.Users).First(u => u.Id == ownerUserId) };
+        ctx.Stores.Add(store);
+        ctx.SaveChanges();
+        return store.Id;
+    }
+
+    [Fact]
+    public async Task Staff_membership_carries_the_provider_store_only_with_store_access()
+    {
+        if (!_fixture.Available) return;
+        var seed = _fixture.Seed();
+        AddClinic(seed.OwnerUserId, seed.ProviderId, seed.StateId, seed.CityId);
+        AddStore(seed.ProviderId, seed.CityId);
+        var ownersStore = AddStore(seed.ProviderId, seed.CityId, seed.OwnerUserId);
+        var service = NewService();
+
+        // فروشگاهی که مالک عضوش است بر اولین فروشگاه ارائه‌دهنده مقدم است
+        Assert.Equal(ownersStore, await service.ResolveStoreIdAsync(seed.ProviderId, seed.OwnerUserId));
+
+        var clinicRole = await service.SaveRoleAsync(seed.OwnerUserId, new ProviderUserRoleInputDto { Name = "c", PermissionKeys = new() { "Clinic.Reserve.View" } });
+        var invite = await service.InviteAsync(seed.OwnerUserId, new ProviderUserInviteDto { Mobile = seed.OtherMobile, ProviderUserRoleId = clinicRole.Data.Id });
+        await service.RespondInviteAsync(invite.Data.Id, seed.OtherUserId, true);
+        Assert.Null(Assert.Single(await NewService().ListMembershipsAsync(seed.OtherUserId)).StoreId);
+
+        var storeRole = await service.SaveRoleAsync(seed.OwnerUserId, new ProviderUserRoleInputDto { Name = "s", PermissionKeys = new() { "Store.Order.View" } });
+        Assert.True((await service.ChangeRoleAsync(seed.OwnerUserId, new ProviderUserRoleChangeDto { Id = invite.Data.Id, ProviderUserRoleId = storeRole.Data.Id })).IsSuccess);
+        Assert.Equal(ownersStore, Assert.Single(await NewService().ListMembershipsAsync(seed.OtherUserId)).StoreId);
+    }
+
+    private ProviderUserRoleTemplateService NewTemplateService() =>
+        new(_fixture.NewContext(), Microsoft.Extensions.Logging.Abstractions.NullLogger<ProviderUserRoleTemplateService>.Instance);
+
+    [Fact]
+    public async Task Admin_template_roles_show_and_work_only_while_the_provider_has_that_scope()
+    {
+        if (!_fixture.Available) return;
+        var seed = _fixture.Seed();
+        var clinicId = AddClinic(seed.OwnerUserId, seed.ProviderId, seed.StateId, seed.CityId);
+        var templates = NewTemplateService();
+        var service = NewService();
+        var tag = Guid.NewGuid().ToString("N")[..8];
+
+        // ادمین: کلید نمایندگی دیگر در نقش آماده‌ی کلینیک قبول نمی‌شود
+        Assert.False((await templates.SaveAsync(new ProviderUserRoleTemplateInputDto { Scope = "Clinic", Name = "bad" + tag, PermissionKeys = new() { "Store.Order.View" } })).IsSuccess);
+        Assert.False((await templates.SaveAsync(new ProviderUserRoleTemplateInputDto { Scope = "PetResan", Name = "bad" + tag })).IsSuccess);
+
+        var clinicTpl = await templates.SaveAsync(new ProviderUserRoleTemplateInputDto { Scope = "Clinic", Name = "پذیرش " + tag, PermissionKeys = new() { "Clinic.Reserve.Manage" } });
+        var storeTpl = await templates.SaveAsync(new ProviderUserRoleTemplateInputDto { Scope = "Store", Name = "سفارش " + tag, PermissionKeys = new() { "Store.Order.Manage" } });
+        Assert.True(clinicTpl.IsSuccess);
+        Assert.True(storeTpl.IsSuccess);
+        Assert.False((await templates.SaveAsync(new ProviderUserRoleTemplateInputDto { Scope = "Clinic", Name = "پذیرش " + tag })).IsSuccess); // نام تکراری
+
+        // مالک فقط نقش آماده‌ی نمایندگی‌ای را که دارد می‌بیند و می‌تواند بدهد
+        var roles = (await service.ListRolesAsync(seed.OwnerUserId)).Data;
+        Assert.Contains(roles, r => r.Id == clinicTpl.Data.Id && r.IsTemplate && r.Scope == "Clinic");
+        Assert.DoesNotContain(roles, r => r.Id == storeTpl.Data.Id);
+        Assert.False((await service.InviteAsync(seed.OwnerUserId, new ProviderUserInviteDto { Mobile = seed.OtherMobile, ProviderUserRoleId = storeTpl.Data.Id })).IsSuccess);
+
+        // مالک نقش آماده را ویرایش/حذف نمی‌کند
+        Assert.False((await service.SaveRoleAsync(seed.OwnerUserId, new ProviderUserRoleInputDto { Id = clinicTpl.Data.Id, Name = "hijack", PermissionKeys = new() { "Clinic.Finance.View" } })).IsSuccess);
+        Assert.False((await service.DeleteRoleAsync(seed.OwnerUserId, clinicTpl.Data.Id)).IsSuccess);
+
+        var invite = await service.InviteAsync(seed.OwnerUserId, new ProviderUserInviteDto { Mobile = seed.OtherMobile, ProviderUserRoleId = clinicTpl.Data.Id });
+        Assert.True(invite.IsSuccess);
+        Assert.True((await service.RespondInviteAsync(invite.Data.Id, seed.OtherUserId, true)).IsSuccess);
+        Assert.Equal(new[] { "Clinic.Reserve.Manage" }, (await NewService().ResolveActingAsync(seed.OtherUserId, seed.ProviderId))!.Permissions);
+        Assert.Equal(1, (await service.ListRolesAsync(seed.OwnerUserId)).Data.Single(r => r.Id == clinicTpl.Data.Id).UserCount);
+
+        // نقش آماده‌ی در حال استفاده حذف نمی‌شود؛ تغییر دسترسی‌اش فوراً اثر می‌کند
+        Assert.False((await templates.DeleteAsync(clinicTpl.Data.Id)).IsSuccess);
+        Assert.True((await templates.SaveAsync(new ProviderUserRoleTemplateInputDto { Id = clinicTpl.Data.Id, Scope = "Store", Name = "پذیرش " + tag, PermissionKeys = new() { "Clinic.Reserve.View" } })).IsSuccess);
+        Assert.Equal(new[] { "Clinic.Reserve.View" }, (await NewService().ResolveActingAsync(seed.OtherUserId, seed.ProviderId))!.Permissions);
+        Assert.Equal("Clinic", (await templates.ListAsync("Clinic")).Data.Single(r => r.Id == clinicTpl.Data.Id).Scope); // نمایندگی عوض نشد
+
+        // ارائه‌دهنده دیگر کلینیک ندارد → نقش آماده نه نمایش دارد نه دسترسی
+        using (var ctx = _fixture.NewContext())
+        {
+            var clinic = Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.AsTracking(ctx.Clinics).First(c => c.Id == clinicId);
+            clinic.Deleted = true;
+            ctx.SaveChanges();
+        }
+        Assert.Null(await NewService().ResolveActingAsync(seed.OtherUserId, seed.ProviderId));
+        Assert.Empty(await NewService().ListMembershipsAsync(seed.OtherUserId));
+        Assert.DoesNotContain((await NewService().ListRolesAsync(seed.OwnerUserId)).Data, r => r.Id == clinicTpl.Data.Id);
+
+        Assert.True((await service.RemoveAsync(seed.OwnerUserId, invite.Data.Id)).IsSuccess);
+        Assert.True((await templates.DeleteAsync(clinicTpl.Data.Id)).IsSuccess);
+        Assert.True((await templates.DeleteAsync(storeTpl.Data.Id)).IsSuccess);
+    }
 }

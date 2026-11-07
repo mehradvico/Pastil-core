@@ -2884,4 +2884,16 @@
   <data name="ProviderPermissionLevelManage" xml:space="preserve">
     <value>Provider Permission Level Manage</value>
   </data>
+  <data name="PansionNeedsProviderRole" xml:space="preserve">
+    <value>To add a pansion your provider account must be active and approved and have the approved Pansion role. Please contact Pastil support.</value>
+  </data>
+  <data name="PansionProviderRequired" xml:space="preserve">
+    <value>Choose the pansion's provider.</value>
+  </data>
+  <data name="CoachReserveBoardingFull" xml:space="preserve">
+    <value>The coach's training boarding is full for these dates. Please choose other dates.</value>
+  </data>
+  <data name="CoachPackageBoardingDaysRequired" xml:space="preserve">
+    <value>Enter the number of boarding days for a training boarding package with a daily fee.</value>
+  </data>
 </root>

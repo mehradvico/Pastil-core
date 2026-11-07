@@ -74,13 +74,16 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             this._clubPointIntegrationService = clubPointIntegrationService;
             this._logger = logger;
         }
-        public async Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null, long? companionId = null)
+        public async Task<BaseResultDto<PansionReserveVDto>> FindAsyncVDto(long id, long? bookerId = null, long? ownerUserId = null)
         {
             var query = _context.PansionReserves.Include(s => s.Status).Include(s => s.Booker).Include(s => s.UserPet).Include(s => s.Rebate).Where(s => s.Id == id);
             if (bookerId.HasValue)
                 query = query.Where(s => s.BookerId == bookerId.Value);
-            if (companionId.HasValue)
-                query = query.Where(s => s.Pansion.CompanionId == companionId.Value);
+            if (ownerUserId.HasValue)
+            {
+                var owned = Application.Services.PansionSrvs.PansionOwnershipSrv.PansionOwnershipService.OwnedPansionIds(_context, ownerUserId.Value, approvedOnly: false);
+                query = query.Where(s => owned.Contains(s.PansionId));
+            }
             var item = await query.FirstOrDefaultAsync();
             if (item != null)
             {
@@ -121,6 +124,16 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             if (baseSearchDto.CompanionId.HasValue)
             {
                 model = model.Where(s => s.Pansion.CompanionId == baseSearchDto.CompanionId.Value);
+            }
+            if (baseSearchDto.ProviderId.HasValue)
+            {
+                model = model.Where(s => s.Pansion.ProviderId == baseSearchDto.ProviderId.Value);
+            }
+            // پنل/اپ ارائه‌دهنده: رزرو همه‌ی پانسیون‌های «این کاربر»؛ سمت کنترلر از کاربر پر می‌شود
+            if (baseSearchDto.OwnerUserId.HasValue)
+            {
+                var owned = Application.Services.PansionSrvs.PansionOwnershipSrv.PansionOwnershipService.OwnedPansionIds(_context, baseSearchDto.OwnerUserId.Value, approvedOnly: false);
+                model = model.Where(s => owned.Contains(s.PansionId));
             }
             if (baseSearchDto.StatusId.HasValue)
             {
@@ -351,9 +364,14 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                     .Include(s => s.Pansion)
                     .ThenInclude(s => s.Companion)
                     .ThenInclude(s => s.Owner)
+                    .Include(s => s.Pansion)
+                    .ThenInclude(s => s.Provider)
+                    .ThenInclude(s => s.User)
                     .FirstOrDefaultAsync(s => s.Id == reserveId);
 
-                if (reserve?.Booker == null || reserve.Pansion?.Companion?.Owner == null)
+                // مالک پانسیون: کاربر ارائه‌دهنده، وگرنه مالک نمایندگی (پانسیون قدیمی)
+                var owner = reserve?.Pansion?.Provider?.User ?? reserve?.Pansion?.Companion?.Owner;
+                if (reserve?.Booker == null || owner == null)
                 {
                     _logger.LogError("Notification data for pansion reserve {ReserveId} is incomplete.", reserveId);
                     return;
@@ -378,7 +396,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 await RunPostCommitActionAsync(
                     () => _messageSender.SendMessageAsync(
                         MessageTypeEnum.PansionReserveForPansion,
-                        pansion.Companion.Owner.Mobile,
+                        owner.Mobile,
                         null,
                         token1: pansion.Name,
                         token2: booker.LastName,
@@ -398,7 +416,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 await RunPostCommitActionAsync(
                     () => _pushNotificationService.SendPushAsync(
                         PushTypeEnum.PushRegisterPansionCompanion,
-                        pansion.Companion.Owner.Id,
+                        owner.Id,
                         token1: nameText),
                     reserveId,
                     "pansion push");
@@ -557,7 +575,9 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 await RunPostCommitActionAsync(async () =>
                 {
                     var ownerId = await _context.Pansions.AsNoTracking()
-                        .Where(p => p.Id == approvalPansionId).Select(p => (long?)p.Companion.OwnerId).FirstOrDefaultAsync();
+                        .Where(p => p.Id == approvalPansionId)
+                        .Select(p => p.Provider != null ? (long?)p.Provider.UserId : p.Companion != null ? (long?)p.Companion.OwnerId : null)
+                        .FirstOrDefaultAsync();
                     var petName = await _context.UserPets.AsNoTracking()
                         .Where(p => p.Id == approvalPetId).Select(p => p.Pet.Name).FirstOrDefaultAsync();
                     if (ownerId.HasValue)
@@ -655,7 +675,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             return new BaseResultDto<PansionReserveCancelDto>(true, mapper.Map<PansionReserveCancelDto>(model));
         }
 
-        public async Task<BaseResultDto> UpdatePansionReserveStatusDto(PansionReserveStatusDto dto, long? companionId = null)
+        public async Task<BaseResultDto> UpdatePansionReserveStatusDto(PansionReserveStatusDto dto, long? ownerUserId = null)
         {
             var item = await _context.PansionReserves
                 .Include(s => s.Booker)
@@ -665,7 +685,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             if (item == null)
                 return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.NothingFound, dto);
 
-            if (companionId.HasValue && item.Pansion?.CompanionId != companionId.Value)
+            if (ownerUserId.HasValue && !await Application.Services.PansionSrvs.PansionOwnershipSrv.PansionOwnershipService.OwnedPansionIds(_context, ownerUserId.Value).AnyAsync(id => id == item.PansionId))
                 return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.AccessDenied, dto);
 
             // فقط رزروِ پرداخت‌شده و لغونشده وضعیت عوض می‌کند و وضعیتِ هدف باید معتبر باشد (Registered با پرداخت تعیین می‌شود).
@@ -677,7 +697,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 return new BaseResultDto<PansionReserveStatusDto>(false, Resource.Notification.PansionReserveStatusInvalid, dto);
             }
             // مرکز فقط می‌تواند «پرداخت‌شده» را «تکمیل» کند؛ برگرداندن وضعیت فقط با ادمین است.
-            if (companionId.HasValue &&
+            if (ownerUserId.HasValue &&
                 !(item.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Paid &&
                   dto.StatusId == (long)PansionReserveStatusEnum.PansionReserveState_Complete))
             {

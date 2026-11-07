@@ -11,7 +11,8 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
     public class PansionFinanceVDto : Name_FieldDto
     {
         public bool? IsDaycare { get; set; }
-        public long CompanionId { get; set; }
+        public long? CompanionId { get; set; }
+        public long? ProviderId { get; set; }
 
         public decimal DailyCommissionPercent { get; set; }
         public decimal HourlyCommissionPercent { get; set; }

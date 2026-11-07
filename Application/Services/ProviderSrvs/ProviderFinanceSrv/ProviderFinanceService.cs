@@ -139,6 +139,12 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             var coachTotals = await CoachTotalsAsync(coachMap.Select(g => g.Id).ToList());
             var companionTotals = await CompanionTotalsAsync(companionMap.Select(c => c.Id).ToList());
             var providerSchoolTotals = await ProviderSchoolTotalsAsync(providerIds);
+            var providerPansionTotals = await ProviderPansionTotalsAsync(providerIds);
+            var pansionCounts = await _context.Pansions.AsNoTracking()
+                .Where(s => s.ProviderId != null && providerIds.Contains(s.ProviderId.Value) && !s.Deleted)
+                .GroupBy(s => s.ProviderId.Value)
+                .Select(g => new { ProviderId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.ProviderId, x => x.Count);
             var schoolCounts = await _context.Schools.AsNoTracking()
                 .Where(s => s.ProviderId != null && providerIds.Contains(s.ProviderId.Value) && !s.Deleted)
                 .GroupBy(s => s.ProviderId.Value)
@@ -186,6 +192,9 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 providerSchoolTotals.TryGetValue(p.Id, out var schoolPool);
                 schoolPool ??= new Totals();
                 stats.TryGetValue((p.Id, SettlementKindEnum.School), out var schs);
+                providerPansionTotals.TryGetValue(p.Id, out var pansionPool);
+                pansionPool ??= new Totals();
+                stats.TryGetValue((p.Id, SettlementKindEnum.Pansion), out var pns);
 
                 rows.Add(new ProviderFinanceRowVDto
                 {
@@ -200,16 +209,18 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                     ClinicCount = clinicMap.Count(g => g.ProviderId == p.Id && !g.Deleted),
                     CoachCount = coachMap.Count(g => g.ProviderId == p.Id && !g.Deleted),
                     SchoolCount = schoolCounts.TryGetValue(p.Id, out var sc) ? sc : 0,
+                    PansionCount = pansionCounts.TryGetValue(p.Id, out var pc) ? pc : 0,
                     CompanionUnsettled = companionPool.UnsettledShare,
                     StoreUnsettled = storePool.UnsettledShare,
                     GroomerUnsettled = groomerPool.UnsettledShare,
                     ClinicUnsettled = clinicPool.UnsettledShare,
                     CoachUnsettled = coachPool.UnsettledShare,
                     SchoolUnsettled = schoolPool.UnsettledShare,
-                    TotalUnsettled = companionPool.UnsettledShare + storePool.UnsettledShare + groomerPool.UnsettledShare + clinicPool.UnsettledShare + coachPool.UnsettledShare + schoolPool.UnsettledShare,
-                    TotalSettled = companionPool.SettledShare + storePool.SettledShare + groomerPool.SettledShare + clinicPool.SettledShare + coachPool.SettledShare + schoolPool.SettledShare,
-                    PaidOut = (cs?.Paid ?? 0) + (ss?.Paid ?? 0) + (gs?.Paid ?? 0) + (cls?.Paid ?? 0) + (cos?.Paid ?? 0) + (schs?.Paid ?? 0),
-                    LastSettlementDate = new[] { cs?.Last, ss?.Last, gs?.Last, cls?.Last, cos?.Last, schs?.Last }.Max(),
+                    PansionUnsettled = pansionPool.UnsettledShare,
+                    TotalUnsettled = companionPool.UnsettledShare + storePool.UnsettledShare + groomerPool.UnsettledShare + clinicPool.UnsettledShare + coachPool.UnsettledShare + schoolPool.UnsettledShare + pansionPool.UnsettledShare,
+                    TotalSettled = companionPool.SettledShare + storePool.SettledShare + groomerPool.SettledShare + clinicPool.SettledShare + coachPool.SettledShare + schoolPool.SettledShare + pansionPool.SettledShare,
+                    PaidOut = (cs?.Paid ?? 0) + (ss?.Paid ?? 0) + (gs?.Paid ?? 0) + (cls?.Paid ?? 0) + (cos?.Paid ?? 0) + (schs?.Paid ?? 0) + (pns?.Paid ?? 0),
+                    LastSettlementDate = new[] { cs?.Last, ss?.Last, gs?.Last, cls?.Last, cos?.Last, schs?.Last, pns?.Last }.Max(),
                     HasApprovedCard = usersWithCard.Contains(p.UserId),
                 });
             }
@@ -267,7 +278,12 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 .OrderBy(g => g.Id).Take(UnassignedVenueLimit)
                 .Select(g => new ProviderUnassignedVenueVDto { Kind = SettlementKindEnum.School, Id = g.Id, Name = g.Name })
                 .ToListAsync();
-            return companions.Concat(stores).Concat(groomers).Concat(clinics).Concat(coaches).Concat(schools).ToList();
+            var pansions = await _context.Pansions.AsNoTracking()
+                .Where(g => g.ProviderId == null && !g.Deleted)
+                .OrderBy(g => g.Id).Take(UnassignedVenueLimit)
+                .Select(g => new ProviderUnassignedVenueVDto { Kind = SettlementKindEnum.Pansion, Id = g.Id, Name = g.Name })
+                .ToListAsync();
+            return companions.Concat(stores).Concat(groomers).Concat(clinics).Concat(coaches).Concat(schools).Concat(pansions).ToList();
         }
 
         // ------------------------------------------------------------------ جزئیات
@@ -371,6 +387,23 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 venues.Add(ToVenue(SettlementKindEnum.School, s.Id, s.Name, s.Active, s.Deleted, t));
             }
 
+            // پانسیون‌ها: هر پانسیون یک ردیف، مجموعشان استخر «پانسیون»
+            var pansionPool = new Totals();
+            var pansionRows = await _context.Pansions.AsNoTracking()
+                .Where(s => s.ProviderId == providerId)
+                .OrderBy(s => s.Id)
+                .Select(s => new { s.Id, s.Name, s.Active, s.Deleted })
+                .ToListAsync();
+            var pansionTotals = (await ProviderFinanceQueries.PansionReserveGroupsByPansion(_context, providerId).ToListAsync())
+                .ToDictionary(r => r.Key, r => new Totals { Count = r.Count, UnsettledCount = r.UnsettledCount, ProviderShare = r.ProviderShare, SiteShare = r.SiteShare, SettledShare = r.SettledShare, UnsettledShare = r.UnsettledShare });
+            foreach (var s in pansionRows)
+            {
+                pansionTotals.TryGetValue(s.Id, out var t);
+                t ??= new Totals();
+                pansionPool.Add(t);
+                venues.Add(ToVenue(SettlementKindEnum.Pansion, s.Id, s.Name, s.Active, s.Deleted, t));
+            }
+
             var storePool = StorePoolTotals(storeData, storeToProvider, providerId, out var notReceived, out var shared);
             foreach (var s in stores)
             {
@@ -386,6 +419,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             stats.TryGetValue((providerId, SettlementKindEnum.Clinic), out var cls);
             stats.TryGetValue((providerId, SettlementKindEnum.Coach), out var cos);
             stats.TryGetValue((providerId, SettlementKindEnum.School), out var schs);
+            stats.TryGetValue((providerId, SettlementKindEnum.Pansion), out var pns);
 
             var detail = new ProviderFinanceDetailVDto
             {
@@ -400,6 +434,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 ClinicPool = ToSummary(SettlementKindEnum.Clinic, clinicPool, cls, 0, 0),
                 CoachPool = ToSummary(SettlementKindEnum.Coach, coachPool, cos, 0, 0),
                 SchoolPool = ToSummary(SettlementKindEnum.School, schoolPool, schs, 0, 0),
+                PansionPool = ToSummary(SettlementKindEnum.Pansion, pansionPool, pns, 0, 0),
                 Venues = venues,
                 Cards = GetCards(provider.UserId),
             };
@@ -473,6 +508,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 SettlementKindEnum.Clinic => await PendingClinicItemsAsync(providerId),
                 SettlementKindEnum.Coach => await PendingCoachItemsAsync(providerId),
                 SettlementKindEnum.School => await PendingSchoolItemsAsync(providerId),
+                SettlementKindEnum.Pansion => await PendingPansionItemsAsync(providerId),
                 _ => await PendingStoreItemsAsync(providerId),
             };
 
@@ -517,8 +553,13 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                 var providerSchoolReserveIds = await _context.SchoolReserves.AsNoTracking()
                     .Where(r => r.SchoolCourse.School.ProviderId != null && r.SchoolCourse.School.CompanionId == c.Id)
                     .Select(r => r.Id.ToString()).ToListAsync();
+                // رزرو پانسیونِ دارای ارائه‌دهنده هم در استخر جدای «پانسیون» است
+                var providerPansionReserveIds = await _context.PansionReserves.AsNoTracking()
+                    .Where(r => r.Pansion.ProviderId != null && r.Pansion.CompanionId == c.Id)
+                    .Select(r => r.Id.ToString()).ToListAsync();
                 items.AddRange(finance.Data.FinanceCompanionReserves
                     .Where(r => !(r.IsSchool && providerSchoolReserveIds.Contains(r.ReserveId)))
+                    .Where(r => !(r.IsPansion && providerPansionReserveIds.Contains(r.ReserveId)))
                     .Select(r => new ProviderPendingItemVDto
                 {
                     VenueId = c.Id,
@@ -629,6 +670,27 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                     SiteShare = r.SiteShare,
                     ProviderShare = r.CompanionShare,
                     StatusLabel = null,
+                }).ToListAsync();
+        }
+
+        /// <summary>رزروهای تسویه‌نشده‌ی پانسیون‌های ارائه‌دهنده؛ همان تعریف SettlementSources.ProviderPansionReserves که تسویه می‌پردازد.</summary>
+        private async Task<List<ProviderPendingItemVDto>> PendingPansionItemsAsync(long providerId)
+        {
+            return await SettlementSources.ProviderPansionReserves(_context, providerId)
+                .Where(r => !r.Permitted)
+                .OrderBy(r => r.Id)
+                .Select(r => new ProviderPendingItemVDto
+                {
+                    VenueId = r.PansionId,
+                    VenueName = r.Pansion.Name,
+                    Type = "Pansion",
+                    Code = r.ReserveCode,
+                    BookerFullName = ((r.Booker.FirstName ?? "") + " " + (r.Booker.LastName ?? "")).Trim(),
+                    PaymentPrice = r.PaymentPrice,
+                    CommissionPercent = r.DayCount > 0 ? r.Pansion.DailyCommissionPercent : r.Pansion.HourlyCommissionPercent,
+                    SiteShare = r.SiteShare,
+                    ProviderShare = r.CompanionShare,
+                    StatusLabel = "Complete",
                 }).ToListAsync();
         }
 
@@ -755,6 +817,27 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
             if (providerIds.Count == 0)
                 return result;
             foreach (var row in await ProviderFinanceQueries.ProviderSchoolReserveGroups(_context, providerIds).ToListAsync())
+            {
+                result[row.Key] = new Totals
+                {
+                    Count = row.Count,
+                    UnsettledCount = row.UnsettledCount,
+                    ProviderShare = row.ProviderShare,
+                    SiteShare = row.SiteShare,
+                    SettledShare = row.SettledShare,
+                    UnsettledShare = row.UnsettledShare,
+                };
+            }
+            return result;
+        }
+
+        /// <summary>مجموع رزرو پانسیون‌های ارائه‌دهنده (Pansion.ProviderId) به‌ازای هر ارائه‌دهنده؛ استخر «پانسیون».</summary>
+        private async Task<Dictionary<long, Totals>> ProviderPansionTotalsAsync(IReadOnlyCollection<long> providerIds)
+        {
+            var result = new Dictionary<long, Totals>();
+            if (providerIds.Count == 0)
+                return result;
+            foreach (var row in await ProviderFinanceQueries.ProviderPansionReserveGroups(_context, providerIds).ToListAsync())
             {
                 result[row.Key] = new Totals
                 {

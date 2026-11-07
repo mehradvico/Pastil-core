@@ -3,6 +3,7 @@ using Application.Common.Interface;
 using Application.Services.PansionSrvs.PansionPetSrv.Dto;
 using Application.Services.PansionSrvs.PansionPetSrv.Iface;
 using Application.Services.PansionSrvs.PansionSrv.Iface;
+using Application.Services.PansionSrvs.PansionOwnershipSrv;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,14 +17,15 @@ namespace Api.Areas.Companion.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
-    [Api.Filters.RequireCompanionScope]
     public class PansionPetController : ControllerBase
     {
         private readonly IPansionPetService _PansionPetService;
         private readonly IPansionService _PansionService;
         private readonly ICurrentUserHelper _currentUser;
-        public PansionPetController(IPansionPetService PansionPetService, IPansionService PansionService, ICurrentUserHelper currentUser)
+        private readonly IPansionOwnershipService _ownership;
+        public PansionPetController(IPansionPetService PansionPetService, IPansionService PansionService, ICurrentUserHelper currentUser, IPansionOwnershipService ownership)
         {
+            this._ownership = ownership;
             this._PansionPetService = PansionPetService;
             this._PansionService = PansionService;
             this._currentUser = currentUser;
@@ -37,9 +39,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(PansionPetSearchDto), 200)]
         public IActionResult Get([FromQuery] PansionPetInputDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId;
+            dto.OwnerUserId = _currentUser.CurrentUser.UserId;
             var search = _PansionPetService.Search(dto);
             return Ok(search);
         }
@@ -58,7 +58,7 @@ namespace Api.Areas.Companion.Controllers
             if (agency.IsSuccess && agency.Data != null)
             {
                 var owner = await _PansionService.FindAsyncVDto(agency.Data.PansionId);
-                if (!owner.IsSuccess || owner.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+                if (!owner.IsSuccess || await _ownership.PansionOfPansionAsync(owner.Data.Id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                     return Ok(new BaseResultDto<PansionPetDto>(false, Resource.Notification.AccessDenied, null));
             }
             return Ok(agency);
@@ -73,7 +73,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Post(PansionPetDto dto)
         {
             var pansion = await _PansionService.FindAsyncVDto(dto.PansionId);
-            if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+            if (!pansion.IsSuccess || await _ownership.PansionOfPansionAsync(pansion.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<PansionPetDto>(false, Resource.Notification.AccessDenied, dto));
 
             var result = await _PansionPetService.InsertAsyncDto(dto);
@@ -93,7 +93,7 @@ namespace Api.Areas.Companion.Controllers
             if (!existing.IsSuccess)
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             var pansion = await _PansionService.FindAsyncVDto(existing.Data.PansionId);
-            if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+            if (!pansion.IsSuccess || await _ownership.PansionOfPansionAsync(pansion.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
 
             dto.PansionId = existing.Data.PansionId;
@@ -112,7 +112,7 @@ namespace Api.Areas.Companion.Controllers
             if (!existing.IsSuccess)
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
             var pansion = await _PansionService.FindAsyncVDto(existing.Data.PansionId);
-            if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+            if (!pansion.IsSuccess || await _ownership.PansionOfPansionAsync(pansion.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
 
             var dto = _PansionPetService.DeleteDto(id);

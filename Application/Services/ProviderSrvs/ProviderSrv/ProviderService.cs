@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Service;
+using Application.Services.CompanionSrvs.CompanionSrv;
 using Application.Services.ProviderSrvs.ProviderSrv.Dto;
 using Application.Services.ProviderSrvs.ProviderSrv.Iface;
 using AutoMapper;
@@ -8,6 +9,7 @@ using Entities.Entities.ProviderField;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -44,7 +46,10 @@ namespace Application.Services.ProviderSrvs.ProviderSrv
         public async Task<BaseResultDto<ProviderVDto>> FindAsyncVDto(long id)
         {
             var item = await WithDetails().FirstOrDefaultAsync(x => x.Id == id && !x.Deleted);
-            return new BaseResultDto<ProviderVDto>(item != null, mapper.Map<ProviderVDto>(item));
+            var vdto = mapper.Map<ProviderVDto>(item);
+            if (vdto != null)
+                FillVenueCounts(new List<ProviderVDto> { vdto });
+            return new BaseResultDto<ProviderVDto>(item != null, vdto);
         }
 
         public async Task<long?> GetProviderIdByUserAsync(long userId)
@@ -90,7 +95,49 @@ namespace Application.Services.ProviderSrvs.ProviderSrv
             if (input.ProviderRoleId.HasValue)
                 model = model.Where(x => x.RoleAssignments.Any(a => !a.Deleted && a.ProviderRoleId == input.ProviderRoleId.Value));
             model = input.SortBy == SortEnum.Old ? model.OrderBy(x => x.Id) : model.OrderByDescending(x => x.Id);
-            return new ProviderSearchDto(input, model, mapper);
+            var result = new ProviderSearchDto(input, model, mapper);
+            FillVenueCounts(result.List);
+            return result;
+        }
+
+        /// <summary>
+        /// شمار مراکز هر ارائه‌دهنده از همه‌ی نوع‌ها، با همان قاعده‌ی هاب نمایندگی‌ها: نمایندگی قدیمی‌ای که کاملاً به آرایشگاه/کلینیک/مربی
+        /// منتقل شده یا فقط ظرف پانسیون/مدرسه است شمرده نمی‌شود (خودِ آن مرکز در شمار نوع خودش هست).
+        /// </summary>
+        private void FillVenueCounts(List<ProviderVDto> items)
+        {
+            if (items == null || items.Count == 0)
+                return;
+            var ids = items.Select(x => x.Id).ToList();
+
+            Dictionary<long, int> Count(IQueryable<long?> providerIds) => providerIds
+                .Where(p => p != null && ids.Contains(p.Value))
+                .GroupBy(p => p.Value)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionary(x => x.Key, x => x.Count);
+
+            var companions = Count(_context.Companions.AsNoTracking().Where(c => !c.Deleted)
+                .Where(CompanionMigrationFilter.NotFullyMigrated(_context))
+                .Where(CompanionMigrationFilter.NotOnlyPansionSchoolContainer(_context))
+                .Select(c => c.ProviderId));
+            var stores = Count(_context.Stores.AsNoTracking().Where(x => !x.Deleted).Select(x => x.ProviderId));
+            var groomers = Count(_context.Groomers.AsNoTracking().Where(x => !x.Deleted).Select(x => x.ProviderId));
+            var clinics = Count(_context.Clinics.AsNoTracking().Where(x => !x.Deleted).Select(x => x.ProviderId));
+            var coaches = Count(_context.Coaches.AsNoTracking().Where(x => !x.Deleted).Select(x => x.ProviderId));
+            var schools = Count(_context.Schools.AsNoTracking().Where(x => !x.Deleted).Select(x => x.ProviderId));
+            var pansions = Count(_context.Pansions.AsNoTracking().Where(x => !x.Deleted).Select(x => x.ProviderId));
+
+            foreach (var item in items)
+            {
+                item.CompanionCount = companions.GetValueOrDefault(item.Id);
+                item.StoreCount = stores.GetValueOrDefault(item.Id);
+                item.GroomerCount = groomers.GetValueOrDefault(item.Id);
+                item.ClinicCount = clinics.GetValueOrDefault(item.Id);
+                item.CoachCount = coaches.GetValueOrDefault(item.Id);
+                item.SchoolCount = schools.GetValueOrDefault(item.Id);
+                item.PansionCount = pansions.GetValueOrDefault(item.Id);
+                item.VenueCount = item.CompanionCount + item.StoreCount + item.GroomerCount + item.ClinicCount + item.CoachCount + item.SchoolCount + item.PansionCount;
+            }
         }
 
         public override async Task<BaseResultDto<ProviderDto>> InsertAsyncDto(ProviderDto dto)

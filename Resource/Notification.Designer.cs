@@ -6673,6 +6673,18 @@ namespace Resource {
             }
         }
 
+        public static string CoachReserveBoardingFull {
+            get {
+                return ResourceManager.GetString("CoachReserveBoardingFull", resourceCulture);
+            }
+        }
+
+        public static string CoachPackageBoardingDaysRequired {
+            get {
+                return ResourceManager.GetString("CoachPackageBoardingDaysRequired", resourceCulture);
+            }
+        }
+
         public static string CoachReserveSlotFull {
             get {
                 return ResourceManager.GetString("CoachReserveSlotFull", resourceCulture);
@@ -7066,6 +7078,18 @@ namespace Resource {
         public static string SchoolChooseCompanion {
             get {
                 return ResourceManager.GetString("SchoolChooseCompanion", resourceCulture);
+            }
+        }
+
+        public static string PansionNeedsProviderRole {
+            get {
+                return ResourceManager.GetString("PansionNeedsProviderRole", resourceCulture);
+            }
+        }
+
+        public static string PansionProviderRequired {
+            get {
+                return ResourceManager.GetString("PansionProviderRequired", resourceCulture);
             }
         }
 

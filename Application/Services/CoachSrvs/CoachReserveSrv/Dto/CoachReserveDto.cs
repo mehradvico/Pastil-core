@@ -12,9 +12,9 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Dto
         public long UserPetId { get; set; }
         /// <summary>بسته‌های اضافه (رزرو چندخدمتی)؛ بسته‌ی اصلی در CoachServicePackageId است. حداکثر ۵ بسته، هر خدمت یک‌بار.</summary>
         public List<long> ExtraPackageIds { get; set; } = new List<long>();
-        /// <summary>زمان شروع نوبت (باید روی یکی از زمان‌های آزاد مربی باشد).</summary>
+        /// <summary>زمان شروع نوبت. پانسیون آموزشی (Mode=۳۸): زمان تحویل دادن پت به مربی (داخل ساعت کاری)؛ پایان = این زمان + روزِ بسته.</summary>
         public DateTime DoDate { get; set; }
-        /// <summary>نحوه‌ی ارائه: ۳۷ آنلاین، ۳۸ حضوری در مربی، ۳۹ در محل مشتری.</summary>
+        /// <summary>نحوه‌ی ارائه: ۳۷ آنلاین، ۳۸ پانسیون آموزشی (در مرکز)، ۳۹ در محل مشتری.</summary>
         public int Mode { get; set; }
         /// <summary>فقط برای Mode=۳۹: نشانی متعلق به مشتری و داخل محدوده‌ی مربی.</summary>
         public long? AddressId { get; set; }
@@ -34,10 +34,49 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Dto
         /// <summary>باقی‌مانده که حضوری در مربی پرداخت می‌شود.</summary>
         public double PayAtVenue { get; set; }
         public int DurationMinutes { get; set; }
-        /// <summary>مدت اقامت = بیشینه‌ی StayDays بسته‌ها (null اگر هیچ‌کدام نداشته باشند).</summary>
+        /// <summary>مدت اقامت به روز (پانسیون آموزشی: بیشینه‌ی روزِ بسته‌ها).</summary>
         public int? StayDays { get; set; }
         /// <summary>جمع تعداد جلسات بسته‌ها (null اگر هیچ‌کدام نداشته باشند).</summary>
         public int? SessionCount { get; set; }
+        /// <summary>پانسیون آموزشی: جمع هزینه‌ی دوره‌ی بسته‌ها (بدون پانسیون).</summary>
+        public double? BasePrice { get; set; }
+        /// <summary>پانسیون آموزشی: جمع پانسیون روزانه‌ی بسته‌ها.</summary>
+        public double? DailyPrice { get; set; }
+        /// <summary>پانسیون آموزشی: کل هزینه‌ی پانسیون (روزانه × روز)؛ در مرکز پرداخت می‌شود.</summary>
+        public double? BoardingFee { get; set; }
+        /// <summary>پانسیون آموزشی: پیش‌پرداخت (همان مبلغ آنلاین قبل از تخفیف).</summary>
+        public double? CoursePrePayment { get; set; }
+    }
+
+    /// <summary>ظرفیت پانسیون آموزشی مربی (Mode=۳۸) در یک بازه‌ی تاریخ.</summary>
+    public class CoachBoardingAvailabilityDto
+    {
+        /// <summary>ظرفیت پت مقیم مربی؛ ۰ = بدون سقف.</summary>
+        public int Capacity { get; set; }
+        /// <summary>تعداد روز پانسیون بسته (تعیین‌شده توسط مربی).</summary>
+        public int StayDays { get; set; }
+        /// <summary>جای خالی هر روز (Available = Capacity − پت‌های مقیم آن روز؛ null = بدون سقف).</summary>
+        public List<CoachBoardingDayDto> Days { get; set; } = new List<CoachBoardingDayDto>();
+    }
+
+    public class CoachBoardingDayDto
+    {
+        public DateTime Date { get; set; }
+        public int? Available { get; set; }
+        /// <summary>می‌شود پانسیون را از این روز شروع کرد؟ (مربی این روز کار می‌کند و در کل روزهای اقامت جا هست.)</summary>
+        public bool CanStart { get; set; }
+        /// <summary>تاریخ تحویل گرفتن اگر از این روز شروع شود (= Date + StayDays).</summary>
+        public DateTime EndDate { get; set; }
+        /// <summary>بازه‌های ساعت کاری این روز (برای انتخاب ساعت تحویل دادن پت)؛ خالی = مربی این روز کار نمی‌کند.</summary>
+        public List<CoachWorkingWindowDto> Windows { get; set; } = new List<CoachWorkingWindowDto>();
+    }
+
+    public class CoachWorkingWindowDto
+    {
+        /// <summary>HH:mm</summary>
+        public string Start { get; set; }
+        /// <summary>HH:mm</summary>
+        public string End { get; set; }
     }
 
     public class CoachAvailabilitySlotDto
@@ -99,9 +138,12 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Dto
         public long? AssigneeUserId { get; set; }
         public string AssigneeName { get; set; }
         public DateTime DoDate { get; set; }
+        /// <summary>پایان نوبت؛ پانسیون آموزشی: زمان تحویل گرفتن پت.</summary>
         public DateTime EndDate { get; set; }
         public int DurationMinutes { get; set; }
-        /// <summary>۳۷ آنلاین، ۳۸ حضوری در مربی، ۳۹ در محل مشتری.</summary>
+        /// <summary>پانسیون آموزشی: هزینه‌ی پانسیون روزانه‌ی اسنپ‌شات (پر = رزرو اقامت؛ Price = PackagePrice پایه + DailyPrice × StayDays).</summary>
+        public double? DailyPrice { get; set; }
+        /// <summary>۳۷ آنلاین، ۳۸ پانسیون آموزشی (در مرکز)، ۳۹ در محل مشتری.</summary>
         public int Mode { get; set; }
         public long? AddressId { get; set; }
         public string AddressValue { get; set; }

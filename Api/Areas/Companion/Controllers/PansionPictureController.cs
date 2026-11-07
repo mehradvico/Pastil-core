@@ -3,6 +3,7 @@ using Application.Common.Interface;
 using Application.Services.PansionSrvs.PansionPictureSrv.Dto;
 using Application.Services.PansionSrvs.PansionPictureSrv.Iface;
 using Application.Services.PansionSrvs.PansionSrv.Iface;
+using Application.Services.PansionSrvs.PansionOwnershipSrv;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,15 +17,16 @@ namespace Api.Areas.Companion.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
-    [Api.Filters.RequireCompanionScope]
     public class PansionPictureController : ControllerBase
     {
         private readonly IPansionPictureService PansionPictureService;
         private readonly IPansionService _PansionService;
         private readonly ICurrentUserHelper _currentUser;
+        private readonly IPansionOwnershipService _ownership;
 
-        public PansionPictureController(IPansionPictureService PansionPictureService, IPansionService PansionService, ICurrentUserHelper currentUser)
+        public PansionPictureController(IPansionPictureService PansionPictureService, IPansionService PansionService, ICurrentUserHelper currentUser, IPansionOwnershipService ownership)
         {
+            this._ownership = ownership;
             this.PansionPictureService = PansionPictureService;
             this._PansionService = PansionService;
             this._currentUser = currentUser;
@@ -41,7 +43,7 @@ namespace Api.Areas.Companion.Controllers
             if (PansionPicture.IsSuccess && PansionPicture.Data != null)
             {
                 var owner = await _PansionService.FindAsyncVDto(PansionPicture.Data.PansionId);
-                if (!owner.IsSuccess || owner.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+                if (!owner.IsSuccess || await _ownership.PansionOfPansionAsync(owner.Data.Id, _currentUser.CurrentUser.UserId, approvedOnly: false) == null)
                     return Ok(new BaseResultDto<PansionPictureVDto>(false, Resource.Notification.AccessDenied, null));
             }
             return Ok(PansionPicture);
@@ -54,9 +56,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(PansionPictureSearchDto), 200)]
         public IActionResult Get([FromQuery] PansionPictureInputDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
-            dto.CompanionId = _currentUser.CurrentUser.CompanionId;
+            dto.OwnerUserId = _currentUser.CurrentUser.UserId;
             var PansionPicture = PansionPictureService.Search(dto);
             return Ok(PansionPicture);
         }
@@ -70,7 +70,7 @@ namespace Api.Areas.Companion.Controllers
         public async Task<IActionResult> Pansion(PansionPictureDto PansionPictureDto)
         {
             var pansion = await _PansionService.FindAsyncVDto(PansionPictureDto.PansionId);
-            if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+            if (!pansion.IsSuccess || await _ownership.PansionOfPansionAsync(pansion.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, PansionPictureDto));
 
             var result = await PansionPictureService.InsertAsyncDto(PansionPictureDto);
@@ -89,7 +89,7 @@ namespace Api.Areas.Companion.Controllers
             if (!existing.IsSuccess)
                 return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, PansionPictureDto));
             var pansion = await _PansionService.FindAsyncVDto(existing.Data.PansionId);
-            if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+            if (!pansion.IsSuccess || await _ownership.PansionOfPansionAsync(pansion.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, PansionPictureDto));
 
             PansionPictureDto.PansionId = existing.Data.PansionId;
@@ -110,7 +110,7 @@ namespace Api.Areas.Companion.Controllers
             if (!existing.IsSuccess)
                 return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, default!));
             var pansion = await _PansionService.FindAsyncVDto(existing.Data.PansionId);
-            if (!pansion.IsSuccess || pansion.Data?.CompanionId != _currentUser.CurrentUser.CompanionId)
+            if (!pansion.IsSuccess || await _ownership.PansionOfPansionAsync(pansion.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto<PansionPictureDto>(false, Resource.Notification.AccessDenied, default!));
 
             var result = PansionPictureService.DeleteDto(id);

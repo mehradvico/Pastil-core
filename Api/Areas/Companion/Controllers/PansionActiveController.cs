@@ -15,7 +15,6 @@ namespace Api.Areas.Companion.Controllers
     [Route("api/[area]/[controller]")]
     [ApiController]
     [Authorize]
-    [Api.Filters.RequireCompanionScope]
     public class PansionActiveController : ControllerBase
     {
         private readonly IPansionService _PansionService;
@@ -35,10 +34,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public IActionResult Put(PansionActiveDto dto)
         {
-            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
-            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
-                return Forbid();
-            var Pansion = _PansionService.UpdatePansionActiveDto(dto, _currentUserHelper.CurrentUser.CompanionId.Value);
+            var Pansion = _PansionService.UpdatePansionActiveDto(dto, _currentUserHelper.CurrentUser.UserId);
             return Ok(Pansion);
         }
     }

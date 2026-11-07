@@ -20,7 +20,9 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
     public class PansionVDto : Name_FieldDto
     {
         public bool? IsDaycare { get; set; }
-        public long CompanionId { get; set; }
+        public long? CompanionId { get; set; }
+        public long? ProviderId { get; set; }
+        public string ProviderName { get; set; }
         public bool Active { get; set; }
         public bool ShowToSite { get; set; }
         public bool Approve { get; set; }

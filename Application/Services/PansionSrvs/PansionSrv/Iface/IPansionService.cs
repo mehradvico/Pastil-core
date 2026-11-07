@@ -17,12 +17,12 @@ namespace Application.Services.PansionSrvs.PansionSrv.Iface
         PansionSearchDto Search(PansionInputDto baseSearchDto, bool onlyDeleted = false);
         Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id, bool includeDeleted = false);
         // حذف نرم (companionId = مالک کلینیک؛ null = ادمین) و بازگردانی (ادمین)
-        Task<BaseResultDto> SoftDeleteAsync(long id, long? companionId, long actorUserId);
+        Task<BaseResultDto> SoftDeleteAsync(long id, long? ownerUserId, long actorUserId);
         Task<BaseResultDto> RestoreAsync(long id);
         Task<BaseResultDto> UpdateSiteVisibilityAsync(long id, bool showToSite);
-        BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto, long? companionId = null);
+        BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto, long? ownerUserId = null);
         Task<BaseResultDto> UpdatePansionApproveAsyncDto(PansionApproveDto dto);
-        Task<BaseResultDto> ResubmitAsyncDto(PansionDto dto, long companionId, long ownerId);
+        Task<BaseResultDto> ResubmitAsyncDto(PansionDto dto, long ownerId);
         void UpdatePansionCommentCount(long pansionId);
         Task<List<SearchPansionDto>> SearchMinAsync(SearchRequestDto request);
         BaseResultDto GetSiteMap();

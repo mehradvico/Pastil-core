@@ -1595,8 +1595,13 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             {
                 entity.Property(x => x.Name).IsRequired().HasMaxLength(100);
                 entity.Property(x => x.Description).HasMaxLength(500);
-                entity.HasOne(x => x.Provider).WithMany(x => x.UserRoles).HasForeignKey(x => x.ProviderId).OnDelete(DeleteBehavior.Restrict);
-                entity.HasIndex(x => new { x.ProviderId, x.Name }).IsUnique().HasFilter("[Deleted] = 0");
+                entity.Property(x => x.Scope).HasMaxLength(20);
+                entity.Ignore(x => x.IsTemplate);
+                entity.HasOne(x => x.Provider).WithMany(x => x.UserRoles).HasForeignKey(x => x.ProviderId).IsRequired(false).OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(x => new { x.ProviderId, x.Name }).IsUnique().HasFilter("[Deleted] = 0 AND [ProviderId] IS NOT NULL");
+                // نقش آماده (ProviderId خالی): نام در هر نمایندگی یکتا
+                entity.HasIndex(x => new { x.Scope, x.Name }).IsUnique().HasDatabaseName("IX_ProviderUserRoles_Template_Scope_Name").HasFilter("[Deleted] = 0 AND [ProviderId] IS NULL");
+                entity.ToTable(t => t.HasCheckConstraint("CK_ProviderUserRoles_TemplateScope", "([ProviderId] IS NULL AND [Scope] IS NOT NULL) OR ([ProviderId] IS NOT NULL AND [Scope] IS NULL)"));
             });
             modelBuilder.Entity<ProviderUserRolePermission>(entity =>
             {

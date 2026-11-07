@@ -12,5 +12,7 @@ namespace Application.Services.PansionSrvs.PansionPictureSrv.Dto
     {
         public long? PansionId { get; set; }
         public long? CompanionId { get; set; }
+        // فقط پنل/اپ ارائه‌دهنده: پانسیون‌های «این کاربر»؛ سمت کنترلر از کاربر پر می‌شود
+        public long? OwnerUserId { get; set; }
     }
 }

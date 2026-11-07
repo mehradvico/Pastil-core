@@ -41,6 +41,11 @@ namespace Application.Services.PansionSrvs.PansionPictureSrv
             {
                 model = model.Where(s => s.PansionId.Equals(searchDto.PansionId));
             }
+            if (searchDto.OwnerUserId.HasValue)
+            {
+                var owned = Application.Services.PansionSrvs.PansionOwnershipSrv.PansionOwnershipService.OwnedPansionIds(_context, searchDto.OwnerUserId.Value, false);
+                model = model.Where(s => owned.Contains(s.PansionId));
+            }
             if (searchDto.CompanionId.HasValue)
             {
                 model = model.Where(s => s.Pansion.CompanionId == searchDto.CompanionId.Value);

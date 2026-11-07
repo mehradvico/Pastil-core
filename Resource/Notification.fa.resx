@@ -2884,4 +2884,16 @@
   <data name="ProviderPermissionLevelManage" xml:space="preserve">
     <value>مدیریت</value>
   </data>
+  <data name="PansionNeedsProviderRole" xml:space="preserve">
+    <value>برای افزودن پانسیون، حساب ارائه‌دهنده‌ی شما باید فعال و تأییدشده باشد و نقش «پانسیون» برایش تأیید شده باشد. با پشتیبانی پاستیل تماس بگیرید.</value>
+  </data>
+  <data name="PansionProviderRequired" xml:space="preserve">
+    <value>ارائه‌دهنده‌ی پانسیون را انتخاب کنید.</value>
+  </data>
+  <data name="CoachReserveBoardingFull" xml:space="preserve">
+    <value>ظرفیت پانسیون آموزشی مربی در این تاریخ‌ها تکمیل است؛ تاریخ دیگری انتخاب کنید.</value>
+  </data>
+  <data name="CoachPackageBoardingDaysRequired" xml:space="preserve">
+    <value>برای پانسیون آموزشی با پانسیون روزانه، تعداد روز پانسیون را وارد کنید.</value>
+  </data>
 </root>

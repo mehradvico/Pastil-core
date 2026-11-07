@@ -257,7 +257,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 input.ProviderId = -1;
                 return Search(input);
             }
-            if (kind == SettlementKindEnum.Coach || kind == SettlementKindEnum.School)
+            if (kind == SettlementKindEnum.Coach || kind == SettlementKindEnum.School || kind == SettlementKindEnum.Pansion)
             {
                 // مربی ستون قدیمی ندارد؛ بدون ارائه‌دهنده چیزی برای نمایش نیست.
                 input.ProviderId = -1;
@@ -316,6 +316,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                 SettlementKindEnum.Clinic => await _context.Clinics.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
                 SettlementKindEnum.Coach => await _context.Coaches.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
                 SettlementKindEnum.School => await _context.Schools.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
+                SettlementKindEnum.Pansion => await _context.Pansions.AsNoTracking().Where(g => g.Id == venueId).Select(g => g.ProviderId).FirstOrDefaultAsync(),
                 _ => await _context.Stores.AsNoTracking().Where(s => s.Id == venueId).Select(s => s.ProviderId).FirstOrDefaultAsync(),
             };
         }
@@ -370,6 +371,7 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
                     SettlementKindEnum.Clinic => await SettleClinicPoolAsync(item.Id, provider.Id),
                     SettlementKindEnum.Coach => await SettleCoachPoolAsync(item.Id, provider.Id),
                     SettlementKindEnum.School => await SettleSchoolPoolAsync(item.Id, provider.Id),
+                    SettlementKindEnum.Pansion => await SettlePansionPoolAsync(item.Id, provider.Id),
                     _ => await SettleStorePoolAsync(item.Id, provider.Id),
                 };
 
@@ -552,6 +554,28 @@ namespace Application.Services.FinanceSrvs.SettlementSrv
             await _context.SettlementCompanions.AddRangeAsync(links);
             await _context.SaveChangesAsync();
             return new PoolResult(schools.Sum(x => x.CompanionShare), links.Count);
+        }
+
+        /// <summary>رزروهای تسویه‌نشده‌ی همه‌ی پانسیون‌های ارائه‌دهنده (حذف‌شده‌ها هم: پولشان هنوز بدهی است).</summary>
+        private async Task<PoolResult> SettlePansionPoolAsync(long settlementId, long providerId)
+        {
+            var pansions = await SettlementSources.ProviderPansionReserves(_context, providerId)
+                .Where(r => !r.Permitted).Select(r => new { r.Id, r.CompanionShare }).ToListAsync();
+            if (pansions.Count == 0)
+                return new PoolResult(0, 0);
+
+            var pansionComplete = (long)Common.Enumerable.Code.PansionReserveStatusEnum.PansionReserveState_Complete;
+            var pansionNotRequired = (int)Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.NotRequired;
+            var pansionApproved = (int)Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.Approved;
+            await MarkAsync(pansions.Select(x => x.Id), ids => _context.PansionReserves
+                .Where(r => ids.Contains(r.Id) && !r.Permitted && r.IsReserved && !r.IsCancel && r.StatusId == pansionComplete
+                            && (r.OwnerDecision == pansionNotRequired || r.OwnerDecision == pansionApproved))
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.Permitted, true)));
+
+            var links = pansions.Select(x => new SettlementCompanion { SettlementId = settlementId, PansionReserveId = x.Id }).ToList();
+            await _context.SettlementCompanions.AddRangeAsync(links);
+            await _context.SaveChangesAsync();
+            return new PoolResult(pansions.Sum(x => x.CompanionShare), links.Count);
         }
 
         /// <summary>سفارش‌های تسویه‌نشده‌ی همه‌ی فروشگاه‌های ارائه‌دهنده.</summary>

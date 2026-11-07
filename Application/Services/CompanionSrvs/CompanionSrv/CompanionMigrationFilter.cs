@@ -21,6 +21,13 @@ namespace Application.Services.CompanionSrvs.CompanionSrv
         // مربی در enum کد نوع ندارد؛ برچسب نوع Companion در جدول Codes است (همان که وب‌اپ برای «مربیان» می‌خواند).
         private const string CoachTypeLabel = "CompanionType_Coach";
 
+        /// <summary>
+        /// Companionی که فقط «ظرف» پانسیون/مدرسه است (خودش خدمت فعالی ندارد) نمایندگی حساب نمی‌شود؛ خودِ پانسیون/مدرسه ردیف جدا دارد.
+        /// </summary>
+        public static Expression<Func<Companion, bool>> NotOnlyPansionSchoolContainer(IDataBaseContext context) =>
+            c => !((context.Pansions.Any(p => p.CompanionId == c.Id && !p.Deleted) || context.Schools.Any(s => s.CompanionId == c.Id && !s.Deleted))
+                   && !context.CompanionAssistances.Any(a => a.CompanionId == c.Id && !a.Deleted && a.Active));
+
         public static Expression<Func<Companion, bool>> NotFullyMigrated(IDataBaseContext context) =>
             c => !((context.Groomers.Any(g => g.LegacyCompanionId == c.Id && !g.Deleted) ||
                     context.Clinics.Any(k => k.LegacyCompanionId == c.Id && !k.Deleted) ||

@@ -107,7 +107,7 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
 
         public static IQueryable<GroupRow> PansionReserveGroups(IDataBaseContext context, IReadOnlyCollection<long> companionIds)
             => SettlementSources.PansionReserves(context, companionIds)
-                .GroupBy(r => r.Pansion.CompanionId)
+                .GroupBy(r => r.Pansion.CompanionId.Value)
                 .Select(g => new GroupRow
                 {
                     Key = g.Key,
@@ -194,6 +194,36 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
         public static IQueryable<GroupRow> ProviderSchoolReserveGroups(IDataBaseContext context, IReadOnlyCollection<long> providerIds)
             => SettlementSources.ProviderSchoolReserves(context, providerIds)
                 .GroupBy(r => r.SchoolCourse.School.ProviderId.Value)
+                .Select(g => new GroupRow
+                {
+                    Key = g.Key,
+                    Count = g.Count(),
+                    UnsettledCount = g.Count(x => !x.Permitted),
+                    ProviderShare = g.Sum(x => x.CompanionShare),
+                    SiteShare = g.Sum(x => x.SiteShare),
+                    SettledShare = g.Sum(x => x.Permitted ? x.CompanionShare : 0d),
+                    UnsettledShare = g.Sum(x => x.Permitted ? 0d : x.CompanionShare),
+                });
+
+        /// <summary>رزرو پانسیون‌های یک ارائه‌دهنده به‌ازای هر پانسیون؛ Key = PansionId (ردیف‌های استخر «پانسیون»).</summary>
+        public static IQueryable<GroupRow> PansionReserveGroupsByPansion(IDataBaseContext context, long providerId)
+            => SettlementSources.ProviderPansionReserves(context, providerId)
+                .GroupBy(r => r.PansionId)
+                .Select(g => new GroupRow
+                {
+                    Key = g.Key,
+                    Count = g.Count(),
+                    UnsettledCount = g.Count(x => !x.Permitted),
+                    ProviderShare = g.Sum(x => x.CompanionShare),
+                    SiteShare = g.Sum(x => x.SiteShare),
+                    SettledShare = g.Sum(x => x.Permitted ? x.CompanionShare : 0d),
+                    UnsettledShare = g.Sum(x => x.Permitted ? 0d : x.CompanionShare),
+                });
+
+        /// <summary>رزرو همه‌ی پانسیون‌های ارائه‌دهنده؛ Key = ProviderId (استخر «پانسیون»).</summary>
+        public static IQueryable<GroupRow> ProviderPansionReserveGroups(IDataBaseContext context, IReadOnlyCollection<long> providerIds)
+            => SettlementSources.ProviderPansionReserves(context, providerIds)
+                .GroupBy(r => r.Pansion.ProviderId.Value)
                 .Select(g => new GroupRow
                 {
                     Key = g.Key,

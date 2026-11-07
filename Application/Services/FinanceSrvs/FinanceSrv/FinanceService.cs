@@ -103,7 +103,7 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                     With = g.Count(x => x.CommissionPercent > 0)
                 }).ToList().ToDictionary(x => x.CompanionId);
 
-            var pansionStats = _context.Pansions.Where(p => !p.Deleted && companionIds.Contains(p.CompanionId)).GroupBy(p => p.CompanionId).Select(g => new
+            var pansionStats = _context.Pansions.Where(p => !p.Deleted && p.CompanionId != null && companionIds.Contains(p.CompanionId.Value)).GroupBy(p => p.CompanionId.Value).Select(g => new
                 {
                     CompanionId = g.Key,
                     Has = 1,
@@ -125,10 +125,10 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
             var pansionReserveStats =
                 (from r in _context.PansionReserves
                  join p in _context.Pansions on r.PansionId equals p.Id
-                 where companionIds.Contains(p.CompanionId)
+                 where p.CompanionId != null && companionIds.Contains(p.CompanionId.Value)
                        && r.IsReserved
                        && !r.IsCancel
-                 group r by p.CompanionId into g
+                 group r by p.CompanionId.Value into g
                  select new
                  {
                      CompanionId = g.Key,

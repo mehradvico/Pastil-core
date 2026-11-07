@@ -39,10 +39,12 @@ namespace Application.Services.CoachSrvs.CoachSrv.Dto
         public string WebsiteUrl { get; set; }
         /// <summary>خدمات در محل مشتری (با پوشش CoachZone).</summary>
         public bool ServiceAtHome { get; set; }
-        /// <summary>خدمات حضوری در خود مربی.</summary>
+        /// <summary>پانسیون آموزشی (در مرکز).</summary>
         public bool ServiceInPerson { get; set; }
         /// <summary>خدمات آنلاین (مشاوره‌ی تصویری/چت).</summary>
         public bool ServiceOnline { get; set; }
+        /// <summary>ظرفیت پت مقیم هم‌زمان پانسیون آموزشی (۰ تا ۱۰۰۰؛ ۰ = بدون سقف).</summary>
+        public int BoardingCapacity { get; set; }
         public bool HasParking { get; set; }
         public bool HasWaitingRoom { get; set; }
         public bool HasCamera { get; set; }
@@ -145,6 +147,7 @@ namespace Application.Services.CoachSrvs.CoachSrv.Dto
         public bool HasWaitingRoom { get; set; }
         public bool HasCamera { get; set; }
         public int MaxConcurrentPets { get; set; }
+        public int BoardingCapacity { get; set; }
         public int StaffCount { get; set; }
         public decimal CommissionPercent { get; set; }
         public string SeoH1 { get; set; }

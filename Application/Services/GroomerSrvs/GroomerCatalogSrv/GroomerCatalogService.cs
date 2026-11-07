@@ -1,3 +1,4 @@
+using Application.Common.Helpers;
 using Application.Common.Dto.Result;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.GroomerSrvs.GroomerCatalogSrv.Dto;
@@ -215,12 +216,14 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
                     PrePaymentPrice = dto.PrePaymentPrice,
                     PictureId = dto.PictureId,
                     Discription = dto.Discription?.Trim(),
-                    PetSize = NormalizePetSize(dto.PetSize),
+                    PetSize = PackageSizes(dto),
                     Active = true,
                 };
                 await _context.GroomerServicePackages.AddAsync(package);
                 await _context.SaveChangesAsync();
-                return new BaseResultDto<GroomerServicePackageVDto>(true, _mapper.Map<GroomerServicePackageVDto>(package));
+                var created = _mapper.Map<GroomerServicePackageVDto>(package);
+                created.PetSizes = VenuePetSizes.Split(package.PetSize);
+                return new BaseResultDto<GroomerServicePackageVDto>(true, created);
             }
             catch (Exception ex)
             {
@@ -249,7 +252,7 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
 
             var name = dto.Name.Trim();
             var description = dto.Discription?.Trim();
-            var size = NormalizePetSize(dto.PetSize);
+            var size = PackageSizes(dto);
             await _context.GroomerServicePackages.Where(p => p.Id == dto.Id && !p.Deleted)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(p => p.Name, name)
@@ -313,7 +316,7 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
                 return Resource.Notification.PleaseEnterTheName;
             if (dto.Price <= 0 || dto.PrePaymentPrice < 0 || dto.PrePaymentPrice > dto.Price || double.IsNaN(dto.Price) || double.IsInfinity(dto.Price))
                 return Resource.Notification.GroomerPackagePriceInvalid;
-            if (!string.IsNullOrWhiteSpace(dto.PetSize) && NormalizePetSize(dto.PetSize) == null)
+            if (!VenuePetSizes.TryNormalizeSet(dto.PetSize, dto.PetSizes, out _))
                 return Resource.Notification.GroomerPackagePetSizeInvalid;
             if (dto.PictureId.HasValue && dto.PictureId.Value > 0 && !await _context.Pictures.AnyAsync(p => p.Id == dto.PictureId.Value))
                 return Resource.Notification.GroomerPictureInvalid;
@@ -321,12 +324,11 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
         }
 
         /// <summary>اندازه‌ی نرمال‌شده؛ خالی یا نامعتبر = null (برای ورودی نامعتبر، ValidatePackageAsync قبلاً خطا می‌دهد).</summary>
-        private static string NormalizePetSize(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                return null;
-            return GroomerPetSizes.All.FirstOrDefault(s => string.Equals(s, value.Trim(), StringComparison.OrdinalIgnoreCase));
-        }
+        private static string NormalizePetSize(string value) => VenuePetSizes.One(value);
+
+        /// <summary>سایزهای بسته برای ذخیره («Small,Medium»؛ null = همه). ورودی نامعتبر را ValidatePackageAsync قبلاً رد کرده است.</summary>
+        private static string PackageSizes(GroomerServicePackageInputDto dto) =>
+            VenuePetSizes.TryNormalizeSet(dto.PetSize, dto.PetSizes, out var sizes) ? sizes : null;
 
         private async Task<List<GroomerServiceVDto>> ProjectAsync(IQueryable<GroomerService> query, string petSize, bool onlyActivePackages)
         {
@@ -335,7 +337,7 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
                 s.Id, s.GroomerId, s.AssistanceId, AssistanceName = s.Assistance.Name, AssistancePicture = s.Assistance.Picture,
                 s.Active, s.Approved, s.ActivationValue, s.CommissionPercent, s.DurationMinutes, s.Description,
                 Packages = s.Packages
-                    .Where(p => !p.Deleted && (!onlyActivePackages || p.Active) && (petSize == null || p.PetSize == null || p.PetSize == petSize))
+                    .Where(p => !p.Deleted && (!onlyActivePackages || p.Active) && (petSize == null || p.PetSize == null || p.PetSize.Contains(petSize)))
                     .OrderBy(p => p.Price)
                     .Select(p => new { p.Id, p.GroomerServiceId, p.Name, p.Price, p.PrePaymentPrice, p.PictureId, p.Picture, p.Active, p.ActivationValue, p.Discription, p.PetSize })
                     .ToList(),
@@ -369,6 +371,7 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
                     ActivationValue = p.ActivationValue,
                     Discription = p.Discription,
                     PetSize = p.PetSize,
+                    PetSizes = VenuePetSizes.Split(p.PetSize),
                 }).ToList(),
             }).ToList();
         }

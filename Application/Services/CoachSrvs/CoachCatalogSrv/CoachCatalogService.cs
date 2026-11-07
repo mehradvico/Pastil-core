@@ -1,3 +1,5 @@
+using Application.Common.Helpers;
+using Application.Services.CoachSrvs.CoachReserveSrv;
 using Application.Common.Dto.Result;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.CoachSrvs.CoachCatalogSrv.Dto;
@@ -216,16 +218,17 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                     Name = dto.Name.Trim(),
                     Price = basePrice,
                     PrePaymentPrice = basePre,
-                    Types = types.Select(x => new CoachServicePackageType { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, StayDays = x.StayDays, SessionCount = x.SessionCount }).ToList(),
+                    Types = types.Select(x => new CoachServicePackageType { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, StayDays = x.StayDays, SessionCount = x.SessionCount, DailyPrice = x.DailyPrice }).ToList(),
                     PictureId = dto.PictureId,
                     Discription = dto.Discription?.Trim(),
-                    PetSize = NormalizePetSize(dto.PetSize),
+                    PetSize = PackageSizes(dto),
                     Active = true,
                 };
                 await _context.CoachServicePackages.AddAsync(package);
                 await _context.SaveChangesAsync();
                 var created = _mapper.Map<CoachServicePackageVDto>(package);
-                created.Types = types.Select(x => new CoachPackageTypeVDto { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, StayDays = x.StayDays, SessionCount = x.SessionCount, ModeName = ModeName(x.Mode) }).ToList();
+                created.PetSizes = VenuePetSizes.Split(package.PetSize);
+                created.Types = types.Select(x => new CoachPackageTypeVDto { Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, StayDays = x.StayDays, SessionCount = x.SessionCount, DailyPrice = x.DailyPrice, ModeName = ModeName(x.Mode) }).ToList();
                 return new BaseResultDto<CoachServicePackageVDto>(true, created);
             }
             catch (Exception ex)
@@ -255,7 +258,7 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
 
             var name = dto.Name.Trim();
             var description = dto.Discription?.Trim();
-            var size = NormalizePetSize(dto.PetSize);
+            var size = PackageSizes(dto);
             var types = NormalizeTypes(dto);
             var (basePrice, basePre) = BasePrice(dto, types);
             await _context.CoachServicePackages.Where(p => p.Id == dto.Id && !p.Deleted)
@@ -282,9 +285,10 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 row.PrePaymentPrice = wanted.PrePaymentPrice;
                 row.StayDays = wanted.StayDays;
                 row.SessionCount = wanted.SessionCount;
+                row.DailyPrice = wanted.DailyPrice;
             }
             foreach (var item in types.Where(x => existing.All(e => e.Mode != x.Mode)))
-                await _context.CoachServicePackageTypes.AddAsync(new CoachServicePackageType { CoachServicePackageId = packageId, Mode = item.Mode, Price = item.Price, PrePaymentPrice = item.PrePaymentPrice, StayDays = item.StayDays, SessionCount = item.SessionCount });
+                await _context.CoachServicePackageTypes.AddAsync(new CoachServicePackageType { CoachServicePackageId = packageId, Mode = item.Mode, Price = item.Price, PrePaymentPrice = item.PrePaymentPrice, StayDays = item.StayDays, SessionCount = item.SessionCount, DailyPrice = item.DailyPrice });
             await _context.SaveChangesAsync();
         }
 
@@ -348,12 +352,20 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
             {
                 if (types.Select(x => x.Mode).Distinct().Count() != types.Count || types.Any(x => !Enum.IsDefined(typeof(CoachServiceModeEnum), x.Mode)))
                     return Resource.Notification.CoachPackageModeInvalid;
-                if (types.Any(x => x.StayDays is < 0 or > 3650 || x.SessionCount is < 0 or > 1000))
+                if (types.Any(x => x.StayDays is < 0 or > CoachReserveRules.MaxBoardingDays || x.SessionCount is < 0 or > 1000))
                     return Resource.Notification.CoachValueOutOfRange;
-                if (types.Any(x => x.Price <= 0 || x.PrePaymentPrice < 0 || x.PrePaymentPrice > x.Price || double.IsNaN(x.Price) || double.IsInfinity(x.Price)))
+                if (types.Any(x => x.DailyPrice is < 0 || (x.DailyPrice.HasValue && (double.IsNaN(x.DailyPrice.Value) || double.IsInfinity(x.DailyPrice.Value)))))
+                    return Resource.Notification.CoachPackagePriceInvalid;
+                // پانسیون آموزشی (۳۸) با پانسیون روزانه باید تعداد روز داشته باشد.
+                if (types.Any(x => CoachReserveRules.IsBoardingMode(x.Mode) && x.DailyPrice is > 0 && !(x.StayDays is > 0)))
+                    return Resource.Notification.CoachPackageBoardingDaysRequired;
+                // پیش‌پرداخت حداکثر کل مبلغ (پانسیون آموزشی: هزینه‌ی دوره + روزانه × روز). پانسیون آموزشی می‌تواند هزینه‌ی دوره‌ی صفر داشته باشد اگر پانسیون روزانه دارد.
+                if (types.Any(x => x.PrePaymentPrice < 0 || double.IsNaN(x.Price) || double.IsInfinity(x.Price) || x.Price < 0 ||
+                                   x.PrePaymentPrice > (CoachReserveRules.IsBoardingMode(x.Mode) ? x.Price + CoachReserveRules.BoardingFee(x.DailyPrice, x.StayDays) : x.Price) ||
+                                   (CoachReserveRules.IsBoardingMode(x.Mode) ? x.Price <= 0 && !(x.DailyPrice is > 0) : x.Price <= 0)))
                     return Resource.Notification.CoachPackagePriceInvalid;
             }
-            if (!string.IsNullOrWhiteSpace(dto.PetSize) && NormalizePetSize(dto.PetSize) == null)
+            if (!VenuePetSizes.TryNormalizeSet(dto.PetSize, dto.PetSizes, out _))
                 return Resource.Notification.CoachPackagePetSizeInvalid;
             if (dto.PictureId.HasValue && dto.PictureId.Value > 0 && !await _context.Pictures.AnyAsync(p => p.Id == dto.PictureId.Value))
                 return Resource.Notification.CoachPictureInvalid;
@@ -361,7 +373,15 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
         }
 
         private static List<CoachPackageTypeDto> NormalizeTypes(CoachServicePackageInputDto dto) =>
-            (dto.Types ?? new List<CoachPackageTypeDto>()).GroupBy(x => x.Mode).Select(g => g.First()).ToList();
+            (dto.Types ?? new List<CoachPackageTypeDto>()).GroupBy(x => x.Mode).Select(g => g.First())
+                .Select(x => new CoachPackageTypeDto
+                {
+                    Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, SessionCount = x.SessionCount,
+                    // تعداد روز و پانسیون روزانه فقط برای پانسیون آموزشی (۳۸)؛ صفر = ندارد.
+                    StayDays = CoachReserveRules.IsBoardingMode(x.Mode) && x.StayDays is > 0 ? x.StayDays : null,
+                    DailyPrice = CoachReserveRules.IsBoardingMode(x.Mode) && x.DailyPrice is > 0 ? x.DailyPrice : null,
+                })
+                .ToList();
 
         /// <summary>اگر نحوه‌ی ارائه داده شده باشد قیمت پایه‌ی بسته = ارزان‌ترین حالت (برای «قیمت از ...» و مرتب‌سازی).</summary>
         private static (double Price, double Pre) BasePrice(CoachServicePackageInputDto dto, List<CoachPackageTypeDto> types)
@@ -381,12 +401,11 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
         };
 
         /// <summary>اندازه‌ی نرمال‌شده؛ خالی یا نامعتبر = null (برای ورودی نامعتبر، ValidatePackageAsync قبلاً خطا می‌دهد).</summary>
-        private static string NormalizePetSize(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-                return null;
-            return CoachPetSizes.All.FirstOrDefault(s => string.Equals(s, value.Trim(), StringComparison.OrdinalIgnoreCase));
-        }
+        private static string NormalizePetSize(string value) => VenuePetSizes.One(value);
+
+        /// <summary>سایزهای بسته برای ذخیره («Small,Medium»؛ null = همه). ورودی نامعتبر را ValidatePackageAsync قبلاً رد کرده است.</summary>
+        private static string PackageSizes(CoachServicePackageInputDto dto) =>
+            VenuePetSizes.TryNormalizeSet(dto.PetSize, dto.PetSizes, out var sizes) ? sizes : null;
 
         private async Task<List<CoachServiceVDto>> ProjectAsync(IQueryable<CoachService> query, string petSize, bool onlyActivePackages)
         {
@@ -395,9 +414,9 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 s.Id, s.CoachId, s.AssistanceId, AssistanceName = s.Assistance.Name, AssistancePicture = s.Assistance.Picture,
                 s.Active, s.Approved, s.ActivationValue, s.CommissionPercent, s.DurationMinutes, s.Description,
                 Packages = s.Packages
-                    .Where(p => !p.Deleted && (!onlyActivePackages || p.Active) && (petSize == null || p.PetSize == null || p.PetSize == petSize))
+                    .Where(p => !p.Deleted && (!onlyActivePackages || p.Active) && (petSize == null || p.PetSize == null || p.PetSize.Contains(petSize)))
                     .OrderBy(p => p.Price)
-                    .Select(p => new { p.Id, p.CoachServiceId, p.Name, p.Price, p.PrePaymentPrice, p.PictureId, p.Picture, p.Active, p.ActivationValue, p.Discription, p.PetSize, Types = p.Types.Where(x => !x.Deleted).OrderBy(x => x.Mode).Select(x => new { x.Id, x.Mode, x.Price, x.PrePaymentPrice, x.StayDays, x.SessionCount }).ToList() })
+                    .Select(p => new { p.Id, p.CoachServiceId, p.Name, p.Price, p.PrePaymentPrice, p.PictureId, p.Picture, p.Active, p.ActivationValue, p.Discription, p.PetSize, Types = p.Types.Where(x => !x.Deleted).OrderBy(x => x.Mode).Select(x => new { x.Id, x.Mode, x.Price, x.PrePaymentPrice, x.StayDays, x.SessionCount, x.DailyPrice }).ToList() })
                     .ToList(),
                 UserIds = s.ServiceUsers.Where(u => !u.Deleted && u.Active).Select(u => u.UserId).ToList(),
             }).AsSplitQuery().ToListAsync();
@@ -429,7 +448,8 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                     ActivationValue = p.ActivationValue,
                     Discription = p.Discription,
                     PetSize = p.PetSize,
-                    Types = p.Types.Select(x => new CoachPackageTypeVDto { Id = x.Id, Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, StayDays = x.StayDays, SessionCount = x.SessionCount, ModeName = ModeName(x.Mode) }).ToList(),
+                    PetSizes = VenuePetSizes.Split(p.PetSize),
+                    Types = p.Types.Select(x => new CoachPackageTypeVDto { Id = x.Id, Mode = x.Mode, Price = x.Price, PrePaymentPrice = x.PrePaymentPrice, StayDays = x.StayDays, SessionCount = x.SessionCount, DailyPrice = x.DailyPrice, ModeName = ModeName(x.Mode) }).ToList(),
                 }).ToList(),
             }).ToList();
         }

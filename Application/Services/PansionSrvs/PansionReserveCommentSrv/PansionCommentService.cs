@@ -151,13 +151,14 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
                 return new BaseResultDto(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex));
             }
         }
-        public async Task<BaseResultDto> ReplyAsync(long commentId, string answer, long companionId)
+        public async Task<BaseResultDto> ReplyAsync(long commentId, string answer, long ownerUserId)
         {
             answer = answer?.Trim();
             if (string.IsNullOrWhiteSpace(answer) || answer.Length > 1000)
                 return new BaseResultDto(false, Resource.Notification.PansionCommentReplyInvalid);
             var item = await _context.PansionComments.AsTracking()
-                .FirstOrDefaultAsync(s => s.Id == commentId && !s.Pansion.Deleted && s.Pansion.CompanionId == companionId);
+                .FirstOrDefaultAsync(s => s.Id == commentId && !s.Pansion.Deleted
+                    && Application.Services.PansionSrvs.PansionOwnershipSrv.PansionOwnershipService.OwnedPansionIds(_context, ownerUserId, true).Contains(s.PansionId));
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
             item.Answer = answer;
@@ -178,6 +179,12 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv
                 query = query.Where(s => s.PansionId == searchDto.PansionId);
             if (searchDto.CompanionId.HasValue)
                 query = query.Where(s => s.Pansion.CompanionId == searchDto.CompanionId.Value);
+            // پنل/اپ ارائه‌دهنده: نظرهای همه‌ی پانسیون‌های «این کاربر»
+            if (searchDto.OwnerUserId.HasValue)
+            {
+                var owned = Application.Services.PansionSrvs.PansionOwnershipSrv.PansionOwnershipService.OwnedPansionIds(_context, searchDto.OwnerUserId.Value, false);
+                query = query.Where(s => owned.Contains(s.PansionId));
+            }
             if (searchDto.UserId.HasValue)
                 query = query.Include(s => s.CommentLikes.Where(a => a.UserId == searchDto.UserId)).Where(s => s.UserId == searchDto.UserId);
             if (searchDto.AllStatus == false)

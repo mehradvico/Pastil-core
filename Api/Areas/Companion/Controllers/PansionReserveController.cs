@@ -16,7 +16,6 @@ namespace Api.Areas.Pansion.Controllers
     [Route("api/Comapnion/[controller]")] // مسیر قدیمی (غلط املایی) موقتاً برای کلاینت‌های فعلی
     [ApiController]
     [Authorize]
-    [Api.Filters.RequireCompanionScope]
     public class PansionReserveController : ControllerBase
     {
         private readonly IPansionReserveService _PansionReserveService;
@@ -35,9 +34,7 @@ namespace Api.Areas.Pansion.Controllers
         [ProducesResponseType(typeof(PansionReserveSearchDto), 200)]
         public IActionResult Get([FromQuery] PansionReserveInputDto dto)
         {
-            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
-                return NotFound(new Application.Common.Dto.Result.BaseResultDto(false, Resource.Notification.NothingFound));
-            dto.CompanionId = _currentUserHelper.CurrentUser.CompanionId;
+            dto.OwnerUserId = _currentUserHelper.CurrentUser.UserId;
             var search = _PansionReserveService.Search(dto);
             return Ok(search);
         }
@@ -53,10 +50,7 @@ namespace Api.Areas.Pansion.Controllers
         [ProducesResponseType(typeof(BaseResultDto<PansionReserveVDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-            // CompanionId خالی (مثلاً درخواست نمایندگیِ تأییدنشده) یعنی سرویس چک مالکیت را رد می‌کند؛ پس اینجا حتماً لازم است
-            if (!_currentUserHelper.CurrentUser.CompanionId.HasValue)
-                return Forbid();
-            var Pansion = await _PansionReserveService.FindAsyncVDto(id, companionId: _currentUserHelper.CurrentUser.CompanionId.Value);
+            var Pansion = await _PansionReserveService.FindAsyncVDto(id, ownerUserId: _currentUserHelper.CurrentUser.UserId);
             return Ok(Pansion);
         }
     }

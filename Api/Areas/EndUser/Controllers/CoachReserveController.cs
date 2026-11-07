@@ -53,7 +53,7 @@ namespace Api.Areas.EndUser.Controllers
         public async Task<IActionResult> Get(long id) => Ok(await _service.FindAsync(id, UserId, null));
 
         /// <summary>قیمت بسته (پیش‌پرداخت و باقی‌مانده‌ی حضوری) قبل از رزرو</summary>
-        /// <param name="mode">نحوه‌ی ارائه: ۳۷ آنلاین، ۳۸ حضوری در مربی، ۳۹ در محل مشتری؛ قیمت هر بسته به آن بستگی دارد.</param>
+        /// <param name="mode">نحوه‌ی ارائه: ۳۷ آنلاین، ۳۸ پانسیون آموزشی (در مرکز)، ۳۹ در محل مشتری؛ قیمت هر بسته به آن بستگی دارد.</param>
         /// <param name="packageIds">یک یا چند بسته (رزرو چندخدمتی؛ حداکثر ۵، هر خدمت یک‌بار). packageId قدیمی هم پذیرفته می‌شود.</param>
         [HttpGet("Quote")]
         [ProducesResponseType(typeof(BaseResultDto<CoachReserveQuoteDto>), 200)]
@@ -64,6 +64,12 @@ namespace Api.Areas.EndUser.Controllers
                 ids.Insert(0, packageId);
             return Ok(await _service.QuoteAsync(ids, mode));
         }
+
+        /// <summary>پانسیون آموزشی (mode=38): روزهایی که می‌شود پانسیون را شروع کرد (canStart)، جای خالی و ساعت کاری هر روز؛ از from به مدت days روز (حداکثر ۹۰).</summary>
+        [HttpGet("BoardingAvailability")]
+        [ProducesResponseType(typeof(BaseResultDto<CoachBoardingAvailabilityDto>), 200)]
+        public async Task<IActionResult> BoardingAvailability(long coachId, long packageId, DateTime from, int days = 60) =>
+            Ok(await _service.GetBoardingAvailabilityAsync(coachId, packageId, from, days));
 
         /// <summary>زمان‌های آزاد یک روز برای بسته‌ی انتخابی</summary>
         [HttpGet("Availability")]
@@ -76,7 +82,7 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<CoachReserveVDto>), 200)]
         public async Task<IActionResult> Post(CoachReserveInputDto dto) => Ok(await _service.CreateAsync(dto, UserId));
 
-        /// <summary>لغو رزرو: تا ۱۲ ساعت قبل از نوبت (یا تا قبل از تأیید مربی) با برگشت کل مبلغ به کیف پول</summary>
+        /// <summary>لغو رزرو: تا ۱۲ ساعت قبل از نوبت (پانسیون آموزشی: ۴۸ ساعت قبل از تحویل پت) یا تا قبل از تأیید مربی، با برگشت کل مبلغ به کیف پول</summary>
         [HttpPut("Cancel")]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Cancel(long id) => Ok(await _approval.CancelByBookerAsync(id, UserId));

@@ -10,6 +10,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Iface
     {
         public bool? IsDaycare { get; set; }
         public long? CompanionId { get; set; }
+        public long? ProviderId { get; set; }
         public bool? Approve { get; set; }
         public long? StateId { get; set; }
         public long? CityId { get; set; }

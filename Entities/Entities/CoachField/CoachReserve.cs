@@ -27,7 +27,7 @@ namespace Entities.Entities.CoachField
         /// <summary>DoDate + DurationMinutes؛ ذخیره می‌شود تا بررسی هم‌پوشانی با یک کوئری ساده انجام شود.</summary>
         public DateTime EndDate { get; set; }
 
-        /// <summary>CoachServiceModeEnum: ۳۷ آنلاین، ۳۸ حضوری در مربی، ۳۹ در محل مشتری.</summary>
+        /// <summary>CoachServiceModeEnum: ۳۷ آنلاین، ۳۸ پانسیون آموزشی (در مرکز)، ۳۹ در محل مشتری.</summary>
         public int Mode { get; set; }
         /// <summary>نشانی مشتری؛ فقط برای Mode=InPlace.</summary>
         public long? AddressId { get; set; }
@@ -78,8 +78,14 @@ namespace Entities.Entities.CoachField
         public int RescheduleCount { get; set; }
         public DateTime? OriginalDoDate { get; set; }
         public DateTime? LastRescheduleDate { get; set; }
-        /// <summary>snapshot مدت اقامت رزرو = بیشینه‌ی StayDays بسته‌های انتخاب‌شده (در صورت وجود).</summary>
+        /// <summary>مدت اقامت به روز. پانسیون آموزشی: تعداد روزِ بسته (DoDate = تحویل پت، EndDate = DoDate + روز).
+        /// رزروهای قدیمی: بیشینه‌ی StayDays بسته‌ها.</summary>
         public int? StayDays { get; set; }
+        /// <summary>
+        /// پانسیون آموزشی: جمع هزینه‌ی پانسیون روزانه‌ی بسته‌ها (اسنپ‌شات).
+        /// پر بودن (حتی صفر) یعنی این رزرو «اقامت» است و ظرفیت پت مقیم را می‌گیرد، نه ظرفیت ساعتی.
+        /// </summary>
+        public double? DailyPrice { get; set; }
         /// <summary>snapshot جمع تعداد جلسات بسته‌های انتخاب‌شده (در صورت وجود).</summary>
         public int? SessionCount { get; set; }
         /// <summary>تماس تصویری/صوتی درون‌برنامه‌ای (فقط Mode=آنلاین): لحظه‌ی وصل‌شدن هر دو طرف و لحظه‌ی پایان.</summary>

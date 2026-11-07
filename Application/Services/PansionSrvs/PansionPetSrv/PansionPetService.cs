@@ -42,6 +42,11 @@ namespace Application.Services.PansionSrvs.PansionPetSrv
         {
             var model = _context.PansionPets.Include(s => s.Pet).Include(s => s.Pansion).ThenInclude(s => s.Companion).AsQueryable().Where(s => !s.Deleted && !s.Pansion.Deleted);
 
+            if (baseSearchDto.OwnerUserId.HasValue)
+            {
+                var owned = Application.Services.PansionSrvs.PansionOwnershipSrv.PansionOwnershipService.OwnedPansionIds(_context, baseSearchDto.OwnerUserId.Value, false);
+                model = model.Where(s => owned.Contains(s.PansionId));
+            }
             if (baseSearchDto.CompanionId.HasValue)
             {
                 model = model.Where(s => s.Pansion.CompanionId == baseSearchDto.CompanionId.Value);

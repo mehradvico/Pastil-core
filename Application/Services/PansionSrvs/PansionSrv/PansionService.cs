@@ -6,6 +6,7 @@ using Application.Common.Service;
 using Application.Services.CommonSrv.SearchSrv.Dto;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionSrv.Dto;
+using Application.Services.PansionSrvs.PansionOwnershipSrv;
 using Application.Services.PansionSrvs.PansionSrv.Dto;
 using Application.Services.PansionSrvs.PansionSrv.Iface;
 using Application.Services.ProductSrvs.StoreSrv.Dto;
@@ -16,6 +17,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Entities.Entities;
 using Entities.Entities.PansionField;
+using Entities.Entities.ProviderField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -54,7 +56,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
 
         public async Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id, bool includeDeleted = false)
         {
-            var item = await _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.City).ThenInclude(s => s.State)
+            var item = await _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.Provider).ThenInclude(s => s.User).Include(s => s.City).ThenInclude(s => s.State)
                 .Include(s => s.PansionPets).ThenInclude(s => s.Pet).Include(s => s.PansionComments).Include(s => s.PansionPictures).ThenInclude(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id && (includeDeleted || !s.Deleted));
             if (item != null)
             {
@@ -78,7 +80,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
 
         public PansionSearchDto Search(PansionInputDto baseSearchDto, bool onlyDeleted = false)
         {
-            var model = _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.Companion).ThenInclude(s => s.Neighborhood).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.PansionComments)
+            var model = _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.Companion).ThenInclude(s => s.Neighborhood).Include(s => s.Provider).ThenInclude(s => s.User).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.PansionComments)
                 .Include(s => s.PansionPictures).ThenInclude(s => s.Picture).AsQueryable();
             // حذف‌شده‌ها فقط وقتی ادمین صریحاً بخواهد (onlyDeleted) دیده می‌شوند؛ برای بقیه‌ی فراخوان‌ها هرگز.
             model = onlyDeleted ? model.Where(s => s.Deleted) : model.Where(s => !s.Deleted);
@@ -100,6 +102,16 @@ namespace Application.Services.PansionSrvs.PansionSrv
             if (baseSearchDto.CompanionId.HasValue)
             {
                 model = model.Where(s => s.CompanionId == baseSearchDto.CompanionId.Value);
+            }
+            if (baseSearchDto.ProviderId.HasValue)
+            {
+                model = model.Where(s => s.ProviderId == baseSearchDto.ProviderId.Value);
+            }
+            // پنل/اپ ارائه‌دهنده: همه‌ی پانسیون‌های «این کاربر» (ارائه‌دهنده یا نمایندگی قدیمی)؛ سمت کنترلر از کاربر پر می‌شود
+            if (baseSearchDto.OwnerUserId.HasValue)
+            {
+                var owned = PansionOwnershipService.OwnedPansionIds(_context, baseSearchDto.OwnerUserId.Value, approvedOnly: false);
+                model = model.Where(s => owned.Contains(s.Id));
             }
             if (!string.IsNullOrWhiteSpace(baseSearchDto.Q))
             {
@@ -190,7 +202,8 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 var modelCheker = await ValidateRequestAsync(dto);
                 if (!modelCheker.IsSuccess)
                 {
-                    return new BaseResultDto<PansionDto>(false, dto);
+                    // پیام‌های اعتبارسنجی (نوع، ساعت کاری، قیمت، ...) باید به کلاینت برسد؛ قبلاً خالی برمی‌گشت
+                    return new BaseResultDto<PansionDto>(false, modelCheker.Messages, dto);
                 }
                 else
                 {
@@ -205,15 +218,14 @@ namespace Application.Services.PansionSrvs.PansionSrv
                     item.RateCount = 0;
                     item.DailyCommissionPercent = 0;
                     item.HourlyCommissionPercent = 0;
-                    var companionId = dto.CompanionId;                  
-                    var model = await _context.Companions.Include(s => s.Pansions).FirstOrDefaultAsync(s => s.Id == companionId && !s.Deleted && s.Active && s.Approved);
-                    if (model == null)
-                    {
-                        return new BaseResultDto<PansionDto>(false, Resource.Notification.NothingFound, dto);
-                    }
+                    var owner = await ValidateOwnerAsync(dto.ProviderId, dto.CompanionId, requireRole: true);
+                    if (owner.Error != null)
+                        return new BaseResultDto<PansionDto>(false, owner.Error, dto);
+                    item.ProviderId = owner.ProviderId;
+                    item.CompanionId = owner.CompanionId;
                     await _context.Pansions.AddAsync(item);
                     await _context.SaveChangesAsync();
-                    await TryCreateNoticeAsync(item, NoticeTypeLabels.PansionSubmitted, model.OwnerId);
+                    await TryCreateNoticeAsync(item, NoticeTypeLabels.PansionSubmitted, owner.OwnerUserId);
                     return new BaseResultDto<PansionDto>(true, mapper.Map<PansionDto>(item));
 
                 }
@@ -224,6 +236,65 @@ namespace Application.Services.PansionSrvs.PansionSrv
                 return new BaseResultDto<PansionDto>(false, Resource.Notification.PansionCreateRequestFailed, dto);
             }
         }
+        private sealed record PansionOwner(long? ProviderId, long? CompanionId, long OwnerUserId, string Error);
+
+        /// <summary>
+        /// مالک پانسیون (۲۰۲۶-۱۱-۰۳): ارائه‌دهنده (با نقش تأییدشده‌ی «پانسیون») یا برای سابقه نمایندگیِ فعال/تأییدشده.
+        /// نمایندگی‌ای که مال همان ارائه‌دهنده نیست کنار گذاشته می‌شود تا مالکیت و تسویه دوگانه نشود.
+        /// requireRole=false فقط وقتی ارائه‌دهنده‌ی پانسیونِ موجود عوض نشده است (ویرایش ادمین بعد از حذف نقش).
+        /// </summary>
+        private async Task<PansionOwner> ValidateOwnerAsync(long? providerId, long? companionId, bool requireRole)
+        {
+            if (providerId is > 0)
+            {
+                var provider = await _context.Providers.AsNoTracking()
+                    .Where(p => p.Id == providerId.Value && !p.Deleted)
+                    .Select(p => new { p.Id, p.UserId })
+                    .FirstOrDefaultAsync();
+                if (provider == null)
+                    return new PansionOwner(null, null, 0, Resource.Notification.ProviderNotFound);
+                if (requireRole && !await _context.ProviderRoleAssignments.AsNoTracking().AnyAsync(a =>
+                        a.ProviderId == provider.Id && a.Approved && !a.Deleted
+                        && a.ProviderRole.Label == ProviderRoleLabels.Pansion && a.ProviderRole.Active && !a.ProviderRole.Deleted))
+                    return new PansionOwner(null, null, 0, Resource.Notification.ProviderRoleRequired);
+                long? keptCompanionId = companionId is > 0 && await _context.Companions.AsNoTracking()
+                    .AnyAsync(c => c.Id == companionId.Value && c.ProviderId == provider.Id && !c.Deleted)
+                    ? companionId : null;
+                return new PansionOwner(provider.Id, keptCompanionId, provider.UserId, null);
+            }
+            if (companionId is > 0)
+            {
+                var companion = await _context.Companions.AsNoTracking()
+                    .Where(c => c.Id == companionId.Value && !c.Deleted && c.Active && c.Approved)
+                    .Select(c => new { c.Id, c.ProviderId, c.OwnerId })
+                    .FirstOrDefaultAsync();
+                if (companion == null)
+                    return new PansionOwner(null, null, 0, Resource.Notification.NothingFound);
+                return new PansionOwner(companion.ProviderId, companion.Id, companion.OwnerId, null);
+            }
+            return new PansionOwner(null, null, 0, Resource.Notification.PansionProviderRequired);
+        }
+
+        /// <summary>ویرایش ادمین: مالک را هم اعتبارسنجی می‌کند (عوض‌شدن ارائه‌دهنده نقش «پانسیون» می‌خواهد).</summary>
+        public override BaseResultDto UpdateDto(PansionDto dto)
+        {
+            if (dto == null)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var current = _context.Pansions.AsNoTracking()
+                .Where(s => s.Id == dto.Id)
+                .Select(s => new { s.ProviderId })
+                .FirstOrDefault();
+            if (current == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            var owner = ValidateOwnerAsync(dto.ProviderId, dto.CompanionId, requireRole: dto.ProviderId != current.ProviderId)
+                .GetAwaiter().GetResult();
+            if (owner.Error != null)
+                return new BaseResultDto(false, owner.Error);
+            dto.ProviderId = owner.ProviderId;
+            dto.CompanionId = owner.CompanionId;
+            return base.UpdateDto(dto);
+        }
+
         private async Task<BaseResultDto> ValidateRequestAsync(PansionDto dto)
         {
             var errors = new List<Tuple<string, string>>();
@@ -274,12 +345,12 @@ namespace Application.Services.PansionSrvs.PansionSrv
             }
             return new BaseResultDto(true);
         }
-        public BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto, long? companionId = null)
+        public BaseResultDto UpdatePansionActiveDto(PansionActiveDto dto, long? ownerUserId = null)
         {
             var item = _context.Pansions.FirstOrDefault(s => s.Id == dto.Id && !s.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
-            if (companionId.HasValue && item.CompanionId != companionId.Value)
+            if (ownerUserId.HasValue && !PansionOwnershipService.OwnedPansionIds(_context, ownerUserId.Value).Any(id => id == item.Id))
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
             if (dto.Active && !item.Approve)
                 return new BaseResultDto(false, Resource.Notification.PansionActivationRequiresApproval);
@@ -289,18 +360,14 @@ namespace Application.Services.PansionSrvs.PansionSrv
             return new BaseResultDto(isSuccess: true);
         }
 
-        public async Task<BaseResultDto> ResubmitAsyncDto(PansionDto dto, long companionId, long ownerId)
+        public async Task<BaseResultDto> ResubmitAsyncDto(PansionDto dto, long ownerId)
         {
             if (dto == null || dto.Id <= 0)
                 return new BaseResultDto(false, Resource.Notification.PansionRequestIdInvalid);
 
-            var companionIsValid = await _context.Companions.AnyAsync(s =>
-                s.Id == companionId &&
-                s.OwnerId == ownerId &&
-                s.Active &&
-                s.Approved &&
-                !s.Deleted);
-            if (!companionIsValid)
+            // فقط مالک (ارائه‌دهنده یا نمایندگی) فعال و تأییدشده
+            var owned = PansionOwnershipService.OwnedPansionIds(_context, ownerId);
+            if (!await owned.AnyAsync(id => id == dto.Id))
                 return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
             var checker = await ValidateRequestAsync(dto);
@@ -309,11 +376,13 @@ namespace Application.Services.PansionSrvs.PansionSrv
 
             var item = await _context.Pansions
                 .AsTracking()
-                .FirstOrDefaultAsync(s => s.Id == dto.Id && s.CompanionId == companionId && !s.Deleted);
+                .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
-            dto.CompanionId = companionId;
+            // مالک با ویرایش عوض نمی‌شود
+            dto.CompanionId = item.CompanionId;
+            dto.ProviderId = item.ProviderId;
             dto.Active = false;
             dto.Approve = false;
             dto.ApprovalValue = null;
@@ -344,9 +413,11 @@ namespace Application.Services.PansionSrvs.PansionSrv
 
             var item = await _context.Pansions
                 .Include(s => s.Companion)
+                .Include(s => s.Provider)
                 .AsTracking()
                 .FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
-            if (item?.Companion == null)
+            var ownerUserId = item?.Provider?.UserId ?? item?.Companion?.OwnerId;
+            if (ownerUserId == null)
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
 
             item.Approve = dto.Approve;
@@ -359,7 +430,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
             {
                 await _pushNotificationService.SendPushAsync(
                     dto.Approve ? PushTypeEnum.PushPansionRequestApproved : PushTypeEnum.PushPansionRequestRejected,
-                    item.Companion.OwnerId,
+                    ownerUserId.Value,
                     token1: item.Name,
                     token2: item.ApprovalValue);
             }
@@ -385,7 +456,8 @@ namespace Application.Services.PansionSrvs.PansionSrv
                     Metadata = new Dictionary<string, string>
                     {
                         { "pansionName", item.Name },
-                        { "companionId", item.CompanionId.ToString() }
+                        { "companionId", item.CompanionId?.ToString() ?? string.Empty },
+                        { "providerId", item.ProviderId?.ToString() ?? string.Empty }
                     }
                 });
             }
@@ -403,24 +475,22 @@ namespace Application.Services.PansionSrvs.PansionSrv
             _context.SaveChanges();
         }
 
-        // حذف نرم توسط مالک کلینیک (companionId = کلینیک جاری کاربر) یا ادمین (companionId = null).
+        // حذف نرم توسط مالک (ownerUserId = کاربر مالکِ ارائه‌دهنده/نمایندگی) یا ادمین (ownerUserId = null).
         // ردیف پاک نمی‌شود: رزروها، تسویه‌ها و گزارش مالی همان‌طور می‌مانند؛ فقط از فهرست‌ها، جستجو و رزرو جدید حذف می‌شود.
         // تا وقتی رزرو «باز» (پرداخت‌شده، لغو/تکمیل‌نشده) دارد حذف نمی‌شود تا مشتری بی‌خدمت نماند.
-        public async Task<BaseResultDto> SoftDeleteAsync(long id, long? companionId, long actorUserId)
+        public async Task<BaseResultDto> SoftDeleteAsync(long id, long? ownerUserId, long actorUserId)
         {
             try
             {
                 var item = await _context.Pansions.AsNoTracking()
                     .Where(s => s.Id == id && !s.Deleted)
-                    .Select(s => new { s.Id, s.CompanionId })
+                    .Select(s => new { s.Id })
                     .FirstOrDefaultAsync();
                 if (item == null)
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
-                if (companionId.HasValue && item.CompanionId != companionId.Value)
-                    return new BaseResultDto(false, Resource.Notification.AccessDenied);
-                // حذف توسط نماینده فقط برای «مالک» همان کلینیک (نه اعضای تیم)
-                if (companionId.HasValue &&
-                    !await _context.Companions.AsNoTracking().AnyAsync(c => c.Id == companionId.Value && c.OwnerId == actorUserId && !c.Deleted))
+                // حذف توسط مالک فقط برای «مالک» همان پانسیون (ارائه‌دهنده یا مالک نمایندگی)، نه اعضای تیم
+                if (ownerUserId.HasValue &&
+                    !await PansionOwnershipService.OwnedPansionIds(_context, ownerUserId.Value, approvedOnly: false).AnyAsync(x => x == id))
                     return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
                 var complete = (long)PansionReserveStatusEnum.PansionReserveState_Complete;

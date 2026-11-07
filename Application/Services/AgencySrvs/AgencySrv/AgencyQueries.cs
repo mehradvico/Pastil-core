@@ -37,8 +37,7 @@ namespace Application.Services.AgencySrvs.AgencySrv
             // آرایشگاهی که به Groomer منتقل شده، دیگر به‌عنوان Companion نمایش داده نمی‌شود (مگر نوع دیگری هم داشته باشد، مثل کلینیک).
             model = model.Where(Application.Services.CompanionSrvs.CompanionSrv.CompanionMigrationFilter.NotFullyMigrated(context));
             // Companionی که فقط «ظرف» پانسیون/مدرسه است (خودش خدمتی ندارد) به‌عنوان نمایندگی قدیمی نمایش داده نمی‌شود؛ خودِ پانسیون/مدرسه ردیف جدا دارد.
-            model = model.Where(c => !((context.Pansions.Any(p => p.CompanionId == c.Id && !p.Deleted) || context.Schools.Any(s => s.CompanionId == c.Id && !s.Deleted))
-                                          && !context.CompanionAssistances.Any(a => a.CompanionId == c.Id && !a.Deleted && a.Active)));
+            model = model.Where(Application.Services.CompanionSrvs.CompanionSrv.CompanionMigrationFilter.NotOnlyPansionSchoolContainer(context));
 
             if (!string.IsNullOrWhiteSpace(input.Q))
             {
@@ -125,10 +124,11 @@ namespace Application.Services.AgencySrvs.AgencySrv
                 GoldAccountDate = null,
                 SilverAccountDate = null,
                 // فروشگاه مالک مستقیم ندارد؛ اولین کاربر وصل‌شده (StoreUser) نمایش داده می‌شود.
-                OwnerId = s.Users.OrderBy(u => u.Id).Select(u => u.Id).FirstOrDefault(),
-                OwnerFirstName = s.Users.OrderBy(u => u.Id).Select(u => u.FirstName).FirstOrDefault(),
-                OwnerLastName = s.Users.OrderBy(u => u.Id).Select(u => u.LastName).FirstOrDefault(),
-                OwnerMobile = s.Users.OrderBy(u => u.Id).Select(u => u.Mobile).FirstOrDefault(),
+                // مالک فروشگاه کاربر ارائه‌دهنده‌ی آن است؛ فروشگاه بدون ارائه‌دهنده از اولین کاربرِ فروشگاه (رفتار قدیمی)
+                OwnerId = s.Provider != null ? s.Provider.UserId : s.Users.OrderBy(u => u.Id).Select(u => u.Id).FirstOrDefault(),
+                OwnerFirstName = s.Provider != null ? s.Provider.User.FirstName : s.Users.OrderBy(u => u.Id).Select(u => u.FirstName).FirstOrDefault(),
+                OwnerLastName = s.Provider != null ? s.Provider.User.LastName : s.Users.OrderBy(u => u.Id).Select(u => u.LastName).FirstOrDefault(),
+                OwnerMobile = s.Provider != null ? s.Provider.User.Mobile : s.Users.OrderBy(u => u.Id).Select(u => u.Mobile).FirstOrDefault(),
                 CityName = s.City.Name,
                 StateName = s.City.State.Name,
                 NeighborhoodName = null,
@@ -300,7 +300,7 @@ namespace Application.Services.AgencySrvs.AgencySrv
             });
         }
 
-        // پانسیون و مدرسه زیر یک Companion هستند؛ ارائه‌دهنده و مالک از همان Companion می‌آید.
+        // پانسیون (۲۰۲۶-۱۱-۰۳) و مدرسه مالکشان ارائه‌دهنده است؛ پانسیون/مدرسه‌ی قدیمی بدون ارائه‌دهنده از نمایندگی‌اش.
         public static IQueryable<AgencyRow> Pansions(IDataBaseContext context, AgencyInputDto input)
         {
             var model = context.Pansions.Where(p => !p.Deleted);
@@ -308,24 +308,26 @@ namespace Application.Services.AgencySrvs.AgencySrv
             if (!string.IsNullOrWhiteSpace(input.Q))
             {
                 var q = input.Q.Trim();
-                model = model.Where(p => p.Name.Contains(q) || p.Companion.Phone == q);
+                model = model.Where(p => p.Name.Contains(q) || (p.Companion != null && p.Companion.Phone == q) || (p.Provider != null && p.Provider.User.Mobile == q));
             }
             if (input.Available.HasValue)
                 model = model.Where(p => p.Active == input.Available.Value);
             if (input.Approved.HasValue)
                 model = model.Where(p => p.Approve == input.Approved.Value);
             if (input.ProviderId.HasValue)
-                model = model.Where(p => p.Companion.ProviderId == input.ProviderId.Value);
+                model = model.Where(p => p.ProviderId == input.ProviderId.Value || (p.ProviderId == null && p.Companion.ProviderId == input.ProviderId.Value));
             if (input.ProviderRoleId.HasValue)
-                model = model.Where(p => p.Companion.Provider.RoleAssignments.Any(a => !a.Deleted && a.ProviderRoleId == input.ProviderRoleId.Value));
+                model = model.Where(p => p.ProviderId != null
+                    ? p.Provider.RoleAssignments.Any(a => !a.Deleted && a.ProviderRoleId == input.ProviderRoleId.Value)
+                    : p.Companion.Provider.RoleAssignments.Any(a => !a.Deleted && a.ProviderRoleId == input.ProviderRoleId.Value));
 
             return model.Select(p => new AgencyRow
             {
                 Kind = (int)AgencyKindEnum.Pansion,
                 Id = p.Id,
                 Name = p.Name,
-                Phone = p.Companion.Phone,
-                ProviderId = p.Companion.ProviderId,
+                Phone = p.Provider != null ? p.Provider.User.Mobile : p.Companion.Phone,
+                ProviderId = p.ProviderId ?? p.Companion.ProviderId,
                 Active = p.Active,
                 Approved = p.Approve,
                 ActivationValue = p.ApprovalValue,
@@ -334,10 +336,10 @@ namespace Application.Services.AgencySrvs.AgencySrv
                 RateCount = p.RateCount,
                 GoldAccountDate = null,
                 SilverAccountDate = null,
-                OwnerId = p.Companion.OwnerId,
-                OwnerFirstName = p.Companion.Owner.FirstName,
-                OwnerLastName = p.Companion.Owner.LastName,
-                OwnerMobile = p.Companion.Owner.Mobile,
+                OwnerId = p.Provider != null ? p.Provider.UserId : p.Companion != null ? p.Companion.OwnerId : 0,
+                OwnerFirstName = p.Provider != null ? p.Provider.User.FirstName : p.Companion.Owner.FirstName,
+                OwnerLastName = p.Provider != null ? p.Provider.User.LastName : p.Companion.Owner.LastName,
+                OwnerMobile = p.Provider != null ? p.Provider.User.Mobile : p.Companion.Owner.Mobile,
                 CityName = p.City.Name,
                 StateName = p.City.State.Name,
                 NeighborhoodName = null,

@@ -30,9 +30,7 @@ namespace Api.Areas.Companion.Controllers
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Put(PansionReserveDecisionDto dto)
         {
-            if (!_currentUser.CurrentUser.CompanionId.HasValue)
-                return Forbid();
-            return Ok(await _approvalService.ApproveAsync(dto.Id, _currentUser.CurrentUser.CompanionId.Value, HttpContext.RequestAborted));
+            return Ok(await _approvalService.ApproveAsync(dto.Id, _currentUser.CurrentUser.UserId, HttpContext.RequestAborted));
         }
     }
 }

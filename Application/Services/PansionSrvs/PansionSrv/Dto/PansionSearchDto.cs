@@ -18,6 +18,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
             this.IsDaycare = dto.IsDaycare;
             this.Approve = dto.Approve;
             this.CompanionId = dto.CompanionId;
+            this.ProviderId = dto.ProviderId;
             this.NeighborhoodIds = dto.NeighborhoodIds;
             this.StateId = dto.StateId;
             this.CityId = dto.CityId;
@@ -27,6 +28,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
         }
         public bool? IsDaycare { get; set; }
         public long? CompanionId { get; set; }
+        public long? ProviderId { get; set; }
         public bool? Approve { get; set; }
         public List<long> NeighborhoodIds { get; set; }
         public long? StateId { get; set; }

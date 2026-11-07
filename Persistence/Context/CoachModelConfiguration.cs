@@ -22,6 +22,8 @@ namespace Persistence.Context
                 entity.Property(item => item.InstagramUrl).HasMaxLength(300);
                 entity.Property(item => item.WebsiteUrl).HasMaxLength(300);
                 entity.Property(item => item.CommissionPercent).HasPrecision(5, 2);
+                // پیش‌فرض دیتابیسی تا اسکریپت‌های SQL قدیمی که این ستون را نمی‌شناسند (انتقال Companion→Coach) هم کار کنند.
+                entity.Property(item => item.BoardingCapacity).HasDefaultValue(0);
                 entity.HasIndex(item => item.ReferralCode).IsUnique().HasFilter("[ReferralCode] IS NOT NULL");
                 // یک Companion قدیمی فقط یک‌بار منتقل می‌شود (اسکریپت انتقال روی همین ایندکس idempotent است).
                 entity.HasIndex(item => item.LegacyCompanionId).IsUnique().HasFilter("[LegacyCompanionId] IS NOT NULL");

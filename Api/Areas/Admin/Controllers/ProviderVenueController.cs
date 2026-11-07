@@ -72,6 +72,26 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
+        /// اتصال پانسیون به ارائه‌دهنده (نیازمند نقش تأییدشده‌ی Pansion)
+        /// </summary>
+        [HttpPut("pansion")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> AssignPansion(ProviderVenueAssignDto dto)
+        {
+            return Ok(await _service.AssignPansionAsync(dto));
+        }
+
+        /// <summary>
+        /// اتصال یک مربی (Coach) به ارائه‌دهنده (نیازمند نقش تأییدشده‌ی Coach؛ مالک = کاربر ارائه‌دهنده)
+        /// </summary>
+        [HttpPut("coach")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> AssignCoach(ProviderVenueAssignDto dto)
+        {
+            return Ok(await _service.AssignCoachAsync(dto));
+        }
+
+        /// <summary>
         /// اتصال یک کلینیک (Clinic) به ارائه‌دهنده
         /// </summary>
         [HttpPut("clinic")]

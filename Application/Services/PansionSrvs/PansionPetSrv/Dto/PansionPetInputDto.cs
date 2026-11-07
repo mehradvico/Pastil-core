@@ -12,5 +12,7 @@ namespace Application.Services.PansionSrvs.PansionPetSrv.Dto
     public class PansionPetInputDto : BaseInputDto, IPansionPetSearchFields
     {
         public long? CompanionId { get; set; }
+        // فقط پنل/اپ ارائه‌دهنده: پانسیون‌های «این کاربر»؛ سمت کنترلر از کاربر پر می‌شود
+        public long? OwnerUserId { get; set; }
     }
 }

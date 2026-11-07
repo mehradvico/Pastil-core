@@ -16,6 +16,8 @@ namespace Application.Services.PansionSrvs.PansionCommentSrv.Dto
         public long? UserId { get; set; }
         /// <summary>نظرهای پانسیون‌های یک نمایندگی (برای مالک)</summary>
         public long? CompanionId { get; set; }
+        // فقط پنل/اپ ارائه‌دهنده: پانسیون‌های «این کاربر»؛ سمت کنترلر از کاربر پر می‌شود
+        public long? OwnerUserId { get; set; }
         public bool? AllStatus { get; set; }
 
     }

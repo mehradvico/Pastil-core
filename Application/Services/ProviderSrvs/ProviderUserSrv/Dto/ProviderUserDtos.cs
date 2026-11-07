@@ -43,6 +43,24 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv.Dto
         public List<string> PermissionKeys { get; set; } = new();
         public int UserCount { get; set; }
         public DateTime CreateDate { get; set; }
+        /// <summary>نقش آماده‌ی ادمین: مالک فقط می‌تواند آن را به کارمند بدهد، ویرایش/حذفش نمی‌کند.</summary>
+        public bool IsTemplate { get; set; }
+        /// <summary>فقط نقش آماده: نمایندگی (Store/Clinic/...) و نام فارسی آن.</summary>
+        public string Scope { get; set; }
+        public string ScopeName { get; set; }
+        public int Priority { get; set; }
+    }
+
+    /// <summary>ورودی ادمین برای نقش آماده (قالب سراسری یک نمایندگی).</summary>
+    public class ProviderUserRoleTemplateInputDto
+    {
+        /// <summary>۰ = نقش جدید</summary>
+        public long Id { get; set; }
+        public string Scope { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public int Priority { get; set; }
+        public List<string> PermissionKeys { get; set; } = new();
     }
 
     public class ProviderUserInviteDto
@@ -94,6 +112,11 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv.Dto
         public string RoleName { get; set; }
         public List<string> Permissions { get; set; } = new();
         public List<string> Scopes { get; set; } = new();
+        /// <summary>
+        /// فروشگاهی که درخواست‌های Seller این کارمند (با هدر X-Provider-Id) روی آن اجرا می‌شوند؛ فقط اگر دسترسی فروشگاه دارد، وگرنه null.
+        /// معادل بی‌شناسه: GET api/Seller/Store/Current.
+        /// </summary>
+        public long? StoreId { get; set; }
     }
 
     /// <summary>نتیجه‌ی اعتبارسنجی «کار کردن به‌جای ارائه‌دهنده» برای یک درخواست پنل.</summary>

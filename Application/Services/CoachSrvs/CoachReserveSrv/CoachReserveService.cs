@@ -1,3 +1,4 @@
+using Application.Common.Helpers;
 using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
@@ -68,6 +69,27 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             if (modeError != null)
                 return new BaseResultDto<CoachReserveQuoteDto>(false, modeError, null);
 
+            if (IsStay(mode, set))
+            {
+                var (stayPrice, stayOnline) = CoachReserveRules.BoardingAmounts(set.Packages.Select(p => (p.Price, p.PrePaymentPrice, p.DailyPrice, p.StayDays)));
+                return new BaseResultDto<CoachReserveQuoteDto>(true, new CoachReserveQuoteDto
+                {
+                    CoachServicePackageId = set.Primary.Id,
+                    PackageIds = set.Packages.Select(p => p.Id).ToList(),
+                    Mode = mode,
+                    PackagePrice = stayPrice,
+                    Price = stayPrice,
+                    OnlineAmount = stayOnline,
+                    PayAtVenue = stayPrice - stayOnline,
+                    StayDays = set.StayDays,
+                    SessionCount = set.SessionCount,
+                    BasePrice = set.Packages.Sum(p => p.Price),
+                    DailyPrice = set.Packages.Sum(p => p.DailyPrice ?? 0),
+                    BoardingFee = set.Packages.Sum(p => CoachReserveRules.BoardingFee(p.DailyPrice, p.StayDays)),
+                    CoursePrePayment = stayOnline,
+                });
+            }
+
             var (price, online) = CoachReserveRules.Amounts(set.Packages.Select(p => (p.Price, p.PrePaymentPrice)));
             return new BaseResultDto<CoachReserveQuoteDto>(true, new CoachReserveQuoteDto
             {
@@ -107,8 +129,9 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             var now = DateTime.Now;
             var holdFrom = now - CoachReserveRules.UnpaidHold;
             var dayEnd = day.AddDays(1);
+            // پت‌های مقیم پانسیون آموزشی (DailyPrice پر) ظرفیت جداگانه دارند و نوبت‌های ساعتی را اشغال نمی‌کنند.
             var existing = await _context.CoachReserves.AsNoTracking()
-                .Where(r => r.CoachId == coachId && !r.IsCancel && r.DoDate < dayEnd && r.EndDate > day
+                .Where(r => r.CoachId == coachId && !r.IsCancel && r.DailyPrice == null && r.DoDate < dayEnd && r.EndDate > day
                             && (r.IsReserved || r.CreateDate > holdFrom))
                 .Select(r => new { r.DoDate, r.EndDate, r.AssigneeUserId })
                 .ToListAsync();
@@ -141,6 +164,67 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             return new BaseResultDto<CoachAvailabilityDto>(true, result);
         }
 
+        public async Task<BaseResultDto<CoachBoardingAvailabilityDto>> GetBoardingAvailabilityAsync(long coachId, long packageId, DateTime from, int days)
+        {
+            const int boardingMode = (int)CoachServiceModeEnum.InPerson;
+            var (set, error) = await BuildSetAsync(new[] { packageId }, coachId, boardingMode);
+            if (error != null)
+                return new BaseResultDto<CoachBoardingAvailabilityDto>(false, error, null);
+            var package = set.Primary;
+            var offered = ValidateOffered(package, boardingMode);
+            if (offered != null)
+                return new BaseResultDto<CoachBoardingAvailabilityDto>(false, offered, null);
+            if (!IsStay(boardingMode, set))
+                return new BaseResultDto<CoachBoardingAvailabilityDto>(false, Resource.Notification.CoachReservePackageNotOffered, null);
+
+            var stayDays = set.StayDays ?? 0;
+            var start = from.Date < DateTime.Today ? DateTime.Today : from.Date;
+            var count = Math.Clamp(days, 1, 90);
+            var end = start.AddDays(count);
+            var capacity = package.BoardingCapacity;
+            var result = new CoachBoardingAvailabilityDto { Capacity = capacity, StayDays = stayDays };
+
+            var rows = await _context.CoachTimes.AsNoTracking()
+                .Where(t => t.CoachId == coachId && !t.Deleted && t.Active)
+                .Select(t => new { Day = t.WeekDay.Number, t.StartTime, t.EndTime }).ToListAsync();
+            var holdFrom = DateTime.Now - CoachReserveRules.UnpaidHold;
+            var rangeEnd = end.AddDays(stayDays);
+            var stays = await _context.CoachReserves.AsNoTracking()
+                .Where(r => r.CoachId == coachId && !r.IsCancel && r.DailyPrice != null && r.DoDate < rangeEnd && r.EndDate > start
+                            && (r.IsReserved || r.CreateDate > holdFrom))
+                .Select(r => new { r.DoDate, r.EndDate })
+                .ToListAsync();
+            var ranges = stays.Select(r => (r.DoDate, r.EndDate)).ToList();
+
+            for (var day = start; day < end; day = day.AddDays(1))
+            {
+                var weekDay = CoachReserveRules.WeekDayNumber(day);
+                var windows = rows.Where(r => r.Day == weekDay)
+                    .OrderBy(r => r.StartTime, StringComparer.Ordinal)
+                    .Select(r => new CoachWorkingWindowDto { Start = r.StartTime, End = r.EndTime })
+                    .ToList();
+                int? available = capacity > 0 ? Math.Max(0, capacity - CoachReserveRules.MaxConcurrency(ranges, day, day.AddDays(1))) : null;
+                // شروع از این روز: مربی کار کند و در کل روزهای اقامت جا باشد.
+                var fits = capacity <= 0 || CoachReserveRules.MaxConcurrency(ranges, day, day.AddDays(stayDays)) < capacity;
+                result.Days.Add(new CoachBoardingDayDto
+                {
+                    Date = day,
+                    Available = available,
+                    CanStart = windows.Count > 0 && fits,
+                    EndDate = day.AddDays(stayDays),
+                    Windows = windows,
+                });
+            }
+            return new BaseResultDto<CoachBoardingAvailabilityDto>(true, result);
+        }
+
+        /// <summary>
+        /// رزرو اقامت پانسیون آموزشی؟ فقط Mode=۳۸ وقتی بسته‌ای «تعداد روز پانسیون» دارد (مربی تعیین کرده).
+        /// Mode=۳۸ بدون روز = رفتار قدیمی (یک نوبت ساعتی).
+        /// </summary>
+        private static bool IsStay(int mode, PackageSet set) =>
+            CoachReserveRules.IsBoardingMode(mode) && set.StayDays is > 0;
+
         // ------------------------------------------------------------------ ساخت رزرو
 
         public async Task<BaseResultDto<CoachReserveVDto>> CreateAsync(CoachReserveInputDto dto, long bookerId)
@@ -171,27 +255,43 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 if (accepted.Count > 0 && !accepted.Contains(pet.PetId))
                     return Fail(Resource.Notification.CoachReservePetTypeNotAccepted);
                 // هر بسته‌ی انتخابی باید با سایز حیوان بخواند.
-                if (set.Packages.Any(p => !string.IsNullOrWhiteSpace(p.PetSize) &&
-                                          !string.Equals(p.PetSize, pet.Size?.Trim(), StringComparison.OrdinalIgnoreCase)))
+                if (set.Packages.Any(p => !VenuePetSizes.Matches(p.PetSize, pet.Size)))
                     return Fail(Resource.Notification.CoachReservePetSizeMismatch);
 
                 var modeError = await ValidateModeAsync(dto, package, bookerId);
                 if (modeError != null)
                     return Fail(modeError);
 
-                var doDate = new DateTime(dto.DoDate.Year, dto.DoDate.Month, dto.DoDate.Day, dto.DoDate.Hour, dto.DoDate.Minute, 0);
+                var doDate = TrimToMinute(dto.DoDate);
                 if (doDate < now + CoachReserveRules.MinLead)
                     return Fail(Resource.Notification.CoachReserveTimeInPast);
-                var duration = set.DurationMinutes;
-                var endDate = doDate.AddMinutes(duration);
-                if (endDate.Date != doDate.Date)
-                    return Fail(Resource.Notification.CoachReserveOutsideWorkingHours);
+
+                var boarding = IsStay(dto.Mode, set);
+                int duration;
+                DateTime endDate;
+                int? stayDays = set.StayDays;
+                double? dailyPrice = null;
+                double price, online;
+                if (boarding)
+                {
+                    // پانسیون آموزشی: کاربر فقط زمان تحویل دادن را انتخاب می‌کند؛ پایان = همان زمان + روزِ بسته.
+                    endDate = doDate.AddDays(stayDays.Value);
+                    duration = (int)(endDate - doDate).TotalMinutes;
+                    dailyPrice = set.Packages.Sum(p => p.DailyPrice ?? 0);
+                    (price, online) = CoachReserveRules.BoardingAmounts(set.Packages.Select(p => (p.Price, p.PrePaymentPrice, p.DailyPrice, p.StayDays)));
+                }
+                else
+                {
+                    duration = set.DurationMinutes;
+                    endDate = doDate.AddMinutes(duration);
+                    if (endDate.Date != doDate.Date)
+                        return Fail(Resource.Notification.CoachReserveOutsideWorkingHours);
+                    (price, online) = CoachReserveRules.Amounts(set.Packages.Select(p => (p.Price, p.PrePaymentPrice)));
+                }
 
                 var assigneeError = await ValidateAssigneeAsync(dto.AssigneeUserId, package);
                 if (assigneeError != null)
                     return Fail(assigneeError);
-
-                var (price, online) = CoachReserveRules.Amounts(set.Packages.Select(p => (p.Price, p.PrePaymentPrice)));
 
                 await using var transaction = await _context.BeginTransactionAsync(IsolationLevel.Serializable);
 
@@ -210,7 +310,9 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 if (staleHolds.Count > 0)
                     await _context.SaveChangesAsync();
 
-                var slot = await CheckSlotAsync(dto.CoachId, doDate, endDate, dto.AssigneeUserId, dto.UserPetId, includeHolds: true, excludeReserveId: null, package.MaxConcurrentPets);
+                var slot = boarding
+                    ? await CheckBoardingAsync(dto.CoachId, doDate, endDate, dto.UserPetId, includeHolds: true, excludeReserveId: null, package.BoardingCapacity)
+                    : await CheckSlotAsync(dto.CoachId, doDate, endDate, dto.AssigneeUserId, dto.UserPetId, includeHolds: true, excludeReserveId: null, package.MaxConcurrentPets);
                 if (slot.Error != null)
                 {
                     await transaction.RollbackAsync();
@@ -228,13 +330,14 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                     CoachTimeId = slot.CoachTimeId,
                     DoDate = doDate,
                     DurationMinutes = duration,
-                    StayDays = set.StayDays,
+                    StayDays = stayDays,
+                    DailyPrice = dailyPrice,
                     SessionCount = set.SessionCount,
                     EndDate = endDate,
                     Mode = dto.Mode,
                     AddressId = dto.Mode == (int)CoachServiceModeEnum.InPlace ? dto.AddressId : null,
                     BookerNote = string.IsNullOrWhiteSpace(dto.BookerNote) ? null : dto.BookerNote.Trim(),
-                    PackagePrice = set.Packages.Sum(p => p.Price),
+                    PackagePrice = boarding ? price : set.Packages.Sum(p => p.Price),
                     Price = price,
                     OnlineAmount = online,
                     PaymentPrice = online,
@@ -245,9 +348,11 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                     {
                         CoachServiceId = p.CoachServiceId,
                         CoachServicePackageId = p.Id,
-                        PackagePrice = p.Price,
-                        OnlineAmount = CoachReserveRules.Deposit(p.Price, p.PrePaymentPrice),
-                        DurationMinutes = CoachReserveRules.EffectiveDuration(p.DurationMinutes),
+                        PackagePrice = boarding ? CoachReserveRules.BoardingPackageAmounts(p.Price, p.PrePaymentPrice, p.DailyPrice, p.StayDays).Price : p.Price,
+                        OnlineAmount = boarding
+                            ? CoachReserveRules.BoardingPackageAmounts(p.Price, p.PrePaymentPrice, p.DailyPrice, p.StayDays).OnlineAmount
+                            : CoachReserveRules.Deposit(p.Price, p.PrePaymentPrice),
+                        DurationMinutes = boarding ? duration : CoachReserveRules.EffectiveDuration(p.DurationMinutes),
                         PackageName = p.Name,
                         CreateDate = now,
                     }).ToList(),
@@ -305,9 +410,9 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                     await transaction.RollbackAsync();
                     return Fail(Resource.Notification.CoachReserveTimeInPast);
                 }
+                // پانسیون آموزشی: کل اقامت (همان تعداد روز) جابه‌جا می‌شود؛ DurationMinutes کل اقامت است.
                 var end = start.AddMinutes(reserve.DurationMinutes);
-                var slot = await CheckSlotAsync(reserve.CoachId, start, end, reserve.AssigneeUserId, reserve.UserPetId,
-                    includeHolds: false, excludeReserveId: reserve.Id, reserve.Coach.MaxConcurrentPets);
+                var slot = await CheckReserveSlotAsync(reserve, start, end, includeHolds: false);
                 if (slot.Error != null)
                 {
                     await transaction.RollbackAsync();
@@ -468,10 +573,11 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                     await transaction.RollbackAsync();
                     return Fail(error);
                 }
-                if (assigneeUserId.HasValue)
+                // مسئولِ پانسیون آموزشی کل روزها مشغول حساب نمی‌شود (هم‌زمان جلسه هم می‌گیرد)؛ فقط جلسه‌ها با هم تداخل دارند.
+                if (assigneeUserId.HasValue && !reserve.DailyPrice.HasValue)
                 {
                     var busy = await _context.CoachReserves.AsNoTracking().AnyAsync(r =>
-                        r.Id != reserve.Id && r.AssigneeUserId == assigneeUserId && r.IsReserved && !r.IsCancel &&
+                        r.Id != reserve.Id && r.AssigneeUserId == assigneeUserId && r.IsReserved && !r.IsCancel && r.DailyPrice == null &&
                         r.DoDate < reserve.EndDate && r.EndDate > reserve.DoDate);
                     if (busy)
                     {
@@ -605,8 +711,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                     return new BaseResultDto(false, Resource.Notification.CoachReserveCoachUnavailable);
 
                 // ظرفیت دوباره بررسی می‌شود (فقط رزروهای پرداخت‌شده؛ نگه‌داشت‌های موقت دیگران جلوی پرداخت موفق را نمی‌گیرند).
-                var slot = await CheckSlotAsync(reserve.CoachId, reserve.DoDate, reserve.EndDate, reserve.AssigneeUserId, reserve.UserPetId,
-                    includeHolds: false, excludeReserveId: reserve.Id, reserve.Coach.MaxConcurrentPets);
+                var slot = await CheckReserveSlotAsync(reserve, reserve.DoDate, reserve.EndDate, includeHolds: false);
                 if (slot.Error != null)
                     return new BaseResultDto(false, slot.Error);
 
@@ -801,7 +906,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
         private sealed record PackageInfo(
             long Id, long CoachServiceId, long CoachId, double Price, double PrePaymentPrice, string PetSize,
             int DurationMinutes, bool ServiceAtHome, bool ServiceInPerson, bool ServiceOnline,
-            int MaxConcurrentPets, long AssistanceId, long CityId, bool OfferedInMode, string Name, int? StayDays, int? SessionCount);
+            int MaxConcurrentPets, long AssistanceId, long CityId, bool OfferedInMode, string Name, int? StayDays, int? SessionCount,
+            int BoardingCapacity, double? DailyPrice);
 
         private async Task<PackageInfo> LoadBookablePackageAsync(long packageId, int? mode)
         {
@@ -814,8 +920,9 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                     p.Id, p.Name, p.CoachServiceId, CoachId = p.CoachService.CoachId, p.Price, p.PrePaymentPrice, p.PetSize,
                     p.CoachService.DurationMinutes, p.CoachService.Coach.ServiceAtHome, p.CoachService.Coach.ServiceInPerson,
                     p.CoachService.Coach.ServiceOnline, p.CoachService.Coach.MaxConcurrentPets,
+                    p.CoachService.Coach.BoardingCapacity,
                     p.CoachService.AssistanceId, p.CoachService.Coach.CityId,
-                    Types = p.Types.Where(x => !x.Deleted).Select(x => new { x.Mode, x.Price, x.PrePaymentPrice, x.StayDays, x.SessionCount }).ToList(),
+                    Types = p.Types.Where(x => !x.Deleted).Select(x => new { x.Mode, x.Price, x.PrePaymentPrice, x.StayDays, x.SessionCount, x.DailyPrice }).ToList(),
                 })
                 .FirstOrDefaultAsync();
             if (row == null)
@@ -826,11 +933,13 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             var offered = true;
             int? stayDays = null;
             int? sessionCount = null;
+            double? dailyPrice = null;
             if (mode.HasValue)
             {
                 var modeRow = row.Types.FirstOrDefault(x => x.Mode == mode.Value);
                 stayDays = modeRow?.StayDays;
                 sessionCount = modeRow?.SessionCount;
+                dailyPrice = CoachReserveRules.IsBoardingMode(mode.Value) ? modeRow?.DailyPrice : null;
                 var types = row.Types.Select(x => (x.Mode, x.Price, x.PrePaymentPrice)).ToList();
                 var resolved = CoachReserveRules.ResolveModePrice(row.Price, row.PrePaymentPrice, types, mode.Value);
                 offered = resolved.HasValue;
@@ -845,10 +954,10 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             return new PackageInfo(
                 row.Id, row.CoachServiceId, row.CoachId, price, pre, row.PetSize, row.DurationMinutes,
                 row.ServiceAtHome, row.ServiceInPerson, row.ServiceOnline, row.MaxConcurrentPets, row.AssistanceId, row.CityId, offered, row.Name,
-                stayDays, sessionCount);
+                stayDays, sessionCount, row.BoardingCapacity, dailyPrice);
         }
 
-        /// <summary>نحوه‌ی ارائه باید یکی از سه حالت باشد و مربی آن را ارائه دهد. null = معتبر.</summary>
+        /// <summary>نحوه‌ی ارائه باید یکی از حالت‌های تعریف‌شده باشد و مربی آن را ارائه دهد. null = معتبر.</summary>
         private static string ValidateOffered(PackageInfo package, int mode)
         {
             if (!Enum.IsDefined(typeof(CoachServiceModeEnum), mode))
@@ -927,8 +1036,9 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
 
             var now = DateTime.Now;
             var holdFrom = now - CoachReserveRules.UnpaidHold;
+            // پت‌های مقیم پانسیون آموزشی (DailyPrice پر) ظرفیت جداگانه دارند (CheckBoardingAsync).
             var overlapping = await _context.CoachReserves.AsNoTracking()
-                .Where(r => r.CoachId == coachId && !r.IsCancel && r.DoDate < end && r.EndDate > start
+                .Where(r => r.CoachId == coachId && !r.IsCancel && r.DailyPrice == null && r.DoDate < end && r.EndDate > start
                             && (excludeReserveId == null || r.Id != excludeReserveId)
                             && (r.IsReserved || (includeHolds && r.CreateDate > holdFrom)))
                 .Select(r => new { r.DoDate, r.EndDate, r.AssigneeUserId })
@@ -941,15 +1051,61 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             if (assigneeUserId.HasValue && overlapping.Any(r => r.AssigneeUserId == assigneeUserId))
                 return new SlotCheck(Resource.Notification.CoachReserveSlotFull, null);
 
-            // یک پت هم‌زمان در دو جا نوبت نمی‌گیرد (در هر مربیی؛ فقط رزروهای پرداخت‌شده).
-            var petBusy = await _context.CoachReserves.AsNoTracking().AnyAsync(r =>
-                r.UserPetId == userPetId && r.IsReserved && !r.IsCancel && r.DoDate < end && r.EndDate > start &&
-                (excludeReserveId == null || r.Id != excludeReserveId));
-            if (petBusy)
+            if (await PetBusyAsync(userPetId, start, end, excludeReserveId))
                 return new SlotCheck(Resource.Notification.CoachReservePetBusy, null);
 
             return new SlotCheck(null, row.Id);
         }
+
+        /// <summary>یک پت هم‌زمان در دو جا نوبت نمی‌گیرد (در هر مربیی و هر حالتی، از جمله اقامت پانسیون آموزشی؛ فقط رزروهای پرداخت‌شده).</summary>
+        private Task<bool> PetBusyAsync(long userPetId, DateTime start, DateTime end, long? excludeReserveId) =>
+            _context.CoachReserves.AsNoTracking().AnyAsync(r =>
+                r.UserPetId == userPetId && r.IsReserved && !r.IsCancel && r.DoDate < end && r.EndDate > start &&
+                (excludeReserveId == null || r.Id != excludeReserveId));
+
+        /// <summary>بررسی ظرفیت یک رزرو موجود (پرداخت/تغییر زمان) بر اساس حالتش. reserve.Coach باید بارگذاری شده باشد.</summary>
+        private Task<SlotCheck> CheckReserveSlotAsync(CoachReserve reserve, DateTime start, DateTime end, bool includeHolds) =>
+            reserve.DailyPrice.HasValue
+                ? CheckBoardingAsync(reserve.CoachId, start, end, reserve.UserPetId, includeHolds, reserve.Id, reserve.Coach.BoardingCapacity)
+                : CheckSlotAsync(reserve.CoachId, start, end, reserve.AssigneeUserId, reserve.UserPetId, includeHolds, reserve.Id, reserve.Coach.MaxConcurrentPets);
+
+        /// <summary>
+        /// پانسیون آموزشی: ساعت تحویل دادن داخل ساعت کاری همان روز، تعداد پت‌های مقیم هم‌زمان کمتر از ظرفیت پانسیون مربی (۰ = بدون سقف)،
+        /// و پت در این بازه رزرو دیگری نداشته باشد. ظرفیت ساعتیِ جلسه‌ها درگیر نمی‌شود.
+        /// </summary>
+        private async Task<SlotCheck> CheckBoardingAsync(
+            long coachId, DateTime start, DateTime end, long userPetId, bool includeHolds, long? excludeReserveId, int boardingCapacity)
+        {
+            var rows = await _context.CoachTimes.AsNoTracking()
+                .Where(t => t.CoachId == coachId && !t.Deleted && t.Active)
+                .Select(t => new { t.Id, Day = t.WeekDay.Number, t.StartTime, t.EndTime }).ToListAsync();
+            var dropDay = CoachReserveRules.WeekDayNumber(start);
+            var dropRow = rows.FirstOrDefault(r => r.Day == dropDay &&
+                CoachReserveRules.WithinAnyWindow(start.TimeOfDay, new[] { (r.StartTime, r.EndTime) }));
+            if (dropRow == null)
+                return new SlotCheck(Resource.Notification.CoachReserveOutsideWorkingHours, null);
+
+            if (boardingCapacity > 0)
+            {
+                var holdFrom = DateTime.Now - CoachReserveRules.UnpaidHold;
+                var stays = await _context.CoachReserves.AsNoTracking()
+                    .Where(r => r.CoachId == coachId && !r.IsCancel && r.DailyPrice != null && r.DoDate < end && r.EndDate > start
+                                && (excludeReserveId == null || r.Id != excludeReserveId)
+                                && (r.IsReserved || (includeHolds && r.CreateDate > holdFrom)))
+                    .Select(r => new { r.DoDate, r.EndDate })
+                    .ToListAsync();
+                if (CoachReserveRules.MaxConcurrency(stays.Select(r => (r.DoDate, r.EndDate)), start, end) >= boardingCapacity)
+                    return new SlotCheck(Resource.Notification.CoachReserveBoardingFull, null);
+            }
+
+            if (await PetBusyAsync(userPetId, start, end, excludeReserveId))
+                return new SlotCheck(Resource.Notification.CoachReservePetBusy, null);
+
+            return new SlotCheck(null, dropRow.Id);
+        }
+
+        private static DateTime TrimToMinute(DateTime value) =>
+            new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, 0);
 
         private IQueryable<CoachReserveVDto> Project(IQueryable<CoachReserve> query) =>
             query.Select(r => new CoachReserveVDto
@@ -975,6 +1131,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 DoDate = r.DoDate,
                 EndDate = r.EndDate,
                 DurationMinutes = r.DurationMinutes,
+                DailyPrice = r.DailyPrice,
                 Mode = r.Mode,
                 AddressId = r.AddressId,
                 AddressValue = r.Address == null ? null : r.Address.AddressValue,
@@ -1036,7 +1193,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
 
         private static void Finish(CoachReserveVDto row, DateTime now) =>
             row.FreeCancelAvailable = row.IsReserved && !row.IsCancel && row.Status != (int)CoachReserveStatusEnum.Complete
-                                      && CoachReserveRules.IsFreeCancel(now, row.DoDate);
+                                      && CoachReserveRules.IsFreeCancel(now, row.DoDate, row.DailyPrice.HasValue);
 
         private static BaseResultDto<CoachReserveVDto> Fail(string message) => new BaseResultDto<CoachReserveVDto>(false, message, null);
 

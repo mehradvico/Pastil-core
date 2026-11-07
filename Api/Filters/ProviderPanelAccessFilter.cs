@@ -118,11 +118,7 @@ public sealed class ProviderPanelAccessFilter : IAsyncAuthorizationFilter
         // فروشگاه این درخواست: فروشگاهِ همین ارائه‌دهنده (نه هر فروشگاهی که مالک در Store.Users دارد)
         if (string.Equals(area, "Seller", StringComparison.OrdinalIgnoreCase))
         {
-            var db = services.GetService(typeof(IDataBaseContext)) as IDataBaseContext;
-            var storeIds = db == null ? new List<long>() : await db.Stores.AsNoTracking()
-                .Where(s => s.ProviderId == membership.ProviderId && !s.Deleted)
-                .OrderBy(s => s.Id).Select(s => s.Id).ToListAsync();
-            owner.StoreId = storeIds.Contains(owner.StoreId) ? owner.StoreId : storeIds.FirstOrDefault();
+            owner.StoreId = await staffService.ResolveStoreIdAsync(membership.ProviderId, membership.OwnerUserId) ?? 0;
         }
 
         // نقش سیستمیِ درخواست همیشه نقش خودِ کارمند است، نه مالک: اگر مالک ادمین باشد، کارمند نباید از راه جانشینی میان‌برهای ادمین را بگیرد

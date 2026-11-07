@@ -257,6 +257,7 @@ namespace Application.Services.CoachSrvs.CoachSrv
                 item.ServiceAtHome = dto.ServiceAtHome;
                 item.ServiceInPerson = dto.ServiceInPerson;
                 item.ServiceOnline = dto.ServiceOnline;
+                item.BoardingCapacity = dto.BoardingCapacity;
                 item.HasParking = dto.HasParking;
                 item.HasWaitingRoom = dto.HasWaitingRoom;
                 item.HasCamera = dto.HasCamera;
@@ -513,6 +514,8 @@ namespace Application.Services.CoachSrvs.CoachSrv
                     errors.Add(Tuple.Create(Resource.Notification.CoachPictureInvalid, field));
             }
 
+            if (dto.BoardingCapacity < 0 || dto.BoardingCapacity > 1000)
+                errors.Add(Tuple.Create(Resource.Notification.CoachValueOutOfRange, nameof(dto.BoardingCapacity)));
             if (dto.MaxConcurrentPets < 0 || dto.MaxConcurrentPets > 1000 ||
                 (dto.EstablishedYear.HasValue && (dto.EstablishedYear < 1300 || dto.EstablishedYear > 2200)) ||
                 (dto.InstagramUrl?.Length ?? 0) > 300 || (dto.WebsiteUrl?.Length ?? 0) > 300 || (dto.LicenseNumber?.Length ?? 0) > 100)

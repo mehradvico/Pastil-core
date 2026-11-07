@@ -14,5 +14,6 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv.Iface
         Task<BaseResultDto> AssignClinicAsync(ProviderVenueAssignDto dto);
         Task<BaseResultDto> AssignCoachAsync(ProviderVenueAssignDto dto);
         Task<BaseResultDto> AssignSchoolAsync(ProviderVenueAssignDto dto);
+        Task<BaseResultDto> AssignPansionAsync(ProviderVenueAssignDto dto);
     }
 }

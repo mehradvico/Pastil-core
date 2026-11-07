@@ -45,6 +45,48 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
 
         /// <summary>لغو توسط کاربر تا این مدت قبل از نوبت رایگان است (برگشت کل مبلغ به کیف پول).</summary>
         public static readonly TimeSpan FreeCancelWindow = TimeSpan.FromHours(12);
+        /// <summary>پانسیون آموزشی (اقامت چندروزه، مبلغ بالا): لغو رایگان تا ۴۸ ساعت قبل از تحویل پت.</summary>
+        public static readonly TimeSpan BoardingFreeCancelWindow = TimeSpan.FromHours(48);
+
+        /// <summary>سقف تعداد روز یک رزرو پانسیون آموزشی.</summary>
+        public const int MaxBoardingDays = 365;
+
+        /// <summary>پانسیون آموزشی مربی همان Mode=۳۸ (در مرکز) است.</summary>
+        public static bool IsBoardingMode(int mode) => mode == (int)Entities.Entities.CoachField.CoachServiceModeEnum.InPerson;
+
+        public static bool IsValidBoardingDays(int days) => days >= 1 && days <= MaxBoardingDays;
+
+        /// <summary>هزینه‌ی پانسیون یک بسته = پانسیون روزانه × روزِ بسته (گرد به تومان).</summary>
+        public static double BoardingFee(double? dailyPrice, int? stayDays) =>
+            Math.Round(Math.Max(0, dailyPrice ?? 0) * Math.Max(0, stayDays ?? 0), 0, MidpointRounding.AwayFromZero);
+
+        /// <summary>
+        /// مبلغ یک بسته‌ی پانسیون آموزشی: کل = هزینه‌ی دوره + پانسیون (روزانه × روز)؛ آنلاین فقط پیش‌پرداختی است که مربی تعیین کرده
+        /// (مثل همیشه: پیش‌پرداخت ۰ یا بیشتر از کل = کل مبلغ آنلاین)؛ باقی‌مانده‌ی دوره + کل پانسیون در مرکز.
+        /// </summary>
+        public static (double Price, double OnlineAmount) BoardingPackageAmounts(double coursePrice, double prePayment, double? dailyPrice, int? stayDays)
+        {
+            var total = coursePrice + BoardingFee(dailyPrice, stayDays);
+            return (total, Deposit(total, prePayment));
+        }
+
+        /// <summary>چند بسته‌ی پانسیون: جمع (کل، آنلاین).</summary>
+        public static (double Price, double OnlineAmount) BoardingAmounts(
+            System.Collections.Generic.IEnumerable<(double Price, double PrePayment, double? DailyPrice, int? StayDays)> packages)
+        {
+            double price = 0, online = 0;
+            foreach (var (coursePrice, prePayment, daily, days) in packages)
+            {
+                var (p, o) = BoardingPackageAmounts(coursePrice, prePayment, daily, days);
+                price += p;
+                online += o;
+            }
+            return (price, online);
+        }
+
+        /// <summary>زمان (لحظه‌ای) داخل یکی از بازه‌های ساعت کاری آن روز هست؟ (برای تحویل دادن پت در پانسیون).</summary>
+        public static bool WithinAnyWindow(TimeSpan time, System.Collections.Generic.IEnumerable<(string Start, string End)> rows) =>
+            rows.Any(r => TryParseTime(r.Start, out var s) && TryParseTime(r.End, out var e) && time >= s && time <= e);
 
         /// <summary>شماره‌ی روز هفته مثل WeekDay.Number: شنبه ۱ ... جمعه ۷.</summary>
         public static int WeekDayNumber(DateTime date) => date.DayOfWeek switch
@@ -200,6 +242,10 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             decision == (int)CoachReserveOwnerDecisionEnum.Approved;
 
         public static bool IsFreeCancel(DateTime now, DateTime doDate) => doDate - now >= FreeCancelWindow;
+
+        /// <summary>stay = رزرو اقامت پانسیون آموزشی (DailyPrice پر)؛ لغو رایگان ۴۸ ساعت قبل از تحویل پت.</summary>
+        public static bool IsFreeCancel(DateTime now, DateTime doDate, bool stay) =>
+            doDate - now >= (stay ? BoardingFreeCancelWindow : FreeCancelWindow);
 
         public static string RefundLedgerName(long reserveId) => $"CoachReserveRefund:{reserveId}";
     }

@@ -13,6 +13,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Iface
         Task<BaseResultDto<CoachReserveQuoteDto>> QuoteAsync(long packageId, int mode);
         /// <summary>قیمت چند بسته‌ی یک رزرو (اولین = بسته‌ی اصلی).</summary>
         Task<BaseResultDto<CoachReserveQuoteDto>> QuoteAsync(IReadOnlyList<long> packageIds, int mode);
+        /// <summary>پانسیون آموزشی: برای هر روز از from تا from+days (حداکثر ۹۰) آیا می‌شود پانسیون را شروع کرد، جای خالی و ساعت کاری.</summary>
+        Task<BaseResultDto<CoachBoardingAvailabilityDto>> GetBoardingAvailabilityAsync(long coachId, long packageId, DateTime from, int days);
 
         /// <summary>زمان‌های آزاد یک روز برای بسته‌ی انتخابی (ظرفیت، هم‌پوشانی و گرومر انتخابی در نظر گرفته می‌شود).</summary>
         Task<BaseResultDto<CoachAvailabilityDto>> GetAvailabilityAsync(long coachId, DateTime date, long packageId, long? assigneeUserId, IReadOnlyList<long> extraPackageIds = null);

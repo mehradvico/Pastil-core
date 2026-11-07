@@ -115,3 +115,19 @@ endpointهای شخصی (`ConsultationOnline`، `ClinicConsultationOnline`، `Co
 - محدوده‌ی دسترسی **نوع نمایندگی** است، نه یک مرکز خاص: «مسئول کلینیک» به همه‌ی کلینیک‌های همان ارائه‌دهنده دسترسی دارد. محدود کردن به یک کلینیک مشخص نیازمند فیلتر شناسه‌ی مرکز در تک‌تک سرویس‌هاست (فاز بعد).
 - دعوت کارمند فعلاً پوش ندارد؛ کاربر دعوت را در `ProviderUserInvite` می‌بیند.
 - استثنای چند نشستیِ مالک (`Security:CompanionOwnerMaxSessions`) برای این بود که پرسنل با حساب مالک کار می‌کردند؛ بعد از راه افتادن کارمندان پنل در اپ می‌شود آن را خاموش کرد.
+
+## نقش‌های آماده‌ی ادمین زیر هر نمایندگی (۲۰۲۶-۱۱-۰۷)
+
+- ادمین اصلی برای هر نمایندگی (Store/Clinic/Groomer/Coach/Pansion/School) نقش آماده تعریف می‌کند؛ ردیف `ProviderUserRoles` با `ProviderId = NULL` و `Scope` = همان نمایندگی (+ `Priority` برای ترتیب). check constraint `CK_ProviderUserRoles_TemplateScope`: نقش آماده Scope دارد، نقش مالک ندارد. نام نقش آماده در هر نمایندگی یکتاست (`IX_ProviderUserRoles_Template_Scope_Name`).
+- **نمایش و اعتبار فقط با نمایندگی فعال:** مالک در `GET api/Companion/ProviderUserRole` نقش‌های آماده‌ی همان نمایندگی‌هایی را می‌بیند که الان دارد (همان قاعده‌ی `ScopesOfProviderAsync`: نقش تأییدشده‌ی ادمین یا مرکز ثبت‌شده). نقش کلینیک فعال نشده = «مسئول کلینیک» دیده نمی‌شود و قابل انتساب نیست؛ به‌محض فعال شدن نمایش داده می‌شود. اگر نمایندگی بعداً برداشته شود، کارمندِ آن نقش آماده در همان درخواست بعدی دسترسی‌اش را از دست می‌دهد (`ResolveActingAsync`/`ListMembershipsAsync`).
+- نقش آماده فقط کلیدهای همان Scope را می‌دهد (حتی اگر به‌اشتباه کلید دیگری در دیتابیس باشد).
+- مالک نقش آماده را فقط به کارمند می‌دهد (`IsTemplate = true` در خروجی)؛ ویرایش/حذف آن فقط از ادمین. پت‌رسان نقش ندارد.
+- API ادمین: `api/Admin/ProviderUserRoleTemplate` — `GET ?scope=`، `GET Catalog`، `POST`، `PUT` (نمایندگی عوض نمی‌شود)، `DELETE ?id=` (نقش در حال استفاده حذف نمی‌شود). بعد از دیپلوی Permission Sync لازم است.
+- SQL: `backend/scripts/ProviderRoleTemplates.sql` (اسکیما + ۳۰ نقش آماده؛ idempotent). migration: `ProviderRoleTemplates`. سرویس: `ProviderUserSrv/ProviderUserRoleTemplateService.cs`.
+
+## شناسه‌ی فروشگاه برای کارمند (۲۰۲۶-۱۱-۰۷)
+
+- `GET api/EndUser/ProviderMembership` حالا `StoreId` هم دارد: فقط برای کارمندی که دسترسی فروشگاه (`Store.*`) دارد پر می‌شود، وگرنه `null`.
+- `GET api/Seller/Store/Current` (بدون شناسه): برای مالک فروشگاه خودش، برای کارمند (با هدر `X-Provider-Id`) فروشگاه همان ارائه‌دهنده. دسترسی لازم `Store.Profile.View`.
+- قاعده‌ی انتخاب فروشگاه یکی است (`ProviderUserService.ResolveStoreIdAsync`، هم در `ProviderPanelAccessFilter` هم در membership): از فروشگاه‌های همین ارائه‌دهنده، آنی که مالک عضوش است (کمترین شناسه)، وگرنه اولین فروشگاه ارائه‌دهنده.
+- اپ: صفحه‌ی خانه‌ی فروشگاه برای کارمند را با `Store/Current` (یا `Store/{membership.StoreId}`) باز کند؛ بقیه‌ی endpointهای Seller شناسه‌ی فروشگاه نمی‌خواهند و فقط هدر لازم دارند.

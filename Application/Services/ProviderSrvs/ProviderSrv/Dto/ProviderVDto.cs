@@ -14,8 +14,15 @@ namespace Application.Services.ProviderSrvs.ProviderSrv.Dto
         public bool Approved { get; set; }
         public DateTime CreateDate { get; set; }
         public string Note { get; set; }
+        // شمار مراکز به تفکیک نوع (ProviderService.FillVenueCounts)؛ CompanionCount فقط نمایندگی‌های قدیمیِ هنوز فعال در هاب
         public int CompanionCount { get; set; }
         public int StoreCount { get; set; }
+        public int GroomerCount { get; set; }
+        public int ClinicCount { get; set; }
+        public int CoachCount { get; set; }
+        public int SchoolCount { get; set; }
+        public int PansionCount { get; set; }
+        public int VenueCount { get; set; }
 
         public UserMinVDto User { get; set; }
         public List<ProviderRoleAssignmentVDto> RoleAssignments { get; set; }

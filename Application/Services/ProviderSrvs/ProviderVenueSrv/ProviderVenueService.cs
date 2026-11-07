@@ -58,6 +58,10 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
                     .Where(x => x.ProviderId == providerId && !x.Deleted)
                     .Select(x => new ProviderVenueVDto { Id = x.Id, Name = x.Name, Active = x.Active, Approved = x.Approve })
                     .ToListAsync(),
+                Pansions = await _context.Pansions.AsNoTracking()
+                    .Where(x => x.ProviderId == providerId && !x.Deleted)
+                    .Select(x => new ProviderVenueVDto { Id = x.Id, Name = x.Name, Active = x.Active, Approved = x.Approve })
+                    .ToListAsync(),
                 Stores = await _context.Stores.AsNoTracking()
                     .Where(x => x.ProviderId == providerId && !x.Deleted)
                     .Select(x => new ProviderVenueVDto { Id = x.Id, Name = x.Name, Active = x.Active, Approved = x.Approved })
@@ -149,6 +153,26 @@ namespace Application.Services.ProviderSrvs.ProviderVenueSrv
                 return new BaseResultDto(false, Resource.Notification.ProviderRoleRequired);
             item.ProviderId = dto.ProviderId;
             // نمایندگی‌ای که مال همین ارائه‌دهنده نیست جدا می‌شود تا مالکیت و تسویه دوگانه نشود
+            if (item.CompanionId.HasValue && !await _context.Companions.AnyAsync(c => c.Id == item.CompanionId.Value && c.ProviderId == dto.ProviderId))
+                item.CompanionId = null;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
+        /// <summary>
+        /// پانسیون را به ارائه‌دهنده وصل می‌کند (مالک پانسیون = کاربر ارائه‌دهنده؛ تسویه از استخر «پانسیون»). نیازمند نقش تأییدشده‌ی Pansion.
+        /// نمایندگی‌ای که مال همین ارائه‌دهنده نیست جدا می‌شود تا مالکیت و تسویه دوگانه نشود.
+        /// </summary>
+        public async Task<BaseResultDto> AssignPansionAsync(ProviderVenueAssignDto dto)
+        {
+            if (!await _context.Providers.AnyAsync(x => x.Id == dto.ProviderId && !x.Deleted))
+                return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
+            var item = await _context.Pansions.AsTracking().FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            if (!await HasRoleAsync(dto.ProviderId, ProviderRoleLabels.Pansion))
+                return new BaseResultDto(false, Resource.Notification.ProviderRoleRequired);
+            item.ProviderId = dto.ProviderId;
             if (item.CompanionId.HasValue && !await _context.Companions.AnyAsync(c => c.Id == item.CompanionId.Value && c.ProviderId == dto.ProviderId))
                 item.CompanionId = null;
             await _context.SaveChangesAsync();

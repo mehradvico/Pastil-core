@@ -13,7 +13,7 @@ namespace Application.Services.ProviderSrvs.ProviderOverviewSrv.Dto
         public List<ProviderSettlementVDto> RecentSettlements { get; set; } = new List<ProviderSettlementVDto>();
     }
 
-    /// <summary>جمع حسابداری هر دو استخر ارائه‌دهنده (نمایندگی‌ها + فروشگاه‌ها). «تسویه‌شده» = ردیف‌های Permitted؛ «تسویه‌نشده» = مانده‌ی قابل پرداخت.</summary>
+    /// <summary>جمع حسابداری همه‌ی استخرهای ارائه‌دهنده (نمایندگی، فروشگاه، آرایشگاه، کلینیک، مربی، مدرسه، پانسیون). «تسویه‌شده» = ردیف‌های Permitted؛ «تسویه‌نشده» = مانده‌ی قابل پرداخت.</summary>
     public class ProviderFinanceSummaryVDto
     {
         public int ItemCount { get; set; }
@@ -29,7 +29,7 @@ namespace Application.Services.ProviderSrvs.ProviderOverviewSrv.Dto
 
     public class ProviderVenueOverviewVDto
     {
-        /// <summary>Companion یا Store</summary>
+        /// <summary>Companion / Store / Groomer / Clinic / Coach / School / Pansion</summary>
         public string Kind { get; set; }
         public long Id { get; set; }
         public string Name { get; set; }
@@ -67,7 +67,7 @@ namespace Application.Services.ProviderSrvs.ProviderOverviewSrv.Dto
     public class ProviderSettlementVDto
     {
         public long Id { get; set; }
-        /// <summary>Companion یا Store: کدام استخر تسویه شده.</summary>
+        /// <summary>Companion / Store / Groomer / Clinic / Coach / School / Pansion: کدام استخر تسویه شده.</summary>
         public string Kind { get; set; }
         public double PaidPrice { get; set; }
         public long ItemCount { get; set; }

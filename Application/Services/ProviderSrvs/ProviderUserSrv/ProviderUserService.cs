@@ -37,6 +37,12 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
         /// هر بار از دیتابیس خوانده می‌شود (بدون کش) تا غیرفعال‌کردن/حذف/تغییر نقش فوراً اثر کند.
         /// </summary>
         Task<ProviderActingAccess> ResolveActingAsync(long userId, long providerId);
+
+        /// <summary>
+        /// فروشگاهی که درخواست‌های ناحیه‌ی Seller کارمند روی آن اجرا می‌شوند (همان مقداری که ProviderMembership.StoreId برمی‌گرداند):
+        /// فروشگاهِ همین ارائه‌دهنده که مالک عضوش است با کمترین شناسه، وگرنه اولین فروشگاه ارائه‌دهنده؛ بدون فروشگاه null.
+        /// </summary>
+        Task<long?> ResolveStoreIdAsync(long providerId, long ownerUserId);
     }
 
     /// <summary>
@@ -85,7 +91,7 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
                 scopes.Add(ProviderRoleLabels.Groomer);
             if (await _context.Coaches.AsNoTracking().AnyAsync(c => (c.ProviderId == providerId || c.OwnerId == ownerUserId) && !c.Deleted))
                 scopes.Add(ProviderRoleLabels.Coach);
-            if (await _context.Pansions.AsNoTracking().AnyAsync(p => !p.Deleted && (p.Companion.ProviderId == providerId || p.Companion.OwnerId == ownerUserId)))
+            if (await _context.Pansions.AsNoTracking().AnyAsync(p => !p.Deleted && (p.ProviderId == providerId || (p.Companion != null && (p.Companion.ProviderId == providerId || p.Companion.OwnerId == ownerUserId)))))
                 scopes.Add(ProviderRoleLabels.Pansion);
             if (await _context.Schools.AsNoTracking().AnyAsync(s => !s.Deleted && (s.ProviderId == providerId || (s.Companion != null && (s.Companion.ProviderId == providerId || s.Companion.OwnerId == ownerUserId)))))
                 scopes.Add(ProviderRoleLabels.School);
@@ -138,8 +144,13 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
                 return new BaseResultDto<List<ProviderPermissionScopeVDto>>(false, Resource.Notification.ProviderOwnerOnlyAction, null);
 
             var scopes = await ScopesOfProviderAsync(provider.Id, ownerUserId);
-            var tree = ProviderPermissionCatalog.Scopes
-                .Where(scope => scopes.Contains(scope.Key))
+            return new BaseResultDto<List<ProviderPermissionScopeVDto>>(true, BuildCatalogTree(scopes));
+        }
+
+        /// <summary>درخت کاتالوگ برای نمایندگی‌های داده‌شده (null = همه؛ برای فرم نقش‌های آماده‌ی ادمین).</summary>
+        public static List<ProviderPermissionScopeVDto> BuildCatalogTree(IReadOnlyCollection<string> scopes) =>
+            ProviderPermissionCatalog.Scopes
+                .Where(scope => scopes == null || scopes.Contains(scope.Key))
                 .Select(scope => new ProviderPermissionScopeVDto
                 {
                     Key = scope.Key,
@@ -159,8 +170,8 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
                             }).ToList(),
                     }).ToList(),
                 }).ToList();
-            return new BaseResultDto<List<ProviderPermissionScopeVDto>>(true, tree);
-        }
+
+        public static string ScopeDisplayName(string scope) => ScopeName(scope);
 
         public async Task<BaseResultDto<List<ProviderUserRoleVDto>>> ListRolesAsync(long ownerUserId)
         {
@@ -168,20 +179,31 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
             if (provider == null)
                 return new BaseResultDto<List<ProviderUserRoleVDto>>(false, Resource.Notification.ProviderOwnerOnlyAction, null);
 
+            // نقش‌های آماده‌ی ادمین فقط برای نمایندگی‌هایی که ارائه‌دهنده الان دارد (نقش کلینیک فعال نشده = «مسئول کلینیک» دیده نمی‌شود)
+            var scopes = (await ScopesOfProviderAsync(provider.Id, ownerUserId)).ToList();
+            var providerId = provider.Id;
             var roles = await _context.ProviderUserRoles.AsNoTracking()
-                .Where(r => r.ProviderId == provider.Id && !r.Deleted)
-                .OrderBy(r => r.Id)
+                .Where(r => !r.Deleted && (r.ProviderId == providerId || (r.ProviderId == null && scopes.Contains(r.Scope))))
+                .OrderBy(r => r.ProviderId == null ? 0 : 1).ThenBy(r => r.Scope).ThenBy(r => r.Priority).ThenBy(r => r.Id)
                 .Select(r => new ProviderUserRoleVDto
                 {
                     Id = r.Id,
                     Name = r.Name,
                     Description = r.Description,
                     CreateDate = r.CreateDate,
+                    IsTemplate = r.ProviderId == null,
+                    Scope = r.Scope,
+                    Priority = r.Priority,
                     PermissionKeys = r.Permissions.OrderBy(p => p.PermissionKey).Select(p => p.PermissionKey).ToList(),
-                    UserCount = r.Users.Count(u => !u.Deleted),
+                    // نقش آماده بین همه‌ی ارائه‌دهنده‌ها مشترک است؛ فقط کارمندان همین ارائه‌دهنده شمرده می‌شوند
+                    UserCount = r.Users.Count(u => !u.Deleted && u.ProviderId == providerId),
                 }).ToListAsync();
             // کلیدی که از کاتالوگ حذف شده دیگر نمایش داده نمی‌شود (در زمان اجرا هم هیچ‌وقت اعتبار ندارد)
-            roles.ForEach(r => r.PermissionKeys = r.PermissionKeys.Where(ProviderPermissionCatalog.IsKnown).ToList());
+            roles.ForEach(r =>
+            {
+                r.PermissionKeys = r.PermissionKeys.Where(k => ProviderPermissionCatalog.IsKnown(k) && (!r.IsTemplate || ProviderPermissionCatalog.ScopeOf(k) == r.Scope)).ToList();
+                r.ScopeName = r.Scope == null ? null : ScopeName(r.Scope);
+            });
             return new BaseResultDto<List<ProviderUserRoleVDto>>(true, roles);
         }
 
@@ -293,8 +315,19 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
             return new BaseResultDto<List<ProviderUserVDto>>(true, list);
         }
 
-        private Task<bool> RoleBelongsAsync(long providerId, long roleId) =>
-            _context.ProviderUserRoles.AsNoTracking().AnyAsync(r => r.Id == roleId && r.ProviderId == providerId && !r.Deleted);
+        /// <summary>نقش قابل انتساب به کارمند این ارائه‌دهنده: نقش خودش، یا نقش آماده‌ی نمایندگی‌ای که الان دارد.</summary>
+        private async Task<bool> RoleBelongsAsync(Provider provider, long roleId)
+        {
+            var role = await _context.ProviderUserRoles.AsNoTracking()
+                .Where(r => r.Id == roleId && !r.Deleted)
+                .Select(r => new { r.ProviderId, r.Scope })
+                .FirstOrDefaultAsync();
+            if (role == null)
+                return false;
+            if (role.ProviderId != null)
+                return role.ProviderId == provider.Id;
+            return (await ScopesOfProviderAsync(provider.Id, provider.UserId)).Contains(role.Scope);
+        }
 
         public async Task<BaseResultDto<ProviderUserVDto>> InviteAsync(long ownerUserId, ProviderUserInviteDto dto)
         {
@@ -303,7 +336,7 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
                 var provider = await OwnedProviderAsync(ownerUserId);
                 if (provider == null)
                     return new BaseResultDto<ProviderUserVDto>(false, Resource.Notification.ProviderOwnerOnlyAction, null);
-                if (dto == null || !await RoleBelongsAsync(provider.Id, dto.ProviderUserRoleId))
+                if (dto == null || !await RoleBelongsAsync(provider, dto.ProviderUserRoleId))
                     return new BaseResultDto<ProviderUserVDto>(false, Resource.Notification.ProviderUserRoleNotFound, null);
 
                 var mobile = PetMicrochipRules.NormalizeMobile(dto.Mobile);
@@ -361,7 +394,7 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
             var provider = await OwnedProviderAsync(ownerUserId);
             if (provider == null)
                 return new BaseResultDto(false, Resource.Notification.ProviderOwnerOnlyAction);
-            if (dto == null || !await RoleBelongsAsync(provider.Id, dto.ProviderUserRoleId))
+            if (dto == null || !await RoleBelongsAsync(provider, dto.ProviderUserRoleId))
                 return new BaseResultDto(false, Resource.Notification.ProviderUserRoleNotFound);
             var updated = await _context.ProviderUsers
                 .Where(u => u.Id == dto.Id && u.ProviderId == provider.Id && !u.Deleted)
@@ -443,15 +476,20 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
                     u.ProviderId,
                     OwnerFirstName = u.Provider.User.FirstName,
                     OwnerLastName = u.Provider.User.LastName,
+                    OwnerUserId = u.Provider.UserId,
                     u.ProviderUserRoleId,
                     RoleName = u.ProviderUserRole.Name,
+                    TemplateScope = u.ProviderUserRole.ProviderId == null ? u.ProviderUserRole.Scope : null,
                     Keys = u.ProviderUserRole.Permissions.Select(p => p.PermissionKey).ToList(),
                 }).ToListAsync();
 
-            return rows.Select(r =>
+            var result = new List<ProviderMembershipVDto>();
+            foreach (var r in rows)
             {
-                var keys = r.Keys.Where(ProviderPermissionCatalog.IsKnown).Distinct().OrderBy(k => k, StringComparer.Ordinal).ToList();
-                return new ProviderMembershipVDto
+                var keys = await EffectiveKeysAsync(r.ProviderId, r.OwnerUserId, r.TemplateScope, r.Keys);
+                if (keys == null)
+                    continue;
+                result.Add(new ProviderMembershipVDto
                 {
                     ProviderUserId = r.Id,
                     ProviderId = r.ProviderId,
@@ -460,8 +498,41 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
                     RoleName = r.RoleName,
                     Permissions = keys,
                     Scopes = keys.Select(ProviderPermissionCatalog.ScopeOf).Distinct().ToList(),
-                };
-            }).ToList();
+                    // فقط کارمندی که دسترسی فروشگاه دارد شناسه‌ی فروشگاه را می‌گیرد (برای GET Seller/Store/{id} و صفحه‌ی خانه)
+                    StoreId = keys.Any(k => ProviderPermissionCatalog.ScopeOf(k) == ProviderRoleLabels.Store)
+                        ? await ResolveStoreIdAsync(r.ProviderId, r.OwnerUserId)
+                        : null,
+                });
+            }
+            return result;
+        }
+
+        public async Task<long?> ResolveStoreIdAsync(long providerId, long ownerUserId)
+        {
+            var stores = await _context.Stores.AsNoTracking()
+                .Where(s => s.ProviderId == providerId && !s.Deleted)
+                .OrderBy(s => s.Id)
+                .Select(s => new { s.Id, OwnerMember = s.Users.Any(u => u.Id == ownerUserId) })
+                .ToListAsync();
+            if (stores.Count == 0)
+                return null;
+            return (stores.FirstOrDefault(s => s.OwnerMember) ?? stores[0]).Id;
+        }
+
+        /// <summary>
+        /// کلیدهای مؤثر یک نقش. نقش آماده فقط وقتی اعتبار دارد که ارائه‌دهنده هنوز همان نمایندگی را دارد (نقش کلینیک غیرفعال شد =
+        /// کارمندِ «مسئول کلینیک» دیگر دسترسی ندارد) و فقط کلیدهای همان نمایندگی را می‌دهد. null = عضویت بی‌اعتبار.
+        /// </summary>
+        private async Task<List<string>> EffectiveKeysAsync(long providerId, long ownerUserId, string templateScope, IEnumerable<string> keys)
+        {
+            var known = keys.Where(ProviderPermissionCatalog.IsKnown);
+            if (templateScope != null)
+            {
+                if (!(await ScopesOfProviderAsync(providerId, ownerUserId)).Contains(templateScope))
+                    return null;
+                known = known.Where(k => ProviderPermissionCatalog.ScopeOf(k) == templateScope);
+            }
+            return known.Distinct().OrderBy(k => k, StringComparer.Ordinal).ToList();
         }
 
         public async Task<BaseResultDto> LeaveAsync(long providerUserId, long userId)
@@ -478,7 +549,7 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
         private IQueryable<ProviderUser> ActiveMembershipQuery(long userId) =>
             _context.ProviderUsers.AsNoTracking()
                 .Where(u => u.UserId == userId && !u.Deleted && u.Active && u.UserAccept == true
-                    && !u.ProviderUserRole.Deleted && u.ProviderUserRole.ProviderId == u.ProviderId
+                    && !u.ProviderUserRole.Deleted && (u.ProviderUserRole.ProviderId == u.ProviderId || u.ProviderUserRole.ProviderId == null)
                     && !u.Provider.Deleted && u.Provider.Active && u.Provider.Approved
                     && u.Provider.UserId != userId
                     && !u.Provider.User.Deleted && !u.Provider.User.Locked);
@@ -496,9 +567,13 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
                     u.ProviderId,
                     OwnerUserId = u.Provider.UserId,
                     u.ProviderUserRoleId,
+                    TemplateScope = u.ProviderUserRole.ProviderId == null ? u.ProviderUserRole.Scope : null,
                     Keys = u.ProviderUserRole.Permissions.Select(p => p.PermissionKey).ToList(),
                 }).FirstOrDefaultAsync();
             if (row == null)
+                return null;
+            var keys = await EffectiveKeysAsync(row.ProviderId, row.OwnerUserId, row.TemplateScope, row.Keys);
+            if (keys == null)
                 return null;
 
             return new ProviderActingAccess
@@ -507,7 +582,7 @@ namespace Application.Services.ProviderSrvs.ProviderUserSrv
                 ProviderUserId = row.Id,
                 OwnerUserId = row.OwnerUserId,
                 ProviderUserRoleId = row.ProviderUserRoleId,
-                Permissions = new HashSet<string>(row.Keys.Where(ProviderPermissionCatalog.IsKnown), StringComparer.Ordinal),
+                Permissions = new HashSet<string>(keys, StringComparer.Ordinal),
             };
         }
     }

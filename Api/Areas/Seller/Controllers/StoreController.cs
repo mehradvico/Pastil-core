@@ -31,6 +31,19 @@ namespace Api.Areas.Seller.Controllers
         /// <returns></returns>
         ///
 
+        /// <summary>
+        /// فروشگاهِ جاری بدون شناسه: برای مالک فروشگاه خودش، برای کارمند ارائه‌دهنده (با هدر X-Provider-Id) فروشگاه همان ارائه‌دهنده
+        /// </summary>
+        [HttpGet("Current")]
+        [ProducesResponseType(typeof(BaseResultDto<StoreDto>), 200)]
+        public async Task<IActionResult> Current()
+        {
+            var storeId = _currentUser.CurrentUser.StoreId;
+            if (storeId <= 0)
+                return Ok(new BaseResultDto<StoreDto>(false, Resource.Notification.AccessDenied, default!));
+            return Ok(await StoreService.FindAsyncDto(storeId));
+        }
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BaseResultDto<StoreDto>), 200)]
         public async Task<IActionResult> Get(long id)
