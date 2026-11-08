@@ -752,7 +752,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
         private sealed record PackageSet(List<PackageInfo> Packages, PackageInfo Primary, int DurationMinutes);
 
         /// <summary>
-        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک کلینیک، هر خدمت حداکثر یک‌بار، حداکثر ۵ بسته؛ مجموع مدت از سقف یک روز کمتر.
+        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک کلینیک، هر خدمت حداکثر یک‌بار، حداکثر ۵ بسته؛ مدت نوبت = بیشترین مدت بین بسته‌ها (جمع نمی‌شود) و از سقف یک روز کمتر.
         /// expectedClinicId پر باشد باید با کلینیکِ همه‌ی بسته‌ها یکی باشد.
         /// </summary>
         private async Task<(PackageSet Set, string Error)> BuildSetAsync(IReadOnlyList<long> packageIds, long? expectedClinicId, int? mode)
@@ -779,7 +779,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             }
             if (packages.Select(p => p.ClinicId).Distinct().Count() > 1)
                 return (null, Resource.Notification.ClinicReservePackageInvalid);
-            var duration = packages.Sum(p => ClinicReserveRules.EffectiveDuration(p.DurationMinutes));
+            // خدمات هم‌زمان ارائه می‌شوند: مدت نوبت = طولانی‌ترین بسته، نه جمع مدت‌ها.
+            var duration = packages.Max(p => ClinicReserveRules.EffectiveDuration(p.DurationMinutes));
             if (duration > ClinicReserveRules.MaxTotalMinutes)
                 return (null, Resource.Notification.ClinicReserveTooLong);
             return (new PackageSet(packages, packages[0], duration), null);

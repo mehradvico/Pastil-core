@@ -827,7 +827,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
         private sealed record PackageSet(List<PackageInfo> Packages, PackageInfo Primary, int DurationMinutes, int? StayDays, int? SessionCount);
 
         /// <summary>
-        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک مربی، حداکثر ۵ بستهٔ متفاوت (چند بسته از یک خدمت مجاز است؛ تکرار همان بسته نه)؛ مجموع مدت از سقف کمتر، مگر بسته‌ها مدت اقامت (StayDays) داشته باشند.
+        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک مربی، حداکثر ۵ بستهٔ متفاوت (چند بسته از یک خدمت مجاز است؛ تکرار همان بسته نه)؛ مدت نوبت = بیشترین مدت بین بسته‌ها (جمع نمی‌شود) و از سقف کمتر، مگر بسته‌ها مدت اقامت (StayDays) داشته باشند.
         /// expectedCoachId پر باشد باید با مربیِ همه‌ی بسته‌ها یکی باشد.
         /// </summary>
         private async Task<(PackageSet Set, string Error)> BuildSetAsync(IReadOnlyList<long> packageIds, long? expectedCoachId, int? mode)
@@ -854,7 +854,8 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             }
             if (packages.Select(p => p.CoachId).Distinct().Count() > 1)
                 return (null, Resource.Notification.CoachReservePackageInvalid);
-            var duration = packages.Sum(p => CoachReserveRules.EffectiveDuration(p.DurationMinutes));
+            // خدمات هم‌زمان ارائه می‌شوند: مدت نوبت = طولانی‌ترین بسته، نه جمع مدت‌ها.
+            var duration = packages.Max(p => CoachReserveRules.EffectiveDuration(p.DurationMinutes));
             var stayDays = packages.Where(p => p.StayDays.HasValue).Select(p => p.StayDays).DefaultIfEmpty().Max();
             var sessions = packages.Any(p => p.SessionCount.HasValue) ? packages.Sum(p => p.SessionCount ?? 0) : (int?)null;
             // بسته‌ی دارای مدت اقامت (پانسیون آموزشی، Mode=۳۸) سقف دقیقه‌ای ندارد؛ مدتش با StayDays سنجیده می‌شود.

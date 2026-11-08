@@ -718,7 +718,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
         private sealed record PackageSet(List<PackageInfo> Packages, PackageInfo Primary, int DurationMinutes);
 
         /// <summary>
-        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک آرایشگاه، هر خدمت حداکثر یک‌بار، حداکثر ۵ بسته؛ مجموع مدت از سقف یک روز کمتر.
+        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک آرایشگاه، هر خدمت حداکثر یک‌بار، حداکثر ۵ بسته؛ مدت نوبت = بیشترین مدت بین بسته‌ها (جمع نمی‌شود) و از سقف یک روز کمتر.
         /// expectedGroomerId پر باشد باید با آرایشگاهِ همه‌ی بسته‌ها یکی باشد.
         /// </summary>
         private async Task<(PackageSet Set, string Error)> BuildSetAsync(IReadOnlyList<long> packageIds, long? expectedGroomerId)
@@ -743,7 +743,8 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             }
             if (packages.Select(p => p.GroomerId).Distinct().Count() > 1)
                 return (null, Resource.Notification.GroomerReservePackageInvalid);
-            var duration = packages.Sum(p => GroomerReserveRules.EffectiveDuration(p.DurationMinutes));
+            // خدمات هم‌زمان ارائه می‌شوند: مدت نوبت = طولانی‌ترین بسته، نه جمع مدت‌ها.
+            var duration = packages.Max(p => GroomerReserveRules.EffectiveDuration(p.DurationMinutes));
             if (duration > GroomerReserveRules.MaxTotalMinutes)
                 return (null, Resource.Notification.GroomerReserveTooLong);
             return (new PackageSet(packages, packages[0], duration), null);
