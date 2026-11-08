@@ -100,6 +100,7 @@ public static class ProviderEndpointPolicy
         ["PansionReserveChangeStatus"] = Of(ProviderRoleLabels.Pansion, Sec.Reserve),
         ["PansionComment"] = Of(ProviderRoleLabels.Pansion, Sec.Review),
         ["PansionSettlement"] = Of(ProviderRoleLabels.Pansion, Sec.Finance),
+        ["PansionFinance"] = Of(ProviderRoleLabels.Pansion, Sec.Finance),
 
         // ------------------------------------------------ مدرسه
         ["School"] = Of(ProviderRoleLabels.School, Sec.Profile, actions: VenueLifecycleOwnerOnly),

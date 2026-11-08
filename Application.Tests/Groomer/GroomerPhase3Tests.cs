@@ -66,7 +66,7 @@ public class GroomerPhase3Tests : IClassFixture<GroomerLocalDbFixture>
         using var context = _fixture.NewContext();
         var items = await context.GroomerReserveItems.AsNoTracking().Where(i => i.GroomerReserveId == paid.Id).ToListAsync();
         Assert.Equal(2, items.Count);
-        Assert.Equal(90, paid.DurationMinutes);
+        Assert.Equal(60, paid.DurationMinutes); // مدت نوبت = طولانی‌ترین بسته، جمع نمی‌شود
         Assert.Equal(paid.ProviderShare + paid.SiteShare, items.Sum(i => i.ProviderShare + i.SiteShare));
         Assert.Equal(paid.PaymentPrice, items.Sum(i => i.ProviderShare + i.SiteShare));
     }

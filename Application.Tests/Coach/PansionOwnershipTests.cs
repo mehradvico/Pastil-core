@@ -147,6 +147,29 @@ public class PansionOwnershipTests : IClassFixture<CoachLocalDbFixture>
     }
 
     [Fact]
+    public async Task PansionFinance_WorksByOwnership_WithoutAnyCompanion()
+    {
+        if (!_fixture.Available) return;
+        var seed = _fixture.Seed();
+        var pansionId = await AddPansionAsync(seed, companionId: null, providerId: seed.ProviderId);
+        var finance = new Application.Services.FinanceSrvs.FinanceCompanionSrv.FinanceCompanionService(_fixture.NewContext());
+
+        var mine = await finance.SearchPansionAsync(new() { }, seed.OwnerUserId);
+        Assert.True(mine.IsSuccess);
+        Assert.Contains(pansionId, mine.Data.Pansions.Select(p => p.Id));
+
+        var other = await finance.SearchPansionAsync(new() { PansionId = pansionId }, seed.OtherUserId);
+        Assert.False(other.IsSuccess);
+        Assert.Contains(Resource.Notification.AccessDenied, other.Messages.Select(m => m.Item1));
+
+        var admin = await finance.SearchPansionAsync(new() { PansionId = pansionId }, ownerUserId: null);
+        Assert.True(admin.IsSuccess);
+        Assert.Equal(pansionId, Assert.Single(admin.Data.Pansions).Id);
+
+        Assert.False((await finance.SearchPansionAsync(new() { }, ownerUserId: null)).IsSuccess);
+    }
+
+    [Fact]
     public async Task AdminCreate_WithoutAnyOwner_IsRejected()
     {
         if (!_fixture.Available) return;

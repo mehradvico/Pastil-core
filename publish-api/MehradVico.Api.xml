@@ -2428,6 +2428,11 @@
              </summary>
             
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.FinancePansionController.Get(Application.Services.FinanceSrvs.FinanceCompanionSrv.Dto.FinancePansionInputDto)">
+            <summary>
+             گزارش مالی یک پانسیون
+            </summary>
+        </member>
         <member name="M:Api.Areas.Admin.Controllers.FinancePansionController.Put(Application.Services.FinanceSrvs.FinanceSrv.Dto.FinancePansionDto)">
             <summary>
              ویرایش آیتم
@@ -7561,6 +7566,14 @@
             حذف نمی‌شود. بازگردانی فقط توسط ادمین.
             </summary>
             <param name="id">شناسه پانسیون</param>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.PansionFinanceController">
+            <summary>
+            گزارش مالی پانسیون‌های من. مثل بقیه‌ی Pansion* مالکیت از دیتابیس سنجیده می‌شود و به CompanionId توکن وابسته نیست.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.PansionFinanceController.Get(Application.Services.FinanceSrvs.FinanceCompanionSrv.Dto.FinancePansionInputDto)">
+            <summary>pansionId خالی = همه‌ی پانسیون‌های من؛ permitted = فیلتر تأیید مالی</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.PansionPetController">
              <summary>
