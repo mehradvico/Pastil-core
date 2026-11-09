@@ -277,7 +277,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
         {
             try
             {
-                var reserve = await _context.SchoolReserves.Include(r => r.SchoolCourse).Include(r => r.Booker).Include(r => r.Rebate)
+                var reserve = await _context.SchoolReserves.Include(r => r.SchoolCourse).ThenInclude(c => c.School).Include(r => r.Booker).Include(r => r.Rebate)
                     .AsTracking().FirstOrDefaultAsync(r => r.Id == reserveId);
                 if (reserve == null)
                     return new BaseResultDto(false, Resource.Notification.NothingFound);
@@ -309,7 +309,7 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
 
                 if (reserve.SchoolCourse != null)
                 {
-                    var commissionPercent = reserve.SchoolCourse.CommissionPercent;
+                    var commissionPercent = Application.Common.Helpers.VenueCommission.Resolve(reserve.SchoolCourse.CommissionPercent, reserve.SchoolCourse.School?.CommissionPercent ?? 0);
                     var siteShare = (double)((decimal)reserve.PaymentPrice * commissionPercent / 100m);
                     reserve.SiteShare = siteShare;
                     reserve.CompanionShare = reserve.PaymentPrice - siteShare;
@@ -535,9 +535,20 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
         public async Task<BaseResultDto> CompleteByCompanionAsync(long id, long ownedSchoolId)
         {
             var paid = (int)SchoolReserveStatusEnum.Paid;
+            var started = (int)SchoolReserveStatusEnum.Started;
+            var done = await _context.SchoolReserves
+                .Where(s => s.Id == id && s.IsReserved && !s.IsCancel && (s.StatusId == paid || s.StatusId == started) && s.SchoolCourse.SchoolId == ownedSchoolId)
+                .ExecuteUpdateAsync(x => x.SetProperty(r => r.StatusId, (int)SchoolReserveStatusEnum.Complete));
+            return done == 0 ? new BaseResultDto(false, Resource.Notification.NothingFound) : new BaseResultDto(true);
+        }
+
+        // شروع دوره را ارائه‌دهنده ثبت می‌کند، چون دوره‌ی حضوری تاریخ ثبت‌شده ندارد
+        public async Task<BaseResultDto> StartByCompanionAsync(long id, long ownedSchoolId)
+        {
+            var paid = (int)SchoolReserveStatusEnum.Paid;
             var done = await _context.SchoolReserves
                 .Where(s => s.Id == id && s.IsReserved && !s.IsCancel && s.StatusId == paid && s.SchoolCourse.SchoolId == ownedSchoolId)
-                .ExecuteUpdateAsync(x => x.SetProperty(r => r.StatusId, (int)SchoolReserveStatusEnum.Complete));
+                .ExecuteUpdateAsync(x => x.SetProperty(r => r.StatusId, (int)SchoolReserveStatusEnum.Started));
             return done == 0 ? new BaseResultDto(false, Resource.Notification.NothingFound) : new BaseResultDto(true);
         }
 

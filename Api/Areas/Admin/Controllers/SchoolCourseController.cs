@@ -53,6 +53,17 @@ namespace Api.Areas.Admin.Controllers
             return Ok(course);
         }
 
+        /// <summary>
+        /// فقط کمیسیون سایت؛ بقیه‌ی فیلدهای دوره (از جمله امتیاز) دست نمی‌خورد
+        /// </summary>
+        [HttpPut("commission")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> PutCommission(SchoolCourseCommissionDto dto)
+        {
+            var result = await _schoolCourseService.UpdateCommissionAsync(dto);
+            return Ok(result);
+        }
+
         [HttpPut("active/{id}/{active}")]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> PutActive(long id, bool active)

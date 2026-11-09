@@ -96,8 +96,7 @@ namespace Api.Areas.Companion.Controllers
             if (!pansion.IsSuccess || await _ownership.PansionOfPansionAsync(pansion.Data.Id, _currentUser.CurrentUser.UserId) == null)
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
 
-            dto.PansionId = existing.Data.PansionId;
-            var agency = _PansionPetService.UpdateDto(dto);
+            var agency = await _PansionPetService.UpdateRateAsync(dto);
             return Ok(agency);
         }
 

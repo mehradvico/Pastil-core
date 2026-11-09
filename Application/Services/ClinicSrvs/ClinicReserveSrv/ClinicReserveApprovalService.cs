@@ -107,7 +107,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
 
             // پرداخت‌نشده: فقط بسته می‌شود. پرداخت‌شده: اگر هنوز منتظر تأیید کلینیک است یا در مهلت لغو رایگان است، کل مبلغ برمی‌گردد.
             var refund = reserve.IsReserved &&
-                         (ClinicReserveRules.IsPending(reserve.OwnerDecision) || ClinicReserveRules.IsFreeCancel(now, reserve.DoDate));
+                         (ClinicReserveRules.IsPending(reserve.OwnerDecision) || ClinicReserveRules.IsRefundableCancel(now, reserve.DoDate, reserve.RescheduleCount));
             ApplyCancel(reserve, now, null, byBooker: true);
             await _context.SaveChangesAsync(cancellationToken);
 

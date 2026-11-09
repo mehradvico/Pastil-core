@@ -13,6 +13,7 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Iface
         SchoolCourseSearchDto Search(SchoolCourseInputDto baseSearchDto);
         Task<BaseResultDto<SchoolCourseVDto>> FindAsyncVDto(long id);
         Task<BaseResultDto> UpdateActiveAsync(long id, bool active, long? ownedSchoolId = null);
+        Task<BaseResultDto> UpdateCommissionAsync(SchoolCourseCommissionDto dto);
 
         Task<BaseResultDto<List<SchoolCourseSessionDto>>> SetScheduleAsync(SchoolCourseScheduleDto dto, long? ownedSchoolId = null);
         Task<BaseResultDto<SchoolCourseSessionDto>> UpsertSessionAsync(SchoolCourseSessionDto dto, long? ownedSchoolId = null);

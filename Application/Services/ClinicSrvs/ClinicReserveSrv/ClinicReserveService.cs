@@ -1054,7 +1054,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
 
         private static void Finish(ClinicReserveVDto row, DateTime now) =>
             row.FreeCancelAvailable = row.IsReserved && !row.IsCancel && row.Status != (int)ClinicReserveStatusEnum.Complete
-                                      && ClinicReserveRules.IsFreeCancel(now, row.DoDate);
+                                      && ClinicReserveRules.IsRefundableCancel(now, row.DoDate, row.RescheduleCount);
 
         private static BaseResultDto<ClinicReserveVDto> Fail(string message) => new BaseResultDto<ClinicReserveVDto>(false, message, null);
 

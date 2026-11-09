@@ -9,6 +9,8 @@ namespace Application.Services.FinanceSrvs.FinanceSrv.Dto
     public class FinancePansionDto
     {
         public long PansionId { get; set; }
+        /// <summary>کمیسیون اصلی؛ نفرستادن یعنی بدون تغییر.</summary>
+        public decimal? CommissionPercent { get; set; }
         public decimal DailyCommissionPercent { get; set; }
         public decimal HourlyCommissionPercent { get; set; }
     }

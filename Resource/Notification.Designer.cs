@@ -5316,6 +5316,51 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to This center does not accept your pet's size..
+        /// </summary>
+        public static string PansionPetSizeNotAccepted {
+            get {
+                return ResourceManager.GetString("PansionPetSizeNotAccepted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The selected pet size is not valid..
+        /// </summary>
+        public static string PansionPetSizeInvalid {
+            get {
+                return ResourceManager.GetString("PansionPetSizeInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The pet price cannot be negative..
+        /// </summary>
+        public static string PansionPetPriceInvalid {
+            get {
+                return ResourceManager.GetString("PansionPetPriceInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This center does not offer the selected service..
+        /// </summary>
+        public static string PansionModeNotOffered {
+            get {
+                return ResourceManager.GetString("PansionModeNotOffered", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to An infectious center can only offer overnight boarding, not daycare..
+        /// </summary>
+        public static string PansionInfectiousOvernightOnly {
+            get {
+                return ResourceManager.GetString("PansionInfectiousOvernightOnly", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The date of this reservation has passed; please choose a new date..
         /// </summary>
         public static string PansionReserveDatePassed {

@@ -7,12 +7,13 @@ namespace Application.Common.Helpers
     {
         public static bool IsPansionModeValid(bool? isSchool, bool hasHourlyInputs, bool hasDailyInputs)
         {
-            if (!isSchool.HasValue || hasHourlyInputs == hasDailyInputs)
+            if (hasHourlyInputs == hasDailyInputs)
             {
                 return false;
             }
 
-            return isSchool.Value ? hasHourlyInputs : hasDailyInputs;
+            // null = مرکز هم پانسیون است هم مهد: رزرو باید دقیقاً یکی از دو حالت باشد.
+            return !isSchool.HasValue || (isSchool.Value ? hasHourlyInputs : hasDailyInputs);
         }
 
         public static bool IsDateInPast(DateTime date, DateTime now)

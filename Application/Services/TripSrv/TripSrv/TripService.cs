@@ -2264,10 +2264,10 @@ namespace Application.Services.TripSrv.TripSrv
             dropOffAt = default;
             errorMessage = null;
 
-            if (reserve.Pansion?.IsDaycare == true)
+            // حالت از خود رزرو خوانده می‌شود؛ یک مرکز می‌تواند هم پانسیون باشد هم مهد.
+            if (reserve.SchoolCreateDate.HasValue)
             {
-                if (reserve.SchoolCreateDate.HasValue &&
-                    ReservationScheduleValidator.TryGetServiceStartDateTime(reserve.SchoolCreateDate.Value, reserve.StartTime, out dropOffAt))
+                if (ReservationScheduleValidator.TryGetServiceStartDateTime(reserve.SchoolCreateDate.Value, reserve.StartTime, out dropOffAt))
                     return true;
 
                 errorMessage = Resource.Notification.NothingFound;

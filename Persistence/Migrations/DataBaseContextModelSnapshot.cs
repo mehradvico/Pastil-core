@@ -7392,6 +7392,9 @@ namespace Persistence.Migrations
                     b.Property<int>("CommentCount")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("CommissionPercent")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<long?>("CompanionId")
                         .HasColumnType("bigint");
 
@@ -7489,8 +7492,18 @@ namespace Persistence.Migrations
                     b.Property<long>("PansionId")
                         .HasColumnType("bigint");
 
+                    b.Property<double?>("PansionPrice")
+                        .HasColumnType("float");
+
                     b.Property<long>("PetId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("PetSize")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<double?>("SchoolPrice")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -11851,6 +11864,9 @@ namespace Persistence.Migrations
 
                     b.Property<int>("CommentCount")
                         .HasColumnType("int");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<long?>("CompanionId")
                         .HasColumnType("bigint");

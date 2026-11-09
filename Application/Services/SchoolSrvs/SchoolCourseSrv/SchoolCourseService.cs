@@ -333,6 +333,19 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv
             return new BaseResultDto(true);
         }
 
+        public async Task<BaseResultDto> UpdateCommissionAsync(SchoolCourseCommissionDto dto)
+        {
+            if (dto == null || dto.CommissionPercent < 0 || dto.CommissionPercent > 100)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var item = await _context.SchoolCourses.AsTracking().FirstOrDefaultAsync(c => c.Id == dto.Id && !c.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            item.CommissionPercent = dto.CommissionPercent;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
         private async Task<bool> CanManageCourseAsync(long courseId, long? ownedSchoolId)
         {
             if (!ownedSchoolId.HasValue) return true;

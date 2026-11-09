@@ -104,7 +104,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
 
             // پرداخت‌نشده: فقط بسته می‌شود. پرداخت‌شده: اگر هنوز منتظر تأیید مربی است یا در مهلت لغو رایگان است، کل مبلغ برمی‌گردد.
             var refund = reserve.IsReserved &&
-                         (CoachReserveRules.IsPending(reserve.OwnerDecision) || CoachReserveRules.IsFreeCancel(now, reserve.DoDate, reserve.DailyPrice.HasValue));
+                         (CoachReserveRules.IsPending(reserve.OwnerDecision) || CoachReserveRules.IsRefundableCancel(now, reserve.DoDate, reserve.DailyPrice.HasValue, reserve.RescheduleCount));
             ApplyCancel(reserve, now, null, byBooker: true);
             await _context.SaveChangesAsync(cancellationToken);
 

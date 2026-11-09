@@ -236,6 +236,13 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                         return new BaseResultDto(false, Resource.Notification.ConsultationBookingUserBusy);
                 }
 
+                // بسته‌ی بدون درصد، کمیسیون اصلی کلینیک/مربی را می‌گیرد
+                var venueCommission = package.ClinicId.HasValue
+                    ? await _context.Clinics.AsNoTracking().Where(c => c.Id == package.ClinicId.Value).Select(c => c.CommissionPercent).FirstOrDefaultAsync()
+                    : package.CoachId.HasValue
+                        ? await _context.Coaches.AsNoTracking().Where(c => c.Id == package.CoachId.Value).Select(c => c.CommissionPercent).FirstOrDefaultAsync()
+                        : 0m;
+
                 var purchase = new ConsultationPurchase
                 {
                     ScheduledStart = scheduledStart,
@@ -249,7 +256,7 @@ namespace Application.Services.ConsultationSrvs.ConsultationPurchaseSrv
                     DurationMinutes = package.DurationMinutes,
                     PackageName = package.Name,
                     Price = package.Price,
-                    CommissionPercent = package.CommissionPercent,
+                    CommissionPercent = Application.Common.Helpers.VenueCommission.Resolve(package.CommissionPercent, venueCommission),
                     Status = pending,
                     FromWallet = dto.FromWallet,
                     WalletPrice = amounts.Wallet,

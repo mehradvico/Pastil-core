@@ -27,9 +27,12 @@ public class ReservationScheduleValidatorTests
     }
 
     [Fact]
-    public void IsPansionModeValid_RejectsUnconfiguredPansionMode()
+    public void IsPansionModeValid_CenterWithBothModes_AcceptsExactlyOneMode()
     {
-        Assert.False(ReservationScheduleValidator.IsPansionModeValid(null, true, false));
+        Assert.True(ReservationScheduleValidator.IsPansionModeValid(null, true, false));
+        Assert.True(ReservationScheduleValidator.IsPansionModeValid(null, false, true));
+        Assert.False(ReservationScheduleValidator.IsPansionModeValid(null, true, true));
+        Assert.False(ReservationScheduleValidator.IsPansionModeValid(null, false, false));
     }
 
     [Fact]

@@ -104,6 +104,25 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             return null;
         }
 
+        // کمیسیون در فرم ویرایش نیست و فقط با مسیر کمیسیون عوض می‌شود.
+        protected override void OnBeforeUpdateSave(School item)
+        {
+            _context.Entry(item).Property(nameof(School.CommissionPercent)).IsModified = false;
+        }
+
+        public async Task<BaseResultDto> UpdateCommissionAsync(SchoolCommissionDto dto)
+        {
+            if (dto == null || dto.CommissionPercent < 0 || dto.CommissionPercent > 100)
+                return new BaseResultDto(false, Resource.Notification.InvalidData);
+            var item = await _context.Schools.AsTracking().FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
+            if (item == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+
+            item.CommissionPercent = dto.CommissionPercent;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
         public override BaseResultDto UpdateDto(SchoolDto dto)
         {
             var locationError = ValidateLocation(dto);
@@ -222,8 +241,9 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
                     return new BaseResultDto(false, Resource.Notification.AccessDenied);
 
                 var paid = (int)SchoolReserveStatusEnum.Paid;
+                var started = (int)SchoolReserveStatusEnum.Started;
                 var hasOpenReserve = await _context.SchoolReserves.AsNoTracking().AnyAsync(r =>
-                    r.SchoolCourse.SchoolId == id && !r.IsCancel && r.IsReserved && r.StatusId == paid);
+                    r.SchoolCourse.SchoolId == id && !r.IsCancel && r.IsReserved && (r.StatusId == paid || r.StatusId == started));
                 if (hasOpenReserve)
                     return new BaseResultDto(false, Resource.Notification.SchoolDeleteHasOpenReserves);
 

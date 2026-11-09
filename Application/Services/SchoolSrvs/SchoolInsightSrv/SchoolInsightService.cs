@@ -188,6 +188,7 @@ namespace Application.Services.SchoolSrvs.SchoolInsightSrv
                 return new BaseResultDto<SchoolDashboardVDto>(false, Resource.Notification.NothingFound, null);
 
             var paid = (int)SchoolReserveStatusEnum.Paid;
+            var started = (int)SchoolReserveStatusEnum.Started;
             var complete = (int)SchoolReserveStatusEnum.Complete;
             var courses = await _context.SchoolCourses.AsNoTracking()
                 .Where(c => c.SchoolId == schoolId && !c.Deleted)
@@ -196,7 +197,7 @@ namespace Application.Services.SchoolSrvs.SchoolInsightSrv
                 {
                     CourseId = c.Id, CourseName = c.Name, CourseTypeId = c.CourseTypeId, Level = c.Level, Active = c.Active, Capacity = c.Capacity,
                     RateAvg = c.RateAvg, RateCount = c.RateCount,
-                    Enrolled = c.SchoolReserves.Count(r => r.IsReserved && !r.IsCancel && (r.StatusId == paid || r.StatusId == complete)),
+                    Enrolled = c.SchoolReserves.Count(r => r.IsReserved && !r.IsCancel && (r.StatusId == paid || r.StatusId == started || r.StatusId == complete)),
                     Completed = c.SchoolReserves.Count(r => r.IsReserved && !r.IsCancel && r.StatusId == complete),
                     Cancelled = c.SchoolReserves.Count(r => r.IsReserved && r.IsCancel),
                     // درآمد = پرداختی‌های لغونشده + بخشِ نگه‌داشته‌ی لغوشده‌ها (سهم‌ها)

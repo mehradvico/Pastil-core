@@ -61,7 +61,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
             await SafeAsync(() => _pushService.SendPushAsync(
                 PushTypeEnum.PushPansionReserveApproved, reserve.BookerId,
-                token1: reserve.Pansion?.Name, token2: reserve.UserPet?.Pet?.Name, token3: reserve.Id.ToString()),
+                token1: reserve.Pansion?.Name, token2: reserve.UserPet?.Name, token3: reserve.Id.ToString()),
                 reserve.Id, "approved push");
 
             return new BaseResultDto(true, Resource.Notification.PansionReserveApprovedSuccessfully);

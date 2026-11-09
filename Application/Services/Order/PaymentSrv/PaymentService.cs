@@ -1213,7 +1213,8 @@ namespace Application.Services.Order.PaymentSrv
             var reserveDay = reservedetail.FromDate ?? reservedetail.SchoolCreateDate;
             if (reserveDay.HasValue && reserveDay.Value.Date < DateTime.Today)
                 return new BaseResultDto(false, Resource.Notification.PansionReserveDatePassed);
-            switch (Application.Services.PansionSrvs.PansionReserveSrv.PansionReserveRules.Reprice(reservedetail, reservedetail.Pansion))
+            var pansionPetRate = await Application.Services.PansionSrvs.PansionReserveSrv.PansionReserveRules.FindRateAsync(_context, reservedetail.PansionId, reservedetail.UserPetId);
+            switch (Application.Services.PansionSrvs.PansionReserveSrv.PansionReserveRules.Reprice(reservedetail, reservedetail.Pansion, pansionPetRate))
             {
                 case Application.Services.PansionSrvs.PansionReserveSrv.PansionReserveRules.RepriceResult.Invalid:
                     return new BaseResultDto(false, Resource.Notification.PansionCheckoutMustBeAfterCheckin);

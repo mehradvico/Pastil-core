@@ -253,9 +253,10 @@ namespace Application.Services.SchoolSrvs.SchoolTeachingSrv
         private IQueryable<SchoolReserve> ActiveReserves(long courseId)
         {
             var paid = (int)SchoolReserveStatusEnum.Paid;
+            var started = (int)SchoolReserveStatusEnum.Started;
             var complete = (int)SchoolReserveStatusEnum.Complete;
             return _context.SchoolReserves.AsNoTracking()
-                .Where(r => r.SchoolCourseId == courseId && r.IsReserved && !r.IsCancel && (r.StatusId == paid || r.StatusId == complete));
+                .Where(r => r.SchoolCourseId == courseId && r.IsReserved && !r.IsCancel && (r.StatusId == paid || r.StatusId == started || r.StatusId == complete));
         }
 
         public async Task<BaseResultDto<List<SchoolRosterItemVDto>>> RosterAsync(long sessionId)
@@ -413,7 +414,7 @@ namespace Application.Services.SchoolSrvs.SchoolTeachingSrv
         {
             var reserve = await _context.SchoolReserves.AsNoTracking()
                 .Where(r => r.Id == reserveId && r.IsReserved)
-                .Select(r => new { r.Id, r.SchoolCourseId, r.StatusId, CourseName = r.SchoolCourse.Name, PetName = r.UserPet.Name })
+                .Select(r => new { r.Id, r.SchoolCourseId, r.StatusId, CourseName = r.SchoolCourse.Name, PetName = r.UserPet.Name, CourseSessionCount = r.SchoolCourse.SessionCount })
                 .FirstOrDefaultAsync();
             if (reserve == null)
                 return new BaseResultDto<SchoolReportVDto>(false, Resource.Notification.NothingFound, null);
@@ -432,7 +433,8 @@ namespace Application.Services.SchoolSrvs.SchoolTeachingSrv
                 CourseName = reserve.CourseName,
                 PetName = reserve.PetName,
                 StatusId = reserve.StatusId,
-                SessionCount = sessions.Count,
+                // دوره‌ی حضوری می‌تواند بدون تعیین روز باشد؛ آن‌وقت همان تعداد جلسات دوره ملاک است
+                SessionCount = sessions.Count > 0 ? sessions.Count : reserve.CourseSessionCount,
                 Attendance = sessions.Select(s => new SchoolAttendanceVDto
                 {
                     SchoolCourseSessionId = s.Id, SessionDate = s.SessionDate, StartTime = s.StartTime,
@@ -478,7 +480,9 @@ namespace Application.Services.SchoolSrvs.SchoolTeachingSrv
                 SchoolName = c.SchoolReserve.SchoolCourse.School.Name,
                 PetName = c.SchoolReserve.UserPet.Name,
                 OwnerFullName = ((c.SchoolReserve.Booker.FirstName ?? "") + " " + (c.SchoolReserve.Booker.LastName ?? "")).Trim(),
-                SessionCount = _context.SchoolCourseSessions.Count(s => s.SchoolCourseId == c.SchoolReserve.SchoolCourseId && !s.Deleted),
+                SessionCount = _context.SchoolCourseSessions.Any(s => s.SchoolCourseId == c.SchoolReserve.SchoolCourseId && !s.Deleted)
+                    ? _context.SchoolCourseSessions.Count(s => s.SchoolCourseId == c.SchoolReserve.SchoolCourseId && !s.Deleted)
+                    : c.SchoolReserve.SchoolCourse.SessionCount,
                 AttendedCount = _context.SchoolAttendances.Count(a => a.SchoolReserveId == c.SchoolReserveId && a.Present),
             });
 
@@ -538,7 +542,7 @@ namespace Application.Services.SchoolSrvs.SchoolTeachingSrv
                 if (start <= from || start > to)
                     continue;
                 var bookers = await _context.SchoolReserves.AsNoTracking()
-                    .Where(r => r.SchoolCourseId == session.SchoolCourseId && r.IsReserved && !r.IsCancel && r.StatusId == paid)
+                    .Where(r => r.SchoolCourseId == session.SchoolCourseId && r.IsReserved && !r.IsCancel && (r.StatusId == paid || r.StatusId == (int)SchoolReserveStatusEnum.Started))
                     .Select(r => r.BookerId).Distinct().ToListAsync(cancellationToken);
                 foreach (var bookerId in bookers)
                     await _push.SendPushAsync(PushTypeEnum.PushSchoolClassReminderDayBefore, bookerId,

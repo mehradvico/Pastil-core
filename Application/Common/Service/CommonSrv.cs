@@ -77,6 +77,11 @@ namespace Application.Common.Service
                 return new BaseResultDto<TDto>(isSuccess: false, val: Resource.Notification.Unsuccess, data: dto);
             }
         }
+        /// <summary>قبل از ذخیره‌ی UpdateDto؛ برای فیلدهایی که در DTO نیستند و نباید بازنویسی شوند.</summary>
+        protected virtual void OnBeforeUpdateSave(TEntity item)
+        {
+        }
+
         public virtual BaseResultDto UpdateDto(TDto dto)
         {
             try
@@ -96,6 +101,7 @@ namespace Application.Common.Service
                     }
                     entity.Attach(item);
                     _context.Entry(item).State = EntityState.Modified;
+                    OnBeforeUpdateSave(item);
                     _context.SaveChanges();
                     return new BaseResultDto(isSuccess: true);
                 }

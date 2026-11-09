@@ -24,4 +24,10 @@ namespace Application.Services.SchoolSrvs.SchoolSrv.Dto
         public bool Suggested { get; set; }
         public string Regulations { get; set; }
     }
+
+    public class SchoolCommissionDto
+    {
+        public long Id { get; set; }
+        public decimal CommissionPercent { get; set; }
+    }
 }

@@ -57,7 +57,7 @@ namespace Application.Services.PansionSrvs.PansionSrv
         public async Task<BaseResultDto<PansionVDto>> FindAsyncVDto(long id, bool includeDeleted = false)
         {
             var item = await _context.Pansions.Include(s => s.Picture).Include(s => s.Companion).ThenInclude(s => s.Owner).Include(s => s.Provider).ThenInclude(s => s.User).Include(s => s.City).ThenInclude(s => s.State)
-                .Include(s => s.PansionPets).ThenInclude(s => s.Pet).Include(s => s.PansionComments).Include(s => s.PansionPictures).ThenInclude(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id && (includeDeleted || !s.Deleted));
+                .Include(s => s.PansionPets.Where(x => !x.Deleted)).ThenInclude(s => s.Pet).Include(s => s.PansionComments).Include(s => s.PansionPictures).ThenInclude(s => s.Picture).FirstOrDefaultAsync(s => s.Id == id && (includeDeleted || !s.Deleted));
             if (item != null)
             {
                 return new BaseResultDto<PansionVDto>(true, mapper.Map<PansionVDto>(item));
@@ -95,9 +95,10 @@ namespace Application.Services.PansionSrvs.PansionSrv
             }
             if (baseSearchDto.IsDaycare.HasValue)
             {
-                var IsDaycare = baseSearchDto.IsDaycare.Value;
-                // رکورد قدیمی بدون نوع (NULL) پانسیون شبانه حساب می‌شود؛ فیلتر نوع خدمت در خود سرور اعمال می‌شود تا شمارش درست باشد.
-                model = model.Where(s => (s.IsDaycare ?? false) == IsDaycare);
+                // NULL = مرکز هر دو خدمت را دارد؛ رکورد قدیمی NULL بدون تعرفه‌ی مهد فقط پانسیون شبانه حساب می‌شود.
+                model = baseSearchDto.IsDaycare.Value
+                    ? model.Where(s => s.IsDaycare == true || (s.IsDaycare == null && s.SchoolPrice > 0))
+                    : model.Where(s => s.IsDaycare != true);
             }
             if (baseSearchDto.CompanionId.HasValue)
             {
@@ -275,6 +276,15 @@ namespace Application.Services.PansionSrvs.PansionSrv
             return new PansionOwner(null, null, 0, Resource.Notification.PansionProviderRequired);
         }
 
+        // کمیسیون‌ها در فرم ویرایش نیستند و فقط با مسیر کمیسیون عوض می‌شوند.
+        protected override void OnBeforeUpdateSave(Pansion item)
+        {
+            var entry = _context.Entry(item);
+            entry.Property(nameof(Pansion.CommissionPercent)).IsModified = false;
+            entry.Property(nameof(Pansion.DailyCommissionPercent)).IsModified = false;
+            entry.Property(nameof(Pansion.HourlyCommissionPercent)).IsModified = false;
+        }
+
         /// <summary>ویرایش ادمین: مالک را هم اعتبارسنجی می‌کند (عوض‌شدن ارائه‌دهنده نقش «پانسیون» می‌خواهد).</summary>
         public override BaseResultDto UpdateDto(PansionDto dto)
         {
@@ -311,8 +321,9 @@ namespace Application.Services.PansionSrvs.PansionSrv
             {
                 errors.Add(new Tuple<string, string>(Resource.Notification.PleaseEnterTheName, nameof(dto.Name)));
             }
-            if (!dto.IsDaycare.HasValue)
-                errors.Add(Tuple.Create(Resource.Notification.PansionPleaseSelectCenterType, nameof(dto.IsDaycare)));
+            // IsDaycare: true = فقط مهد، false = فقط پانسیون، null = هر دو (هر دو تعرفه لازم است). پانسیون عفونی مهد ندارد.
+            if (dto.IsDaycare == null && dto.IsInfectious)
+                errors.Add(Tuple.Create(Resource.Notification.PansionInfectiousOvernightOnly, nameof(dto.IsDaycare)));
             if (dto.StateId <= 0 || !await _context.States.AnyAsync(s => s.Id == dto.StateId))
                 errors.Add(Tuple.Create(Resource.Notification.PansionSelectedStateInvalid, nameof(dto.StateId)));
             if (dto.CityId <= 0 || !await _context.Cities.AnyAsync(s => s.Id == dto.CityId && s.StateId == dto.StateId))
@@ -332,9 +343,9 @@ namespace Application.Services.PansionSrvs.PansionSrv
                  !PansionReserveSrv.PansionReserveRules.TryParseHour(dto.CloseHour, out var closeHour) ||
                  openHour >= closeHour))
                 errors.Add(Tuple.Create(Resource.Notification.PansionWorkingHoursInvalid, nameof(dto.OpenHour)));
-            if (dto.IsDaycare == true && dto.SchoolPrice <= 0)
+            if (dto.IsDaycare != false && dto.SchoolPrice <= 0)
                 errors.Add(Tuple.Create(Resource.Notification.PansionSchoolPriceMustBeGreaterThanZero, nameof(dto.SchoolPrice)));
-            if (dto.IsDaycare == false && dto.PansionPrice <= 0)
+            if (dto.IsDaycare != true && dto.PansionPrice <= 0)
                 errors.Add(Tuple.Create(Resource.Notification.PansionPriceMustBeGreaterThanZero, nameof(dto.PansionPrice)));
             if (dto.PictureId.HasValue && dto.PictureId.Value > 0 &&
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.PictureId.Value))

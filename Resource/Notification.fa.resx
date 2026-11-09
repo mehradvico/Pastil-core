@@ -1912,6 +1912,21 @@
   <data name="PansionPetTypeNotAccepted" xml:space="preserve">
     <value>این مرکز نوع حیوان انتخاب‌شده را پذیرش نمی‌کند.</value>
   </data>
+  <data name="PansionPetSizeNotAccepted" xml:space="preserve">
+    <value>این مرکز سایز پت شما را پذیرش نمی‌کند. اگر سایز پت در پروفایلش ثبت نشده، اول آن را تکمیل کنید.</value>
+  </data>
+  <data name="PansionPetSizeInvalid" xml:space="preserve">
+    <value>سایز انتخاب‌شده برای پت معتبر نیست.</value>
+  </data>
+  <data name="PansionPetPriceInvalid" xml:space="preserve">
+    <value>قیمت پت نمی‌تواند منفی باشد.</value>
+  </data>
+  <data name="PansionModeNotOffered" xml:space="preserve">
+    <value>این مرکز خدمت انتخاب‌شده را ارائه نمی‌دهد.</value>
+  </data>
+  <data name="PansionInfectiousOvernightOnly" xml:space="preserve">
+    <value>مرکز عفونی فقط می‌تواند پانسیون شبانه باشد و مهد ندارد.</value>
+  </data>
   <data name="PansionReserveDatePassed" xml:space="preserve">
     <value>تاریخ این رزرو گذشته است؛ لطفاً تاریخ جدیدی انتخاب کنید.</value>
   </data>

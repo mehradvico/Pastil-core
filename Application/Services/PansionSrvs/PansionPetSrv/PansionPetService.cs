@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Helpers;
 using Application.Common.Enumerable.Code;
 using Application.Common.Service;
 using Application.Services.CompanionSrvs.CompanionSrv.Dto;
@@ -51,6 +52,10 @@ namespace Application.Services.PansionSrvs.PansionPetSrv
             {
                 model = model.Where(s => s.Pansion.CompanionId == baseSearchDto.CompanionId.Value);
             }
+            if (baseSearchDto.PansionId.HasValue)
+            {
+                model = model.Where(s => s.PansionId == baseSearchDto.PansionId.Value);
+            }
 
             switch (baseSearchDto.SortBy)
             {
@@ -74,12 +79,12 @@ namespace Application.Services.PansionSrvs.PansionPetSrv
         {
             try
             {
-                var item = mapper.Map<PansionPet>(dto);
-                bool existed = await _context.PansionPets.AnyAsync(x => x.PansionId == dto.PansionId && x.PetId == dto.PetId && !x.Deleted);
-                if (existed)
+                var error = await ValidateRateAsync(dto);
+                if (error != null)
                 {
-                    return new BaseResultDto<PansionPetDto>(false, Resource.Notification.DuplicateValue, dto);
+                    return new BaseResultDto<PansionPetDto>(false, error, dto);
                 }
+                var item = mapper.Map<PansionPet>(dto);
                 await _context.PansionPets.AddAsync(item);
                 await _context.SaveChangesAsync();
                 return new BaseResultDto<PansionPetDto>(true, mapper.Map<PansionPetDto>(item));
@@ -90,6 +95,55 @@ namespace Application.Services.PansionSrvs.PansionPetSrv
             {
                 return new BaseResultDto<PansionPetDto>(isSuccess: false, val: Application.Common.Helpers.ExceptionResultHelper.ToClientMessage(ex), data: dto);
             }
+        }
+
+        public async Task<BaseResultDto> UpdateRateAsync(PansionPetDto dto)
+        {
+            var item = await _context.PansionPets.AsTracking().FirstOrDefaultAsync(x => x.Id == dto.Id && !x.Deleted);
+            if (item == null)
+            {
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            }
+            dto.PansionId = item.PansionId;
+            dto.PetId = item.PetId;
+            var error = await ValidateRateAsync(dto);
+            if (error != null)
+            {
+                return new BaseResultDto(false, error);
+            }
+            item.PetSize = dto.PetSize;
+            item.PansionPrice = dto.PansionPrice;
+            item.SchoolPrice = dto.SchoolPrice;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
+        // سایز و قیمت را استاندارد می‌کند؛ خروجی متن خطا یا null. هر مرکز برای هر پت/سایز فقط یک ردیف دارد.
+        private async Task<string> ValidateRateAsync(PansionPetDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.PetSize))
+            {
+                dto.PetSize = null;
+            }
+            else
+            {
+                dto.PetSize = VenuePetSizes.One(dto.PetSize);
+                if (dto.PetSize == null)
+                {
+                    return Resource.Notification.PansionPetSizeInvalid;
+                }
+            }
+            if (dto.PansionPrice < 0 || dto.SchoolPrice < 0)
+            {
+                return Resource.Notification.PansionPetPriceInvalid;
+            }
+            dto.PansionPrice = dto.PansionPrice > 0 ? dto.PansionPrice : null;
+            dto.SchoolPrice = dto.SchoolPrice > 0 ? dto.SchoolPrice : null;
+
+            var size = dto.PetSize;
+            var existed = await _context.PansionPets.AnyAsync(x =>
+                x.PansionId == dto.PansionId && x.PetId == dto.PetId && x.PetSize == size && x.Id != dto.Id && !x.Deleted);
+            return existed ? Resource.Notification.DuplicateValue : null;
         }
     }
 }

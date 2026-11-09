@@ -1912,6 +1912,21 @@
   <data name="PansionPetTypeNotAccepted" xml:space="preserve">
     <value>This center does not accept the selected pet type.</value>
   </data>
+  <data name="PansionPetSizeNotAccepted" xml:space="preserve">
+    <value>This center does not accept your pet's size. If the pet's size is not set in its profile, complete it first.</value>
+  </data>
+  <data name="PansionPetSizeInvalid" xml:space="preserve">
+    <value>The selected pet size is not valid.</value>
+  </data>
+  <data name="PansionPetPriceInvalid" xml:space="preserve">
+    <value>The pet price cannot be negative.</value>
+  </data>
+  <data name="PansionModeNotOffered" xml:space="preserve">
+    <value>This center does not offer the selected service.</value>
+  </data>
+  <data name="PansionInfectiousOvernightOnly" xml:space="preserve">
+    <value>An infectious center can only offer overnight boarding, not daycare.</value>
+  </data>
   <data name="PansionReserveDatePassed" xml:space="preserve">
     <value>The date of this reservation has passed; please choose a new date.</value>
   </data>

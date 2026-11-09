@@ -195,6 +195,10 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
 
         public static bool IsFreeCancel(DateTime now, DateTime doDate) => doDate - now >= FreeCancelWindow;
 
+        /// <summary>لغو کاربر قبل از شروع نوبت: در مهلت لغو رایگان، یا هر زمان که مرکز/ادمین زمان نوبت را عوض کرده باشد، مبلغ به کیف پول برمی‌گردد.</summary>
+        public static bool IsRefundableCancel(DateTime now, DateTime doDate, int rescheduleCount) =>
+            doDate > now && (rescheduleCount > 0 || IsFreeCancel(now, doDate));
+
         public static string RefundLedgerName(long reserveId) => $"GroomerReserveRefund:{reserveId}";
     }
 }

@@ -46,6 +46,7 @@ namespace Application.Services.PansionSrvs.PansionSrv.Dto
         public string Regulations { get; set; }
         public string OpenHour { get; set; }
         public string CloseHour { get; set; }
+        public decimal CommissionPercent { get; set; }
         public decimal DailyCommissionPercent { get; set; }
         public decimal HourlyCommissionPercent { get; set; }
         public CompanionMinVDto Companion { get; set; }

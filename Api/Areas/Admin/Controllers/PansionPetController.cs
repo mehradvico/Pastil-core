@@ -61,8 +61,20 @@ namespace Api.Areas.Admin.Controllers
         }
 
         /// <summary>
-        ///  حذف آیتم 
-        /// </summary>  
+        ///  ویرایش سایز و تعرفه
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Put(PansionPetDto dto)
+        {
+            var result = await _PansionPetService.UpdateRateAsync(dto);
+            return Ok(result);
+        }
+
+        /// <summary>
+        ///  حذف آیتم
+        /// </summary>
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public IActionResult Delete(long id)

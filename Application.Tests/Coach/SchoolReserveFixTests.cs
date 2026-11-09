@@ -146,6 +146,36 @@ public class SchoolReserveFixTests : IClassFixture<CoachLocalDbFixture>
     }
 
     [Fact]
+    public async Task Started_BlocksCustomerCancel_AdminCanStillCancel_AndCanComplete()
+    {
+        if (!_fixture.Available) return;
+        var (seed, courseId, _) = await BuildCourseAsync(capacity: null);
+        var pet = await AddPetAsync(seed.OwnerUserId, seed.PetId);
+        var pet2 = await AddPetAsync(seed.OwnerUserId, seed.PetId);
+        var reserveId = await AddReserveAsync(courseId, seed.OwnerUserId, pet, paid: true, DateTime.Now);
+        var secondId = await AddReserveAsync(courseId, seed.OwnerUserId, pet2, paid: true, DateTime.Now);
+        long schoolId;
+        using (var context = _fixture.NewContext())
+            schoolId = await context.SchoolCourses.Where(c => c.Id == courseId).Select(c => c.SchoolId).FirstAsync();
+        var wallets = new Wallets();
+
+        // مدرسه‌ی دیگر نمی‌تواند شروع کند
+        Assert.False((await NewService(seed.OwnerUserId, false, wallets).StartByCompanionAsync(reserveId, schoolId + 1000)).IsSuccess);
+        Assert.True((await NewService(seed.OwnerUserId, false, wallets).StartByCompanionAsync(reserveId, schoolId)).IsSuccess);
+        Assert.False((await NewService(seed.OwnerUserId, false, wallets).StartByCompanionAsync(reserveId, schoolId)).IsSuccess);
+
+        var denied = await NewService(seed.OwnerUserId, false, wallets).UpdateCancelDto(new SchoolReserveCancelDto { Id = reserveId, IsCancel = true, CancelDetail = "late" });
+        Assert.False(denied.IsSuccess);
+        Assert.Empty(wallets.Credits);
+
+        Assert.True((await NewService(seed.OwnerUserId, true, wallets).UpdateCancelDto(new SchoolReserveCancelDto { Id = reserveId, IsCancel = true, CancelDetail = "ops" })).IsSuccess);
+        Assert.Single(wallets.Credits);
+
+        Assert.True((await NewService(seed.OwnerUserId, false, wallets).StartByCompanionAsync(secondId, schoolId)).IsSuccess);
+        Assert.True((await NewService(seed.OwnerUserId, false, wallets).CompleteByCompanionAsync(secondId, schoolId)).IsSuccess);
+    }
+
+    [Fact]
     public async Task Cancel_AfterSettlement_KeepsShares_AndStrangerCannotCancel()
     {
         if (!_fixture.Available) return;

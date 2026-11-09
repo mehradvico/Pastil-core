@@ -85,6 +85,17 @@ namespace Api.Areas.Admin.Controllers
         /// <summary>
         /// بازگردانی مدرسه‌ی حذف‌شده (غیرفعال و منتشرنشده برمی‌گردد)
         /// </summary>
+        /// <summary>
+        /// کمیسیون اصلی مدرسه
+        /// </summary>
+        [HttpPut("commission")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> PutCommission(SchoolCommissionDto dto)
+        {
+            var result = await _schoolService.UpdateCommissionAsync(dto);
+            return Ok(result);
+        }
+
         [HttpPut("Restore")]
         [ProducesResponseType(typeof(BaseResultDto), 200)]
         public async Task<IActionResult> Restore(long id)

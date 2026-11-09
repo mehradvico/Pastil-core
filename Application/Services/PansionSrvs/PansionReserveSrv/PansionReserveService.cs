@@ -141,7 +141,10 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             }
             if (baseSearchDto.IsDaycare.HasValue)
             {
-                model = model.Where(s => s.Pansion.IsDaycare == baseSearchDto.IsDaycare.Value);
+                // نوع رزرو از خودش؛ مرکز می‌تواند هر دو خدمت را داشته باشد.
+                model = baseSearchDto.IsDaycare.Value
+                    ? model.Where(s => s.SchoolCreateDate != null)
+                    : model.Where(s => s.SchoolCreateDate == null);
             }
             switch (baseSearchDto.SortBy)
             {
@@ -220,13 +223,17 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.InfectiousPansionOnlyAcceptsSickPets, dto);
                     }
                     // «حیوانات مجاز پذیرش» مرکز (PansionPets)؛ مرکزی که فهرستی تعریف نکرده همه را می‌پذیرد
-                    var acceptedPetIds = await _context.PansionPets.AsNoTracking()
+                    var pansionPets = await _context.PansionPets.AsNoTracking()
                         .Where(s => s.PansionId == pansion.Id && !s.Deleted)
-                        .Select(s => s.PetId)
                         .ToListAsync();
-                    if (acceptedPetIds.Count > 0 && !acceptedPetIds.Contains(userPet.PetId))
+                    var petMatch = PansionReserveRules.MatchPetRate(pansionPets, userPet.PetId, userPet.Size, out var petRate);
+                    if (petMatch == PansionReserveRules.PetRateMatch.PetNotAccepted)
                     {
                         return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.PansionPetTypeNotAccepted, dto);
+                    }
+                    if (petMatch == PansionReserveRules.PetRateMatch.SizeNotAccepted)
+                    {
+                        return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.PansionPetSizeNotAccepted, dto);
                     }
                     var hasSchoolInputs = !string.IsNullOrWhiteSpace(dto.StartTime) && !string.IsNullOrWhiteSpace(dto.EndTime) && dto.SchoolCreateDate.HasValue;
                     var hasPansionInputs = dto.FromDate.HasValue && dto.ToDate.HasValue;
@@ -283,7 +290,12 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         item.HourCount = PansionReserveRules.DaycareHourCount(startTime, endTime);
                         item.DayCount = 0;
 
-                        item.Price = pansion.SchoolPrice * item.HourCount;
+                        var hourPrice = PansionReserveRules.HourPrice(pansion, petRate);
+                        if (hourPrice <= 0)
+                        {
+                            return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.PansionModeNotOffered, dto);
+                        }
+                        item.Price = hourPrice * item.HourCount;
                         item.PaymentPrice = item.Price;
                     }
 
@@ -309,7 +321,12 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                         item.DayCount = PansionReserveRules.NightCount(from, to);
                         item.HourCount = 0;
 
-                        item.Price = pansion.PansionPrice * item.DayCount;
+                        var nightPrice = PansionReserveRules.NightPrice(pansion, petRate);
+                        if (nightPrice <= 0)
+                        {
+                            return new BaseResultDto<PansionReserveDto>(false, Resource.Notification.PansionModeNotOffered, dto);
+                        }
+                        item.Price = nightPrice * item.DayCount;
                         item.PaymentPrice = item.Price;
                     }
 
@@ -449,7 +466,7 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
         // زمان شروع رزرو (برای سقف مهلت پاسخ مرکز): پانسیون = FromDate، مهد = روز + ساعت شروع
         private static DateTime? ReserveStartAt(PansionReserve reserve)
         {
-            if (reserve.Pansion?.IsDaycare == true && reserve.SchoolCreateDate.HasValue &&
+            if (reserve.SchoolCreateDate.HasValue &&
                 ReservationScheduleValidator.TryGetServiceStartDateTime(reserve.SchoolCreateDate.Value, reserve.StartTime, out var startAt))
                 return startAt;
             return reserve.FromDate;
@@ -500,7 +517,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
                 if (reserveDay.HasValue && reserveDay.Value.Date < DateTime.Today)
                     return new BaseResultDto(false, Resource.Notification.PansionReserveDatePassed);
 
-                var hasOverlap = reserve.Pansion?.IsDaycare == true
+                // حالت رزرو از خودش خوانده می‌شود، چون یک مرکز می‌تواند هم پانسیون باشد هم مهد.
+                var hasOverlap = reserve.SchoolCreateDate.HasValue
                     ? await _context.PansionReserves.AsNoTracking().AnyAsync(s =>
                         s.Id != reserve.Id &&
                         s.PansionId == reserve.PansionId &&
@@ -601,8 +619,8 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
 
             decimal total = (decimal)item.PaymentPrice;
 
-            decimal hourlyPercent = item.Pansion.HourlyCommissionPercent;
-            decimal dailyPercent = item.Pansion.DailyCommissionPercent;
+            decimal hourlyPercent = VenueCommission.Resolve(item.Pansion.HourlyCommissionPercent, item.Pansion.CommissionPercent);
+            decimal dailyPercent = VenueCommission.Resolve(item.Pansion.DailyCommissionPercent, item.Pansion.CommissionPercent);
 
             var hasHour = item.HourCount > 0;
             var hasDay = item.DayCount > 0;

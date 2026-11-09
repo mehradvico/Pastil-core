@@ -619,7 +619,7 @@ namespace Application.Maping
             CreateMap<Pansion, PansionApproveDto>().ReverseMap();
             CreateMap<Pansion, PansionDto>().ReverseMap();
             CreateMap<Pansion, PansionMinVDto>();
-            CreateMap<Pansion, PansionFinanceVDto>().ForMember(d => d.HasCommission, o => o.MapFrom(s => s.DailyCommissionPercent > 0 && s.HourlyCommissionPercent > 0));
+            CreateMap<Pansion, PansionFinanceVDto>().ForMember(d => d.HasCommission, o => o.MapFrom(s => s.CommissionPercent > 0 || (s.DailyCommissionPercent > 0 && s.HourlyCommissionPercent > 0)));
             CreateMap<PansionComment, PansionCommentDto>().ReverseMap();
             CreateMap<PansionComment, PansionCommentVDto>().ForMember(x => x.CreateDate, o => o.MapFrom(m => m.CreateDate.ToShortDate())).ForMember(x => x.PansionName, o => o.MapFrom(m => m.Pansion.Name));
             CreateMap<PansionPictureDto, PansionPicture>().ForMember(x => x.Id, opt => opt.Ignore()).ForMember(x => x.Picture, opt => opt.Ignore());

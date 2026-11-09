@@ -25,6 +25,7 @@ namespace Application.Services.SchoolSrvs.SchoolSrv.Dto
         public string AddressValue { get; set; }
         public PointDto Location { get; set; }
         public int CommentCount { get; set; }
+        public decimal CommissionPercent { get; set; }
         public double RateAvg { get; set; }
         public int RateCount { get; set; }
         public long? PictureId { get; set; }

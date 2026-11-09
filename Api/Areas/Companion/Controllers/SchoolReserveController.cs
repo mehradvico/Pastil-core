@@ -39,6 +39,17 @@ namespace Api.Areas.Companion.Controllers
             return Ok(search);
         }
 
+        /// <summary>ثبت «دوره شروع شد»؛ بعد از آن مشتری خودش نمی‌تواند لغو کند (لغو فقط با ادمین)</summary>
+        [HttpPut("{id}/Start")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Start(long id)
+        {
+            var ownedSchoolId = await _ownership.SchoolOfReserveAsync(id, _currentUser.CurrentUser.UserId);
+            if (!ownedSchoolId.HasValue)
+                return NotFound(new BaseResultDto(false, Resource.Notification.NothingFound));
+            return Ok(await _schoolReserveService.StartByCompanionAsync(id, ownedSchoolId.Value));
+        }
+
         /// <summary>ثبت «کامل‌شده» برای ثبت‌نام پرداخت‌شده‌ی دوره‌ی مدرسه‌ی خودِ نماینده</summary>
         [HttpPut("{id}/Complete")]
         [ProducesResponseType(typeof(BaseResultDto), 200)]

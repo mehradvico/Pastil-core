@@ -196,6 +196,32 @@ public class GroomerReserveApprovalTests : IClassFixture<GroomerLocalDbFixture>
     }
 
     [Fact]
+    public void RefundableCancel_RescheduledKeepsRefundUntilStart()
+    {
+        var now = DateTime.Now;
+        Assert.False(GroomerReserveRules.IsRefundableCancel(now, now.AddHours(2), rescheduleCount: 0));
+        Assert.True(GroomerReserveRules.IsRefundableCancel(now, now.AddHours(2), rescheduleCount: 1));
+        Assert.False(GroomerReserveRules.IsRefundableCancel(now, now.AddMinutes(-1), rescheduleCount: 1));
+    }
+
+    [Fact]
+    public async Task BookerCancel_LateAfterApproval_RefundsOnce_WhenTimeWasChanged()
+    {
+        if (!_fixture.Available) return;
+        var (world, id) = await PaidReserveAsync();
+        await NewApprovalService(_fixture).ApproveAsync(id, null);
+        using (var context = _fixture.NewContext())
+            await context.GroomerReserves.Where(r => r.Id == id)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.DoDate, DateTime.Now.AddHours(3)).SetProperty(r => r.EndDate, DateTime.Now.AddHours(4)).SetProperty(r => r.RescheduleCount, 1));
+
+        Assert.True((await NewApprovalService(_fixture).CancelByBookerAsync(id, world.BookerId)).IsSuccess);
+        Assert.True((await LoadAsync(id)).IsCancel);
+        Assert.Single(await RefundsAsync(id));
+        Assert.False((await NewApprovalService(_fixture).CancelByBookerAsync(id, world.BookerId)).IsSuccess);
+        Assert.Single(await RefundsAsync(id));
+    }
+
+    [Fact]
     public async Task BookerCancel_UnpaidJustClosesAndNeverRefunds()
     {
         if (!_fixture.Available) return;

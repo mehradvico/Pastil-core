@@ -986,7 +986,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
 
         private static void Finish(GroomerReserveVDto row, DateTime now) =>
             row.FreeCancelAvailable = row.IsReserved && !row.IsCancel && row.Status != (int)GroomerReserveStatusEnum.Complete
-                                      && GroomerReserveRules.IsFreeCancel(now, row.DoDate);
+                                      && GroomerReserveRules.IsRefundableCancel(now, row.DoDate, row.RescheduleCount);
 
         private static BaseResultDto<GroomerReserveVDto> Fail(string message) => new BaseResultDto<GroomerReserveVDto>(false, message, null);
 

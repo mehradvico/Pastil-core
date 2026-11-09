@@ -15,5 +15,7 @@ namespace Application.Services.PansionSrvs.PansionPetSrv.Iface
     {
         PansionPetSearchDto Search(PansionPetInputDto baseSearchDto);
         Task<BaseResultDto<PansionPetVDto>> FindAsyncVDto(long id);
+        /// <summary>ویرایش سایز و تعرفه‌ی یک ردیف؛ مرکز و نوع پت با ویرایش عوض نمی‌شوند.</summary>
+        Task<BaseResultDto> UpdateRateAsync(PansionPetDto dto);
     }
 }

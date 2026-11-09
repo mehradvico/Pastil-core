@@ -14,6 +14,8 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv.Iface
         Task<BaseResultDto> UpdateCancelDto(SchoolReserveCancelDto dto);
         Task<BaseResultDto> UpdateStatusDto(SchoolReserveStatusDto dto);
         Task<BaseResultDto> CompleteByCompanionAsync(long id, long ownedSchoolId);
+        /// <summary>ثبت «دوره شروع شد» برای ثبت‌نام پرداخت‌شده؛ بعد از آن لغو مشتری بسته است.</summary>
+        Task<BaseResultDto> StartByCompanionAsync(long id, long ownedSchoolId);
         Task<int?> GetRemainingCapacityAsync(long schoolCourseId);
         Task<BaseResultDto> SchoolReservePaymentCallback(long? reserveId, bool fromWallet = false);
         Task<BaseResultDto> SetRebateCodeAsyncDto(SchoolReserveRebateCodeDto dto);

@@ -108,7 +108,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                         ReserveCode = r.ReserveCode,
                         BookerFullName = ((r.Booker.FirstName ?? "") + " " + (r.Booker.LastName ?? "")).Trim(),
                         PaymentPrice = r.PaymentPrice,
-                        CommissionPercent = r.SchoolCourse.CommissionPercent,
+                        CommissionPercent = r.SchoolCourse.CommissionPercent > 0 ? r.SchoolCourse.CommissionPercent : r.SchoolCourse.School.CommissionPercent,
                         CompanionShare = r.CompanionShare,
                         SiteShare = r.SiteShare,
                         StatusLabel = null,
@@ -191,7 +191,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                         CompanionId = p.CompanionId,
                         DailyCommissionPercent = p.DailyCommissionPercent,
                         HourlyCommissionPercent = p.HourlyCommissionPercent,
-                        HasCommission = p.DailyCommissionPercent > 0 && p.HourlyCommissionPercent > 0
+                        HasCommission = p.CommissionPercent > 0 || (p.DailyCommissionPercent > 0 && p.HourlyCommissionPercent > 0)
                     })
                     .ToListAsync();
                 if (pansions.Count == 0)
@@ -231,7 +231,7 @@ namespace Application.Services.FinanceSrvs.FinanceCompanionSrv
                     ReserveCode = r.ReserveCode,
                     BookerFullName = (r.Booker != null ? ((r.Booker.FirstName ?? "") + " " + (r.Booker.LastName ?? "")).Trim() : ""),
                     PaymentPrice = r.PaymentPrice,
-                    CommissionPercent = r.DayCount > 0 ? r.Pansion.DailyCommissionPercent : r.Pansion.HourlyCommissionPercent,
+                    CommissionPercent = (r.DayCount > 0 ? r.Pansion.DailyCommissionPercent : r.Pansion.HourlyCommissionPercent) > 0 ? (r.DayCount > 0 ? r.Pansion.DailyCommissionPercent : r.Pansion.HourlyCommissionPercent) : r.Pansion.CommissionPercent,
                     CompanionShare = r.CompanionShare,
                     SiteShare = r.SiteShare,
                     StatusLabel = r.Status != null ? r.Status.Name : null,

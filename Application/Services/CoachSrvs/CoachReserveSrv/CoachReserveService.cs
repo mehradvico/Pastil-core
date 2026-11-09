@@ -1194,7 +1194,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
 
         private static void Finish(CoachReserveVDto row, DateTime now) =>
             row.FreeCancelAvailable = row.IsReserved && !row.IsCancel && row.Status != (int)CoachReserveStatusEnum.Complete
-                                      && CoachReserveRules.IsFreeCancel(now, row.DoDate, row.DailyPrice.HasValue);
+                                      && CoachReserveRules.IsRefundableCancel(now, row.DoDate, row.DailyPrice.HasValue, row.RescheduleCount);
 
         private static BaseResultDto<CoachReserveVDto> Fail(string message) => new BaseResultDto<CoachReserveVDto>(false, message, null);
 

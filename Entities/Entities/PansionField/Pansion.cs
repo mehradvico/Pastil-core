@@ -48,6 +48,9 @@ namespace Entities.Entities.PansionField
         public string Regulations { get; set; }
         public string OpenHour { get; set; }
         public string CloseHour { get; set; }
+        // کمیسیون اصلی مرکز؛ درصد روزانه/ساعتی اگر بیشتر از صفر باشد بر آن مقدم است.
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "decimal(5,2)")]
+        public decimal CommissionPercent { get; set; }
         public decimal DailyCommissionPercent { get; set; }
         public decimal HourlyCommissionPercent { get; set; }
         public Companion Companion { get; set; }

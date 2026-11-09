@@ -140,7 +140,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveExcelSrv
                     OperatorDetail = "-",
                     RebatePrice = s.RebatePrice,
 
-                    ComissionPercent = s.DayCount > 0 ? s.Pansion.DailyCommissionPercent : s.Pansion.HourlyCommissionPercent,
+                    ComissionPercent = (s.DayCount > 0 ? s.Pansion.DailyCommissionPercent : s.Pansion.HourlyCommissionPercent) > 0 ? (s.DayCount > 0 ? s.Pansion.DailyCommissionPercent : s.Pansion.HourlyCommissionPercent) : s.Pansion.CommissionPercent,
 
                     CompanionShare = s.CompanionShare,
                     SiteShare = s.SiteShare,

@@ -3013,10 +3013,16 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.PansionPetController.Put(Application.Services.PansionSrvs.PansionPetSrv.Dto.PansionPetDto)">
+            <summary>
+             ویرایش سایز و تعرفه
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:Api.Areas.Admin.Controllers.PansionPetController.Delete(System.Int64)">
             <summary>
-             حذف آیتم 
-            </summary>  
+             حذف آیتم
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.PansionPictureController">
             <summary>
@@ -7807,6 +7813,9 @@
             <summary>
             ثبت‌نام‌های دوره‌های مدرسه‌ی خودِ نماینده
             </summary>
+        </member>
+        <member name="M:Api.Areas.Companion.Controllers.SchoolReserveController.Start(System.Int64)">
+            <summary>ثبت «دوره شروع شد»؛ بعد از آن مشتری خودش نمی‌تواند لغو کند (لغو فقط با ادمین)</summary>
         </member>
         <member name="M:Api.Areas.Companion.Controllers.SchoolReserveController.Complete(System.Int64)">
             <summary>ثبت «کامل‌شده» برای ثبت‌نام پرداخت‌شده‌ی دوره‌ی مدرسه‌ی خودِ نماینده</summary>

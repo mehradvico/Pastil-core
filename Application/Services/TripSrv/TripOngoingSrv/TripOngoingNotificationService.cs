@@ -62,7 +62,7 @@ namespace Application.Services.TripSrv.TripOngoingSrv
             // پت سوار شده و سفر هنوز تمام نشده (مسیر رفت یا برگشت)
             var trips = await _context.Trips.AsNoTracking()
                 .Include(t => t.Driver)
-                .Include(t => t.UserPet).ThenInclude(p => p.Pet)
+                .Include(t => t.UserPet)
                 .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Accepted
                             && t.ProgressStageId == (int)TripProgressStageEnum.PetPickedUp
                             && t.Driver != null)
@@ -107,7 +107,7 @@ namespace Application.Services.TripSrv.TripOngoingSrv
                     if (!TripOngoingRules.ShouldSendUpdate(last?.Token2, last?.CreateDate, text, now)) continue;
 
                     await _pushService.SendPushAsync(PushTypeEnum.PushTripOngoing, trip.UserId,
-                        token1: trip.UserPet?.Pet?.Name, token2: text, token3: key);
+                        token1: trip.UserPet?.Name, token2: text, token3: key);
                 }
                 catch (Exception ex)
                 {
@@ -174,7 +174,7 @@ namespace Application.Services.TripSrv.TripOngoingSrv
                 {
                     var petName = await _context.Trips.AsNoTracking()
                         .Where(t => t.Id == tripId)
-                        .Select(t => t.UserPet.Pet.Name)
+                        .Select(t => t.UserPet.Name)
                         .FirstOrDefaultAsync(ct);
                     await _pushService.SendPushAsync(PushTypeEnum.PushTripOngoingEnd, item.UserId,
                         token1: petName, token3: item.Token3);

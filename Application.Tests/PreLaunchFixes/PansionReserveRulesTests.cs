@@ -80,4 +80,52 @@ public class PansionReserveRulesTests
         Assert.Equal(3, reserve.HourCount);
         Assert.Equal(150_000, reserve.Price);
     }
+
+    private static readonly PansionPet[] DogAndCatRates =
+    {
+        new() { PetId = 1, PetSize = "Small", PansionPrice = 300, SchoolPrice = 50 },
+        new() { PetId = 1, PetSize = "Large", PansionPrice = 500 },
+        new() { PetId = 2, PansionPrice = 250 },
+    };
+
+    [Theory]
+    [InlineData(1, "Small", PansionReserveRules.PetRateMatch.Accepted, 300d)]
+    [InlineData(1, "large", PansionReserveRules.PetRateMatch.Accepted, 500d)]
+    [InlineData(1, "Medium", PansionReserveRules.PetRateMatch.SizeNotAccepted, 0d)]
+    [InlineData(1, null, PansionReserveRules.PetRateMatch.SizeNotAccepted, 0d)]
+    [InlineData(2, null, PansionReserveRules.PetRateMatch.Accepted, 250d)]
+    [InlineData(2, "Large", PansionReserveRules.PetRateMatch.Accepted, 250d)]
+    [InlineData(3, "Small", PansionReserveRules.PetRateMatch.PetNotAccepted, 0d)]
+    public void MatchPetRate_PrefersExactSize_ThenAllSizes(long petId, string size, PansionReserveRules.PetRateMatch expected, double nightPrice)
+    {
+        Assert.Equal(expected, PansionReserveRules.MatchPetRate(DogAndCatRates, petId, size, out var rate));
+        Assert.Equal(nightPrice, rate?.PansionPrice ?? 0);
+    }
+
+    [Fact]
+    public void MatchPetRate_EmptyList_AcceptsEveryPetAtBasePrice()
+    {
+        Assert.Equal(PansionReserveRules.PetRateMatch.Accepted, PansionReserveRules.MatchPetRate(new PansionPet[0], 9, null, out var rate));
+        Assert.Null(rate);
+    }
+
+    [Fact]
+    public void UnitPrices_RateWins_MissingRateFallsBackToCenterPrice()
+    {
+        var pansion = new Pansion { PansionPrice = 1000, SchoolPrice = 100 };
+        var rate = new PansionPet { PansionPrice = 700 };
+
+        Assert.Equal(700, PansionReserveRules.NightPrice(pansion, rate));
+        Assert.Equal(100, PansionReserveRules.HourPrice(pansion, rate));
+        Assert.Equal(1000, PansionReserveRules.NightPrice(pansion, null));
+    }
+
+    [Fact]
+    public void Reprice_UsesPetRate()
+    {
+        var reserve = new PansionReserve { FromDate = new DateTime(2026, 10, 12), ToDate = new DateTime(2026, 10, 14), DayCount = 2, Price = 2000 };
+
+        Assert.Equal(PansionReserveRules.RepriceResult.Changed, PansionReserveRules.Reprice(reserve, new Pansion { PansionPrice = 1000 }, new PansionPet { PansionPrice = 700 }));
+        Assert.Equal(1400, reserve.Price);
+    }
 }

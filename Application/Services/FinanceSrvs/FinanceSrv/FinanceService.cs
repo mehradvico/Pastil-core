@@ -107,7 +107,7 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 {
                     CompanionId = g.Key,
                     Has = 1,
-                    With = g.Any(x => x.DailyCommissionPercent > 0 && x.HourlyCommissionPercent > 0) ? 1 : 0
+                    With = g.Any(x => x.CommissionPercent > 0 || (x.DailyCommissionPercent > 0 && x.HourlyCommissionPercent > 0)) ? 1 : 0
                 }).ToList().ToDictionary(x => x.CompanionId);
 
             var companionReserveStats =
@@ -229,9 +229,9 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 var counts = _context.PansionReserves.Where(r => r.IsReserved && !r.IsCancel)
                     .GroupBy(r => r.PansionId).Select(g => new { g.Key, Count = g.Count() }).ToDictionary(x => x.Key, x => x.Count);
                 venues.AddRange(_context.Pansions.Where(p => !p.Deleted && (q == null || p.Name.Contains(q)))
-                    .Select(p => new FinanceVenueVDto { Kind = "pansion", Id = p.Id, Name = p.Name, PictureUrl = p.Picture != null ? p.Picture.Url : null, Active = p.Active, DailyCommissionPercent = p.DailyCommissionPercent, HourlyCommissionPercent = p.HourlyCommissionPercent, CompanionId = p.CompanionId })
+                    .Select(p => new FinanceVenueVDto { Kind = "pansion", Id = p.Id, Name = p.Name, PictureUrl = p.Picture != null ? p.Picture.Url : null, Active = p.Active, CommissionPercent = p.CommissionPercent, DailyCommissionPercent = p.DailyCommissionPercent, HourlyCommissionPercent = p.HourlyCommissionPercent, CompanionId = p.CompanionId })
                     .ToList()
-                    .Select(v => { v.ReserveCount = counts.TryGetValue(v.Id, out var n) ? n : 0; v.HasCommission = v.DailyCommissionPercent > 0 && v.HourlyCommissionPercent > 0; return v; }));
+                    .Select(v => { v.ReserveCount = counts.TryGetValue(v.Id, out var n) ? n : 0; v.HasCommission = v.CommissionPercent > 0 || (v.DailyCommissionPercent > 0 && v.HourlyCommissionPercent > 0); return v; }));
             }
 
             if (Wants("school"))
@@ -244,12 +244,12 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                               group r by c.SchoolId into g
                               select new { g.Key, Count = g.Count() }).ToDictionary(x => x.Key, x => x.Count);
                 venues.AddRange(_context.Schools.Where(s => !s.Deleted && (q == null || s.Name.Contains(q)))
-                    .Select(s => new FinanceVenueVDto { Kind = "school", Id = s.Id, Name = s.Name, PictureUrl = s.Picture != null ? s.Picture.Url : null, Active = s.Active, CompanionId = s.CompanionId })
+                    .Select(s => new FinanceVenueVDto { Kind = "school", Id = s.Id, Name = s.Name, PictureUrl = s.Picture != null ? s.Picture.Url : null, Active = s.Active, CompanionId = s.CompanionId, CommissionPercent = s.CommissionPercent })
                     .ToList()
                     .Select(v =>
                     {
                         if (courses.TryGetValue(v.Id, out var c)) { v.CourseCount = c.Total; v.CoursesWithCommissionCount = c.With; }
-                        v.HasCommission = v.CourseCount > 0 && v.CourseCount == v.CoursesWithCommissionCount;
+                        v.HasCommission = v.CommissionPercent > 0 || (v.CourseCount > 0 && v.CourseCount == v.CoursesWithCommissionCount);
                         v.ReserveCount = counts.TryGetValue(v.Id, out var n) ? n : 0;
                         return v;
                     }));
@@ -296,7 +296,7 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 .ToList();
 
             var pansionHas = result.Pansions != null && result.Pansions.Count > 0 ? 1 : 0;
-            var pansionWith = (pansionHas == 1 && result.Pansions.Any(p => p.DailyCommissionPercent > 0 && p.HourlyCommissionPercent > 0)) ? 1 : 0;
+            var pansionWith = (pansionHas == 1 && result.Pansions.Any(p => p.HasCommission)) ? 1 : 0;
 
             var assistanceTotal = result.CompanionAssistances?.Count ?? 0;
             var assistanceWith = result.CompanionAssistances?.Count(a => a.CommissionPercent > 0) ?? 0;
@@ -399,6 +399,11 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 if (item == null)
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
 
+                if (dto.CommissionPercent is < 0 or > 100 || dto.DailyCommissionPercent is < 0 or > 100 || dto.HourlyCommissionPercent is < 0 or > 100)
+                    return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidData);
+
+                if (dto.CommissionPercent.HasValue)
+                    item.CommissionPercent = dto.CommissionPercent.Value;
                 item.DailyCommissionPercent = dto.DailyCommissionPercent;
                 item.HourlyCommissionPercent = dto.HourlyCommissionPercent;
 

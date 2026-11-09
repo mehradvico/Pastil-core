@@ -28,4 +28,10 @@ namespace Application.Services.SchoolSrvs.SchoolCourseSrv.Dto
         public bool CertificateEnabled { get; set; }
         public bool Active { get; set; }
     }
+
+    public class SchoolCourseCommissionDto
+    {
+        public long Id { get; set; }
+        public decimal CommissionPercent { get; set; }
+    }
 }

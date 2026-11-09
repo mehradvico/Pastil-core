@@ -104,7 +104,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
 
             // پرداخت‌نشده: فقط بسته می‌شود. پرداخت‌شده: اگر هنوز منتظر تأیید آرایشگاه است یا در مهلت لغو رایگان است، کل مبلغ برمی‌گردد.
             var refund = reserve.IsReserved &&
-                         (GroomerReserveRules.IsPending(reserve.OwnerDecision) || GroomerReserveRules.IsFreeCancel(now, reserve.DoDate));
+                         (GroomerReserveRules.IsPending(reserve.OwnerDecision) || GroomerReserveRules.IsRefundableCancel(now, reserve.DoDate, reserve.RescheduleCount));
             ApplyCancel(reserve, now, null, byBooker: true);
             await _context.SaveChangesAsync(cancellationToken);
 

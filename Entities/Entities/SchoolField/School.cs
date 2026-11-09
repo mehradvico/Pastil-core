@@ -28,6 +28,9 @@ namespace Entities.Entities.SchoolField
         public int RateCount { get; set; }
         public long? PictureId { get; set; }
         public bool Suggested { get; set; }
+        // کمیسیون اصلی مدرسه؛ درصد دوره اگر بیشتر از صفر باشد بر آن مقدم است.
+        [System.ComponentModel.DataAnnotations.Schema.Column(TypeName = "decimal(5,2)")]
+        public decimal CommissionPercent { get; set; }
         // حذف نرم: ردیف پاک نمی‌شود (رزروها و گزارش مالی می‌مانند) ولی از همه‌ی فهرست‌ها، جستجو و رزرو جدید حذف می‌شود.
         // حذف توسط مالک کلینیک یا ادمین؛ فقط ادمین می‌تواند بازگرداند.
         public bool Deleted { get; set; }

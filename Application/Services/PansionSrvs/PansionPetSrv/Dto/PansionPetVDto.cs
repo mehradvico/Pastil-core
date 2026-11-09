@@ -15,6 +15,9 @@ namespace Application.Services.PansionSrvs.PansionPetSrv.Dto
     {
         public long PansionId { get; set; }
         public long PetId { get; set; }
+        public string PetSize { get; set; }
+        public double? PansionPrice { get; set; }
+        public double? SchoolPrice { get; set; }
 
         public PetVDto Pet { get; set; }
     }
