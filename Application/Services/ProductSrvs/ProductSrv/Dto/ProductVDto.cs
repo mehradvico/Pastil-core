@@ -7,6 +7,7 @@ using Application.Services.ProductSrvs.DiscountGroupSrv.Dto;
 using Application.Services.ProductSrvs.StoreSrv.Dto;
 using Application.Services.Setting.CodeSrv.Dto;
 using System;
+using System.Collections.Generic;
 
 namespace Application.Services.ProductSrvs.ProductSrv.Dto
 {
@@ -49,6 +50,10 @@ namespace Application.Services.ProductSrvs.ProductSrv.Dto
         public StoreMinVDto Store { get; set; }
         /// <summary>حداقل یکی از فروشگاه‌های فعالِ دارای موجودی این محصول «ارسال اکسپرس» را فعال کرده است (برای نشان روی کارت محصول).</summary>
         public bool ExpressShipping { get; set; }
+        /// <summary>فروشگاه‌هایی که این محصول را الان با موجودی می‌فروشند، ارزان‌ترین اول (حداکثر ۳؛ فقط در جستجو پر می‌شود). برای نشان فروشگاه روی کارت محصول.</summary>
+        public List<ProductSellerStoreVDto> SellerStores { get; set; }
+        /// <summary>تعداد کل فروشگاه‌های فروشنده‌ی دارای موجودی (برای «+N» کنار نشان).</summary>
+        public int SellerStoreCount { get; set; }
         public PointDto Location { get; set; }
         public CategoryVDto Category { get; set; }
         public CodeDto Status { get; set; }
@@ -56,5 +61,12 @@ namespace Application.Services.ProductSrvs.ProductSrv.Dto
         public PictureVDto Picture { get; set; }
         public BrandVDto Brand { get; set; }
         public DiscountGroupVDto DiscountGroup { get; set; }
+    }
+
+    public class ProductSellerStoreVDto
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public PictureVDto Picture { get; set; }
     }
 }

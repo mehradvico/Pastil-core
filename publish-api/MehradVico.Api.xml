@@ -5072,14 +5072,22 @@
             حذف نرم مدرسه توسط ادمین (دوره‌ها، رزروها و گزارش مالی می‌مانند؛ با ثبت‌نام باز پرداخت‌شده حذف نمی‌شود)
             </summary>
         </member>
-        <member name="M:Api.Areas.Admin.Controllers.SchoolController.Restore(System.Int64)">
+        <member name="M:Api.Areas.Admin.Controllers.SchoolController.PutCommission(Application.Services.SchoolSrvs.SchoolSrv.Dto.SchoolCommissionDto)">
             <summary>
             بازگردانی مدرسه‌ی حذف‌شده (غیرفعال و منتشرنشده برمی‌گردد)
+            </summary>
+            <summary>
+            کمیسیون اصلی مدرسه
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.SchoolCourseController">
             <summary>
             دوره‌های مدرسه
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.SchoolCourseController.PutCommission(Application.Services.SchoolSrvs.SchoolCourseSrv.Dto.SchoolCourseCommissionDto)">
+            <summary>
+            فقط کمیسیون سایت؛ بقیه‌ی فیلدهای دوره (از جمله امتیاز) دست نمی‌خورد
             </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.SchoolCoursePetController">

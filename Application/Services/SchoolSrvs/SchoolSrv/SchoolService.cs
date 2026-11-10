@@ -27,8 +27,11 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
         private readonly ILogger<SchoolService> _logger;
         private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
 
-        public SchoolService(IDataBaseContext _context, IMapper mapper, IPushNotificationService pushNotificationService, ILogger<SchoolService> logger, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null) : base(_context, mapper)
+        private readonly Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms _registrationSms;
+
+        public SchoolService(IDataBaseContext _context, IMapper mapper, IPushNotificationService pushNotificationService, ILogger<SchoolService> logger, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null, Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms registrationSms = null) : base(_context, mapper)
         {
+            _registrationSms = registrationSms;
             this._context = _context;
             this.mapper = mapper;
             this._pushNotificationService = pushNotificationService;
@@ -167,6 +170,8 @@ namespace Application.Services.SchoolSrvs.SchoolSrv
             // مدرسه‌ی تازه تا تأیید ادمین غیرفعال است (ثبتِ خودِ ادمین در NoticeEventService نادیده گرفته می‌شود)
             if (_reviewNotifier != null)
                 await _reviewNotifier.VenueSubmittedAsync("School", item.Id, item.Name, null);
+            if (_registrationSms != null)
+                await _registrationSms.SendAsync(Application.Services.Setting.MessageSenderSrv.VenueRegistrationKind.School, item.Name, null, item.ProviderId, item.CompanionId);
             return new BaseResultDto<SchoolDto>(true, mapper.Map<SchoolDto>(item));
         }
 

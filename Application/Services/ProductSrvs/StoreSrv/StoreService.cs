@@ -41,8 +41,11 @@ namespace Application.Services.ProductSrvs.StoreSrv
         private readonly IProviderService _providerService;
         private readonly string connectionString;
 
-        public StoreService(IDataBaseContext _context, IMapper mapper, IConfiguration config, IProductService productService, INoticeService noticeService, IPushNotificationService pushNotificationService, ILogger<StoreService> logger, IProviderService providerService) : base(_context: _context, mapper: mapper)
+        private readonly Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms _registrationSms;
+
+        public StoreService(IDataBaseContext _context, IMapper mapper, IConfiguration config, IProductService productService, INoticeService noticeService, IPushNotificationService pushNotificationService, ILogger<StoreService> logger, IProviderService providerService, Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms registrationSms = null) : base(_context: _context, mapper: mapper)
         {
+            _registrationSms = registrationSms;
             this._context = _context;
             this.mapper = mapper;
             this._productService = productService;
@@ -169,6 +172,8 @@ namespace Application.Services.ProductSrvs.StoreSrv
                     item.ReferralCode = await ReferralCodeGenerator.CreateStoreCodeAsync(_context);
                     await _context.Stores.AddAsync(item);
                     _context.SaveChanges();
+                    if (_registrationSms != null)
+                        await _registrationSms.SendAsync(Application.Services.Setting.MessageSenderSrv.VenueRegistrationKind.Store, item.Name, null, item.ProviderId);
                     return new BaseResultDto<StoreDto>(true, mapper.Map<StoreDto>(item));
                 }
 
@@ -243,6 +248,8 @@ namespace Application.Services.ProductSrvs.StoreSrv
                 return new BaseResultDto<StoreDto>(false, Resource.Notification.StoreDataConflictsWithExistingData, dto);
             }
             await TryCreateNoticeAsync(item, NoticeTypeLabels.StoreSubmitted, userId);
+            if (_registrationSms != null)
+                await _registrationSms.SendAsync(Application.Services.Setting.MessageSenderSrv.VenueRegistrationKind.Store, item.Name, userId);
 
             return new BaseResultDto<StoreDto>(true, mapper.Map<StoreDto>(item));
         }

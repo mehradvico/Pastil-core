@@ -2,7 +2,7 @@
 
 این سند از کنترلرها و DTOهای فعلی `backend` تولید شده و برای پیاده‌سازی کلاینت به فایل یا OpenAPI دیگری نیاز ندارد. قرارداد کد فعلی را توصیف می‌کند و دربارهٔ استقرار نسخه‌ای تازه در Production ادعا نمی‌کند. نام فیلدهای JSON در مثال‌ها به صورت camelCase نوشته شده‌اند؛ نام کلاس‌های C# در جدول‌ها عین کد است.
 
-**پوشش:** 121 عملیات در چهار سطح عمومی، مشتری، مالک/نماینده و مدیر؛ 86 تعریف DTO با 601 فیلد تعریف‌شده. مسیرها از attributeهای `Http*` و نوع پاسخ از `ProducesResponseType(200)` خود کنترلر خوانده شده‌اند.
+**پوشش:** 126 عملیات در چهار سطح عمومی، مشتری، مالک/نماینده و مدیر؛ 90 تعریف DTO با 631 فیلد تعریف‌شده. مسیرها از attributeهای `Http*` و نوع پاسخ از `ProducesResponseType(200)` خود کنترلر خوانده شده‌اند.
 
 ## قواعد مشترک خواندن پاسخ و دسترسی
 
@@ -257,7 +257,7 @@
 **ورودی:** `id: long` در query؛ `accept: bool` در query  
 **پاسخ 200:** `BaseResultDto`
 
-## مالک/نمایندهٔ آرایشگاه — 44 عملیات
+## مالک/نمایندهٔ آرایشگاه — 46 عملیات
 
 | روش | مسیر | ورودی | پاسخ 200 | شرح |
 |---|---|---|---|---|
@@ -281,7 +281,8 @@
 | `PUT` | `/api/Companion/GroomerReserve/Approve` | `id` (query) | `BaseResultDto` | تغییر تأیید رزرو آرایشگاه |
 | `PUT` | `/api/Companion/GroomerReserve/Reject` | `dto` (بدنه JSON) | `BaseResultDto` | رد رزرو (دلیل الزامی)؛ کل مبلغ به کیف پول مشتری برمی‌گردد |
 | `PUT` | `/api/Companion/GroomerReserve/Reschedule` | `dto` (بدنه JSON) | `BaseResultDto<GroomerReserveVDto>` | تغییر زمان نوبت (به مشتری پوش و پیامک می‌رود)؛ فقط روی زمان آزاد آرایشگاه |
-| `PUT` | `/api/Companion/GroomerReserve/Complete` | `id` (query) | `BaseResultDto` | تکمیل رزرو بعد از انجام خدمت |
+| `PUT` | `/api/Companion/GroomerReserve/Assign` | `dto` (بدنه JSON) | `BaseResultDto<GroomerReserveVDto>` | تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو) بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده. طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md سپردن رزرو پرداخت‌شده به یکی از پرسنل (یا خود مالک)؛ assigneeUserId خالی = برداشتن پرسنل. پرسنل در پنل اپراتور می‌بیند و پوش می‌گیرد. |
+| `PUT` | `/api/Companion/GroomerReserve/Complete` | `id` (query), `dto` (بدنه JSON) | `BaseResultDto<GroomerReserveVDto>` | تغییر تکمیل رزرو آرایشگاه |
 | `GET` | `/api/Companion/GroomerReview` | `dto` (query) | `GroomerReviewPage` | فهرست/مشاهده نظر آرایشگاه |
 | `PUT` | `/api/Companion/GroomerReview/Answer` | `dto` (بدنه JSON) | `BaseResultDto` | تغییر پاسخ نظر آرایشگاه |
 | `GET` | `/api/Companion/GroomerSchedule/Times` | `groomerId` (query) | `BaseResultDto<List<GroomerTimeVDto>>` | فهرست/مشاهده ساعت‌های کاری برنامهٔ کاری آرایشگاه |
@@ -304,6 +305,7 @@
 | `GET` | `/api/Companion/GroomerUser` | `groomerId` (query) | `BaseResultDto<List<GroomerStaffVDto>>` | فهرست/مشاهده پرسنل آرایشگاه |
 | `POST` | `/api/Companion/GroomerUser` | `dto` (بدنه JSON) | `BaseResultDto<GroomerStaffVDto>` | ثبت پرسنل آرایشگاه |
 | `PUT` | `/api/Companion/GroomerUser/Active` | `id` (query), `active` (query) | `BaseResultDto` | تغییر وضعیت فعالیت پرسنل آرایشگاه |
+| `PUT` | `/api/Companion/GroomerUser/Expertise` | `dto` (بدنه JSON) | `BaseResultDto<GroomerStaffVDto>` | نقش/تخصص‌های یک عضو تیم (شناسه‌ها از GET api/Expertise?ProviderRole=Groomer؛ حداکثر ۱۰، لیست خالی = پاک کردن). فقط مالک/مدیر مرکز. |
 | `DELETE` | `/api/Companion/GroomerUser` | `id` (query) | `BaseResultDto` | حذف پرسنل آرایشگاه |
 
 ### `GET /api/Companion/Groomer`
@@ -450,12 +452,19 @@
 
 **قاعدهٔ اختصاصی:** فقط رزرو پرداخت‌شدهٔ مجاز؛ زمان جدید باید آینده، در ساعت کاری و دارای ظرفیت باشد؛ `rescheduleCount` و `originalDoDate` ثبت می‌شوند.
 
+### `PUT /api/Companion/GroomerReserve/Assign`
+
+**کار:** تکمیل رزرو بعد از انجام خدمت (مالک یا پرسنل انتخاب‌شده‌ی همین رزرو) بدنه اختیاری است: finalAmount، receivedAtVenue، notReceived، detail. بدون بدنه = مبلغ نهایی همان قیمت و باقی‌مانده در محل دریافت شده. طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md سپردن رزرو پرداخت‌شده به یکی از پرسنل (یا خود مالک)؛ assigneeUserId خالی = برداشتن پرسنل. پرسنل در پنل اپراتور می‌بیند و پوش می‌گیرد.  
+**دسترسی:** مالک/نمایندهٔ آرایشگاه با JWT و کنترل دسترسی همان ناحیه  
+**ورودی:** `dto: VenueReserveAssignDto` در بدنه JSON  
+**پاسخ 200:** `BaseResultDto<GroomerReserveVDto>`
+
 ### `PUT /api/Companion/GroomerReserve/Complete`
 
-**کار:** تکمیل رزرو بعد از انجام خدمت  
+**کار:** تغییر تکمیل رزرو آرایشگاه  
 **دسترسی:** مالک/نمایندهٔ آرایشگاه با JWT و کنترل دسترسی همان ناحیه  
-**ورودی:** `id: long` در query  
-**پاسخ 200:** `BaseResultDto`
+**ورودی:** `id: long` در query؛ `dto: ReserveCompleteDto` در بدنه JSON (پیش‌فرض `null`)  
+**پاسخ 200:** `BaseResultDto<GroomerReserveVDto>`
 
 ### `GET /api/Companion/GroomerReview`
 
@@ -621,12 +630,48 @@
 **ورودی:** `id: long` در query؛ `active: bool` در query  
 **پاسخ 200:** `BaseResultDto`
 
+### `PUT /api/Companion/GroomerUser/Expertise`
+
+**کار:** نقش/تخصص‌های یک عضو تیم (شناسه‌ها از GET api/Expertise?ProviderRole=Groomer؛ حداکثر ۱۰، لیست خالی = پاک کردن). فقط مالک/مدیر مرکز.  
+**دسترسی:** مالک/نمایندهٔ آرایشگاه با JWT و کنترل دسترسی همان ناحیه  
+**ورودی:** `dto: GroomerStaffExpertiseDto` در بدنه JSON  
+**پاسخ 200:** `BaseResultDto<GroomerStaffVDto>`
+
 ### `DELETE /api/Companion/GroomerUser`
 
 **کار:** حذف پرسنل آرایشگاه  
 **دسترسی:** مالک/نمایندهٔ آرایشگاه با JWT و کنترل دسترسی همان ناحیه  
 **ورودی:** `id: long` در query  
 **پاسخ 200:** `BaseResultDto`
+
+## اپراتور و پرسنل — 3 عملیات
+
+| روش | مسیر | ورودی | پاسخ 200 | شرح |
+|---|---|---|---|---|
+| `GET` | `/api/Operator/GroomerReserve` | `dto` (query) | `GroomerReservePage` | فقط رزروهای پرداخت‌شده‌ای که به من سپرده شده (تا وقتی عضو فعال مرکز هستم) |
+| `GET` | `/api/Operator/GroomerReserve/{id}` | `id` (مسیر) | `BaseResultDto<GroomerReserveVDto>` | فهرست/مشاهده GroomerReserve Operator |
+| `PUT` | `/api/Operator/GroomerReserve/Complete` | `id` (query), `dto` (بدنه JSON) | `BaseResultDto<GroomerReserveVDto>` | تکمیل رزرو بعد از انجام خدمت (همان قواعد مالک؛ فقط پرسنل همین رزرو) بدنه اختیاری: finalAmount، receivedAtVenue، notReceived، detail. طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md |
+
+### `GET /api/Operator/GroomerReserve`
+
+**کار:** فقط رزروهای پرداخت‌شده‌ای که به من سپرده شده (تا وقتی عضو فعال مرکز هستم)  
+**دسترسی:** اپراتور و پرسنل با JWT و کنترل دسترسی همان ناحیه  
+**ورودی:** `dto: GroomerReserveSearchInputDto` در query  
+**پاسخ 200:** `GroomerReservePage`
+
+### `GET /api/Operator/GroomerReserve/{id}`
+
+**کار:** فهرست/مشاهده GroomerReserve Operator  
+**دسترسی:** اپراتور و پرسنل با JWT و کنترل دسترسی همان ناحیه  
+**ورودی:** `id: long` در مسیر  
+**پاسخ 200:** `BaseResultDto<GroomerReserveVDto>`
+
+### `PUT /api/Operator/GroomerReserve/Complete`
+
+**کار:** تکمیل رزرو بعد از انجام خدمت (همان قواعد مالک؛ فقط پرسنل همین رزرو) بدنه اختیاری: finalAmount، receivedAtVenue، notReceived، detail. طراحی: backend/Docs/RESERVE_COMPLETE_FINAL_AMOUNT_NEMAYANDE_APP_FA.md  
+**دسترسی:** اپراتور و پرسنل با JWT و کنترل دسترسی همان ناحیه  
+**ورودی:** `id: long` در query؛ `dto: ReserveCompleteDto` در بدنه JSON (پیش‌فرض `null`)  
+**پاسخ 200:** `BaseResultDto<GroomerReserveVDto>`
 
 ## مدیریت — 50 عملیات
 
@@ -655,7 +700,7 @@
 | `GET` | `/api/Admin/GroomerReserve/{id}` | `id` (مسیر) | `BaseResultDto<GroomerReserveVDto>` | جزئیات رزرو آرایشگاه |
 | `PUT` | `/api/Admin/GroomerReserve/Approve` | `id` (query) | `BaseResultDto` | تغییر تأیید رزرو آرایشگاه |
 | `PUT` | `/api/Admin/GroomerReserve/Reject` | `dto` (بدنه JSON) | `BaseResultDto` | تغییر رد رزرو آرایشگاه |
-| `PUT` | `/api/Admin/GroomerReserve/Complete` | `id` (query) | `BaseResultDto` | تغییر تکمیل رزرو آرایشگاه |
+| `PUT` | `/api/Admin/GroomerReserve/Complete` | `id` (query) | `BaseResultDto<GroomerReserveVDto>` | تغییر تکمیل رزرو آرایشگاه |
 | `PUT` | `/api/Admin/GroomerReserve/Reschedule` | `dto` (بدنه JSON) | `BaseResultDto<GroomerReserveVDto>` | تغییر زمان نوبت (به کاربر پوش و پیامک می‌رود) |
 | `PUT` | `/api/Admin/GroomerReserve/Cancel` | `dto` (بدنه JSON), `refund` (query) | `BaseResultDto` | لغو توسط ادمین؛ refund=true کل مبلغ پرداخت‌شده را به کیف پول کاربر برمی‌گرداند |
 | `GET` | `/api/Admin/GroomerReview` | `dto` (query) | `GroomerReviewPage` | فهرست/مشاهده نظر آرایشگاه |
@@ -851,7 +896,7 @@
 **کار:** تغییر تکمیل رزرو آرایشگاه  
 **دسترسی:** مدیریت با JWT و کنترل دسترسی همان ناحیه  
 **ورودی:** `id: long` در query  
-**پاسخ 200:** `BaseResultDto`
+**پاسخ 200:** `BaseResultDto<GroomerReserveVDto>`
 
 ### `PUT /api/Admin/GroomerReserve/Reschedule`
 
@@ -1064,6 +1109,7 @@
 | `GET /api/Companion/GroomerReserve` | `GroomerReservePage` |
 | `GET /api/Companion/GroomerReview` | `GroomerReviewPage` |
 | `GET /api/Companion/GroomerSettlement` | `SettlementSearchDto` |
+| `GET /api/Operator/GroomerReserve` | `GroomerReservePage` |
 | `GET /api/Admin/Groomer` | `GroomerSearchDto` |
 | `GET /api/Admin/GroomerPortfolioComment` | `GroomerPortfolioPage<GroomerPortfolioCommentVDto>` |
 | `GET /api/Admin/GroomerPortfolio` | `GroomerPortfolioPage<GroomerPortfolioPostVDto>` |
@@ -1214,6 +1260,18 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 | فیلد | نوع C# / JSON | توضیح صریح سورس |
 |---|---|---|
 | `enName` | `string` | — |
+
+### `ExpertiseVDto`
+
+پایه: `Name_FieldDto`
+
+| فیلد | نوع C# / JSON | توضیح صریح سورس |
+|---|---|---|
+| `priority` | `int` | — |
+| `active` | `bool` | — |
+| `providerRoleId` | `long?` | — |
+| `providerRoleName` | `string` | — |
+| `providerRoleLabel` | `string` | — |
 
 ### `GroomerActiveDto`
 
@@ -1621,6 +1679,8 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 | `groomerId` | `long?` | — |
 | `providerId` | `long?` | — |
 | `ownerUserId` | `long?` | فقط رزروهای آرایشگاه‌های این مالک (اپ نماینده). |
+| `assigneeUserId` | `long?` | فقط رزروهای سپرده‌شده به این پرسنل (پنل اپراتور؛ سرور پر می‌کند). |
+| `unassigned` | `bool?` | true = فقط رزروهایی که هنوز پرسنل ندارند. |
 | `userPetId` | `long?` | — |
 | `status` | `int?` | — |
 | `ownerDecision` | `int?` | — |
@@ -1681,6 +1741,13 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 | `createDate` | `DateTime` | — |
 | `paidDate` | `DateTime?` | — |
 | `doneDate` | `DateTime?` | — |
+| `finalAmount` | `double` | مبلغ نهایی ثبت‌شده موقع تکمیل؛ برای رزرو تکمیل‌نشده/قدیمی = Price. |
+| `receivedAtVenue` | `double` | مبلغ دریافتی در محل که ارائه‌دهنده ثبت کرد. |
+| `notReceived` | `bool` | true = باقی‌مانده دریافت نشد و بدهی مشتری شد (DebtAmount). |
+| `completeDetail` | `string` | — |
+| `completedAt` | `DateTime?` | زمان تکمیل (همان DoneDate). |
+| `debtAmount` | `double` | — |
+| `debtPaidDate` | `DateTime?` | زمان تسویه‌ی بدهی (کیف پول، دریافت مستقیم یا صفر کردن ادمین)؛ null = بدهی باز. |
 | `ownerDecision` | `int` | — |
 | `ownerDecisionDate` | `DateTime?` | — |
 | `ownerDecisionReason` | `string` | — |
@@ -1815,6 +1882,7 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 | `pictureId` | `long?` | — |
 | `discription` | `string` | — |
 | `petSize` | `string` | Small/Medium/Large؛ خالی = همه‌ی سایزها. |
+| `petSizes` | `List<string>` | چند سایز (Small/Medium/Large)؛ اگر پر باشد بر PetSize مقدم است. خالی یا هر سه = همه‌ی سایزها. |
 
 ### `GroomerServicePackageVDto`
 
@@ -1831,6 +1899,7 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 | `activationValue` | `string` | — |
 | `discription` | `string` | — |
 | `petSize` | `string` | — |
+| `petSizes` | `List<string>` | سایزهای بسته به‌صورت لیست؛ خالی = همه‌ی سایزها. PetSize همان مقدار به‌صورت «Small,Medium» است. |
 
 ### `GroomerServiceUsersDto`
 
@@ -1869,7 +1938,17 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 | فیلد | نوع C# / JSON | توضیح صریح سورس |
 |---|---|---|
 | `groomerId` | `long` | — |
+| `expertiseIds` | `List<long>` | اختیاری: نقش/تخصص‌های عضو (شناسه‌های GET api/Expertise؛ حداکثر ۱۰) |
 | `mobile` | `string` | کاربر باید قبلاً در پاستیل ثبت‌نام کرده باشد. |
+
+### `GroomerStaffExpertiseDto`
+
+تعیین نقش/تخصص‌های یک عضو تیم (PUT …/GroomerUser/Expertise)؛ لیست خالی = پاک کردن
+
+| فیلد | نوع C# / JSON | توضیح صریح سورس |
+|---|---|---|
+| `id` | `long` | — |
+| `expertiseIds` | `List<long>` | — |
 
 ### `GroomerStaffInviteVDto`
 
@@ -1887,6 +1966,9 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 
 | فیلد | نوع C# / JSON | توضیح صریح سورس |
 |---|---|---|
+| `expertiseId` | `long?` | — |
+| `expertises` | `List<Application.Services.CompanionSrvs.ExpertiseSrv.Dto.ExpertiseVDto>` | — |
+| `expertiseName` | `string` | — |
 | `id` | `long` | — |
 | `groomerId` | `long` | — |
 | `userId` | `long` | — |
@@ -2029,6 +2111,8 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 | `pansionReserveId` | `long?` | — |
 | `schoolReserveId` | `long?` | — |
 | `groomerReserveId` | `long?` | — |
+| `clinicReserveId` | `long?` | — |
+| `coachReserveId` | `long?` | — |
 | `companionReserveBatchId` | `long?` | — |
 | `tripId` | `long?` | — |
 | `cargoId` | `long?` | — |
@@ -2086,6 +2170,17 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 | `active` | `bool` | — |
 | `user` | `UserMinVDto` | — |
 
+### `ReserveCompleteDto`
+
+بدنه‌ی اختیاری PUT /api/Companion/{Coach|Clinic|Groomer}Reserve/Complete?id=؛ بدون بدنه رفتار قبلی حفظ می‌شود.
+
+| فیلد | نوع C# / JSON | توضیح صریح سورس |
+|---|---|---|
+| `finalAmount` | `double?` | مبلغ نهایی خدمت (≥ ۰ و ≥ مبلغ پرداخت آنلاین)؛ خالی = قیمت رزرو. |
+| `receivedAtVenue` | `double?` | مبلغ دریافتی در محل (۰ تا FinalAmount − پرداخت آنلاین)؛ خالی = کل باقی‌مانده (یا ۰ اگر NotReceived). |
+| `notReceived` | `bool` | true = باقی‌مانده‌ی دریافت‌نشده بدهی مشتری می‌شود. |
+| `detail` | `string` | توضیح (حداکثر ۵۰۰ کاراکتر). |
+
 ### `SettlementInputDto`
 
 پایه: `BaseInputDto, ISettlementSearchFields`
@@ -2103,7 +2198,7 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 
 | فیلد | نوع C# / JSON | توضیح صریح سورس |
 |---|---|---|
-| `type` | `string` | Reserve \| Pansion \| Consultation \| School \| Order \| Groomer |
+| `type` | `string` | Reserve \| Pansion \| Consultation \| School \| Order \| Groomer \| Clinic \| Coach |
 | `code` | `string` | — |
 | `venueName` | `string` | — |
 | `bookerFullName` | `string` | — |
@@ -2247,6 +2342,15 @@ GET /api/EndUser/GroomerReserve/Availability?groomerId=51&date=2026-11-01&packag
 | `isFemale` | `bool` | — |
 | `picture` | `PictureVDto` | — |
 | `userCurrentLocation` | `UserCurrentLocationVDto` | — |
+
+### `VenueReserveAssignDto`
+
+بدنه‌ی سپردن رزرو کلینیک/آرایشگاه/مربی به پرسنل؛ AssigneeUserId خالی = برداشتن پرسنل.
+
+| فیلد | نوع C# / JSON | توضیح صریح سورس |
+|---|---|---|
+| `id` | `long` | — |
+| `assigneeUserId` | `long?` | — |
 
 ## قاعدهٔ نگهداری سند
 

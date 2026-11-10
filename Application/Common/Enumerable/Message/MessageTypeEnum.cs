@@ -85,6 +85,7 @@
         GroomerReserveCancelledByAdminForUser,
         GroomerReserveRescheduledForUser,
         GroomerReserveRescheduledForGroomer,
-        GroomerStaffInvite
+        GroomerStaffInvite,
+        VenueRegisteredForOwner
     }
 }

@@ -2911,4 +2911,22 @@
   <data name="CoachPackageBoardingDaysRequired" xml:space="preserve">
     <value>Enter the number of boarding days for a training boarding package with a daily fee.</value>
   </data>
+  <data name="VenueRegistrationKindStore" xml:space="preserve">
+    <value>Pet shop</value>
+  </data>
+  <data name="VenueRegistrationKindClinic" xml:space="preserve">
+    <value>Clinic</value>
+  </data>
+  <data name="VenueRegistrationKindCoach" xml:space="preserve">
+    <value>Coach</value>
+  </data>
+  <data name="VenueRegistrationKindPansion" xml:space="preserve">
+    <value>Boarding</value>
+  </data>
+  <data name="VenueRegistrationKindSchool" xml:space="preserve">
+    <value>School</value>
+  </data>
+  <data name="VenueRegistrationKindGroomer" xml:space="preserve">
+    <value>Grooming salon</value>
+  </data>
 </root>

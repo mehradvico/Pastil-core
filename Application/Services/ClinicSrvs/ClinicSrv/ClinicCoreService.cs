@@ -25,8 +25,11 @@ namespace Application.Services.ClinicSrvs.ClinicSrv
         private readonly IClinicNotifier _notifier;
         private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
 
-        public ClinicCoreService(IDataBaseContext context, IMapper mapper, ILogger<ClinicCoreService> logger, IClinicNotifier notifier = null, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null)
+        private readonly Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms _registrationSms;
+
+        public ClinicCoreService(IDataBaseContext context, IMapper mapper, ILogger<ClinicCoreService> logger, IClinicNotifier notifier = null, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null, Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms registrationSms = null)
         {
+            _registrationSms = registrationSms;
             _context = context;
             _mapper = mapper;
             _logger = logger;
@@ -153,6 +156,8 @@ namespace Application.Services.ClinicSrvs.ClinicSrv
                 // درخواست ارائه‌دهنده: اعلان ادمین برای بررسی و تأیید
                 if (!byAdmin && _reviewNotifier != null)
                     await _reviewNotifier.VenueSubmittedAsync("Clinic", item.Id, item.Name, actorUserId);
+                if (_registrationSms != null)
+                    await _registrationSms.SendAsync(Application.Services.Setting.MessageSenderSrv.VenueRegistrationKind.Clinic, item.Name, item.OwnerId);
                 return await FindAsyncVDto(item.Id);
             }
             catch (Exception ex)

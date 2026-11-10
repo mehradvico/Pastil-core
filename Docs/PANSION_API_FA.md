@@ -2,15 +2,14 @@
 
 این صفحه از route، کنترلر، سرویس و DTOهای سورس فعلی تهیه شده است. مسیرها، شکل ورودی و خروجی و قواعد اجرایی لازم در همین صفحه آمده‌اند. این قرارداد snapshot کد است و به‌تنهایی استقرار Production را اثبات نمی‌کند. نام JSON فیلدها در مثال‌ها camelCase است.
 
-**پوشش:** 72 عملیات در چهار سطح؛ 106 تعریف DTO با 1054 فیلد. 58 عملیات پاسخ envelope دارند و بقیه پاسخ مستقیم می‌دهند.
+**پوشش:** 80 عملیات در چهار سطح؛ 118 تعریف DTO با 1164 فیلد. 64 عملیات پاسخ envelope دارند و بقیه پاسخ مستقیم می‌دهند.
 
 ## قواعد مشترک دسترسی، مدل خطا و پاسخ
 
 - `BaseResultDto<T>` چهار بخش `isSuccess`، `messages`، `code` و `data` دارد؛ نوع بدون `<T>` فیلد `data` ندارد. `messages` آرایهٔ جفت پیام است. برای تصمیم موفقیت صرفاً HTTP 200 کافی نیست: `isSuccess` را بررسی کنید. پاسخ‌های `SearchDto` مستقیم‌اند و envelope ندارند.
 - مسیرهای عمومی `/api/Pansion`، `/api/PansionReserve/{PansionId}`، `/api/PansionSiteMap` و `/api/Site/Pansion` بدون `[Authorize]` یا دارای `[AllowAnonymous]` هستند. `GET /api/EndUser/PansionComment` نیز استثنائاً آزاد است. باقی EndUser، Companion و Admin به JWT معتبر نیاز دارند.
 - دسترسی Admin با policy مرکزی ناحیه کنترل می‌شود: نقش مدیر یا permission معتبر همان controller/action. در Companion، policy عضویت ناحیه به تنظیم `Security:AreaPolicyMode` وابسته است؛ مالکیت در سرویس/کنترلر باید جداگانه بررسی شود. route جستجو و جزئیات رزرو نماینده به علت غلط‌املایی `[Area]` با `/api/Comapnion/` شروع می‌شود.
-- **شکاف دسترسی فعلی:** `[Area("Comapnion")]` با فهرست convention (`Seller/Companion/Driver`) تطبیق ندارد؛ پس دو GET رزرو `/api/Comapnion/PansionReserve` فقط `[Authorize]` دارند و policy عضویت `AreaMember:Companion` نمی‌گیرند. وقتی `CurrentUser.CompanionId` تهی است، سرویس فیلتر مالکیت را هم حذف می‌کند؛ جستجو و جزئیات ممکن است رزرو دیگران را افشا کنند. تا اصلاح بک‌اند، هیچ کلاینت مشتری نباید این مسیر را proxy کند؛ مسیر مشتری `GET /api/EndUser/PansionReserve/{id}` است.
-- **شکاف‌های هم‌خانوادهٔ Companion:** `PUT /api/Companion/PansionActive` و `PUT /api/Companion/PansionReserveChangeStatus` نیز `CompanionId` nullable را به سرویسی می‌دهند که فقط وقتی مقدار داشته باشد مالکیت را بررسی می‌کند؛ در حالت Audit کاربر صرفاً JWTدار و در حالت Enforce عضو دارای `IsCompanionUser` ولی بدون CompanionId ممکن است این actionها را بدون مالکیت اجرا کند. جستجوی Pansion/PansionPet/PansionPicture با CompanionId تهی نیز بی‌فیلتر و جزئیات Pet/Picture بدون کنترل مالکیت‌اند. این موارد نیاز به اصلاح بک‌اند دارند.
+- **کنترل مالکیت:** کنترلرهای ناحیهٔ نماینده مالکیت را با کاربر جاری و `PansionOwnershipService` می‌سنجند. `api/Comapnion/PansionReserve` فقط نام قدیمی موقت است و کلاینت جدید باید `api/Companion/PansionReserve` را صدا بزند.
 - `[ApiController]` برای بدنه/پارامتر نامعتبر می‌تواند HTTP 400، نبود توکن 401 و نبود مجوز 403 بدهد. بعضی جزئیات غیرمجاز HTTP 404 دارند؛ بیشتر خطاهای دامنه در HTTP 200 با `isSuccess=false` هستند. پیام متنی را قرارداد پایدار تصمیم‌گیری فرض نکنید.
 
 ```json
@@ -19,10 +18,16 @@
 
 ## ترتیب امن فراخوانی از دید کلاینت
 
-1. فهرست عمومی سایت را از `GET /api/Site/Pansion` بگیرید؛ `isDaycare=false` پانسیون شبانه و `isDaycare=true` مهد ساعتی را جدا می‌کند. از جزئیات همین مسیر برای صفحهٔ معرفی استفاده کنید.
+1. فهرست عمومی سایت را از `GET /api/Site/Pansion` بگیرید؛ `isDaycare=false` برای شبانه و `isDaycare=true` برای مهد است، اما `Search` رکوردهای قدیمی با `IsDaycare=null` را در **هر دو نتیجه** می‌آورد. این رکوردها با API فعلی قابل رزرو نیستند. از جزئیات همین مسیر برای صفحهٔ معرفی استفاده کنید.
 2. پس از ورود، `POST /api/EndUser/PansionReserve` با شناسهٔ مرکز و پت و تاریخ‌های اقامت یا تاریخ/ساعت مهد بفرستید. مبلغ و تعداد شب/ساعت را از محاسبهٔ سرور بخوانید؛ تداخل رزرو در زمان ثبت دوباره بررسی می‌شود. ارسال قیمت یا وضعیت از کلاینت قابل اتکا نیست.
 3. اگر تخفیف یا کیف پول لازم است، فقط روی رزرو پرداخت‌نشدهٔ خودتان به‌ترتیب موردنظر اعمال کنید و جزئیات را دوباره بخوانید. سپس `POST /api/EndUser/PansionReservePayment` را با `pansionReserveId` اجرا کنید. بعد از callback معتبر، رزرو پرداخت‌شده در انتظار تأیید مرکز قرار می‌گیرد.
 4. برای نمایش سفارش بعد از پرداخت، `statusId`، `isReserved`، `isCancel` و `ownerDecision` را با هم بخوانید. مرکز/مدیر تا مهلت پاسخ تأیید یا رد می‌کند؛ رد یا انقضای مهلت به لغو و بازگشت وجه به کیف پول منجر می‌شود. سفر اختیاری پت‌رسان با `TripPansionReservation` جدا ساخته و جدا پرداخت می‌شود.
+
+## ساخت تکراری، شروع پرداخت و callback مشترک
+
+- `POST /api/EndUser/PansionReserve` با `IdempotentRequest` محافظت می‌شود. با هدر `Idempotency-Key`، پاسخ موفق همان کاربر/مسیر/کلید تا **۱۰ دقیقه فقط در `IMemoryCache` همان نمونهٔ API** بازپخش می‌شود. بدون هدر، تشخیص بدنهٔ تکراری پیش‌فرض **۵ ثانیه** است. این محافظ در چند replica، پس از restart یا بعد از انقضای پنجره تضمین جلوگیری از رزرو دوم ندارد. پس از timeout یا رفرش، نخست `GET /api/EndUser/PansionReserve` را با هویت مشتری بخوانید؛ اگر رزرو ساخته شده، همان شناسه را ادامه دهید.
+- `POST /api/EndUser/PansionReservePayment` از قاعدهٔ **دیگری** استفاده می‌کند: هدر اختیاری `Idempotency-Key` باید UUID معتبر با قالب `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` باشد. `PaymentService` آن را در Payment با اندیس یکتا نگه می‌دارد؛ همان checkout پاسخ تلاش پیشین را می‌دهد و استفاده از همان کلید برای checkout دیگر رد می‌شود. کلید ساخت رزرو را با کلید پرداخت یکی نگیرید.
+- در پرداخت درگاهی، سرور از `Urls:PaymentBaseUrl` آدرس `GET|POST /callback/{paymentId}/{callbackToken}` را برای درگاه می‌سازد؛ شکل قدیمی `/callback/{paymentId}?callbackToken=...` نیز برای تلاش‌های قبلی پذیرفته است. کنترلر مشترک نتیجهٔ درگاه را اعتبارسنجی می‌کند و سپس برای نوع PansionReserve سرویس `PansionReservePaymentCallback` را اجرا می‌کند. پاسخ callback صفحهٔ HTML است و در شمار ۷۲ عملیات API دامنه‌ای بالا نیست. کلاینت این URL/توکن را خودش نمی‌سازد؛ لینک پرداخت پاسخ شروع را باز می‌کند و پس از بازگشت، جزئیات رزرو خود را دوباره می‌خواند.
 
 ## قواعد وضعیت، زمان، قیمت و مالکیت فیلد
 
@@ -30,7 +35,7 @@
 |---|---|
 | وضعیت رزرو `statusId` | ۴۶ = Registered، ۴۷ = Paid، ۴۸ = Complete؛ `isReserved` و `isCancel` نیز مستقل‌اند. |
 | تصمیم مرکز `ownerDecision` | ۰ = NotRequired، ۱ = Pending، ۲ = Approved، ۳ = Rejected، ۴ = Expired. تکمیل به Approved یا NotRequired نیاز دارد. |
-| مهلت تصمیم | حداکثر ۱۲ ساعت از پرداخت و حداکثر تا یک ساعت پیش از شروع؛ کف مهلت ۳۰ دقیقه از اکنون. این فرمول در کد اجرا می‌شود، حتی اگر شروع نزدیک باشد. |
+| مهلت تصمیم | `max(پرداخت+۳۰ دقیقه، min(پرداخت+۱۲ ساعت، شروع−۱ ساعت))`. کف ۳۰ دقیقه برای شروع نزدیک می‌تواند بافر یک‌ساعته را بشکند و مهلت حتی پس از شروع بیفتد؛ مقدار `ownerApprovalDeadline` سرور ملاک UI است. |
 | پانسیون شبانه | `nightCount = (toDate.Date - fromDate.Date).Days`؛ ورود ۲۰ و خروج ۲۱ یعنی یک شب. اقامت یک‌روزه/منفی رد می‌شود؛ روز خروج می‌تواند روز ورود رزرو بعدی باشد. |
 | مهد روزانه | ساعت ناقص رو به بالا گرد می‌شود: ۰۸:۰۰ تا ۰۹:۳۰ برابر ۲ ساعت. ساعت باید معتبر و پایان پس از شروع باشد؛ `openHour/closeHour` قابل‌خواندن محدودهٔ مجازند. |
 | نوع مرکز | `isDaycare=true` فقط تاریخ مهد + `startTime/endTime` را می‌پذیرد؛ `false` فقط `fromDate/toDate` را. مقدار `null` هر دو روش رزرو را با `PansionActivityTypeNotSpecified` رد می‌کند. ارسال هر دو مجموعهٔ زمان نیز معتبر نیست. |
@@ -38,7 +43,7 @@
 | قیمت | `pansionPrice × nights` یا `schoolPrice × ceil(hours)` در سرور. در شروع پرداخت، رزرو پرداخت‌نشده با تعرفهٔ فعلی مرکز دوباره قیمت‌گذاری می‌شود؛ `paymentPrice=max(0,price-rebatePrice)`. |
 | ساخت رزرو مشتری | `bookerId` از JWT است. قیمت، کد رزرو، تاریخ ثبت، وضعیت، تخفیف نهایی و سهم سایت/مرکز را از بدنهٔ ارسالی ملاک نگیرید. |
 | جستجوی مشتری/نماینده | در EndUser `bookerId` و در فهرست نماینده `companionId` از JWT روی فیلتر بازنویسی می‌شود. |
-| سایت معرفی | برای `api/Site/Pansion` سه شرط `active`، `approve` و `showToSite` با هم لازم‌اند؛ مسیر قدیمی `/api/Pansion/{id}` چنین کنترل نمایشی ندارد. |
+| سایت معرفی | برای `api/Site/Pansion` سه شرط `active`، `approve` و `showToSite` با هم لازم‌اند؛ مسیر قدیمی `/api/Pansion/{id}` چنین کنترل نمایشی ندارد. فیلتر `isDaycare=true/false` رکورد `null` قدیمی را از نتیجه حذف نمی‌کند. |
 | سفر پت‌رسان | `petResanTrip` و `totalPrice` در جزئیات رزرو قابل نمایش‌اند، ولی قیمت و پرداخت سفر از رزرو پانسیون جداست. |
 | DTO پرداخت مشترک | `PaymentStartDto` برای چند نوع سفارش مشترک است؛ در پرداخت این مسیر فقط `pansionReserveId` مربوط به رزرو پانسیون است. شناسه‌های Shop/Groomer/Clinic/Trip در فرهنگ DTO صرفاً به خاطر اشتراک نوع دیده می‌شوند. |
 
@@ -127,7 +132,7 @@ POST /api/EndUser/PansionReservePayment
 
 | روش | مسیر | ورودی | پاسخ موفق | شرح |
 |---|---|---|---|---|
-| `GET` | `/api/EndUser/PansionComment` | `dto` (query) | `PansionCommentSearchDto` | جستجو |
+| `GET` | `/api/EndUser/PansionComment` | `dto` (query), `mine` (query) | `PansionCommentSearchDto` | جستجو |
 | `POST` | `/api/EndUser/PansionComment` | `PansionComment` (بدنه JSON) | `BaseResultDto<PansionCommentDto>` | آیتم جدید |
 | `GET` | `/api/EndUser/PansionReserve` | `dto` (query) | `PansionReserveSearchDto` | جستجو |
 | `GET` | `/api/EndUser/PansionReserve/{id}` | `id` (مسیر) | `BaseResultDto<PansionReserveVDto>` | اطلاعات آیتم شناسه رزرو نماینده |
@@ -143,7 +148,7 @@ POST /api/EndUser/PansionReservePayment
 
 **کار:** جستجو  
 **دسترسی:** بدون ورود  
-**ورودی:** `dto: PansionCommentInputDto` در query  
+**ورودی:** `dto: PansionCommentInputDto` در query؛ `mine: bool` در query (پیش‌فرض `false`)  
 **شکل پاسخ 200:** `PansionCommentSearchDto`
 
 **قاعدهٔ اختصاصی:** این GET با `[AllowAnonymous]` آزاد است. کنترلر `available=true` و `allStatus=false` را اجباری می‌کند و اگر هویت کاربر موجود باشد، `userId` فیلتر را به کاربر جاری تغییر می‌دهد.
@@ -238,16 +243,19 @@ POST /api/EndUser/PansionReservePayment
 
 **قاعدهٔ اختصاصی:** سفر متصل به رزرو خود مشتری را برای نمایش راننده و وضعیت بخوانید؛ راننده هنگام ساخت سفر انتخاب نمی‌شود.
 
-## مالک/نمایندهٔ مرکز — 22 عملیات
+## مالک/نمایندهٔ مرکز — 28 عملیات
 
 | روش | مسیر | ورودی | پاسخ موفق | شرح |
 |---|---|---|---|---|
 | `PUT` | `/api/Companion/PansionActive` | `dto` (بدنه JSON) | `BaseResultDto` | فعال سازی آیتم |
+| `GET` | `/api/Companion/PansionComment` | `dto` (query) | `PansionCommentSearchDto` | نظرهای همه‌ی پانسیون‌های نمایندگی من (همه‌ی وضعیت‌ها) |
+| `PUT` | `/api/Companion/PansionComment/Reply` | `dto` (بدنه JSON) | `BaseResultDto` | پاسخ مالک به نظر (فقط متن پاسخ؛ تأیید/رد نظر با ادمین است) |
 | `GET` | `/api/Companion/Pansion` | `dto` (query) | `PansionSearchDto` | جستجو |
 | `GET` | `/api/Companion/Pansion/{id}` | `id` (مسیر) | `BaseResultDto<PansionVDto>` | اطلاعات آیتم شناسه پانسیون |
 | `POST` | `/api/Companion/Pansion` | `dto` (بدنه JSON) | `BaseResultDto<PansionDto>` | آیتم جدید |
 | `PUT` | `/api/Companion/Pansion` | `dto` (بدنه JSON) | `BaseResultDto` | ویرایش آیتم |
 | `DELETE` | `/api/Companion/Pansion` | `id` (query) | `BaseResultDto` | حذف نرم پانسیون/مهد پت من (فقط مالک کلینیک). رزروها و گزارش مالی می‌مانند؛ با رزرو باز پرداخت‌شده حذف نمی‌شود. بازگردانی فقط توسط ادمین. شناسه پانسیون |
+| `GET` | `/api/Companion/PansionFinance` | `dto` (query) | `BaseResultDto<FinancePansionVDto>` | pansionId خالی = همه‌ی پانسیون‌های من؛ permitted = فیلتر تأیید مالی |
 | `GET` | `/api/Companion/PansionPet` | `dto` (query) | `PansionPetSearchDto` | جستجو |
 | `GET` | `/api/Companion/PansionPet/{id}` | `id` (مسیر) | `BaseResultDto<PansionPetDto>` | اطلاعات آیتم شناسه خدمات |
 | `POST` | `/api/Companion/PansionPet` | `dto` (بدنه JSON) | `BaseResultDto<PansionPetDto>` | آیتم جدید |
@@ -261,9 +269,12 @@ POST /api/EndUser/PansionReservePayment
 | `PUT` | `/api/Companion/PansionReserveApprove` | `dto` (بدنه JSON) | `BaseResultDto` | تأیید رزرو (فقط مرکزِ مالک) |
 | `PUT` | `/api/Companion/PansionReserveCancel` | `dto` (بدنه JSON) | `BaseResultDto` | ویرایش آیتم |
 | `PUT` | `/api/Companion/PansionReserveChangeStatus` | `dto` (بدنه JSON) | `BaseResultDto` | ویرایش آیتم |
-| `GET` | `/api/Comapnion/PansionReserve` | `dto` (query) | `PansionReserveSearchDto` | جستجو |
-| `GET` | `/api/Comapnion/PansionReserve/{id}` | `id` (مسیر) | `BaseResultDto<PansionReserveVDto>` | اطلاعات آیتم شناسه نماینده |
+| `GET` | `/api/Companion/PansionReserve` | `dto` (query) | `PansionReserveSearchDto` | جستجو |
+| `GET` | `/api/Companion/PansionReserve/{id}` | `id` (مسیر) | `BaseResultDto<PansionReserveVDto>` | اطلاعات آیتم شناسه نماینده |
 | `PUT` | `/api/Companion/PansionReserveReject` | `dto` (بدنه JSON) | `BaseResultDto` | رد رزرو با دلیل (الزامی؛ برای کاربر ارسال می‌شود) |
+| `GET` | `/api/Companion/PansionSettlement` | `dto` (query) | `SettlementSearchDto` | تسویه‌های ارائه‌دهنده‌ی من: پیش‌فرض استخر «پانسیون» (۷)؛ kind=1 = تسویه‌های قدیمی استخر نمایندگی‌ها (شامل پانسیون) |
+| `GET` | `/api/Companion/PansionSettlement/{id}` | `id` (مسیر) | `BaseResultDto<SettlementVDto>` | جزئیات PansionSettlement |
+| `GET` | `/api/Companion/PansionSettlement/{id}/Items` | `id` (مسیر) | `BaseResultDto<List<SettlementItemVDto>>` | ریز پانسیونیِ یک تسویه‌ی من (فقط ردیف‌های Type=Pansion) |
 
 ### `PUT /api/Companion/PansionActive`
 
@@ -273,6 +284,20 @@ POST /api/EndUser/PansionReservePayment
 **شکل پاسخ 200:** `BaseResultDto`
 
 **قاعدهٔ اختصاصی:** هشدار دسترسی: `CurrentUser.CompanionId` nullable به سرویس می‌رود؛ در حالت تهی، `UpdatePansionActiveDto` شرط مالکیت را حذف می‌کند و یک کاربر JWT مجاز به ورود به action می‌تواند `active` هر مرکز را تغییر دهد. تا اصلاح بک‌اند، برای هویت بدون CompanionId از این مسیر استفاده نشود.
+
+### `GET /api/Companion/PansionComment`
+
+**کار:** نظرهای همه‌ی پانسیون‌های نمایندگی من (همه‌ی وضعیت‌ها)  
+**دسترسی:** مالک/نمایندهٔ مرکز با JWT  
+**ورودی:** `dto: PansionCommentInputDto` در query  
+**شکل پاسخ 200:** `PansionCommentSearchDto`
+
+### `PUT /api/Companion/PansionComment/Reply`
+
+**کار:** پاسخ مالک به نظر (فقط متن پاسخ؛ تأیید/رد نظر با ادمین است)  
+**دسترسی:** مالک/نمایندهٔ مرکز با JWT  
+**ورودی:** `dto: PansionCommentReplyDto` در بدنه JSON  
+**شکل پاسخ 200:** `BaseResultDto`
 
 ### `GET /api/Companion/Pansion`
 
@@ -314,6 +339,13 @@ POST /api/EndUser/PansionReservePayment
 **شکل پاسخ 200:** `BaseResultDto`
 
 **قاعدهٔ اختصاصی:** حذف نرم فقط برای مالک؛ رزرو باز پرداخت‌شده مانع حذف است. بازگردانی فقط در Admin انجام می‌شود.
+
+### `GET /api/Companion/PansionFinance`
+
+**کار:** pansionId خالی = همه‌ی پانسیون‌های من؛ permitted = فیلتر تأیید مالی  
+**دسترسی:** مالک/نمایندهٔ مرکز با JWT  
+**ورودی:** `dto: FinancePansionInputDto` در query  
+**شکل پاسخ 200:** `BaseResultDto<FinancePansionVDto>`
 
 ### `GET /api/Companion/PansionPet`
 
@@ -420,23 +452,23 @@ POST /api/EndUser/PansionReservePayment
 
 **قاعدهٔ اختصاصی:** `companionId` nullable از JWT به سرویس می‌رود؛ اگر تهی باشد شرط مالکیت اجرا نمی‌شود و تغییر وضعیت رزرو دیگران ممکن است. تکمیل (`statusId=48`) فقط پس از تصمیم Approved یا NotRequired مجاز است، ولی این جایگزین مالکیت نیست.
 
-### `GET /api/Comapnion/PansionReserve`
+### `GET /api/Companion/PansionReserve`
 
 **کار:** جستجو  
-**دسترسی:** JWT معتبر؛ policy عضویت Companion به علت غلط‌املایی Area اعمال نمی‌شود و وقتی CompanionId تهی است مالکیت هم بررسی نمی‌شود  
+**دسترسی:** مالک/نمایندهٔ مرکز با JWT  
 **ورودی:** `dto: PansionReserveInputDto` در query  
 **شکل پاسخ 200:** `PansionReserveSearchDto`
 
-**قاعدهٔ اختصاصی:** در کد `[Area("Comapnion")]` غلط‌املایی دارد؛ route واقعی همین `/api/Comapnion/...` است. چون convention مرکزی فقط `Companion` را می‌شناسد، policy `AreaMember` به این کنترلر وصل نمی‌شود و فقط `[Authorize]` می‌ماند. اگر `CurrentUser.CompanionId` تهی باشد، فیلتر مالکیت به سرویس نمی‌رسد و جستجو ممکن است همهٔ رزروها را برگرداند.
+**قاعدهٔ اختصاصی:** نام قدیمی موقت؛ مسیر اصلی `/api/Companion/PansionReserve` است و مالکیت را با کاربر جاری می‌سنجد.
 
-### `GET /api/Comapnion/PansionReserve/{id}`
+### `GET /api/Companion/PansionReserve/{id}`
 
 **کار:** اطلاعات آیتم شناسه نماینده  
-**دسترسی:** JWT معتبر؛ policy عضویت Companion به علت غلط‌املایی Area اعمال نمی‌شود و وقتی CompanionId تهی است مالکیت هم بررسی نمی‌شود  
+**دسترسی:** مالک/نمایندهٔ مرکز با JWT  
 **ورودی:** `id: long` در مسیر  
 **شکل پاسخ 200:** `BaseResultDto<PansionReserveVDto>`
 
-**قاعدهٔ اختصاصی:** همان غلط‌املایی، نبود policy عضویت و شکاف مالکیت. اگر `CurrentUser.CompanionId` تهی باشد، `FindAsyncVDto` شرط مالکیت اضافه نمی‌کند و رزرو شناسهٔ دلخواه ممکن است دیده شود. کلاینت مشتری باید `/api/EndUser/PansionReserve/{id}` را استفاده کند؛ رفع این نقص در بک‌اند ضروری است.
+**قاعدهٔ اختصاصی:** نام قدیمی موقت Comapnion هم پذیرفته می‌شود؛ مالکیت با کاربر جاری بررسی می‌شود.
 
 ### `PUT /api/Companion/PansionReserveReject`
 
@@ -447,10 +479,32 @@ POST /api/EndUser/PansionReservePayment
 
 **قاعدهٔ اختصاصی:** `reason` برای رد لازم است؛ رد موفق رزرو را لغو و مبلغ پرداختی را به کیف پول کاربر مسترد می‌کند.
 
-## مدیریت — 33 عملیات
+### `GET /api/Companion/PansionSettlement`
+
+**کار:** تسویه‌های ارائه‌دهنده‌ی من: پیش‌فرض استخر «پانسیون» (۷)؛ kind=1 = تسویه‌های قدیمی استخر نمایندگی‌ها (شامل پانسیون)  
+**دسترسی:** مالک/نمایندهٔ مرکز با JWT  
+**ورودی:** `dto: SettlementInputDto` در query  
+**شکل پاسخ 200:** `SettlementSearchDto`
+
+### `GET /api/Companion/PansionSettlement/{id}`
+
+**کار:** جزئیات PansionSettlement  
+**دسترسی:** مالک/نمایندهٔ مرکز با JWT  
+**ورودی:** `id: long` در مسیر  
+**شکل پاسخ 200:** `BaseResultDto<SettlementVDto>`
+
+### `GET /api/Companion/PansionSettlement/{id}/Items`
+
+**کار:** ریز پانسیونیِ یک تسویه‌ی من (فقط ردیف‌های Type=Pansion)  
+**دسترسی:** مالک/نمایندهٔ مرکز با JWT  
+**ورودی:** `id: long` در مسیر  
+**شکل پاسخ 200:** `BaseResultDto<List<SettlementItemVDto>>`
+
+## مدیریت — 35 عملیات
 
 | روش | مسیر | ورودی | پاسخ موفق | شرح |
 |---|---|---|---|---|
+| `GET` | `/api/Admin/FinancePansion` | `dto` (query) | `BaseResultDto<FinancePansionVDto>` | گزارش مالی یک پانسیون |
 | `PUT` | `/api/Admin/FinancePansion` | `dto` (بدنه JSON) | `BaseResultDto` | ویرایش آیتم |
 | `PUT` | `/api/Admin/PansionActive` | `dto` (بدنه JSON) | `BaseResultDto` | فعال سازی آیتم |
 | `PUT` | `/api/Admin/PansionApprove` | `dto` (بدنه JSON) | `BaseResultDto` | احراز هویت آیتم |
@@ -466,6 +520,7 @@ POST /api/EndUser/PansionReservePayment
 | `GET` | `/api/Admin/PansionPet` | `dto` (query) | `PansionPetSearchDto` | جستجو |
 | `GET` | `/api/Admin/PansionPet/{id}` | `id` (مسیر) | `BaseResultDto<PansionPetDto>` | اطلاعات آیتم شناسه خدمات |
 | `POST` | `/api/Admin/PansionPet` | `dto` (بدنه JSON) | `BaseResultDto<PansionPetDto>` | آیتم جدید |
+| `PUT` | `/api/Admin/PansionPet` | `dto` (بدنه JSON) | `BaseResultDto` | ویرایش سایز و تعرفه |
 | `DELETE` | `/api/Admin/PansionPet` | `id` (query) | `BaseResultDto` | حذف آیتم |
 | `GET` | `/api/Admin/PansionPicture/{id}` | `id` (مسیر) | `BaseResultDto<PansionPictureVDto>` | اطلاعات آیتم |
 | `GET` | `/api/Admin/PansionPicture` | `dto` (query) | `PansionPictureSearchDto` | جستجو |
@@ -484,6 +539,13 @@ POST /api/EndUser/PansionReservePayment
 | `POST` | `/api/Admin/SitePansion` | `dto` (بدنه JSON) | `BaseResultDto<PansionDto>` | ثبت صفحهٔ عمومی پانسیون |
 | `PUT` | `/api/Admin/SitePansion` | `dto` (بدنه JSON) | `BaseResultDto` | تغییر صفحهٔ عمومی پانسیون |
 | `PATCH` | `/api/Admin/SitePansion/{id}/visibility` | `id` (مسیر), `dto` (بدنه JSON) | `BaseResultDto` | تغییر نمایش در سایت صفحهٔ عمومی پانسیون |
+
+### `GET /api/Admin/FinancePansion`
+
+**کار:** گزارش مالی یک پانسیون  
+**دسترسی:** مدیریت با JWT  
+**ورودی:** `dto: FinancePansionInputDto` در query  
+**شکل پاسخ 200:** `BaseResultDto<FinancePansionVDto>`
 
 ### `PUT /api/Admin/FinancePansion`
 
@@ -595,6 +657,13 @@ POST /api/EndUser/PansionReservePayment
 **دسترسی:** مدیریت با JWT  
 **ورودی:** `dto: PansionPetDto` در بدنه JSON  
 **شکل پاسخ 200:** `BaseResultDto<PansionPetDto>`
+
+### `PUT /api/Admin/PansionPet`
+
+**کار:** ویرایش سایز و تعرفه  
+**دسترسی:** مدیریت با JWT  
+**ورودی:** `dto: PansionPetDto` در بدنه JSON  
+**شکل پاسخ 200:** `BaseResultDto`
 
 ### `DELETE /api/Admin/PansionPet`
 
@@ -740,10 +809,12 @@ POST /api/EndUser/PansionReservePayment
 | `GET /api/Site/Pansion` | `PansionSearchDto` |
 | `GET /api/EndUser/PansionComment` | `PansionCommentSearchDto` |
 | `GET /api/EndUser/PansionReserve` | `PansionReserveSearchDto` |
+| `GET /api/Companion/PansionComment` | `PansionCommentSearchDto` |
 | `GET /api/Companion/Pansion` | `PansionSearchDto` |
 | `GET /api/Companion/PansionPet` | `PansionPetSearchDto` |
 | `GET /api/Companion/PansionPicture` | `PansionPictureSearchDto` |
-| `GET /api/Comapnion/PansionReserve` | `PansionReserveSearchDto` |
+| `GET /api/Companion/PansionReserve` | `PansionReserveSearchDto` |
+| `GET /api/Companion/PansionSettlement` | `SettlementSearchDto` |
 | `GET /api/Admin/PansionComment` | `PansionCommentSearchDto` |
 | `GET /api/Admin/Pansion` | `PansionSearchDto` |
 | `GET /api/Admin/PansionPet` | `PansionPetSearchDto` |
@@ -777,7 +848,7 @@ POST /api/EndUser/PansionReservePayment
 | `ownerDecision=Pending` | پیام انتظار و مهلت پاسخ مرکز را نشان دهید؛ تا تصمیم نهایی تحویل قطعی را وعده ندهید. |
 | `Rejected` یا `Expired` | لغو و برگشت پول به کیف پول را از وضعیت تازه بخوانید؛ دوباره همان رزرو را پرداخت نکنید. |
 | HTTP 401/403، یا `isSuccess=false` / `AccessDenied` | ورود/سطح دسترسی/مالکیت را بررسی کنید و دادهٔ دیگران را نمایش ندهید. |
-| `/api/Companion/PansionReserve` نامعتبر | مسیر جستجو/جزئیات واقعی `/api/Comapnion/PansionReserve` است؛ خطای املا در attribute فعلی کد. |
+| `/api/Comapnion/PansionReserve` | نام قدیمی موقت؛ در کد جدید از `/api/Companion/PansionReserve` استفاده کنید. |
 
 ## فرهنگ DTO و فیلدهای JSON
 
@@ -823,8 +894,21 @@ POST /api/EndUser/PansionReservePayment
 | `pictureId` | `long?` | — |
 | `active` | `bool` | — |
 | `showToSite` | `bool` | — |
+| `isGrooming` | `bool` | — |
+| `providerRoleId` | `long?` | — |
+| `providerRoleName` | `string` | — |
+| `providerRoleLabel` | `string` | — |
 | `assistanceGroup` | `AssistanceGroupVDto` | — |
 | `picture` | `PictureVDto` | — |
+
+### `BankCardVDto`
+
+پایه: `Id_FieldDto`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `bankName` | `string` | — |
+| `cardPrefix` | `string` | — |
 
 ### `BankVDto`
 
@@ -1421,13 +1505,78 @@ POST /api/EndUser/PansionReservePayment
 | `url` | `string` | — |
 | `orginalName` | `string` | — |
 
+### `FinanceCompanionReserveVDto`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `reserveId` | `string` | — |
+| `reserveCode` | `string` | — |
+| `bookerFullName` | `string` | — |
+| `paymentPrice` | `double` | — |
+| `commissionPercent` | `decimal` | — |
+| `companionShare` | `double` | — |
+| `siteShare` | `double` | — |
+| `statusLabel` | `string` | — |
+| `isPansion` | `bool` | — |
+| `isConsultation` | `bool` | — |
+| `isSchool` | `bool` | — |
+| `packageName` | `string` | — |
+| `durationMinutes` | `int` | — |
+| `hasPetResan` | `bool` | — |
+| `petResanPrice` | `double` | — |
+| `channelId` | `int` | — |
+| `permitted` | `bool` | — |
+
+### `FinanceCompanionVDto`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `companionId` | `long` | — |
+| `reserveCount` | `int` | — |
+| `totalCompanionShare` | `double` | — |
+| `totalSiteShare` | `double` | — |
+| `financeCompanionReserves` | `List<FinanceCompanionReserveVDto>` | — |
+
 ### `FinancePansionDto`
 
 | فیلد JSON | نوع C# | توضیح صریح سورس |
 |---|---|---|
 | `pansionId` | `long` | — |
+| `commissionPercent` | `decimal?` | کمیسیون اصلی؛ نفرستادن یعنی بدون تغییر. |
 | `dailyCommissionPercent` | `decimal` | — |
 | `hourlyCommissionPercent` | `decimal` | — |
+
+### `FinancePansionInfoVDto`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `id` | `long` | — |
+| `name` | `string` | — |
+| `isDaycare` | `bool?` | — |
+| `active` | `bool` | — |
+| `deleted` | `bool` | — |
+| `providerId` | `long?` | — |
+| `companionId` | `long?` | — |
+| `dailyCommissionPercent` | `decimal` | — |
+| `hourlyCommissionPercent` | `decimal` | — |
+| `hasCommission` | `bool` | — |
+
+### `FinancePansionInputDto`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `pansionId` | `long?` | خالی = همه‌ی پانسیون‌های کاربر (فقط ناحیه‌ی ارائه‌دهنده) |
+| `permitted` | `bool?` | — |
+
+### `FinancePansionVDto`
+
+هم‌شکل FinanceCompanionVDto (CompanionId اینجا ۰ است) به‌علاوه‌ی فهرست پانسیون‌ها.
+
+پایه: `FinanceCompanionVDto`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `pansions` | `List<FinancePansionInfoVDto>` | — |
 
 ### `FullName_FieldDto`
 
@@ -1520,6 +1669,8 @@ POST /api/EndUser/PansionReservePayment
 | `pansionId` | `long?` | — |
 | `isReserved` | `bool?` | — |
 | `userId` | `long?` | — |
+| `companionId` | `long?` | نظرهای پانسیون‌های یک نمایندگی (برای مالک) |
+| `ownerUserId` | `long?` | — |
 | `allStatus` | `bool?` | — |
 
 ### `PansionCommentSearchDto`
@@ -1551,7 +1702,8 @@ POST /api/EndUser/PansionReservePayment
 | فیلد JSON | نوع C# | توضیح صریح سورس |
 |---|---|---|
 | `isDaycare` | `bool?` | — |
-| `companionId` | `long` | — |
+| `companionId` | `long?` | — |
+| `providerId` | `long?` | — |
 | `active` | `bool` | — |
 | `showToSite` | `bool` | — |
 | `approve` | `bool` | — |
@@ -1581,6 +1733,8 @@ POST /api/EndUser/PansionReservePayment
 |---|---|---|
 | `isDaycare` | `bool?` | — |
 | `companionId` | `long?` | — |
+| `providerId` | `long?` | — |
+| `ownerUserId` | `long?` | — |
 | `approve` | `bool?` | — |
 | `neighborhoodIds` | `List<long>` | — |
 | `stateId` | `long?` | — |
@@ -1597,7 +1751,8 @@ POST /api/EndUser/PansionReservePayment
 | فیلد JSON | نوع C# | توضیح صریح سورس |
 |---|---|---|
 | `isDaycare` | `bool?` | — |
-| `companionId` | `long` | — |
+| `companionId` | `long?` | — |
+| `providerId` | `long?` | — |
 | `active` | `bool` | — |
 | `approve` | `bool` | — |
 | `stateId` | `long` | — |
@@ -1623,6 +1778,9 @@ POST /api/EndUser/PansionReservePayment
 |---|---|---|
 | `pansionId` | `long` | — |
 | `petId` | `long` | — |
+| `petSize` | `string` | Small/Medium/Large؛ خالی = همه‌ی سایزهای این نوع پت. |
+| `pansionPrice` | `double?` | تعرفه‌ی هر شب برای این پت/سایز؛ خالی یا صفر = تعرفه‌ی پایه‌ی مرکز. |
+| `schoolPrice` | `double?` | تعرفه‌ی هر ساعت مهد برای این پت/سایز؛ خالی یا صفر = تعرفه‌ی پایه‌ی مرکز. |
 
 ### `PansionPetInputDto`
 
@@ -1631,6 +1789,8 @@ POST /api/EndUser/PansionReservePayment
 | فیلد JSON | نوع C# | توضیح صریح سورس |
 |---|---|---|
 | `companionId` | `long?` | — |
+| `pansionId` | `long?` | — |
+| `ownerUserId` | `long?` | — |
 
 ### `PansionPetSearchDto`
 
@@ -1648,6 +1808,9 @@ POST /api/EndUser/PansionReservePayment
 |---|---|---|
 | `pansionId` | `long` | — |
 | `petId` | `long` | — |
+| `petSize` | `string` | — |
+| `pansionPrice` | `double?` | — |
+| `schoolPrice` | `double?` | — |
 | `pet` | `PetVDto` | — |
 
 ### `PansionPictureDto`
@@ -1667,6 +1830,7 @@ POST /api/EndUser/PansionReservePayment
 |---|---|---|
 | `pansionId` | `long?` | — |
 | `companionId` | `long?` | — |
+| `ownerUserId` | `long?` | — |
 
 ### `PansionPictureSearchDto`
 
@@ -1742,6 +1906,8 @@ POST /api/EndUser/PansionReservePayment
 | `userPetId` | `long?` | — |
 | `pansionId` | `long?` | — |
 | `companionId` | `long?` | — |
+| `providerId` | `long?` | — |
+| `ownerUserId` | `long?` | — |
 | `statusId` | `long?` | — |
 | `isDaycare` | `bool?` | — |
 
@@ -1834,6 +2000,7 @@ POST /api/EndUser/PansionReservePayment
 |---|---|---|
 | `isDaycare` | `bool?` | — |
 | `companionId` | `long?` | — |
+| `providerId` | `long?` | — |
 | `approve` | `bool?` | — |
 | `neighborhoodIds` | `List<long>` | — |
 | `stateId` | `long?` | — |
@@ -1857,7 +2024,9 @@ POST /api/EndUser/PansionReservePayment
 | فیلد JSON | نوع C# | توضیح صریح سورس |
 |---|---|---|
 | `isDaycare` | `bool?` | — |
-| `companionId` | `long` | — |
+| `companionId` | `long?` | — |
+| `providerId` | `long?` | — |
+| `providerName` | `string` | — |
 | `active` | `bool` | — |
 | `showToSite` | `bool` | — |
 | `approve` | `bool` | — |
@@ -1880,6 +2049,7 @@ POST /api/EndUser/PansionReservePayment
 | `regulations` | `string` | — |
 | `openHour` | `string` | — |
 | `closeHour` | `string` | — |
+| `commissionPercent` | `decimal` | — |
 | `dailyCommissionPercent` | `decimal` | — |
 | `hourlyCommissionPercent` | `decimal` | — |
 | `companion` | `CompanionMinVDto` | — |
@@ -1902,6 +2072,7 @@ POST /api/EndUser/PansionReservePayment
 | `schoolReserveId` | `long?` | — |
 | `groomerReserveId` | `long?` | — |
 | `clinicReserveId` | `long?` | — |
+| `coachReserveId` | `long?` | — |
 | `companionReserveBatchId` | `long?` | — |
 | `tripId` | `long?` | — |
 | `cargoId` | `long?` | — |
@@ -2118,6 +2289,18 @@ POST /api/EndUser/PansionReservePayment
 | `deliveryType` | `CodeVDto` | — |
 | `productOrderStores` | `List<ProductOrderStoreVDto>` | — |
 
+### `ProviderMinVDto`
+
+نمای خلاصه‌ی ارائه‌دهنده برای لیست‌هایی مثل تسویه‌ها (نیازمند Include کاربر).
+
+پایه: `Id_FieldDto`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `userId` | `long` | — |
+| `active` | `bool` | — |
+| `user` | `UserMinVDto` | — |
+
 ### `RebateVDto`
 
 پایه: `Name_FieldDto`
@@ -2156,6 +2339,62 @@ POST /api/EndUser/PansionReservePayment
 | `seoNoIndex` | `bool` | — |
 | `seoNoFollow` | `bool` | — |
 | `seoCanonical` | `string` | — |
+
+### `SettlementInputDto`
+
+پایه: `BaseInputDto, ISettlementSearchFields`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `providerId` | `long?` | — |
+| `kind` | `Entities.Entities.SettlementKindEnum?` | — |
+| `storeId` | `long?` | — |
+| `companionId` | `long?` | — |
+
+### `SettlementItemVDto`
+
+یک ردیف از ریز تسویه: چیزی که داخل این تسویه پرداخت شده است.
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `type` | `string` | Reserve \| Pansion \| Consultation \| School \| Order \| Groomer \| Clinic \| Coach |
+| `code` | `string` | — |
+| `venueName` | `string` | — |
+| `bookerFullName` | `string` | — |
+| `paymentPrice` | `double` | — |
+| `siteShare` | `double` | — |
+| `providerShare` | `double` | — |
+
+### `SettlementSearchDto`
+
+پایه: `BaseSearchDto<Settlement, SettlementVDto>, ISettlementSearchFields`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `providerId` | `long?` | — |
+| `kind` | `Entities.Entities.SettlementKindEnum?` | — |
+| `storeId` | `long?` | — |
+| `companionId` | `long?` | — |
+
+### `SettlementVDto`
+
+پایه: `Id_FieldDto`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `providerId` | `long?` | — |
+| `kind` | `Entities.Entities.SettlementKindEnum` | — |
+| `storeId` | `long?` | — |
+| `companionId` | `long?` | — |
+| `createDate` | `DateTime` | — |
+| `userBankCardId` | `long` | — |
+| `trackingCode` | `string` | — |
+| `paidPrice` | `double` | — |
+| `itemCount` | `long` | — |
+| `userBankCard` | `UserBankCardVDto` | — |
+| `provider` | `Application.Services.ProviderSrvs.ProviderSrv.Dto.ProviderMinVDto` | — |
+| `companion` | `CompanionMinVDto` | — |
+| `store` | `StoreMinVDto` | — |
 
 ### `SiteVisibilityDto`
 
@@ -2231,6 +2470,7 @@ POST /api/EndUser/PansionReservePayment
 | `isReturnLeg` | `bool` | — |
 | `companionReserveId` | `long?` | — |
 | `pansionReserveId` | `long?` | — |
+| `clinicReserveId` | `long?` | — |
 | `schoolReserveId` | `long?` | — |
 | `scheduledLeadMinutes` | `int?` | — |
 | `scheduledDepartureAt` | `DateTime?` | — |
@@ -2357,6 +2597,7 @@ POST /api/EndUser/PansionReservePayment
 | `progressUpdateDate` | `DateTime?` | — |
 | `companionReserveId` | `long?` | — |
 | `pansionReserveId` | `long?` | — |
+| `clinicReserveId` | `long?` | — |
 | `schoolReserveId` | `long?` | — |
 | `petResanServiceScheduleId` | `long?` | — |
 | `petResanService` | `TripServiceInfoVDto` | — |
@@ -2382,6 +2623,24 @@ POST /api/EndUser/PansionReservePayment
 | `wallet` | `WalletVDto` | — |
 | `tripStop` | `TripStopVDto` | — |
 | `tripOptions` | `List<TripOptionVDto>` | — |
+
+### `UserBankCardVDto`
+
+پایه: `Id_FieldDto`
+
+| فیلد JSON | نوع C# | توضیح صریح سورس |
+|---|---|---|
+| `userId` | `long` | — |
+| `cardNumber` | `string` | — |
+| `shebaNumber` | `string` | — |
+| `bankCardId` | `long` | — |
+| `cardHolderName` | `string` | — |
+| `createDate` | `DateTime` | — |
+| `lastUpdateDate` | `DateTime` | — |
+| `approved` | `bool` | — |
+| `adminDetail` | `string` | — |
+| `bankCard` | `BankCardVDto` | — |
+| `user` | `UserVDto` | — |
 
 ### `UserCurrentLocationVDto`
 
@@ -2515,6 +2774,7 @@ POST /api/EndUser/PansionReservePayment
 
 | فیلد JSON | نوع C# | توضیح صریح سورس |
 |---|---|---|
+| `transactionCode` | `string` | — |
 | `isIncrease` | `bool` | — |
 | `amount` | `double` | — |
 | `createDate` | `DateTime` | — |
@@ -2532,6 +2792,7 @@ POST /api/EndUser/PansionReservePayment
 | `schoolReserveId` | `long?` | — |
 | `groomerReserveId` | `long?` | — |
 | `clinicReserveId` | `long?` | — |
+| `coachReserveId` | `long?` | — |
 | `consultationPurchaseId` | `long?` | — |
 | `painding` | `bool` | — |
 | `ledgerName` | `string` | — |

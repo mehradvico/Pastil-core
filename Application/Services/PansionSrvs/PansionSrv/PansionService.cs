@@ -36,8 +36,11 @@ namespace Application.Services.PansionSrvs.PansionSrv
         private readonly INoticeService _noticeService;
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ILogger<PansionService> _logger;
-        public PansionService(IDataBaseContext _context, IMapper mapper, INoticeService noticeService, IPushNotificationService pushNotificationService, ILogger<PansionService> logger) : base(_context, mapper)
+        private readonly Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms _registrationSms;
+
+        public PansionService(IDataBaseContext _context, IMapper mapper, INoticeService noticeService, IPushNotificationService pushNotificationService, ILogger<PansionService> logger, Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms registrationSms = null) : base(_context, mapper)
         {
+            _registrationSms = registrationSms;
             this._context = _context;
             this.mapper = mapper;
             this._noticeService = noticeService;
@@ -227,6 +230,8 @@ namespace Application.Services.PansionSrvs.PansionSrv
                     await _context.Pansions.AddAsync(item);
                     await _context.SaveChangesAsync();
                     await TryCreateNoticeAsync(item, NoticeTypeLabels.PansionSubmitted, owner.OwnerUserId);
+                    if (_registrationSms != null)
+                        await _registrationSms.SendAsync(Application.Services.Setting.MessageSenderSrv.VenueRegistrationKind.Pansion, item.Name, owner.OwnerUserId);
                     return new BaseResultDto<PansionDto>(true, mapper.Map<PansionDto>(item));
 
                 }

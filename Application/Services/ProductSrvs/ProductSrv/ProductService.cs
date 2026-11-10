@@ -155,61 +155,51 @@ namespace Application.Services.ProductSrvs.ProductSrv
                 query = query.Where(s => s.ProductItems.Any(x => x.StoreId == searchDto.StoreId));
 
             }
+            // جستجوی عمومی سایت/اپ (Available): اول محصولاتِ موجود و قیمت‌دار، بعد ناموجودها؛ مرتب‌سازیِ انتخابی کاربر داخل هر گروه اعمال می‌شود.
+            IOrderedQueryable<Product> ordered = null;
+            if (searchDto.Available == true)
+            {
+                ordered = query.OrderByDescending(s => s.StatusId == (long)ProductStatusEnum.ProductStatus_Available && s.Price > 0);
+            }
+            IQueryable<Product> Sort<TKey>(System.Linq.Expressions.Expression<Func<Product, TKey>> key, bool descending) =>
+                ordered == null
+                    ? (descending ? query.OrderByDescending(key) : query.OrderBy(key))
+                    : (descending ? ordered.ThenByDescending(key) : ordered.ThenBy(key));
+
             switch (searchDto.SortBy)
             {
 
                 case Common.Enumerable.SortEnum.Default:
-                    {
-                        query = query.OrderByDescending(s => s.Id);
-                        break;
-                    }
                 case Common.Enumerable.SortEnum.New:
-                    {
-                        query = query.OrderByDescending(s => s.Id);
-                        break;
-                    }
+                    query = Sort(s => s.Id, true);
+                    break;
                 case Common.Enumerable.SortEnum.Old:
-                    {
-                        query = query.OrderBy(s => s.Id);
-                        break;
-                    }
+                    query = Sort(s => s.Id, false);
+                    break;
                 case Common.Enumerable.SortEnum.Name:
-                    {
-                        query = query.OrderByDescending(s => s.Name);
-                        break;
-                    }
+                    query = Sort(s => s.Name, true);
+                    break;
                 case Common.Enumerable.SortEnum.MoreVisit:
-                    {
-                        query = query.OrderByDescending(s => s.VisitCount);
-
-                        break;
-                    }
+                    query = Sort(s => s.VisitCount, true);
+                    break;
                 case Common.Enumerable.SortEnum.LessVisit:
-                    {
-                        query = query.OrderBy(s => s.VisitCount);
-                        break;
-                    }
+                    query = Sort(s => s.VisitCount, false);
+                    break;
                 case Common.Enumerable.SortEnum.Expensive:
-                    {
-                        query = query.OrderByDescending(s => s.Price);
-                        break;
-                    }
+                    query = Sort(s => s.Price, true);
+                    break;
                 case Common.Enumerable.SortEnum.Inexpensive:
-                    {
-                        query = query.OrderBy(s => s.Price);
-                        break;
-                    }
+                    query = Sort(s => s.Price, false);
+                    break;
                 case Common.Enumerable.SortEnum.MoreSell:
-                    {
-                        query = query.OrderByDescending(s => s.SellCount);
-                        break;
-                    }
+                    query = Sort(s => s.SellCount, true);
+                    break;
                 case Common.Enumerable.SortEnum.LessSell:
-                    {
-                        query = query.OrderBy(s => s.SellCount);
-                        break;
-                    }
+                    query = Sort(s => s.SellCount, false);
+                    break;
                 default:
+                    if (ordered != null)
+                        query = ordered.ThenByDescending(s => s.Id);
                     break;
             }
             return query;
@@ -219,7 +209,43 @@ namespace Application.Services.ProductSrvs.ProductSrv
             var model = BaseSaerch(baseSearchDto);
             var result = new ProductSearchDto(baseSearchDto, model, mapper);
             MarkExpressShipping(result.List);
+            MarkSellerStores(result.List);
             return result;
+        }
+
+        // نشان فروشگاه روی کارت محصول: فروشگاه‌هایی که الان این محصول را با موجودی می‌فروشند (ارزان‌ترین اول)؛
+        // همان شرط‌های UpdateProductPrice (آیتم فعال/SystemActive/موجودی > ۰، فروشگاه فعال). یک کوئری برای کل صفحه.
+        private void MarkSellerStores(List<ProductVDto> list)
+        {
+            if (list == null || list.Count == 0)
+                return;
+            var ids = list.Select(item => item.Id).ToList();
+            var rows = _context.ProductItems.AsNoTracking()
+                .Where(item => ids.Contains(item.ProductId) && item.Active && item.SystemActive && !item.Deleted && item.Quantity > 0
+                               && item.Store.Active && !item.Store.Deleted)
+                .GroupBy(item => new { item.ProductId, item.StoreId, item.Store.Name, item.Store.PictureId })
+                .Select(group => new { group.Key.ProductId, group.Key.StoreId, group.Key.Name, group.Key.PictureId, MinPrice = group.Min(x => x.Price) })
+                .ToList();
+            if (rows.Count == 0)
+                return;
+            var pictureIds = rows.Where(row => row.PictureId.HasValue).Select(row => row.PictureId.Value).Distinct().ToList();
+            var pictures = pictureIds.Count == 0
+                ? new Dictionary<long, PictureVDto>()
+                : _context.Pictures.AsNoTracking().Where(picture => pictureIds.Contains(picture.Id)).ToList()
+                    .ToDictionary(picture => picture.Id, picture => mapper.Map<PictureVDto>(picture));
+            var byProduct = rows.GroupBy(row => row.ProductId).ToDictionary(group => group.Key, group => group.OrderBy(row => row.MinPrice).ToList());
+            foreach (var item in list)
+            {
+                if (!byProduct.TryGetValue(item.Id, out var sellers))
+                    continue;
+                item.SellerStoreCount = sellers.Count;
+                item.SellerStores = sellers.Take(3).Select(row => new ProductSellerStoreVDto
+                {
+                    Id = row.StoreId,
+                    Name = row.Name,
+                    Picture = row.PictureId.HasValue && pictures.TryGetValue(row.PictureId.Value, out var picture) ? picture : null,
+                }).ToList();
+            }
         }
 
         // نشان «ارسال اکسپرس»: با یک کوئری برای کل صفحه (نه به‌ازای هر محصول)

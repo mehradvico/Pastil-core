@@ -603,6 +603,7 @@ public static class ConfigureServices
         services.AddScoped<INoticeEventService, NoticeEventService>();
         services.AddScoped<INoticeService, NoticeService>();
         services.AddScoped<IVenueReviewNotifier, VenueReviewNotifier>();
+        services.AddScoped<Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms, Application.Services.Setting.MessageSenderSrv.VenueRegistrationSms>();
         services.AddScoped<INoticeRealtimePublisher, NullNoticeRealtimePublisher>();
         services.AddScoped<INotifyMessageService, NotifyMessageService>();
         services.AddScoped<IOnTokenChallenge, OnTokenChallenge>();

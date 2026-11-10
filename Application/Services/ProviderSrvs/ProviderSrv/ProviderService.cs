@@ -165,7 +165,8 @@ namespace Application.Services.ProviderSrvs.ProviderSrv
         /// <summary>فقط Active/Approved/Note قابل ویرایش است؛ UserId بعد از ثبت ثابت می‌ماند.</summary>
         public override BaseResultDto UpdateDto(ProviderDto dto)
         {
-            var item = _context.Providers.FirstOrDefault(x => x.Id == dto.Id && !x.Deleted);
+            // DbContext پیش‌فرض NoTracking است؛ بدون AsTracking تغییرها ذخیره نمی‌شوند.
+            var item = _context.Providers.AsTracking().FirstOrDefault(x => x.Id == dto.Id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
             item.Active = dto.Active;
@@ -177,7 +178,8 @@ namespace Application.Services.ProviderSrvs.ProviderSrv
 
         public override BaseResultDto DeleteDto(long id)
         {
-            var item = _context.Providers.Include(x => x.User).FirstOrDefault(x => x.Id == id && !x.Deleted);
+            // DbContext پیش‌فرض NoTracking است؛ بدون AsTracking حذف ذخیره نمی‌شد و موفق برمی‌گشت.
+            var item = _context.Providers.AsTracking().Include(x => x.User).FirstOrDefault(x => x.Id == id && !x.Deleted);
             if (item == null)
                 return new BaseResultDto(false, Resource.Notification.ProviderNotFound);
             item.Deleted = true;

@@ -25,8 +25,11 @@ namespace Application.Services.GroomerSrvs.GroomerSrv
         private readonly IGroomerNotifier _notifier;
         private readonly Application.Services.Setting.NoticeSrv.IVenueReviewNotifier _reviewNotifier;
 
-        public GroomerCoreService(IDataBaseContext context, IMapper mapper, ILogger<GroomerCoreService> logger, IGroomerNotifier notifier = null, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null)
+        private readonly Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms _registrationSms;
+
+        public GroomerCoreService(IDataBaseContext context, IMapper mapper, ILogger<GroomerCoreService> logger, IGroomerNotifier notifier = null, Application.Services.Setting.NoticeSrv.IVenueReviewNotifier reviewNotifier = null, Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms registrationSms = null)
         {
+            _registrationSms = registrationSms;
             _context = context;
             _mapper = mapper;
             _logger = logger;
@@ -150,6 +153,8 @@ namespace Application.Services.GroomerSrvs.GroomerSrv
                 // درخواست ارائه‌دهنده: اعلان ادمین برای بررسی و تأیید
                 if (!byAdmin && _reviewNotifier != null)
                     await _reviewNotifier.VenueSubmittedAsync("Groomer", item.Id, item.Name, actorUserId);
+                if (_registrationSms != null)
+                    await _registrationSms.SendAsync(Application.Services.Setting.MessageSenderSrv.VenueRegistrationKind.Groomer, item.Name, item.OwnerId);
                 return await FindAsyncVDto(item.Id);
             }
             catch (Exception ex)
