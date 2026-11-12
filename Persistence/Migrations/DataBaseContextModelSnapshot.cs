@@ -14097,6 +14097,15 @@ namespace Persistence.Migrations
                     b.Property<long?>("FromCityId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("CoachReserveId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("PaidWithReserve")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("GroomerReserveId")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("FromWallet")
                         .HasColumnType("bit");
 
@@ -14220,7 +14229,11 @@ namespace Persistence.Migrations
 
                     b.HasIndex("DriverStatusId");
 
+                    b.HasIndex("CoachReserveId");
+
                     b.HasIndex("FromCityId");
+
+                    b.HasIndex("GroomerReserveId");
 
                     b.HasIndex("PansionReserveId");
 
@@ -21012,6 +21025,16 @@ namespace Persistence.Migrations
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Entities.Entities.CoachField.CoachReserve", "CoachReserve")
+                        .WithMany()
+                        .HasForeignKey("CoachReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Entities.Entities.GroomerField.GroomerReserve", "GroomerReserve")
+                        .WithMany()
+                        .HasForeignKey("GroomerReserveId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Entities.Entities.Code", "DriverStatus")
                         .WithMany()
                         .HasForeignKey("DriverStatusId")
@@ -21082,6 +21105,10 @@ namespace Persistence.Migrations
                     b.Navigation("DriverStatus");
 
                     b.Navigation("FromCity");
+
+                    b.Navigation("CoachReserve");
+
+                    b.Navigation("GroomerReserve");
 
                     b.Navigation("PansionReserve");
 

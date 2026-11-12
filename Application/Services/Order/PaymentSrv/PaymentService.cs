@@ -1232,8 +1232,12 @@ namespace Application.Services.Order.PaymentSrv
             if (!pansionRebateValidation.IsSuccess)
                 return pansionRebateValidation;
 
-            dto.Amount = reservedetail.PaymentPrice;
-            dto.GrossAmount = reservedetail.PaymentPrice + reservedetail.RebatePrice;
+            // پت‌رسانِ همراه رزرو (اگر ثبت شده): هزینه‌اش با همین پرداخت گرفته می‌شود (یک پرداخت برای رزرو + سفر).
+            var bundled = await PendingBundledTripAsync(PaymentCallbackTypeEnum.PansionReserve, reservedetail.Id);
+            var bundledPay = bundled == null ? 0 : (bundled.PaymentPrice > 0 ? bundled.PaymentPrice : bundled.Price);
+            var totalPay = reservedetail.PaymentPrice + bundledPay;
+            dto.Amount = totalPay;
+            dto.GrossAmount = totalPay + reservedetail.RebatePrice;
             dto.RebateAmount = reservedetail.RebatePrice;
             dto.RebateId = reservedetail.RebateId;
             dto.WalletAmount = 0;
@@ -1253,11 +1257,17 @@ namespace Application.Services.Order.PaymentSrv
                     reservedetail.BookerId,
                     Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Pansion,
                     reservedetail.PansionId);
-                reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PaymentPrice);
-                dto.WalletAmount = reservedetail.WalletPrice;
+                var walletContribution = PaymentAmountHelper.GetWalletContribution(walletAmount, totalPay);
+                reservedetail.WalletPrice = Math.Min(walletContribution, reservedetail.PaymentPrice);
+                if (bundled != null)
+                {
+                    bundled.FromWallet = true;
+                    bundled.WalletPrice = walletContribution - reservedetail.WalletPrice;
+                }
+                dto.WalletAmount = walletContribution;
                 await _context.SaveChangesAsync();
 
-                if (walletAmount >= reservedetail.PaymentPrice)
+                if (walletAmount >= totalPay)
                 {
                     dto.Amount = 0;
                     dto.ProductOrderId = null;
@@ -1268,7 +1278,7 @@ namespace Application.Services.Order.PaymentSrv
                 }
                 else
                 {
-                    dto.Amount = reservedetail.PaymentPrice - reservedetail.WalletPrice;
+                    dto.Amount = totalPay - walletContribution;
                     dto.ProductOrderId = null;
                     dto.CallBackTypeLabel = PaymentCallbackTypeEnum.PansionReserve.ToString();
                     dto.CallBackId = reservedetail.Id.ToString();
@@ -1276,6 +1286,12 @@ namespace Application.Services.Order.PaymentSrv
                     return await StartPayment(dto);
 
                 }
+            }
+            if (bundled != null && (bundled.FromWallet || bundled.WalletPrice > 0))
+            {
+                bundled.FromWallet = false;
+                bundled.WalletPrice = 0;
+                await _context.SaveChangesAsync();
             }
             var PaymentType_AgencyReserve = await _codeService.GetIdByLabelAsync(PaymentTypeEnum.PaymentType_PansionReserve.ToString());
             dto.IsOnline = true;
@@ -1311,8 +1327,12 @@ namespace Application.Services.Order.PaymentSrv
             if (!groomerRebateValidation.IsSuccess)
                 return groomerRebateValidation;
 
-            dto.Amount = reservedetail.PaymentPrice;
-            dto.GrossAmount = reservedetail.PaymentPrice + reservedetail.RebatePrice;
+            // پت‌رسانِ همراه رزرو (اگر ثبت شده): هزینه‌اش با همین پرداخت گرفته می‌شود (یک پرداخت برای رزرو + سفر).
+            var bundled = await PendingBundledTripAsync(PaymentCallbackTypeEnum.GroomerReserve, reservedetail.Id);
+            var bundledPay = bundled == null ? 0 : (bundled.PaymentPrice > 0 ? bundled.PaymentPrice : bundled.Price);
+            var totalPay = reservedetail.PaymentPrice + bundledPay;
+            dto.Amount = totalPay;
+            dto.GrossAmount = totalPay + reservedetail.RebatePrice;
             dto.RebateAmount = reservedetail.RebatePrice;
             dto.RebateId = reservedetail.RebateId;
             dto.WalletAmount = 0;
@@ -1332,11 +1352,17 @@ namespace Application.Services.Order.PaymentSrv
                     reservedetail.BookerId,
                     Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Groomer,
                     reservedetail.GroomerId);
-                reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PaymentPrice);
-                dto.WalletAmount = reservedetail.WalletPrice;
+                var walletContribution = PaymentAmountHelper.GetWalletContribution(walletAmount, totalPay);
+                reservedetail.WalletPrice = Math.Min(walletContribution, reservedetail.PaymentPrice);
+                if (bundled != null)
+                {
+                    bundled.FromWallet = true;
+                    bundled.WalletPrice = walletContribution - reservedetail.WalletPrice;
+                }
+                dto.WalletAmount = walletContribution;
                 await _context.SaveChangesAsync();
 
-                dto.Amount = walletAmount >= reservedetail.PaymentPrice ? 0 : reservedetail.PaymentPrice - reservedetail.WalletPrice;
+                dto.Amount = walletAmount >= totalPay ? 0 : totalPay - walletContribution;
                 dto.ProductOrderId = null;
                 dto.CallBackTypeLabel = PaymentCallbackTypeEnum.GroomerReserve.ToString();
                 dto.CallBackId = reservedetail.Id.ToString();
@@ -1344,6 +1370,12 @@ namespace Application.Services.Order.PaymentSrv
                 return await StartPayment(dto);
             }
 
+            if (bundled != null && (bundled.FromWallet || bundled.WalletPrice > 0))
+            {
+                bundled.FromWallet = false;
+                bundled.WalletPrice = 0;
+                await _context.SaveChangesAsync();
+            }
             dto.IsOnline = true;
             dto.ProductOrderId = null;
             dto.TypeId = groomerTypeId;
@@ -1377,8 +1409,12 @@ namespace Application.Services.Order.PaymentSrv
             if (!clinicRebateValidation.IsSuccess)
                 return clinicRebateValidation;
 
-            dto.Amount = reservedetail.PaymentPrice;
-            dto.GrossAmount = reservedetail.PaymentPrice + reservedetail.RebatePrice;
+            // پت‌رسانِ همراه رزرو (اگر ثبت شده): هزینه‌اش با همین پرداخت گرفته می‌شود (یک پرداخت برای رزرو + سفر).
+            var bundled = await PendingBundledTripAsync(PaymentCallbackTypeEnum.ClinicReserve, reservedetail.Id);
+            var bundledPay = bundled == null ? 0 : (bundled.PaymentPrice > 0 ? bundled.PaymentPrice : bundled.Price);
+            var totalPay = reservedetail.PaymentPrice + bundledPay;
+            dto.Amount = totalPay;
+            dto.GrossAmount = totalPay + reservedetail.RebatePrice;
             dto.RebateAmount = reservedetail.RebatePrice;
             dto.RebateId = reservedetail.RebateId;
             dto.WalletAmount = 0;
@@ -1398,11 +1434,17 @@ namespace Application.Services.Order.PaymentSrv
                     reservedetail.BookerId,
                     Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Clinic,
                     reservedetail.ClinicId);
-                reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PaymentPrice);
-                dto.WalletAmount = reservedetail.WalletPrice;
+                var walletContribution = PaymentAmountHelper.GetWalletContribution(walletAmount, totalPay);
+                reservedetail.WalletPrice = Math.Min(walletContribution, reservedetail.PaymentPrice);
+                if (bundled != null)
+                {
+                    bundled.FromWallet = true;
+                    bundled.WalletPrice = walletContribution - reservedetail.WalletPrice;
+                }
+                dto.WalletAmount = walletContribution;
                 await _context.SaveChangesAsync();
 
-                dto.Amount = walletAmount >= reservedetail.PaymentPrice ? 0 : reservedetail.PaymentPrice - reservedetail.WalletPrice;
+                dto.Amount = walletAmount >= totalPay ? 0 : totalPay - walletContribution;
                 dto.ProductOrderId = null;
                 dto.CallBackTypeLabel = PaymentCallbackTypeEnum.ClinicReserve.ToString();
                 dto.CallBackId = reservedetail.Id.ToString();
@@ -1410,6 +1452,12 @@ namespace Application.Services.Order.PaymentSrv
                 return await StartPayment(dto);
             }
 
+            if (bundled != null && (bundled.FromWallet || bundled.WalletPrice > 0))
+            {
+                bundled.FromWallet = false;
+                bundled.WalletPrice = 0;
+                await _context.SaveChangesAsync();
+            }
             dto.IsOnline = true;
             dto.ProductOrderId = null;
             dto.TypeId = clinicTypeId;
@@ -1442,8 +1490,12 @@ namespace Application.Services.Order.PaymentSrv
             if (!coachRebateValidation.IsSuccess)
                 return coachRebateValidation;
 
-            dto.Amount = reservedetail.PaymentPrice;
-            dto.GrossAmount = reservedetail.PaymentPrice + reservedetail.RebatePrice;
+            // پت‌رسانِ همراه رزرو (اگر ثبت شده): هزینه‌اش با همین پرداخت گرفته می‌شود (یک پرداخت برای رزرو + سفر).
+            var bundled = await PendingBundledTripAsync(PaymentCallbackTypeEnum.CoachReserve, reservedetail.Id);
+            var bundledPay = bundled == null ? 0 : (bundled.PaymentPrice > 0 ? bundled.PaymentPrice : bundled.Price);
+            var totalPay = reservedetail.PaymentPrice + bundledPay;
+            dto.Amount = totalPay;
+            dto.GrossAmount = totalPay + reservedetail.RebatePrice;
             dto.RebateAmount = reservedetail.RebatePrice;
             dto.RebateId = reservedetail.RebateId;
             dto.WalletAmount = 0;
@@ -1463,11 +1515,17 @@ namespace Application.Services.Order.PaymentSrv
                     reservedetail.BookerId,
                     Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum.Coach,
                     reservedetail.CoachId);
-                reservedetail.WalletPrice = PaymentAmountHelper.GetWalletContribution(walletAmount, reservedetail.PaymentPrice);
-                dto.WalletAmount = reservedetail.WalletPrice;
+                var walletContribution = PaymentAmountHelper.GetWalletContribution(walletAmount, totalPay);
+                reservedetail.WalletPrice = Math.Min(walletContribution, reservedetail.PaymentPrice);
+                if (bundled != null)
+                {
+                    bundled.FromWallet = true;
+                    bundled.WalletPrice = walletContribution - reservedetail.WalletPrice;
+                }
+                dto.WalletAmount = walletContribution;
                 await _context.SaveChangesAsync();
 
-                dto.Amount = walletAmount >= reservedetail.PaymentPrice ? 0 : reservedetail.PaymentPrice - reservedetail.WalletPrice;
+                dto.Amount = walletAmount >= totalPay ? 0 : totalPay - walletContribution;
                 dto.ProductOrderId = null;
                 dto.CallBackTypeLabel = PaymentCallbackTypeEnum.CoachReserve.ToString();
                 dto.CallBackId = reservedetail.Id.ToString();
@@ -1475,6 +1533,12 @@ namespace Application.Services.Order.PaymentSrv
                 return await StartPayment(dto);
             }
 
+            if (bundled != null && (bundled.FromWallet || bundled.WalletPrice > 0))
+            {
+                bundled.FromWallet = false;
+                bundled.WalletPrice = 0;
+                await _context.SaveChangesAsync();
+            }
             dto.IsOnline = true;
             dto.ProductOrderId = null;
             dto.TypeId = coachTypeId;
@@ -1971,12 +2035,13 @@ namespace Application.Services.Order.PaymentSrv
                     .Where(s => s.Id == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
                     .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
                     .FirstOrDefaultAsync();
+                var bundledSnapshot = await BundledSnapshotAsync(PaymentCallbackTypeEnum.PansionReserve, referenceId);
                 return item != null && SnapshotMatches(
                     payment,
-                    item.PaymentPrice + item.RebatePrice,
+                    item.PaymentPrice + item.RebatePrice + bundledSnapshot.Payable,
                     item.RebatePrice,
-                    item.WalletPrice,
-                    item.PaymentPrice - item.WalletPrice)
+                    item.WalletPrice + bundledSnapshot.Wallet,
+                    item.PaymentPrice + bundledSnapshot.Payable - item.WalletPrice - bundledSnapshot.Wallet)
                     ? new BaseResultDto(true)
                     : new BaseResultDto(false, Resource.Notification.InvalidData);
             }
@@ -1987,12 +2052,13 @@ namespace Application.Services.Order.PaymentSrv
                     .Where(s => s.Id == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
                     .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
                     .FirstOrDefaultAsync();
+                var bundledSnapshot = await BundledSnapshotAsync(PaymentCallbackTypeEnum.GroomerReserve, referenceId);
                 return item != null && SnapshotMatches(
                     payment,
-                    item.PaymentPrice + item.RebatePrice,
+                    item.PaymentPrice + item.RebatePrice + bundledSnapshot.Payable,
                     item.RebatePrice,
-                    item.WalletPrice,
-                    item.PaymentPrice - item.WalletPrice)
+                    item.WalletPrice + bundledSnapshot.Wallet,
+                    item.PaymentPrice + bundledSnapshot.Payable - item.WalletPrice - bundledSnapshot.Wallet)
                     ? new BaseResultDto(true)
                     : new BaseResultDto(false, Resource.Notification.InvalidData);
             }
@@ -2003,12 +2069,13 @@ namespace Application.Services.Order.PaymentSrv
                     .Where(s => s.Id == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
                     .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
                     .FirstOrDefaultAsync();
+                var bundledSnapshot = await BundledSnapshotAsync(PaymentCallbackTypeEnum.ClinicReserve, referenceId);
                 return item != null && SnapshotMatches(
                     payment,
-                    item.PaymentPrice + item.RebatePrice,
+                    item.PaymentPrice + item.RebatePrice + bundledSnapshot.Payable,
                     item.RebatePrice,
-                    item.WalletPrice,
-                    item.PaymentPrice - item.WalletPrice)
+                    item.WalletPrice + bundledSnapshot.Wallet,
+                    item.PaymentPrice + bundledSnapshot.Payable - item.WalletPrice - bundledSnapshot.Wallet)
                     ? new BaseResultDto(true)
                     : new BaseResultDto(false, Resource.Notification.InvalidData);
             }
@@ -2018,12 +2085,13 @@ namespace Application.Services.Order.PaymentSrv
                     .Where(s => s.Id == referenceId && s.BookerId == payment.UserId && !s.IsCancel)
                     .Select(s => new { s.PaymentPrice, s.RebatePrice, s.WalletPrice })
                     .FirstOrDefaultAsync();
+                var bundledSnapshot = await BundledSnapshotAsync(PaymentCallbackTypeEnum.CoachReserve, referenceId);
                 return item != null && SnapshotMatches(
                     payment,
-                    item.PaymentPrice + item.RebatePrice,
+                    item.PaymentPrice + item.RebatePrice + bundledSnapshot.Payable,
                     item.RebatePrice,
-                    item.WalletPrice,
-                    item.PaymentPrice - item.WalletPrice)
+                    item.WalletPrice + bundledSnapshot.Wallet,
+                    item.PaymentPrice + bundledSnapshot.Payable - item.WalletPrice - bundledSnapshot.Wallet)
                     ? new BaseResultDto(true)
                     : new BaseResultDto(false, Resource.Notification.InvalidData);
             }
@@ -2136,6 +2204,35 @@ namespace Application.Services.Order.PaymentSrv
             return new BaseResultDto(false, Resource.Notification.InvalidData);
         }
 
+        // ---------------------------------------------------------------- پت‌رسانِ همراه رزرو
+
+        // سفرِ «منتظر پرداخت رزرو» (tracked) برای افزودن هزینه‌اش به پرداخت رزرو؛ null اگر نباشد.
+        private Task<Entities.Entities.Trip> PendingBundledTripAsync(PaymentCallbackTypeEnum type, long reserveId) =>
+            Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper
+                .PendingBundled(_context.Trips.AsTracking(), type, reserveId)
+                .OrderByDescending(t => t.Id)
+                .FirstOrDefaultAsync();
+
+        // مبلغ و سهم کیف پولِ سفرِ همراه رزرو برای اعتبارسنجی Snapshot پرداخت.
+        private async Task<(double Payable, double Wallet)> BundledSnapshotAsync(PaymentCallbackTypeEnum type, long reserveId)
+        {
+            var row = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper
+                .PendingBundled(_context.Trips.AsNoTracking(), type, reserveId)
+                .OrderByDescending(t => t.Id)
+                .Select(t => new { t.Price, t.PaymentPrice, t.WalletPrice })
+                .FirstOrDefaultAsync();
+            return row == null ? (0, 0) : (row.PaymentPrice > 0 ? row.PaymentPrice : row.Price, row.WalletPrice);
+        }
+
+        // بعد از اعمالِ موفقِ پرداخت رزرو، سفرِ همراهش هم «پرداخت‌شده» و به راننده‌ها اعلام می‌شود (در همان تراکنش؛ شکست = برگشت کل).
+        private async Task<BaseResultDto> WithBundledTripAsync(PaymentCallbackTypeEnum type, long reserveId, bool useWallet, BaseResultDto reserveResult)
+        {
+            if (reserveResult == null || !reserveResult.IsSuccess)
+                return reserveResult;
+            var trip = await _tripService.ConfirmBundledTripPaidAsync(type, reserveId, useWallet);
+            return trip.IsSuccess ? reserveResult : trip;
+        }
+
         private static bool SnapshotMatches(
             Entities.Entities.Payment payment,
             double grossAmount,
@@ -2191,21 +2288,21 @@ namespace Application.Services.Order.PaymentSrv
 
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.PansionReserve.ToString())
             {
-                return await _pansionReserve.PansionReservePaymentCallback(referenceId, useWallet);
+                return await WithBundledTripAsync(PaymentCallbackTypeEnum.PansionReserve, referenceId, useWallet, await _pansionReserve.PansionReservePaymentCallback(referenceId, useWallet));
             }
 
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.GroomerReserve.ToString())
             {
-                return await _groomerReserve.GroomerReservePaymentCallback(referenceId, useWallet);
+                return await WithBundledTripAsync(PaymentCallbackTypeEnum.GroomerReserve, referenceId, useWallet, await _groomerReserve.GroomerReservePaymentCallback(referenceId, useWallet));
             }
 
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.ClinicReserve.ToString())
             {
-                return await _clinicReserve.ClinicReservePaymentCallback(referenceId, useWallet);
+                return await WithBundledTripAsync(PaymentCallbackTypeEnum.ClinicReserve, referenceId, useWallet, await _clinicReserve.ClinicReservePaymentCallback(referenceId, useWallet));
             }
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CoachReserve.ToString())
             {
-                return await _coachReserve.CoachReservePaymentCallback(referenceId, useWallet);
+                return await WithBundledTripAsync(PaymentCallbackTypeEnum.CoachReserve, referenceId, useWallet, await _coachReserve.CoachReservePaymentCallback(referenceId, useWallet));
             }
 
             if (payment.CallBackTypeLabel == PaymentCallbackTypeEnum.CompanionReserveBatch.ToString())
@@ -2312,7 +2409,9 @@ namespace Application.Services.Order.PaymentSrv
                 {
                     return ManualPaymentTargetResult.Fail(Resource.Notification.PaymentReserveAlreadyPaid);
                 }
-                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
+                // پت‌رسانِ همراه رزرو هم با همین پرداخت تسویه می‌شود.
+                var bundledManual = await BundledSnapshotAsync(PaymentCallbackTypeEnum.PansionReserve, referenceId);
+                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice + bundledManual.Payable, dto.ReferenceId);
             }
 
             if (dto.TargetType == PaymentCallbackTypeEnum.GroomerReserve)
@@ -2333,7 +2432,9 @@ namespace Application.Services.Order.PaymentSrv
                 {
                     return ManualPaymentTargetResult.Fail(Resource.Notification.GroomerReserveCannotCancel);
                 }
-                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
+                // پت‌رسانِ همراه رزرو هم با همین پرداخت تسویه می‌شود.
+                var bundledManual = await BundledSnapshotAsync(PaymentCallbackTypeEnum.GroomerReserve, referenceId);
+                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice + bundledManual.Payable, dto.ReferenceId);
             }
 
             if (dto.TargetType == PaymentCallbackTypeEnum.ClinicReserve)
@@ -2354,7 +2455,9 @@ namespace Application.Services.Order.PaymentSrv
                 {
                     return ManualPaymentTargetResult.Fail(Resource.Notification.ClinicReserveCannotCancel);
                 }
-                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
+                // پت‌رسانِ همراه رزرو هم با همین پرداخت تسویه می‌شود.
+                var bundledManual = await BundledSnapshotAsync(PaymentCallbackTypeEnum.ClinicReserve, referenceId);
+                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice + bundledManual.Payable, dto.ReferenceId);
             }
             if (dto.TargetType == PaymentCallbackTypeEnum.CoachReserve)
             {
@@ -2374,7 +2477,9 @@ namespace Application.Services.Order.PaymentSrv
                 {
                     return ManualPaymentTargetResult.Fail(Resource.Notification.CoachReserveCannotCancel);
                 }
-                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice, dto.ReferenceId);
+                // پت‌رسانِ همراه رزرو هم با همین پرداخت تسویه می‌شود.
+                var bundledManual = await BundledSnapshotAsync(PaymentCallbackTypeEnum.CoachReserve, referenceId);
+                return ManualPaymentTargetResult.Success(item.BookerId, item.PaymentPrice + bundledManual.Payable, dto.ReferenceId);
             }
 
             if (dto.TargetType == PaymentCallbackTypeEnum.SchoolReserve)

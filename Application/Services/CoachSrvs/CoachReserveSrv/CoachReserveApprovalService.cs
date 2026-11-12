@@ -22,13 +22,16 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
         private readonly IWalletService _walletService;
         private readonly ICoachNotifier _notifier;
         private readonly ILogger<CoachReserveApprovalService> _logger;
+        private readonly Application.Services.TripSrv.TripSrv.Iface.ITripService _tripService;
 
         public CoachReserveApprovalService(
             IDataBaseContext context,
             IWalletService walletService,
             ICoachNotifier notifier,
-            ILogger<CoachReserveApprovalService> logger)
+            ILogger<CoachReserveApprovalService> logger,
+            Application.Services.TripSrv.TripSrv.Iface.ITripService tripService = null)
         {
+            _tripService = tripService;
             _context = context;
             _walletService = walletService;
             _notifier = notifier;
@@ -114,6 +117,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 return new BaseResultDto(false, Resource.Notification.CoachReserveRefundFailed);
             }
             await transaction.CommitAsync(cancellationToken);
+            await SafeAsync(() => _tripService?.CancelLinkedTripForCoachReserveAsync(reserve.Id) ?? Task.CompletedTask, reserve.Id, "linked trip cancel");
             await SafeAsync(() => Application.Services.CoachSrvs.CoachReserveReminders.RemoveAsync(_context, reserve.Id), reserve.Id, "reminders remove");
 
             if (reserve.IsReserved)
@@ -150,6 +154,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 return new BaseResultDto(false, Resource.Notification.CoachReserveRefundFailed);
             }
             await transaction.CommitAsync(cancellationToken);
+            await SafeAsync(() => _tripService?.CancelLinkedTripForCoachReserveAsync(reserve.Id) ?? Task.CompletedTask, reserve.Id, "linked trip cancel");
             await SafeAsync(() => Application.Services.CoachSrvs.CoachReserveReminders.RemoveAsync(_context, reserve.Id), reserve.Id, "reminders remove");
             if (reserve.IsReserved)
                 await _notifier.ReserveCancelledByAdminAsync(reserve.Id, reason);
@@ -183,6 +188,7 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
                 return new BaseResultDto(false, Resource.Notification.CoachReserveRefundFailed);
             }
             await transaction.CommitAsync(ct);
+            await SafeAsync(() => _tripService?.CancelLinkedTripForCoachReserveAsync(reserve.Id) ?? Task.CompletedTask, reserve.Id, "linked trip cancel");
             await SafeAsync(() => Application.Services.CoachSrvs.CoachReserveReminders.RemoveAsync(_context, reserve.Id), reserve.Id, "reminders remove");
 
             if (decision == CoachReserveOwnerDecisionEnum.Rejected)

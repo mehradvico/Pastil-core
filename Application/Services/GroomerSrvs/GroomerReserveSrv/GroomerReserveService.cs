@@ -321,6 +321,8 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
                 // مهلت پاسخ آرایشگاه به نوبتِ جدید نسبت داده می‌شود.
                 if (GroomerReserveRules.IsPending(reserve.OwnerDecision))
                     reserve.OwnerApprovalDeadline = GroomerReserveRules.Deadline(now, start);
+                // سفر پت‌رسانِ متصل همراه نوبت جابه‌جا می‌شود (حرکت = نوبت جدید منهای ۶۰/۱۲۰ دقیقه).
+                await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.RescheduleAsync(_context, Application.Common.Enumerable.PaymentCallbackTypeEnum.GroomerReserve, reserve.Id, start, now);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
@@ -386,6 +388,20 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             var now = DateTime.Now;
             foreach (var row in rows)
                 Finish(row, now);
+            // سفر پت‌رسانِ متصل؛ مرکز (مالک/ارائه‌دهنده/پرسنل) فقط مبلغ رزرو خودش را می‌بیند.
+            var hideTripAmounts = input.OwnerUserId.HasValue || input.ProviderId.HasValue || input.AssigneeUserId.HasValue;
+            var linkedTrips = Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper
+                .ForGroomerReservesAsync(_context, rows.Select(r => r.Id)).GetAwaiter().GetResult();
+            foreach (var row in rows)
+            {
+                row.PetResanTrip = linkedTrips.TryGetValue(row.Id, out var t) ? t : null;
+                row.TotalPrice = row.PaymentPrice + (row.PetResanTrip?.Payable() ?? 0);
+                if (hideTripAmounts)
+                {
+                    row.PetResanTrip?.HideAmounts();
+                    row.TotalPrice = row.PaymentPrice;
+                }
+            }
             return new GroomerReservePage { PageIndex = input.PageIndex, PageSize = input.PageSize, TotalCount = total, List = rows };
         }
 
@@ -400,6 +416,15 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             if (item == null)
                 return Fail(Resource.Notification.NothingFound);
             Finish(item, DateTime.Now);
+            var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForGroomerReservesAsync(_context, new[] { item.Id });
+            item.PetResanTrip = trips.TryGetValue(item.Id, out var linkedTrip) ? linkedTrip : null;
+            // مشتری و ادمین: رزرو + پت‌رسان (جدا و جمع). مرکز (مالک/پرسنل): فقط مبلغ رزرو خودش.
+            item.TotalPrice = item.PaymentPrice + (item.PetResanTrip?.Payable() ?? 0);
+            if (ownerUserId.HasValue)
+            {
+                item.PetResanTrip?.HideAmounts();
+                item.TotalPrice = item.PaymentPrice;
+            }
             if (bookerId.HasValue)
             {
                 // کاربر سهم‌های حسابداری را نمی‌بیند.
@@ -425,6 +450,8 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
                 result.Data.ProviderShare = 0;
                 result.Data.SiteShare = 0;
                 result.Data.CommissionPercent = 0;
+                result.Data.PetResanTrip?.HideAmounts();
+                result.Data.TotalPrice = result.Data.PaymentPrice;
             }
             return result;
         }
@@ -718,7 +745,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
         private sealed record PackageSet(List<PackageInfo> Packages, PackageInfo Primary, int DurationMinutes);
 
         /// <summary>
-        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک آرایشگاه، هر خدمت حداکثر یک‌بار، حداکثر ۵ بسته؛ مدت نوبت = بیشترین مدت بین بسته‌ها (جمع نمی‌شود) و از سقف یک روز کمتر.
+        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک آرایشگاه، شناسه‌ی هر بسته یکتا؛ مدت نوبت = بیشترین مدت بین بسته‌ها (جمع نمی‌شود) و از سقف یک روز کمتر.
         /// expectedGroomerId پر باشد باید با آرایشگاهِ همه‌ی بسته‌ها یکی باشد.
         /// </summary>
         private async Task<(PackageSet Set, string Error)> BuildSetAsync(IReadOnlyList<long> packageIds, long? expectedGroomerId)
@@ -730,9 +757,6 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
                 return (null, Resource.Notification.GroomerReserveDuplicateService);
             if (ids.Count == 0)
                 return (null, Resource.Notification.GroomerReservePackageInvalid);
-            if (ids.Count > GroomerReserveRules.MaxPackages)
-                return (null, Resource.Notification.GroomerReserveTooManyPackages);
-
             var packages = new List<PackageInfo>();
             foreach (var id in ids)
             {

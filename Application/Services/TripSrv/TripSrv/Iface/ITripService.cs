@@ -31,6 +31,12 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task CancelLinkedTripForClinicReserveAsync(long clinicReserveId);
         Task CancelLinkedTripForPansionReserveAsync(long pansionReserveId);
         Task CancelLinkedTripForSchoolReserveAsync(long schoolReserveId);
+        Task CancelLinkedTripForGroomerReserveAsync(long groomerReserveId);
+        Task CancelLinkedTripForCoachReserveAsync(long coachReserveId);
+        /// <summary>بعد از پرداخت موفق رزرو: سفر پت‌رسانِ همراه رزرو پرداخت‌شده و به راننده‌ها اعلام می‌شود.</summary>
+        /// <summary>کاربر پت‌رسانِ همراه رزرو را قبل از پرداخت برداشت: سفرِ منتظر پرداخت بی‌صدا بسته می‌شود.</summary>
+        Task<BaseResultDto> DiscardBundledTripAsync(Application.Common.Enumerable.PaymentCallbackTypeEnum type, long reserveId, long userId);
+        Task<BaseResultDto> ConfirmBundledTripPaidAsync(Application.Common.Enumerable.PaymentCallbackTypeEnum type, long reserveId, bool fromWallet);
         Task<BaseResultDto<TripVDto>> AdminCompleteAsync(TripAdminActionDto dto);
         Task<BaseResultDto<TripUserChangeStatusDto>> UpdateTripUserStatusAsync(TripUserChangeStatusDto dto);
         Task<BaseResultDto> SetRebateCodeAsyncDto(TripSetRebateCodeDto dto);
@@ -51,6 +57,10 @@ namespace Application.Services.TripSrv.TripSrv.Iface
         Task<BaseResultDto<TripVDto>> GetTripForPansionReservationAsync(long pansionReserveId, long userId);
         Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForClinicAsync(TripClinicReservationCreateDto dto, long userId);
         Task<BaseResultDto<TripVDto>> GetTripForClinicReservationAsync(long clinicReserveId, long userId);
+        Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForGroomerAsync(TripGroomerReservationCreateDto dto, long userId);
+        Task<BaseResultDto<TripVDto>> GetTripForGroomerReservationAsync(long groomerReserveId, long userId);
+        Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForCoachAsync(TripCoachReservationCreateDto dto, long userId);
+        Task<BaseResultDto<TripVDto>> GetTripForCoachReservationAsync(long coachReserveId, long userId);
         Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForSchoolAsync(TripSchoolReservationCreateDto dto, long userId);
         Task<BaseResultDto<TripVDto>> GetTripForSchoolReservationAsync(long schoolReserveId, long userId);
         Task GeneratePetResanServiceTripsAsync();

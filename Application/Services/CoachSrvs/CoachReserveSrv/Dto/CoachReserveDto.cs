@@ -112,6 +112,9 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv.Dto
 
     public class CoachReserveVDto
     {
+        public Application.Services.TripSrv.TripSrv.Dto.LinkedPetResanTripVDto PetResanTrip { get; set; }
+        /// <summary>مبلغ رزرو + پت‌رسانِ همراه رزرو (فقط مشتری و ادمین؛ برای مرکز همان مبلغ رزرو است).</summary>
+        public double TotalPrice { get; set; }
         public int RescheduleCount { get; set; }
         public DateTime? OriginalDoDate { get; set; }
         public int? StayDays { get; set; }

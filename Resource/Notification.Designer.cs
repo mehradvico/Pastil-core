@@ -7090,6 +7090,24 @@ namespace Resource {
             }
         }
 
+        public static string GroomerReserveTripNotAvailable {
+            get {
+                return ResourceManager.GetString("GroomerReserveTripNotAvailable", resourceCulture);
+            }
+        }
+
+        public static string TripPaidWithReserve {
+            get {
+                return ResourceManager.GetString("TripPaidWithReserve", resourceCulture);
+            }
+        }
+
+        public static string CoachReserveTripNotAvailable {
+            get {
+                return ResourceManager.GetString("CoachReserveTripNotAvailable", resourceCulture);
+            }
+        }
+
         public static string PansionWorkingHoursInvalid {
             get {
                 return ResourceManager.GetString("PansionWorkingHoursInvalid", resourceCulture);
@@ -7522,6 +7540,15 @@ namespace Resource {
         public static string ProviderPermissionLevelManage {
             get {
                 return ResourceManager.GetString("ProviderPermissionLevelManage", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The selected catalog product is not valid or is inactive.
+        /// </summary>
+        public static string MissingProductLinkTargetInvalid {
+            get {
+                return ResourceManager.GetString("MissingProductLinkTargetInvalid", resourceCulture);
             }
         }
 

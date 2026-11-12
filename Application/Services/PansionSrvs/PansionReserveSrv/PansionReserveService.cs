@@ -88,10 +88,16 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             if (item != null)
             {
                 var vdto = mapper.Map<PansionReserveVDto>(item);
-                // سفر پت‌رسانِ متصل (اگر بود)؛ پرداختش جدا از رزرو است، TotalPrice فقط برای نمایش
+                // سفر پت‌رسانِ متصل (اگر بود). PaidWithReserve: هزینه‌اش با همین پرداخت رزرو گرفته می‌شود.
                 var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForPansionReservesAsync(_context, new[] { vdto.Id });
                 vdto.PetResanTrip = trips.TryGetValue(vdto.Id, out var trip) ? trip : null;
-                vdto.TotalPrice = vdto.PaymentPrice + (vdto.PetResanTrip?.PaymentPrice > 0 ? vdto.PetResanTrip.PaymentPrice : vdto.PetResanTrip?.Price ?? 0);
+                vdto.TotalPrice = vdto.PaymentPrice + (vdto.PetResanTrip?.Payable() ?? 0);
+                // مرکز فقط مبلغ رزرو خودش را می‌بیند.
+                if (ownerUserId.HasValue)
+                {
+                    vdto.PetResanTrip?.HideAmounts();
+                    vdto.TotalPrice = vdto.PaymentPrice;
+                }
                 return new BaseResultDto<PansionReserveVDto>(true, vdto);
             }
             return new BaseResultDto<PansionReserveVDto>(false, mapper.Map<PansionReserveVDto>(item));

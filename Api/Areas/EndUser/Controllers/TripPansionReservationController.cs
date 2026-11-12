@@ -45,5 +45,14 @@ namespace Api.Areas.EndUser.Controllers
             var result = await _tripService.GetTripForPansionReservationAsync(pansionReserveId, _currentUser.CurrentUser.UserId);
             return Ok(result);
         }
+
+        /// <summary>برداشتن پت‌رسانِ همراه رزرو قبل از پرداخت (فقط سفرِ منتظر پرداخت؛ سفر پرداخت‌شده از مسیر لغو سفر).</summary>
+        [HttpDelete("{pansionReserveId}")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> Delete(long pansionReserveId)
+        {
+            var result = await _tripService.DiscardBundledTripAsync(Application.Common.Enumerable.PaymentCallbackTypeEnum.PansionReserve, pansionReserveId, _currentUser.CurrentUser.UserId);
+            return Ok(result);
+        }
     }
 }

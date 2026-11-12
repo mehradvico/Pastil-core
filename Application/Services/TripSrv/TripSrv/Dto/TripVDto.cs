@@ -60,6 +60,10 @@ namespace Application.Services.TripSrv.TripSrv.Dto
         public long? PansionReserveId { get; set; }
         public long? ClinicReserveId { get; set; }
         public long? SchoolReserveId { get; set; }
+        public long? GroomerReserveId { get; set; }
+        public long? CoachReserveId { get; set; }
+        /// <summary>هزینه‌ی این سفر همراه پرداخت خودِ رزرو گرفته می‌شود (پرداخت جدا ندارد).</summary>
+        public bool PaidWithReserve { get; set; }
         // نوبتی از «سرویس پت‌رسان هفتگی» (job شبانه می‌سازد). اپ راننده «سرویس دوره‌ای» بودن را از همین فیلد تشخیص می‌دهد؛
         // این نوبت‌ها ScheduledDepartureAt ندارند (فقط TripStartDateTime) و به هیچ رزروی هم وصل نیستند.
         public long? PetResanServiceScheduleId { get; set; }

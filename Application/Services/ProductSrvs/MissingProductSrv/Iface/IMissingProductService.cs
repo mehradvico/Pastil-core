@@ -21,6 +21,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv.Iface
         Task<BaseResultDto<MissingProductAdminListDto>> SearchAsync(MissingProductAdminSearchDto dto);
         Task<BaseResultDto<MissingProductAdminDto>> GetAsync(long id, CancellationToken cancellationToken);
         Task<BaseResultDto<MissingProductApproveResultDto>> ApproveAsync(long adminUserId, MissingProductApproveDto dto);
+        Task<BaseResultDto<MissingProductApproveResultDto>> LinkAsync(long adminUserId, MissingProductLinkDto dto);
         Task<BaseResultDto<MissingProductAdminDto>> RejectAsync(long adminUserId, MissingProductRejectDto dto);
     }
 }

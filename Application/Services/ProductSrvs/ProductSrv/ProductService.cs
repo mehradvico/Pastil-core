@@ -99,7 +99,15 @@ namespace Application.Services.ProductSrvs.ProductSrv
             }
             if (!string.IsNullOrEmpty(searchDto.Q))
             {
-                query = query.Where(s => s.Name.Contains(searchDto.Q) || s.SecondName.Contains(searchDto.Q));
+                // هر کلمه جدا باید در نام باشد؛ «ي/ك» عربی و ارقام فارسی/لاتین مانع پیدا شدن محصول نمی‌شوند (متن کپی‌شده از اکسل).
+                foreach (var word in SearchNormalizeHelper.AllWordTerms(searchDto.Q))
+                {
+                    var term = word;
+                    var persianDigitsTerm = SearchNormalizeHelper.ToPersianDigits(term);
+                    query = query.Where(s =>
+                        (s.Name + " " + (s.SecondName ?? "")).Replace("ي", "ی").Replace("ك", "ک").Contains(term) ||
+                        (s.Name + " " + (s.SecondName ?? "")).Replace("ي", "ی").Replace("ك", "ک").Contains(persianDigitsTerm));
+                }
             }
 
             if (searchDto.PriceFrom.HasValue)

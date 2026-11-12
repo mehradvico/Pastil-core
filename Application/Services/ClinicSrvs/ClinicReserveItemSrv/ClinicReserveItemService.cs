@@ -267,12 +267,6 @@ namespace Application.Services.ClinicSrvs.ClinicReserveItemSrv
                     await transaction.RollbackAsync();
                     return Fail<ClinicReserveItemsVDto>(Resource.Notification.ClinicReserveDuplicateService);
                 }
-                if (active.Count >= ClinicReserveRules.MaxPackages)
-                {
-                    await transaction.RollbackAsync();
-                    return Fail<ClinicReserveItemsVDto>(Resource.Notification.ClinicReserveTooManyPackages);
-                }
-
                 var clinicPercent = await _context.Clinics.AsNoTracking().Where(c => c.Id == reserve.ClinicId).Select(c => c.CommissionPercent).FirstAsync();
                 var price = resolved.Value.Price;
                 var item = new ClinicReserveItem

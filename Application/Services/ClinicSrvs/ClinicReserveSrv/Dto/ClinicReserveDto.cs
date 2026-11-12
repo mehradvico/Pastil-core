@@ -80,6 +80,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv.Dto
         public DateTime? CallEndDate { get; set; }
         /// <summary>سفر پت‌رسانِ متصل (اگر بود)؛ پرداختش جدا از رزرو است.</summary>
         public Application.Services.TripSrv.TripSrv.Dto.LinkedPetResanTripVDto PetResanTrip { get; set; }
+        /// <summary>مبلغ رزرو + پت‌رسانِ همراه رزرو (فقط مشتری و ادمین؛ برای مرکز همان مبلغ رزرو است).</summary>
+        public double TotalPrice { get; set; }
         public List<ClinicReserveItemVDto> Items { get; set; } = new List<ClinicReserveItemVDto>();
         public long Id { get; set; }
         public string ReserveCode { get; set; }

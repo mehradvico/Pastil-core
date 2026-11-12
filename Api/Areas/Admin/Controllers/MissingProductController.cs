@@ -48,6 +48,14 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Approve([FromBody] MissingProductApproveDto dto)
             => Ok(await _service.ApproveAsync(_currentUser.CurrentUser.UserId, dto));
 
+        /// <summary>
+        /// وصل به محصول موجود: محصول تکراری ساخته نمی‌شود؛ درخواست با همان ProductId تأیید می‌شود و در صورت قیمت، آیتم فروشگاه هم ساخته می‌شود
+        /// </summary>
+        [HttpPost("link")]
+        [ProducesResponseType(typeof(BaseResultDto<MissingProductApproveResultDto>), 200)]
+        public async Task<IActionResult> Link([FromBody] MissingProductLinkDto dto)
+            => Ok(await _service.LinkAsync(_currentUser.CurrentUser.UserId, dto));
+
         /// <summary>رد با دلیل متنی (فروشنده می‌تواند اصلاح و دوباره بفرستد)</summary>
         [HttpPost("reject")]
         [ProducesResponseType(typeof(BaseResultDto<MissingProductAdminDto>), 200)]

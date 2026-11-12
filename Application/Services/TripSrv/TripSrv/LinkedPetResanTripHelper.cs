@@ -1,3 +1,4 @@
+using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Services.TripSrv.TripSrv.Dto;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,61 @@ namespace Application.Services.TripSrv.TripSrv
 
         public static Task<Dictionary<long, LinkedPetResanTripVDto>> ForSchoolReservesAsync(IDataBaseContext context, IEnumerable<long> reserveIds) =>
             LoadAsync(context, t => t.SchoolReserveId, reserveIds);
+
+        public static Task<Dictionary<long, LinkedPetResanTripVDto>> ForGroomerReservesAsync(IDataBaseContext context, IEnumerable<long> reserveIds) =>
+            LoadAsync(context, t => t.GroomerReserveId, reserveIds);
+
+        public static Task<Dictionary<long, LinkedPetResanTripVDto>> ForCoachReservesAsync(IDataBaseContext context, IEnumerable<long> reserveIds) =>
+            LoadAsync(context, t => t.CoachReserveId, reserveIds);
+
+        // ------------------------------------------------------------------ پت‌رسانِ همراه رزرو (یک پرداخت)
+
+        /// <summary>سفرهای متصل به یک رزروِ مرکز؛ null یعنی این نوع پرداخت پت‌رسانِ همراه ندارد.</summary>
+        public static System.Linq.Expressions.Expression<System.Func<Entities.Entities.Trip, bool>> ReserveMatch(PaymentCallbackTypeEnum type, long reserveId) => type switch
+        {
+            PaymentCallbackTypeEnum.ClinicReserve => t => t.ClinicReserveId == reserveId,
+            PaymentCallbackTypeEnum.GroomerReserve => t => t.GroomerReserveId == reserveId,
+            PaymentCallbackTypeEnum.CoachReserve => t => t.CoachReserveId == reserveId,
+            PaymentCallbackTypeEnum.PansionReserve => t => t.PansionReserveId == reserveId,
+            _ => null
+        };
+
+        /// <summary>سفرِ «منتظر پرداخت رزرو»: همراه رزرو ثبت شده، هنوز پرداخت نشده و لغو نشده.</summary>
+        public static IQueryable<Entities.Entities.Trip> PendingBundled(IQueryable<Entities.Entities.Trip> trips, PaymentCallbackTypeEnum type, long reserveId)
+        {
+            var match = ReserveMatch(type, reserveId);
+            if (match == null)
+                return trips.Where(t => false);
+            return trips.Where(match).Where(t => t.PaidWithReserve && !t.IsPaid && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested);
+        }
+
+        /// <summary>
+        /// سفر متصل (قبل از «پت سوار شد») همراه رزرو جابه‌جا می‌شود: حرکت = زمان جدید نوبت منهای فاصله‌ی انتخابی کاربر. قیمت عوض نمی‌شود.
+        /// ذخیره با فراخواننده است (داخل تراکنش خودش).
+        /// </summary>
+        public static async Task<Entities.Entities.Trip> RescheduleAsync(IDataBaseContext context, PaymentCallbackTypeEnum type, long reserveId, System.DateTime newStartAt, System.DateTime now)
+        {
+            var requested = (long)TripStatusEnum.TripStatus_Requested;
+            var accepted = (long)TripStatusEnum.TripStatus_Accepted;
+            var petPickedUp = (int)TripProgressStageEnum.PetPickedUp;
+            var trip = await context.Trips.AsTracking()
+                .Where(ReserveMatch(type, reserveId))
+                .Where(t => (t.TripStatusId == requested || t.TripStatusId == accepted) && t.ProgressStageId < petPickedUp)
+                .OrderByDescending(t => t.Id)
+                .FirstOrDefaultAsync();
+            if (trip == null)
+                return null;
+
+            var departure = newStartAt.AddMinutes(-(trip.ScheduledLeadMinutes ?? 60));
+            if (departure < now)
+                departure = now;
+            trip.ScheduledDepartureAt = departure;
+            trip.TripStartDateTime = departure;
+            trip.DriverReminderSentDate = null;
+            if (!trip.DriverId.HasValue)
+                trip.ScheduledDispatched = false;
+            return trip;
+        }
 
         private static async Task<Dictionary<long, LinkedPetResanTripVDto>> LoadAsync(
             IDataBaseContext context,
@@ -57,6 +113,9 @@ namespace Application.Services.TripSrv.TripSrv
                         Price = t.Price,
                         PaymentPrice = t.PaymentPrice,
                         IsPaid = t.IsPaid,
+                        PaidWithReserve = t.PaidWithReserve,
+                        ScheduledDepartureAt = t.ScheduledDepartureAt,
+                        ScheduledLeadMinutes = t.ScheduledLeadMinutes,
                         TripStatusLabel = t.TripStatus?.Name,
                         DriverStatusLabel = t.DriverStatus?.Name,
                         DriverId = t.DriverId,

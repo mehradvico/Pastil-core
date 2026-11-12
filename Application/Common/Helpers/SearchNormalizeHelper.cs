@@ -45,6 +45,13 @@ namespace Application.Common.Helpers
         public static string NormalizeNoSpace(string input)
             => Normalize(input).Replace(" ", "");
 
+        /// <summary>کلمه‌های یکتای عبارت جستجو، برای تطبیق «همه‌ی کلمه‌ها» (حداکثر maxTerms تا، که کوئری SQL بی‌حد بزرگ نشود).</summary>
+        public static string[] AllWordTerms(string input, int maxTerms = 8) =>
+            Normalize(input).Split(' ', StringSplitOptions.RemoveEmptyEntries).Distinct().Take(maxTerms).ToArray();
+
+        public static string ToPersianDigits(string input) =>
+            input is null ? null : string.Concat(input.Select(c => c is >= '0' and <= '9' ? (char)('۰' + (c - '0')) : c));
+
         public static bool IsLatin(string input)
             => !string.IsNullOrWhiteSpace(input) && Regex.IsMatch(input, @"^[a-zA-Z0-9\s]+$");
 

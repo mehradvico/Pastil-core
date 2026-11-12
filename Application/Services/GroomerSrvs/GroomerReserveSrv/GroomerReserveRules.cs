@@ -24,8 +24,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
     /// <summary>قواعد خالص رزرو آرایشگاه (بدون دیتابیس) تا تست‌پذیر باشند.</summary>
     public static class GroomerReserveRules
     {
-        /// <summary>سقف تعداد بسته در یک رزرو و سقف مجموع مدت (دقیقه) یک نوبت.</summary>
-        public const int MaxPackages = 5;
+        /// <summary>سقف مجموع مدت (دقیقه) یک نوبت.</summary>
         public const int MaxTotalMinutes = 12 * 60;
 
         /// <summary>اگر خدمت مدت‌زمان نداشته باشد.</summary>

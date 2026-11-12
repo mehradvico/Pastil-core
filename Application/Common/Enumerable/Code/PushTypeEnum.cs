@@ -273,5 +273,9 @@ namespace Application.Common.Enumerable.Code
         PushSchoolSessionMissed = 171,
         /// <summary>گواهی پایان دوره صادر شد. Token1 = نام دوره، Token2 = نام پت، Token3 = کد گواهی.</summary>
         PushSchoolCertificateIssued = 172,
+        /// <summary>به کاربران فروشگاه: درخواست افزودن به کاتالوگ تأیید شد (محصول ساخته یا به محصول موجود وصل شد). Token1 = نام محصول، Token2 = شناسه‌ی محصول.</summary>
+        PushMissingProductApproved = 173,
+        /// <summary>به کاربران فروشگاه: درخواست افزودن به کاتالوگ رد شد. Token1 = نام درخواست، Token2 = دلیل.</summary>
+        PushMissingProductRejected = 174,
     }
 }

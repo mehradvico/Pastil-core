@@ -143,6 +143,17 @@ namespace Application.Services.ProductSrvs.MissingProductSrv.Dto
         public long? ProductItemId { get; set; }
     }
 
+    // وصل‌کردن درخواست به محصولی که از قبل در کاتالوگ هست (به‌جای ساخت محصول تکراری)
+    public class MissingProductLinkDto
+    {
+        public long Id { get; set; }
+        public long ProductId { get; set; }
+
+        // خالی = همان قیمت/موجودی درخواست فروشنده؛ آیتم فروشگاه فقط با قیمت > 0 و وقتی فروشگاه هنوز این محصول را ندارد ساخته می‌شود
+        public long? Price { get; set; }
+        public int? Quantity { get; set; }
+    }
+
     public class MissingProductRejectDto
     {
         public long Id { get; set; }

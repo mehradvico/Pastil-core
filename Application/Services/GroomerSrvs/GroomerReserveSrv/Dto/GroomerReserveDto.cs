@@ -68,6 +68,9 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv.Dto
 
     public class GroomerReserveVDto
     {
+        public Application.Services.TripSrv.TripSrv.Dto.LinkedPetResanTripVDto PetResanTrip { get; set; }
+        /// <summary>مبلغ رزرو + پت‌رسانِ همراه رزرو (فقط مشتری و ادمین؛ برای مرکز همان مبلغ رزرو است).</summary>
+        public double TotalPrice { get; set; }
         public int RescheduleCount { get; set; }
         public DateTime? OriginalDoDate { get; set; }
         public List<GroomerReserveItemVDto> Items { get; set; } = new List<GroomerReserveItemVDto>();

@@ -153,9 +153,10 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 // واقعی — و به‌جای نابودی سشن، یک توکن تازه‌ی دیگر (هم‌زنجیره) صادر می‌کنیم.
                 var wasRotated = await _context.UserTokens
                     .AnyAsync(s => s.RotatedFromTokenId == rotatedAway.Id);
+                var rotationGraceCutoff = DateTime.UtcNow - TokenRotationPolicy.GracePeriod;
                 var wasRotatedWithinGracePeriod = wasRotated && await _context.UserTokens
                     .AnyAsync(s => s.RotatedFromTokenId == rotatedAway.Id &&
-                                   s.CreateDate >= DateTime.UtcNow - TokenRotationPolicy.GracePeriod);
+                                   s.CreateDate >= rotationGraceCutoff);
                 var outcome = RefreshReuseRules.Classify(
                     wasRotated,
                     wasRotatedWithinGracePeriod,

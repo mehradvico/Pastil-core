@@ -2739,6 +2739,11 @@
             تأیید: محصول واقعی در کاتالوگ ساخته می‌شود و اگر فروشنده قیمت داده بود، ProductItem همان فروشگاه هم ساخته می‌شود
             </summary>
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.MissingProductController.Link(Application.Services.ProductSrvs.MissingProductSrv.Dto.MissingProductLinkDto)">
+            <summary>
+            وصل به محصول موجود: محصول تکراری ساخته نمی‌شود؛ درخواست با همان ProductId تأیید می‌شود و در صورت قیمت، آیتم فروشگاه هم ساخته می‌شود
+            </summary>
+        </member>
         <member name="M:Api.Areas.Admin.Controllers.MissingProductController.Reject(Application.Services.ProductSrvs.MissingProductSrv.Dto.MissingProductRejectDto)">
             <summary>رد با دلیل متنی (فروشنده می‌تواند اصلاح و دوباره بفرستد)</summary>
         </member>
@@ -10365,6 +10370,15 @@
         <member name="M:Api.Areas.EndUser.Controllers.TripClinicReservationController.Get(System.Int64)">
             <summary>سفرِ پت‌رسانِ متصل به یک رزرو کلینیک مشخص (وضعیت راننده)</summary>
         </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripClinicReservationController.Delete(System.Int64)">
+            <summary>برداشتن پت‌رسانِ همراه رزرو قبل از پرداخت (فقط سفرِ منتظر پرداخت؛ سفر پرداخت‌شده از مسیر لغو سفر).</summary>
+        </member>
+        <member name="T:Api.Areas.EndUser.Controllers.TripCoachReservationController">
+            <summary>ساخت و مشاهده‌ی سفر پت‌رسان متصل به رزرو مربی (پانسیون آموزشی در مرکز).</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripCoachReservationController.Delete(System.Int64)">
+            <summary>برداشتن پت‌رسانِ همراه رزرو قبل از پرداخت (فقط سفرِ منتظر پرداخت؛ سفر پرداخت‌شده از مسیر لغو سفر).</summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripController">
             <summary>
             مدیریت  سفر ها
@@ -10405,6 +10419,12 @@
             <returns>
             </returns>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.TripGroomerReservationController">
+            <summary>ساخت و مشاهده‌ی سفر پت‌رسان متصل به نوبت آرایشگاه.</summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripGroomerReservationController.Delete(System.Int64)">
+            <summary>برداشتن پت‌رسانِ همراه رزرو قبل از پرداخت (فقط سفرِ منتظر پرداخت؛ سفر پرداخت‌شده از مسیر لغو سفر).</summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripLiveController">
             <summary>
             لوکیشن زنده‌ی راننده + وضعیت فعلی سفر، برای کاربر — فقط برای Polling در طول یک سفر فعال.
@@ -10444,6 +10464,9 @@
             <summary>
             سفرِ پت‌رسانِ متصل به یک رزرو پانسیون مشخص — برای نمایش وضعیت («فلان راننده تایید کرد» / «هنوز کسی قبول نکرده»)
             </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.TripPansionReservationController.Delete(System.Int64)">
+            <summary>برداشتن پت‌رسانِ همراه رزرو قبل از پرداخت (فقط سفرِ منتظر پرداخت؛ سفر پرداخت‌شده از مسیر لغو سفر).</summary>
         </member>
         <member name="T:Api.Areas.EndUser.Controllers.TripPaymentController">
             <summary>

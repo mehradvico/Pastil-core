@@ -22,13 +22,16 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
         private readonly IWalletService _walletService;
         private readonly IGroomerNotifier _notifier;
         private readonly ILogger<GroomerReserveApprovalService> _logger;
+        private readonly Application.Services.TripSrv.TripSrv.Iface.ITripService _tripService;
 
         public GroomerReserveApprovalService(
             IDataBaseContext context,
             IWalletService walletService,
             IGroomerNotifier notifier,
-            ILogger<GroomerReserveApprovalService> logger)
+            ILogger<GroomerReserveApprovalService> logger,
+            Application.Services.TripSrv.TripSrv.Iface.ITripService tripService = null)
         {
+            _tripService = tripService;
             _context = context;
             _walletService = walletService;
             _notifier = notifier;
@@ -114,6 +117,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
                 return new BaseResultDto(false, Resource.Notification.GroomerReserveRefundFailed);
             }
             await transaction.CommitAsync(cancellationToken);
+            await SafeAsync(() => _tripService?.CancelLinkedTripForGroomerReserveAsync(reserve.Id) ?? Task.CompletedTask, reserve.Id, "linked trip cancel");
 
             if (reserve.IsReserved)
                 await _notifier.ReserveCancelledByBookerAsync(reserve.Id);
@@ -149,6 +153,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
                 return new BaseResultDto(false, Resource.Notification.GroomerReserveRefundFailed);
             }
             await transaction.CommitAsync(cancellationToken);
+            await SafeAsync(() => _tripService?.CancelLinkedTripForGroomerReserveAsync(reserve.Id) ?? Task.CompletedTask, reserve.Id, "linked trip cancel");
             if (reserve.IsReserved)
                 await _notifier.ReserveCancelledByAdminAsync(reserve.Id, reason);
             return new BaseResultDto(true, Resource.Notification.Success);
@@ -181,6 +186,7 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
                 return new BaseResultDto(false, Resource.Notification.GroomerReserveRefundFailed);
             }
             await transaction.CommitAsync(ct);
+            await SafeAsync(() => _tripService?.CancelLinkedTripForGroomerReserveAsync(reserve.Id) ?? Task.CompletedTask, reserve.Id, "linked trip cancel");
 
             if (decision == GroomerReserveOwnerDecisionEnum.Rejected)
                 await _notifier.ReserveRejectedAsync(reserve.Id, reason);

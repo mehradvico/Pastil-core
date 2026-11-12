@@ -418,6 +418,20 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             var now = DateTime.Now;
             foreach (var row in rows)
                 Finish(row, now);
+            // سفر پت‌رسانِ متصل؛ مرکز (مالک/ارائه‌دهنده/پرسنل) فقط مبلغ رزرو خودش را می‌بیند.
+            var hideTripAmounts = input.OwnerUserId.HasValue || input.ProviderId.HasValue || input.AssigneeUserId.HasValue;
+            var linkedTrips = Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper
+                .ForClinicReservesAsync(_context, rows.Select(r => r.Id)).GetAwaiter().GetResult();
+            foreach (var row in rows)
+            {
+                row.PetResanTrip = linkedTrips.TryGetValue(row.Id, out var t) ? t : null;
+                row.TotalPrice = row.PaymentPrice + (row.PetResanTrip?.Payable() ?? 0);
+                if (hideTripAmounts)
+                {
+                    row.PetResanTrip?.HideAmounts();
+                    row.TotalPrice = row.PaymentPrice;
+                }
+            }
             return new ClinicReservePage { PageIndex = input.PageIndex, PageSize = input.PageSize, TotalCount = total, List = rows };
         }
 
@@ -434,6 +448,13 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
             Finish(item, DateTime.Now);
             var trips = await Application.Services.TripSrv.TripSrv.LinkedPetResanTripHelper.ForClinicReservesAsync(_context, new[] { item.Id });
             item.PetResanTrip = trips.TryGetValue(item.Id, out var linkedTrip) ? linkedTrip : null;
+            // مشتری و ادمین: رزرو + پت‌رسان (جدا و جمع). مرکز (مالک/پرسنل): فقط مبلغ رزرو خودش.
+            item.TotalPrice = item.PaymentPrice + (item.PetResanTrip?.Payable() ?? 0);
+            if (ownerUserId.HasValue)
+            {
+                item.PetResanTrip?.HideAmounts();
+                item.TotalPrice = item.PaymentPrice;
+            }
             if (bookerId.HasValue)
             {
                 // کاربر سهم‌های حسابداری را نمی‌بیند.
@@ -459,6 +480,8 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 result.Data.ProviderShare = 0;
                 result.Data.SiteShare = 0;
                 result.Data.CommissionPercent = 0;
+                result.Data.PetResanTrip?.HideAmounts();
+                result.Data.TotalPrice = result.Data.PaymentPrice;
             }
             return result;
         }
@@ -752,7 +775,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
         private sealed record PackageSet(List<PackageInfo> Packages, PackageInfo Primary, int DurationMinutes);
 
         /// <summary>
-        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک کلینیک، هر خدمت حداکثر یک‌بار، حداکثر ۵ بسته؛ مدت نوبت = بیشترین مدت بین بسته‌ها (جمع نمی‌شود) و از سقف یک روز کمتر.
+        /// بسته‌ی اصلی + بسته‌های اضافه‌ی یک رزرو: همه رزروشدنی، از یک کلینیک، شناسه‌ی هر بسته یکتا؛ مدت نوبت = بیشترین مدت بین بسته‌ها (جمع نمی‌شود) و از سقف یک روز کمتر.
         /// expectedClinicId پر باشد باید با کلینیکِ همه‌ی بسته‌ها یکی باشد.
         /// </summary>
         private async Task<(PackageSet Set, string Error)> BuildSetAsync(IReadOnlyList<long> packageIds, long? expectedClinicId, int? mode)
@@ -764,9 +787,6 @@ namespace Application.Services.ClinicSrvs.ClinicReserveSrv
                 return (null, Resource.Notification.ClinicReserveDuplicateService);
             if (ids.Count == 0)
                 return (null, Resource.Notification.ClinicReservePackageInvalid);
-            if (ids.Count > ClinicReserveRules.MaxPackages)
-                return (null, Resource.Notification.ClinicReserveTooManyPackages);
-
             var packages = new List<PackageInfo>();
             foreach (var id in ids)
             {

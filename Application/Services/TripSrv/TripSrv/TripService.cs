@@ -9,6 +9,7 @@ using Application.Common.Interface;
 using Application.Common.Service;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.Order.RebateSrv.Iface;
+using Application.Services.GroomerSrvs.GroomerReserveSrv;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Application.Services.Setting.CodeSrv.Iface;
@@ -23,6 +24,7 @@ using Application.Services.TripSrv.TripSrv.Iface;
 using AutoMapper;
 using DocumentFormat.OpenXml.Office.CustomUI;
 using Entities.Entities;
+using Entities.Entities.GroomerField;
 using Entities.Entities.PansionField;
 using Entities.Entities.SchoolField;
 using Entities.Entities.Security;
@@ -194,22 +196,22 @@ namespace Application.Services.TripSrv.TripSrv
             }
             if (baseSearchDto.ScheduledOrServiceOnly == true)
             {
-                model = model.Where(s => s.CompanionReserveId != null || s.ClinicReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
+                model = model.Where(s => s.CompanionReserveId != null || s.ClinicReserveId != null || s.GroomerReserveId != null || s.CoachReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
                     || s.ScheduledDepartureAt != null || s.PetResanServiceScheduleId != null);
             }
             switch (baseSearchDto.TripKind?.Trim().ToLowerInvariant())
             {
                 case "instant":
-                    model = model.Where(s => s.CompanionReserveId == null && s.ClinicReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
+                    model = model.Where(s => s.CompanionReserveId == null && s.ClinicReserveId == null && s.GroomerReserveId == null && s.CoachReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
                         && s.PetResanServiceScheduleId == null && s.ScheduledDepartureAt == null);
                     break;
                 case "reserve":
-                    model = model.Where(s => s.CompanionReserveId != null || s.ClinicReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
+                    model = model.Where(s => s.CompanionReserveId != null || s.ClinicReserveId != null || s.GroomerReserveId != null || s.CoachReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
                         || (s.PetResanServiceScheduleId == null && s.ScheduledDepartureAt != null));
                     break;
                 case "service":
                     model = model.Where(s => s.PetResanServiceScheduleId != null
-                        && s.CompanionReserveId == null && s.ClinicReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null);
+                        && s.CompanionReserveId == null && s.ClinicReserveId == null && s.GroomerReserveId == null && s.CoachReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null);
                     break;
             }
             if (!string.IsNullOrEmpty(baseSearchDto.Q))
@@ -484,11 +486,12 @@ namespace Application.Services.TripSrv.TripSrv
             var petPickedUp = (int)TripProgressStageEnum.PetPickedUp;
             return s => s.UserId == userId
                 && (s.TripStatusId == requested || s.TripStatusId == accepted)
+                && (!s.PaidWithReserve || s.IsPaid)
                 && (
-                    s.CompanionReserveId != null || s.ClinicReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
+                    s.CompanionReserveId != null || s.ClinicReserveId != null || s.GroomerReserveId != null || s.CoachReserveId != null || s.PansionReserveId != null || s.SchoolReserveId != null
                     || (s.ScheduledDepartureAt != null && s.PetResanServiceScheduleId == null)
                     || (s.PetResanServiceScheduleId != null && s.ProgressStageId >= petPickedUp)
-                    || ((s.CompanionReserveId == null && s.ClinicReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
+                    || ((s.CompanionReserveId == null && s.ClinicReserveId == null && s.GroomerReserveId == null && s.CoachReserveId == null && s.PansionReserveId == null && s.SchoolReserveId == null
                          && s.PetResanServiceScheduleId == null && s.ScheduledDepartureAt == null)
                         && (s.TripStartDateTime == null || s.TripStartDateTime <= soon))
                 );
@@ -657,6 +660,7 @@ namespace Application.Services.TripSrv.TripSrv
                 var claimedRows = await _context.Trips
                     .Where(t => t.Id == dto.Id
                         && t.DriverId == null
+                        && (!t.PaidWithReserve || t.IsPaid)
                         && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
                         && !_context.TripDriverExclusions.Any(e => e.TripId == t.Id && e.DriverId == dto.DriverId))
                     .ExecuteUpdateAsync(s => s
@@ -777,6 +781,10 @@ namespace Application.Services.TripSrv.TripSrv
 
             if (trip.DriverId.HasValue || trip.TripStatusId != (long)TripStatusEnum.TripStatus_Requested)
                 return new BaseResultDto<TripAdminChooseDriverDto>(false, Resource.Notification.ThisTripHasBeenReservedForAnotherDriver, dto);
+
+            // سفرِ همراه رزرو تا وقتی رزرو پرداخت نشده راننده نمی‌گیرد.
+            if (trip.PaidWithReserve && !trip.IsPaid)
+                return new BaseResultDto<TripAdminChooseDriverDto>(false, Resource.Notification.TripPaidWithReserve, dto);
 
             var driver = await _context.Drivers.FirstOrDefaultAsync(s => s.Id == dto.DriverId && !s.Deleted);
             if (driver == null || !driver.Active || driver.StatusId != (long)DriverRequestStatusEnum.DriverRequestStatus_Accepted)
@@ -1119,6 +1127,76 @@ namespace Application.Services.TripSrv.TripSrv
         public Task CancelLinkedTripForSchoolReserveAsync(long schoolReserveId) =>
             CancelLinkedTripAsync(t => t.SchoolReserveId == schoolReserveId);
 
+        public Task CancelLinkedTripForGroomerReserveAsync(long groomerReserveId) =>
+            CancelLinkedTripAsync(t => t.GroomerReserveId == groomerReserveId);
+
+        public Task CancelLinkedTripForCoachReserveAsync(long coachReserveId) =>
+            CancelLinkedTripAsync(t => t.CoachReserveId == coachReserveId);
+
+        // بستن بی‌صدا (بدون پوش و برگشت پول): فقط برای سفرِ همراه رزرو که هنوز پولی برایش گرفته نشده.
+        private static Task<int> SilentCancelAsync(IQueryable<Trip> trips) =>
+            trips.ExecuteUpdateAsync(setters => setters
+                .SetProperty(t => t.TripStatusId, (long)TripStatusEnum.TripStatus_Canceled)
+                .SetProperty(t => t.CancelInitiatorId, (int?)TripCancelInitiatorEnum.System)
+                .SetProperty(t => t.ProgressUpdateDate, DateTime.Now));
+
+        /// <summary>
+        /// بعد از پرداخت موفق رزرو (داخل همان تراکنش پرداخت): سفرِ همراه رزرو «پرداخت‌شده» می‌شود، سهم کیف پولش کسر و
+        /// تازه همین‌جا به راننده‌ها اعلام می‌شود. اگر رزرو سفر همراه نداشته باشد کاری نمی‌کند.
+        /// </summary>
+        public async Task<BaseResultDto> DiscardBundledTripAsync(PaymentCallbackTypeEnum type, long reserveId, long userId)
+        {
+            if (LinkedPetResanTripHelper.ReserveMatch(type, reserveId) == null)
+                return new BaseResultDto(false, Resource.Notification.NothingFound);
+            await SilentCancelAsync(LinkedPetResanTripHelper.PendingBundled(_context.Trips, type, reserveId).Where(t => t.UserId == userId));
+            return new BaseResultDto(true, Resource.Notification.Success);
+        }
+
+        public async Task<BaseResultDto> ConfirmBundledTripPaidAsync(PaymentCallbackTypeEnum type, long reserveId, bool fromWallet)
+        {
+            var trip = await LinkedPetResanTripHelper.PendingBundled(_context.Trips.AsTracking(), type, reserveId)
+                .OrderByDescending(t => t.Id)
+                .FirstOrDefaultAsync();
+            if (trip == null)
+                return new BaseResultDto(true);
+
+            if (fromWallet && trip.FromWallet && trip.WalletPrice > 0)
+            {
+                var walletResult = await _walletService.InsertUpdateTripAsync(
+                    new WalletDto { Painding = false, Amount = trip.WalletPrice, UserId = trip.UserId, TripId = trip.Id }, true);
+                if (!walletResult.IsSuccess)
+                    return new BaseResultDto(false);
+            }
+            trip.IsPaid = true;
+            await _context.SaveChangesAsync();
+            if (trip.RebateId.HasValue)
+                _rebateService.IncreaseUseCount(trip);
+
+            await AnnounceLinkedTripAsync(trip);
+            return new BaseResultDto(true);
+        }
+
+        // اعلام سفر به راننده‌ها + اعلان «درخواست راننده» برای ادمین.
+        private async Task AnnounceLinkedTripAsync(Trip trip)
+        {
+            await BroadcastTripAvailableAsync(trip.Id);
+            try
+            {
+                await _noticeService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.TripDriverRequested,
+                    ActorUserId = trip.UserId,
+                    ReferenceType = "Trip",
+                    ReferenceId = trip.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Creating driver-requested notice for trip {TripId} failed.", trip.Id);
+            }
+        }
+
         private async Task CancelLinkedTripAsync(System.Linq.Expressions.Expression<Func<Trip, bool>> reserveMatch)
         {
             try
@@ -1135,6 +1213,10 @@ namespace Application.Services.TripSrv.TripSrv
 
                 var tripId = await _context.Trips.AsNoTracking().Where(predicate).Select(t => (long?)t.Id).FirstOrDefaultAsync();
                 if (!tripId.HasValue)
+                    return;
+
+                // سفرِ همراه رزرو که هنوز پولش گرفته نشده: بی‌صدا بسته می‌شود.
+                if (await SilentCancelAsync(_context.Trips.Where(t => t.Id == tripId.Value && t.PaidWithReserve && !t.IsPaid)) > 0)
                     return;
 
                 await AdminCancelAsync(
@@ -1216,6 +1298,7 @@ namespace Application.Services.TripSrv.TripSrv
 
             var pendingTrips = await _context.Trips.AsNoTracking()
                 .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
+                    && (!t.PaidWithReserve || t.IsPaid)
                     && t.CreateDate <= noticeThreshold
                     && t.CreateDate > lookback)
                 .ToListAsync();
@@ -1528,6 +1611,7 @@ namespace Application.Services.TripSrv.TripSrv
                 .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested
                     && t.DriverId == null
                     && t.IsOnline
+                    && (!t.PaidWithReserve || t.IsPaid)
                     && (t.VehicleTypeId == null || t.VehicleTypeId == driverVehicleTypeId)
                     && !_context.TripDriverExclusions.Any(e => e.TripId == t.Id && e.DriverId == driverId))
                 .Include(s => s.TripStop)
@@ -2153,8 +2237,9 @@ namespace Application.Services.TripSrv.TripSrv
             if (reserve == null)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
 
-            // سفر فقط برای رزروِ پرداخت‌شده و لغونشده؛ رزرو ردشده/منقضی هم سفر نمی‌گیرد (منتظر تأیید مجاز است).
-            if (!reserve.IsReserved || reserve.IsCancel ||
+            // رزرو لغوشده/ردشده/منقضی سفر نمی‌گیرد. رزروِ هنوز پرداخت‌نشده مجاز است: سفر «همراه رزرو» ثبت و با همان پرداخت رزرو
+            // حساب می‌شود (PaidWithReserve)؛ رزروِ پرداخت‌شده مثل قبل پرداخت جدا دارد.
+            if (reserve.IsCancel ||
                 reserve.OwnerDecision == (int)Application.Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.Rejected ||
                 reserve.OwnerDecision == (int)Application.Common.Enumerable.Code.PansionReserveOwnerDecisionEnum.Expired)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.PansionReserveTripNotAvailable, null);
@@ -2165,6 +2250,8 @@ namespace Application.Services.TripSrv.TripSrv
             var scheduledDepartureAt = dropOffAt.AddMinutes(-dto.ScheduledLeadMinutes);
             if (scheduledDepartureAt <= DateTime.Now)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.TripInsufficientTimeToAppointmentForInterval, null);
+
+            await SilentCancelAsync(LinkedPetResanTripHelper.PendingBundled(_context.Trips, PaymentCallbackTypeEnum.PansionReserve, reserve.Id));
 
             var alreadyLinked = await _context.Trips.AnyAsync(s =>
                 s.PansionReserveId == dto.PansionReserveId &&
@@ -2199,6 +2286,7 @@ namespace Application.Services.TripSrv.TripSrv
                 DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
                 TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
                 PansionReserveId = dto.PansionReserveId,
+                PaidWithReserve = !reserve.IsReserved,
                 ScheduledLeadMinutes = dto.ScheduledLeadMinutes,
                 ScheduledDepartureAt = scheduledDepartureAt,
                 OwnerRidesAlong = dto.OwnerRidesAlong,
@@ -2235,21 +2323,14 @@ namespace Application.Services.TripSrv.TripSrv
                     _context.Entry(option).State = EntityState.Unchanged;
             }
 
-            ApplyTripPets(trip, dto.UserPetIds, null);
+            ApplyTripPets(trip, dto.UserPetIds, reserve.UserPetId);
 
             await _context.Trips.AddAsync(trip);
             await _context.SaveChangesAsync();
 
-            await BroadcastTripAvailableAsync(trip.Id);
-
-            await _noticeService.CreateAsync(new NoticeCreateDto
-            {
-                Label = NoticeTypeLabels.TripDriverRequested,
-                ActorUserId = trip.UserId,
-                ReferenceType = "Trip",
-                ReferenceId = trip.Id,
-                DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}"
-            });
+            // سفرِ همراه رزرو بعد از پرداخت رزرو به راننده‌ها اعلام می‌شود (ConfirmBundledTripPaidAsync).
+            if (!trip.PaidWithReserve)
+                await AnnounceLinkedTripAsync(trip);
 
             return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(trip));
         }
@@ -2437,114 +2518,28 @@ namespace Application.Services.TripSrv.TripSrv
         }
 
         /// <summary>
-        /// سفرِ پت‌رسانِ متصل به یک رزرو کلینیک (فقط «حضوری در کلینیک»). همان منطق نسخه‌ی رزرو خدمت؛ زمان نوبت = DoDate رزرو (ساعت دارد).
-        /// رزرو باید پرداخت‌شده و لغونشده باشد و متعلق به همین کاربر.
+        /// سفرِ پت‌رسانِ متصل به یک رزرو کلینیک (فقط «حضوری در کلینیک»). زمان حرکت = زمان نوبت (DoDate) منهای ۶۰ یا ۱۲۰ دقیقه.
+        /// رزروِ هنوز پرداخت‌نشده: سفر «همراه رزرو» ثبت می‌شود و مبلغش با همان پرداخت رزرو گرفته می‌شود؛ رزروِ پرداخت‌شده: پرداخت جدا مثل قبل.
         /// </summary>
         public async Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForClinicAsync(TripClinicReservationCreateDto dto, long userId)
         {
-            if (dto.ScheduledLeadMinutes != 60 && dto.ScheduledLeadMinutes != 120)
-                return new BaseResultDto<TripDto>(false, Resource.Notification.TripDriverMovementIntervalMustBe60Or120, null);
-            if (dto.Origin == null)
-                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetOrigin, null);
-            if (dto.Destination == null)
-                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetDestination, null);
+            var invalid = ValidateLinkedTripInput(dto?.ScheduledLeadMinutes, dto?.Origin, dto?.Destination);
+            if (invalid != null)
+                return invalid;
 
             var reserve = await _context.ClinicReserves.AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Id == dto.ClinicReserveId && s.BookerId == userId);
             if (reserve == null)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
-            if (!reserve.IsReserved || reserve.IsCancel || reserve.Mode != (int)Entities.Entities.ClinicField.ClinicServiceModeEnum.InPerson)
+            if (reserve.IsCancel || reserve.Status == (int)Application.Services.ClinicSrvs.ClinicReserveSrv.ClinicReserveStatusEnum.Complete ||
+                reserve.Mode != (int)Entities.Entities.ClinicField.ClinicServiceModeEnum.InPerson)
                 return new BaseResultDto<TripDto>(false, Resource.Notification.ClinicReserveTripNotAvailable, null);
 
-            var scheduledDepartureAt = reserve.DoDate.AddMinutes(-dto.ScheduledLeadMinutes);
-            if (scheduledDepartureAt <= DateTime.Now)
-                return new BaseResultDto<TripDto>(false, Resource.Notification.TripInsufficientTimeToAppointmentForInterval, null);
-
-            var alreadyLinked = await _context.Trips.AnyAsync(s =>
-                s.ClinicReserveId == dto.ClinicReserveId &&
-                s.TripStatusId != (long)TripStatusEnum.TripStatus_Canceled);
-            if (alreadyLinked)
-                return new BaseResultDto<TripDto>(false, Resource.Notification.TripPetDeliveryAlreadyExistsForReserve, null);
-
-            if (await _context.Trips.AnyAsync(TripCurrentForUser(userId, DateTime.Now)))
-                return new BaseResultDto<TripDto>(false, Resource.Notification.YouAlreadyHaveOnlineTrip, null);
-
-            var priceInput = new TripDto
-            {
-                Origin = dto.Origin,
-                Destination = dto.Destination,
-                FromAddress = dto.FromAddress,
-                ToAddress = dto.ToAddress,
-                TripStartDateTime = scheduledDepartureAt,
-                TripOptionIds = dto.TripOptionIds
-            };
-
-            var trip = new Trip
-            {
-                Origin = new Point(dto.Origin.x, dto.Origin.y) { SRID = 4326 },
-                Destination = new Point(dto.Destination.x, dto.Destination.y) { SRID = 4326 },
-                FromAddress = dto.FromAddress,
-                ToAddress = dto.ToAddress,
-                UserId = userId,
-                IsOnline = true,
-                CreateDate = DateTime.Now,
-                TripStartDateTime = scheduledDepartureAt,
-                DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
-                TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
-                ClinicReserveId = dto.ClinicReserveId,
-                ScheduledLeadMinutes = dto.ScheduledLeadMinutes,
-                ScheduledDepartureAt = scheduledDepartureAt,
-                OwnerRidesAlong = dto.OwnerRidesAlong,
-                ScheduledDispatched = false
-            };
-
-            try
-            {
-                trip.Price = await _priceCalculationService.CalculateTripPrice(priceInput);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Calculating price for clinic reservation-linked trip (reserve {ReserveId}) failed.", dto.ClinicReserveId);
-                return new BaseResultDto<TripDto>(false, Resource.Notification.Unsuccess, null);
-            }
-
-            if (trip.Price <= 0)
-            {
-                _logger.LogError("Calculated price for clinic reservation-linked trip (reserve {ReserveId}) was {Price} at scheduled hour {Hour} — refusing to create a free trip. Check PriceCalculation coverage for this hour.", dto.ClinicReserveId, trip.Price, scheduledDepartureAt.Hour);
-                return new BaseResultDto<TripDto>(false, Resource.Notification.FinalPriceIsNotAvailable, null);
-            }
-
-            trip.PaymentPrice = trip.Price;
-
-            if (dto.TripOptionIds != null && dto.TripOptionIds.Any())
-            {
-                var optionIds = dto.TripOptionIds.Distinct().ToList();
-                var validOptionCount = await _context.TripOptions.CountAsync(o => optionIds.Contains(o.Id) && o.Active && !o.Deleted);
-                if (validOptionCount != optionIds.Count)
-                    return new BaseResultDto<TripDto>(false, Resource.Notification.InvalidData, null);
-
-                trip.TripOptions = optionIds.Select(id => new TripOption { Id = id }).ToList();
-                foreach (var option in trip.TripOptions)
-                    _context.Entry(option).State = EntityState.Unchanged;
-            }
-
-            ApplyTripPets(trip, dto.UserPetIds, null);
-
-            await _context.Trips.AddAsync(trip);
-            await _context.SaveChangesAsync();
-
-            await BroadcastTripAvailableAsync(trip.Id);
-
-            await _noticeService.CreateAsync(new NoticeCreateDto
-            {
-                Label = NoticeTypeLabels.TripDriverRequested,
-                ActorUserId = trip.UserId,
-                ReferenceType = "Trip",
-                ReferenceId = trip.Id,
-                DeduplicationKey = $"{NoticeTypeLabels.TripDriverRequested}:{trip.Id}"
-            });
-
-            return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(trip));
+            return await CreateVenueLinkedTripAsync(
+                PaymentCallbackTypeEnum.ClinicReserve, reserve.Id, userId, reserve.IsReserved, reserve.DoDate,
+                dto.UserPetIds != null && dto.UserPetIds.Any() ? dto.UserPetIds : new List<long> { reserve.UserPetId },
+                dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, dto.ScheduledLeadMinutes, dto.OwnerRidesAlong, dto.TripOptionIds,
+                trip => trip.ClinicReserveId = reserve.Id);
         }
 
         /// <summary>سفرِ پت‌رسانِ متصل به یک رزرو کلینیک مشخص (برای نمایش وضعیت راننده به کاربر).</summary>
@@ -2564,6 +2559,198 @@ namespace Application.Services.TripSrv.TripSrv
             if (trip == null)
                 return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
 
+            return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(trip));
+        }
+
+        /// <summary>سفر پت‌رسان متصل به نوبت آرایشگاه؛ زمان حرکت = زمان نوبت منهای ۶۰ یا ۱۲۰ دقیقه. پرداخت مثل کلینیک (همراه رزرو اگر هنوز پرداخت نشده).</summary>
+        public async Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForGroomerAsync(TripGroomerReservationCreateDto dto, long userId)
+        {
+            var invalid = ValidateLinkedTripInput(dto?.ScheduledLeadMinutes, dto?.Origin, dto?.Destination);
+            if (invalid != null)
+                return invalid;
+
+            var reserve = await _context.GroomerReserves.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.GroomerReserveId && s.BookerId == userId);
+            if (reserve == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
+            if (reserve.IsCancel || reserve.Status == (int)GroomerReserveStatusEnum.Complete)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.GroomerReserveTripNotAvailable, null);
+
+            return await CreateVenueLinkedTripAsync(
+                PaymentCallbackTypeEnum.GroomerReserve, reserve.Id, userId, reserve.IsReserved, reserve.DoDate,
+                new List<long> { reserve.UserPetId },
+                dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, dto.ScheduledLeadMinutes, dto.OwnerRidesAlong, dto.TripOptionIds,
+                trip => trip.GroomerReserveId = reserve.Id);
+        }
+
+        /// <summary>
+        /// سفر پت‌رسان متصل به رزرو مربی — فقط «پانسیون آموزشی در مرکز» (بردن پت تا مرکز مربی). اگر رزرو ساعت ندارد (فقط تاریخ شروع)
+        /// ساعت تحویل از کاربر گرفته می‌شود (dropOffTime, "HH:mm").
+        /// </summary>
+        public async Task<BaseResultDto<TripDto>> CreateReservationLinkedTripForCoachAsync(TripCoachReservationCreateDto dto, long userId)
+        {
+            var invalid = ValidateLinkedTripInput(dto?.ScheduledLeadMinutes, dto?.Origin, dto?.Destination);
+            if (invalid != null)
+                return invalid;
+
+            var reserve = await _context.CoachReserves.AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == dto.CoachReserveId && s.BookerId == userId);
+            if (reserve == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.NothingFound, null);
+            if (reserve.IsCancel || reserve.Status == (int)Application.Services.CoachSrvs.CoachReserveSrv.CoachReserveStatusEnum.Complete ||
+                reserve.Mode != (int)Entities.Entities.CoachField.CoachServiceModeEnum.InPerson)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.CoachReserveTripNotAvailable, null);
+
+            var dropOffAt = reserve.DoDate;
+            if (dropOffAt.TimeOfDay == TimeSpan.Zero)
+            {
+                if (string.IsNullOrWhiteSpace(dto.DropOffTime) ||
+                    !TimeSpan.TryParseExact(dto.DropOffTime, "hh\\:mm", System.Globalization.CultureInfo.InvariantCulture, out var dropOffTime))
+                    return new BaseResultDto<TripDto>(false, Resource.Notification.PansionDropOffTimeRequired, null);
+                dropOffAt = dropOffAt.Date.Add(dropOffTime);
+            }
+
+            return await CreateVenueLinkedTripAsync(
+                PaymentCallbackTypeEnum.CoachReserve, reserve.Id, userId, reserve.IsReserved, dropOffAt,
+                new List<long> { reserve.UserPetId },
+                dto.Origin, dto.Destination, dto.FromAddress, dto.ToAddress, dto.ScheduledLeadMinutes, dto.OwnerRidesAlong, dto.TripOptionIds,
+                trip => trip.CoachReserveId = reserve.Id);
+        }
+
+        public async Task<BaseResultDto<TripVDto>> GetTripForCoachReservationAsync(long coachReserveId, long userId)
+        {
+            var trip = await _context.Trips
+                .Include(s => s.Driver).ThenInclude(d => d.ProfilePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.CertificatePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.VehicleCardPicture)
+                .Include(s => s.DriverStatus)
+                .Include(s => s.TripStatus)
+                .AsNoTracking()
+                .Where(s => s.CoachReserveId == coachReserveId && s.UserId == userId)
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+            if (trip == null)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
+            return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(trip));
+        }
+
+        private static BaseResultDto<TripDto> ValidateLinkedTripInput(int? leadMinutes, Application.Common.Dto.LocationPoint.PointDto origin, Application.Common.Dto.LocationPoint.PointDto destination)
+        {
+            if (leadMinutes != 60 && leadMinutes != 120)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripDriverMovementIntervalMustBe60Or120, null);
+            if (origin == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetOrigin, null);
+            if (destination == null)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.PleaseSetDestination, null);
+            return null;
+        }
+
+        /// <summary>
+        /// هسته‌ی مشترک سفرِ متصل به رزروِ مرکز (کلینیک/آرایشگاه/مربی). زمان حرکت راننده = زمان تحویل پت به مرکز منهای leadMinutes (۶۰ یا ۱۲۰).
+        /// reservePaid = false: سفر «همراه رزرو» است (PaidWithReserve) — مبلغش با همان پرداخت رزرو گرفته می‌شود و تا آن موقع به راننده‌ها اعلام
+        /// نمی‌شود (ConfirmBundledTripPaidAsync). reservePaid = true: مثل قبل، بلافاصله اعلام می‌شود و پرداختش جدا (بعد از قبول راننده) است.
+        /// </summary>
+        private async Task<BaseResultDto<TripDto>> CreateVenueLinkedTripAsync(
+            PaymentCallbackTypeEnum type, long reserveId, long userId, bool reservePaid, DateTime appointmentAt, List<long> userPetIds,
+            Application.Common.Dto.LocationPoint.PointDto origin, Application.Common.Dto.LocationPoint.PointDto destination,
+            string fromAddress, string toAddress, int leadMinutes, bool ownerRidesAlong, List<long> tripOptionIds, Action<Trip> link)
+        {
+            var scheduledDepartureAt = appointmentAt.AddMinutes(-leadMinutes);
+            if (scheduledDepartureAt <= DateTime.Now)
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripInsufficientTimeToAppointmentForInterval, null);
+
+            // درخواستِ قبلیِ «منتظر پرداخت رزرو» جایگزین می‌شود (کاربر نشانی/فاصله را عوض کرده).
+            await SilentCancelAsync(LinkedPetResanTripHelper.PendingBundled(_context.Trips, type, reserveId));
+
+            if (await _context.Trips.Where(LinkedPetResanTripHelper.ReserveMatch(type, reserveId))
+                    .AnyAsync(s => s.TripStatusId != (long)TripStatusEnum.TripStatus_Canceled))
+                return new BaseResultDto<TripDto>(false, Resource.Notification.TripPetDeliveryAlreadyExistsForReserve, null);
+
+            if (await _context.Trips.AnyAsync(TripCurrentForUser(userId, DateTime.Now)))
+                return new BaseResultDto<TripDto>(false, Resource.Notification.YouAlreadyHaveOnlineTrip, null);
+
+            var trip = new Trip
+            {
+                Origin = new Point(origin.x, origin.y) { SRID = 4326 },
+                Destination = new Point(destination.x, destination.y) { SRID = 4326 },
+                FromAddress = fromAddress,
+                ToAddress = toAddress,
+                UserId = userId,
+                IsOnline = true,
+                CreateDate = DateTime.Now,
+                TripStartDateTime = scheduledDepartureAt,
+                DriverStatusId = (long)DriverStatusEnum.DriverStatus_Requested,
+                TripStatusId = (long)TripStatusEnum.TripStatus_Requested,
+                ScheduledLeadMinutes = leadMinutes,
+                ScheduledDepartureAt = scheduledDepartureAt,
+                OwnerRidesAlong = ownerRidesAlong,
+                ScheduledDispatched = false,
+                PaidWithReserve = !reservePaid
+            };
+            link(trip);
+
+            try
+            {
+                trip.Price = await _priceCalculationService.CalculateTripPrice(new TripDto
+                {
+                    Origin = origin,
+                    Destination = destination,
+                    FromAddress = fromAddress,
+                    ToAddress = toAddress,
+                    TripStartDateTime = scheduledDepartureAt,
+                    TripOptionIds = tripOptionIds
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Calculating price for {Type} reservation-linked trip (reserve {ReserveId}) failed.", type, reserveId);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.Unsuccess, null);
+            }
+
+            if (trip.Price <= 0)
+            {
+                _logger.LogError("Calculated price for {Type} reservation-linked trip (reserve {ReserveId}) was {Price} at scheduled hour {Hour} — refusing to create a free trip. Check PriceCalculation coverage for this hour.", type, reserveId, trip.Price, scheduledDepartureAt.Hour);
+                return new BaseResultDto<TripDto>(false, Resource.Notification.FinalPriceIsNotAvailable, null);
+            }
+            trip.PaymentPrice = trip.Price;
+
+            if (tripOptionIds != null && tripOptionIds.Any())
+            {
+                var optionIds = tripOptionIds.Distinct().ToList();
+                var validOptionCount = await _context.TripOptions.CountAsync(o => optionIds.Contains(o.Id) && o.Active && !o.Deleted);
+                if (validOptionCount != optionIds.Count)
+                    return new BaseResultDto<TripDto>(false, Resource.Notification.InvalidData, null);
+
+                trip.TripOptions = optionIds.Select(id => new TripOption { Id = id }).ToList();
+                foreach (var option in trip.TripOptions)
+                    _context.Entry(option).State = EntityState.Unchanged;
+            }
+
+            ApplyTripPets(trip, userPetIds, null);
+
+            await _context.Trips.AddAsync(trip);
+            await _context.SaveChangesAsync();
+
+            if (!trip.PaidWithReserve)
+                await AnnounceLinkedTripAsync(trip);
+
+            return new BaseResultDto<TripDto>(true, mapper.Map<TripDto>(trip));
+        }
+
+        public async Task<BaseResultDto<TripVDto>> GetTripForGroomerReservationAsync(long groomerReserveId, long userId)
+        {
+            var trip = await _context.Trips
+                .Include(s => s.Driver).ThenInclude(d => d.ProfilePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.CertificatePicture)
+                .Include(s => s.Driver).ThenInclude(d => d.VehicleCardPicture)
+                .Include(s => s.DriverStatus)
+                .Include(s => s.TripStatus)
+                .AsNoTracking()
+                .Where(s => s.GroomerReserveId == groomerReserveId && s.UserId == userId)
+                .OrderByDescending(s => s.Id)
+                .FirstOrDefaultAsync();
+            if (trip == null)
+                return new BaseResultDto<TripVDto>(false, Resource.Notification.NothingFound, null);
             return new BaseResultDto<TripVDto>(true, mapper.Map<TripVDto>(trip));
         }
 
@@ -3146,6 +3333,7 @@ namespace Application.Services.TripSrv.TripSrv
                     t.TripStartDateTime > now &&
                     t.TripStartDateTime <= earlyWarningThreshold &&
                     t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested &&
+                    (!t.PaidWithReserve || t.IsPaid) &&
                     t.DriverId == null)
                 .AsNoTracking()
                 .ToListAsync();
@@ -3169,6 +3357,7 @@ namespace Application.Services.TripSrv.TripSrv
                     !t.ScheduledDispatched &&
                     t.TripStartDateTime <= now &&
                     t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested &&
+                    (!t.PaidWithReserve || t.IsPaid) &&
                     t.DriverId == null)
                 .AsTracking()
                 .ToListAsync();
@@ -3202,8 +3391,20 @@ namespace Application.Services.TripSrv.TripSrv
             var now = DateTime.Now;
             var earliestCandidate = now - TripDriverTimeoutRules.CancelAfterRequest;
 
+            // سفرِ همراه رزرو که رزروش تا موعد حرکت پرداخت نشد (پرداخت رها شده): بی‌صدا بسته می‌شود.
+            try
+            {
+                await SilentCancelAsync(_context.Trips.Where(t =>
+                    t.PaidWithReserve && !t.IsPaid && t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested &&
+                    t.ScheduledDepartureAt != null && t.ScheduledDepartureAt <= now));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Closing abandoned reserve-bundled trips failed.");
+            }
+
             var candidates = await _context.Trips.AsNoTracking()
-                .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested && t.CreateDate <= earliestCandidate)
+                .Where(t => t.TripStatusId == (long)TripStatusEnum.TripStatus_Requested && (!t.PaidWithReserve || t.IsPaid) && t.CreateDate <= earliestCandidate)
                 .Select(t => new { t.Id, t.CreateDate, t.ScheduledDepartureAt, t.PetResanServiceScheduleId, t.TripStartDateTime })
                 .ToListAsync();
 
@@ -3340,7 +3541,8 @@ namespace Application.Services.TripSrv.TripSrv
                             (p.TripId == trip.Id || (p.CallBackTypeLabel == nameof(PaymentCallbackTypeEnum.Trip) && p.CallBackId == tripIdText)))
                 .SumAsync(p => (double?)p.Amount) ?? 0;
 
-            var amount = walletPaid + gatewayPaid;
+            // سفرِ همراه رزرو: پولش داخل پرداختِ خودِ رزرو بوده (ردیف Payment به نام رزرو ثبت شده)، پس مبلغ برگشتی همان مبلغ سفر است.
+            var amount = trip.PaidWithReserve ? (trip.IsPaid ? trip.PaymentPrice : 0) : walletPaid + gatewayPaid;
             if (amount <= 0)
                 return 0;
 

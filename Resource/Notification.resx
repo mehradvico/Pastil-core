@@ -2707,6 +2707,15 @@
   <data name="PansionReserveTripNotAvailable" xml:space="preserve">
     <value>A trip can only be linked to a paid, active pansion reserve.</value>
   </data>
+  <data name="GroomerReserveTripNotAvailable" xml:space="preserve">
+    <value>A trip can only be linked to a paid, active groomer reserve.</value>
+  </data>
+  <data name="TripPaidWithReserve" xml:space="preserve">
+    <value>This trip is waiting for its reservation to be paid; it cannot be assigned a driver yet.</value>
+  </data>
+  <data name="CoachReserveTripNotAvailable" xml:space="preserve">
+    <value>A trip can only be linked to an active in-center (boarding) coach reserve.</value>
+  </data>
   <data name="PansionWorkingHoursInvalid" xml:space="preserve">
     <value>Opening and closing hours must be valid (HH:mm) and the opening hour must be before the closing hour.</value>
   </data>
@@ -2928,5 +2937,8 @@
   </data>
   <data name="VenueRegistrationKindGroomer" xml:space="preserve">
     <value>Grooming salon</value>
+  </data>
+  <data name="MissingProductLinkTargetInvalid" xml:space="preserve">
+    <value>The selected catalog product is not valid or is inactive.</value>
   </data>
 </root>

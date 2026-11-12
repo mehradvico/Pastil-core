@@ -2707,6 +2707,15 @@
   <data name="PansionReserveTripNotAvailable" xml:space="preserve">
     <value>سفر فقط برای رزرو پانسیونِ پرداخت‌شده و لغونشده ساخته می‌شود.</value>
   </data>
+  <data name="GroomerReserveTripNotAvailable" xml:space="preserve">
+    <value>سفر فقط برای رزرو آرایشگاهِ پرداخت‌شده و لغونشده ساخته می‌شود.</value>
+  </data>
+  <data name="TripPaidWithReserve" xml:space="preserve">
+    <value>این سفر منتظر پرداخت رزرو است؛ تا آن موقع راننده نمی‌گیرد.</value>
+  </data>
+  <data name="CoachReserveTripNotAvailable" xml:space="preserve">
+    <value>سفر فقط برای رزرو مربیِ فعال در حالت «پانسیون آموزشی در مرکز» ساخته می‌شود.</value>
+  </data>
   <data name="PansionWorkingHoursInvalid" xml:space="preserve">
     <value>ساعت شروع و پایان کار باید معتبر (مثل 08:00) و ساعت شروع زودتر از پایان باشد.</value>
   </data>
@@ -2928,5 +2937,8 @@
   </data>
   <data name="VenueRegistrationKindGroomer" xml:space="preserve">
     <value>آرایشگاه</value>
+  </data>
+  <data name="MissingProductLinkTargetInvalid" xml:space="preserve">
+    <value>محصول کاتالوگ انتخاب‌شده معتبر نیست یا غیرفعال است.</value>
   </data>
 </root>

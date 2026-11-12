@@ -1,6 +1,8 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
+using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
+using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CommonSrv.SearchSrv.Dto;
 using Application.Services.ProductSrvs.AiProductMatchSrv.Iface;
 using Application.Services.ProductSrvs.MissingProductSrv.Dto;
@@ -53,6 +55,7 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
         private readonly IProductService _productService;
         private readonly IProductItemService _productItemService;
         private readonly IAiProductMatchFileClient _fileClient;
+        private readonly IPushNotificationService _pushService;
         private readonly ILogger<MissingProductService> _logger;
 
         public MissingProductService(
@@ -60,12 +63,14 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
             IProductService productService,
             IProductItemService productItemService,
             IAiProductMatchFileClient fileClient,
+            IPushNotificationService pushService,
             ILogger<MissingProductService> logger)
         {
             _context = context;
             _productService = productService;
             _productItemService = productItemService;
             _fileClient = fileClient;
+            _pushService = pushService;
             _logger = logger;
         }
 
@@ -500,43 +505,9 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
             }
 
             // محصول همان لحظه به فروشگاه درخواست‌دهنده هم اضافه می‌شود (اگر قیمت داده بود)؛ شکستش تأیید را باطل نمی‌کند
-            long? productItemId = null;
-            var itemPrice = dto.Price ?? entity.Price;
-            var itemQuantity = dto.Quantity ?? entity.Quantity;
-            if (itemPrice is > 0)
-            {
-                try
-                {
-                    var itemResult = await _productItemService.InsertOrUpdateAsync(new ProductItemListUpdateDto
-                    {
-                        StoreId = entity.StoreId,
-                        ProductId = productId,
-                        ProductItems = new List<ProductItemDto>
-                        {
-                            new() { BasePrice = itemPrice.Value, Quantity = itemQuantity ?? 0, Active = true, Warranty = "" }
-                        }
-                    });
+            var productItemId = await TryCreateStoreItemAsync(entity.Id, entity.StoreId, productId, dto.Price ?? entity.Price, dto.Quantity ?? entity.Quantity);
 
-                    if (itemResult.IsSuccess)
-                    {
-                        productItemId = await _context.ProductItems
-                            .Where(x => x.ProductId == productId && x.StoreId == entity.StoreId && !x.Deleted)
-                            .Select(x => (long?)x.Id)
-                            .FirstOrDefaultAsync();
-                        await _context.MissingProducts
-                            .Where(x => x.Id == entity.Id)
-                            .ExecuteUpdateAsync(s => s.SetProperty(x => x.ProductItemId, productItemId));
-                    }
-                    else
-                    {
-                        _logger.LogWarning("MissingProduct {Id}: catalog product {ProductId} created but store item was not.", entity.Id, productId);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "MissingProduct {Id}: creating the store item failed after the product {ProductId} was created.", entity.Id, productId);
-                }
-            }
+            await NotifyStoreAsync(entity.StoreId, PushTypeEnum.PushMissingProductApproved, officialName, productId.ToString());
 
             return new BaseResultDto<MissingProductApproveResultDto>(true, new MissingProductApproveResultDto
             {
@@ -568,7 +539,133 @@ namespace Application.Services.ProductSrvs.MissingProductSrv
             entity.UpdateDate = now;
             await _context.SaveChangesAsync();
 
+            await NotifyStoreAsync(entity.StoreId, PushTypeEnum.PushMissingProductRejected, entity.Name, reason);
+
             return new BaseResultDto<MissingProductAdminDto>(true, ToAdminDto(entity));
+        }
+
+        // درخواست را به محصولی که از قبل در کاتالوگ هست وصل می‌کند؛ محصول تکراری ساخته نمی‌شود.
+        public async Task<BaseResultDto<MissingProductApproveResultDto>> LinkAsync(long adminUserId, MissingProductLinkDto dto)
+        {
+            if (dto == null || dto.Id <= 0 || dto.ProductId <= 0 || dto.Price is < 0 || dto.Quantity is < 0)
+                return Fail<MissingProductApproveResultDto>(MsgInvalid);
+
+            var product = await _context.Products.AsNoTracking()
+                .Where(x => x.Id == dto.ProductId && x.Active && !x.Deleted)
+                .Select(x => new { x.Id, x.Name })
+                .FirstOrDefaultAsync();
+            if (product == null)
+                return Fail<MissingProductApproveResultDto>(Resource.Notification.MissingProductLinkTargetInvalid);
+
+            var entity = await _context.MissingProducts.AsNoTracking().FirstOrDefaultAsync(x => x.Id == dto.Id);
+            if (entity == null)
+                return Fail<MissingProductApproveResultDto>(MsgNotFound, 3);
+            if (entity.Status != MissingProductStatus.Submitted)
+                return Fail<MissingProductApproveResultDto>(MsgNotSubmitted);
+
+            // رزرو اتمیک، مثل تأیید: فقط یک ادمین این درخواست را می‌بندد
+            var now = DateTime.UtcNow;
+            var claimed = await _context.MissingProducts
+                .Where(x => x.Id == entity.Id && x.Status == MissingProductStatus.Submitted)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.Status, MissingProductStatus.Approved)
+                    .SetProperty(x => x.ProductId, product.Id)
+                    .SetProperty(x => x.ReviewedDate, now)
+                    .SetProperty(x => x.ReviewedByUserId, adminUserId)
+                    .SetProperty(x => x.UpdateDate, now));
+            if (claimed == 0)
+                return Fail<MissingProductApproveResultDto>(MsgNotSubmitted);
+
+            // اگر فروشگاه این محصول را از قبل دارد، قیمت/موجودی فعلی‌اش دست نمی‌خورد
+            long? productItemId = await _context.ProductItems
+                .Where(x => x.ProductId == product.Id && x.StoreId == entity.StoreId && !x.Deleted)
+                .Select(x => (long?)x.Id)
+                .FirstOrDefaultAsync();
+            var created = false;
+            if (productItemId.HasValue)
+            {
+                await _context.MissingProducts
+                    .Where(x => x.Id == entity.Id)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.ProductItemId, productItemId));
+            }
+            else
+            {
+                productItemId = await TryCreateStoreItemAsync(entity.Id, entity.StoreId, product.Id, dto.Price ?? entity.Price, dto.Quantity ?? entity.Quantity);
+                created = productItemId.HasValue;
+            }
+
+            await NotifyStoreAsync(entity.StoreId, PushTypeEnum.PushMissingProductApproved, product.Name, product.Id.ToString());
+
+            return new BaseResultDto<MissingProductApproveResultDto>(true, new MissingProductApproveResultDto
+            {
+                ProductId = product.Id,
+                StoreItemCreated = created,
+                ProductItemId = productItemId
+            });
+        }
+
+        // آیتم فروشگاه فقط با قیمت > 0 ساخته می‌شود؛ شکستش تأیید را باطل نمی‌کند
+        private async Task<long?> TryCreateStoreItemAsync(long missingProductId, long storeId, long productId, long? price, int? quantity)
+        {
+            if (price is not > 0)
+                return null;
+
+            try
+            {
+                var itemResult = await _productItemService.InsertOrUpdateAsync(new ProductItemListUpdateDto
+                {
+                    StoreId = storeId,
+                    ProductId = productId,
+                    ProductItems = new List<ProductItemDto>
+                    {
+                        new() { BasePrice = price.Value, Quantity = quantity ?? 0, Active = true, Warranty = "" }
+                    }
+                });
+
+                if (!itemResult.IsSuccess)
+                {
+                    _logger.LogWarning("MissingProduct {Id}: catalog product {ProductId} is set but the store item was not created.", missingProductId, productId);
+                    return null;
+                }
+
+                var productItemId = await _context.ProductItems
+                    .Where(x => x.ProductId == productId && x.StoreId == storeId && !x.Deleted)
+                    .Select(x => (long?)x.Id)
+                    .FirstOrDefaultAsync();
+                await _context.MissingProducts
+                    .Where(x => x.Id == missingProductId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.ProductItemId, productItemId));
+                return productItemId;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MissingProduct {Id}: creating the store item for product {ProductId} failed.", missingProductId, productId);
+                return null;
+            }
+        }
+
+        // پوش به همهٔ کاربران فعال فروشگاه؛ خطای پوش هیچ‌وقت نتیجهٔ تأیید/رد را خراب نمی‌کند
+        private async Task NotifyStoreAsync(long storeId, PushTypeEnum type, string token1, string token2)
+        {
+            try
+            {
+                var userIds = await _context.Stores.AsNoTracking()
+                    .Where(store => store.Id == storeId)
+                    .SelectMany(store => store.Users)
+                    .Where(user => !user.Deleted && !user.Locked)
+                    .Select(user => user.Id)
+                    .Distinct()
+                    .ToListAsync();
+                foreach (var userId in userIds)
+                {
+                    try { await _pushService.SendPushAsync(type, userId, token1: token1, token2: token2); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "MissingProduct push {Type} failed for user {UserId}.", type, userId); }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "MissingProduct push {Type} failed for store {StoreId}.", type, storeId);
+            }
         }
 
         // ================= کمکی =================

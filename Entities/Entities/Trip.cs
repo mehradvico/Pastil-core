@@ -3,6 +3,7 @@ using Entities.Entities.LocationField;
 using Entities.Entities.PansionField;
 using Entities.Entities.PetResanServiceField;
 using Entities.Entities.SchoolField;
+using Entities.Entities.GroomerField;
 using Entities.Entities.Security;
 using NetTopologySuite.Geometries;
 using System;
@@ -64,6 +65,13 @@ namespace Entities.Entities
         public long? PansionReserveId { get; set; }
         // اتصال به ثبت نام مدرسه (تحویل پت برای اولین جلسه حضوری)
         public long? SchoolReserveId { get; set; }
+        // اتصال به نوبت آرایشگاه برای سفر پت‌رسان.
+        public long? GroomerReserveId { get; set; }
+        // اتصال به رزرو مربی (پانسیون آموزشی در مرکز) برای سفر پت‌رسان.
+        public long? CoachReserveId { get; set; }
+        // هزینه‌ی این سفر همراه پرداختِ خودِ رزرو گرفته می‌شود (یک پرداخت برای رزرو + پت‌رسان).
+        // تا وقتی IsPaid نشده، سفر به راننده‌ها نمایش داده نمی‌شود و هیچ jobی سراغش نمی‌رود.
+        public bool PaidWithReserve { get; set; }
         // اتصال به یک ردیف برنامه‌ی هفتگیِ «سرویس پت‌رسان» — این Trip به‌صورت خودکار از آن زاییده شده
         public long? PetResanServiceScheduleId { get; set; }
         public int? ScheduledLeadMinutes { get; set; }
@@ -103,6 +111,8 @@ namespace Entities.Entities
         public Entities.ClinicField.ClinicReserve ClinicReserve { get; set; }
         public PansionReserve PansionReserve { get; set; }
         public SchoolReserve SchoolReserve { get; set; }
+        public GroomerReserve GroomerReserve { get; set; }
+        public Entities.CoachField.CoachReserve CoachReserve { get; set; }
         public PetResanServiceSchedule PetResanServiceSchedule { get; set; }
         public ICollection<TripOption> TripOptions { get; set; }
         public ICollection<TripPet> TripPets { get; set; }

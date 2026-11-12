@@ -12,6 +12,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
         public async Task Execute(AuthenticationFailedContext context)
         {
             context.NoResult();
+            // endpoint عمومی: توکن خراب نادیده گرفته می‌شود و درخواست مهمان ادامه دارد
+            if (AnonymousEndpoint.Allows(context.HttpContext)) return;
             context.Response.StatusCode = 401;
             context.Response.ContentType = "text/plain";
             context.Response.WriteAsync(JsonSerializer.Serialize(new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidToken))).Wait();

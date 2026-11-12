@@ -1814,6 +1814,24 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Trip>()
+                .HasOne(t => t.GroomerReserve)
+                .WithMany()
+                .HasForeignKey(t => t.GroomerReserveId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Trip>()
+                .HasIndex(t => t.GroomerReserveId);
+
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.CoachReserve)
+                .WithMany()
+                .HasForeignKey(t => t.CoachReserveId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Trip>()
+                .HasIndex(t => t.CoachReserveId);
+
+            modelBuilder.Entity<Trip>()
                 .HasOne(t => t.PetResanServiceSchedule)
                 .WithMany()
                 .HasForeignKey(t => t.PetResanServiceScheduleId)

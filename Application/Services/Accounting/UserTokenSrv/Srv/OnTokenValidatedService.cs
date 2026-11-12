@@ -36,6 +36,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             if (!(context.SecurityToken is JsonWebToken Token))
             {
                 context.NoResult();
+                // endpoint عمومی: نشست نامعتبر = مهمان؛ نوشتن ۴۰۱ و ادامه‌ی pipeline اتصال را قطع می‌کرد
+                if (AnonymousEndpoint.Allows(context.HttpContext)) return;
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 context.Response.WriteAsync(JsonSerializer.Serialize(new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidToken))).Wait();
@@ -45,6 +47,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             if (claimsidentity?.Claims == null || !claimsidentity.Claims.Any())
             {
                 context.NoResult();
+                // endpoint عمومی: نشست نامعتبر = مهمان؛ نوشتن ۴۰۱ و ادامه‌ی pipeline اتصال را قطع می‌کرد
+                if (AnonymousEndpoint.Allows(context.HttpContext)) return;
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 context.Response.WriteAsync(JsonSerializer.Serialize(new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidToken))).Wait();
@@ -54,6 +58,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             if (!long.TryParse(userId, out long userLong))
             {
                 context.NoResult();
+                // endpoint عمومی: نشست نامعتبر = مهمان؛ نوشتن ۴۰۱ و ادامه‌ی pipeline اتصال را قطع می‌کرد
+                if (AnonymousEndpoint.Allows(context.HttpContext)) return;
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 context.Response.WriteAsync(JsonSerializer.Serialize(new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidToken))).Wait();
@@ -69,6 +75,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             if (!userCheck.IsSuccess)
             {
                 context.NoResult();
+                // endpoint عمومی: نشست نامعتبر = مهمان؛ نوشتن ۴۰۱ و ادامه‌ی pipeline اتصال را قطع می‌کرد
+                if (AnonymousEndpoint.Allows(context.HttpContext)) return;
                 // «دسترسی ندارید» با «نشست/توکن نامعتبر» فرق دارد: کلاینت‌ها (پنل) روی ۴۰۱ تلاش refresh و در
                 // نهایت خروج انجام می‌دهند؛ برای کاربری که فقط به یک endpoint مجوز ندارد باید ۴۰۳ برگردد
                 // تا نشست سالمش با هر poll پریشان (rotate/پاک) نشود.
