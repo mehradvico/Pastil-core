@@ -103,7 +103,7 @@ GET /api/Seller/MissingProduct?pageSize=200
 ```
 
 جدیدترین اول؛ فقط رکوردهای همین فروشگاه. `pageSize` پیش‌فرض ۲۰۰ و سقف ۲۰۰ است؛ صفحه‌بندی ندارد (`total` تعداد کل است).
-چون فعلاً Push برای تأیید/رد وجود ندارد، **هر بار که صفحه باز می‌شود (یا pull-to-refresh)** فهرست را دوباره بگیرید تا `approved`/`rejected` شدن را ببینید.
+بعد از تأیید/رد، Push نوع ۱۷۳ (`PushMissingProductApproved`) یا ۱۷۴ (`PushMissingProductRejected`) با Url `/sellerProfile/sellerProducts` می‌رسد؛ با دریافتش (و هر بار باز شدن صفحه یا pull-to-refresh) فهرست را دوباره بگیرید.
 
 ## ۳. ویرایش
 
@@ -201,7 +201,7 @@ DELETE /api/Seller/MissingProduct/{id}
 
 ## آنچه هنوز نیست
 
-- اعلان Push برای تأیید/رد (فعلاً با باز کردن صفحه/pull-to-refresh).
+- ~~اعلان Push برای تأیید/رد~~ — ساخته شد (۱۷۳/۱۷۴).
 - صفحه‌بندی فهرست.
 - **«مشخصات» ساختاریافته** (ویژگی/مقدار مثل ProductFeatureValues کاتالوگ). فعلاً مشخصات داخل
   `description` (تا ۲۰۰۰ کاراکتر) نوشته می‌شود و ادمین موقع تأیید، دسته‌بندی و ویژگی‌های رسمی محصول
