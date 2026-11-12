@@ -579,75 +579,43 @@ namespace Application.Services.PastilAISrv
 
                 if (isMedicalCareRequest)
                 {
-                    IQueryable<CompanionAssistance> careServices = _context.CompanionAssistances.AsNoTracking()
-                        .Where(x => x.Active && x.Approved && !x.Deleted &&
-                                    x.Companion.Active && x.Companion.Approved && !x.Companion.Deleted &&
-                                    x.Assistance.Active && !x.Assistance.Deleted)
-                        .Where(x => x.Assistance.Name.Contains("دامپزشک") ||
-                                    x.Assistance.Name.Contains("پزشک") ||
-                                    x.Assistance.Name.Contains("کلینیک") ||
-                                    x.Assistance.Name.Contains("ویزیت") ||
-                                    x.Assistance.Name.Contains("مشاوره") ||
-                                    x.Assistance.Name.Contains("اورژانس") ||
-                                    x.Assistance.Name.Contains("درمان") ||
-                                    x.Assistance.Name.Contains("آزمایش") ||
-                                    x.Assistance.Name.Contains("واکس") ||
-                                    x.Assistance.Name.Contains("جراحی"));
+                    // خدمات درمانی از کلینیک‌های واقعی (Clinics/ClinicServices) می‌آید، نه از «نمایندگی قدیمی»
+                    // (CompanionAssistance) که از 2026-11-01 بازنشسته شده؛ قبلاً همین مسیر قدیمی باعث می‌شد
+                    // همیشه فقط یک مرکز قدیمی معرفی شود. کلینیک‌ها همان ترتیب کارت‌ها را دارند (نزدیکی، پیشنهاد ویژه، امتیاز).
+                    var rankedClinics = context.Venues.Where(v => v.Kind == VenueClinic).ToList();
+                    if (rankedClinics.Count == 0)
+                        rankedClinics = await FindVenuesAsync(new[] { VenueClinic }, location?.Location, cancellationToken);
+                    var clinicIds = rankedClinics.Select(v => v.Id).ToList();
 
-                    if (location != null)
+                    var clinicServices = clinicIds.Count == 0
+                        ? new List<(long ClinicId, string Name, double? FromPrice)>()
+                        : (await _context.ClinicServices.AsNoTracking()
+                            .Where(s => clinicIds.Contains(s.ClinicId) && s.Active && s.Approved && !s.Deleted &&
+                                        s.Assistance.Active && !s.Assistance.Deleted)
+                            .Select(s => new
+                            {
+                                s.ClinicId,
+                                s.Assistance.Name,
+                                FromPrice = s.Packages.Where(p => p.Active && !p.Deleted).Min(p => (double?)p.Price)
+                            })
+                            .ToListAsync(cancellationToken))
+                        .Select(s => (s.ClinicId, s.Name, s.FromPrice))
+                        .ToList();
+
+                    foreach (var clinic in rankedClinics)
                     {
-                        careServices = careServices
-                            .Where(x => x.Companion.Location != null)
-                            .OrderBy(x => x.Companion.Location.Distance(location.Location))
-                            .ThenByDescending(x => x.Companion.RateAvg);
-                        sb.AppendLine("خدمات درمانی پاستیل زیر بر اساس موقعیت ثبت‌شدهٔ کاربر مرتب شده‌اند؛ فقط در صورت نیاز می‌توان آن‌ها را «نزدیک» نامید.");
+                        var items = clinicServices.Where(s => s.ClinicId == clinic.Id)
+                            .OrderBy(s => s.FromPrice ?? double.MaxValue)
+                            .Select(s => s.FromPrice.HasValue ? $"{s.Name} (از {s.FromPrice} تومان)" : s.Name)
+                            .ToList();
+                        if (items.Count == 0) continue;
+                        sb.AppendLine($"خدمات درمانی کلینیک «{clinic.Name}» (id={clinic.Id}، شهر={clinic.CityName}): {string.Join("، ", items)}");
                     }
-                    else
-                    {
-                        careServices = careServices
-                            .OrderByDescending(x => x.Companion.RateAvg)
-                            .ThenByDescending(x => x.Companion.RateCount);
-                        sb.AppendLine("موقعیت فعلی کاربر در پاستیل ثبت نشده است؛ برای پیشنهاد نزدیک باید موقعیت یا شهر کاربر پرسیده شود.");
-                    }
 
-                    var services = await careServices.Take(3).Select(x => new
-                    {
-                        CompanionId = x.CompanionId,
-                        CompanionName = x.Companion.Name,
-                        AssistanceId = x.Id,
-                        AssistanceName = x.Assistance.Name,
-                        x.Companion.AddressValue,
-                        x.Companion.RateAvg,
-                        x.Companion.RateCount,
-                        FromPrice = x.CompanionAssistancePackages
-                            .Where(p => p.Active && !p.Deleted)
-                            .Select(p => (double?)p.Price)
-                            .Min()
-                    }).ToListAsync(cancellationToken);
-
-                    foreach (var service in services)
-                        sb.AppendLine($"خدمت درمانی پاستیل: مرکزId={service.CompanionId}، مرکز={service.CompanionName}، خدمتId={service.AssistanceId}، خدمت={service.AssistanceName}، آدرس={service.AddressValue}، امتیاز={service.RateAvg} از {service.RateCount} نظر، قیمت پایهٔ پکیج فعال={(service.FromPrice.HasValue ? $"{service.FromPrice} تومان" : "نامشخص")}");
-
-                    if (services.Count == 0)
-                        sb.AppendLine("برای این جست‌وجوی درمانی، خدمت فعال و تأییدشده‌ای در دادهٔ پاستیل پیدا نشد؛ از ساختن نام مرکز یا خدمت خودداری کن.");
-
-                    // پکیج‌های واقعی همان خدمات درمانی بالا - با نام و قیمت مشخص، تا مدل به‌جای اشاره‌ی کلی به
-                    // "پکیج درمانی" بتواند دقیقاً همین گزینه‌های خریدنی را با نام و قیمت واقعی معرفی کند.
-                    var assistanceIds = services.Select(s => s.AssistanceId).ToList();
-                    if (assistanceIds.Count > 0)
-                    {
-                        var packages = await _context.CompanionAssistancePackages.AsNoTracking()
-                            .Where(p => p.Active && !p.Deleted && assistanceIds.Contains(p.CompanionAssistanceId))
-                            .OrderBy(p => p.Price)
-                            .Take(5)
-                            .Select(p => new { p.Id, p.Name, p.Price, p.CompanionAssistanceId })
-                            .ToListAsync(cancellationToken);
-                        foreach (var package in packages)
-                        {
-                            context.PackageIds.Add(package.Id);
-                            sb.AppendLine($"پکیج پاستیل: پکیجId={package.Id}، نام={package.Name}، قیمت={package.Price} تومان، مربوط به خدمتId={package.CompanionAssistanceId}");
-                        }
-                    }
+                    if (rankedClinics.Count == 0)
+                        sb.AppendLine("برای این جست‌وجوی درمانی، کلینیک فعال و تأییدشده‌ای در دادهٔ پاستیل پیدا نشد؛ از ساختن نام مرکز یا خدمت خودداری کن.");
+                    else if (rankedClinics.Count > 1)
+                        sb.AppendLine("چند کلینیک فعال در پاستیل هست؛ در پاسخ فقط به یکی بسنده نکن و گزینه‌ها را کوتاه معرفی کن (کارت کلینیک‌ها زیر پاسخ نمایش داده می‌شود).");
                 }
 
                 if (needsNearbyResults)
@@ -665,14 +633,8 @@ namespace Application.Services.PastilAISrv
                             .ToListAsync(cancellationToken);
                         foreach (var x in stores)
                             sb.AppendLine($"پت‌شاپ نزدیک: id={x.Id}، نام={x.Name}، آدرس={x.Address}، فاصله={Math.Round(x.Distance)} متر");
-
-                        var companions = await _context.Companions.AsNoTracking()
-                            .Where(x => !x.Deleted && x.Active && x.Approved && x.Location != null)
-                            .OrderBy(x => x.Location.Distance(location.Location)).Take(3)
-                            .Select(x => new { x.Id, x.Name, Address = x.AddressValue, Distance = x.Location.Distance(location.Location) })
-                            .ToListAsync(cancellationToken);
-                        foreach (var x in companions)
-                            sb.AppendLine($"مرکز/Companion نزدیک: id={x.Id}، نام={x.Name}، آدرس={x.Address}، فاصله={Math.Round(x.Distance)} متر");
+                        // مراکز نزدیک (کلینیک/آرایشگاه/مربی/پانسیون/مدرسه) از FindVenuesAsync و کارت نمایندگی‌ها می‌آیند؛
+                        // جدول Companions دیگر مرکز خدماتی نیست.
                     }
                 }
             }
@@ -871,7 +833,7 @@ namespace Application.Services.PastilAISrv
 
             ## دامنه و لحن
             - دربارهٔ سلامت و علائم، تغذیه، رفتار و آموزش، نژاد، نگهداری، بهداشت، سفر، پذیرش/تکثیر مسئولانه و همهٔ پرسش‌های واقعی صاحبان حیوانات پاسخ کامل بده.
-            - دربارهٔ محصولات، پت‌شاپ‌ها، خدمات و مراکز Companion، رزرو، پانسیون، سفارش، باشگاه، کیف پول و مزایای پاستیل هم راهنمای دقیق بده.
+            - دربارهٔ محصولات، پت‌شاپ‌ها، خدمات کلینیک‌ها/آرایشگاه‌ها/مربی‌ها، رزرو، پانسیون، سفارش، باشگاه، کیف پول و مزایای پاستیل هم راهنمای دقیق بده.
             - پت‌رسان (سرویس جابه‌جایی و رسوندن حیوان خانگی توسط راننده‌های پاستیل) را به‌عنوان یک قابلیت واقعی و همیشه در دسترس پاستیل بشناس؛ هر وقت کاربر برای رساندن پت به کلینیک/دامپزشک/محل دیگر نیاز به جابه‌جایی دارد یا وسیله ندارد، همین سرویس را به‌عنوان راه‌حل معرفی کن.
             - برای سلام، تشکر و گفت‌وگوی روزمره scope را "PetGeneral" بگذار و گرم و شخصی پاسخ بده؛ اگر نام پت در دادهٔ داخلی هست می‌توانی با نام خودش حالش را بپرسی. فقط موضوعات کاملاً نامرتبط با حیوان خانگی و پاستیل را محترمانه خارج از حوزه اعلام کن؛ در موارد مرزی، کمک‌کردن را ترجیح بده.
             - فارسی روان و صمیمی بنویس. پاسخ ساده را کوتاه و پاسخ چندبخشی را با تیتر کوتاه یا شماره‌گذاری خوانا ارائه کن.
@@ -1166,7 +1128,7 @@ namespace Application.Services.PastilAISrv
                 IQueryable<PastilAiRecommendedVenueDto> rows = kind switch
                 {
                     VenueClinic => _context.Clinics.AsNoTracking()
-                        .Where(x => x.Active && x.Approved && x.ShowToSite && !x.Deleted)
+                        .Where(x => x.Active && x.Approved && !x.Deleted)
                         .Select(x => new PastilAiRecommendedVenueDto
                         {
                             Kind = VenueClinic, Id = x.Id, Name = x.Name, RateAvg = x.RateAvg, RateCount = x.RateCount,
@@ -1175,7 +1137,7 @@ namespace Application.Services.PastilAISrv
                             Picture = x.Picture == null ? null : new PastilAiProductPictureDto { Url = x.Picture.Url, GuidName = x.Picture.GuidName, Extension = x.Picture.Extension }
                         }),
                     VenueGroomer => _context.Groomers.AsNoTracking()
-                        .Where(x => x.Active && x.Approved && x.ShowToSite && !x.Deleted)
+                        .Where(x => x.Active && x.Approved && !x.Deleted)
                         .Select(x => new PastilAiRecommendedVenueDto
                         {
                             Kind = VenueGroomer, Id = x.Id, Name = x.Name, RateAvg = x.RateAvg, RateCount = x.RateCount,
@@ -1184,7 +1146,7 @@ namespace Application.Services.PastilAISrv
                             Picture = x.Picture == null ? null : new PastilAiProductPictureDto { Url = x.Picture.Url, GuidName = x.Picture.GuidName, Extension = x.Picture.Extension }
                         }),
                     VenueCoach => _context.Coaches.AsNoTracking()
-                        .Where(x => x.Active && x.Approved && x.ShowToSite && !x.Deleted)
+                        .Where(x => x.Active && x.Approved && !x.Deleted)
                         .Select(x => new PastilAiRecommendedVenueDto
                         {
                             Kind = VenueCoach, Id = x.Id, Name = x.Name, RateAvg = x.RateAvg, RateCount = x.RateCount,
@@ -1213,6 +1175,8 @@ namespace Application.Services.PastilAISrv
                         }),
                     _ => null
                 };
+                // کلینیک/آرایشگاه/مربی: ShowToSite فقط پرچم سایت‌مپ است و لیست عمومی اپ آن را نادیده می‌گیرد
+                // (SearchPublic)؛ پانسیون/مدرسه در لیست عمومی‌شان ShowToSite را لازم دارند.
                 if (rows == null) continue;
 
                 // نزدیک‌ها اول (اگر موقعیت داریم)، بعد نمایندگی‌های پیشنهادی پاستیل، بعد امتیاز و تعداد نظر.
