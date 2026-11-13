@@ -1,4 +1,4 @@
-using Application.Common.Helpers;
+﻿using Application.Common.Helpers;
 using Application.Common.Dto.Result;
 using Application.Services.Filing.PictureSrv.Dto;
 using Application.Services.GroomerSrvs.GroomerCatalogSrv.Dto;
@@ -209,7 +209,7 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
                 var denied = await CheckServiceAccessAsync(dto.GroomerServiceId, ownerUserId);
                 if (denied != null)
                     return new BaseResultDto<GroomerServicePackageVDto>(false, denied.Messages, null);
-                var error = await ValidatePackageAsync(dto);
+                var error = await ValidatePackageAsync(dto, ownerUserId.HasValue);
                 if (error != null)
                     return new BaseResultDto<GroomerServicePackageVDto>(false, error, null);
 
@@ -251,7 +251,7 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
                 return denied;
 
             dto.GroomerServiceId = serviceId.Value;
-            var error = await ValidatePackageAsync(dto);
+            var error = await ValidatePackageAsync(dto, ownerUserId.HasValue);
             if (error != null)
                 return new BaseResultDto(false, error);
 
@@ -315,12 +315,19 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
             return null;
         }
 
-        private async Task<string> ValidatePackageAsync(GroomerServicePackageInputDto dto)
+        private async Task<string> ValidatePackageAsync(GroomerServicePackageInputDto dto, bool enforceMinPrepay)
         {
             if (string.IsNullOrWhiteSpace(dto.Name) || dto.Name.Trim().Length > 200)
                 return Resource.Notification.PleaseEnterTheName;
-            if (dto.Price <= 0 || dto.PrePaymentPrice < 0 || dto.PrePaymentPrice > dto.Price || double.IsNaN(dto.Price) || double.IsInfinity(dto.Price))
+            if (dto.Price <= 0 || dto.PrePaymentPrice < 0 || double.IsNaN(dto.Price) || double.IsInfinity(dto.Price))
                 return Resource.Notification.GroomerPackagePriceInvalid;
+            // پیش‌پرداخت: حداکثر کل مبلغ (برای همه)، حداقل سهم پاستیل (فقط ارائه‌دهنده؛ ادمین می‌تواند عبور کند)
+            var row = await _context.GroomerServices.AsNoTracking().Where(s => s.Id == dto.GroomerServiceId)
+                .Select(s => new { s.CommissionPercent, Venue = s.Groomer.CommissionPercent }).FirstOrDefaultAsync();
+            var percent = enforceMinPrepay && row != null ? VenueCommission.Resolve(row.CommissionPercent, row.Venue) : 0m;
+            var prepayError = PackagePrepayment.Check(dto.Price, dto.PrePaymentPrice, percent);
+            if (prepayError != null)
+                return prepayError;
             if (!VenuePetSizes.TryNormalizeSet(dto.PetSize, dto.PetSizes, out _))
                 return Resource.Notification.GroomerPackagePetSizeInvalid;
             if (dto.PictureId.HasValue && dto.PictureId.Value > 0 && !await _context.Pictures.AnyAsync(p => p.Id == dto.PictureId.Value))
@@ -340,7 +347,7 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
             var rows = await query.OrderBy(s => s.Id).Select(s => new
             {
                 s.Id, s.GroomerId, s.AssistanceId, AssistanceName = s.Assistance.Name, AssistancePicture = s.Assistance.Picture,
-                s.Active, s.Approved, s.ActivationValue, s.CommissionPercent, s.DurationMinutes, s.Description,
+                s.Active, s.Approved, s.ActivationValue, s.CommissionPercent, VenuePercent = s.Groomer.CommissionPercent, s.DurationMinutes, s.Description,
                 Packages = s.Packages
                     .Where(p => !p.Deleted && (!onlyActivePackages || p.Active) && (petSize == null || p.PetSize == null || p.PetSize.Contains(petSize)))
                     .OrderBy(p => p.Price)
@@ -360,6 +367,7 @@ namespace Application.Services.GroomerSrvs.GroomerCatalogSrv
                 Approved = r.Approved,
                 ActivationValue = r.ActivationValue,
                 CommissionPercent = r.CommissionPercent,
+                EffectiveCommissionPercent = VenueCommission.Resolve(r.CommissionPercent, r.VenuePercent),
                 DurationMinutes = r.DurationMinutes,
                 Description = r.Description,
                 UserIds = r.UserIds,

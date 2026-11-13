@@ -579,6 +579,7 @@ public static class ConfigureServices
         services.AddScoped<IDiscussionAnswerLikeService, DiscussionAnswerLikeService>();
         services.AddScoped<IDiscussionAnswerService, DiscussionAnswerService>();
         services.AddScoped<IDiscussionQuestionService, DiscussionQuestionService>();
+        services.AddScoped<Application.Services.Content.DiscussionChatSrv.Iface.IDiscussionChatService, Application.Services.Content.DiscussionChatSrv.DiscussionChatService>();
         services.AddScoped<IDriverService, DriverService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IFeatureItemService, FeatureItemService>();

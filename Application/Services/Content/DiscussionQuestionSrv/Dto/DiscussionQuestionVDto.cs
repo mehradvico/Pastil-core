@@ -16,6 +16,8 @@ namespace Application.Services.Content.DiscussionQuestionSrv.Dto
         public bool? AdminConfirm { get; set; }
         public bool Active { get; set; }
         public int AnswerCount { get; set; }
+        /// <summary>تعداد پاسخ‌های در انتظار تأیید این پرسش (فقط برای ادمین پر می‌شود).</summary>
+        public int PendingAnswerCount { get; set; }
 
         public ProductVDto Product { get; set; }
         public UserMinVDto User { get; set; }

@@ -8351,7 +8351,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.CartController.#ctor(Application.Services.Order.CartSrv.Iface.ICartService)">
+        <member name="M:Api.Areas.EndUser.Controllers.CartController.#ctor(Application.Services.Order.CartSrv.Iface.ICartService,Application.Services.ProductSrvs.ProductSrv.Iface.IProductService,Application.Common.Interface.ICurrentUserHelper)">
              <summary>
              سبد خرید
              </summary>
@@ -8361,6 +8361,15 @@
             <summary>
             ویرایش Code 1: کاربر باید لاگین کند
             </summary>  
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.CartController.Suggestions(System.String,System.Nullable{System.Int64},System.Int32)">
+            <summary>
+            «چیزی را فراموش نکردید؟»: پیشنهاد مکمل برای کل سبد (کاربر لاگین‌شده از روی توکن؛ مهمان با uniqueId).
+            فقط کالای موجود و مرتبط با همان حیوان؛ اگر پیشنهاد مطمئنی نباشد لیست خالی است.
+            </summary>
+            <param name="uniqueId">شناسه‌ی سبد مهمان (برای کاربر لاگین‌شده لازم نیست)</param>
+            <param name="storeId">فروشگاهی که مشتری الان از آن ادامه می‌دهد: فقط اقلام همان فروشگاه نامزدکننده‌اند و فقط کالاهای موجودِ همان فروشگاه پیشنهاد می‌شوند</param>
+            <param name="take">تعداد (پیش‌فرض ۶، حداکثر ۱۲)</param>
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.CartController.Get(Application.Services.Order.CartSrv.Dto.CartUpdateDto)">
             <summary>
@@ -9055,7 +9064,7 @@
              </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.DiscussionAnswerController.#ctor(Application.Services.Content.DiscussionAnswerSrv.Iface.IDiscussionAnswerService,Application.Common.Interface.ICurrentUserHelper)">
+        <member name="M:Api.Areas.EndUser.Controllers.DiscussionAnswerController.#ctor(Application.Services.Content.DiscussionAnswerSrv.Iface.IDiscussionAnswerService,Application.Common.Interface.ICurrentUserHelper,Application.Services.Content.DiscussionChatSrv.Iface.IDiscussionChatService)">
              <summary>
              مدیریت پاسخ گفت و گو
              </summary>
@@ -9089,13 +9098,38 @@
             آیتم جدید
             </summary>  
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.DiscussionChatController">
+            <summary>
+            پرسش و پاسخ کالا (چت‌روم): وضعیت پیام‌های من، ویرایش و حذف پیامِ در انتظار تأیید
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.DiscussionChatController.#ctor(Application.Services.Content.DiscussionChatSrv.Iface.IDiscussionChatService,Application.Common.Interface.ICurrentUserHelper)">
+            <summary>
+            پرسش و پاسخ کالا (چت‌روم)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.DiscussionChatController.MyStatus(System.Int64)">
+            <summary>
+            پیام‌های در انتظار تأیید/ردشده‌ی اخیرِ خودِ کاربر برای یک کالا + اینکه الان می‌تواند پیام جدید بفرستد یا نه (hasPending)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.DiscussionChatController.Put(Application.Services.Content.DiscussionChatSrv.Dto.DiscussionChatEditDto)">
+            <summary>
+            ویرایش پیامِ خودِ کاربر تا وقتی ادمین بررسی نکرده (kind: 1 پرسش، 2 پاسخ)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.DiscussionChatController.Delete(Application.Services.Content.DiscussionChatSrv.Dto.DiscussionChatKind,System.Int64)">
+            <summary>
+            حذف پیامِ خودِ کاربر تا وقتی ادمین بررسی نکرده (kind: 1 پرسش، 2 پاسخ)
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.DiscussionQuestionController">
              <summary>
              مدیریت موضوع های گفت و گو
              </summary>
             
         </member>
-        <member name="M:Api.Areas.EndUser.Controllers.DiscussionQuestionController.#ctor(Application.Services.Content.DiscussionQuestionSrv.Iface.IDiscussionQuestionService,Application.Common.Interface.ICurrentUserHelper)">
+        <member name="M:Api.Areas.EndUser.Controllers.DiscussionQuestionController.#ctor(Application.Services.Content.DiscussionQuestionSrv.Iface.IDiscussionQuestionService,Application.Common.Interface.ICurrentUserHelper,Application.Services.Content.DiscussionChatSrv.Iface.IDiscussionChatService)">
              <summary>
              مدیریت موضوع گفت و گو
              </summary>
@@ -9917,6 +9951,16 @@
             جستجو
             </summary>
             
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ProductCommentController.Eligibility(System.Int64)">
+            <summary>
+            آیا کاربر می‌تواند برای این کالا دیدگاه ثبت کند؟ (فقط بعد از تحویل گرفتن سفارشی که شامل کالا بوده)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.ProductCommentController.OrderEligibility(System.String)">
+            <summary>
+            وضعیت امکان ثبت دیدگاه برای کالاهای یک سفارش تحویل‌گرفته‌شده (سفارش تحویل‌نگرفته = لیست خالی)
+            </summary>
         </member>
         <member name="M:Api.Areas.EndUser.Controllers.ProductCommentController.Post(Application.Services.ProductSrvs.ProductCommentSrv.Dto.ProductCommentDto)">
             <summary>
@@ -12743,6 +12787,20 @@
             <param name="id">شناسه</param>
             <returns></returns>
             
+        </member>
+        <member name="M:Api.Controllers.ProductController.Similar(System.Int64,System.Int32)">
+            <summary>
+            کالاهای مشابه: هم‌نوعِ دقیق (مثلاً خاک گربه ← خاک گربه) با حیوان سازگار؛ موجودها اول
+            </summary>
+            <param name="productId">محصول مبدأ</param>
+            <param name="take">تعداد (پیش‌فرض ۱۲، حداکثر ۲۴)</param>
+        </member>
+        <member name="M:Api.Controllers.ProductController.BoughtTogether(System.Int64,System.Int32)">
+            <summary>
+            در کنارش خریداری شده: لوازم مکمل و مرتبط با همان حیوان (مثلاً خاک گربه ← ظرف خاک، بیلچه، مت)؛ فقط موجود
+            </summary>
+            <param name="productId">محصول مبدأ</param>
+            <param name="take">تعداد (پیش‌فرض ۸، حداکثر ۲۴)</param>
         </member>
         <member name="M:Api.Controllers.ProductController.Get(Application.Services.ProductSrv.Dto.ProductInputDto)">
             <summary>

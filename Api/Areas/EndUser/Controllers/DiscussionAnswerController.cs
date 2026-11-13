@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Services.Content.DiscussionChatSrv.Iface;
 using Application.Common.Interface;
 using Application.Services.Content.DiscussionAnswerSrv.Dto;
 using Application.Services.Content.DiscussionAnswerSrv.Iface;
@@ -20,12 +21,14 @@ namespace Api.Areas.EndUser.Controllers
     {
         private readonly CurrentUserDto _currentUser;
         private IDiscussionAnswerService _discussionAnswerService;
+        private readonly IDiscussionChatService _chat;
         /// <summary>
         /// مدیریت پاسخ گفت و گو
         /// </summary>
         ///
-        public DiscussionAnswerController(IDiscussionAnswerService discussionAnswerService, ICurrentUserHelper currentUserHelper)
+        public DiscussionAnswerController(IDiscussionAnswerService discussionAnswerService, ICurrentUserHelper currentUserHelper, IDiscussionChatService chat)
         {
+            _chat = chat;
             _discussionAnswerService = discussionAnswerService;
             _currentUser = currentUserHelper.CurrentUser;
         }
@@ -36,8 +39,8 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<DiscussionAnswerDto>), 200)]
         public async Task<IActionResult> Post(DiscussionAnswerDto discussionAnswerDto)
         {
-            discussionAnswerDto.UserId = _currentUser.UserId;
-            var dto = await _discussionAnswerService.InsertAsyncDto(discussionAnswerDto);
+            // پاسخ به پرسش یا به یک پاسخِ تأییدشده (replyToAnswerId)؛ «در انتظار تأیید ادمین» ثبت می‌شود
+            var dto = await _chat.SubmitAnswerAsync(_currentUser.UserId, discussionAnswerDto);
             return Ok(dto);
         }
 
@@ -51,11 +54,8 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(DiscussionAnswerInputDto), 200)]
         public IActionResult Get([FromQuery] DiscussionAnswerInputDto dto)
         {
-            dto.Available = true;
-            if (_currentUser != null)
-            {
-                dto.UserId = _currentUser.UserId;
-            }
+            dto.Available = true;   // فقط تأییدشده‌ها؛ UserId کلاینت نادیده گرفته می‌شود (قبلاً کاربر لاگین‌شده فقط پاسخ‌های خودش را می‌دید)
+            dto.UserId = null;
             var searchDto = _discussionAnswerService.Search(dto);
             return Ok(searchDto);
         }

@@ -2941,4 +2941,34 @@
   <data name="MissingProductLinkTargetInvalid" xml:space="preserve">
     <value>محصول کاتالوگ انتخاب‌شده معتبر نیست یا غیرفعال است.</value>
   </data>
+  <data name="ProductCommentNotPurchased" xml:space="preserve">
+    <value>ثبت دیدگاه برای کالا فقط بعد از تحویل گرفتن سفارشی که شامل آن کالا است امکان‌پذیر است.</value>
+  </data>
+  <data name="ProductCommentAlreadySubmitted" xml:space="preserve">
+    <value>شما قبلاً برای این کالا دیدگاه ثبت کرده‌اید.</value>
+  </data>
+  <data name="PackagePrepaymentAboveTotal" xml:space="preserve">
+    <value>پیش‌پرداخت نمی‌تواند بیشتر از کل مبلغ ({0} تومان) باشد.</value>
+  </data>
+  <data name="PackagePrepaymentBelowMinimum" xml:space="preserve">
+    <value>پیش‌پرداخت باید حداقل {0} تومان ({1}٪ مبلغ کل، سهم پاستیل) باشد.</value>
+  </data>
+  <data name="DiscussionContentInvalid" xml:space="preserve">
+    <value>متن پیام باید بین ۳ تا ۱۰۰۰ نویسه باشد.</value>
+  </data>
+  <data name="DiscussionPendingExists" xml:space="preserve">
+    <value>پیام قبلی شما هنوز در انتظار تأیید ادمین است؛ بعد از بررسی می‌توانید پیام جدید بفرستید.</value>
+  </data>
+  <data name="DiscussionQuestionNotAvailable" xml:space="preserve">
+    <value>این پرسش برای پاسخ‌دادن در دسترس نیست.</value>
+  </data>
+  <data name="DiscussionReplyTargetInvalid" xml:space="preserve">
+    <value>پیامی که به آن پاسخ می‌دهید معتبر نیست.</value>
+  </data>
+  <data name="DiscussionProductInvalid" xml:space="preserve">
+    <value>کالا معتبر نیست.</value>
+  </data>
+  <data name="DiscussionNotEditable" xml:space="preserve">
+    <value>فقط پیامی که هنوز در انتظار تأیید ادمین است قابل ویرایش یا حذف است.</value>
+  </data>
 </root>

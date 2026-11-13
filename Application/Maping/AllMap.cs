@@ -1,4 +1,4 @@
-using Application.Common.Dto.LocationPoint;
+﻿using Application.Common.Dto.LocationPoint;
 using Application.Common.Enumerable.Code;
 using Application.Common.Helpers;
 using Application.Services.Accounting.ClubRewardSrv.Dto;
@@ -507,9 +507,13 @@ namespace Application.Maping
             //Discussion
             CreateMap<DiscussionAnswerLike, DiscussionAnswerLikeDto>().ReverseMap();
             CreateMap<DiscussionQuestion, DiscussionQuestionDto>().ReverseMap();
-            CreateMap<DiscussionQuestion, DiscussionQuestionVDto>();
-            CreateMap<DiscussionAnswer, DiscussionAnswerDto>().ReverseMap();
-            CreateMap<DiscussionAnswer, DiscussionAnswerVDto>().ForMember(x => x.UserIsLike, o => o.MapFrom(m => (m.DiscussionAnswerLikes != null && m.DiscussionAnswerLikes.Any()) ? (bool?)m.DiscussionAnswerLikes.First().IsLike : null));
+            CreateMap<DiscussionQuestion, DiscussionQuestionVDto>().ForMember(x => x.PendingAnswerCount, o => o.Ignore());
+            CreateMap<DiscussionAnswer, DiscussionAnswerDto>().ReverseMap()
+                .ForMember(x => x.AdminConfirm, o => o.Ignore()).ForMember(x => x.StoreId, o => o.Ignore()).ForMember(x => x.Store, o => o.Ignore());
+            CreateMap<DiscussionAnswer, DiscussionAnswerVDto>()
+                .ForMember(x => x.UserIsLike, o => o.MapFrom(m => (m.DiscussionAnswerLikes != null && m.DiscussionAnswerLikes.Any()) ? (bool?)m.DiscussionAnswerLikes.First().IsLike : null))
+                .ForMember(x => x.StoreName, o => o.MapFrom(m => m.Store != null ? m.Store.Name : null))
+                .ForMember(x => x.IsStoreAnswer, o => o.MapFrom(m => m.StoreId != null));
             //Discussion End ----------------------------------------------
 
 

@@ -42,6 +42,32 @@ namespace Api.Controllers
 
 
         /// <summary>
+        /// کالاهای مشابه: هم‌نوعِ دقیق (مثلاً خاک گربه ← خاک گربه) با حیوان سازگار؛ موجودها اول
+        /// </summary>
+        /// <param name="productId">محصول مبدأ</param>
+        /// <param name="take">تعداد (پیش‌فرض ۱۲، حداکثر ۲۴)</param>
+        [HttpGet("Similar")]
+        [CustomOutputCache(CacheTypeEnum.ProductSearch)]
+        [ProducesResponseType(typeof(ProductSimilarVDto), 200)]
+        public async Task<IActionResult> Similar([FromQuery] long productId, [FromQuery] int take = 12)
+        {
+            return Ok(await ProductService.SimilarAsync(productId, take));
+        }
+
+        /// <summary>
+        /// در کنارش خریداری شده: لوازم مکمل و مرتبط با همان حیوان (مثلاً خاک گربه ← ظرف خاک، بیلچه، مت)؛ فقط موجود
+        /// </summary>
+        /// <param name="productId">محصول مبدأ</param>
+        /// <param name="take">تعداد (پیش‌فرض ۸، حداکثر ۲۴)</param>
+        [HttpGet("BoughtTogether")]
+        [CustomOutputCache(CacheTypeEnum.ProductRelated)]
+        [ProducesResponseType(typeof(ProductSimilarVDto), 200)]
+        public async Task<IActionResult> BoughtTogether([FromQuery] long productId, [FromQuery] int take = 8)
+        {
+            return Ok(await ProductService.BoughtTogetherAsync(productId, take));
+        }
+
+        /// <summary>
         /// جستجو
         /// </summary>
         [HttpGet]

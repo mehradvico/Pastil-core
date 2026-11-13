@@ -31,6 +31,8 @@ namespace Api.Controllers
         public IActionResult Get([FromQuery] DiscussionQuestionInputDto dto)
         {
             dto.Available = true;
+            dto.HasPendingAnswers = null;
+            dto.Pending = null;
             var searchDto = _DiscussionQuestionService.Search(dto);
             return Ok(searchDto);
         }

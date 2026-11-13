@@ -1,4 +1,7 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Common.Interface;
+using Application.Services.ProductSrvs.ProductSrv.Dto;
+using Application.Services.ProductSrvs.ProductSrv.Iface;
 using Application.Services.Order.CartSrv.Dto;
 using Application.Services.Order.CartSrv.Iface;
 using Microsoft.AspNetCore.Mvc;
@@ -16,13 +19,17 @@ namespace Api.Areas.EndUser.Controllers
     public class CartController : ControllerBase
     {
         private ICartService CartService;
+        private readonly IProductService ProductService;
+        private readonly ICurrentUserHelper CurrentUserHelper;
         /// <summary>
         /// سبد خرید
         /// </summary>
         ///
-        public CartController(ICartService CartService)
+        public CartController(ICartService CartService, IProductService ProductService, ICurrentUserHelper CurrentUserHelper)
         {
             this.CartService = CartService;
+            this.ProductService = ProductService;
+            this.CurrentUserHelper = CurrentUserHelper;
         }
         /// <summary>
         /// ویرایش Code 1: کاربر باید لاگین کند
@@ -33,6 +40,21 @@ namespace Api.Areas.EndUser.Controllers
         {
             var dto = await CartService.CartUpdateAsync(cartUpdate);
             return Ok(dto);
+        }
+
+        /// <summary>
+        /// «چیزی را فراموش نکردید؟»: پیشنهاد مکمل برای کل سبد (کاربر لاگین‌شده از روی توکن؛ مهمان با uniqueId).
+        /// فقط کالای موجود و مرتبط با همان حیوان؛ اگر پیشنهاد مطمئنی نباشد لیست خالی است.
+        /// </summary>
+        /// <param name="uniqueId">شناسه‌ی سبد مهمان (برای کاربر لاگین‌شده لازم نیست)</param>
+        /// <param name="storeId">فروشگاهی که مشتری الان از آن ادامه می‌دهد: فقط اقلام همان فروشگاه نامزدکننده‌اند و فقط کالاهای موجودِ همان فروشگاه پیشنهاد می‌شوند</param>
+        /// <param name="take">تعداد (پیش‌فرض ۶، حداکثر ۱۲)</param>
+        [HttpGet("Suggestions")]
+        [ProducesResponseType(typeof(CartSuggestionsVDto), 200)]
+        public async Task<IActionResult> Suggestions([FromQuery] string uniqueId, [FromQuery] long? storeId, [FromQuery] int take = 6)
+        {
+            var userId = CurrentUserHelper.CurrentUser?.UserId;
+            return Ok(await ProductService.CartSuggestionsAsync(userId, uniqueId, storeId, take));
         }
 
         /// <summary>

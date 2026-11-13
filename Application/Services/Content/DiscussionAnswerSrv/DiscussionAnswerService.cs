@@ -37,11 +37,14 @@ namespace Application.Services.Content.DiscussionAnswerSrv
         }
         public DiscussionAnswerSearchDto Search(DiscussionAnswerInputDto searchDto)
         {
-            var query = _context.DiscussionAnswers.Include(s => s.User).Where(s => !s.Deleted).IgnoreQueryFilters().AsQueryable();
+            var query = _context.DiscussionAnswers.Include(s => s.User).Include(s => s.Store).Where(s => !s.Deleted).IgnoreQueryFilters().AsQueryable();
 
             if (searchDto.Available.HasValue)
             {
-                query = query.Where(s => s.Active == searchDto.Available.Value);
+                // Available=true (عمومی): فقط پیام تأییدشده؛ false: غیرفعال‌ها (شامل در انتظار/ردشده برای ادمین)
+                query = searchDto.Available.Value
+                    ? query.Where(s => s.Active && s.AdminConfirm == true)
+                    : query.Where(s => !s.Active);
             }
 
             if (searchDto.DiscussionQuestionId.HasValue)
@@ -106,6 +109,8 @@ namespace Application.Services.Content.DiscussionAnswerSrv
                 }
 
                 item.Active = dto.Active;
+                // تأیید = نمایش؛ رد/غیرفعال = AdminConfirm=false (دیگر «در انتظار» حساب نمی‌شود و نویسنده می‌تواند پیام جدید بفرستد)
+                item.AdminConfirm = dto.Active;
                 _context.SaveChanges();
 
                 var updateCountResult = _topicService.UpdateAnswerCountDto(new DiscussionQuestionDto

@@ -1,4 +1,4 @@
-using Application.Services.Filing.PictureSrv.Dto;
+﻿using Application.Services.Filing.PictureSrv.Dto;
 using System.Collections.Generic;
 
 namespace Application.Services.ClinicSrvs.ClinicCatalogSrv.Dto
@@ -90,6 +90,8 @@ namespace Application.Services.ClinicSrvs.ClinicCatalogSrv.Dto
         public bool Approved { get; set; }
         public string ActivationValue { get; set; }
         public decimal CommissionPercent { get; set; }
+        /// <summary>درصد مؤثر کمیسیون پاستیل (درصد خود خدمت اگر &gt; ۰ وگرنه کمیسیون اصلی مرکز). حداقل پیش‌پرداخت هر پکیج = مبلغ کل × این درصد ÷ ۱۰۰.</summary>
+        public decimal EffectiveCommissionPercent { get; set; }
         public int DurationMinutes { get; set; }
         public string Description { get; set; }
         public List<ClinicServicePackageVDto> Packages { get; set; } = new List<ClinicServicePackageVDto>();

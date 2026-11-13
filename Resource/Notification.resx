@@ -2941,4 +2941,34 @@
   <data name="MissingProductLinkTargetInvalid" xml:space="preserve">
     <value>The selected catalog product is not valid or is inactive.</value>
   </data>
+  <data name="ProductCommentNotPurchased" xml:space="preserve">
+    <value>You can review a product only after you have received an order that contains it.</value>
+  </data>
+  <data name="ProductCommentAlreadySubmitted" xml:space="preserve">
+    <value>You have already submitted a review for this product.</value>
+  </data>
+  <data name="PackagePrepaymentAboveTotal" xml:space="preserve">
+    <value>The prepayment cannot be more than the total amount ({0} Toman).</value>
+  </data>
+  <data name="PackagePrepaymentBelowMinimum" xml:space="preserve">
+    <value>The prepayment must be at least {0} Toman ({1}% of the total amount, Pastil share).</value>
+  </data>
+  <data name="DiscussionContentInvalid" xml:space="preserve">
+    <value>The message must be between 3 and 1000 characters.</value>
+  </data>
+  <data name="DiscussionPendingExists" xml:space="preserve">
+    <value>Your previous message is still waiting for admin approval. You can send a new one after it is reviewed.</value>
+  </data>
+  <data name="DiscussionQuestionNotAvailable" xml:space="preserve">
+    <value>This question is not available for replies.</value>
+  </data>
+  <data name="DiscussionReplyTargetInvalid" xml:space="preserve">
+    <value>The message you are replying to is not valid.</value>
+  </data>
+  <data name="DiscussionProductInvalid" xml:space="preserve">
+    <value>The product is not valid.</value>
+  </data>
+  <data name="DiscussionNotEditable" xml:space="preserve">
+    <value>Only a message that is still waiting for admin approval can be edited or deleted.</value>
+  </data>
 </root>

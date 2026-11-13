@@ -1,4 +1,5 @@
 ﻿using Application.Common.Dto.Result;
+using Application.Services.Content.DiscussionChatSrv.Iface;
 using Application.Common.Interface;
 using Application.Services.Content.DiscussionQuestionSrv.Dto;
 using Application.Services.Content.DiscussionQuestionSrv.Iface;
@@ -19,12 +20,14 @@ namespace Api.Areas.EndUser.Controllers
     {
         private readonly ICurrentUserHelper _currentUserHelper;
         private IDiscussionQuestionService _DiscussionQuestionService;
+        private readonly IDiscussionChatService _chat;
         /// <summary>
         /// مدیریت موضوع گفت و گو
         /// </summary>
         ///
-        public DiscussionQuestionController(IDiscussionQuestionService DiscussionQuestionService, ICurrentUserHelper currentUserHelper)
+        public DiscussionQuestionController(IDiscussionQuestionService DiscussionQuestionService, ICurrentUserHelper currentUserHelper, IDiscussionChatService chat)
         {
+            _chat = chat;
             _DiscussionQuestionService = DiscussionQuestionService;
             _currentUserHelper = currentUserHelper;
         }
@@ -38,8 +41,8 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<DiscussionQuestionDto>), 200)]
         public async Task<IActionResult> Get(long id)
         {
-
-            var dto = await _DiscussionQuestionService.FindAsyncDto(id);
+            // فقط پرسش تأییدشده (قبلاً هر پرسشی حتی در انتظار تأیید با شناسه خوانده می‌شد)
+            var dto = await _DiscussionQuestionService.FindAsyncVDto(id, visit: false);
             return Ok(dto);
         }
         /// <summary>
@@ -51,6 +54,9 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(DiscussionQuestionInputDto), 200)]
         public IActionResult Get([FromQuery] DiscussionQuestionInputDto dto)
         {
+            dto.Available = true;   // فقط پرسش‌های تأییدشده؛ پیام‌های خودِ کاربر از MyStatus می‌آید
+            dto.HasPendingAnswers = null;
+            dto.Pending = null;
             var searchDto = _DiscussionQuestionService.Search(dto);
             return Ok(searchDto);
         }
@@ -61,8 +67,8 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<DiscussionQuestionDto>), 200)]
         public async Task<IActionResult> Post(DiscussionQuestionDto DiscussionQuestionDto)
         {
-            DiscussionQuestionDto.UserId = _currentUserHelper.CurrentUser.UserId;
-            var dto = await _DiscussionQuestionService.InsertAsyncDto(DiscussionQuestionDto);
+            // Active/AdminConfirm/AnswerCount کلاینت نادیده گرفته می‌شود؛ پرسش «در انتظار تأیید ادمین» ثبت می‌شود
+            var dto = await _chat.SubmitQuestionAsync(_currentUserHelper.CurrentUser.UserId, DiscussionQuestionDto);
             return Ok(dto);
         }
     }

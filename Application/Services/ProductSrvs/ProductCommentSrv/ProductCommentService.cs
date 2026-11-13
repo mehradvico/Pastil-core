@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -51,7 +52,18 @@ namespace Application.Services.ProductSrvs.ProductCommentSrv
                     {
                         return new BaseResultDto<ProductCommentDto>(false, val1: Resource.Notification.TheRangeEnteredIsNotCorrect, val2: nameof(dto.Rate), data: dto);
                     }
+                    // فقط خریداری که سفارشِ حاوی این کالا را تحویل گرفته می‌تواند دیدگاه بگذارد (یک دیدگاه برای هر کالا)
+                    if (!dto.UserId.HasValue || dto.ProductId <= 0)
+                        return new BaseResultDto<ProductCommentDto>(false, val: Resource.Notification.AccessDenied, data: dto);
+                    var eligibility = await GetEligibilityAsync(dto.UserId.Value, dto.ProductId);
+                    if (!eligibility.Received)
+                        return new BaseResultDto<ProductCommentDto>(false, val: Resource.Notification.ProductCommentNotPurchased, data: dto);
+                    if (eligibility.HasCommented)
+                        return new BaseResultDto<ProductCommentDto>(false, val: Resource.Notification.ProductCommentAlreadySubmitted, data: dto);
                     var item = mapper.Map<ProductComment>(dto);
+                    item.Id = 0;
+                    item.LikeCount = 0;
+                    item.DisLikeCount = 0;
                     var commentStatus = await codeService.GetByLabelAsync(CommentEnum.Comment_NotChecked.ToString());
                     if (commentStatus != null)
                     {
@@ -153,6 +165,49 @@ namespace Application.Services.ProductSrvs.ProductCommentSrv
             }
 
             return query;
+        }
+
+        // سفارش «تحویل‌شده»: پرداخت‌شده، لغو‌نشده و کاربر «تحویل گرفتم» زده (یا خودکار ثبت شده)؛ سفارش‌های قدیمی با وضعیت «تحویل داده شد» هم حساب می‌شوند.
+        private IQueryable<ProductOrderItem> ReceivedItems(long userId)
+        {
+            var deliveredLabel = ProductOrderStatusEnum.ProductOrderStatus_Delivered.ToString();
+            var canceledLabel = ProductOrderStateEnum.ProductOrderState_Canceled.ToString();
+            return _context.ProductOrderItems.Where(i => !i.Deleted
+                && !i.ProductOrderStore.Deleted
+                && !i.ProductOrderStore.ProductOrder.Deleted
+                && i.ProductOrderStore.ProductOrder.UserId == userId
+                && i.ProductOrderStore.ProductOrder.IsPaid
+                && i.ProductOrderStore.ProductOrder.ProductOrderState.Label != canceledLabel
+                && (i.ProductOrderStore.ProductOrder.UserReceived == true
+                    || i.ProductOrderStore.ProductOrder.ProductOrderStatus.Label == deliveredLabel));
+        }
+
+        public async Task<ProductCommentEligibilityVDto> GetEligibilityAsync(long userId, long productId)
+        {
+            var received = await ReceivedItems(userId).AnyAsync(i => i.ProductItem.ProductId == productId);
+            var rejected = CommentEnum.Comment_Reject.ToString();
+            var commented = await _context.ProductComments.AnyAsync(c => c.UserId == userId && c.ProductId == productId && c.Status.Label != rejected);
+            return new ProductCommentEligibilityVDto { ProductId = productId, Received = received, HasCommented = commented, CanComment = received && !commented };
+        }
+
+        public async Task<List<ProductCommentEligibilityVDto>> GetOrderEligibilityAsync(long userId, string orderId)
+        {
+            var productIds = await ReceivedItems(userId)
+                .Where(i => i.ProductOrderStore.ProductOrderId == orderId)
+                .Select(i => i.ProductItem.ProductId).Distinct().ToListAsync();
+            if (productIds.Count == 0)
+                return new List<ProductCommentEligibilityVDto>();
+            var rejected = CommentEnum.Comment_Reject.ToString();
+            var commentedIds = await _context.ProductComments
+                .Where(c => c.UserId == userId && productIds.Contains(c.ProductId) && c.Status.Label != rejected)
+                .Select(c => c.ProductId).Distinct().ToListAsync();
+            return productIds.Select(id => new ProductCommentEligibilityVDto
+            {
+                ProductId = id,
+                Received = true,
+                HasCommented = commentedIds.Contains(id),
+                CanComment = !commentedIds.Contains(id)
+            }).ToList();
         }
 
         public async Task UpdateProductCommentRateAsync(long Id)

@@ -28,7 +28,7 @@ namespace Application.Services.Content.DiscussionQuestionSrv
         }
         public async Task<BaseResultDto<DiscussionQuestionVDto>> FindAsyncVDto(long id, bool visit = true)
         {
-            var item = await _context.DiscussionQuestions.Include(s => s.DiscussionAnswers.Where(s => s.Active)).ThenInclude(s => s.User).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+            var item = await _context.DiscussionQuestions.Include(s => s.DiscussionAnswers.Where(a => a.Active && a.AdminConfirm == true && !a.Deleted)).ThenInclude(s => s.User).Include(s => s.DiscussionAnswers.Where(a => a.Active && a.AdminConfirm == true && !a.Deleted)).ThenInclude(s => s.Store).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted && s.Active && s.AdminConfirm == true);
             if (item != null)
             {
                 return new BaseResultDto<DiscussionQuestionVDto>(true, mapper.Map<DiscussionQuestionVDto>(item));
@@ -39,7 +39,7 @@ namespace Application.Services.Content.DiscussionQuestionSrv
         public async Task<BaseResultDto<DiscussionQuestionVDto>>FindAdminAsyncVDto(long id)
         {
             var item = await _context.DiscussionQuestions.Include(s => s.User).Include(s => s.Product).Include(s => s.DiscussionAnswers.Where(answer => !answer.Deleted))
-                .ThenInclude(answer => answer.User).AsNoTracking().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+                .ThenInclude(answer => answer.User).Include(s => s.DiscussionAnswers.Where(answer => !answer.Deleted)).ThenInclude(answer => answer.Store).AsNoTracking().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
 
             if (item != null)
             {
@@ -50,7 +50,7 @@ namespace Application.Services.Content.DiscussionQuestionSrv
 
         public DiscussionQuestionSearchDto Search(DiscussionQuestionInputDto baseSearchDto)
         {
-            var query = _context.DiscussionQuestions.Include(s => s.DiscussionAnswers.Where(s => s.Active)).ThenInclude(s => s.User).Include(s => s.User).Include(s => s.Product).Where(s => !s.Deleted).AsQueryable();
+            var query = _context.DiscussionQuestions.Include(s => s.DiscussionAnswers.Where(a => a.Active && a.AdminConfirm == true && !a.Deleted)).ThenInclude(s => s.User).Include(s => s.DiscussionAnswers.Where(a => a.Active && a.AdminConfirm == true && !a.Deleted)).ThenInclude(s => s.Store).Include(s => s.User).Include(s => s.Product).Where(s => !s.Deleted).AsQueryable();
             DateTime now = DateTime.Now;
 
             if (baseSearchDto.Available == true)
@@ -64,6 +64,14 @@ namespace Application.Services.Content.DiscussionQuestionSrv
             if (baseSearchDto.AdminConfirm.HasValue)
             {
                 query = query.Where(s => s.AdminConfirm == baseSearchDto.AdminConfirm.Value);
+            }
+            if (baseSearchDto.Pending == true)
+            {
+                query = query.Where(s => s.AdminConfirm == null);
+            }
+            if (baseSearchDto.HasPendingAnswers == true)
+            {
+                query = query.Where(s => s.DiscussionAnswers.Any(a => !a.Deleted && a.AdminConfirm == null));
             }
             if (baseSearchDto.FromDate.HasValue)
             {
@@ -88,7 +96,22 @@ namespace Application.Services.Content.DiscussionQuestionSrv
                     query = query.OrderByDescending(s => s.Id);
                     break;
             }
-            return new DiscussionQuestionSearchDto(baseSearchDto, query, mapper);
+            var result = new DiscussionQuestionSearchDto(baseSearchDto, query, mapper);
+            FillPendingAnswerCounts(result.List);
+            return result;
+        }
+
+        // تعداد پاسخ‌های در انتظار تأیید هر پرسش (برای صف تأیید ادمین؛ یک کوئری برای کل صفحه)
+        private void FillPendingAnswerCounts(System.Collections.Generic.List<DiscussionQuestionVDto> list)
+        {
+            if (list == null || list.Count == 0) return;
+            var ids = list.Select(x => x.Id).ToList();
+            var counts = _context.DiscussionAnswers.AsNoTracking()
+                .Where(a => ids.Contains(a.DiscussionQuestionId) && !a.Deleted && a.AdminConfirm == null)
+                .GroupBy(a => a.DiscussionQuestionId).Select(g => new { g.Key, Count = g.Count() }).ToList()
+                .ToDictionary(x => x.Key, x => x.Count);
+            foreach (var item in list)
+                item.PendingAnswerCount = counts.TryGetValue(item.Id, out var n) ? n : 0;
         }
 
         public override async Task<BaseResultDto<DiscussionQuestionDto>> InsertAsyncDto(DiscussionQuestionDto dto)

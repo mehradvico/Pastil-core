@@ -27,5 +27,11 @@ namespace Application.Services.ProductSrvs.ProductSrv.Iface
         Task UpdateProductPriceAsync(ProductUpdateTypeEnum productUpdateType, string Id);
         Task<BaseResultDto<ProductDto>> DuplicateAsyncDto(ProductDuplicateDto productDuplicateDto);
         Task<BaseResultDto> ChangeProductVarietiesAsync(ProductDto product);
+        /// <summary>کالاهای هم‌نوعِ دقیق (خاک گربه ↔ خاک گربه) با حیوان سازگار؛ بی‌ربط هرگز.</summary>
+        Task<ProductSimilarVDto> SimilarAsync(long productId, int take);
+        /// <summary>«در کنارش خریداری شده»: کالاهای مکمل و مرتبط (دست‌چینِ ادمین اول، بعد هوشمند)، فقط موجود.</summary>
+        Task<ProductSimilarVDto> BoughtTogetherAsync(long productId, int take);
+        /// <summary>«چیزی را فراموش نکردید؟»: پیشنهاد مکمل برای کل سبد (کاربر لاگین‌شده یا uniqueId مهمان).</summary>
+        Task<CartSuggestionsVDto> CartSuggestionsAsync(long? userId, string uniqueId, long? storeId, int take);
     }
 }

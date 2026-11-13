@@ -5136,6 +5136,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Active")
                         .HasColumnType("bit");
 
+                    b.Property<bool?>("AdminConfirm")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Content")
                         .HasColumnType("nvarchar(max)");
 
@@ -5154,12 +5157,20 @@ namespace Persistence.Migrations
                     b.Property<int>("LikeCount")
                         .HasColumnType("int");
 
+                    b.Property<long?>("ReplyToAnswerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("StoreId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("DiscussionQuestionId");
+
+                    b.HasIndex("StoreId");
 
                     b.HasIndex("UserId");
 
@@ -17540,6 +17551,10 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId");
+
                     b.HasOne("Entities.Entities.Security.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -17547,6 +17562,8 @@ namespace Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("DiscussionQuestion");
+
+                    b.Navigation("Store");
 
                     b.Navigation("User");
                 });

@@ -1,4 +1,4 @@
-using Application.Common.Helpers;
+﻿using Application.Common.Helpers;
 using Application.Services.CoachSrvs.CoachReserveSrv;
 using Application.Common.Dto.Result;
 using Application.Services.Filing.PictureSrv.Dto;
@@ -211,7 +211,7 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 var denied = await CheckServiceAccessAsync(dto.CoachServiceId, ownerUserId);
                 if (denied != null)
                     return new BaseResultDto<CoachServicePackageVDto>(false, denied.Messages, null);
-                var error = await ValidatePackageAsync(dto);
+                var error = await ValidatePackageAsync(dto, ownerUserId.HasValue);
                 if (error != null)
                     return new BaseResultDto<CoachServicePackageVDto>(false, error, null);
 
@@ -257,7 +257,7 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 return denied;
 
             dto.CoachServiceId = serviceId.Value;
-            var error = await ValidatePackageAsync(dto);
+            var error = await ValidatePackageAsync(dto, ownerUserId.HasValue);
             if (error != null)
                 return new BaseResultDto(false, error);
 
@@ -343,14 +343,14 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
             return null;
         }
 
-        private async Task<string> ValidatePackageAsync(CoachServicePackageInputDto dto)
+        private async Task<string> ValidatePackageAsync(CoachServicePackageInputDto dto, bool enforceMinPrepay)
         {
             if (string.IsNullOrWhiteSpace(dto.Name) || dto.Name.Trim().Length > 200)
                 return Resource.Notification.PleaseEnterTheName;
             var types = dto.Types ?? new List<CoachPackageTypeDto>();
             if (types.Count == 0)
             {
-                if (dto.Price <= 0 || dto.PrePaymentPrice < 0 || dto.PrePaymentPrice > dto.Price || double.IsNaN(dto.Price) || double.IsInfinity(dto.Price))
+                if (dto.Price <= 0 || dto.PrePaymentPrice < 0 || double.IsNaN(dto.Price) || double.IsInfinity(dto.Price))
                     return Resource.Notification.CoachPackagePriceInvalid;
             }
             else
@@ -366,14 +366,34 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                     return Resource.Notification.CoachPackageBoardingDaysRequired;
                 // پیش‌پرداخت حداکثر کل مبلغ (پانسیون آموزشی: هزینه‌ی دوره + روزانه × روز). پانسیون آموزشی می‌تواند هزینه‌ی دوره‌ی صفر داشته باشد اگر پانسیون روزانه دارد.
                 if (types.Any(x => x.PrePaymentPrice < 0 || double.IsNaN(x.Price) || double.IsInfinity(x.Price) || x.Price < 0 ||
-                                   x.PrePaymentPrice > (CoachReserveRules.IsBoardingMode(x.Mode) ? x.Price + CoachReserveRules.BoardingFee(x.DailyPrice, x.StayDays) : x.Price) ||
                                    (CoachReserveRules.IsBoardingMode(x.Mode) ? x.Price <= 0 && !(x.DailyPrice is > 0) : x.Price <= 0)))
                     return Resource.Notification.CoachPackagePriceInvalid;
             }
+            var prepayError = await CheckPrepaymentAsync(dto, types, enforceMinPrepay);
+            if (prepayError != null)
+                return prepayError;
             if (!VenuePetSizes.TryNormalizeSet(dto.PetSize, dto.PetSizes, out _))
                 return Resource.Notification.CoachPackagePetSizeInvalid;
             if (dto.PictureId.HasValue && dto.PictureId.Value > 0 && !await _context.Pictures.AnyAsync(p => p.Id == dto.PictureId.Value))
                 return Resource.Notification.CoachPictureInvalid;
+            return null;
+        }
+
+        /// <summary>پیش‌پرداخت: حداکثر کل مبلغ (پانسیون آموزشی: هزینه‌ی دوره + روزانه × روز)، حداقل سهم پاستیل (فقط ارائه‌دهنده؛ ادمین می‌تواند عبور کند).</summary>
+        private async Task<string> CheckPrepaymentAsync(CoachServicePackageInputDto dto, List<CoachPackageTypeDto> types, bool enforceMin)
+        {
+            var row = await _context.CoachServices.AsNoTracking().Where(s => s.Id == dto.CoachServiceId)
+                .Select(s => new { s.CommissionPercent, Venue = s.Coach.CommissionPercent }).FirstOrDefaultAsync();
+            var percent = enforceMin && row != null ? VenueCommission.Resolve(row.CommissionPercent, row.Venue) : 0m;
+            var items = types.Count == 0
+                ? new[] { (dto.Price, dto.PrePaymentPrice) }
+                : types.Select(x => (CoachReserveRules.IsBoardingMode(x.Mode) ? x.Price + CoachReserveRules.BoardingFee(x.DailyPrice, x.StayDays) : x.Price, x.PrePaymentPrice)).ToArray();
+            foreach (var (total, pre) in items)
+            {
+                var error = PackagePrepayment.Check(total, pre, percent);
+                if (error != null)
+                    return error;
+            }
             return null;
         }
 
@@ -417,7 +437,7 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
             var rows = await query.OrderBy(s => s.Id).Select(s => new
             {
                 s.Id, s.CoachId, s.AssistanceId, AssistanceName = s.Assistance.Name, AssistancePicture = s.Assistance.Picture,
-                s.Active, s.Approved, s.ActivationValue, s.CommissionPercent, s.DurationMinutes, s.Description,
+                s.Active, s.Approved, s.ActivationValue, s.CommissionPercent, VenuePercent = s.Coach.CommissionPercent, s.DurationMinutes, s.Description,
                 Packages = s.Packages
                     .Where(p => !p.Deleted && (!onlyActivePackages || p.Active) && (petSize == null || p.PetSize == null || p.PetSize.Contains(petSize)))
                     .OrderBy(p => p.Price)
@@ -437,6 +457,7 @@ namespace Application.Services.CoachSrvs.CoachCatalogSrv
                 Approved = r.Approved,
                 ActivationValue = r.ActivationValue,
                 CommissionPercent = r.CommissionPercent,
+                EffectiveCommissionPercent = VenueCommission.Resolve(r.CommissionPercent, r.VenuePercent),
                 DurationMinutes = r.DurationMinutes,
                 Description = r.Description,
                 UserIds = r.UserIds,

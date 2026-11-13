@@ -221,6 +221,187 @@ namespace Application.Services.ProductSrvs.ProductSrv
             return result;
         }
 
+        // ───────────── کالاهای مشابه / در کنارش خریداری شده (موتور: ProductRelationEngine) ─────────────
+        private const int RelationMaxTake = 24;
+        private const int RelationPoolCap = 4000;
+
+        private IQueryable<ProductCandidate> RelationCandidates(IQueryable<Product> query) =>
+            query.Select(p => new ProductCandidate
+            {
+                Id = p.Id, Name = p.Name, SecondName = p.SecondName, CategoryId = p.CategoryId, BrandId = p.BrandId,
+                Price = p.Price, StatusId = p.StatusId, SellCount = p.SellCount, RateAvg = p.RateAvg,
+                LeafName = p.Category.Name, ParentCategoryId = p.Category.ParentId, ParentName = p.Category.Parent.Name,
+            });
+
+        private IQueryable<Product> RelationBase() =>
+            _context.Products.AsNoTracking().Where(p => !p.Deleted && p.Active && p.CategoryId != null
+                && p.StatusId != (long)ProductStatusEnum.ProductStatus_Draft);
+
+        private async Task<(ProductCandidate Source, List<ProductCandidate> Pool)> LoadRelationPoolAsync(long productId, bool wide)
+        {
+            var source = await RelationCandidates(_context.Products.AsNoTracking().Where(p => p.Id == productId && !p.Deleted && p.Active && p.CategoryId != null))
+                .FirstOrDefaultAsync();
+            if (source == null) return (null, new List<ProductCandidate>());
+            var leafId = source.CategoryId;
+            var parentId = source.ParentCategoryId;
+            var query = RelationBase().Where(p => p.Id != productId);
+            if (wide)
+            {
+                // مکمل‌ها در برگ‌های دیگرِ همان حیوان‌اند؛ برگ‌های مشترک (اسباب‌بازی سگ و گربه) زیر والدِ «سگ» ثبت شده‌اند
+                var words = ProductRelationEngine.SpeciesLeafWords(ProductRelationEngine.Profile(source).Species).ToList();
+                var w0 = words.Count > 0 ? words[0] : null;
+                var w1 = words.Count > 1 ? words[1] : null;
+                var w2 = words.Count > 2 ? words[2] : null;
+                query = query.Where(p => p.CategoryId == leafId
+                    || (parentId != null && p.Category.ParentId == parentId)
+                    || (w0 != null && p.Category.Name.Contains(w0))
+                    || (w1 != null && p.Category.Name.Contains(w1))
+                    || (w2 != null && p.Category.Name.Contains(w2)));
+            }
+            else
+            {
+                query = query.Where(p => p.CategoryId == leafId || (parentId != null && p.Category.ParentId == parentId));
+            }
+            var pool = await RelationCandidates(query).Take(RelationPoolCap).ToListAsync();
+            return (source, pool);
+        }
+
+        private async Task<ProductSimilarVDto> LoadRelationResultAsync(List<long> ids)
+        {
+            var result = new ProductSimilarVDto();
+            if (ids.Count == 0) return result;
+            var entities = await _context.Products.AsNoTracking()
+                .Include(s => s.Category).Include(s => s.Brand).Include(s => s.Status).Include(s => s.Type).Include(s => s.Picture)
+                .Where(s => ids.Contains(s.Id)).ToListAsync();
+            var byId = entities.ToDictionary(e => e.Id);
+            var ordered = ids.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
+            var list = mapper.Map<List<ProductVDto>>(ordered);
+            MarkExpressShipping(list);
+            MarkSellerStores(list);
+            result.List = list;
+            result.TotalCount = list.Count;
+            return result;
+        }
+
+        public async Task<ProductSimilarVDto> SimilarAsync(long productId, int take)
+        {
+            take = Math.Clamp(take <= 0 ? 12 : take, 1, RelationMaxTake);
+            var (source, pool) = await LoadRelationPoolAsync(productId, wide: false);
+            if (source == null) return new ProductSimilarVDto();
+            return await LoadRelationResultAsync(ProductRelationEngine.Similar(source, pool, take));
+        }
+
+        public async Task<ProductSimilarVDto> BoughtTogetherAsync(long productId, int take)
+        {
+            take = Math.Clamp(take <= 0 ? 8 : take, 1, RelationMaxTake);
+            var ids = new List<long>();
+
+            // ۱) دست‌چینِ ادمین (ProductRelates) همیشه اول؛ فقط فعال و غیرپیش‌نویس
+            var curatedIds = await _context.ProductRelates.AsNoTracking()
+                .Where(r => r.ProductId == productId).Select(r => r.RelatedProductId).ToListAsync();
+            if (curatedIds.Count > 0)
+            {
+                var ok = await RelationBase().Where(p => curatedIds.Contains(p.Id) && p.Id != productId).Select(p => p.Id).ToListAsync();
+                ids.AddRange(curatedIds.Where(ok.Contains));
+            }
+
+            // ۲) هوشمند: نوع‌های مکمل + شواهد خرید هم‌زمان واقعی
+            if (ids.Count < take)
+            {
+                var (source, pool) = await LoadRelationPoolAsync(productId, wide: true);
+                if (source != null)
+                {
+                    var coPurchase = await LoadCoPurchaseAsync(productId);
+                    var smart = ProductRelationEngine.BoughtTogether(source, pool, coPurchase, take);
+                    foreach (var id in smart)
+                        if (!ids.Contains(id) && ids.Count < take) ids.Add(id);
+                }
+            }
+            return await LoadRelationResultAsync(ids.Take(take).ToList());
+        }
+
+        // productId → تعداد سفارش‌های پرداخت‌شده‌ی لغو‌نشده که هم‌زمان با (دست‌کم یکی از) محصولات مبدأ خریده شده‌اند
+        private Task<Dictionary<long, int>> LoadCoPurchaseAsync(long productId) => LoadCoPurchaseAsync(new List<long> { productId });
+
+        private async Task<Dictionary<long, int>> LoadCoPurchaseAsync(List<long> productIds)
+        {
+            if (productIds.Count == 0) return new Dictionary<long, int>();
+            var canceled = ProductOrderStateEnum.ProductOrderState_Canceled.ToString();
+            var orderIds = await _context.ProductOrderItems.AsNoTracking()
+                .Where(i => !i.Deleted && productIds.Contains(i.ProductItem.ProductId)
+                    && !i.ProductOrderStore.Deleted && !i.ProductOrderStore.ProductOrder.Deleted
+                    && i.ProductOrderStore.ProductOrder.IsPaid
+                    && i.ProductOrderStore.ProductOrder.ProductOrderState.Label != canceled)
+                .Select(i => i.ProductOrderStore.ProductOrderId).Distinct().Take(3000).ToListAsync();
+            if (orderIds.Count == 0) return new Dictionary<long, int>();
+            var pairs = await _context.ProductOrderItems.AsNoTracking()
+                .Where(i => !i.Deleted && !i.ProductOrderStore.Deleted && orderIds.Contains(i.ProductOrderStore.ProductOrderId) && !productIds.Contains(i.ProductItem.ProductId))
+                .Select(i => new { OrderId = i.ProductOrderStore.ProductOrderId, i.ProductItem.ProductId })
+                .Distinct().ToListAsync();
+            return pairs.GroupBy(x => x.ProductId).ToDictionary(g => g.Key, g => g.Count());
+        }
+
+        public async Task<CartSuggestionsVDto> CartSuggestionsAsync(long? userId, string uniqueId, long? storeId, int take)
+        {
+            take = Math.Clamp(take <= 0 ? 6 : take, 1, 12);
+            var empty = new CartSuggestionsVDto();
+            if (!userId.HasValue && string.IsNullOrWhiteSpace(uniqueId)) return empty;
+
+            var rows = await _context.CartItems.AsNoTracking()
+                .Where(i => userId.HasValue ? i.CartStore.Cart.UserId == userId : i.CartStore.Cart.UniqueId == uniqueId)
+                .Select(i => new { i.ProductItem.ProductId, i.CartStore.StoreId }).Distinct().Take(100).ToListAsync();
+            var allIds = rows.Select(r => r.ProductId).Distinct().ToList();
+            // با storeId: فقط اقلامِ همان فروشگاه نامزدکننده‌اند (همان چیزی که الان پرداخت می‌شود)
+            var productIds = storeId.HasValue && storeId.Value > 0
+                ? rows.Where(r => r.StoreId == storeId.Value).Select(r => r.ProductId).Distinct().ToList()
+                : allIds;
+            if (productIds.Count == 0) return empty;
+
+            var cartAll = await RelationCandidates(_context.Products.AsNoTracking().Where(p => allIds.Contains(p.Id) && !p.Deleted && p.CategoryId != null)).ToListAsync();
+            var cart = cartAll.Where(c => productIds.Contains(c.Id)).ToList();
+            if (cart.Count == 0) return empty;
+
+            // پول: همه‌ی کالاهای همان حیوان‌ها (والد دسته) + برگ‌های مشترک «سگ و گربه»
+            var parentIds = cart.Where(c => c.ParentCategoryId.HasValue).Select(c => c.ParentCategoryId.Value).Distinct().ToList();
+            var species = cart.Aggregate(PetSpecies.None, (acc, c) => acc | ProductRelationEngine.Profile(c).Species);
+            var words = ProductRelationEngine.SpeciesLeafWords(species).Take(4).ToList();
+            var w0 = words.Count > 0 ? words[0] : null;
+            var w1 = words.Count > 1 ? words[1] : null;
+            var w2 = words.Count > 2 ? words[2] : null;
+            var w3 = words.Count > 3 ? words[3] : null;
+            var poolQuery = RelationBase().Where(p => !allIds.Contains(p.Id)
+                && ((p.Category.ParentId != null && parentIds.Contains(p.Category.ParentId.Value))
+                    || (w0 != null && p.Category.Name.Contains(w0)) || (w1 != null && p.Category.Name.Contains(w1))
+                    || (w2 != null && p.Category.Name.Contains(w2)) || (w3 != null && p.Category.Name.Contains(w3))));
+            if (storeId.HasValue && storeId.Value > 0)
+            {
+                // فقط کالایی که همان فروشگاه همین الان با موجودی می‌فروشد (کاربر باید بتواند با همان پرداخت اضافه‌اش کند)
+                var sid = storeId.Value;
+                poolQuery = poolQuery.Where(p => p.ProductItems.Any(x => x.StoreId == sid && x.Active && x.SystemActive && !x.Deleted && x.Quantity > 0
+                    && x.Store.Active && !x.Store.Deleted));
+            }
+            var pool = await RelationCandidates(poolQuery).Take(RelationPoolCap).ToListAsync();
+
+            var coPurchase = await LoadCoPurchaseAsync(productIds);
+            var picks = ProductRelationEngine.CartSuggestions(cart, pool, coPurchase, take, cartAll);
+            if (picks.Count == 0) return empty;
+
+            var loaded = await LoadRelationResultAsync(picks.Select(x => x.ProductId).ToList());
+            var cartNames = cart.ToDictionary(c => c.Id, c => c.Name);
+            var kindByProduct = picks.ToDictionary(x => x.ProductId);
+            var result = new CartSuggestionsVDto { List = loaded.List, TotalCount = loaded.TotalCount };
+            foreach (var product in loaded.List)
+            {
+                var pick = kindByProduct[product.Id];
+                result.Reasons.Add(new CartSuggestionReasonVDto
+                {
+                    ProductId = product.Id, Kind = pick.Kind, ForProductId = pick.ForProductId,
+                    ForProductName = cartNames.TryGetValue(pick.ForProductId, out var n) ? n : null,
+                });
+            }
+            return result;
+        }
+
         // نشان فروشگاه روی کارت محصول: فروشگاه‌هایی که الان این محصول را با موجودی می‌فروشند (ارزان‌ترین اول)؛
         // همان شرط‌های UpdateProductPrice (آیتم فعال/SystemActive/موجودی > ۰، فروشگاه فعال). یک کوئری برای کل صفحه.
         private void MarkSellerStores(List<ProductVDto> list)

@@ -7552,5 +7552,95 @@ namespace Resource {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to You can review a product only after you have received an order that contains it.
+        /// </summary>
+        public static string ProductCommentNotPurchased {
+            get {
+                return ResourceManager.GetString("ProductCommentNotPurchased", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You have already submitted a review for this product.
+        /// </summary>
+        public static string ProductCommentAlreadySubmitted {
+            get {
+                return ResourceManager.GetString("ProductCommentAlreadySubmitted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The prepayment cannot be more than the total amount.
+        /// </summary>
+        public static string PackagePrepaymentAboveTotal {
+            get {
+                return ResourceManager.GetString("PackagePrepaymentAboveTotal", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The prepayment must be at least the Pastil share.
+        /// </summary>
+        public static string PackagePrepaymentBelowMinimum {
+            get {
+                return ResourceManager.GetString("PackagePrepaymentBelowMinimum", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The message must be between 3 and 1000 characters.
+        /// </summary>
+        public static string DiscussionContentInvalid {
+            get {
+                return ResourceManager.GetString("DiscussionContentInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your previous message is still waiting for admin approval. You can send a new one after it is reviewed.
+        /// </summary>
+        public static string DiscussionPendingExists {
+            get {
+                return ResourceManager.GetString("DiscussionPendingExists", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This question is not available for replies.
+        /// </summary>
+        public static string DiscussionQuestionNotAvailable {
+            get {
+                return ResourceManager.GetString("DiscussionQuestionNotAvailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The message you are replying to is not valid.
+        /// </summary>
+        public static string DiscussionReplyTargetInvalid {
+            get {
+                return ResourceManager.GetString("DiscussionReplyTargetInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The product is not valid.
+        /// </summary>
+        public static string DiscussionProductInvalid {
+            get {
+                return ResourceManager.GetString("DiscussionProductInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only a message that is still waiting for admin approval can be edited or deleted.
+        /// </summary>
+        public static string DiscussionNotEditable {
+            get {
+                return ResourceManager.GetString("DiscussionNotEditable", resourceCulture);
+            }
+        }
+
     }
 }
