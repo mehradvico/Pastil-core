@@ -14,6 +14,7 @@ using Entities.Entities.PastilClubField;
 using Microsoft.EntityFrameworkCore;
 using Persistence.Interface;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -89,6 +90,19 @@ namespace Application.Services.Order.RebateSrv
 
 
                         }
+                    }
+                    if (dto.TargetType.HasValue)
+                    {
+                        var typeLabel = _context.Codes.Where(s => s.Id == dto.TypeId).Select(s => s.Label).FirstOrDefault();
+                        if ((dto.TargetType != ClubRewardTargetTypeEnum.Global && !dto.TargetId.HasValue) ||
+                            !TargetMatchesType(dto.TargetType.Value, typeLabel))
+                        {
+                            return new BaseResultDto<RebateDto>(isSuccess: false, val1: Resource.Notification.InvalidData, val2: nameof(dto.TargetId), data: dto);
+                        }
+                    }
+                    else
+                    {
+                        dto.TargetId = null;
                     }
                     dto.StartDatetime = dto.StartDatetime.Date;
                     dto.EndDatetime = dto.EndDatetime.Date;
@@ -378,7 +392,7 @@ namespace Application.Services.Order.RebateSrv
             if (!commonCheck.IsSuccess)
                 return commonCheck;
 
-            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            var targets = TargetsOf(rebate);
             var targetOk = targets == null || targets.Count == 0 || targets.Any(item =>
                 item.TargetType == ClubRewardTargetTypeEnum.Global ||
                 item.TargetType == ClubRewardTargetTypeEnum.Groomer && item.TargetId == groomerReserve.GroomerId ||
@@ -410,7 +424,7 @@ namespace Application.Services.Order.RebateSrv
             if (!commonCheck.IsSuccess)
                 return commonCheck;
 
-            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            var targets = TargetsOf(rebate);
             var targetOk = targets == null || targets.Count == 0 || targets.Any(item =>
                 item.TargetType == ClubRewardTargetTypeEnum.Global ||
                 item.TargetType == ClubRewardTargetTypeEnum.Clinic && item.TargetId == clinicReserve.ClinicId ||
@@ -441,7 +455,7 @@ namespace Application.Services.Order.RebateSrv
             if (!commonCheck.IsSuccess)
                 return commonCheck;
 
-            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            var targets = TargetsOf(rebate);
             var targetOk = targets == null || targets.Count == 0 || targets.Any(item =>
                 item.TargetType == ClubRewardTargetTypeEnum.Global ||
                 item.TargetType == ClubRewardTargetTypeEnum.Coach && item.TargetId == coachReserve.CoachId ||
@@ -503,6 +517,27 @@ namespace Application.Services.Order.RebateSrv
             _context.SaveChanges();
         }
 
+        // تارگتِ خودِ کد (فروشگاه/مربی/...) اولویت دارد؛ وگرنه تارگت‌های کوپن باشگاه
+        private static ICollection<ClubRewardTarget> TargetsOf(Rebate rebate) =>
+            rebate?.TargetType is { } type
+                ? new[] { new ClubRewardTarget { TargetType = type, TargetId = rebate.TargetId } }
+                : rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+
+        // هر نوع کد فقط با تارگتی که در جریان همان نوع چک می‌شود سازگار است
+        public static bool TargetMatchesType(ClubRewardTargetTypeEnum target, string typeLabel) => target switch
+        {
+            ClubRewardTargetTypeEnum.Global => true,
+            ClubRewardTargetTypeEnum.Store or ClubRewardTargetTypeEnum.Product or ClubRewardTargetTypeEnum.ProductCategory or ClubRewardTargetTypeEnum.City => typeLabel == RebateTypeLabels.Cart,
+            ClubRewardTargetTypeEnum.Coach => typeLabel == RebateTypeLabels.CoachReserve,
+            ClubRewardTargetTypeEnum.Clinic => typeLabel == RebateTypeLabels.ClinicReserve,
+            ClubRewardTargetTypeEnum.Groomer => typeLabel == RebateTypeLabels.GroomerReserve,
+            ClubRewardTargetTypeEnum.Pansion => typeLabel == RebateTypeLabels.PansionReserve,
+            ClubRewardTargetTypeEnum.Companion or ClubRewardTargetTypeEnum.CompanionPackage => typeLabel == RebateTypeLabels.CompanionReserve,
+            ClubRewardTargetTypeEnum.Assistance => typeLabel is RebateTypeLabels.CoachReserve or RebateTypeLabels.ClinicReserve or RebateTypeLabels.GroomerReserve or RebateTypeLabels.CompanionReserve,
+            ClubRewardTargetTypeEnum.PastilAIPlan => typeLabel == RebateTypeLabels.PastilAI,
+            _ => false
+        };
+
         private static double ApplyClubMaximum(Rebate rebate, double calculatedValue)
         {
             var maximum = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.MaximumBenefitValue;
@@ -511,9 +546,9 @@ namespace Application.Services.Order.RebateSrv
                 : calculatedValue;
         }
 
-        private static bool IsClubTargetValid(Rebate rebate, Cart cart)
+        public static bool IsClubTargetValid(Rebate rebate, Cart cart)
         {
-            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            var targets = TargetsOf(rebate);
             if (targets == null || targets.Count == 0 ||
                 targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.Global))
                 return true;
@@ -533,7 +568,7 @@ namespace Application.Services.Order.RebateSrv
 
         private bool IsClubTargetValid(Rebate rebate, CompanionReserve reserve)
         {
-            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            var targets = TargetsOf(rebate);
             if (targets == null || targets.Count == 0 || targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.Global))
                 return true;
             var assistance = _context.CompanionAssistances.AsNoTracking()
@@ -551,7 +586,7 @@ namespace Application.Services.Order.RebateSrv
 
         private static bool IsClubTargetValid(Rebate rebate, PansionReserve reserve)
         {
-            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            var targets = TargetsOf(rebate);
             return targets == null || targets.Count == 0 ||
                 targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.Global ||
                     item.TargetType == ClubRewardTargetTypeEnum.Pansion && item.TargetId == reserve.PansionId);
@@ -559,7 +594,7 @@ namespace Application.Services.Order.RebateSrv
 
         private static bool IsClubTargetValid(Rebate rebate, string typeLabel, long? targetId)
         {
-            var targets = rebate?.ClubCoupon?.RewardRedemption?.RewardTemplate?.Targets;
+            var targets = TargetsOf(rebate);
             if (targets == null || targets.Count == 0 || targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.Global))
                 return true;
             if (typeLabel != RebateTypeLabels.PastilAI)

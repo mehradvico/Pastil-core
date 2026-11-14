@@ -32,6 +32,8 @@ namespace Application.Services.Order.RebateSrv.Dto
         public long? ProductId { get; set; }
         public long? UserId { get; set; }
         public long? ClubRewardId { get; set; }
+        public Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum? TargetType { get; set; }
+        public long? TargetId { get; set; }
         public long TypeId { get; set; }
         public double MinCartPrice { get; set; }
 

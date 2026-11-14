@@ -21,6 +21,9 @@ namespace Entities.Entities
         public int MaxUsePerUser { get; set; }
         public long? ProductId { get; set; }
         public long? ClubRewardId { get; set; }
+        // محدودیت کد به یک ارائه‌دهنده (Store=فروشگاه، Coach=مربی، Clinic، Groomer، Pansion، Companion). null = همه
+        public PastilClubField.ClubRewardTargetTypeEnum? TargetType { get; set; }
+        public long? TargetId { get; set; }
         public User User { get; set; }
         public Product Product { get; set; }
         public Code Type { get; set; }

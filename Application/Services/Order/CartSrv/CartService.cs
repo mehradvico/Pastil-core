@@ -150,6 +150,9 @@ namespace Application.Services.Order.CartSrv
                     }
                 case Common.Enumerable.CartUpdateEnum.SetActiveCart:
                     {
+                        // کد تخفیف روی فروشگاه قبلی محاسبه شده (ممکن است مختص همان فروشگاه باشد)
+                        if (cart.CartStores.Any(s => s.Active && s.StoreId != cartUpdate.StoreId))
+                            await CartRemoveRebateAsync(cart);
                         await CartSetActiveAsync(cartUpdate, cart);
                         break;
                     }

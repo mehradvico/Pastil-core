@@ -11743,6 +11743,12 @@ namespace Persistence.Migrations
                     b.Property<DateTime>("StartDatetime")
                         .HasColumnType("datetime2");
 
+                    b.Property<long?>("TargetId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int?>("TargetType")
+                        .HasColumnType("int");
+
                     b.Property<long>("TypeId")
                         .HasColumnType("bigint");
 
