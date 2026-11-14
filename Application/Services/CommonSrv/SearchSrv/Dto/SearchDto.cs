@@ -32,6 +32,8 @@ namespace Application.Services.CommonSrv.SearchSrv.Dto
         public List<string> Suggestions { get; set; } = new();
         public string Query { get; set; }
         public string NormalizedQuery { get; set; }
+        // عبارتی که عملاً نتیجه داد وقتی با نوشته‌ی کاربر فرق دارد (غلط املایی/کیبورد اشتباه)؛ وگرنه null. برای «نتایج برای …»
+        public string CorrectedQuery { get; set; }
         public int TotalCount { get; set; }
         public long TookMilliseconds { get; set; }
         // سقف زمان جستجو (۳ ثانیه) رسید و فقط بخش‌هایی که تمام شدند برگشتند؛ این نتیجه کش نمی‌شود

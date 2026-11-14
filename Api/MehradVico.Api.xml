@@ -9857,6 +9857,18 @@
              دسترسی‌های action ناحیه Admin برای نقش کاربر جاری
             </summary>
         </member>
+        <member name="T:Api.Areas.EndUser.Controllers.PetProfileGiftController">
+            <summary>
+            وضعیت هدیه‌ی ۲۰۰ هزار تومانی تکمیل پروفایل اولین پت (برای بنر و کارت کلاب در وب‌اپ و اپ).
+            فقط خواندنی؛ ساخت هدیه موقع ذخیره‌ی پت و فعال‌سازی با PastilClubRewardRedeem است.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.EndUser.Controllers.PetProfileGiftController.Get(System.Threading.CancellationToken)">
+            <summary>
+            status: 0 Unavailable، 1 NoPet، 2 Incomplete، 3 SaveToClaim، 4 Ready، 5 Activated، 6 Expired، 7 NotEligible.
+            showBanner برای ۱ تا ۳ true است.
+            </summary>
+        </member>
         <member name="T:Api.Areas.EndUser.Controllers.PetResanServiceController">
             <summary>
             سرویس پت‌رسان تکرارشونده‌ی هفتگی (رفت‌وبرگشت خودکار، تخصیص راننده با ادمین)
@@ -12847,7 +12859,7 @@
             مرتبط با تنوع محصولات 
             </summary>
         </member>
-        <member name="M:Api.Controllers.ProductItem2Controller.Get(System.Int64,System.Nullable{System.Int64},System.Nullable{System.Int64})">
+        <member name="M:Api.Controllers.ProductItem2Controller.Get(System.Int64,System.Nullable{System.Int64},System.Nullable{System.Int64},System.Nullable{System.Int64})">
             <summary>
             اطلاعات آیتم
             </summary>
@@ -12867,7 +12879,7 @@
             مرتبط با تنوع محصولات 
             </summary>
         </member>
-        <member name="M:Api.Controllers.ProductItemController.Get(System.Int64)">
+        <member name="M:Api.Controllers.ProductItemController.Get(System.Int64,System.Nullable{System.Int64})">
             <summary>
             اطلاعات آیتم
             </summary>

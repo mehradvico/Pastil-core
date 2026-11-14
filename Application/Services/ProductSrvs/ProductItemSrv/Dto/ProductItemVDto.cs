@@ -11,6 +11,9 @@ namespace Application.Services.ProductSrvs.ProductItemSrv.Dto
         public long BasePrice { get; set; }
         public long Price { get; set; }
         public int DiscountPercent { get; set; }
+        /// <summary>درصد تخفیفِ پاستیل (روی قیمتِ بعد از تخفیف فروشگاه). تخفیف فروشگاه = ردیف‌های Discount با FundedByPastil=false.</summary>
+        public int PastilDiscountPercent { get; set; }
+        public double PastilDiscountAmount { get; set; }
         public long? DiscountGroupId { get; set; }
         public DateTime? DiscountEndDate { get; set; }
         public long? VarietyItemId { get; set; }

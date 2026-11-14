@@ -377,6 +377,17 @@ namespace Application.Services.ProductSrvs.StoreSrv
             item.ShowToSite = dto.Approved && item.ShowToSite;
             await _context.SaveChangesAsync();
 
+            // با فعال/غیرفعال‌شدن فروشگاه، SystemActive و قیمتِ همه‌ی کالاهایش باید دوباره حساب شود (قبلاً حساب نمی‌شد و کالاهای فروشگاهِ
+            // تازه‌تأییدشده در صفحه‌ی کالا دیده نمی‌شدند چون SystemActive همان ۰ مرحله‌ی قبل از تأیید می‌ماند).
+            try
+            {
+                await _productService.UpdateProductPriceAsync(Common.Enumerable.ProductUpdateTypeEnum.Store, item.Id.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Recomputing product prices after approval of store {StoreId} failed.", item.Id);
+            }
+
             try
             {
                 await _pushNotificationService.SendPushAsync(

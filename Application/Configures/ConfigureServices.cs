@@ -514,6 +514,8 @@ public static class ConfigureServices
         services.AddScoped<IClubPointEventService, ClubPointEventService>();
         services.AddScoped<IClubPointIntegrationService, ClubPointIntegrationService>();
         services.AddScoped<IClubPetProfileCompletionService, ClubPetProfileCompletionService>();
+        services.AddScoped<Application.Services.Accounting.UserPetSrv.IPetProfileClubGift, Application.Services.Accounting.UserPetSrv.PetProfileClubGift>();
+        services.AddScoped<Application.Services.MarketingSrv.IPaymentReminderService, Application.Services.MarketingSrv.PaymentReminderService>();
         services.AddScoped<IClubRewardTemplateService, ClubRewardTemplateService>();
         services.AddScoped<IClubRewardEligibilityService, ClubRewardEligibilityService>();
         services.AddScoped<IClubRewardOfferService, ClubRewardOfferService>();
@@ -756,6 +758,7 @@ public static class ConfigureServices
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<IScoreTransactionService, ScoreTransactionService>();
         services.AddScoped<ISearchService, SearchService>();
+        services.AddSingleton<ISearchVocabularyService, SearchVocabularyService>();
         services.AddScoped<ISearchSemanticReranker, HttpSearchSemanticReranker>();
         services.AddScoped<IMemoryService, MemoryService>();
         services.AddScoped<ISettlementCompanionService, SettlementCompanionService>();

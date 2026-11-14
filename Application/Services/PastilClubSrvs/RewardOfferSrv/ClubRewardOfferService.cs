@@ -420,9 +420,10 @@ namespace Application.Services.PastilClubSrvs.RewardOfferSrv
                 PetTypeIds = item.RewardTemplate.PetTypes.Select(pet => pet.PetTypeId).ToList(),
                 CanRedeem = item.Status == ClubRewardOfferStatusEnum.Approved &&
                     item.ExpiresAt > now &&
-                    item.User.ClubPointAccount != null &&
-                    item.User.ClubPointAccount.DebtPoint == 0 &&
-                    item.User.ClubPointAccount.AvailablePoint >= item.PointCostSnapshot
+                    (item.PointCostSnapshot == 0 ||
+                     item.User.ClubPointAccount != null &&
+                     item.User.ClubPointAccount.DebtPoint == 0 &&
+                     item.User.ClubPointAccount.AvailablePoint >= item.PointCostSnapshot)
             });
 
         private static BaseResultDto<ClubRewardOfferVDto> Result(ClubRewardOfferVDto item) =>

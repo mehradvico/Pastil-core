@@ -16,6 +16,8 @@ namespace Application.Services.ProductSrvs.DiscountSrv.Dto
         public long? ProductId { get; set; }
         public long? ProductItemId { get; set; }
         public bool Active { get; set; }
+        /// <summary>فقط ادمین می‌تواند true بفرستد؛ برای فروشنده همیشه false در نظر گرفته می‌شود.</summary>
+        public bool FundedByPastil { get; set; }
 
     }
 }

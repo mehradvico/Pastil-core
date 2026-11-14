@@ -393,6 +393,24 @@
   <data name="PushCompanionReservePackageCancelled" xml:space="preserve">
     <value>Package "{0}" of your reservation was cancelled and {3} was refunded to your wallet.</value>
   </data>
+  <data name="PushMissingProductApproved" xml:space="preserve">
+    <value>Your product was added to the catalog</value>
+  </data>
+  <data name="PushMissingProductRejected" xml:space="preserve">
+    <value>Your catalog request was rejected</value>
+  </data>
+  <data name="PushClubPetProfileGift" xml:space="preserve">
+    <value>Your Club gift is ready</value>
+  </data>
+  <data name="PushPaymentFailed" xml:space="preserve">
+    <value>Your payment did not complete</value>
+  </data>
+  <data name="PushUnpaidReserve" xml:space="preserve">
+    <value>Your booking is not confirmed yet</value>
+  </data>
+  <data name="PushAbandonedCartSecond" xml:space="preserve">
+    <value>Something is still in your cart</value>
+  </data>
   <data name="PushAbandonedCart" xml:space="preserve">
     <value>{0} is still available! Complete your order before it sells out.</value>
   </data>

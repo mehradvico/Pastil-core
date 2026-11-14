@@ -1,6 +1,7 @@
 using Application.Common.Enumerable.Code;
 using Application.Common.Enumerable.Message;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
+using Application.Services.MarketingSrv;
 using Application.Services.Order.CartSrv.Iface;
 using Application.Services.Setting.SmsSrv.Iface;
 using Microsoft.EntityFrameworkCore;
@@ -75,19 +76,22 @@ namespace Application.Services.Order.CartSrv
 
         public async Task<int> SendPushRemindersAsync(CancellationToken cancellationToken = default)
         {
+            if (!MarketingQuietHours.IsPushAllowed(MarketingQuietHours.TehranNow()))
+                return 0;
             var now = DateTime.Now;
             var candidates = await LoadCandidatesAsync(now, cancellationToken);
             if (candidates.Count == 0)
                 return 0;
 
-            var typeId = (long)PushTypeEnum.PushAbandonedCart;
+            var firstTypeId = (long)PushTypeEnum.PushAbandonedCart;
+            var secondTypeId = (long)PushTypeEnum.PushAbandonedCartSecond;
             var minActivity = candidates.Min(c => c.LastActivity);
             var sent = new List<(long UserId, DateTime CreateDate)>();
             foreach (var chunk in candidates.Select(c => c.UserId).Chunk(QueryChunkSize))
             {
                 var ids = chunk.ToList();
                 var rows = await _context.PushNotifications.AsNoTracking()
-                    .Where(n => ids.Contains(n.UserId) && n.PushPattern.PushTypeId == typeId && n.CreateDate >= minActivity)
+                    .Where(n => ids.Contains(n.UserId) && (n.PushPattern.PushTypeId == firstTypeId || n.PushPattern.PushTypeId == secondTypeId) && n.CreateDate >= minActivity)
                     .Select(n => new { n.UserId, n.CreateDate })
                     .ToListAsync(cancellationToken);
                 sent.AddRange(rows.Select(r => (r.UserId, r.CreateDate)));
@@ -96,15 +100,18 @@ namespace Application.Services.Order.CartSrv
             var count = 0;
             foreach (var candidate in candidates)
             {
-                var already = sent.Count(s => s.UserId == candidate.UserId && s.CreateDate >= candidate.LastActivity);
-                if (!AbandonedCartReminderRules.IsEligible(candidate.LastActivity, now, already))
+                var mine = sent.Where(s => s.UserId == candidate.UserId && s.CreateDate >= candidate.LastActivity).ToList();
+                var step = AbandonedCartReminderRules.NextPush(candidate.LastActivity, now, mine.Count,
+                    mine.Count == 0 ? null : mine.Max(s => s.CreateDate));
+                if (step == 0)
                     continue;
                 try
                 {
                     var name = AbandonedCartReminderRules.ShortProductName(candidate.ProductName);
                     if (string.IsNullOrWhiteSpace(name))
                         name = Resource.Notification.AbandonedCartDefaultProductName;
-                    await _pushService.SendPushAsync(PushTypeEnum.PushAbandonedCart, candidate.UserId, token1: name);
+                    await _pushService.SendPushAsync(step == 1 ? PushTypeEnum.PushAbandonedCart : PushTypeEnum.PushAbandonedCartSecond,
+                        candidate.UserId, token1: name);
                     count++;
                 }
                 catch (Exception exception)
@@ -117,6 +124,8 @@ namespace Application.Services.Order.CartSrv
 
         public async Task<int> SendSmsRemindersAsync(CancellationToken cancellationToken = default)
         {
+            if (!MarketingQuietHours.IsCartSmsAllowed(MarketingQuietHours.TehranNow()))
+                return 0;
             var now = DateTime.Now;
             var candidates = await LoadCandidatesAsync(now, cancellationToken);
             if (candidates.Count == 0)
@@ -154,7 +163,7 @@ namespace Application.Services.Order.CartSrv
                 if (!users.TryGetValue(candidate.UserId, out var user))
                     continue;
                 var already = sent.Count(s => s.Receptor == user.Mobile && s.CreateDate >= candidate.LastActivity);
-                if (!AbandonedCartReminderRules.IsEligible(candidate.LastActivity, now, already))
+                if (!AbandonedCartReminderRules.IsSmsDue(candidate.LastActivity, now, already))
                     continue;
                 try
                 {

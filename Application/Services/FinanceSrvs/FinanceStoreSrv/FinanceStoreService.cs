@@ -67,6 +67,7 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv
 
                         StoreShare = o.StoreShare,
                         SiteShare = o.SiteShare,
+                        PastilFundedAmount = o.PastilFundedAmount,
                         StatusLabel = o.ProductOrderStatus != null ? o.ProductOrderStatus.Name : null,
                         Permitted = o.Permitted,
                         UserReceived = o.UserReceived,
@@ -82,6 +83,7 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv
                     ProductOrderCount = list.Count,
                     TotalStoreShare = list.Sum(x => x.StoreShare),
                     TotalSiteShare = list.Sum(x => x.SiteShare),
+                    TotalPastilFundedAmount = list.Sum(x => x.PastilFundedAmount),
                     NotReceivedCount = list.Count(x => x.UserReceived == false),
                     ReceivedCount = list.Count(x => x.UserReceived == true),
                     FinanceProductOrders = list ?? new List<FinanceProductOrderVDto>()

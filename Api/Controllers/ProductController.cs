@@ -76,6 +76,7 @@ namespace Api.Controllers
         public IActionResult Get([FromQuery] ProductInputDto dto)
         {
             dto.Available = true;
+            dto.ApplyStorePrice = dto.StoreId.HasValue;   // صفحه‌ی فروشگاه: قیمت‌ها و مرتب‌سازی از آیتم‌های همان فروشگاه
             // endpoint عمومی و بدون لاگین: سقف کلی ۱۰۰۰ اجازه می‌داد کل کاتالوگ (~۳٫۳ مگابایت) با یک درخواست کشیده شود
             dto.PageSize = Math.Min(dto.PageSize, PublicProductMaxPageSize);
             var Product = ProductService.Search(dto);

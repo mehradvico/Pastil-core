@@ -344,7 +344,7 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
             return new BaseResultDto(false);
 
         }
-        public async Task<BaseResultDto> GetVariety2Async(long productId, long? varietyItem1Id, long? varietyItem2Id)
+        public async Task<BaseResultDto> GetVariety2Async(long productId, long? varietyItem1Id, long? varietyItem2Id, long? storeId = null)
         {
             var product = await _context.Products.Include(s => s.Variety).Include(s => s.Variety2).FirstOrDefaultAsync(s => s.Id == productId && s.Status.Label == ProductStatusEnum.ProductStatus_Available.ToString() && s.Active && s.Deleted == false);
             if (product != null)
@@ -389,7 +389,10 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
                                         .Select(s => s.VarietyItem2).DistinctBy(d => d.Id).ToList());
                         }
                     }
-                    result.ProductItems = mapper.Map<List<ProductItemShowVDto>>(productItems.Where(s => s.VarietyItemId == result.VarietyItem1Id && s.VarietyItem2Id == result.VarietyItem2Id));
+                    var selected = await productItems.Where(s => s.VarietyItemId == result.VarietyItem1Id && s.VarietyItem2Id == result.VarietyItem2Id).ToListAsync();
+                    result.ProductItems = mapper.Map<List<ProductItemShowVDto>>(selected);
+                    result.Offers = BuildOffers(selected, storeId);
+                    result.PreferredStoreId = result.Offers.FirstOrDefault(o => o.IsPreferred)?.StoreId;
                     return new BaseResultDto<ProductItemVariety2VDto>(true, result);
                 }
             }
@@ -398,11 +401,47 @@ namespace Application.Services.ProductSrvs.ProductItemSrv
 
         }
 
-        public async Task<BaseResultDto<ProductItemForProductDto>> GetForProductVDto(long productId)
+        public async Task<BaseResultDto<ProductItemForProductDto>> GetForProductVDto(long productId, long? storeId = null)
         {
+            var product = await _context.Products.IgnoreAutoIncludes().Include(s => s.Variety).Include(s => s.Variety2).FirstOrDefaultAsync(s => s.Id == productId);
+            if (product == null)
+                return new BaseResultDto<ProductItemForProductDto>(false, Resource.Notification.NothingFound, null);
 
-            var allitems = await _context.Products.IgnoreAutoIncludes().Include(s => s.Variety).Include(s => s.Variety2).Include(s => s.ProductItems.Where(s => s.ProductId == productId && s.Active && s.SystemActive && s.Deleted == false)).ThenInclude(s => s.Store).ThenInclude(s => s.Type).Include(s => s.ProductItems).ThenInclude(s => s.VarietyItem).Include(s => s.ProductItems).ThenInclude(s => s.VarietyItem2).FirstOrDefaultAsync(s => s.Id == productId);
-            return new BaseResultDto<ProductItemForProductDto>(true, mapper.Map<ProductItemForProductDto>(allitems));
+            // همه‌ی فروشگاه‌هایی که این کالا را «قابل‌فروش» دارند (نه فقط ارزان‌ترین)، به ترتیب قیمت از کم به زیاد
+            var items = await _context.ProductItems.AsNoTracking()
+                .Include(s => s.Store).ThenInclude(s => s.Type)
+                .Include(s => s.VarietyItem).Include(s => s.VarietyItem2)
+                .Where(s => s.ProductId == productId && s.Active && s.SystemActive && !s.Deleted && s.Store.Active && !s.Store.Deleted)
+                .OrderBy(s => s.Price).ThenBy(s => s.Id)
+                .ToListAsync();
+
+            var result = mapper.Map<ProductItemForProductDto>(product);
+            result.ProductItems = mapper.Map<List<ProductItemForProductVDto>>(items);
+            result.Offers = BuildOffers(items, storeId);
+            result.PreferredStoreId = result.Offers.FirstOrDefault(o => o.IsPreferred)?.StoreId;
+            return new BaseResultDto<ProductItemForProductDto>(true, result);
+        }
+
+        /// <summary>هر فروشگاه ارزان‌ترین آیتمِ موجودش؛ فروشگاه‌ها از کم‌قیمت به پرقیمت (قیمت مساوی ⇒ شناسه‌ی فروشگاه).</summary>
+        private List<ProductStoreOfferVDto> BuildOffers(IEnumerable<ProductItem> items, long? preferredStoreId)
+        {
+            return items
+                .Where(i => i.Price > 0 && i.Quantity > 0)
+                .GroupBy(i => i.StoreId)
+                .Select(g => g.OrderBy(i => i.Price).ThenBy(i => i.Id).First())
+                .OrderBy(i => i.Price).ThenBy(i => i.StoreId)
+                .Select(i => new ProductStoreOfferVDto
+                {
+                    StoreId = i.StoreId,
+                    Store = mapper.Map<Application.Services.ProductSrvs.StoreSrv.Dto.StoreMinVDto>(i.Store),
+                    ProductItemId = i.Id,
+                    Price = i.Price,
+                    BasePrice = i.BasePrice,
+                    DiscountPercent = i.DiscountPercent,
+                    Quantity = i.Quantity,
+                    IsPreferred = preferredStoreId.HasValue && i.StoreId == preferredStoreId.Value,
+                })
+                .ToList();
         }
     }
 }

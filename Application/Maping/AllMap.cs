@@ -257,7 +257,7 @@ namespace Application.Maping
             CreateMap<CartStore, ProductOrderDto>();
             CreateMap<CartStore, CartStoreDto>().ReverseMap();
             CreateMap<CartStore, CartStoreVDto>();
-            CreateMap<CartItem, ProductOrderItemDto>().ForMember(x => x.DiscountPrice, o => o.MapFrom(m => m.ProductItem.BasePrice - m.ProductItem.Price)).ForMember(x => x.DiscountPercent, o => o.MapFrom(m => m.ProductItem.DiscountPercent)).ForMember(x => x.BasePrice, o => o.MapFrom(m => m.ProductItem.BasePrice)).ForMember(x => x.Price, o => o.MapFrom(m => m.ProductItem.Price)).ForMember(x => x.Id, y => y.Ignore());
+            CreateMap<CartItem, ProductOrderItemDto>().ForMember(x => x.DiscountPrice, o => o.MapFrom(m => m.ProductItem.BasePrice - m.ProductItem.Price)).ForMember(x => x.DiscountPercent, o => o.MapFrom(m => m.ProductItem.DiscountPercent)).ForMember(x => x.PastilDiscountUnit, o => o.MapFrom(m => m.ProductItem.PastilDiscountAmount)).ForMember(x => x.BasePrice, o => o.MapFrom(m => m.ProductItem.BasePrice)).ForMember(x => x.Price, o => o.MapFrom(m => m.ProductItem.Price)).ForMember(x => x.Id, y => y.Ignore());
             //Cart End ----------------------------------------------
 
 
@@ -819,13 +819,13 @@ namespace Application.Maping
 
             //Product
             CreateMap<Product, ProductDto>().ForMember(x => x.CategoryIds, o => o.MapFrom(m => m.Categories.Select(s => s.Id)));
-            CreateMap<Product, ProductVDto>();
+            CreateMap<Product, ProductVDto>().ForMember(x => x.StoreItemAvailable, o => o.Ignore());
             CreateMap<Product, ProductGroupVDto>();
             CreateMap<Product, ProductMinVDto>();
             CreateMap<ProductDto, Product>().ForMember(x => x.VarietyId, y => y.Ignore()).ForMember(x => x.Variety2Id, y => y.Ignore()).ForMember(x => x.Variety2, y => y.Ignore()).ForMember(x => x.Picture, y => y.Ignore()).ForMember(x => x.CreateDate, y => y.Ignore()).ForMember(x => x.ProductPictures, y => y.Ignore());
             CreateMap<ProductDuplicateDto, Product>();
             CreateMap<ProductDuplicateDto, ProductDto>();
-            CreateMap<Product, ProductItemForProductDto>().ForMember(x => x.Variety1, o => o.MapFrom(m => m.Variety));
+            CreateMap<Product, ProductItemForProductDto>().ForMember(x => x.Variety1, o => o.MapFrom(m => m.Variety)).ForMember(x => x.Offers, o => o.Ignore()).ForMember(x => x.PreferredStoreId, o => o.Ignore());
             CreateMap<ProductItemForProductVDto, ProductItemForProductDto>();
             CreateMap<ProductPicture, ProductPictureVDto>();
             CreateMap<ProductPicture, ProductPictureDto>();
@@ -845,7 +845,7 @@ namespace Application.Maping
             CreateMap<ProductItem, ProductItemShowVDto>();
             CreateMap<ProductItem, ProductItemForProductVDto>();
             CreateMap<ProductItemDto, ProductItemListUpdateDto>();
-            CreateMap<Product, ProductItemForProductDto>().ForMember(x => x.Variety1, o => o.MapFrom(m => m.Variety));
+            CreateMap<Product, ProductItemForProductDto>().ForMember(x => x.Variety1, o => o.MapFrom(m => m.Variety)).ForMember(x => x.Offers, o => o.Ignore()).ForMember(x => x.PreferredStoreId, o => o.Ignore());
             CreateMap<ProductItemForProductVDto, ProductItemForProductDto>();
             CreateMap<UserProduct, UserProductDto>().ReverseMap();
             CreateMap<UserProduct, UserProductVDto>();

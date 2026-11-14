@@ -6,9 +6,10 @@ namespace Application.Services.ProductSrvs.DiscountSrv.IFace
 {
     public interface IDiscountService
     {
-        Task<BaseResultDto> InsertAsync(DiscountDto discount);
-        Task<BaseResultDto> ActiveAsync(DiscountDto discount);
-        Task<BaseResultDto> DeleteAsync(DiscountDto discount);
+        /// <param name="byAdmin">فقط ادمین می‌تواند تخفیفِ «سهم پاستیل» (FundedByPastil) بسازد/تغییر دهد؛ برای فروشنده همیشه false.</param>
+        Task<BaseResultDto> InsertAsync(DiscountDto discount, bool byAdmin = false);
+        Task<BaseResultDto> ActiveAsync(DiscountDto discount, bool byAdmin = false);
+        Task<BaseResultDto> DeleteAsync(DiscountDto discount, bool byAdmin = false);
         Task<BaseResultDto> FindAsyncDto(long id);
         DiscountSearchDto Search(DiscountInputDto searchDto);
         Task SyncExpiredAsync();

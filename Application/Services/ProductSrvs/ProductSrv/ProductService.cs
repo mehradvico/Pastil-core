@@ -39,8 +39,11 @@ namespace Application.Services.ProductSrvs.ProductSrv
 
         private readonly string connectionString;
 
-        public ProductService(IDataBaseContext _context, IConfiguration config, IMapper mapper, ICategoryService categoryService, IProductCategoryService productCategoryService, IProductPictureService productPictureService)
+        private readonly Application.Services.CommonSrv.SearchSrv.Iface.ISearchVocabularyService _searchVocabulary;
+
+        public ProductService(IDataBaseContext _context, IConfiguration config, IMapper mapper, ICategoryService categoryService, IProductCategoryService productCategoryService, IProductPictureService productPictureService, Application.Services.CommonSrv.SearchSrv.Iface.ISearchVocabularyService searchVocabulary)
         {
+            this._searchVocabulary = searchVocabulary;
             this._context = _context;
             this.mapper = mapper;
             this._categoryService = categoryService;
@@ -50,8 +53,43 @@ namespace Application.Services.ProductSrvs.ProductSrv
             "connection");
         }
 
-        private IQueryable<Product> BaseSaerch(ProductInputDto searchDto)
+        // ستونی که جستجوی نام روی آن انجام می‌شود: نام + نام دوم، با «ي/ك» عربی یکسان‌شده
+        private static readonly System.Linq.Expressions.Expression<Func<Product, string>> SearchableName =
+            s => (s.Name + " " + (s.SecondName ?? "")).Replace("ي", "ی").Replace("ك", "ک");
+
+        private sealed class SearchTermHolder(string value)
         {
+            // از طریق property خوانده می‌شود تا EF آن را پارامتر کند، نه مقدار ثابتِ داخل SQL
+            public string Value { get; } = value;
+        }
+
+        /// <summary>شرط «یکی از معادل‌های این کلمه در نام هست»: «یا» بین معادل‌ها و «و» بین اجزای هر معادل.</summary>
+        public static System.Linq.Expressions.Expression<Func<Product, bool>> NameMatchesAny(IEnumerable<string[]> likeTerms)
+        {
+            var contains = typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!;
+            System.Linq.Expressions.Expression body = null;
+            foreach (var alternative in likeTerms)
+            {
+                System.Linq.Expressions.Expression all = null;
+                foreach (var part in alternative)
+                {
+                    var value = System.Linq.Expressions.Expression.Property(
+                        System.Linq.Expressions.Expression.Constant(new SearchTermHolder(part)), nameof(SearchTermHolder.Value));
+                    var call = System.Linq.Expressions.Expression.Call(SearchableName.Body, contains, value);
+                    all = all == null ? call : System.Linq.Expressions.Expression.AndAlso(all, call);
+                }
+                if (all == null) continue;
+                body = body == null ? all : System.Linq.Expressions.Expression.OrElse(body, all);
+            }
+            body ??= System.Linq.Expressions.Expression.Constant(true);
+            return System.Linq.Expressions.Expression.Lambda<Func<Product, bool>>(body, SearchableName.Parameters[0]);
+        }
+
+        private IQueryable<Product> BaseSaerch(ProductInputDto searchDto) => BaseSaerch(searchDto, out _);
+
+        private IQueryable<Product> BaseSaerch(ProductInputDto searchDto, out SearchQueryPlan searchPlan)
+        {
+            searchPlan = null;
             var query = _context.Products.Include(s => s.Category).Include(s => s.Brand).Include(s => s.Status).Include(s => s.Type).Include(s => s.Picture).Where(s => !s.Deleted).AsQueryable();
             if (searchDto.IsAdmin)
             {
@@ -100,13 +138,15 @@ namespace Application.Services.ProductSrvs.ProductSrv
             if (!string.IsNullOrEmpty(searchDto.Q))
             {
                 // هر کلمه جدا باید در نام باشد؛ «ي/ك» عربی و ارقام فارسی/لاتین مانع پیدا شدن محصول نمی‌شوند (متن کپی‌شده از اکسل).
-                foreach (var word in SearchNormalizeHelper.AllWordTerms(searchDto.Q))
+                // هر کلمه با معادل‌های واقعی‌اش در کاتالوگ هم جستجو می‌شود: «مکسی» ← «ماکسی»، «گسترو» ← «گاسترو»، غلط املایی،
+                // نویسه‌ی لاتین («maxi») و کیبورد اشتباه. معادل فقط از بین کلمه‌های موجود در نام محصولات انتخاب می‌شود.
+                searchPlan = (_searchVocabulary?.Products ?? SearchVocabulary.Empty).Plan(searchDto.Q);
+                // کلمه‌ای که هیچ معادلی در کاتالوگ ندارد نتیجه را حتماً خالی می‌کند؛ در جستجوی مشتری کنار گذاشته می‌شود
+                // به شرطی که کلمه‌های شناخته‌شده‌ی قوی مانده باشند (ادمین همان رفتار دقیق قبلی را دارد).
+                foreach (var word in searchPlan.Words)
                 {
-                    var term = word;
-                    var persianDigitsTerm = SearchNormalizeHelper.ToPersianDigits(term);
-                    query = query.Where(s =>
-                        (s.Name + " " + (s.SecondName ?? "")).Replace("ي", "ی").Replace("ك", "ک").Contains(term) ||
-                        (s.Name + " " + (s.SecondName ?? "")).Replace("ي", "ی").Replace("ك", "ک").Contains(persianDigitsTerm));
+                    if (searchDto.Available == true && searchPlan.IgnoredWords.Contains(word.Word)) continue;
+                    query = query.Where(NameMatchesAny(word.LikeTerms));
                 }
             }
 
@@ -160,7 +200,10 @@ namespace Application.Services.ProductSrvs.ProductSrv
             }
             if (searchDto.StoreId.HasValue)
             {
-                query = query.Where(s => s.ProductItems.Any(x => x.StoreId == searchDto.StoreId));
+                // آیتم حذف‌شده/غیرفعال فروشگاه، کالا را در صفحه‌ی آن فروشگاه نشان نمی‌دهد
+                query = searchDto.ApplyStorePrice
+                    ? query.Where(s => s.ProductItems.Any(x => x.StoreId == searchDto.StoreId && x.Active && !x.Deleted))
+                    : query.Where(s => s.ProductItems.Any(x => x.StoreId == searchDto.StoreId));
 
             }
             // جستجوی عمومی سایت/اپ (Available): اول محصولاتِ موجود و قیمت‌دار، بعد ناموجودها؛ مرتب‌سازیِ انتخابی کاربر داخل هر گروه اعمال می‌شود.
@@ -194,10 +237,23 @@ namespace Application.Services.ProductSrvs.ProductSrv
                     query = Sort(s => s.VisitCount, false);
                     break;
                 case Common.Enumerable.SortEnum.Expensive:
-                    query = Sort(s => s.Price, true);
+                    if (searchDto.ApplyStorePrice && searchDto.StoreId.HasValue)
+                    {
+                        // صفحه‌ی فروشگاه: مرتب‌سازی با قیمتِ خودِ همان فروشگاه (نه ارزان‌ترین بین همه‌ی فروشگاه‌ها)
+                        var sid = searchDto.StoreId.Value;
+                        query = Sort(s => s.ProductItems.Where(x => x.StoreId == sid && x.Active && x.SystemActive && !x.Deleted && x.Quantity > 0 && x.Price > 0).Select(x => (long?)x.Price).Min() ?? 0, true);
+                    }
+                    else
+                        query = Sort(s => s.Price, true);
                     break;
                 case Common.Enumerable.SortEnum.Inexpensive:
-                    query = Sort(s => s.Price, false);
+                    if (searchDto.ApplyStorePrice && searchDto.StoreId.HasValue)
+                    {
+                        var sid = searchDto.StoreId.Value;
+                        query = Sort(s => s.ProductItems.Where(x => x.StoreId == sid && x.Active && x.SystemActive && !x.Deleted && x.Quantity > 0 && x.Price > 0).Select(x => (long?)x.Price).Min() ?? long.MaxValue, false);
+                    }
+                    else
+                        query = Sort(s => s.Price, false);
                     break;
                 case Common.Enumerable.SortEnum.MoreSell:
                     query = Sort(s => s.SellCount, true);
@@ -214,8 +270,15 @@ namespace Application.Services.ProductSrvs.ProductSrv
         }
         public ProductSearchDto Search(ProductInputDto baseSearchDto)
         {
-            var model = BaseSaerch(baseSearchDto);
+            var model = BaseSaerch(baseSearchDto, out var searchPlan);
             var result = new ProductSearchDto(baseSearchDto, model, mapper);
+            // فقط جستجوی مشتری: ادمین عبارت را دقیق می‌خواهد و کلمه‌ای برایش کنار گذاشته نمی‌شود
+            if (searchPlan != null && baseSearchDto.Available == true && result.TotalCount > 0)
+            {
+                result.CorrectedQ = searchPlan.CorrectedQuery;
+                result.IgnoredWords = searchPlan.IgnoredWords.Count > 0 ? searchPlan.IgnoredWords.ToArray() : null;
+            }
+            if (baseSearchDto.ApplyStorePrice) ApplyStorePrices(result.List, baseSearchDto.StoreId);
             MarkExpressShipping(result.List);
             MarkSellerStores(result.List);
             return result;
@@ -400,6 +463,43 @@ namespace Application.Services.ProductSrvs.ProductSrv
                 });
             }
             return result;
+        }
+
+        // لیستِ صفحه‌ی یک فروشگاه: قیمت/تخفیف هر کارت = ارزان‌ترین آیتمِ موجودِ «همان فروشگاه» (نه ارزان‌ترین بین همه‌ی فروشگاه‌ها)،
+        // تا قیمتی که کاربر در صفحه‌ی فروشگاه می‌بیند با قیمتِ پیش‌فرض صفحه‌ی کالا (همان فروشگاه) یکی باشد.
+        private void ApplyStorePrices(List<ProductVDto> list, long? storeId)
+        {
+            if (!storeId.HasValue || list == null || list.Count == 0)
+                return;
+            var sid = storeId.Value;
+            var ids = list.Select(item => item.Id).ToList();
+            var rows = _context.ProductItems.AsNoTracking()
+                .Where(i => ids.Contains(i.ProductId) && i.StoreId == sid && i.Active && i.SystemActive && !i.Deleted && i.Quantity > 0 && i.Price > 0)
+                .Select(i => new { i.ProductId, i.Id, i.Price, i.BasePrice, i.DiscountPercent, i.DiscountGroupId, i.DiscountEndDate })
+                .ToList();
+            var best = rows.GroupBy(r => r.ProductId).ToDictionary(g => g.Key, g => g.OrderBy(r => r.Price).ThenBy(r => r.Id).First());
+            foreach (var item in list)
+            {
+                if (best.TryGetValue(item.Id, out var row))
+                {
+                    item.Price = row.Price;
+                    item.BasePrice = row.BasePrice;
+                    item.DiscountPercent = row.DiscountPercent;
+                    item.DiscountGroupId = row.DiscountGroupId;
+                    item.DiscountEndDate = row.DiscountEndDate;
+                    item.StoreItemAvailable = true;
+                }
+                else
+                {
+                    // در این فروشگاه موجود نیست: قیمتِ فروشگاه‌های دیگر را به‌عنوان قیمت این فروشگاه نشان نمی‌دهیم
+                    item.Price = 0;
+                    item.BasePrice = 0;
+                    item.DiscountPercent = 0;
+                    item.DiscountGroupId = null;
+                    item.DiscountEndDate = null;
+                    item.StoreItemAvailable = false;
+                }
+            }
         }
 
         // نشان فروشگاه روی کارت محصول: فروشگاه‌هایی که الان این محصول را با موجودی می‌فروشند (ارزان‌ترین اول)؛
@@ -734,6 +834,7 @@ WHERE LEN(value) >= 2;
 SELECT TOP(@ProductCount)
     p.Id,
     p.Name,
+    p.SecondName,
 
     pi.BasePrice,
     pi.Price,
@@ -820,7 +921,8 @@ WHERE
                )
         )
     )
-ORDER BY p.StatusId DESC, MatchScore DESC;";
+-- اول محصولی که کلمه‌های بیشتری از عبارت را دارد؛ قبلاً StatusId جلوتر بود و تطبیق کامل از ۳۰ نامزد اول بیرون می‌ماند
+ORDER BY MatchScore DESC, p.StatusId DESC, p.SellCount DESC;";
 
             var command = new CommandDefinition(query, parameters, commandTimeout: 8, cancellationToken: cancellationToken);
             var result = await connection.QueryAsync<SearchProductDto, PictureVDto, string, string, SearchProductDto>(

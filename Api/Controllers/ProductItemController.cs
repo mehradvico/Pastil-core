@@ -30,9 +30,10 @@ namespace Api.Controllers
         /// 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BaseResultDto<List<ProductItemForProductVDto>>), 200)]
-        public async Task<IActionResult> Get(long id)
+        public async Task<IActionResult> Get(long id, [FromQuery] long? storeId = null)
         {
-            var ProductItem = await ProductItemService.GetForProductVDto(id);
+            // storeId = فروشگاهی که کاربر از صفحه‌ی آن آمده؛ همان پیش‌فرض انتخاب می‌شود (PreferredStoreId)
+            var ProductItem = await ProductItemService.GetForProductVDto(id, storeId);
             return Ok(ProductItem);
         }
 

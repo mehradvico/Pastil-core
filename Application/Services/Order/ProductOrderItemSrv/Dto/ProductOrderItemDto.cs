@@ -10,6 +10,7 @@ namespace Application.Services.Order.ProductOrderItemSrv.Dto
         public double BasePrice { get; set; }
         public double DiscountPrice { get; set; }
         public int DiscountPercent { get; set; }
+        public double PastilDiscountUnit { get; set; }
         public long ProductOrderStoreId { get; set; }
         public string Description { get; set; }
         public bool Deleted { get; set; }

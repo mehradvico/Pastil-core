@@ -37,8 +37,9 @@ namespace Api.Areas.EndUser.Controllers
         [ProducesResponseType(typeof(BaseResultDto<double>), 200)]
         public async Task<IActionResult> Get()
         {
-            var amount = await WalletService.GetAmountAsync(_currentUserHelper.CurrentUser.UserId);
-            return Ok(amount);
+            // نقد + اعتبار کلاب قابل خرج در همه‌جا (جزئیات در CurrentUser: WalletCashAmount/WalletCreditAmount)
+            var balance = await WalletService.GetDisplayBalanceAsync(_currentUserHelper.CurrentUser.UserId);
+            return Ok(new Application.Common.Dto.Result.BaseResultDto<double>(true, balance.Total));
         }
     }
 }

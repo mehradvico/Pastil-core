@@ -103,6 +103,13 @@ namespace Application.Services.ProductSrvs.StoreCommentSrv
             var query = _context.StoreComments.Include(s => s.Store).AsQueryable();
             if (searchDto.StoreId.HasValue)
                 query = query.Where(s => s.StoreId == searchDto.StoreId).Include(s => s.User);
+            // فیلتر وضعیت (قبلاً اصلاً اعمال نمی‌شد و نظرات در انتظار/ردشده هم در صفحه‌ی فروشگاه دیده می‌شد):
+            // Available=true فقط تأییدشده، false فقط ردشده؛ null = بدون فیلتر (برای صف تأیید ادمین/فروشنده). AllStatus=true هم فیلتر را کنار می‌گذارد.
+            if (searchDto.AllStatus != true && searchDto.Available.HasValue)
+            {
+                var label = searchDto.Available.Value ? CommentEnum.Comment_Accept.ToString() : CommentEnum.Comment_Reject.ToString();
+                query = query.Where(s => s.Status.Label == label);
+            }
             if (searchDto.AllStatus == false)
             {
 

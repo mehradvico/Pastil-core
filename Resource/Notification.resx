@@ -861,6 +861,15 @@
   <data name="DeliveryProviderRequiredForLivePricing" xml:space="preserve">
     <value>Delivery Provider Required For Live Pricing</value>
   </data>
+  <data name="DeliveryStorePricedNoLive" xml:space="preserve">
+    <value>Store priced delivery cannot use live pricing</value>
+  </data>
+  <data name="DeliveryStorePricedPriceRequired" xml:space="preserve">
+    <value>Store priced delivery needs a price or after-rent</value>
+  </data>
+  <data name="DeliveryAloPeykTehranOnly" xml:space="preserve">
+    <value>AloPeyk is only available inside Tehran</value>
+  </data>
   <data name="DeliveryAtLeastOnePaymentModeRequired" xml:space="preserve">
     <value>Delivery At Least One Payment Mode Required</value>
   </data>
@@ -1948,6 +1957,12 @@
   <data name="DuplicateRequest" xml:space="preserve">
     <value>This request was just submitted; please wait a few seconds.</value>
   </data>
+  <data name="UnpaidReserveTripName" xml:space="preserve">
+    <value>PetResan trip</value>
+  </data>
+  <data name="UnpaidReserveDefaultName" xml:space="preserve">
+    <value>your reservation</value>
+  </data>
   <data name="WalletReasonGenericIncrease" xml:space="preserve">
     <value>Wallet deposit</value>
   </data>
@@ -2970,5 +2985,14 @@
   </data>
   <data name="DiscussionNotEditable" xml:space="preserve">
     <value>Only a message that is still waiting for admin approval can be edited or deleted.</value>
+  </data>
+  <data name="DiscountPastilPercentTooHigh" xml:space="preserve">
+    <value>The Pastil discount ({0}%) cannot exceed Pastil's share of this store ({1}%).</value>
+  </data>
+  <data name="DiscountPastilOnlyAdmin" xml:space="preserve">
+    <value>Only an admin can change a Pastil-funded discount.</value>
+  </data>
+  <data name="StoreCommissionBelowPastilDiscount" xml:space="preserve">
+    <value>Pastil's share cannot be lower than the active Pastil discount of this store ({0}%). Reduce or disable that discount first.</value>
   </data>
 </root>

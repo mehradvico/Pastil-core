@@ -9,6 +9,7 @@
         DeliveryType_AloPeyk = 92,
         DeliveryType_SnappBox = 93,
         DeliveryType_Miare = 94,
+        DeliveryType_Mahex = 95,
 
     }
 }

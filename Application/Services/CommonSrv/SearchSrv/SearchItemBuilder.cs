@@ -19,7 +19,11 @@ namespace Application.Services.CommonSrv.SearchSrv
 
             if (result.Products != null)
             {
-                items.AddRange(result.Products.Select(p => new SearchItemDto
+                // عبارت چندکلمه‌ای: فقط محصولاتی می‌مانند که بیشترین تعداد کلمه‌ی عبارت را دارند. اگر محصولی همه‌ی کلمه‌ها را
+                // دارد، محصولی که فقط یکی را دارد («ادالت» برای «ماکسی ادالت») نشان داده نمی‌شود.
+                var coverage = result.Products.ToDictionary(p => p.Id, p => Coverage(request, p.Name, p.SecondName, p.BrandName, p.CategoryName));
+                var best = coverage.Count > 0 ? coverage.Values.Max() : 0;
+                items.AddRange(result.Products.Where(p => coverage[p.Id] >= best - 0.0001).Select(p => new SearchItemDto
                 {
                     Type = SearchItemType.Product,
                     Id = p.Id,
@@ -217,11 +221,26 @@ namespace Application.Services.CommonSrv.SearchSrv
         {
             var terms = SearchNormalizeHelper.ScoringTerms(request.Q, request.SearchTerms);
 
-            return terms.Max(term =>
+            var best = terms.Max(term =>
             {
                 var score = SearchScoreHelper.Score(title, term, secondaryTexts);
                 return term.Equals(request.Q, StringComparison.OrdinalIgnoreCase) ? score : score * 0.9;
             });
+
+            // نتیجه‌ای که فقط بخشی از کلمه‌های عبارت را دارد پایین‌تر می‌آید (قبلاً یک کلمه‌ی مشترک هم‌امتیازِ تطبیق کامل بود)
+            var texts = new string[(secondaryTexts?.Length ?? 0) + 1];
+            texts[0] = title;
+            secondaryTexts?.CopyTo(texts, 1);
+            return best * (0.5 + 0.5 * Coverage(request, texts));
+        }
+
+        /// <summary>چه کسری از کلمه‌های عبارت (خودشان یا معادلشان) در این متن‌ها هست؛ برای عبارت تک‌کلمه‌ای همیشه ۱.</summary>
+        internal static double Coverage(SearchRequestDto request, params string[] texts)
+        {
+            var groups = request.WordGroups;
+            if (groups == null || groups.Count < 2) return 1;
+            var text = SearchNormalizeHelper.Normalize(string.Join(" ", texts.Where(value => !string.IsNullOrWhiteSpace(value))));
+            return (double)groups.Count(group => group.Any(text.Contains)) / groups.Count;
         }
     }
 }

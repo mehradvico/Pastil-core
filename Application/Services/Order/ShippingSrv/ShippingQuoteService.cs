@@ -1,4 +1,5 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
+using Application.Services.Order.DeliverySrv;
 using Application.Services.Order.DeliverySrv.iface;
 using Application.Services.Order.ShippingSrv.Dto;
 using Application.Services.Order.ShippingSrv.Iface;
@@ -54,6 +55,7 @@ namespace Application.Services.Order.ShippingSrv
         {
             var cart = await _context.Carts
                 .Include(item => item.Address)
+                    .ThenInclude(item => item.City)
                 .Include(item => item.CartStores)
                     .ThenInclude(item => item.Store)
                 .Include(item => item.CartStores)
@@ -89,9 +91,11 @@ namespace Application.Services.Order.ShippingSrv
                 : new[] { deliveries };
             foreach (var deliveryGroup in deliveryGroups)
             {
-            if (_options.MiareOnly && results.Any())
-                break;
-            foreach (var delivery in deliveryGroup)
+            // بعد از نتیجه‌ی میاره، فقط الوپیک با قیمت فروشگاه (مقصد تهران) هم کنار آن می‌ماند
+            var groupDeliveries = _options.MiareOnly && results.Any()
+                ? deliveryGroup.Where(item => item.DeliveryType?.Label == StoreShippingRules.AloPeykLabel && item.ShippingProvider == ShippingProviderEnum.None).ToList()
+                : deliveryGroup;
+            foreach (var delivery in groupDeliveries)
             {
                 // میاره همیشه با برآورد زنده‌ی خودش قیمت می‌گیرد؛ اگر ردیف ارسال فروشگاه LivePricing=false باشد، قبلاً قیمت ثابت (BasePrice، معمولاً ۰) و «رایگان» می‌شد.
                 if (delivery.ShippingProvider != ShippingProviderEnum.Miare && (!delivery.LivePricing || delivery.ShippingProvider == ShippingProviderEnum.None))

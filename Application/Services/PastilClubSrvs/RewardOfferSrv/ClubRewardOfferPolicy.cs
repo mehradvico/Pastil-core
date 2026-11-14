@@ -22,8 +22,9 @@ namespace Application.Services.PastilClubSrvs.RewardOfferSrv
                    (!templateEndDate.HasValue || templateEndDate >= now);
         }
 
+        // جایزه‌ی رایگان (PointCost = 0، مثل هدیه‌ی تکمیل پروفایل پت) امتیاز نمی‌خواهد و بدهی امتیاز هم جلویش را نمی‌گیرد.
         public static bool CanRedeem(long availablePoint, long debtPoint, long pointCost, bool petEligible) =>
-            petEligible && debtPoint == 0 && pointCost > 0 && availablePoint >= pointCost;
+            petEligible && (pointCost == 0 || pointCost > 0 && debtPoint == 0 && availablePoint >= pointCost);
     }
 
     public static class ClubRewardPetEligibilityEvaluator

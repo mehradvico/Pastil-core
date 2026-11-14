@@ -50,6 +50,12 @@ namespace Application.Services.ProductSrvs.ProductSrv.Dto
         public StoreMinVDto Store { get; set; }
         /// <summary>حداقل یکی از فروشگاه‌های فعالِ دارای موجودی این محصول «ارسال اکسپرس» را فعال کرده است (برای نشان روی کارت محصول).</summary>
         public bool ExpressShipping { get; set; }
+        /// <summary>
+        /// فقط وقتی لیست با فیلتر فروشگاه (StoreId) گرفته شده پر می‌شود: true = این فروشگاه همین الان این کالا را موجود دارد و
+        /// Price/BasePrice/DiscountPercent همین کارت «قیمتِ همان فروشگاه» است؛ false = در این فروشگاه ناموجود است (Price=0).
+        /// بدون فیلتر فروشگاه همیشه null و Price ارزان‌ترین پیشنهادِ بین همه‌ی فروشگاه‌هاست.
+        /// </summary>
+        public bool? StoreItemAvailable { get; set; }
         /// <summary>فروشگاه‌هایی که این محصول را الان با موجودی می‌فروشند، ارزان‌ترین اول (حداکثر ۳؛ فقط در جستجو پر می‌شود). برای نشان فروشگاه روی کارت محصول.</summary>
         public List<ProductSellerStoreVDto> SellerStores { get; set; }
         /// <summary>تعداد کل فروشگاه‌های فروشنده‌ی دارای موجودی (برای «+N» کنار نشان).</summary>

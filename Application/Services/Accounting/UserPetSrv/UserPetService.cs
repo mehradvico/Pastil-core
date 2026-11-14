@@ -27,19 +27,22 @@ namespace Application.Services.Accounting.UserPetSrv
         private readonly IClubPetProfileCompletionService _profileCompletionService;
         private readonly IClubPointIntegrationService _clubPointIntegrationService;
         private readonly IPushNotificationService _pushNotificationService;
+        private readonly IPetProfileClubGift _petProfileClubGift;
 
         public UserPetService(
             IDataBaseContext _context,
             IMapper mapper,
             IClubPetProfileCompletionService profileCompletionService,
             IClubPointIntegrationService clubPointIntegrationService,
-            IPushNotificationService pushNotificationService) : base(_context, mapper)
+            IPushNotificationService pushNotificationService,
+            IPetProfileClubGift petProfileClubGift) : base(_context, mapper)
         {
             this._context = _context;
             this.mapper = mapper;
             _profileCompletionService = profileCompletionService;
             _clubPointIntegrationService = clubPointIntegrationService;
             _pushNotificationService = pushNotificationService;
+            _petProfileClubGift = petProfileClubGift;
         }
 
         public override async Task<BaseResultDto<UserPetDto>> InsertAsyncDto(UserPetDto dto)
@@ -51,7 +54,10 @@ namespace Application.Services.Accounting.UserPetSrv
             var userPet = await _context.UserPets.AsNoTracking()
                 .FirstOrDefaultAsync(item => item.Id == result.Data.Id);
             if (_profileCompletionService.IsComplete(userPet))
+            {
                 await _clubPointIntegrationService.PetProfileCompletedAsync(userPet.UserId, userPet.Id);
+                await _petProfileClubGift.GrantAsync(userPet.UserId, userPet.Id);
+            }
 
             return result;
         }
@@ -70,7 +76,10 @@ namespace Application.Services.Accounting.UserPetSrv
             await _context.SaveChangesAsync();
 
             if (_profileCompletionService.IsComplete(userPet))
+            {
                 await _clubPointIntegrationService.PetProfileCompletedAsync(userPet.UserId, userPet.Id);
+                await _petProfileClubGift.GrantAsync(userPet.UserId, userPet.Id);
+            }
 
             return new BaseResultDto<UserPetDto>(true, mapper.Map<UserPetDto>(userPet));
         }

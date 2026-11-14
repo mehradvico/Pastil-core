@@ -43,6 +43,10 @@ namespace Application.Services.CommonSrv.SearchSrv.Dto
         [JsonIgnore]
         public string[] SearchTerms { get; set; } = [];
 
+        /// <summary>برای هر کلمه‌ی عبارت، خودش و معادل‌هایش؛ امتیازدهی با آن می‌سنجد هر نتیجه چند کلمه از عبارت را پوشش می‌دهد.</summary>
+        [JsonIgnore]
+        public List<string[]> WordGroups { get; set; } = [];
+
         public void ClampCounts()
         {
             ProductCount = Clamp(ProductCount);

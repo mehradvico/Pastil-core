@@ -56,6 +56,10 @@ namespace Application.Tests.PastilClub
         [InlineData(299, 0, 300, true, false)]
         [InlineData(500, 1, 300, true, false)]
         [InlineData(500, 0, 300, false, false)]
+        [InlineData(0, 0, 0, true, true)]
+        [InlineData(0, 40, 0, true, true)]
+        [InlineData(0, 0, 0, false, false)]
+        [InlineData(0, 0, -1, true, false)]
         public void CanRedeem_ValidatesBalanceDebtAndPet(
             long available,
             long debt,

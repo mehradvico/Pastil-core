@@ -66,14 +66,16 @@ namespace Application.Tests.Reminder
             // این تست تضمین می‌کند UserReminderToday همچنان درست بعد از مقادیر قبلی و قبل از UserAbandonedCart (که بعدتر append شد) است.
             var names = System.Enum.GetNames(typeof(Application.Common.Enumerable.Message.MessageTypeEnum));
 
-            Assert.Equal("VenueRegisteredForOwner", names[^1]);
-            Assert.Equal("UserReminderToday", names[^31]);
-            Assert.Equal("UserAbandonedCart", names[^30]);
-            Assert.Equal("ProductOrderShippedMiare", names[^29]);
-            Assert.Equal("ProductOrderShippedPost", names[^28]);
-            Assert.Equal("ProductOrderReceivedAdmin", names[^27]);
-            Assert.Equal("ProductOrderReceivedStore", names[^26]);
-            Assert.Equal("ProductOrderNotReceivedAdmin", names[^25]);
+            Assert.Equal("UnpaidReserveReminder", names[^1]);
+            Assert.Equal("PaymentFailedReminder", names[^2]);
+            Assert.Equal("VenueRegisteredForOwner", names[^3]);
+            Assert.Equal("UserReminderToday", names[^33]);
+            Assert.Equal("UserAbandonedCart", names[^32]);
+            Assert.Equal("ProductOrderShippedMiare", names[^31]);
+            Assert.Equal("ProductOrderShippedPost", names[^30]);
+            Assert.Equal("ProductOrderReceivedAdmin", names[^29]);
+            Assert.Equal("ProductOrderReceivedStore", names[^28]);
+            Assert.Equal("ProductOrderNotReceivedAdmin", names[^27]);
         }
     }
 }

@@ -582,12 +582,23 @@ recurringJobManager.AddOrUpdate<Application.Services.Order.ShippingSrv.Iface.ISh
 recurringJobManager.AddOrUpdate<Application.Services.Order.CartSrv.Iface.IAbandonedCartReminderService>(
     "AbandonedCartPush",
     service => service.SendPushRemindersAsync(CancellationToken.None),
-    "0 18 * * *",
+    "*/10 * * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
 recurringJobManager.AddOrUpdate<Application.Services.Order.CartSrv.Iface.IAbandonedCartReminderService>(
     "AbandonedCartSms",
     service => service.SendSmsRemindersAsync(CancellationToken.None),
-    "0 0 * * *",
+    "*/10 * * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
+// یادآوری پرداخت ناموفق و رزرو پرداخت‌نشده (پوش + پیامک، با ساعت سکوت) — PaymentReminderService
+recurringJobManager.AddOrUpdate<Application.Services.MarketingSrv.IPaymentReminderService>(
+    "FailedPaymentReminder",
+    service => service.SendFailedPaymentRemindersAsync(CancellationToken.None),
+    "*/5 * * * *",
+    new RecurringJobOptions { TimeZone = tehranTimeZone });
+recurringJobManager.AddOrUpdate<Application.Services.MarketingSrv.IPaymentReminderService>(
+    "UnpaidReserveReminder",
+    service => service.SendUnpaidReserveRemindersAsync(CancellationToken.None),
+    "*/5 * * * *",
     new RecurringJobOptions { TimeZone = tehranTimeZone });
 // Removed: memory-reminder push is now sent from the panel's own push
 // message flow instead of this backend job — see PushMessage/PushBroadcastSrv.

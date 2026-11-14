@@ -49,6 +49,8 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         public double WalletPrice { get; set; }
         public double SiteShare { get; set; }
         public double StoreShare { get; set; }
+        /// <summary>جمع تخفیفِ سهم پاستیل این سفارش (هزینه‌ی پاستیل).</summary>
+        public double PastilFundedAmount { get; set; }
         public RebateVDto Rebate { get; set; }
         public UserVDto User { get; set; }
         public AddressVDto Address { get; set; }

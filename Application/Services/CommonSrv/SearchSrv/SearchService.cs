@@ -50,6 +50,7 @@ namespace Application.Services.CommonSrv.SearchSrv
         private readonly ISearchSemanticReranker _semanticReranker;
         private readonly ILogger<SearchService> _logger;
         private readonly IMemoryCache _cache;
+        private readonly ISearchVocabularyService _vocabulary;
 
         public SearchService(
             IServiceScopeFactory scopeFactory,
@@ -57,8 +58,10 @@ namespace Application.Services.CommonSrv.SearchSrv
             IDataBaseContext context,
             ISearchSemanticReranker semanticReranker,
             ILogger<SearchService> logger,
-            IMemoryCache cache)
+            IMemoryCache cache,
+            ISearchVocabularyService vocabulary)
         {
+            _vocabulary = vocabulary;
             _scopeFactory = scopeFactory;
             _productService = productService;
             _context = context;
@@ -88,7 +91,10 @@ namespace Application.Services.CommonSrv.SearchSrv
             if (originalQuery.Length > SearchRequestDto.MaxQueryLength)
                 return new BaseResultDto<SearchDto>(false, Resource.Notification.SearchQueryTooLong, new SearchDto());
 
-            request.Q = SearchNormalizeHelper.Normalize(request.Q);
+            // هر کلمه با معادل‌های واقعی‌اش در کاتالوگ گسترش می‌یابد («مکسی» ← «ماکسی»، غلط املایی، «maxi»، کیبورد اشتباه)
+            var plan = _vocabulary.Global.Plan(originalQuery);
+            request.Q = plan.NormalizedQuery;
+            request.WordGroups = SmartSearchTerms.WordGroups(plan);
             request.ClampCounts();
 
             if (request.Q.Length < 2)
@@ -108,18 +114,20 @@ namespace Application.Services.CommonSrv.SearchSrv
                 using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 timeoutSource.CancelAfter(SearchTimeout);
 
-                request.SearchTerms = SearchNormalizeHelper.BuildTerms(request.Q, enableFuzzy: false);
+                request.SearchTerms = SmartSearchTerms.Build(request.Q, plan, enableFuzzy: false);
                 result = await RunSearchAsync(request, originalQuery, timeoutSource.Token, cancellationToken);
 
                 if (result.TotalCount == 0 && !result.IsPartial && request.EnableFuzzy && !timeoutSource.IsCancellationRequested)
                 {
-                    var fuzzyTerms = SearchNormalizeHelper.BuildTerms(request.Q, enableFuzzy: true);
+                    var fuzzyTerms = SmartSearchTerms.Build(request.Q, plan, enableFuzzy: true);
                     if (fuzzyTerms.Length > request.SearchTerms.Length)
                     {
                         request.SearchTerms = fuzzyTerms;
                         result = await RunSearchAsync(request, originalQuery, timeoutSource.Token, cancellationToken);
                     }
                 }
+
+                result.CorrectedQuery = result.TotalCount > 0 ? plan.CorrectedQuery : null;
 
                 if (!result.IsPartial)
                 {
@@ -320,6 +328,24 @@ namespace Application.Services.CommonSrv.SearchSrv
             if (q.Length < 2 || q.Length > 100)
                 return new BaseResultDto<List<string>>(true, data: new List<string>());
 
+            var suggestions = await SuggestCoreAsync(q, take, cancellationToken);
+            if (suggestions.Count == 0)
+            {
+                // «مکسی» پیشنهادی ندارد ولی «ماکسی» دارد: با معادل واقعیِ کلمه‌ها دوباره امتحان می‌شود
+                var plan = _vocabulary.Products.Plan(q);
+                var corrected = string.Join(" ", plan.Words
+                    .Where(word => !plan.IgnoredWords.Contains(word.Word))
+                    .Select(word => word.Corrected ?? word.Tokens.FirstOrDefault() ?? word.Word));
+                if (corrected.Length >= 2 && !string.Equals(corrected, q, StringComparison.OrdinalIgnoreCase))
+                    suggestions = await SuggestCoreAsync(corrected, take, cancellationToken);
+            }
+
+            return new BaseResultDto<List<string>>(true, data: suggestions);
+        }
+
+        private async Task<List<string>> SuggestCoreAsync(string q, int take, CancellationToken cancellationToken)
+        {
+
             // دقیقاً همان فیلتری که لیست محصولات فروشگاه (ProductService.BaseSaerch با Available=true) اعمال می‌کند،
             // از جمله !Deleted؛ بدون آن محصول حذف‌شده پیشنهاد می‌شد ولی در لیست نبود.
             var availableLabel = ProductStatusEnum.ProductStatus_Available.ToString();
@@ -364,14 +390,12 @@ namespace Application.Services.CommonSrv.SearchSrv
                 }
             }
 
-            var suggestions = score
+            return score
                 .OrderByDescending(kv => kv.Value)
                 .ThenBy(kv => kv.Key.Length)
                 .Take(take)
                 .Select(kv => kv.Key)
                 .ToList();
-
-            return new BaseResultDto<List<string>>(true, data: suggestions);
         }
 
         private static List<T> RankGroup<T>(

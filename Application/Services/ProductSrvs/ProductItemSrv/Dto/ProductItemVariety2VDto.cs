@@ -13,6 +13,9 @@ namespace Application.Services.ProductSrvs.ProductItemSrv.Dto
         public long? VarietyItem1Id { get; set; }
         public long? VarietyItem2Id { get; set; }
         public List<ProductItemShowVDto> ProductItems { get; set; } = new List<ProductItemShowVDto>();
+        /// <summary>فروشگاه‌های دارای «همین تنوع انتخاب‌شده» از کم به زیاد.</summary>
+        public List<ProductStoreOfferVDto> Offers { get; set; } = new List<ProductStoreOfferVDto>();
+        public long? PreferredStoreId { get; set; }
     }
 
 }

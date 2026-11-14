@@ -322,6 +322,13 @@ namespace Application.Services.FinanceSrvs.FinanceSrv
                 if (item == null)
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.NothingFound);
 
+                // سهم پاستیل نمی‌تواند از تخفیفِ فعالِ «سهم پاستیل» همین فروشگاه کمتر شود (وگرنه پاستیل ناخواسته ضرر می‌کند)
+                var maxPastilDiscount = await _context.Discounts.AsNoTracking()
+                    .Where(d => d.StoreId == item.Id && d.FundedByPastil && d.Active && !d.Deleted && (!d.EndDate.HasValue || d.EndDate.Value >= DateTime.Now.Date))
+                    .Select(d => (int?)d.Percent).MaxAsync() ?? 0;
+                if (maxPastilDiscount > dto.CommissionPercent)
+                    return new BaseResultDto(false, string.Format(System.Globalization.CultureInfo.InvariantCulture, Resource.Notification.StoreCommissionBelowPastilDiscount, maxPastilDiscount));
+
                 item.CommissionPercent = dto.CommissionPercent;
 
                 _context.Stores.Update(item);

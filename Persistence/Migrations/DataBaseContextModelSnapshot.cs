@@ -5037,6 +5037,9 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.Discount", b =>
                 {
+                    b.Property<bool>("FundedByPastil")
+                        .HasColumnType("bit");
+
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
@@ -8853,7 +8856,7 @@ namespace Persistence.Migrations
 
                     b.ToTable("ClubRewardTemplates", t =>
                         {
-                            t.HasCheckConstraint("CK_ClubRewardTemplate_PointCost", "[PointCost] > 0");
+                            t.HasCheckConstraint("CK_ClubRewardTemplate_PointCost", "[PointCost] >= 0");
                         });
                 });
 
@@ -10434,6 +10437,12 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.ProductItem", b =>
                 {
+                    b.Property<double>("PastilDiscountAmount")
+                        .HasColumnType("float");
+
+                    b.Property<int>("PastilDiscountPercent")
+                        .HasColumnType("int");
+
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
@@ -10523,6 +10532,9 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.ProductOrder", b =>
                 {
+                    b.Property<double>("PastilFundedAmount")
+                        .HasColumnType("float");
+
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
@@ -10672,6 +10684,9 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.ProductOrderItem", b =>
                 {
+                    b.Property<double>("PastilDiscountUnit")
+                        .HasColumnType("float");
+
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");

@@ -10,6 +10,8 @@ namespace Entities.Entities
         public double BasePrice { get; set; }
         public double DiscountPrice { get; set; }
         public int DiscountPercent { get; set; }
+        /// <summary>مبلغ تخفیفِ سهم پاستیل به‌ازای «یک واحد» کالا هنگام ثبت سفارش (BasePrice × PastilDiscountPercent ÷ ۱۰۰). حسابداری: سهم فروشگاه روی (پرداختی + این مبلغ) حساب می‌شود.</summary>
+        public double PastilDiscountUnit { get; set; }
         public long ProductOrderStoreId { get; set; }
         public string Description { get; set; }
         public bool Deleted { get; set; }

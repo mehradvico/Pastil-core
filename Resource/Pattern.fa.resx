@@ -444,6 +444,24 @@
   <data name="PushCompanionReservePackageCancelled" xml:space="preserve">
     <value>پکیج «{0}» رزرو شما لغو شد و {3} تومان به کیف پول شما برگشت داده شد.</value>
   </data>
+  <data name="PushMissingProductApproved" xml:space="preserve">
+    <value>«{0}» در کاتالوگ پاستیل ثبت شد. قیمت و موجودی آن را در فروشگاهتان وارد کنید.</value>
+  </data>
+  <data name="PushMissingProductRejected" xml:space="preserve">
+    <value>درخواست «{0}» رد شد: {1}</value>
+  </data>
+  <data name="PushClubPetProfileGift" xml:space="preserve">
+    <value>۲۰۰ هزار تومان هدیه‌ت توی کلاب آماده‌ست. تا ۳۰ روز فرصت داری فعالش کنی و خرید کنی.</value>
+  </data>
+  <data name="PushPaymentFailed" xml:space="preserve">
+    <value>اگه پولی کم شده تا ۷۲ ساعت برمی‌گرده. دوباره امتحان کن.</value>
+  </data>
+  <data name="PushUnpaidReserve" xml:space="preserve">
+    <value>نوبت «{0}» هنوز قطعی نشده و ممکنه پر بشه. پرداختش کن.</value>
+  </data>
+  <data name="PushAbandonedCartSecond" xml:space="preserve">
+    <value>با یک لمس سفارشت رو ثبت کن.</value>
+  </data>
   <data name="PushAbandonedCart" xml:space="preserve">
     <value>{0} هنوز موجوده! قبل از اینکه تموم بشه سفارشت رو کامل کن.</value>
   </data>

@@ -20,6 +20,8 @@ namespace Application.Services.ProductSrv.Dto
         public long[] BrandIds { get; set; }
         public long[] FeatureItemIds { get; set; }
         public long? StoreId { get; set; }
+        /// <summary>فقط endpoint عمومی (صفحه‌ی فروشگاه) true می‌کند: قیمت/مرتب‌سازی از آیتم‌های همان فروشگاه. پنل فروشنده/ادمین false می‌مانند.</summary>
+        public bool ApplyStorePrice { get; set; }
         public long? CreateStoreId { get; set; }
 
         public bool? HasDiscount { get; set; }

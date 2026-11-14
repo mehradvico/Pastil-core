@@ -23,6 +23,7 @@ namespace Application.Services.ProductSrvs.DiscountSrv.Dto
         public long? ProductId { get; set; }
         public long? ProductItemId { get; set; }
         public bool Active { get; set; }
+        public bool FundedByPastil { get; set; }
 
         public DiscountGroupVDto DiscountGroup { get; set; }
         public CodeVDto Type { get; set; }

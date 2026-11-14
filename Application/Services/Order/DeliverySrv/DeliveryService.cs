@@ -3,6 +3,7 @@ using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Helpers;
 using Application.Common.Service;
+using Application.Services.Order.DeliverySrv;
 using Application.Services.Order.DeliverySrv.Dto;
 using Application.Services.Order.DeliverySrv.iface;
 using Application.Services.Setting.BaseDetailSrv.Iface;
@@ -203,6 +204,30 @@ namespace Application.Services.Content.DeliverySrv
                 return Resource.Notification.DeliveryProviderRequiredForLivePricing;
             if (!dto.AllowPrepaid && !dto.AllowReceiverPay && !dto.AfterRent)
                 return Resource.Notification.DeliveryAtLeastOnePaymentModeRequired;
+            var typeLabel = await _context.Codes.Where(c => c.Id == dto.DeliveryTypeId).Select(c => c.Label).FirstOrDefaultAsync();
+            if (StoreShippingRules.IsStorePriced(typeLabel))
+            {
+                // پست/تیپاکس/ماهکس/الوپیک: قیمت و پس‌کرایه‌بودن را خود فروشگاه می‌گذارد، نه ارائه‌دهنده‌ی لحظه‌ای
+                if (dto.LivePricing || dto.ShippingProvider != Entities.Entities.ShippingField.ShippingProviderEnum.None)
+                    return Resource.Notification.DeliveryStorePricedNoLive;
+                if (!dto.AfterRent && dto.BasePrice <= 0)
+                    return Resource.Notification.DeliveryStorePricedPriceRequired;
+                if (typeLabel == StoreShippingRules.AloPeykLabel)
+                {
+                    if (dto.CityId.HasValue)
+                    {
+                        var cityName = await _context.Cities.Where(c => c.Id == dto.CityId.Value).Select(c => c.Name).FirstOrDefaultAsync();
+                        if (!StoreShippingRules.IsTehran(cityName))
+                            return Resource.Notification.DeliveryAloPeykTehranOnly;
+                    }
+                    else if (dto.StateId.HasValue)
+                    {
+                        var stateName = await _context.States.Where(c => c.Id == dto.StateId.Value).Select(c => c.Name).FirstOrDefaultAsync();
+                        if (!StoreShippingRules.IsTehran(stateName))
+                            return Resource.Notification.DeliveryAloPeykTehranOnly;
+                    }
+                }
+            }
             if (dto.CityId.HasValue &&
                 !await _context.Cities.AnyAsync(s => s.Id == dto.CityId.Value))
                 return Resource.Notification.DeliverySelectedCityInvalid;
@@ -253,6 +278,20 @@ namespace Application.Services.Content.DeliverySrv
             }
         }
 
+        // الوپیک فقط مقصد تهران؛ پست/تیپاکس/ماهکس برای بیرون از تهران، و داخل تهران فقط وقتی فروشگاه الوپیک فعال ندارد
+        private bool AppliesToAddress(Cart cart, Delivery delivery, long? storeId)
+        {
+            var label = delivery.DeliveryType?.Label
+                ?? _context.Codes.Where(c => c.Id == delivery.DeliveryTypeId).Select(c => c.Label).FirstOrDefault();
+            if (!StoreShippingRules.IsStorePriced(label) || cart.Address == null)
+                return true;
+            var tehran = StoreShippingRules.IsTehran(cart.Address.City?.Name);
+            if (label == StoreShippingRules.AloPeykLabel)
+                return StoreShippingRules.AloPeykApplies(tehran);
+            var hasAloPeyk = tehran && _context.Deliveries.Any(d => d.StoreId == storeId && d.Active && !d.Deleted && d.DeliveryType.Label == StoreShippingRules.AloPeykLabel);
+            return StoreShippingRules.NationalCarrierApplies(tehran, hasAloPeyk);
+        }
+
         public DeliveryResultVDto GetDelivery(Cart cart, Delivery delivery, long? storeId)
         {
             var cartStore = cart.CartStores.FirstOrDefault(s => s.StoreId == storeId);
@@ -260,6 +299,8 @@ namespace Application.Services.Content.DeliverySrv
             {
                 return null;
             }
+            if (!AppliesToAddress(cart, delivery, storeId))
+                return null;
             var newItem = mapper.Map<DeliveryResultVDto>(delivery);
             newItem.DeliveryPrice = delivery.BasePrice;
             bool isFree = false;

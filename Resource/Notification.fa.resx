@@ -861,6 +861,15 @@
   <data name="DeliveryProviderRequiredForLivePricing" xml:space="preserve">
     <value>برای قیمت‌گذاری لحظه‌ای باید ارائه‌دهنده ارسال انتخاب شود.</value>
   </data>
+  <data name="DeliveryStorePricedNoLive" xml:space="preserve">
+    <value>پست، تیپاکس، ماهکس و الوپیک را فروشگاه خودش قیمت می‌گذارد؛ قیمت‌گذاری لحظه‌ای/ارائه‌دهنده برای آن‌ها مجاز نیست.</value>
+  </data>
+  <data name="DeliveryStorePricedPriceRequired" xml:space="preserve">
+    <value>برای این روش ارسال یا مبلغ کرایه را وارد کنید یا آن را «پس‌کرایه» (کرایه با گیرنده) بگذارید.</value>
+  </data>
+  <data name="DeliveryAloPeykTehranOnly" xml:space="preserve">
+    <value>الوپیک فقط برای تهران قابل تعریف است؛ شهر/استان این روش باید تهران باشد.</value>
+  </data>
   <data name="DeliveryAtLeastOnePaymentModeRequired" xml:space="preserve">
     <value>حداقل یکی از حالت‌های پرداخت کرایه باید فعال باشد.</value>
   </data>
@@ -1948,6 +1957,12 @@
   <data name="DuplicateRequest" xml:space="preserve">
     <value>این درخواست همین الان ثبت شد؛ لطفاً چند ثانیه صبر کنید.</value>
   </data>
+  <data name="UnpaidReserveTripName" xml:space="preserve">
+    <value>سفر پت‌رسان</value>
+  </data>
+  <data name="UnpaidReserveDefaultName" xml:space="preserve">
+    <value>رزروت</value>
+  </data>
   <data name="WalletReasonGenericIncrease" xml:space="preserve">
     <value>واریز به کیف پول</value>
   </data>
@@ -2970,5 +2985,14 @@
   </data>
   <data name="DiscussionNotEditable" xml:space="preserve">
     <value>فقط پیامی که هنوز در انتظار تأیید ادمین است قابل ویرایش یا حذف است.</value>
+  </data>
+  <data name="DiscountPastilPercentTooHigh" xml:space="preserve">
+    <value>درصد تخفیف پاستیل ({0}٪) نمی‌تواند از سهم پاستیل این فروشگاه ({1}٪) بیشتر باشد.</value>
+  </data>
+  <data name="DiscountPastilOnlyAdmin" xml:space="preserve">
+    <value>تخفیفِ سهم پاستیل را فقط ادمین می‌تواند تغییر دهد.</value>
+  </data>
+  <data name="StoreCommissionBelowPastilDiscount" xml:space="preserve">
+    <value>سهم پاستیل نمی‌تواند از تخفیف فعالِ پاستیل این فروشگاه ({0}٪) کمتر شود؛ ابتدا آن تخفیف را کاهش یا غیرفعال کنید.</value>
   </data>
 </root>

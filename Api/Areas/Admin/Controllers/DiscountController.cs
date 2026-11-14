@@ -55,7 +55,7 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Post(DiscountDto discountDto)
         {
 
-            var dto = await discountService.InsertAsync(discountDto);
+            var dto = await discountService.InsertAsync(discountDto, byAdmin: true);
             return Ok(dto);
         }
         /// <summary>
@@ -67,7 +67,7 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Put(DiscountDto discountDto)
         {
 
-            var dto = await discountService.ActiveAsync(discountDto);
+            var dto = await discountService.ActiveAsync(discountDto, byAdmin: true);
             return Ok(dto);
         }
         /// <summary>
@@ -79,7 +79,7 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(DiscountDto discount)
         {
 
-            var dto = await discountService.DeleteAsync(discount);
+            var dto = await discountService.DeleteAsync(discount, byAdmin: true);
             return Ok(dto);
         }
     }

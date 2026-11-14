@@ -999,7 +999,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.Property(item => item.MaximumBenefitValue).HasPrecision(18, 2);
                 entity.HasIndex(item => new { item.Active, item.StartDate, item.EndDate });
                 entity.ToTable(table =>
-                    table.HasCheckConstraint("CK_ClubRewardTemplate_PointCost", "[PointCost] > 0"));
+                    table.HasCheckConstraint("CK_ClubRewardTemplate_PointCost", "[PointCost] >= 0"));
                 entity.HasOne(item => item.Picture)
                     .WithMany()
                     .HasForeignKey(item => item.PictureId)

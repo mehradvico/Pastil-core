@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Common.Enumerable;
 using Application.Common.Enumerable.Code;
 using Application.Common.Enumerable.Message;
@@ -319,21 +319,10 @@ namespace Application.Services.Order.ProductOrderSrv
 
         private static void RecalculateCommission(ProductOrder order)
         {
-            decimal totalStoreShare = 0m, totalSiteShare = 0m;
-            foreach (var store in order.ProductOrderStores)
-            {
-                if (store.Store == null || store.PaymentPrice <= 0)
-                    continue;
-                var percent = store.Store.CommissionPercent;
-                if (percent < 0 || percent > 100)
-                    continue;
-                var payment = (decimal)store.PaymentPrice;
-                var siteShare = payment * percent / 100m;
-                totalSiteShare += siteShare;
-                totalStoreShare += payment - siteShare;
-            }
+            var (totalStoreShare, totalSiteShare, totalFunded) = ProductOrderCommissionRules.ForOrder(order.ProductOrderStores);
             order.SiteShare = (double)totalSiteShare;
             order.StoreShare = (double)totalStoreShare;
+            order.PastilFundedAmount = (double)Math.Round(totalFunded, 2);
         }
 
         // ---------------------------------------------------------------- پیام‌ها

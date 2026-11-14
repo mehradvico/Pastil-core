@@ -43,8 +43,12 @@ namespace Api.Areas.EndUser.Controllers
             }
             else
             {
-                var amount = await _walletService.GetAmountAsync(currentUser.UserId);
-                currentUser.WalletAmount = amount.Data;
+                // نقد + اعتبار کلاب: بدون این، کاربری که فقط هدیه‌ی کلاب دارد موجودی صفر می‌دید و گزینه‌ی پرداخت با کیف پول خاموش بود
+                var balance = await _walletService.GetDisplayBalanceAsync(currentUser.UserId);
+                currentUser.WalletAmount = balance.Total;
+                currentUser.WalletCashAmount = balance.Cash;
+                currentUser.WalletCreditAmount = balance.Credit;
+                currentUser.WalletCreditExpiresAt = balance.CreditExpiresAt;
                 return Ok(new BaseResultDto<CurrentUserDto>(true, currentUser));
             }
         }

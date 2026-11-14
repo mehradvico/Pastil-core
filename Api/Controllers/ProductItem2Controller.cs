@@ -32,9 +32,9 @@ namespace Api.Controllers
         /// 
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BaseResultDto<ProductItemVarietyVDto>), 200)]
-        public async Task<IActionResult> Get(long id, long? varietyItem1Id, long? varietyItem2Id)
+        public async Task<IActionResult> Get(long id, long? varietyItem1Id, long? varietyItem2Id, [FromQuery] long? storeId = null)
         {
-            var ProductItem = await ProductItemService.GetVariety2Async(id, varietyItem1Id, varietyItem2Id);
+            var ProductItem = await ProductItemService.GetVariety2Async(id, varietyItem1Id, varietyItem2Id, storeId);
             return Ok(ProductItem);
         }
 

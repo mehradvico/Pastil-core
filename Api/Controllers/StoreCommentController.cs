@@ -33,7 +33,8 @@ namespace Api.Controllers
         [ProducesResponseType(typeof(StoreCommentSearchDto), 200)]
         public IActionResult Get([FromQuery] StoreCommentInputDto dto)
         {
-            dto.Available = true;
+            dto.Available = true;     // فقط نظرات تأییدشده
+            dto.AllStatus = false;    // کلاینت نمی‌تواند با AllStatus=true فیلتر را دور بزند
             var post = _storeCommentService.Search(dto);
             return Ok(post);
         }

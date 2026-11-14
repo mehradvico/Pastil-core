@@ -33,7 +33,12 @@ namespace Application.Services.Dto
         public long? ActorUserId { get; set; }
         public bool IsActingForProvider => ActingProviderId.HasValue;
 
+        /// <summary>موجودی نمایشی کیف پول = نقد + اعتبار کلاب قابل خرج در همه‌جا (WalletCashAmount + WalletCreditAmount).</summary>
         public double WalletAmount { get; set; }
+        public double WalletCashAmount { get; set; }
+        /// <summary>اعتبار تشویقی فعال کلاب (مثل هدیه‌ی ۲۰۰ هزار تومانی پروفایل پت).</summary>
+        public double WalletCreditAmount { get; set; }
+        public System.DateTimeOffset? WalletCreditExpiresAt { get; set; }
         public PictureVDto Picture { get; set; }
         public UserCurrentLocationVDto UserCurrentLocation { get; set; }
 

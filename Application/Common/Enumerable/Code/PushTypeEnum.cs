@@ -277,5 +277,13 @@ namespace Application.Common.Enumerable.Code
         PushMissingProductApproved = 173,
         /// <summary>به کاربران فروشگاه: درخواست افزودن به کاتالوگ رد شد. Token1 = نام درخواست، Token2 = دلیل.</summary>
         PushMissingProductRejected = 174,
+        /// <summary>به کاربر: هدیه‌ی ۲۰۰ هزار تومانی تکمیل پروفایل اولین پت در کلاب آماده است. Token1 = شناسه‌ی پیشنهاد کلاب.</summary>
+        PushClubPetProfileGift = 175,
+        /// <summary>به کاربر: پرداخت درگاه ناموفق ماند (۵ دقیقه بعد). Token1 = مسیر صفحه‌ی پرداخت دوباره در وب‌اپ.</summary>
+        PushPaymentFailed = 176,
+        /// <summary>به کاربر: رزرو ثبت‌شده هنوز پرداخت نشده (۳۰ دقیقه بعد). Token1 = نام مرکز/خدمت، Token2 = مسیر وب‌اپ، Token3 = کلید رزرو (kind:id).</summary>
+        PushUnpaidReserve = 177,
+        /// <summary>به کاربر: یادآوری دوم سبد رها شده (۳ ساعت بعد از آخرین کالا).</summary>
+        PushAbandonedCartSecond = 178,
     }
 }

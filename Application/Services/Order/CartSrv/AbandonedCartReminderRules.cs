@@ -2,25 +2,46 @@ using System;
 
 namespace Application.Services.Order.CartSrv
 {
-    // قواعد خالص یادآوری «سبد خرید رها شده» (پوش ساعت ۱۸ و پیامک ساعت ۲۴). طراحی: backend/Docs/ABANDONED_CART_REMINDER_FA.md
+    // قواعد خالص یادآوری «سبد خرید رها شده»، نسبی به آخرین کالای افزوده‌شده (تأیید ۱۴۰۵/۰۸/۲۳):
+    //   پوش اول ۱ ساعت بعد، پوش دوم ۳ ساعت بعد (و دست‌کم ۲ ساعت بعد از پوش اول)، پیامک ۲۴ ساعت بعد. بدون تخفیف.
+    // هر کالای تازه در سبد شمارش را از نو شروع می‌کند؛ سبد خالی (سفارش یا حذف) هیچ یادآوری نمی‌گیرد.
+    // ساعت سکوت در MarketingQuietHours است. طراحی: backend/Docs/ABANDONED_CART_REMINDER_FA.md
     public static class AbandonedCartReminderRules
     {
-        /// <summary>حداکثر تعداد ارسال از هر کانال (پوش/پیامک) برای یک «سبد» تا وقتی کاربر دوباره کالایی اضافه نکرده؛ یعنی فقط ۲ روز.</summary>
-        public const int MaxSendsPerChannel = 2;
+        public const int MaxPushes = 2;
+        public const int MaxSms = 1;
 
-        /// <summary>سبدی که کمتر از این مدت از آخرین کالای افزوده‌شده‌اش گذشته هنوز «در حال خرید» حساب می‌شود.</summary>
-        public static readonly TimeSpan MinIdle = TimeSpan.FromHours(2);
+        public static readonly TimeSpan FirstPushIdle = TimeSpan.FromHours(1);
+        public static readonly TimeSpan SecondPushIdle = TimeSpan.FromHours(3);
+        public static readonly TimeSpan MinGapBetweenPushes = TimeSpan.FromHours(2);
+        /// <summary>بعد از این مدت پوش دیگری نمی‌رود؛ نوبت پیامک است.</summary>
+        public static readonly TimeSpan PushMaxAge = TimeSpan.FromHours(24);
+        public static readonly TimeSpan SmsIdle = TimeSpan.FromHours(24);
 
         /// <summary>سقف اطمینان: سبدی که آخرین فعالیتش از این قدیمی‌تر است دیگر یادآوری نمی‌گیرد.</summary>
         public static readonly TimeSpan MaxAge = TimeSpan.FromDays(3);
 
+        /// <summary>سبدی که کمتر از این مدت از آخرین کالایش گذشته اصلاً نامزد یادآوری نیست.</summary>
+        public static TimeSpan MinIdle => FirstPushIdle;
+
         public const int ProductNameMaxLength = 30;
 
-        // lastActivity: تاریخ آخرین کالایی که به سبد اضافه شده. sentSinceActivity: تعداد ارسال‌های همین کانال بعد از آن تاریخ.
-        public static bool IsEligible(DateTime lastActivity, DateTime now, int sentSinceActivity)
+        // شماره‌ی پوشی که الان باید برود (۱ یا ۲) یا ۰. pushesSent/lastPushAt: پوش‌های سبد رها شده بعد از آخرین فعالیت.
+        public static int NextPush(DateTime lastActivity, DateTime now, int pushesSent, DateTime? lastPushAt)
         {
             var age = now - lastActivity;
-            return age >= MinIdle && age <= MaxAge && sentSinceActivity < MaxSendsPerChannel;
+            if (age > PushMaxAge || pushesSent >= MaxPushes)
+                return 0;
+            if (pushesSent == 0)
+                return age >= FirstPushIdle ? 1 : 0;
+            var gapOk = !lastPushAt.HasValue || now - lastPushAt.Value >= MinGapBetweenPushes;
+            return age >= SecondPushIdle && gapOk ? 2 : 0;
+        }
+
+        public static bool IsSmsDue(DateTime lastActivity, DateTime now, int smsSent)
+        {
+            var age = now - lastActivity;
+            return age >= SmsIdle && age <= MaxAge && smsSent < MaxSms;
         }
 
         // نام کالا در متن پوش/پیامک: فاصله‌های اضافه حذف و از آخرین فاصله‌ی قبل از سقف طول بریده می‌شود تا وسط کلمه قطع نشود.

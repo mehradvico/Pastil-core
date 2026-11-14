@@ -27,13 +27,25 @@ namespace Application.Tests.PastilClub
         }
 
         [Fact]
-        public void IsComplete_ForMixedBreedWithoutDistinctSecondBreed_ReturnsFalse()
+        public void IsComplete_ForMixedBreedWithoutSecondBreed_ReturnsTrue()
         {
+            // فرم وب‌اپ نژاد دوم ندارد؛ نژاد دوم دیگر شرط کامل بودن نیست
             var userPet = CreateCompletePet();
             userPet.IsMixBreed = true;
-            userPet.PetBreed2Id = userPet.PetBreedId;
+            userPet.PetBreed2Id = null;
 
-            Assert.False(_service.IsComplete(userPet));
+            Assert.True(_service.IsComplete(userPet));
+        }
+
+        [Fact]
+        public void MissingFields_ListsEveryMissingField()
+        {
+            var userPet = new UserPet { Active = true, Birthday = DateTime.Today.AddDays(1) };
+
+            Assert.Equal(
+                new[] { PetProfileFields.Name, PetProfileFields.PetType, PetProfileFields.Picture, PetProfileFields.Breed, PetProfileFields.Birthday },
+                _service.MissingFields(userPet));
+            Assert.Empty(_service.MissingFields(CreateCompletePet()));
         }
 
         [Fact]

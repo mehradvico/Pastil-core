@@ -25,6 +25,8 @@ namespace Entities.Entities
         public double PaymentPrice { get; set; }
         public double SiteShare {  get; set; }
         public double StoreShare { get; set; }
+        /// <summary>جمع تخفیفِ سهم پاستیل در این سفارش (هزینه‌ی پاستیل؛ فروشگاه همین مبلغ را از پاستیل «طلب» دارد، یعنی در سهم فروشگاه لحاظ شده).</summary>
+        public double PastilFundedAmount { get; set; }
         public System.DateTime CreateDate { get; set; }
         public string UserDescription { get; set; }
         public string AdminDescription { get; set; }

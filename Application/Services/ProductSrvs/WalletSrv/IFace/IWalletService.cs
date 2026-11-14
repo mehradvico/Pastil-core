@@ -11,6 +11,12 @@ namespace Application.Services.ProductSrvs.WalletSrv.IFace
         Task<double> GetAmountValueAsync(long userId);
         Task<double> GetSpendableAmountValueAsync(long userId, ClubRewardTargetTypeEnum scopeType, long? scopeId);
         Task<BaseResultDto<double>> GetAmountAsync(long userId);
+
+        /// <summary>
+        /// موجودی نمایشی کیف پول = نقد + اعتبار تشویقی فعال کلاب که همه‌جا خرج می‌شود (Global، مثل هدیه‌ی تکمیل پروفایل پت).
+        /// اعتبارهای مخصوص یک فروشگاه/مرکز در این جمع نیستند. برای کسر نقدی همچنان GetAmountValueAsync ملاک است.
+        /// </summary>
+        Task<WalletBalanceDto> GetDisplayBalanceAsync(long userId);
         Task<BaseResultDto<WalletVDto>> FindAsyncVDto(long id);
         WalletSearchDto Search(WalletInputDto baseSearchDto);
         Task<BaseResultDto<WalletDto>> InsertAsyncDto(WalletDto dto);

@@ -653,7 +653,7 @@ DELETE /api/Admin/Code?id={id}
 | Code ID | Label | عنوان نمایشی | Priority |
 |---:|---|---|---:|
 | 131 | `PushMessageType_Admin` | مدیران | 1 |
-| 132 | `PushMessageType_Companion` | همراهان | 2 |
+| 132 | `PushMessageType_Companion` | ارائه‌دهندگان (صاحب/همکار Provider، صاحب/پرسنل کلینیک/مربی/آرایشگاه، نمایندگی قدیمی) | 2 |
 | 133 | `PushMessageType_Pansion` | پانسیون‌ها | 3 |
 | 134 | `PushMessageType_EndUser` | کاربران | 4 |
 | 135 | `PushMessageType_Store` | فروشگاه‌ها | 5 |

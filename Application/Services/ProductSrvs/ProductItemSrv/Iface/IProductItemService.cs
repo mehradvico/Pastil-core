@@ -17,7 +17,7 @@ namespace Application.Services.ProductSrvs.ProductItemSrv.Iface
         Task<BaseResultDto> GetInsertOrUpdateListAsync(ProductItemListRequestDto productItemListrequest);
         Task<BaseResultDto> GetVarietyAsync(long productId);
         Task<BaseResultDto> GetProductVarietyStructureAsync(long productId);
-        Task<BaseResultDto<ProductItemForProductDto>> GetForProductVDto(long productId);
-        Task<BaseResultDto> GetVariety2Async(long productId, long? varietyItem1Id, long? varietyItem2Id);
+        Task<BaseResultDto<ProductItemForProductDto>> GetForProductVDto(long productId, long? storeId = null);
+        Task<BaseResultDto> GetVariety2Async(long productId, long? varietyItem1Id, long? varietyItem2Id, long? storeId = null);
     }
 }

@@ -17,6 +17,8 @@ namespace Entities.Entities
         public long? ProductItemId { get; set; }
         public bool Active { get; set; }
         public bool Deleted { get; set; }
+        /// <summary>true = تخفیفِ «سهم پاستیل» (فقط ادمین می‌سازد؛ درصدش ≤ سهم پاستیل از فروش این فروشگاه؛ هزینه‌اش با پاستیل است). false = تخفیف خودِ فروشگاه (هزینه‌اش با فروشگاه).</summary>
+        public bool FundedByPastil { get; set; }
 
         public DiscountGroup DiscountGroup { get; set; }
         public Code Type { get; set; }

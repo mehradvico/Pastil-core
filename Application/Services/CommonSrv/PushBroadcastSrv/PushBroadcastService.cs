@@ -168,6 +168,15 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
             // مالک پانسیون: کاربر ارائه‌دهنده، وگرنه مالک نمایندگی (پانسیون قدیمی)
             var pansionOwners = _context.Pansions.Where(p => p.Active && !p.Deleted && (p.Provider != null || p.Companion != null))
                 .Select(p => p.Provider != null ? p.Provider.UserId : p.Companion.OwnerId);
+            // کاربران اپ ارائه‌دهنده (سیستم جدید)؛ هم‌راستا با UserTokenService.IsPartnerAsync
+            var providerUsers = _context.Providers.Where(p => !p.Deleted && p.Active).Select(p => p.UserId)
+                .Concat(_context.ProviderUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true && !u.Provider.Deleted && u.Provider.Active).Select(u => u.UserId))
+                .Concat(_context.Clinics.Where(c => !c.Deleted).Select(c => c.OwnerId))
+                .Concat(_context.Coaches.Where(c => !c.Deleted).Select(c => c.OwnerId))
+                .Concat(_context.Groomers.Where(g => !g.Deleted).Select(g => g.OwnerId))
+                .Concat(_context.ClinicUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId))
+                .Concat(_context.CoachUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId))
+                .Concat(_context.GroomerUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId));
 
             switch (type)
             {
@@ -181,8 +190,12 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
                     return query.Where(x => x.UserId != null && x.User.RoleId == (long)RoleEnum.Operator);
 
                 case PushMessageTypeEnum.PushMessageType_Companion:
+                    // مخاطب «ارائه‌دهندگان» (برچسب Code همچنان PushMessageType_Companion است): هر کسی که با اپ ارائه‌دهنده کار می‌کند —
+                    // همان تعریف IsPartnerAsync: صاحب Provider، همکار پذیرفته‌شده‌ی Provider، صاحب/پرسنل پذیرفته‌شده‌ی کلینیک/مربی/آرایشگاه،
+                    // و صاحب/پرسنل نمایندگی قدیمی (Companion) که هنوز ظرف پانسیون/مدرسه است.
                     return query.Where(x => x.UserId != null && (
                         x.User.RoleId == (long)RoleEnum.Companion ||
+                        providerUsers.Contains(x.UserId.Value) ||
                         companionOwners.Contains(x.UserId.Value) ||
                         companionStaff.Contains(x.UserId.Value)));
 
@@ -200,6 +213,7 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
                         x.User.RoleId == (long)RoleEnum.Customer &&
                         !companionOwners.Contains(x.UserId.Value) &&
                         !companionStaff.Contains(x.UserId.Value) &&
+                        !providerUsers.Contains(x.UserId.Value) &&
                         !x.User.Stores.Any(s => s.Active && !s.Deleted));
 
                 default:

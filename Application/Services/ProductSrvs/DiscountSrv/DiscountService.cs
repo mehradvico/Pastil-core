@@ -80,11 +80,23 @@ namespace Application.Services.ProductSrvs.DiscountSrv
             await _productService.UpdateProductPriceAsync(updateType, Id: updateId.ToString());
             await SetStoreMaxDiscountAsync(discount.StoreId);
         }
-        public async Task<BaseResultDto> ActiveAsync(DiscountDto discount)
+        public async Task<BaseResultDto> ActiveAsync(DiscountDto discount, bool byAdmin = false)
         {
             var item = await _context.Discounts.Include(s => s.Type).FirstOrDefaultAsync(s => s.Id == discount.Id && s.StoreId == discount.StoreId);
             if (item != null)
             {
+                if (item.FundedByPastil)
+                {
+                    // تخفیفِ سهم پاستیل فقط توسط ادمین؛ و فعال‌کردنش دوباره باید زیر سقفِ سهم پاستیل باشد
+                    if (!byAdmin)
+                        return new BaseResultDto(false, Resource.Notification.DiscountPastilOnlyAdmin);
+                    if (discount.Active)
+                    {
+                        var error = await CheckPastilPercentAsync(item.StoreId, item.Percent);
+                        if (error != null)
+                            return new BaseResultDto(false, error);
+                    }
+                }
                 item.Active = discount.Active;
                 _context.Discounts.Update(item);
                 await _context.SaveChangesAsync();
@@ -95,11 +107,13 @@ namespace Application.Services.ProductSrvs.DiscountSrv
             return new BaseResultDto(false);
         }
 
-        public async Task<BaseResultDto> DeleteAsync(DiscountDto discount)
+        public async Task<BaseResultDto> DeleteAsync(DiscountDto discount, bool byAdmin = false)
         {
             var item = await _context.Discounts.Include(s => s.Type).FirstOrDefaultAsync(s => s.Id == discount.Id && s.StoreId == discount.StoreId);
             if (item != null)
             {
+                if (item.FundedByPastil && !byAdmin)
+                    return new BaseResultDto(false, Resource.Notification.DiscountPastilOnlyAdmin);
                 item.Deleted = true;
                 _context.Discounts.Update(item);
                 await _context.SaveChangesAsync();
@@ -122,10 +136,13 @@ namespace Application.Services.ProductSrvs.DiscountSrv
         }
 
 
-        public async Task<BaseResultDto> InsertAsync(DiscountDto discount)
+        public async Task<BaseResultDto> InsertAsync(DiscountDto discount, bool byAdmin = false)
         {
             try
             {
+                // فقط ادمین می‌تواند تخفیفِ سهم پاستیل بسازد؛ هرچه فروشنده در بدنه بفرستد نادیده گرفته می‌شود
+                if (!byAdmin)
+                    discount.FundedByPastil = false;
                 if (discount.EndDate != null)
                     discount.EndDate = discount.EndDate.Value.Date;
                 if (discount.Percent < 1 || discount.Percent > 99)
@@ -197,6 +214,13 @@ namespace Application.Services.ProductSrvs.DiscountSrv
                 }
                 if (!await IsTargetOwnedByStoreAsync(discount, type?.Label))
                     return new BaseResultDto<DiscountDto>(false, "DISCOUNT_TARGET_NOT_OWNED_BY_STORE", discount);
+
+                if (discount.FundedByPastil)
+                {
+                    var pastilError = await CheckPastilPercentAsync(discount.StoreId, discount.Percent);
+                    if (pastilError != null)
+                        return new BaseResultDto<DiscountDto>(false, pastilError, discount);
+                }
 
                 var item = mapper.Map<Discount>(discount);
                 await _context.Discounts.AddAsync(item);
@@ -304,6 +328,15 @@ namespace Application.Services.ProductSrvs.DiscountSrv
                 }
             }
             return new DiscountSearchDto(searchDto, query, mapper);
+        }
+
+        /// <summary>تخفیفِ سهم پاستیل باید ≤ درصد کمیسیون (سهم پاستیل از فروش) همان فروشگاه باشد؛ null = معتبر.</summary>
+        private async Task<string> CheckPastilPercentAsync(long storeId, int percent)
+        {
+            var commission = await _context.Stores.AsNoTracking().Where(s => s.Id == storeId && !s.Deleted).Select(s => (decimal?)s.CommissionPercent).FirstOrDefaultAsync();
+            if (commission == null || percent > commission.Value)
+                return string.Format(System.Globalization.CultureInfo.InvariantCulture, Resource.Notification.DiscountPastilPercentTooHigh, percent, (commission ?? 0m).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
+            return null;
         }
 
         private async Task SetStoreMaxDiscountAsync(long storeId)

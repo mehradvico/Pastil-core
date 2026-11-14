@@ -36,6 +36,15 @@ namespace Application.Services.ProductSrv.Dto
 
         public long[] FeatureItemIds { get; set; }
 
+        /// <summary>
+        /// عبارتی که عملاً جستجو شد، فقط وقتی با Q فرق دارد (غلط املایی اصلاح شد، کیبورد اشتباه بود یا کلمه‌ای کنار گذاشته شد)؛
+        /// وگرنه null. برای نمایش «نتایج برای …» در کلاینت.
+        /// </summary>
+        public string CorrectedQ { get; set; }
+
+        /// <summary>کلمه‌هایی از Q که هیچ محصولی نداشتند و برای خالی‌نماندن نتیجه کنار گذاشته شدند؛ وگرنه null.</summary>
+        public string[] IgnoredWords { get; set; }
+
         public bool? Active { get; set; }
         public long? NotId { get; set; }
         public long[] BrandIds { get; set; }

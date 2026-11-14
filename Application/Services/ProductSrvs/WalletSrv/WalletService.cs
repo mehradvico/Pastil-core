@@ -83,6 +83,28 @@ namespace Application.Services.ProductSrvs.WalletSrv
             return new BaseResultDto<double>(true, amount);
         }
 
+        public async Task<WalletBalanceDto> GetDisplayBalanceAsync(long userId)
+        {
+            var cash = await GetAmountValueAsync(userId);
+            var now = DateTimeOffset.UtcNow;
+            var credits = await _context.ClubPromotionalWalletCredits.AsNoTracking()
+                .Where(item => item.UserId == userId &&
+                    item.Status == ClubPromotionalCreditStatusEnum.Active &&
+                    item.ExpiresAt > now &&
+                    item.RemainingAmount > 0 &&
+                    item.ServiceScopeType == ClubRewardTargetTypeEnum.Global)
+                .Select(item => new { item.RemainingAmount, item.ExpiresAt })
+                .ToListAsync();
+            var credit = decimal.ToDouble(credits.Sum(item => item.RemainingAmount));
+            return new WalletBalanceDto
+            {
+                Cash = cash,
+                Credit = credit,
+                Total = cash + credit,
+                CreditExpiresAt = credits.Count == 0 ? null : credits.Min(item => item.ExpiresAt)
+            };
+        }
+
         public async Task<double> GetSpendableAmountValueAsync(
             long userId,
             ClubRewardTargetTypeEnum scopeType,

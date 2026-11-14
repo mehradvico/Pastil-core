@@ -1585,6 +1585,33 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Store priced delivery cannot use live pricing.
+        /// </summary>
+        public static string DeliveryStorePricedNoLive {
+            get {
+                return ResourceManager.GetString("DeliveryStorePricedNoLive", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Store priced delivery needs a price or after-rent.
+        /// </summary>
+        public static string DeliveryStorePricedPriceRequired {
+            get {
+                return ResourceManager.GetString("DeliveryStorePricedPriceRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to AloPeyk is only available inside Tehran.
+        /// </summary>
+        public static string DeliveryAloPeykTehranOnly {
+            get {
+                return ResourceManager.GetString("DeliveryAloPeykTehranOnly", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Delivery Provider Required For Live Pricing.
         /// </summary>
         public static string DeliveryProviderRequiredForLivePricing {
@@ -5424,6 +5451,24 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to PetResan trip.
+        /// </summary>
+        public static string UnpaidReserveTripName {
+            get {
+                return ResourceManager.GetString("UnpaidReserveTripName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to your reservation.
+        /// </summary>
+        public static string UnpaidReserveDefaultName {
+            get {
+                return ResourceManager.GetString("UnpaidReserveDefaultName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wallet deposit.
         /// </summary>
         public static string WalletReasonGenericIncrease {
@@ -7639,6 +7684,33 @@ namespace Resource {
         public static string DiscussionNotEditable {
             get {
                 return ResourceManager.GetString("DiscussionNotEditable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The Pastil discount (X%) cannot exceed Pastil's share of this store (Y%).
+        /// </summary>
+        public static string DiscountPastilPercentTooHigh {
+            get {
+                return ResourceManager.GetString("DiscountPastilPercentTooHigh", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only an admin can change a Pastil-funded discount.
+        /// </summary>
+        public static string DiscountPastilOnlyAdmin {
+            get {
+                return ResourceManager.GetString("DiscountPastilOnlyAdmin", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pastil's share cannot be lower than the active Pastil discount of this store (X%). Reduce or disable that discount first.
+        /// </summary>
+        public static string StoreCommissionBelowPastilDiscount {
+            get {
+                return ResourceManager.GetString("StoreCommissionBelowPastilDiscount", resourceCulture);
             }
         }
 

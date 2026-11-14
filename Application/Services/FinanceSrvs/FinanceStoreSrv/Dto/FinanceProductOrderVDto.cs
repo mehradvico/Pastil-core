@@ -15,6 +15,8 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv.Dto
         public decimal CommissionPercent { get; set; }
         public double StoreShare { get; set; }
         public double SiteShare { get; set; }
+        /// <summary>تخفیف سهم پاستیل این سفارش؛ StoreShare روی (پرداختی + این مبلغ) حساب شده و SiteShare = کمیسیون − این مبلغ.</summary>
+        public double PastilFundedAmount { get; set; }
         public string StatusLabel { get; set; }
         public bool Permitted { get; set; }
         // تحویل‌گیری توسط خود مشتری (برای بررسی قبل از تسویه): null = هنوز پاسخ نداده، true = تحویل گرفت، false = تحویل نگرفت

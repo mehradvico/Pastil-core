@@ -131,6 +131,18 @@ namespace Application.Services.PastilClubSrvs.RewardRedemptionSrv
                 .FromSqlInterpolated($"SELECT * FROM ClubPointAccounts WITH (UPDLOCK, ROWLOCK) WHERE UserId = {userId}")
                 .AsTracking()
                 .FirstOrDefaultAsync(cancellationToken);
+            if (account == null && offer.PointCostSnapshot == 0)
+            {
+                // جایزه‌ی رایگان برای کاربری که هنوز حساب امتیاز ندارد: حساب خالی ساخته می‌شود تا ردیف تراکنش صفر ثبت شود
+                account = new ClubPointAccount
+                {
+                    UserId = userId,
+                    CreateDate = DateTime.UtcNow,
+                    LastUpdateDate = DateTime.UtcNow
+                };
+                await _context.ClubPointAccounts.AddAsync(account, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
             if (account == null)
                 return Failure("CLUB_POINT_NOT_ENOUGH");
             if (!ClubRewardOfferPolicy.CanRedeem(
@@ -143,10 +155,12 @@ namespace Application.Services.PastilClubSrvs.RewardRedemptionSrv
             ClubPointBalanceChange balance;
             try
             {
-                balance = ClubPointBalanceCalculator.Spend(
-                    account.AvailablePoint,
-                    account.DebtPoint,
-                    offer.PointCostSnapshot);
+                balance = offer.PointCostSnapshot == 0
+                    ? new ClubPointBalanceChange(account.AvailablePoint, account.DebtPoint, 0, 0)
+                    : ClubPointBalanceCalculator.Spend(
+                        account.AvailablePoint,
+                        account.DebtPoint,
+                        offer.PointCostSnapshot);
             }
             catch (InvalidOperationException exception)
             {

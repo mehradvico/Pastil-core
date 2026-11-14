@@ -441,29 +441,12 @@ namespace Application.Services.Order.ProductOrderSrv
             if (order == null || order.StoreShare > 0 || order.SiteShare > 0)
                 return Task.CompletedTask;
 
-            decimal totalStoreShare = 0m;
-            decimal totalSiteShare = 0m;
-
-            foreach (var s in order.ProductOrderStores ?? Enumerable.Empty<ProductOrderStore>())
-            {
-                if (s.Store == null || s.PaymentPrice <= 0)
-                    continue;
-
-                decimal percent = s.Store.CommissionPercent;
-                if (percent < 0 || percent > 100)
-                    continue;
-
-                decimal payment = (decimal)s.PaymentPrice;
-                decimal siteShare = (payment * percent) / 100m;
-                decimal storeShare = payment - siteShare;
-
-                totalStoreShare += storeShare;
-                totalSiteShare += siteShare;
-            }
+            var (totalStoreShare, totalSiteShare, totalFunded) = ProductOrderCommissionRules.ForOrder(order.ProductOrderStores);
 
             if (totalStoreShare == 0 && totalSiteShare == 0)
                 return Task.CompletedTask;
 
+            order.PastilFundedAmount = (double)Math.Round(totalFunded, 2);
             order.StoreShare = (double)totalStoreShare;
             order.SiteShare = (double)totalSiteShare;
 

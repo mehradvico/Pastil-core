@@ -129,7 +129,10 @@ namespace Application.Services.PastilClubSrvs.RewardTemplateSrv
             if (dto == null ||
                 string.IsNullOrWhiteSpace(dto.Name) ||
                 string.IsNullOrWhiteSpace(dto.Title) ||
-                dto.PointCost <= 0 ||
+                // امتیاز صفر فقط برای هدیه‌ای که سیستم خودش به کاربر خاص می‌دهد (هدیه‌ی تکمیل پروفایل پت)؛ وگرنه پیشنهاد
+                // خودکار همگانی یا دستی، جایزه‌ی مجانی برای همه می‌شد
+                dto.PointCost < 0 ||
+                dto.PointCost == 0 && (dto.IsAutomationAllowed || dto.IsManualAllowed) ||
                 !Enum.IsDefined(dto.RewardType) ||
                 !Enum.IsDefined(dto.ApplicationMethod) ||
                 !Enum.IsDefined(dto.ExpirationType) ||
