@@ -107,6 +107,17 @@ public class ShipmentLifecycleRulesTests
     }
 
     [Fact]
+    public void Deadline_text_for_the_store_sms_names_the_day_when_it_is_not_today()
+    {
+        // Now = ۱۵:۳۰ تهران، دوشنبه ۵ اکتبر ۲۰۲۶
+        Assert.Equal("ساعت 16:00", ShipmentLifecycleRules.DeadlineText(new DateTime(2026, 10, 5, 12, 30, 0, DateTimeKind.Utc), Now));
+        Assert.Equal("فردا ساعت 10:00", ShipmentLifecycleRules.DeadlineText(new DateTime(2026, 10, 6, 6, 30, 0, DateTimeKind.Utc), Now));
+        Assert.Equal("چهارشنبه ساعت 09:00", ShipmentLifecycleRules.DeadlineText(new DateTime(2026, 10, 7, 5, 30, 0, DateTimeKind.Utc), Now));
+        // نیمه‌شب تهران هنوز «همان روز تهران» حساب می‌شود، نه روز UTC
+        Assert.Equal("ساعت 23:30", ShipmentLifecycleRules.DeadlineText(new DateTime(2026, 10, 5, 20, 0, 0, DateTimeKind.Utc), Now));
+    }
+
+    [Fact]
     public void Slot_hours_are_short_for_round_hours()
     {
         Assert.Equal("9", ShipmentLifecycleRules.FormatHour(TimeSpan.FromHours(9)));

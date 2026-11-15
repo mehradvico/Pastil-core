@@ -44,8 +44,10 @@ public class AbandonedCartReminderRulesTests
     {
         Assert.Equal(93, (int)PushTypeEnum.PushAbandonedCart);
         // enum پیامک ordinal است: مقدار جدید باید آخرین عضو بماند
-        Assert.Equal(MessageTypeEnum.UnpaidReserveReminder, Enum.GetValues<MessageTypeEnum>().Last());
-        Assert.Equal(MessageTypeEnum.ProductOrderExpressUser, Enum.GetValues<MessageTypeEnum>().SkipLast(15).Last());
-        Assert.Equal(MessageTypeEnum.UserAbandonedCart, Enum.GetValues<MessageTypeEnum>().SkipLast(31).Last());
+        Assert.Equal(MessageTypeEnum.ProductOrderSellerReminderStore, Enum.GetValues<MessageTypeEnum>().Last());
+        Assert.Equal(MessageTypeEnum.ProductOrderSlotStore, Enum.GetValues<MessageTypeEnum>().SkipLast(1).Last());
+        Assert.Equal(MessageTypeEnum.UnpaidReserveReminder, Enum.GetValues<MessageTypeEnum>().SkipLast(2).Last());
+        Assert.Equal(MessageTypeEnum.ProductOrderExpressUser, Enum.GetValues<MessageTypeEnum>().SkipLast(17).Last());
+        Assert.Equal(MessageTypeEnum.UserAbandonedCart, Enum.GetValues<MessageTypeEnum>().SkipLast(33).Last());
     }
 }

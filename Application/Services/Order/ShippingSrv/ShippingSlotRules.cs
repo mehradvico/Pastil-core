@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Application.Services.Order.ShippingSrv
 {
@@ -38,16 +40,69 @@ namespace Application.Services.Order.ShippingSrv
         public static int HorizonDays(int baseDays, int prepMinutes) =>
             Math.Max(1, baseDays) + (int)Math.Ceiling(Math.Max(0, prepMinutes) / 1440.0);
 
-        // آخرین ساعتی که فروشنده باید «آماده تحویل به پیک» بزند
+        // آخرین ساعتی که فروشنده باید «آماده تحویل به پیک» بزند. چون pickup.deadline هیچ‌وقت کمتر از «الان + MinPickupFromNowMinutes»
+        // نمی‌شود، دکمه باید MinPickupFromNowMinutes زودتر از «آخرین ساعت تحویل به پیک» بسته شود؛ وگرنه فروشنده مهلتی را می‌بیند
+        // که در نیم‌ساعت آخرش سرور ساخت سفر را رد می‌کند.
         public static DateTime ReadyDeadline(DateTime slotEndUtc, int minDeliveryMinutes) =>
-            LatestPickup(slotEndUtc, minDeliveryMinutes);
+            LatestPickup(slotEndUtc, minDeliveryMinutes).AddMinutes(-MinPickupFromNowMinutes);
 
-        // مهلت تأیید فروشنده: min(زمان پرداخت + مدت تأیید، پایان بازه - حداقل زمان رساندن - ۱۰ دقیقه)
-        public static DateTime SellerConfirmDeadline(DateTime paidAtUtc, DateTime slotEndUtc, int confirmMinutes, int minDeliveryMinutes)
+        // مهلت تأیید فروشنده: min(مدت تأیید از لحظه‌ی پرداخت (فقط در «ساعت کاری فروشگاه»)، مهلت «آماده تحویل» - ۵ دقیقه)
+        // storeHours خالی = فروشگاه بدون ساعت کاری ثبت‌شده = همیشه باز (مثل قبل: پرداخت + confirmMinutes).
+        public static DateTime SellerConfirmDeadline(
+            DateTime paidAtUtc, DateTime slotEndUtc, int confirmMinutes, int minDeliveryMinutes,
+            IReadOnlyCollection<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)> storeHours = null)
         {
-            var byDuration = paidAtUtc.AddMinutes(Math.Max(1, confirmMinutes));
-            var bySlot = slotEndUtc.AddMinutes(-(Math.Max(0, minDeliveryMinutes) + 10));
+            var byDuration = AddWorkingMinutes(paidAtUtc, Math.Max(1, confirmMinutes), storeHours);
+            var bySlot = ReadyDeadline(slotEndUtc, minDeliveryMinutes).AddMinutes(-5);
             return byDuration < bySlot ? byDuration : bySlot;
+        }
+
+        // «minutes دقیقه» را فقط از زمان‌های باز بودن فروشگاه (به وقت تهران) مصرف می‌کند. سفارشی که ساعت ۲۲ ثبت شده برای فروشگاهی
+        // با ساعت کاری ۰۹ تا ۱۸ مهلتش فردا ساعت ۱۰ تمام می‌شود، نه ۲۳. بدون ساعت کاری (یا بدون روز باز در ۱۴ روز آینده) = جمع ساده.
+        public static DateTime AddWorkingMinutes(
+            DateTime startUtc, int minutes, IReadOnlyCollection<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)> storeHours)
+        {
+            var plain = startUtc.AddMinutes(minutes);
+            var intervals = (storeHours ?? Array.Empty<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)>())
+                .Where(item => item.Close > item.Open)
+                .ToList();
+            if (intervals.Count == 0)
+                return plain;
+
+            var local = ToTehran(startUtc);
+            var date = local.Date;
+            var timeOfDay = local.TimeOfDay;
+            var remaining = TimeSpan.FromMinutes(minutes);
+            for (var day = 0; day < 15; day++)
+            {
+                foreach (var interval in intervals.Where(item => item.Day == date.DayOfWeek).OrderBy(item => item.Open))
+                {
+                    if (timeOfDay >= interval.Close)
+                        continue;
+                    var from = timeOfDay > interval.Open ? timeOfDay : interval.Open;
+                    var available = interval.Close - from;
+                    if (remaining <= available)
+                        return ToUtc(date, from + remaining);
+                    remaining -= available;
+                }
+                date = date.AddDays(1);
+                timeOfDay = TimeSpan.Zero;
+            }
+            return plain;
+        }
+
+        // یادآوری «آماده تحویل به پیک»: اولی یک ساعت قبل از ساعتی که پیک باید برسد (شروع بازه − PickupLead)؛ دومی ۳۰ دقیقه به مهلت.
+        // با یک ستون (ReadyReminderSentAtUtc) هر دو مرحله جدا تشخیص داده می‌شوند: مرحله‌ی دوم فقط وقتی که زمان ارسال قبلی پیش از آستانه‌ی ۳۰ دقیقه بود.
+        public static bool ShouldSendReadyReminder(
+            DateTime slotStartUtc, DateTime readyDeadlineUtc, int pickupLeadMinutes, DateTime? lastReminderUtc, DateTime nowUtc)
+        {
+            var finalAt = readyDeadlineUtc.AddMinutes(-30);
+            var firstAt = slotStartUtc.AddMinutes(-(Math.Max(0, pickupLeadMinutes) + 60));
+            if (firstAt > finalAt)
+                firstAt = finalAt;
+            if (lastReminderUtc == null)
+                return nowUtc >= firstAt;
+            return lastReminderUtc.Value < finalAt && nowUtc >= finalAt;
         }
 
         // آخرین ساعتی که فروشنده می‌تواند کالا را به پیک بسپارد تا هنوز وقت رساندن داخل بازه باشد.
@@ -64,6 +119,55 @@ namespace Application.Services.Order.ShippingSrv
             var ideal = slotStartUtc.AddMinutes(-Math.Max(0, pickupLeadMinutes));
             var earliest = nowUtc.AddMinutes(MinPickupFromNowMinutes);
             return ideal > earliest ? ideal : earliest;
+        }
+
+        // بازه‌ی تحویل فقط برای فروشگاهی قابل ارائه است که ساعت کاری‌اش با آن بازه هم‌پوشانی دارد و پیک بتواند داخل ساعت کاری کالا را بگیرد:
+        // - بازه با ساعت باز بودن همان روز هم‌پوشانی داشته باشد (فروشگاه ۱۰ تا ۱۷ ← بازه‌ی ۱۷ تا ۲۱ نه، ۹ تا ۱۳ بله)؛
+        // - ساعت تحویل به پیک = بیشینه‌ی (شروع بازه − PickupLead، ساعت بازشدن) هنوز قبل از بسته‌شدن و نه دیرتر از «پایان بازه − MinDelivery» باشد.
+        // بدون هیچ ردیف ساعت کاری = بدون محدودیت؛ با ردیف: روزی که ردیف ندارد تعطیل است (مثل IsStoreOpen).
+        public static bool IsWithinStoreHours(
+            DayOfWeek day, TimeSpan slotStart, TimeSpan slotEnd, int pickupLeadMinutes, int minDeliveryMinutes,
+            IReadOnlyCollection<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)> storeHours)
+        {
+            if (storeHours == null || storeHours.Count == 0)
+                return true;
+            var idealPickup = slotStart - TimeSpan.FromMinutes(Math.Max(0, pickupLeadMinutes));
+            var latestPickup = slotEnd - TimeSpan.FromMinutes(Math.Max(0, minDeliveryMinutes));
+            foreach (var interval in storeHours.Where(item => item.Day == day && item.Close > item.Open))
+            {
+                if (interval.Open >= slotEnd || interval.Close <= slotStart)
+                    continue;
+                var pickup = idealPickup > interval.Open ? idealPickup : interval.Open;
+                if (pickup < interval.Close && pickup <= latestPickup)
+                    return true;
+            }
+            return false;
+        }
+
+        // اولین لحظه‌ی باز بودن فروشگاه در/بعد از utc (به وقت تهران). بدون ساعت کاری (یا بدون روز باز در ۱۴ روز آینده) = همان utc.
+        public static DateTime NextOpenAtOrAfter(
+            DateTime utc, IReadOnlyCollection<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)> storeHours)
+        {
+            var intervals = (storeHours ?? Array.Empty<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)>())
+                .Where(item => item.Close > item.Open)
+                .ToList();
+            if (intervals.Count == 0)
+                return utc;
+            var local = ToTehran(utc);
+            var date = local.Date;
+            var timeOfDay = local.TimeOfDay;
+            for (var day = 0; day < 15; day++)
+            {
+                foreach (var interval in intervals.Where(item => item.Day == date.DayOfWeek).OrderBy(item => item.Open))
+                {
+                    if (timeOfDay >= interval.Close)
+                        continue;
+                    return ToUtc(date, timeOfDay > interval.Open ? timeOfDay : interval.Open);
+                }
+                date = date.AddDays(1);
+                timeOfDay = TimeSpan.Zero;
+            }
+            return utc;
         }
 
         // اکسپرس: پیک بعد از leadMinutes می‌رسد، ولی هیچ‌وقت کمتر از حداقل مورد قبول میاره

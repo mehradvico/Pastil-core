@@ -1,5 +1,6 @@
 using Application.Services.Order.ShippingSrv;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Application.Tests;
@@ -57,8 +58,14 @@ public class ShippingSlotRulesTests
     }
 
     [Fact]
-    public void The_seller_must_hand_over_to_the_courier_before_end_minus_delivery_time()
-        => Assert.Equal(NowUtc.AddHours(4), ShippingSlotRules.ReadyDeadline(NowUtc.AddHours(5), 60));
+    public void The_ready_button_closes_early_enough_for_the_minimum_pickup_lead()
+    {
+        // آخرین ساعت تحویل به پیک = پایان - ۶۰؛ چون پیک حداقل ۳۰ دقیقه بعد از درخواست می‌رسد، دکمه ۳۰ دقیقه زودتر بسته می‌شود
+        var deadline = ShippingSlotRules.ReadyDeadline(NowUtc.AddHours(5), 60);
+        Assert.Equal(NowUtc.AddMinutes(210), deadline);
+        // آخرین لحظه‌ی مجاز: pickup = الان + ۳۰ دقیقه هنوز از آخرین ساعت تحویل به پیک جلو نمی‌افتد
+        Assert.True(ShippingSlotRules.DefaultPickup(NowUtc.AddHours(1), deadline, 30) <= ShippingSlotRules.LatestPickup(NowUtc.AddHours(5), 60));
+    }
 
     [Fact]
     public void Seller_deadline_is_the_earlier_of_the_confirm_window_and_the_slot_limit()
@@ -66,8 +73,125 @@ public class ShippingSlotRulesTests
         var slotEnd = NowUtc.AddHours(5);
         Assert.Equal(NowUtc.AddMinutes(60), ShippingSlotRules.SellerConfirmDeadline(NowUtc, slotEnd, 60, 60));
 
-        var soonSlotEnd = NowUtc.AddMinutes(100); // پایان بازه‌ی نزدیک: ۱۰۰ - (۶۰+۱۰) = ۳۰ دقیقه
-        Assert.Equal(NowUtc.AddMinutes(30), ShippingSlotRules.SellerConfirmDeadline(NowUtc, soonSlotEnd, 60, 60));
+        var soonSlotEnd = NowUtc.AddMinutes(130); // پایان بازه‌ی نزدیک: مهلت آماده‌سازی = ۱۳۰ - (۶۰+۳۰) = ۴۰ ← تأیید ۵ دقیقه زودتر = ۳۵
+        Assert.Equal(NowUtc.AddMinutes(35), ShippingSlotRules.SellerConfirmDeadline(NowUtc, soonSlotEnd, 60, 60));
+    }
+
+    // ساعت کاری ۰۹:۰۰ تا ۱۸:۰۰ تهران برای همه‌ی روزها (UTC+3:30)
+    private static readonly (DayOfWeek, TimeSpan, TimeSpan)[] EveryDay9To18 = Enum.GetValues<DayOfWeek>()
+        .Select(day => (day, TimeSpan.FromHours(9), TimeSpan.FromHours(18))).ToArray();
+
+    private static DateTime Tehran(int day, int hour, int minute = 0) =>
+        ShippingSlotRules.ToUtc(new DateTime(2026, 10, day), new TimeSpan(hour, minute, 0));
+
+    [Fact]
+    public void Working_minutes_without_store_hours_are_plain_minutes()
+        => Assert.Equal(NowUtc.AddMinutes(60), ShippingSlotRules.AddWorkingMinutes(NowUtc, 60, null));
+
+    [Fact]
+    public void Working_minutes_inside_open_hours_do_not_skip_anything()
+        => Assert.Equal(Tehran(5, 11), ShippingSlotRules.AddWorkingMinutes(Tehran(5, 10), 60, EveryDay9To18));
+
+    [Fact]
+    public void An_order_paid_at_night_gets_its_window_when_the_store_opens()
+    {
+        // ۲۲:۰۰ ← مهلت ۶۰ دقیقه‌ای از ۰۹:۰۰ فردا شروع می‌شود و ۱۰:۰۰ تمام می‌شود
+        Assert.Equal(Tehran(6, 10), ShippingSlotRules.AddWorkingMinutes(Tehran(5, 22), 60, EveryDay9To18));
+        // ۰۵:۰۰ صبح همان روز
+        Assert.Equal(Tehran(5, 10), ShippingSlotRules.AddWorkingMinutes(Tehran(5, 5), 60, EveryDay9To18));
+    }
+
+    [Fact]
+    public void A_window_that_crosses_closing_time_continues_next_working_day()
+        // ۱۷:۳۰ ← ۳۰ دقیقه تا بسته‌شدن، ۳۰ دقیقه‌ی باقی‌مانده فردا ۰۹:۳۰
+        => Assert.Equal(Tehran(6, 9, 30), ShippingSlotRules.AddWorkingMinutes(Tehran(5, 17, 30), 60, EveryDay9To18));
+
+    [Fact]
+    public void Closed_days_without_a_row_are_skipped()
+    {
+        // فقط روز بعد باز است؛ ۱۰ اکتبر ۲۰۲۶ = شنبه، ۱۱ = یکشنبه
+        var onlySunday = new[] { (DayOfWeek.Sunday, TimeSpan.FromHours(9), TimeSpan.FromHours(18)) };
+        Assert.Equal(Tehran(11, 10), ShippingSlotRules.AddWorkingMinutes(Tehran(10, 12), 60, onlySunday));
+    }
+
+    [Fact]
+    public void The_seller_confirm_deadline_for_a_far_slot_waits_for_working_hours_but_never_passes_the_slot_limit()
+    {
+        var farSlotEnd = Tehran(8, 13); // سه روز بعد
+        Assert.Equal(Tehran(6, 10), ShippingSlotRules.SellerConfirmDeadline(Tehran(5, 22), farSlotEnd, 60, 60, EveryDay9To18));
+        // بازه‌ی فردا ۹ تا ۱۳ و پرداخت شب قبل: مهلت تأیید از سقف بازه (۱۱:۲۵) جلو نمی‌افتد
+        var tomorrowEnd = Tehran(6, 13);
+        var limit = ShippingSlotRules.ReadyDeadline(tomorrowEnd, 60).AddMinutes(-5);
+        Assert.Equal(limit, ShippingSlotRules.SellerConfirmDeadline(Tehran(5, 22), tomorrowEnd, 600, 60, EveryDay9To18));
+    }
+
+    private static readonly (DayOfWeek, TimeSpan, TimeSpan)[] EveryDay10To17 = Enum.GetValues<DayOfWeek>()
+        .Select(day => (day, TimeSpan.FromHours(10), TimeSpan.FromHours(17))).ToArray();
+
+    private static bool Offered(int startHour, int endHour, (DayOfWeek, TimeSpan, TimeSpan)[] hours, DayOfWeek day = DayOfWeek.Monday)
+        => ShippingSlotRules.IsWithinStoreHours(day, TimeSpan.FromHours(startHour), TimeSpan.FromHours(endHour), 30, 60, hours);
+
+    [Fact]
+    public void A_store_open_10_to_17_does_not_offer_the_evening_slot()
+    {
+        Assert.True(Offered(9, 13, EveryDay10To17));    // هم‌پوشانی دارد؛ پیک ۱۰:۰۰ می‌آید و تا ۱۲:۰۰ وقت دارد
+        Assert.True(Offered(13, 17, EveryDay10To17));
+        Assert.False(Offered(17, 21, EveryDay10To17));  // بعد از بسته‌شدن
+        Assert.False(Offered(19, 23, EveryDay10To17));
+        Assert.False(Offered(6, 9, EveryDay10To17));    // قبل از بازشدن
+    }
+
+    [Fact]
+    public void The_courier_must_still_have_time_to_deliver_after_the_store_opens()
+    {
+        Assert.True(Offered(9, 11, EveryDay10To17));    // پیک ۱۰:۰۰ = آخرین ساعت تحویل (۱۱ − ۱) ← مرز
+        Assert.False(Offered(9, 10, EveryDay10To17));   // بازه‌ی ۹ تا ۱۰: تا پیک بیاید بازه تمام شده
+    }
+
+    [Fact]
+    public void Stores_without_hours_are_unrestricted_and_closed_days_are_hidden()
+    {
+        Assert.True(Offered(17, 21, null));
+        Assert.True(Offered(17, 21, Array.Empty<(DayOfWeek, TimeSpan, TimeSpan)>()));
+        var onlySunday = new[] { (DayOfWeek.Sunday, TimeSpan.FromHours(9), TimeSpan.FromHours(18)) };
+        Assert.True(Offered(9, 13, onlySunday, DayOfWeek.Sunday));
+        Assert.False(Offered(9, 13, onlySunday, DayOfWeek.Monday));
+    }
+
+    [Fact]
+    public void The_courier_is_never_due_before_the_store_opens()
+    {
+        Assert.Equal(Tehran(5, 10), ShippingSlotRules.NextOpenAtOrAfter(Tehran(5, 8, 30), EveryDay10To17));   // قبل از بازشدن
+        Assert.Equal(Tehran(5, 12), ShippingSlotRules.NextOpenAtOrAfter(Tehran(5, 12), EveryDay10To17));      // داخل ساعت کاری ← بدون تغییر
+        Assert.Equal(Tehran(6, 10), ShippingSlotRules.NextOpenAtOrAfter(Tehran(5, 18), EveryDay10To17));      // بعد از بسته‌شدن ← فردا
+        Assert.Equal(Tehran(5, 8, 30), ShippingSlotRules.NextOpenAtOrAfter(Tehran(5, 8, 30), null));
+    }
+
+    [Fact]
+    public void Ready_reminder_goes_out_an_hour_before_the_courier_should_arrive_and_again_before_the_deadline()
+    {
+        var slotStart = Tehran(8, 9);
+        var deadline = ShippingSlotRules.ReadyDeadline(Tehran(8, 13), 60); // ۱۱:۳۰
+        var firstAt = Tehran(8, 7, 30);
+        var finalAt = deadline.AddMinutes(-30);
+
+        Assert.False(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, null, firstAt.AddMinutes(-1)));
+        Assert.True(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, null, firstAt));
+        // بعد از ارسال اولی تا ۳۰ دقیقه به مهلت چیزی نمی‌رود
+        Assert.False(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, firstAt, finalAt.AddMinutes(-1)));
+        Assert.True(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, firstAt, finalAt));
+        // یادآوری دوم هم که رفت، دیگر تکرار نمی‌شود
+        Assert.False(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, finalAt, finalAt.AddMinutes(10)));
+    }
+
+    [Fact]
+    public void A_late_confirmation_gets_only_one_reminder()
+    {
+        var slotStart = Tehran(8, 9);
+        var deadline = ShippingSlotRules.ReadyDeadline(Tehran(8, 13), 60);
+        var lateNow = deadline.AddMinutes(-10);
+        Assert.True(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, null, lateNow));
+        Assert.False(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, lateNow, lateNow.AddMinutes(5)));
     }
 
     [Fact]

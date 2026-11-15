@@ -172,6 +172,29 @@ namespace Application.Services.Order.ShippingSrv
 
         private static string TehranHm(DateTime utc) => ShippingSlotRules.FormatTime(ShippingSlotRules.ToTehran(utc).TimeOfDay);
 
+        // یادآوری اول (یک ساعت قبل از آمدن پیک) هرگز قبل از بازشدن فروشگاه نمی‌رود: «شروع بازه» را طوری جابه‌جا می‌کند که لحظه‌ی یادآوری
+        // در ساعت کاری باشد (ShouldSendReadyReminder خودش PickupLead + ۶۰ دقیقه از آن کم می‌کند).
+        private DateTime ReminderAnchorStart(DateTime slotStartUtc, List<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)> storeHours)
+        {
+            var offset = TimeSpan.FromMinutes(Math.Max(0, _options.PickupLeadMinutes) + 60);
+            return ShippingSlotRules.NextOpenAtOrAfter(slotStartUtc - offset, storeHours) + offset;
+        }
+
+        // ساعت کاری فروشگاه‌ها (برای مهلت‌های بازه‌ای). فروشگاه بدون ردیف در نتیجه نیست = همیشه باز.
+        private async Task<Dictionary<long, List<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)>>> LoadStoreHoursAsync(
+            IReadOnlyCollection<long> storeIds, CancellationToken cancellationToken)
+        {
+            if (storeIds.Count == 0)
+                return new Dictionary<long, List<(DayOfWeek, TimeSpan, TimeSpan)>>();
+            var rows = await _context.StoreWorkingHours.AsNoTracking()
+                .Where(item => storeIds.Contains(item.StoreId))
+                .Select(item => new { item.StoreId, item.DayOfWeek, item.OpenTime, item.CloseTime })
+                .ToListAsync(cancellationToken);
+            return rows
+                .GroupBy(item => item.StoreId)
+                .ToDictionary(group => group.Key, group => group.Select(item => (item.DayOfWeek, item.OpenTime, item.CloseTime)).ToList());
+        }
+
         // پرداخت انجام شد ← مرسوله «منتظر تأیید فروشنده» ساخته و به فروشنده پوش داده می‌شود. سفر میاره بعد از تأیید ساخته می‌شود.
         private async Task CreateAwaitingSellerShipmentAsync(
             ProductOrder productOrder,
@@ -185,9 +208,12 @@ namespace Application.Services.Order.ShippingSrv
             DateTime? start = slot == null ? null : ShippingSlotRules.ToUtc(date, slot.StartTime);
             DateTime? end = slot == null ? null : ShippingSlotRules.ToUtc(date, slot.EndTime);
             var nowUtc = DateTime.UtcNow;
+            // مهلت تأیید فقط از «ساعت کاری فروشگاه» مصرف می‌شود؛ سفارشی که شب ثبت شده برای بازه‌ی روزهای بعد نباید ۶۰ دقیقه‌ی بعد منقضی شود
+            var storeHours = (await LoadStoreHoursAsync(new[] { orderStore.StoreId }, cancellationToken))
+                .GetValueOrDefault(orderStore.StoreId);
             var deadline = end.HasValue
-                ? ShippingSlotRules.SellerConfirmDeadline(nowUtc, end.Value, _options.SellerConfirmMinutes, _options.MinDeliveryMinutes)
-                : nowUtc.AddMinutes(_options.SellerConfirmMinutes);
+                ? ShippingSlotRules.SellerConfirmDeadline(nowUtc, end.Value, _options.SellerConfirmMinutes, _options.MinDeliveryMinutes, storeHours)
+                : ShippingSlotRules.AddWorkingMinutes(nowUtc, _options.SellerConfirmMinutes, storeHours);
 
             var shipment = new Shipment
             {
@@ -215,6 +241,29 @@ namespace Application.Services.Order.ShippingSrv
             var slotText = start.HasValue && end.HasValue ? $"{TehranHm(start.Value)}-{TehranHm(end.Value)}" : string.Empty;
             await PushToStoreUsersAsync(orderStore.StoreId, PushTypeEnum.PushShipmentAwaitingSeller,
                 productOrder.OrderCode, TehranHm(deadline), slotText);
+            // پیامک رسمی به فروشگاه: «سفارش جدید دارید؛ تا فلان مهلت تأیید یا رد کنید» (پوش به‌تنهایی ممکن است دیده نشود)
+            await SendStoreSmsAsync(MessageTypeEnum.ProductOrderSlotStore, orderStore.StoreId, productOrder.OrderCode, deadline, nowUtc);
+        }
+
+        // پیامک به شماره‌ی فروشگاه (Store.Mobile)؛ %token = شماره سفارش، %token2 = مهلت. خطا جریان اصلی را نمی‌شکند.
+        private async Task SendStoreSmsAsync(MessageTypeEnum type, long storeId, string orderCode, DateTime deadlineUtc, DateTime nowUtc)
+        {
+            try
+            {
+                var mobile = await _context.Stores.AsNoTracking()
+                    .Where(store => store.Id == storeId)
+                    .Select(store => store.Mobile)
+                    .FirstOrDefaultAsync();
+                if (string.IsNullOrWhiteSpace(mobile))
+                    return;
+                await _messageSender.SendMessageAsync(type, mobile.Trim(), null,
+                    token1: orderCode,
+                    token2: ShipmentLifecycleRules.ForSmsToken(ShipmentLifecycleRules.DeadlineText(deadlineUtc, nowUtc)));
+            }
+            catch (Exception exception)
+            {
+                _logger.LogWarning(exception, "Store SMS {Type} failed for store {StoreId}, order {OrderCode}.", type, storeId, orderCode);
+            }
         }
 
         // ارسال اکسپرس: پرداخت شد ← مرسوله «منتظر فروشنده» با مهلت کوتاه؛ فروشنده همین الان باید «درخواست پیک» بزند (یک مرحله، بدون روز/بازه).
@@ -326,6 +375,7 @@ namespace Application.Services.Order.ShippingSrv
                 })
                 .ToListAsync(cancellationToken);
 
+            var storeHours = (await LoadStoreHoursAsync(new[] { storeId }, cancellationToken)).GetValueOrDefault(storeId);
             var list = rows.Select(row => new SellerShipmentVDto
             {
                 ProductOrderStoreId = row.ProductOrderStoreId,
@@ -340,7 +390,8 @@ namespace Application.Services.Order.ShippingSrv
                 ReadyDeadlineUtc = row.ReadyDeadlineUtc ?? (row.SlotEndUtc.HasValue ? ShippingSlotRules.ReadyDeadline(row.SlotEndUtc.Value, _options.MinDeliveryMinutes) : null),
                 PlannedPickupUtc = row.IsExpress
                     ? ShippingSlotRules.ExpressPickup(nowUtc, _options.Express.PickupLeadMinutes)
-                    : ShippingSlotRules.DefaultPickup(row.SlotStartUtc ?? nowUtc, nowUtc, _options.PickupLeadMinutes)
+                    : ShippingSlotRules.NextOpenAtOrAfter(
+                        ShippingSlotRules.DefaultPickup(row.SlotStartUtc ?? nowUtc, nowUtc, _options.PickupLeadMinutes), storeHours)
             }).ToList();
             return new BaseResultDto<List<SellerShipmentVDto>>(true, list);
         }
@@ -401,11 +452,16 @@ namespace Application.Services.Order.ShippingSrv
             if (nowUtc > readyDeadline)
                 return new BaseResultDto(false, Resource.Notification.ShipmentReadyExpired);
 
-            // اکسپرس: پیک بعد از PickupLeadMinutes (میاره pickup.deadline گذشته نمی‌پذیرد)؛ بازه‌ای: مثل قبل
+            // اکسپرس: پیک بعد از PickupLeadMinutes (میاره pickup.deadline گذشته نمی‌پذیرد)؛ بازه‌ای: ساعت آمدن پیک هیچ‌وقت خارج از
+            // ساعت کاری فروشگاه نیست (فروشگاه ۱۰ تا ۱۷ و بازه‌ی ۹ تا ۱۳ ← پیک ۱۰:۰۰ نه ۸:۳۰)
             var pickup = isExpress
                 ? ShippingSlotRules.ExpressPickup(nowUtc, _options.Express.PickupLeadMinutes)
-                : ShippingSlotRules.DefaultPickup(slotStart, nowUtc, _options.PickupLeadMinutes);
-            if (!isExpress && pickup > readyDeadline)
+                : ShippingSlotRules.NextOpenAtOrAfter(
+                    ShippingSlotRules.DefaultPickup(slotStart, nowUtc, _options.PickupLeadMinutes),
+                    (await LoadStoreHoursAsync(new[] { storeId }, cancellationToken)).GetValueOrDefault(storeId));
+            // مهلت «آماده تحویل» (ReadyDeadline) خودش MinPickupFromNow دقیقه زودتر از «آخرین ساعت تحویل به پیک» است؛ پس تا آخرین لحظه‌ی مهلت
+            // pickup = الان + ۳۰ دقیقه هنوز مجاز است (قبلاً دکمه در نیم‌ساعت آخرِ مهلتِ نمایش‌داده‌شده رد می‌شد).
+            if (!isExpress && pickup > readyDeadline.AddMinutes(ShippingSlotRules.MinPickupFromNowMinutes))
                 return new BaseResultDto(false, Resource.Notification.ShipmentPickupTimeInvalid);
 
             if (!_providers.TryGetValue(shipment.Provider, out var provider))
@@ -657,6 +713,8 @@ namespace Application.Services.Order.ShippingSrv
                 .AsTracking()
                 .ToListAsync(cancellationToken);
 
+            var hoursByStore = await LoadStoreHoursAsync(
+                shipments.Select(item => item.ProductOrderStore.StoreId).Distinct().ToList(), cancellationToken);
             var expired = 0;
             foreach (var shipment in shipments)
             {
@@ -682,7 +740,13 @@ namespace Application.Services.Order.ShippingSrv
                     }
                     else
                     {
-                        if (ShipmentLifecycleRules.ShouldAlertSellerNotReady(shipment.CreatedAtUtc, deadline,
+                        // بازه‌ای: «۳۰ دقیقه بی‌اقدامی» فقط از ساعت کاری فروشگاه حساب می‌شود (هشدار نیمه‌شب به ادمین فایده ندارد)
+                        var alertBase = shipment.CreatedAtUtc;
+                        if (!shipment.IsExpress && _options.SellerNotReadyAdminAlertMinutes > 0
+                            && hoursByStore.TryGetValue(orderStore.StoreId, out var storeHours))
+                            alertBase = ShippingSlotRules.AddWorkingMinutes(shipment.CreatedAtUtc, _options.SellerNotReadyAdminAlertMinutes, storeHours)
+                                .AddMinutes(-_options.SellerNotReadyAdminAlertMinutes);
+                        if (ShipmentLifecycleRules.ShouldAlertSellerNotReady(alertBase, deadline,
                                 shipment.SellerNotReadyAdminNotifiedAtUtc, nowUtc, _options.SellerNotReadyAdminAlertMinutes))
                         {
                             // ابتدا علامت و ذخیره (مثل هشدار تأخیر)، بعد پوش: شکست پوش باعث تکرار هر ۵ دقیقه نمی‌شود
@@ -700,6 +764,9 @@ namespace Application.Services.Order.ShippingSrv
                             await _context.SaveChangesAsync(cancellationToken);
                             await PushToStoreUsersAsync(orderStore.StoreId, PushTypeEnum.PushShipmentSellerReminder,
                                 productOrder.OrderCode, TehranHm(deadline), string.Empty);
+                            // یادآوری پیامکی: سفارش هنوز بی‌پاسخ است و تا مهلت زمان کمی مانده (اولین یادآوری، برای سفارش بازه‌ای و اکسپرس)
+                            await SendStoreSmsAsync(MessageTypeEnum.ProductOrderSellerReminderStore, orderStore.StoreId,
+                                productOrder.OrderCode, deadline, nowUtc);
                         }
                     }
                 }
@@ -722,6 +789,8 @@ namespace Application.Services.Order.ShippingSrv
                 .Where(item => item.Status == ShipmentStatusEnum.Preparing && item.ReadyDeadlineUtc != null)
                 .AsTracking()
                 .ToListAsync(cancellationToken);
+            var hoursByStore = await LoadStoreHoursAsync(
+                preparing.Select(item => item.ProductOrderStore.StoreId).Distinct().ToList(), cancellationToken);
             var expired = 0;
             foreach (var shipment in preparing)
             {
@@ -739,8 +808,11 @@ namespace Application.Services.Order.ShippingSrv
                         await PushToUserAsync(PushTypeEnum.PushShipmentDelayedUser, order.UserId, order.OrderCode);
                         expired++;
                     }
-                    else if (shipment.ReadyReminderSentAtUtc == null && deadline - nowUtc <= TimeSpan.FromMinutes(30))
+                    else if (ShippingSlotRules.ShouldSendReadyReminder(
+                                 ReminderAnchorStart(shipment.SlotStartUtc ?? deadline, hoursByStore.GetValueOrDefault(orderStore.StoreId)),
+                                 deadline, _options.PickupLeadMinutes, shipment.ReadyReminderSentAtUtc, nowUtc))
                     {
+                        // دو مرحله: یک ساعت قبل از ساعتی که پیک باید برسد، و ۳۰ دقیقه به مهلت (هر دو با همین یک ستون)
                         shipment.ReadyReminderSentAtUtc = nowUtc;
                         await _context.SaveChangesAsync(cancellationToken);
                         await PushToStoreUsersAsync(orderStore.StoreId, PushTypeEnum.PushShipmentReadyReminder,

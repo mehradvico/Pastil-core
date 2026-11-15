@@ -90,6 +90,10 @@
         // پیامک پرداخت ناموفق، ۱ ساعت بعد (الگوی کاوه‌نگار PaymentFailedReminder؛ %token = نام کاربر)
         PaymentFailedReminder,
         // پیامک رزرو پرداخت‌نشده، ۳ ساعت بعد (الگوی کاوه‌نگار UnpaidReserveReminder؛ %token = نام کاربر)
-        UnpaidReserveReminder
+        UnpaidReserveReminder,
+        // ارسال با میاره (بازه‌ای/اکسپرس): پیامک رسمی به فروشگاه برای سفارش جدید در انتظار تأیید، و یادآوری مهلت پاسخ‌گویی
+        // (%token = شماره سفارش، %token2 = مهلت مثل «ساعت 10:00» یا «فردا ساعت 10:00»؛ متن‌ها: backend/Docs/MIARE_SHIPPING_SLOTS_FA.md)
+        ProductOrderSlotStore,
+        ProductOrderSellerReminderStore
     }
 }

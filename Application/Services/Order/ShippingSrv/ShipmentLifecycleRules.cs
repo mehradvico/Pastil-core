@@ -69,6 +69,20 @@ namespace Application.Services.Order.ShippingSrv
             return nowUtc >= createdAtUtc.AddMinutes(alertMinutes);
         }
 
+        private static readonly string[] PersianWeekdays =
+            { "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه", "شنبه" }; // System.DayOfWeek: یکشنبه = 0
+
+        // مهلت برای متن پیامک: «ساعت 10:00» (امروز)، «فردا ساعت 10:00» یا «دوشنبه ساعت 10:00» (به وقت تهران)
+        public static string DeadlineText(DateTime deadlineUtc, DateTime nowUtc)
+        {
+            var deadline = ShippingSlotRules.ToTehran(deadlineUtc);
+            var days = (deadline.Date - ShippingSlotRules.ToTehran(nowUtc).Date).Days;
+            var time = $"ساعت {ShippingSlotRules.FormatTime(deadline.TimeOfDay)}";
+            if (days <= 0)
+                return time;
+            return days == 1 ? $"فردا {time}" : $"{PersianWeekdays[(int)deadline.DayOfWeek]} {time}";
+        }
+
         // «۹ تا ۱۳»: ساعت‌های رُند بدون دقیقه (۹، ۱۳)، غیر رُند با دقیقه (۹:۳۰)
         public static string FormatHour(TimeSpan time) =>
             time.Minutes == 0 ? time.Hours.ToString() : $"{time.Hours}:{time.Minutes:D2}";

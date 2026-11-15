@@ -35,13 +35,16 @@ namespace Application.Services.Order.ShippingSrv
                 .ToListAsync(cancellationToken);
             var dates = Enumerable.Range(1, horizon).Select(offset => today.AddDays(offset)).ToList();
             var used = await CountUsedAsync(slots.Select(slot => slot.Id).ToList(), dates, cancellationToken);
+            var storeHours = await GetStoreHoursAsync(storeId, cancellationToken);
 
             var days = new List<ShippingSlotDayVDto>();
             foreach (var date in dates)
             {
                 var options = slots
                     .Where(slot => slot.DayOfWeek == date.DayOfWeek
-                                   && ShippingSlotRules.IsFeasible(date, slot.EndTime, nowUtc, prep, _options.PrepBufferMinutes, _options.MinDeliveryMinutes))
+                                   && ShippingSlotRules.IsFeasible(date, slot.EndTime, nowUtc, prep, _options.PrepBufferMinutes, _options.MinDeliveryMinutes)
+                                   && ShippingSlotRules.IsWithinStoreHours(date.DayOfWeek, slot.StartTime, slot.EndTime,
+                                       _options.PickupLeadMinutes, _options.MinDeliveryMinutes, storeHours))
                     .OrderBy(slot => slot.StartTime)
                     .Select(slot =>
                     {
@@ -72,13 +75,25 @@ namespace Application.Services.Order.ShippingSrv
             if (slot == null
                 || slot.DayOfWeek != date.DayOfWeek
                 || !ShippingSlotRules.IsDateInWindow(date, nowUtc, ShippingSlotRules.HorizonDays(_options.SlotHorizonDays, prep))
-                || !ShippingSlotRules.IsFeasible(date, slot.EndTime, nowUtc, prep, _options.PrepBufferMinutes, _options.MinDeliveryMinutes))
+                || !ShippingSlotRules.IsFeasible(date, slot.EndTime, nowUtc, prep, _options.PrepBufferMinutes, _options.MinDeliveryMinutes)
+                || !ShippingSlotRules.IsWithinStoreHours(date.DayOfWeek, slot.StartTime, slot.EndTime,
+                    _options.PickupLeadMinutes, _options.MinDeliveryMinutes, await GetStoreHoursAsync(storeId, cancellationToken)))
                 return new BaseResultDto(false, Resource.Notification.ShippingSlotUnavailable);
 
             var used = await CountUsedAsync(new List<long> { slot.Id }, new List<DateTime> { date }, cancellationToken);
             return used.GetValueOrDefault((slot.Id, date), 0) >= slot.Capacity
                 ? new BaseResultDto(false, Resource.Notification.ShippingSlotFull)
                 : new BaseResultDto(true);
+        }
+
+        // ساعت کاری هفتگی فروشگاه؛ لیست خالی = بدون محدودیت (بازه‌ها فقط به‌خاطر ساعت کاری حذف می‌شوند، نه اگر فروشگاه ساعتی ثبت نکرده)
+        private async Task<List<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)>> GetStoreHoursAsync(long storeId, CancellationToken cancellationToken)
+        {
+            var rows = await _context.StoreWorkingHours.AsNoTracking()
+                .Where(item => item.StoreId == storeId)
+                .Select(item => new { item.DayOfWeek, item.OpenTime, item.CloseTime })
+                .ToListAsync(cancellationToken);
+            return rows.Select(item => (item.DayOfWeek, item.OpenTime, item.CloseTime)).ToList();
         }
 
         // حداکثر زمان آماده‌سازی فروشگاه (دقیقه)؛ فروشگاه ناشناخته → پیش‌فرض ۱۲۰
