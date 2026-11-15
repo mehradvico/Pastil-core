@@ -5,12 +5,23 @@ using Application.Services.Order.RebateSrv.Dto;
 using Entities.Entities;
 using Entities.Entities.CompanionField;
 using Entities.Entities.PansionField;
+using System.Threading.Tasks;
 
 namespace Application.Services.Order.RebateSrv.Iface
 {
     public interface IRebateService : ICommonSrv<Rebate, RebateDto>
     {
         BaseSearchDto<RebateDto> Search(BaseInputDto baseSearchDto);
+        /// <summary>لیست کدهای تخفیف با فیلتر هدف (فروشگاه/...) و کاربر؛ جدیدترین اول.</summary>
+        BaseSearchDto<RebateListVDto> SearchByTarget(RebateInputDto input);
+        /// <summary>ساخت کد تخفیف سبد خرید که فقط برای همین فروشگاه معتبر است (نوع و هدف سمت سرور ست می‌شود).</summary>
+        Task<BaseResultDto<RebateDto>> InsertForStoreAsync(RebateDto dto, long storeId);
+        /// <summary>ساخت کد مخصوص یک نمایندگی (Store/Coach/Clinic/Groomer/Pansion)؛ نوع کد از روی هدف تعیین می‌شود.</summary>
+        Task<BaseResultDto<RebateDto>> InsertForTargetAsync(RebateDto dto, Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum targetType, long targetId);
+        /// <summary>فعال/غیرفعال کردن کد؛ با storeId فقط کدِ همان فروشگاه.</summary>
+        Task<BaseResultDto> SetActiveAsync(long id, bool active, long? storeId = null);
+        /// <summary>حذف نرم کد؛ با storeId فقط کدِ همان فروشگاه.</summary>
+        Task<BaseResultDto> DeleteForStoreAsync(long id, long? storeId);
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(Cart cart, string Code);
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(CompanionReserve companionReserve, string Code);
         BaseResultDto<RebateVDto> GetRebateByCodeAsync(Cargo cargo, string Code);

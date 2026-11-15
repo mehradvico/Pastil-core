@@ -604,6 +604,7 @@ public static class ConfigureServices
         services.AddScoped<INeighborhoodService, NeighborhoodService>();
         services.AddScoped<INewsletterService, NewsletterService>();
         services.AddScoped<INoticeEventService, NoticeEventService>();
+        services.AddScoped<IPanelNoticePushService, PanelNoticePushService>();
         services.AddScoped<INoticeService, NoticeService>();
         services.AddScoped<IVenueReviewNotifier, VenueReviewNotifier>();
         services.AddScoped<Application.Services.Setting.MessageSenderSrv.IVenueRegistrationSms, Application.Services.Setting.MessageSenderSrv.VenueRegistrationSms>();
@@ -790,6 +791,7 @@ public static class ConfigureServices
         // Singleton عمدی: وضعیت Jobهای async باید بین درخواست‌های HTTP مختلف (شروع و پول کردن) مشترک بماند.
         services.AddSingleton<IAiProductMatchJobStore, AiProductMatchJobStore>();
         services.AddScoped<Application.Services.ProductSrvs.MissingProductSrv.Iface.IMissingProductService, Application.Services.ProductSrvs.MissingProductSrv.MissingProductService>();
+        services.AddScoped<Application.Services.ProductSrvs.ProductImageSuggestionSrv.Iface.IProductImageSuggestionService, Application.Services.ProductSrvs.ProductImageSuggestionSrv.ProductImageSuggestionService>();
         services.AddScoped<IStoryGroupService, StoryGroupService>();
         services.AddScoped<IStoryItemService, StoryItemService>();
         services.AddScoped<IStoryUserLikeService, StoryUserLikeService>();

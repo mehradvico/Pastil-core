@@ -20,7 +20,7 @@ public sealed class AdminAreaAuthorizationConvention : IApplicationModelConventi
     {
         "Role", "RolePermission", "Permission", "PermissionSync", "User",
         "Merchant", "Wallet", "Code", "CodeGroup", "BaseDetail",
-        "ServerMonitoring", "Notice", "PushBroadcast", "PushDiagnostics", "MissingProduct"
+        "ServerMonitoring", "Notice", "PushBroadcast", "PushDiagnostics", "MissingProduct", "ProductImageSuggestion"
     };
 
     private static readonly string[] MembershipAreas = { "Seller", "Companion", "Driver" };

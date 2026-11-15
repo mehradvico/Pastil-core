@@ -3,6 +3,7 @@ namespace Application.Services.Setting.NoticeSrv
     public static class NoticeTypeLabels
     {
         public const string SmsSent = "Sms.Sent";
+        public const string TicketMessageSubmitted = "Ticket.MessageSubmitted";
         public const string UserRegistered = "User.Registered";
         public const string ProductOrderRegistered = "ProductOrder.Registered";
         public const string CompanionCommentSubmitted = "Companion.CommentSubmitted";
@@ -54,5 +55,7 @@ namespace Application.Services.Setting.NoticeSrv
         public const string VenueServiceSubmitted = "VenueService.Submitted";
         public const string ConsultationPackageSubmitted = "ConsultationPackage.Submitted";
         public const string ConsultationPackageUpdated = "ConsultationPackage.Updated";
+        // فروشگاه برای یک محصول کاتالوگ تصویر پیشنهاد داد (ProductImageSuggestionService)
+        public const string ProductImageSuggestionSubmitted = "ProductImageSuggestion.Submitted";
     }
 }

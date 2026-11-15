@@ -14,6 +14,12 @@ namespace Application.Common.Enumerable.Code
         PushMessageType_EndUser = 134,
         PushMessageType_Store = 135,
         PushMessageType_Operator = 136,
-        PushMessageType_All = 137
+        PushMessageType_All = 137,
+        // مخاطب «ارائه‌دهندگان» به تفکیک نقش (۲۰۲۶-۱۱-۱۵). مقدار عددی فقط برای مرتب‌بودن است؛ Code در دیتابیس با Label خوانده می‌شود
+        // (فروشگاه = PushMessageType_Store و پانسیون = PushMessageType_Pansion که از قبل بودند).
+        PushMessageType_Clinic = 138,
+        PushMessageType_Coach = 139,
+        PushMessageType_Groomer = 140,
+        PushMessageType_School = 141
     }
 }

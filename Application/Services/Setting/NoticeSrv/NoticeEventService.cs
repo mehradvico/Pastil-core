@@ -1,4 +1,4 @@
-using Application.Common.Dto.Result;
+﻿using Application.Common.Dto.Result;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
@@ -27,9 +27,11 @@ namespace Application.Services.Setting.NoticeSrv
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ILogger<NoticeEventService> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IPanelNoticePushService _panelPush;
 
-        public NoticeEventService(IDataBaseContext context, IMapper mapper, INoticeRealtimePublisher realtimePublisher, IPushNotificationService pushNotificationService, ILogger<NoticeEventService> logger, IHttpContextAccessor httpContextAccessor)
+        public NoticeEventService(IDataBaseContext context, IMapper mapper, INoticeRealtimePublisher realtimePublisher, IPushNotificationService pushNotificationService, ILogger<NoticeEventService> logger, IHttpContextAccessor httpContextAccessor, IPanelNoticePushService panelPush = null)
         {
+            _panelPush = panelPush;
             _context = context;
             _mapper = mapper;
             _realtimePublisher = realtimePublisher;
@@ -44,6 +46,9 @@ namespace Application.Services.Setting.NoticeSrv
                 return new BaseResultDto<NoticeDto>(true, (NoticeDto)null);
             if (dto == null || string.IsNullOrWhiteSpace(dto.Label))
                 return new BaseResultDto<NoticeDto>(false, "Notice label is required.", null);
+            // اعلان «ارسال پیامک» دیگر هرگز ساخته نمی‌شود (رویداد اصلی مثل «ثبت‌نام کاربر جدید» خودش اعلان دارد)
+            if (dto.Label == NoticeTypeLabels.SmsSent)
+                return new BaseResultDto<NoticeDto>(true, (NoticeDto)null);
             var noticeType = await _context.NoticeTypes.FirstOrDefaultAsync(x => x.Label == dto.Label && x.IsActive);
             if (noticeType == null)
                 return new BaseResultDto<NoticeDto>(false, "Active notice type was not found.", null);
@@ -92,8 +97,18 @@ namespace Application.Services.Setting.NoticeSrv
 
         private async Task DispatchAsync(Notice notice)
         {
+            // اعلان «عادی» فقط درون پنل نمایش داده می‌شود (toast + صدا)، بدون پوش سیستمی.
             if (notice.NoticeType.Importance == NoticeImportance.Normal)
                 return;
+            // «مهم» و «بحرانی»: پوش سیستمی فقط به دستگاه‌هایی که خودِ ادمین در هدر پنل فعال کرده (Platform=panel)؛ در پس‌زمینه، بدون معطلی درخواست اصلی
+            try
+            {
+                _panelPush?.QueueNotice(notice.Id, notice.Title, notice.Message, notice.NavigationUrl);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Queueing panel push failed for NoticeId {NoticeId}", notice.Id);
+            }
             var dto = _mapper.Map<NoticeVDto>(notice);
             try
             {
@@ -103,8 +118,6 @@ namespace Application.Services.Setting.NoticeSrv
             {
                 _logger.LogError(ex, "Realtime notice delivery failed for NoticeId {NoticeId}", notice.Id);
             }
-            // اعلان‌های ادمین فقط درون‌برنامه‌ای (پنل باز) نمایش داده می‌شوند؛ Push سیستمی عمداً ارسال نمی‌شود
-            // تا وقتی ادمین روی دسکتاپ فعال است روی گوشی‌اش نوتیف نرود.
         }
 
         private IQueryable<Notice> NoticeQuery()

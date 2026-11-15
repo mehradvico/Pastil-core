@@ -311,7 +311,7 @@ namespace Application.Services.CommonSrv.PushNotificationSrv
                 }
 
                 var subs = await _context.PushSubscriptions
-                    .Where(x => x.IsActive && x.UserId == notif.UserId)
+                    .Where(x => x.IsActive && x.UserId == notif.UserId && x.Platform != "panel")
                     .AsTracking()
                     .ToListAsync();
 

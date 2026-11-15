@@ -332,6 +332,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<MapKey> MapKeys { get; set; }
         public DbSet<MissingProduct> MissingProducts { get; set; }
         public DbSet<MissingProductPicture> MissingProductPictures { get; set; }
+        public DbSet<ProductImageSuggestion> ProductImageSuggestions { get; set; }
         public DbSet<Merchant> Merchants { get; set; }
         public DbSet<MessageType> MessageTypes { get; set; }
         public DbSet<Neighborhood> Neighborhoods { get; set; }
@@ -2270,6 +2271,21 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                     .HasForeignKey(x => x.MissingProductId).OnDelete(DeleteBehavior.Cascade);
                 e.HasOne(x => x.Picture).WithMany()
                     .HasForeignKey(x => x.PictureId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ProductImageSuggestion>(e =>
+            {
+                e.Property(x => x.RejectionReason).HasMaxLength(500);
+
+                // صف بررسی ادمین (وضعیت + قدیمی‌ترین) و «پیشنهادهای این فروشگاه برای این محصول»
+                e.HasIndex(x => new { x.Status, x.Id });
+                e.HasIndex(x => new { x.StoreId, x.ProductId, x.Status });
+                e.HasIndex(x => x.ProductId);
+                e.HasIndex(x => x.PictureId);
+
+                e.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Store).WithMany().HasForeignKey(x => x.StoreId).OnDelete(DeleteBehavior.Restrict);
+                e.HasOne(x => x.Picture).WithMany().HasForeignKey(x => x.PictureId).OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<PetTag>()

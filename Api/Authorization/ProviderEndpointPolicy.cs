@@ -1,4 +1,4 @@
-using Application.Services.ProviderSrvs.ProviderUserSrv;
+﻿using Application.Services.ProviderSrvs.ProviderUserSrv;
 using Microsoft.AspNetCore.Http;
 using Entities.Entities.ProviderField;
 using Sec = Application.Services.ProviderSrvs.ProviderUserSrv.ProviderPermissionCatalog.Sections;
@@ -188,6 +188,7 @@ public static class ProviderEndpointPolicy
         ["ProductImage"] = Of(ProviderRoleLabels.Store, Sec.Product),
         ["AiProductMatch"] = Of(ProviderRoleLabels.Store, Sec.Product),
         ["MissingProduct"] = Of(ProviderRoleLabels.Store, Sec.Product),
+        ["ProductImageSuggestion"] = Of(ProviderRoleLabels.Store, Sec.Product),
         ["Brand"] = LookupReadOnly,
 
         ["ProductOrder"] = Of(ProviderRoleLabels.Store, Sec.Order),
@@ -203,6 +204,7 @@ public static class ProviderEndpointPolicy
 
         ["Discount"] = Of(ProviderRoleLabels.Store, Sec.Discount),
         ["DiscountGroup"] = Of(ProviderRoleLabels.Store, Sec.Discount),
+        ["Rebate"] = Of(ProviderRoleLabels.Store, Sec.Discount),
 
         ["StoreComment"] = Of(ProviderRoleLabels.Store, Sec.Review),
 

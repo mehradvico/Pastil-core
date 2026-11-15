@@ -19,6 +19,7 @@ public class NoticeNavigationResolverTests
     [InlineData("Coach", 51, "/admin/coach/detail-51")]
     [InlineData("Groomer", 52, "/admin/groomer/detail-52")]
     [InlineData("School", 53, "/admin/school/detail-53")]
+    [InlineData("ProductImageSuggestion", 54, "/admin/productimagesuggestion")]
     public void Resolve_UsesTheExactReferencedPanelItem(string referenceType, long referenceId, string expected)
     {
         var actual = NoticeNavigationResolver.Resolve("/admin/notice", "test", referenceType, referenceId);

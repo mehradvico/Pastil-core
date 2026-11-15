@@ -159,6 +159,7 @@ namespace Persistence.Interface
         public DbSet<MapKey> MapKeys { get; set; }
         public DbSet<MissingProduct> MissingProducts { get; set; }
         public DbSet<MissingProductPicture> MissingProductPictures { get; set; }
+        public DbSet<ProductImageSuggestion> ProductImageSuggestions { get; set; }
         public DbSet<Merchant> Merchants { get; set; }
         public DbSet<MessageType> MessageTypes { get; set; }
         public DbSet<Neighborhood> Neighborhoods { get; set; }

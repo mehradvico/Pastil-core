@@ -292,6 +292,27 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true
             });
     });
+    // آپلود عکس پیشنهادیِ محصول: فروشنده پشت‌سرِ هم محصول وارد می‌کند و برای هرکدام عکس می‌فرستد، پس سقف سخاوتمندانه‌تر از
+    // AiProductMatch (که هزینهٔ مدل هوش مصنوعی دارد و باید کم باشد) ولی هنوز جلوی سیلِ آپلود را می‌گیرد.
+    options.AddPolicy("ProductImageSuggestion", httpContext =>
+    {
+        var userId = httpContext.User.FindFirst("UserId")?.Value;
+        var partitionKey = !string.IsNullOrWhiteSpace(userId)
+            ? $"product-image-suggestion:user:{userId}"
+            : $"product-image-suggestion:ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+        return RateLimitPartition.GetTokenBucketLimiter(
+            partitionKey,
+            _ => new TokenBucketRateLimiterOptions
+            {
+                TokenLimit = 30,
+                TokensPerPeriod = 1,
+                ReplenishmentPeriod = TimeSpan.FromSeconds(10),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            });
+    });
     // سقف سراسری برای هر IP (پشتوانه‌ی policyهای اختصاصی): endpointهایی که policy جدا ندارند هم بی‌نهایت قابل‌فراخوانی نباشند.
     // health و SignalR معاف‌اند؛ سقف عمداً بالاست تا کاربر واقعی هیچ‌وقت به آن نخورد. بدون ClientIpAttestationKey همه‌ی کاربران وب‌اپ یک IP دارند،
     // پس فقط سقف «سیل» اعمال می‌شود (همان منطق IpLimit).

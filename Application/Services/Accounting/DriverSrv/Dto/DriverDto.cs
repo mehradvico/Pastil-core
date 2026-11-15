@@ -32,6 +32,8 @@ namespace Application.Services.Accounting.DriverSrv.Dto
         public long? ProfilePictureId { get; set; }
         public long? CertificatePictureId { get; set; }
         public long? VehicleCardPictureId { get; set; }
+        public long? CertificateBackPictureId { get; set; }
+        public long? VehicleCardBackPictureId { get; set; }
         public long CityId { get; set; }
         public long? NeighborhoodId { get; set; }
         public long StatusId { get; set; }

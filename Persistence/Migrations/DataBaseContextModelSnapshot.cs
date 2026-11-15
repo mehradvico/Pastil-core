@@ -5267,6 +5267,9 @@ namespace Persistence.Migrations
                     b.Property<bool>("Approved")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("CertificateBackPictureId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("CertificatePictureId")
                         .HasColumnType("bigint");
 
@@ -5310,6 +5313,9 @@ namespace Persistence.Migrations
                     b.Property<string>("Vehicle")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long?>("VehicleCardBackPictureId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("VehicleCardPictureId")
                         .HasColumnType("bigint");
 
@@ -5317,6 +5323,8 @@ namespace Persistence.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CertificateBackPictureId");
 
                     b.HasIndex("CertificatePictureId");
 
@@ -5330,6 +5338,8 @@ namespace Persistence.Migrations
                     b.HasIndex("ProfilePictureId");
 
                     b.HasIndex("StatusId");
+
+                    b.HasIndex("VehicleCardBackPictureId");
 
                     b.HasIndex("VehicleCardPictureId");
 
@@ -7059,6 +7069,55 @@ namespace Persistence.Migrations
                     b.HasIndex("MissingProductId", "SortOrder");
 
                     b.ToTable("MissingProductPictures");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProductImageSuggestion", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreateDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("PictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long?>("ReplacedPictureId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ReviewedByUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("ReviewedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<long>("StoreId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PictureId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("Status", "Id");
+
+                    b.HasIndex("StoreId", "ProductId", "Status");
+
+                    b.ToTable("ProductImageSuggestions");
                 });
 
             modelBuilder.Entity("Entities.Entities.Neighborhood", b =>
@@ -17629,6 +17688,10 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Entities.Entities.Driver", b =>
                 {
+                    b.HasOne("Entities.Entities.Picture", "CertificateBackPicture")
+                        .WithMany()
+                        .HasForeignKey("CertificateBackPictureId");
+
                     b.HasOne("Entities.Entities.Picture", "CertificatePicture")
                         .WithMany()
                         .HasForeignKey("CertificatePictureId");
@@ -17659,6 +17722,10 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Entities.Entities.Picture", "VehicleCardBackPicture")
+                        .WithMany()
+                        .HasForeignKey("VehicleCardBackPictureId");
+
                     b.HasOne("Entities.Entities.Picture", "VehicleCardPicture")
                         .WithMany()
                         .HasForeignKey("VehicleCardPictureId");
@@ -17667,6 +17734,8 @@ namespace Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("VehicleTypeId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CertificateBackPicture");
 
                     b.Navigation("CertificatePicture");
 
@@ -17679,6 +17748,8 @@ namespace Persistence.Migrations
                     b.Navigation("ProfilePicture");
 
                     b.Navigation("Status");
+
+                    b.Navigation("VehicleCardBackPicture");
 
                     b.Navigation("VehicleCardPicture");
 
@@ -18357,6 +18428,33 @@ namespace Persistence.Migrations
                     b.Navigation("MissingProduct");
 
                     b.Navigation("Picture");
+                });
+
+            modelBuilder.Entity("Entities.Entities.ProductImageSuggestion", b =>
+                {
+                    b.HasOne("Entities.Entities.Picture", "Picture")
+                        .WithMany()
+                        .HasForeignKey("PictureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Entities.Entities.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Picture");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("Entities.Entities.Neighborhood", b =>

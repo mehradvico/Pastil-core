@@ -238,7 +238,7 @@ namespace Application.Services.ProductSrvs.DiscountSrv
 
         public DiscountSearchDto Search(DiscountInputDto searchDto)
         {
-            var query = _context.Discounts.Include(s => s.Product).ThenInclude(s => s.Category).Include(s => s.ProductItem).ThenInclude(s => s.Product).ThenInclude(s => s.Category).Include(s => s.DiscountGroup).AsQueryable();
+            var query = _context.Discounts.Include(s => s.Product).ThenInclude(s => s.Category).Include(s => s.ProductItem).ThenInclude(s => s.Product).ThenInclude(s => s.Category).Include(s => s.DiscountGroup).Include(s => s.Category).Include(s => s.Brand).Include(s => s.Type).Where(s => !s.Deleted).AsQueryable();
             if (searchDto.Available == true)
             {
                 query = query.Where(s => s.Deleted == false && s.Active && (s.EndDate == null || (s.EndDate.HasValue && s.EndDate > DateTime.Now)));

@@ -10,6 +10,10 @@ using Application.Services.Accounting.TicketSrv.Iface;
 using Application.Services.Dto;
 using Application.Services.Setting.CodeSrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
+using System.Collections.Generic;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Entities.Entities;
@@ -31,9 +35,11 @@ namespace Application.Services.TicketSrv
         private readonly ITicketMessageService _ticketMessageService;
         private readonly IMessageSenderService _messageSenderService;
         private readonly IConfiguration _configuration;
+        private readonly INoticeEventService _noticeEventService;
 
-        public TicketService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUserHelper, ICodeService codeService, ITicketMessageService ticketMessageService, IMessageSenderService messageSenderService, IConfiguration configuration)
+        public TicketService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUserHelper, ICodeService codeService, ITicketMessageService ticketMessageService, IMessageSenderService messageSenderService, IConfiguration configuration, INoticeEventService noticeEventService = null)
         {
+            _noticeEventService = noticeEventService;
             _context = context;
             this.mapper = mapper;
             _currentUser = currentUserHelper.CurrentUser;
@@ -161,8 +167,32 @@ namespace Application.Services.TicketSrv
             }
 
             await AddAutoReplySafeAsync(ticket.Id, ticket.UserId, cancellationToken);
+            await NotifyAdminsAsync(ticket);
             await SendMessageSafeAsync(MessageTypeEnum.UserRegisterTicket, _currentUser.Mobile, _currentUser.Email, _currentUser.FullName, ticket.Id.ToString());
             return await FindUserAsync(ticket.Id, cancellationToken);
+        }
+
+        // اعلان «پیام جدید تیکت» برای ادمین (زنگوله + پوش)؛ خطا هرگز ثبت تیکت را خراب نمی‌کند
+        private async Task NotifyAdminsAsync(Ticket ticket)
+        {
+            if (_noticeEventService == null)
+                return;
+            try
+            {
+                await _noticeEventService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.TicketMessageSubmitted,
+                    ActorUserId = _currentUser.UserId,
+                    ReferenceType = "Ticket",
+                    ReferenceId = ticket.Id,
+                    DeduplicationKey = $"{NoticeTypeLabels.TicketMessageSubmitted}:new:{ticket.Id}",
+                    Metadata = new Dictionary<string, string> { { "ticketName", ticket.Name ?? string.Empty } }
+                });
+            }
+            catch
+            {
+                // مهم نیست
+            }
         }
 
         // پیام خودکار «درخواست شما در حال پیگیری است» از طرف پشتیبانی بعد از ثبت اولین تیکت کاربر.

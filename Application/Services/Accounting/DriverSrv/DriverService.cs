@@ -47,7 +47,7 @@ namespace Application.Services.Accounting.DriverSrv
 
         public async Task<BaseResultDto<DriverVDto>> FindAsyncVDto(long id)
         {
-            var item = await _context.Drivers.Include(s => s.CertificatePicture).Include(s => s.ProfilePicture).Include(s => s.VehicleCardPicture).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.Status).Include(s => s.VehicleType).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+            var item = await _context.Drivers.Include(s => s.CertificatePicture).Include(s => s.ProfilePicture).Include(s => s.VehicleCardPicture).Include(s => s.CertificateBackPicture).Include(s => s.VehicleCardBackPicture).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.Status).Include(s => s.VehicleType).FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
             if (item != null)
             {
                 return new BaseResultDto<DriverVDto>(true, mapper.Map<DriverVDto>(item));
@@ -57,7 +57,7 @@ namespace Application.Services.Accounting.DriverSrv
 
         public DriverSearchDto Search(DriverInputDto baseSearchDto)
         {
-            var model = _context.Drivers.Include(s => s.CertificatePicture).Include(s => s.ProfilePicture).Include(s => s.VehicleCardPicture).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.Status).Include(s => s.VehicleType).AsQueryable().Where(s => !s.Deleted);
+            var model = _context.Drivers.Include(s => s.CertificatePicture).Include(s => s.ProfilePicture).Include(s => s.VehicleCardPicture).Include(s => s.CertificateBackPicture).Include(s => s.VehicleCardBackPicture).Include(s => s.City).ThenInclude(s => s.State).Include(s => s.Neighborhood).Include(s => s.Owner).Include(s => s.Status).Include(s => s.VehicleType).AsQueryable().Where(s => !s.Deleted);
 
             if (baseSearchDto.Available.HasValue)
             {
@@ -193,6 +193,13 @@ namespace Application.Services.Accounting.DriverSrv
             if (dto.ProfilePictureId.HasValue && dto.ProfilePictureId.Value > 0 &&
                 !await _context.Pictures.AnyAsync(s => s.Id == dto.ProfilePictureId.Value))
                 errors.Add(Tuple.Create(Resource.Notification.DriverProfilePictureInvalid, nameof(dto.ProfilePictureId)));
+            // پشتِ گواهینامه/کارت خودرو اختیاری است (رانندگان قدیمی ندارند)؛ اگر فرستاده شد باید تصویر واقعی باشد
+            if (dto.CertificateBackPictureId.HasValue && dto.CertificateBackPictureId.Value > 0 &&
+                !await _context.Pictures.AnyAsync(s => s.Id == dto.CertificateBackPictureId.Value))
+                errors.Add(Tuple.Create(Resource.Notification.DriverCertificateBackPictureInvalid, nameof(dto.CertificateBackPictureId)));
+            if (dto.VehicleCardBackPictureId.HasValue && dto.VehicleCardBackPictureId.Value > 0 &&
+                !await _context.Pictures.AnyAsync(s => s.Id == dto.VehicleCardBackPictureId.Value))
+                errors.Add(Tuple.Create(Resource.Notification.DriverVehicleCardBackPictureInvalid, nameof(dto.VehicleCardBackPictureId)));
             if (dto.Rate != 0 && (dto.Rate > 5 || dto.Rate < 1))
                 errors.Add(Tuple.Create(Resource.Notification.TheRangeEnteredIsNotCorrect, nameof(dto.Rate)));
             if (dto.OwnerId > 0 && await _context.Drivers.AnyAsync(s => s.OwnerId == dto.OwnerId && !s.Deleted && (!excludeDriverId.HasValue || s.Id != excludeDriverId.Value)))

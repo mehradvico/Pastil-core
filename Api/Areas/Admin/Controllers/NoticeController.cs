@@ -1,5 +1,7 @@
-using Api.Authorization;
+﻿using Api.Authorization;
 using Application.Common.Dto.Result;
+using Application.Common.Interface;
+using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Dto;
 using Application.Services.Setting.NoticeSrv.Iface;
 using Microsoft.AspNetCore.Authorization;
@@ -18,10 +20,14 @@ namespace Api.Areas.Admin.Controllers
     public class NoticeController : ControllerBase
     {
         private readonly INoticeService _noticeService;
+        private readonly IPanelNoticePushService _panelPush;
+        private readonly ICurrentUserHelper _currentUser;
 
-        public NoticeController(INoticeService noticeService)
+        public NoticeController(INoticeService noticeService, IPanelNoticePushService panelPush, ICurrentUserHelper currentUser)
         {
             _noticeService = noticeService;
+            _panelPush = panelPush;
+            _currentUser = currentUser;
         }
 
         ///<summary>
@@ -87,6 +93,26 @@ namespace Api.Areas.Admin.Controllers
         public async Task<IActionResult> ReadBulk([FromBody] NoticeBulkReadDto dto)
         {
             return Ok(await _noticeService.ReadBulkAsync(dto));
+        }
+
+        ///<summary>
+        ///فعال‌سازی پوش سیستمی اعلان‌ها روی همین دستگاه/مرورگرِ ادمین
+        /// </summary>
+        [HttpPost("push/subscribe")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> PushSubscribe([FromBody] PushSubscribeDto dto)
+        {
+            return Ok(await _panelPush.SubscribeAsync(_currentUser.CurrentUser.UserId, dto));
+        }
+
+        ///<summary>
+        ///غیرفعال‌سازی پوش سیستمی اعلان‌ها روی همین دستگاه/مرورگر
+        /// </summary>
+        [HttpPost("push/unsubscribe")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> PushUnsubscribe([FromBody] PanelPushUnsubscribeDto dto)
+        {
+            return Ok(await _panelPush.UnsubscribeAsync(_currentUser.CurrentUser.UserId, dto?.Endpoint));
         }
     }
 }

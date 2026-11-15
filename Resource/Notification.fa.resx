@@ -1059,6 +1059,12 @@
   <data name="DriverVehicleCardPictureRequired" xml:space="preserve">
     <value>تصویر کارت خودرو معتبر را بارگذاری کنید.</value>
   </data>
+  <data name="DriverCertificateBackPictureInvalid" xml:space="preserve">
+    <value>تصویر پشت گواهینامه معتبر نیست.</value>
+  </data>
+  <data name="DriverVehicleCardBackPictureInvalid" xml:space="preserve">
+    <value>تصویر پشت کارت خودرو معتبر نیست.</value>
+  </data>
   <data name="DriverProfilePictureInvalid" xml:space="preserve">
     <value>تصویر پروفایل معتبر نیست.</value>
   </data>
@@ -2994,5 +3000,35 @@
   </data>
   <data name="StoreCommissionBelowPastilDiscount" xml:space="preserve">
     <value>سهم پاستیل نمی‌تواند از تخفیف فعالِ پاستیل این فروشگاه ({0}٪) کمتر شود؛ ابتدا آن تخفیف را کاهش یا غیرفعال کنید.</value>
+  </data>
+  <data name="ProductImageSuggestionNotFound" xml:space="preserve">
+    <value>پیشنهاد تصویر یافت نشد.</value>
+  </data>
+  <data name="ProductImageSuggestionProductMissing" xml:space="preserve">
+    <value>محصول یافت نشد یا غیرفعال است.</value>
+  </data>
+  <data name="ProductImageSuggestionNotInStore" xml:space="preserve">
+    <value>این محصول هنوز در فروشگاه شما ثبت نشده است؛ ابتدا قیمت و موجودی آن را وارد کنید.</value>
+  </data>
+  <data name="ProductImageSuggestionPictureRejected" xml:space="preserve">
+    <value>تصویر معتبر نیست؛ فقط jpg، png یا webp تا ۸ مگابایت.</value>
+  </data>
+  <data name="ProductImageSuggestionUploadFailed" xml:space="preserve">
+    <value>آپلود تصویر ناموفق بود؛ دوباره تلاش کنید.</value>
+  </data>
+  <data name="ProductImageSuggestionTooMany" xml:space="preserve">
+    <value>تعداد پیشنهادهای در انتظار بررسیِ فروشگاه شما به سقف رسیده است؛ منتظر بررسی بمانید.</value>
+  </data>
+  <data name="ProductImageSuggestionNotPending" xml:space="preserve">
+    <value>این پیشنهاد دیگر در صف بررسی نیست.</value>
+  </data>
+  <data name="ProductImageSuggestionProductHasPicture" xml:space="preserve">
+    <value>این محصول از قبل تصویر دارد؛ برای جایگزینی باید تأیید صریح بدهید.</value>
+  </data>
+  <data name="ProductImageSuggestionReasonRequired" xml:space="preserve">
+    <value>دلیل رد لازم است (حداکثر ۵۰۰ کاراکتر).</value>
+  </data>
+  <data name="ProductImageSuggestionNotDeletable" xml:space="preserve">
+    <value>فقط پیشنهادِ در انتظار بررسی یا ردشده قابل حذف است.</value>
   </data>
 </root>

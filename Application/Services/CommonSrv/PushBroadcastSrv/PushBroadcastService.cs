@@ -9,6 +9,7 @@ using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CommonSrv.PushSubscriptionSrv.Dto;
 using AutoMapper;
 using Entities.Entities;
+using Entities.Entities.ProviderField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -178,6 +179,16 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
                 .Concat(_context.CoachUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId))
                 .Concat(_context.GroomerUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId));
 
+            // ارائه‌دهنده‌ی دارای نقش X: صاحب Provider و همکار پذیرفته‌شده‌ی آن، به شرط نقش تأییدشده (ProviderRoleAssignment)
+            IQueryable<long> RoleMembers(string roleLabel) =>
+                _context.ProviderRoleAssignments
+                    .Where(a => !a.Deleted && a.Approved && a.ProviderRole.Label == roleLabel && !a.Provider.Deleted && a.Provider.Active)
+                    .Select(a => a.Provider.UserId)
+                .Concat(_context.ProviderUsers
+                    .Where(u => !u.Deleted && u.Active && u.UserAccept == true && !u.Provider.Deleted && u.Provider.Active &&
+                        _context.ProviderRoleAssignments.Any(a => a.ProviderId == u.ProviderId && !a.Deleted && a.Approved && a.ProviderRole.Label == roleLabel))
+                    .Select(u => u.UserId));
+
             switch (type)
             {
                 case PushMessageTypeEnum.PushMessageType_All:
@@ -200,12 +211,52 @@ namespace Application.Services.CommonSrv.PushBroadcastSrv
                         companionStaff.Contains(x.UserId.Value)));
 
                 case PushMessageTypeEnum.PushMessageType_Pansion:
-                    return query.Where(x => x.UserId != null && pansionOwners.Contains(x.UserId.Value));
+                {
+                    var members = RoleMembers(ProviderRoleLabels.Pansion);
+                    return query.Where(x => x.UserId != null && (pansionOwners.Contains(x.UserId.Value) || members.Contains(x.UserId.Value)));
+                }
 
                 case PushMessageTypeEnum.PushMessageType_Store:
+                {
+                    var members = RoleMembers(ProviderRoleLabels.Store);
                     return query.Where(x => x.UserId != null && (
                         x.User.RoleId == (long)RoleEnum.Store ||
-                        x.User.Stores.Any(s => s.Active && !s.Deleted)));
+                        x.User.Stores.Any(s => s.Active && !s.Deleted) ||
+                        members.Contains(x.UserId.Value)));
+                }
+
+                case PushMessageTypeEnum.PushMessageType_Clinic:
+                {
+                    var members = RoleMembers(ProviderRoleLabels.Clinic);
+                    var owners = _context.Clinics.Where(c => !c.Deleted).Select(c => c.OwnerId)
+                        .Concat(_context.ClinicUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId));
+                    return query.Where(x => x.UserId != null && (owners.Contains(x.UserId.Value) || members.Contains(x.UserId.Value)));
+                }
+
+                case PushMessageTypeEnum.PushMessageType_Coach:
+                {
+                    var members = RoleMembers(ProviderRoleLabels.Coach);
+                    var owners = _context.Coaches.Where(c => !c.Deleted).Select(c => c.OwnerId)
+                        .Concat(_context.CoachUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId));
+                    return query.Where(x => x.UserId != null && (owners.Contains(x.UserId.Value) || members.Contains(x.UserId.Value)));
+                }
+
+                case PushMessageTypeEnum.PushMessageType_Groomer:
+                {
+                    var members = RoleMembers(ProviderRoleLabels.Groomer);
+                    var owners = _context.Groomers.Where(g => !g.Deleted).Select(g => g.OwnerId)
+                        .Concat(_context.GroomerUsers.Where(u => !u.Deleted && u.Active && u.UserAccept == true).Select(u => u.UserId));
+                    return query.Where(x => x.UserId != null && (owners.Contains(x.UserId.Value) || members.Contains(x.UserId.Value)));
+                }
+
+                case PushMessageTypeEnum.PushMessageType_School:
+                {
+                    var members = RoleMembers(ProviderRoleLabels.School);
+                    // مالک مدرسه: ارائه‌دهنده، وگرنه مالک نمایندگی (مدرسه‌ی قدیمی)
+                    var owners = _context.Schools.Where(sc => sc.Active && !sc.Deleted && (sc.ProviderId != null || sc.CompanionId != null))
+                        .Select(sc => sc.ProviderId != null ? sc.Provider.UserId : sc.Companion.OwnerId);
+                    return query.Where(x => x.UserId != null && (owners.Contains(x.UserId.Value) || members.Contains(x.UserId.Value)));
+                }
 
                 case PushMessageTypeEnum.PushMessageType_EndUser:
                     // فقط مشتری‌های معمولی: نه ادمین/اپراتور، نه نماینده/کارمند کلینیک، نه فروشنده

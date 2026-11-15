@@ -26,8 +26,8 @@ public class CustomOutputCacheAttribute : Attribute, IAsyncActionFilter
         }
 
         // خواندن مدت زمان کش از تنظیمات
-        bool disable = configuration.GetValue<bool>($"CacheSettings:DisableAll");
-        if (disable)
+        // DisableAll همه را خاموش می‌کند مگر کلید در CacheSettings:EnabledKeys باشد (مثلاً فقط ProductSearch با مدت کوتاه)
+        if (!Application.Common.Helpers.OutputCachePolicy.IsEnabled(configuration, _key))
         {
             await next();
             return;
@@ -70,12 +70,16 @@ public class CustomOutputCacheAttribute : Attribute, IAsyncActionFilter
             };
 
             string responseBody = System.Text.Json.JsonSerializer.Serialize(result.Value, options);
-            // MemoryCache با SizeLimit ثبت شده؛ ورودی بدون Size خطا می‌دهد (روشن کردن CacheSettings قبلاً همین‌جا می‌شکست)
-            cache.Set(cacheKey, responseBody, new MemoryCacheEntryOptions
+            // MemoryCache با SizeLimit ثبت شده؛ ورودی بدون Size خطا می‌دهد (روشن کردن CacheSettings قبلاً همین‌جا می‌شکست).
+            // Size به حجم پاسخ بستگی دارد و پاسخ خیلی بزرگ کش نمی‌شود تا حافظه‌ی سرور پر نشود.
+            if (Application.Common.Helpers.OutputCachePolicy.ShouldStore(responseBody.Length))
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(duration),
-                Size = 1
-            });
+                cache.Set(cacheKey, responseBody, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(duration),
+                    Size = Application.Common.Helpers.OutputCachePolicy.EntrySize(responseBody.Length)
+                });
+            }
         }
     }
     public class CamelCaseNamingPolicy : JsonNamingPolicy

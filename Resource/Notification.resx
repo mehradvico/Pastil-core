@@ -1059,6 +1059,12 @@
   <data name="DriverVehicleCardPictureRequired" xml:space="preserve">
     <value>Driver Vehicle Card Picture Required</value>
   </data>
+  <data name="DriverCertificateBackPictureInvalid" xml:space="preserve">
+    <value>Driver Certificate Back Picture Invalid</value>
+  </data>
+  <data name="DriverVehicleCardBackPictureInvalid" xml:space="preserve">
+    <value>Driver Vehicle Card Back Picture Invalid</value>
+  </data>
   <data name="DriverProfilePictureInvalid" xml:space="preserve">
     <value>Driver Profile Picture Invalid</value>
   </data>
@@ -2994,5 +3000,35 @@
   </data>
   <data name="StoreCommissionBelowPastilDiscount" xml:space="preserve">
     <value>Pastil's share cannot be lower than the active Pastil discount of this store ({0}%). Reduce or disable that discount first.</value>
+  </data>
+  <data name="ProductImageSuggestionNotFound" xml:space="preserve">
+    <value>Product image suggestion not found.</value>
+  </data>
+  <data name="ProductImageSuggestionProductMissing" xml:space="preserve">
+    <value>The product was not found or is inactive.</value>
+  </data>
+  <data name="ProductImageSuggestionNotInStore" xml:space="preserve">
+    <value>This product is not in your store yet; enter its price and stock first.</value>
+  </data>
+  <data name="ProductImageSuggestionPictureRejected" xml:space="preserve">
+    <value>The image is not valid; only jpg, png or webp up to 8 MB.</value>
+  </data>
+  <data name="ProductImageSuggestionUploadFailed" xml:space="preserve">
+    <value>Image upload failed; please try again.</value>
+  </data>
+  <data name="ProductImageSuggestionTooMany" xml:space="preserve">
+    <value>Your store has too many suggestions waiting for review.</value>
+  </data>
+  <data name="ProductImageSuggestionNotPending" xml:space="preserve">
+    <value>This suggestion is no longer waiting for review.</value>
+  </data>
+  <data name="ProductImageSuggestionProductHasPicture" xml:space="preserve">
+    <value>This product already has a picture; replacement needs explicit confirmation.</value>
+  </data>
+  <data name="ProductImageSuggestionReasonRequired" xml:space="preserve">
+    <value>Rejection reason is required (max 500 characters).</value>
+  </data>
+  <data name="ProductImageSuggestionNotDeletable" xml:space="preserve">
+    <value>Only a pending or rejected suggestion can be removed.</value>
   </data>
 </root>

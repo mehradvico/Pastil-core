@@ -33,34 +33,11 @@ namespace Application.Services.Setting.MessageSenderSrv
             if (!string.IsNullOrEmpty(mobileReceptor))
             {
                 await _smsService.SendSmsAsync(smsType: messageType, receptor: mobileReceptor, body: body, token1: token1, token2: token2, token3: token3, token4: token4, token5: token5, sendDate: sendDate);
-                if (messageType != MessageTypeEnum.Otp)
-                {
-                    await CreateSmsNoticeAsync(messageType, mobileReceptor, body, token1, token2, token3, token4, token5, sendDate);
-                }
+                // اعلان «ارسال پیامک» برای ادمین ساخته نمی‌شود (شلوغی زنگ اعلان‌ها؛ رویداد اصلی مثل «ثبت‌نام کاربر جدید» خودش اعلان دارد).
             }
 
             if (!string.IsNullOrEmpty(emailReceptor))
                 await _emailService.SendEmailAsync(emailType: messageType, receptor: emailReceptor, body: body, token1: token1, token2: token2, token3: token3, token4: token4, token5: token5, sendDate: sendDate);
-        }
-
-        private async Task CreateSmsNoticeAsync(MessageTypeEnum messageType, string mobileReceptor, string body, string token1, string token2, string token3, string token4, string token5, DateTime? sendDate)
-        {
-            var source = string.Join("|", messageType, mobileReceptor, body, token1, token2, token3, token4, token5, sendDate?.ToUniversalTime().ToString("O"));
-            var deduplicationKey = $"Sms:{Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source)))}";
-            var metadata = new Dictionary<string, string>
-            {
-                { "messageType", messageType.ToString() },
-                { "mobile", mobileReceptor },
-                { "sendDate", (sendDate ?? DateTime.Now).ToString("yyyy/MM/dd HH:mm") }
-            };
-            try
-            {
-                await _noticeEventService.CreateAsync(new NoticeCreateDto { Label = NoticeTypeLabels.SmsSent, ReferenceType = "Sms", DeduplicationKey = deduplicationKey, Metadata = metadata });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Creating SMS notice failed for message type {MessageType}", messageType);
-            }
         }
     }
 }

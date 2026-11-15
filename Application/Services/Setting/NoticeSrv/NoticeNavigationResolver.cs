@@ -77,6 +77,8 @@ namespace Application.Services.Setting.NoticeSrv
                 case "VenueService":
                 case "ConsultationPackage":
                     return VenueDetail(metadata, configuredNavigationUrl);
+                case "ProductImageSuggestion":
+                    return "/admin/productimagesuggestion";
                 case "PetResanService":
                     return Detail("/admin/user/profile-", PositiveId(actorUserId), configuredNavigationUrl);
             }

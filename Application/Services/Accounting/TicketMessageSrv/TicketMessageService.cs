@@ -7,6 +7,10 @@ using Application.Services.Accounting.TicketMessageSrv.Dto;
 using Application.Services.Accounting.TicketMessageSrv.Iface;
 using Application.Services.Dto;
 using Application.Services.Setting.CodeSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Dto;
+using Application.Services.Setting.NoticeSrv.Iface;
+using System.Collections.Generic;
 using AutoMapper;
 using Entities.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -24,9 +28,11 @@ namespace Application.Services.TicketMessageSrv
         private readonly IMapper mapper;
         private readonly CurrentUserDto _currentUser;
         private readonly ICodeService _codeService;
+        private readonly INoticeEventService _noticeEventService;
 
-        public TicketMessageService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUserHelper, ICodeService codeService)
+        public TicketMessageService(IDataBaseContext context, IMapper mapper, ICurrentUserHelper currentUserHelper, ICodeService codeService, INoticeEventService noticeEventService = null)
         {
+            _noticeEventService = noticeEventService;
             _context = context;
             this.mapper = mapper;
             _currentUser = currentUserHelper.CurrentUser;
@@ -117,8 +123,33 @@ namespace Application.Services.TicketMessageSrv
             await _context.TicketItems.AddAsync(ticketItem, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
+            await NotifyAdminsAsync(ticket.Id, ticket.Name, ticketItem.Id);
+
             var result = await FindMessageAsync(ticketItem.Id, ticket.UserId, cancellationToken);
             return new BaseResultDto<TicketItemVDto>(true, result);
+        }
+
+        // اعلان «پیام جدید تیکت» برای ادمین (زنگوله + پوش)؛ خطا هرگز ارسال پیام کاربر را خراب نمی‌کند
+        private async Task NotifyAdminsAsync(long ticketId, string ticketName, long ticketItemId)
+        {
+            if (_noticeEventService == null)
+                return;
+            try
+            {
+                await _noticeEventService.CreateAsync(new NoticeCreateDto
+                {
+                    Label = NoticeTypeLabels.TicketMessageSubmitted,
+                    ActorUserId = _currentUser.UserId,
+                    ReferenceType = "Ticket",
+                    ReferenceId = ticketId,
+                    DeduplicationKey = $"{NoticeTypeLabels.TicketMessageSubmitted}:{ticketItemId}",
+                    Metadata = new Dictionary<string, string> { { "ticketName", ticketName ?? string.Empty } }
+                });
+            }
+            catch
+            {
+                // مهم نیست
+            }
         }
 
         public async Task<BaseResultDto<TicketItemVDto>> SendAdminMessageAsync(long ticketId, SendTicketMessageDto dto, CancellationToken cancellationToken = default)

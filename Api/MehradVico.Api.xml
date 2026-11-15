@@ -2866,6 +2866,16 @@
              </summary>
             <returns></returns>
         </member>
+        <member name="M:Api.Areas.Admin.Controllers.NoticeController.PushSubscribe(Application.Services.CommonSrv.PushSubscriptionSrv.Dto.PushSubscribeDto)">
+            <summary>
+            فعال‌سازی پوش سیستمی اعلان‌ها روی همین دستگاه/مرورگرِ ادمین
+             </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.NoticeController.PushUnsubscribe(Application.Services.CommonSrv.PushSubscriptionSrv.Dto.PanelPushUnsubscribeDto)">
+            <summary>
+            غیرفعال‌سازی پوش سیستمی اعلان‌ها روی همین دستگاه/مرورگر
+             </summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.NotifyMessageController">
             <summary>
             پیام های نوتیفیکیشن
@@ -4254,6 +4264,24 @@
             <returns></returns>
             
         </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProductImageSuggestionController">
+            <summary>
+            عکس های پیشنهادی محصولات
+            </summary>
+            <remarks>صف بررسی تصویرهایی که فروشگاه‌ها برای محصولات کاتالوگ فرستاده‌اند</remarks>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProductImageSuggestionController.Search(Application.Services.ProductSrvs.ProductImageSuggestionSrv.Dto.ProductImageSuggestionAdminSearchDto)">
+            <summary>فهرست پیشنهادها. status: pending (پیش‌فرض، قدیمی‌ترین اول) | approved | rejected | all</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProductImageSuggestionController.Approve(Application.Services.ProductSrvs.ProductImageSuggestionSrv.Dto.ProductImageSuggestionApproveDto)">
+            <summary>
+            تأیید: تصویر پیشنهادی تصویر اصلی محصول می‌شود. اگر محصول از قبل تصویر دارد، بدون confirmReplace=true
+            پاسخ isSuccess=false با code=9 برمی‌گردد (پنل مودال «مطمئنید؟» نشان می‌دهد).
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProductImageSuggestionController.Reject(Application.Services.ProductSrvs.ProductImageSuggestionSrv.Dto.ProductImageSuggestionRejectDto)">
+            <summary>رد با دلیل متنی (فروشنده می‌تواند عکس دیگری بفرستد)</summary>
+        </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductItemController">
             <summary>
             آیتم های محصول
@@ -4282,6 +4310,24 @@
             حذف آیتم
             </summary>
             <returns></returns>
+        </member>
+        <member name="T:Api.Areas.Admin.Controllers.ProductMainPictureController">
+            <summary>
+            تنظیم تصویر اصلی محصول (ایمپورت گروهی عکس محصولات در پنل).
+            پیش‌فرض: فقط وقتی PictureId خالی است نوشته می‌شود و عکس موجود را عوض نمی‌کند.
+            فقط با Replace=true (انتخاب صریح ادمین در پنل) عکس موجود جایگزین می‌شود؛ عکس قبلی از سرویس فایل پاک نمی‌شود.
+            </summary>
+        </member>
+        <member name="P:Api.Areas.Admin.Controllers.ProductMainPictureController.SetMainPictureDto.Replace">
+            <summary>true = اگر محصول از قبل تصویر اصلی دارد، جایگزینش شود (پیش‌فرض false)</summary>
+        </member>
+        <member name="P:Api.Areas.Admin.Controllers.ProductMainPictureController.SetMainPictureResultDto.Applied">
+            <summary>true = تصویر اصلی ثبت (یا جایگزین) شد؛ false = محصول از قبل تصویر اصلی داشت و Replace نبود، پس دست‌نخورده ماند</summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.ProductMainPictureController.Put(Api.Areas.Admin.Controllers.ProductMainPictureController.SetMainPictureDto)">
+            <summary>
+            ثبت تصویر اصلی (بدون Replace فقط اگر محصول تصویر اصلی ندارد)
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.ProductOrderCancelController">
             <summary>
@@ -4891,6 +4937,26 @@
              جستجو
             </summary>
             <returns></returns> 
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.RebateController.ByTarget(Application.Services.Order.RebateSrv.Dto.RebateInputDto)">
+            <summary>
+             کدهای تخفیف یک هدف (مثلاً یک فروشگاه: TargetType=Store&amp;TargetId=...) و/یا یک کاربر
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.RebateController.PostForStore(System.Int64,Application.Services.Order.RebateSrv.Dto.RebateDto)">
+            <summary>
+            ساخت کد تخفیف مخصوص یک فروشگاه (اختیاری: فقط برای یک کاربر خاص با UserId)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.RebateController.PostForTarget(Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum,System.Int64,Application.Services.Order.RebateSrv.Dto.RebateDto)">
+            <summary>
+            ساخت کد تخفیف مخصوص یک نمایندگی: targetType یکی از Store, Coach, Clinic, Groomer, Pansion
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Admin.Controllers.RebateController.PutActive(System.Int64,System.Boolean)">
+            <summary>
+            فعال/غیرفعال کردن کد تخفیف
+            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.RebateController.Post(Application.Services.Order.RebateSrv.Dto.RebateDto)">
             <summary>
@@ -11266,6 +11332,24 @@
             آپلود نهایی همان مسیر همیشگی MissingProduct/{id}/picture است.
             </summary>
         </member>
+        <member name="T:Api.Areas.Seller.Controllers.ProductImageSuggestionController">
+            <summary>
+            تصویر پیشنهادی فروشگاه برای محصول کاتالوگ — فروشنده هنگام ثبت قیمت/موجودی عکس خودش را هم می‌فرستد؛
+            پس از تأیید ادمین، همان عکس تصویر اصلی محصول می‌شود. StoreId همیشه از توکن گرفته می‌شود.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ProductImageSuggestionController.Submit(System.Int64,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            ارسال تصویر پیشنهادی برای یک محصول (multipart: فیلد productId + فایل image؛ jpg/png/webp تا ۸MB).
+            محصول باید در همین فروشگاه ثبت شده باشد؛ اگر از قبل پیشنهادِ در انتظارِ همین فروشگاه برای همین محصول هست، همان عوض می‌شود.
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ProductImageSuggestionController.List(System.Nullable{System.Int64},System.Int32)">
+            <summary>فهرست پیشنهادهای همین فروشگاه، جدیدترین اول (productId اختیاری)</summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.ProductImageSuggestionController.Delete(System.Int64)">
+            <summary>حذف پیشنهاد (فقط در انتظار بررسی یا ردشده)</summary>
+        </member>
         <member name="T:Api.Areas.Seller.Controllers.ProductItemController">
              <summary>
              مدیریت فروشگاه ها
@@ -11453,6 +11537,31 @@
             <summary>
             نوع(های) تنوع محصول (تعیین‌شده توسط ادمین) و مقدارهای قابل‌انتخاب هرکدام. Variety=null یعنی محصول بدون تنوع است.
             فروشنده تنوع یا مقدار جدید نمی‌سازد؛ فقط از همین مقدارها برای هر ترکیب قیمت و موجودی می‌دهد.
+            </summary>
+        </member>
+        <member name="T:Api.Areas.Seller.Controllers.RebateController">
+            <summary>
+            کدهای تخفیفِ مخصوص فروشگاه (نماینده برای مشتریان خودش می‌سازد؛ فقط روی سبد همین فروشگاه معتبر است)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.RebateController.Get(Application.Services.Order.RebateSrv.Dto.RebateInputDto)">
+            <summary>
+            لیست کدهای تخفیف فروشگاه من (UserId = فقط کدهای مخصوص یک کاربر)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.RebateController.Post(Application.Services.Order.RebateSrv.Dto.RebateDto)">
+            <summary>
+            ساخت کد تخفیف برای فروشگاه من؛ UserId اختیاری (کد فقط برای همان کاربر کار می‌کند)
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.RebateController.PutActive(System.Int64,System.Boolean)">
+            <summary>
+            فعال/غیرفعال کردن کد
+            </summary>
+        </member>
+        <member name="M:Api.Areas.Seller.Controllers.RebateController.Delete(System.Int64)">
+            <summary>
+            حذف کد
             </summary>
         </member>
         <member name="T:Api.Areas.Seller.Controllers.SettlementController">

@@ -2197,6 +2197,24 @@ namespace Resource {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to تصویر پشت گواهینامه معتبر نیست.
+        /// </summary>
+        public static string DriverCertificateBackPictureInvalid {
+            get {
+                return ResourceManager.GetString("DriverCertificateBackPictureInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to تصویر پشت کارت خودرو معتبر نیست.
+        /// </summary>
+        public static string DriverVehicleCardBackPictureInvalid {
+            get {
+                return ResourceManager.GetString("DriverVehicleCardBackPictureInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Driver Profile Picture Invalid.
         /// </summary>
         public static string DriverProfilePictureInvalid {
@@ -7711,6 +7729,96 @@ namespace Resource {
         public static string StoreCommissionBelowPastilDiscount {
             get {
                 return ResourceManager.GetString("StoreCommissionBelowPastilDiscount", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Product image suggestion not found.
+        /// </summary>
+        public static string ProductImageSuggestionNotFound {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionNotFound", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The product was not found or is inactive.
+        /// </summary>
+        public static string ProductImageSuggestionProductMissing {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionProductMissing", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This product is not in your store yet; enter its price and stock first.
+        /// </summary>
+        public static string ProductImageSuggestionNotInStore {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionNotInStore", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The image is not valid; only jpg, png or webp up to 8 MB.
+        /// </summary>
+        public static string ProductImageSuggestionPictureRejected {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionPictureRejected", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Image upload failed; please try again.
+        /// </summary>
+        public static string ProductImageSuggestionUploadFailed {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionUploadFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your store has too many suggestions waiting for review.
+        /// </summary>
+        public static string ProductImageSuggestionTooMany {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionTooMany", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This suggestion is no longer waiting for review.
+        /// </summary>
+        public static string ProductImageSuggestionNotPending {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionNotPending", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This product already has a picture; replacement needs explicit confirmation.
+        /// </summary>
+        public static string ProductImageSuggestionProductHasPicture {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionProductHasPicture", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Rejection reason is required (max 500 characters).
+        /// </summary>
+        public static string ProductImageSuggestionReasonRequired {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionReasonRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only a pending or rejected suggestion can be removed.
+        /// </summary>
+        public static string ProductImageSuggestionNotDeletable {
+            get {
+                return ResourceManager.GetString("ProductImageSuggestionNotDeletable", resourceCulture);
             }
         }
 

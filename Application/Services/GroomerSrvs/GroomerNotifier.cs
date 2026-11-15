@@ -3,6 +3,8 @@ using Application.Common.Enumerable.Message;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveSrv;
 using Application.Services.Setting.MessageSenderSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Iface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -37,9 +39,11 @@ namespace Application.Services.GroomerSrvs
         private readonly IPushNotificationService _push;
         private readonly IMessageSenderService _sms;
         private readonly ILogger<GroomerNotifier> _logger;
+        private readonly INoticeEventService _notices;
 
-        public GroomerNotifier(IDataBaseContext context, IPushNotificationService push, IMessageSenderService sms, ILogger<GroomerNotifier> logger)
+        public GroomerNotifier(IDataBaseContext context, IPushNotificationService push, IMessageSenderService sms, ILogger<GroomerNotifier> logger, INoticeEventService notices = null)
         {
+            _notices = notices;
             _context = context;
             _push = push;
             _sms = sms;
@@ -73,6 +77,7 @@ namespace Application.Services.GroomerSrvs
                 var r = await LoadAsync(reserveId);
                 if (r == null)
                     return;
+                await VenueReserveAdminNotice.CreateAsync(_notices, _logger, "Groomer", r.Id, r.BookerId, r.BookerFirstName, r.GroomerName, r.DoDate);
                 await _push.SendPushAsync(PushTypeEnum.PushGroomerReserveApprovalRequired, r.OwnerId,
                     token1: r.GroomerName, token2: r.PetName, token3: r.Id.ToString());
                 await _sms.SendMessageAsync(MessageTypeEnum.GroomerReserveForUser, r.BookerMobile, null,

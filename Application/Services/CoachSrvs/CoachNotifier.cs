@@ -3,6 +3,8 @@ using Application.Common.Enumerable.Message;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Application.Services.CompanionSrvs.CompanionReserveSrv;
 using Application.Services.Setting.MessageSenderSrv.Iface;
+using Application.Services.Setting.NoticeSrv;
+using Application.Services.Setting.NoticeSrv.Iface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -38,9 +40,11 @@ namespace Application.Services.CoachSrvs
         private readonly IPushNotificationService _push;
         private readonly IMessageSenderService _sms;
         private readonly ILogger<CoachNotifier> _logger;
+        private readonly INoticeEventService _notices;
 
-        public CoachNotifier(IDataBaseContext context, IPushNotificationService push, IMessageSenderService sms, ILogger<CoachNotifier> logger)
+        public CoachNotifier(IDataBaseContext context, IPushNotificationService push, IMessageSenderService sms, ILogger<CoachNotifier> logger, INoticeEventService notices = null)
         {
+            _notices = notices;
             _context = context;
             _push = push;
             _sms = sms;
@@ -72,6 +76,7 @@ namespace Application.Services.CoachSrvs
                 var r = await LoadAsync(reserveId);
                 if (r == null)
                     return;
+                await VenueReserveAdminNotice.CreateAsync(_notices, _logger, "Coach", r.Id, r.BookerId, r.BookerName, r.CoachName, r.DoDate);
                 await _push.SendPushAsync(PushTypeEnum.PushCoachReserveApprovalRequired, r.OwnerId,
                     token1: r.CoachName, token2: r.PetName, token3: r.Id.ToString());
                 // پیامک: همان قالب‌های رزرو Companion (قالب جدید نداریم).

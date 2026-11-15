@@ -126,14 +126,14 @@ BEGIN
         FROM Best
     )
     UPDATE item
-    SET DiscountPercent = CAST(ROUND(100.0 * (1.0 - (1.0 - calc.StorePercent / 100.0) * (1.0 - calc.PastilPercent / 100.0)), 0) AS int),
+    SET DiscountPercent = CAST(ROUND(CASE WHEN calc.StorePercent + calc.PastilPercent > 100 THEN 100.0 ELSE calc.StorePercent + calc.PastilPercent END, 0) AS int),
         PastilDiscountPercent = calc.PastilPercent,
         PastilDiscountAmount =
             CASE WHEN calc.PastilPercent > 0
                  THEN CAST(ISNULL(item.BasePrice, 0) * (1.0 - calc.StorePercent / 100.0) AS float)
-                      - CAST(CAST(ISNULL(item.BasePrice, 0) * (1.0 - calc.StorePercent / 100.0) * (1.0 - calc.PastilPercent / 100.0) AS bigint) AS float)
+                      - CAST(CAST(ISNULL(item.BasePrice, 0) * (1.0 - (CASE WHEN calc.StorePercent + calc.PastilPercent > 100 THEN 100.0 ELSE calc.StorePercent + calc.PastilPercent END) / 100.0) AS bigint) AS float)
                  ELSE 0 END,
-        Price = CAST(ISNULL(item.BasePrice, 0) * (1.0 - calc.StorePercent / 100.0) * (1.0 - calc.PastilPercent / 100.0) AS bigint),
+        Price = CAST(ISNULL(item.BasePrice, 0) * (1.0 - (CASE WHEN calc.StorePercent + calc.PastilPercent > 100 THEN 100.0 ELSE calc.StorePercent + calc.PastilPercent END) / 100.0) AS bigint),
         DiscountEndDate = calc.EndDate,
         DiscountGroupId = calc.DiscountGroupId
     FROM ProductItems AS item

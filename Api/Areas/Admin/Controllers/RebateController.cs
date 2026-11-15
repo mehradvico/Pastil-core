@@ -47,6 +47,42 @@ namespace Api.Areas.Admin.Controllers
             return Ok(searchDto);
         }
         /// <summary>
+        ///  کدهای تخفیف یک هدف (مثلاً یک فروشگاه: TargetType=Store&amp;TargetId=...) و/یا یک کاربر
+        /// </summary>
+        [HttpGet("ByTarget")]
+        [ProducesResponseType(typeof(BaseSearchDto<RebateListVDto>), 200)]
+        public IActionResult ByTarget([FromQuery] RebateInputDto dto)
+        {
+            return Ok(RebateService.SearchByTarget(dto));
+        }
+        /// <summary>
+        /// ساخت کد تخفیف مخصوص یک فروشگاه (اختیاری: فقط برای یک کاربر خاص با UserId)
+        /// </summary>
+        [HttpPost("Store/{storeId}")]
+        [ProducesResponseType(typeof(BaseResultDto<RebateDto>), 200)]
+        public async Task<IActionResult> PostForStore(long storeId, RebateDto rebateDto)
+        {
+            return Ok(await RebateService.InsertForStoreAsync(rebateDto, storeId));
+        }
+        /// <summary>
+        /// ساخت کد تخفیف مخصوص یک نمایندگی: targetType یکی از Store, Coach, Clinic, Groomer, Pansion
+        /// </summary>
+        [HttpPost("Target/{targetType}/{targetId}")]
+        [ProducesResponseType(typeof(BaseResultDto<RebateDto>), 200)]
+        public async Task<IActionResult> PostForTarget(Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum targetType, long targetId, RebateDto rebateDto)
+        {
+            return Ok(await RebateService.InsertForTargetAsync(rebateDto, targetType, targetId));
+        }
+        /// <summary>
+        /// فعال/غیرفعال کردن کد تخفیف
+        /// </summary>
+        [HttpPut("Active")]
+        [ProducesResponseType(typeof(BaseResultDto), 200)]
+        public async Task<IActionResult> PutActive(long id, bool active)
+        {
+            return Ok(await RebateService.SetActiveAsync(id, active));
+        }
+        /// <summary>
         /// آیتم جدید
         /// </summary>  
         [HttpPost]

@@ -20,6 +20,9 @@ namespace Entities.Entities
         public long? ProfilePictureId { get; set; }
         public long? CertificatePictureId { get; set; }
         public long? VehicleCardPictureId { get; set; }
+        // پشتِ کارت خودرو و پشتِ گواهینامه (CertificatePictureId/VehicleCardPictureId = روی کارت)
+        public long? CertificateBackPictureId { get; set; }
+        public long? VehicleCardBackPictureId { get; set; }
         public long CityId { get; set; }
         public long? NeighborhoodId { get; set; }
         public long StatusId { get; set; }
@@ -35,6 +38,8 @@ namespace Entities.Entities
         public Picture ProfilePicture { get; set; }
         public Picture CertificatePicture { get; set; }
         public Picture VehicleCardPicture { get; set; }
+        public Picture CertificateBackPicture { get; set; }
+        public Picture VehicleCardBackPicture { get; set; }
         public User Owner { get; set; }
         public Code Status { get; set; }
     }

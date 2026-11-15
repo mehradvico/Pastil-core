@@ -35,7 +35,7 @@ namespace Application.Services.Setting.NoticeSrv
         {
             EnsureAdmin();
             var now = DateTime.UtcNow;
-            var model = NoticeQuery();
+            var model = NoticeQuery().Where(x => x.NoticeType.Label != NoticeTypeLabels.SmsSent);
             if (!string.IsNullOrWhiteSpace(dto.Q))
             {
                 var query = dto.Q.Trim();
@@ -104,7 +104,7 @@ namespace Application.Services.Setting.NoticeSrv
             if (dto == null || !dto.Confirmed)
                 return new BaseResultDto<NoticeBulkReadVDto>(false, "Bulk read confirmation is required.", null);
             var now = DateTime.UtcNow;
-            var requestedIds = dto.All ? await _context.Notices.Where(x => !x.ArchivedAtUtc.HasValue && x.ArchiveDueAtUtc > now).Select(x => x.Id).ToListAsync() : (dto.NoticeIds ?? new List<long>()).Where(x => x > 0).Distinct().ToList();
+            var requestedIds = dto.All ? await _context.Notices.Where(x => !x.ArchivedAtUtc.HasValue && x.ArchiveDueAtUtc > now && x.NoticeType.Label != NoticeTypeLabels.SmsSent).Select(x => x.Id).ToListAsync() : (dto.NoticeIds ?? new List<long>()).Where(x => x > 0).Distinct().ToList();
             if (requestedIds.Count == 0)
                 return dto.All ? new BaseResultDto<NoticeBulkReadVDto>(true, new NoticeBulkReadVDto { AdminName = GetAdminName() }) : new BaseResultDto<NoticeBulkReadVDto>(false, "NoticeIds is required.", null);
             var validIds = await _context.Notices.Where(x => requestedIds.Contains(x.Id)).Select(x => x.Id).ToListAsync();
@@ -123,7 +123,7 @@ namespace Application.Services.Setting.NoticeSrv
         public async Task<List<NoticeTypeVDto>> GetTypesAsync(bool activeOnly = true)
         {
             EnsureAdmin();
-            var query = _context.NoticeTypes.AsQueryable();
+            var query = _context.NoticeTypes.Where(x => x.Label != NoticeTypeLabels.SmsSent);
             if (activeOnly)
                 query = query.Where(x => x.IsActive);
             return _mapper.Map<List<NoticeTypeVDto>>(await query.OrderBy(x => x.Importance).ThenBy(x => x.Id).ToListAsync());
@@ -133,7 +133,7 @@ namespace Application.Services.Setting.NoticeSrv
         {
             EnsureAdmin();
             var now = DateTime.UtcNow;
-            return _context.Notices.CountAsync(x => x.Read == null && !x.ArchivedAtUtc.HasValue && x.ArchiveDueAtUtc > now);
+            return _context.Notices.CountAsync(x => x.Read == null && !x.ArchivedAtUtc.HasValue && x.ArchiveDueAtUtc > now && x.NoticeType.Label != NoticeTypeLabels.SmsSent);
         }
 
         public Task<int> ArchiveExpiredAsync()

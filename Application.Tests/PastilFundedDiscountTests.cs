@@ -111,6 +111,13 @@ public class PastilFundedDiscountTests : IClassFixture<ClinicLocalDbFixture>
         c.SaveChanges();
     }
 
+    private void AddStoreWideDiscount(long storeId, int percent, bool pastil, DateTime? endDate)
+    {
+        using var c = _fixture.NewContext();
+        c.Discounts.Add(new Discount { StoreId = storeId, Percent = percent, FundedByPastil = pastil, Active = true, EndDate = endDate });
+        c.SaveChanges();
+    }
+
     private T Scalar<T>(string column, long itemId)
     {
         using var c = _fixture.NewContext();
@@ -139,6 +146,35 @@ public class PastilFundedDiscountTests : IClassFixture<ClinicLocalDbFixture>
     }
 
     [Fact]
+    public void Procedure_applies_store_wide_discount_to_every_item_of_the_store_even_without_end_date()
+    {
+        if (!_fixture.Available) return;
+        var shop = SeedItem();
+        AddStoreWideDiscount(shop.StoreId, 20, pastil: false, endDate: DateTime.Now.Date.AddDays(10));
+        AddStoreWideDiscount(shop.StoreId, 5, pastil: true, endDate: null);   // بدون تاریخ انقضا
+        Assert.Equal((25, 5, 750_000L), Run(shop.ProductId, shop.ItemId));      // ۲۰٪ + ۵٪ = ۲۵٪ (جمعی)
+    }
+
+    [Fact]
+    public void Procedure_restores_base_price_when_store_wide_discounts_are_deleted_or_deactivated()
+    {
+        if (!_fixture.Available) return;
+        var shop = SeedItem();
+        AddStoreWideDiscount(shop.StoreId, 20, pastil: false, endDate: null);
+        AddStoreWideDiscount(shop.StoreId, 5, pastil: true, endDate: null);
+        Assert.Equal((25, 5, 750_000L), Run(shop.ProductId, shop.ItemId));
+
+        using (var c = _fixture.NewContext())
+            c.Database.ExecuteSqlRaw("UPDATE Discounts SET Deleted = 1 WHERE StoreId = {0} AND FundedByPastil = 0", shop.StoreId);
+        Assert.Equal((5, 5, 950_000L), Run(shop.ProductId, shop.ItemId));      // فقط سهم پاستیل مانده
+
+        using (var c = _fixture.NewContext())
+            c.Database.ExecuteSqlRaw("UPDATE Discounts SET Active = 0 WHERE StoreId = {0}", shop.StoreId);
+        Assert.Equal((0, 0, 1_000_000L), Run(shop.ProductId, shop.ItemId));    // همه برداشته شد → قیمت پایه
+        Assert.Equal(0d, Scalar<double>("PastilDiscountAmount", shop.ItemId));
+    }
+
+    [Fact]
     public void Procedure_adds_store_and_pastil_layers_independently()
     {
         if (!_fixture.Available) return;
@@ -146,8 +182,8 @@ public class PastilFundedDiscountTests : IClassFixture<ClinicLocalDbFixture>
         AddDiscount(both.StoreId, both.ProductId, 15, pastil: false);
         AddDiscount(both.StoreId, both.ProductId, 8, pastil: true);
         AddDiscount(both.StoreId, both.ProductId, 3, pastil: true);               // کمتر از ۸ نادیده گرفته می‌شود
-        Assert.Equal((22, 8, 782_000L), Run(both.ProductId, both.ItemId));            // ۱ − ۰٫۸۵×۰٫۹۲ = ۲۱٫۸٪ ≈ ۲۲٪
-        Assert.Equal(68_000d, Scalar<double>("PastilDiscountAmount", both.ItemId));
+        Assert.Equal((23, 8, 770_000L), Run(both.ProductId, both.ItemId));            // ۱۵٪ + ۸٪ = ۲۳٪ (جمعی)
+        Assert.Equal(80_000d, Scalar<double>("PastilDiscountAmount", both.ItemId));   // ۸٪ از قیمت پایه
 
         var pastilOnly = SeedItem();
         AddDiscount(pastilOnly.StoreId, pastilOnly.ProductId, 8, pastil: true);
@@ -156,7 +192,7 @@ public class PastilFundedDiscountTests : IClassFixture<ClinicLocalDbFixture>
         var deep = SeedItem();
         AddDiscount(deep.StoreId, deep.ProductId, 95, pastil: false);
         AddDiscount(deep.StoreId, deep.ProductId, 8, pastil: true);
-        Assert.Equal((95, 8, 46_000L), Run(deep.ProductId, deep.ItemId));          // ۵۰٬۰۰۰ × ۰٫۹۲
+        Assert.Equal((100, 8, 0L), Run(deep.ProductId, deep.ItemId));          // ۹۵٪ + ۸٪ سقف ۱۰۰٪ می‌شود
     }
 
     [Fact]

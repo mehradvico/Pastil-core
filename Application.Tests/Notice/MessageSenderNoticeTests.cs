@@ -31,19 +31,21 @@ public class MessageSenderNoticeTests
     }
 
     [Fact]
-    public async Task NonOtpSms_CreatesAdminNotice()
+    public async Task NonOtpSms_IsSent_WithoutCreatingAdminNotice()
     {
+        var sms = new SmsStub();
         var notice = new NoticeStub();
         var service = new MessageSenderService(
             new EmailStub(),
-            new SmsStub(),
+            sms,
             notice,
             NullLogger<MessageSenderService>.Instance
         );
 
         await service.SendMessageAsync(MessageTypeEnum.UserSignUp, "09120000000", null);
 
-        Assert.Equal(1, notice.CreateCount);
+        Assert.Equal(1, sms.SendCount);
+        Assert.Equal(0, notice.CreateCount);
     }
 
     private sealed class SmsStub : ISmsService

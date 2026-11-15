@@ -44,6 +44,7 @@
         internal static readonly HashSet<string> ForceMenuOnSync = new(StringComparer.OrdinalIgnoreCase)
         {
             "MissingProduct",
+            "ProductImageSuggestion",
             "DiscountGroup",
             "CompanionReserveComment",
             "Provider",
@@ -109,6 +110,7 @@
             "PetTag",
             "Product",
             "MissingProduct",
+            "ProductImageSuggestion",
             "ConsultationPurchase",
             "ConsultationPackage",
             "ConsultationVenue",
@@ -230,9 +232,10 @@
             AddGroup(result, "ShopManagement",
             [
                 S("Product",
-                    "ProductPicture", "ProductFile", "ProductItem", "ProductRelate", "ProductFeatureValue",
+                    "ProductPicture", "ProductMainPicture", "ProductFile", "ProductItem", "ProductRelate", "ProductFeatureValue",
                     "ProductChangeVariety", "ProductVariety", "ProductsExcel", "ProductComment", "ProductReport"),
                 S("MissingProduct"),
+                S("ProductImageSuggestion"),
                 S("Brand", "BrandLanguage", "BrandCategory"),
                 S("Variety", "VarietyLanguage", "VarietyItem"),
                 S("Feature", "FeatureItem"),

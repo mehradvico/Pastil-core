@@ -39,6 +39,109 @@ namespace Application.Services.Order.RebateSrv
             }
             return new BaseSearchDto<Rebate, RebateDto>(baseSearchDto, model, mapper);
         }
+        public BaseSearchDto<RebateListVDto> SearchByTarget(RebateInputDto input)
+        {
+            var query = _context.Rebate.Where(s => !s.Deleted);
+            if (input.TargetType.HasValue)
+                query = query.Where(s => s.TargetType == input.TargetType);
+            if (input.TargetId.HasValue)
+                query = query.Where(s => s.TargetId == input.TargetId);
+            if (input.UserId.HasValue)
+                query = query.Where(s => s.UserId == input.UserId);
+            if (!string.IsNullOrWhiteSpace(input.Q))
+                query = query.Where(s => s.Name.Contains(input.Q) || s.CodeValue.Contains(input.Q));
+
+            var result = new BaseSearchDto<RebateListVDto>(input) { TotalCount = query.Count() };
+            result.List = query.OrderByDescending(s => s.Id)
+                .Skip((input.PageIndex - 1) * input.PageSize).Take(input.PageSize)
+                .Select(s => new RebateListVDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    CodeValue = s.CodeValue,
+                    PriceValue = s.PriceValue,
+                    IsPriceRebate = s.IsPriceRebate,
+                    MinCartPrice = s.MinCartPrice,
+                    StartDatetime = s.StartDatetime,
+                    EndDatetime = s.EndDatetime,
+                    Active = s.Active,
+                    UseCount = s.UseCount,
+                    UsedCount = s.UsedCount,
+                    MaxUsePerUser = s.MaxUsePerUser,
+                    UserId = s.UserId,
+                    UserName = s.User == null ? null : ((s.User.FirstName ?? "") + " " + (s.User.LastName ?? "")).Trim(),
+                    UserMobile = s.User == null ? null : s.User.Mobile,
+                    TargetType = s.TargetType,
+                    TargetId = s.TargetId,
+                    TypeId = s.TypeId
+                }).ToList();
+            return result;
+        }
+
+        public Task<BaseResultDto<RebateDto>> InsertForStoreAsync(RebateDto dto, long storeId) =>
+            InsertForTargetAsync(dto, ClubRewardTargetTypeEnum.Store, storeId);
+
+        public async Task<BaseResultDto<RebateDto>> InsertForTargetAsync(RebateDto dto, ClubRewardTargetTypeEnum targetType, long targetId)
+        {
+            string typeLabel = targetType switch
+            {
+                ClubRewardTargetTypeEnum.Store => RebateTypeLabels.Cart,
+                ClubRewardTargetTypeEnum.Coach => RebateTypeLabels.CoachReserve,
+                ClubRewardTargetTypeEnum.Clinic => RebateTypeLabels.ClinicReserve,
+                ClubRewardTargetTypeEnum.Groomer => RebateTypeLabels.GroomerReserve,
+                ClubRewardTargetTypeEnum.Pansion => RebateTypeLabels.PansionReserve,
+                _ => null
+            };
+            if (typeLabel == null)
+                return new BaseResultDto<RebateDto>(isSuccess: false, val: Resource.Notification.InvalidData, data: dto);
+            var exists = targetType switch
+            {
+                ClubRewardTargetTypeEnum.Store => await _context.Stores.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted),
+                ClubRewardTargetTypeEnum.Coach => await _context.Coaches.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted),
+                ClubRewardTargetTypeEnum.Clinic => await _context.Clinics.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted),
+                ClubRewardTargetTypeEnum.Groomer => await _context.Groomers.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted),
+                _ => await _context.Pansions.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted)
+            };
+            var typeId = await _context.Codes.AsNoTracking()
+                .Where(s => s.Label == typeLabel).Select(s => (long?)s.Id).FirstOrDefaultAsync();
+            if (!exists || !typeId.HasValue)
+                return new BaseResultDto<RebateDto>(isSuccess: false, val: Resource.Notification.InvalidData, data: dto);
+
+            // کد فقط برای همین نمایندگی معتبر است؛ هرچه کلاینت برای نوع/هدف/محصول بفرستد نادیده گرفته می‌شود
+            dto.Id = 0;
+            dto.TypeId = typeId.Value;
+            dto.TargetType = targetType;
+            dto.TargetId = targetId;
+            dto.ProductId = null;
+            dto.ClubRewardId = null;
+            return await InsertAsyncDto(dto);
+        }
+
+        public async Task<BaseResultDto> SetActiveAsync(long id, bool active, long? storeId = null)
+        {
+            var item = await _context.Rebate.AsTracking().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+            if (item == null || !BelongsToStore(item, storeId))
+                return new BaseResultDto(false, Resource.Notification.ResourceNotFind);
+            item.Active = active;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
+        public async Task<BaseResultDto> DeleteForStoreAsync(long id, long? storeId)
+        {
+            var item = await _context.Rebate.AsTracking().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
+            if (item == null || !BelongsToStore(item, storeId))
+                return new BaseResultDto(false, Resource.Notification.ResourceNotFind);
+            item.Deleted = true;
+            item.Active = false;
+            await _context.SaveChangesAsync();
+            return new BaseResultDto(true);
+        }
+
+        private static bool BelongsToStore(Rebate rebate, long? storeId) =>
+            !storeId.HasValue ||
+            (rebate.TargetType == ClubRewardTargetTypeEnum.Store && rebate.TargetId == storeId.Value);
+
         public override async Task<BaseResultDto<RebateDto>> InsertAsyncDto(RebateDto dto)
         {
             try
