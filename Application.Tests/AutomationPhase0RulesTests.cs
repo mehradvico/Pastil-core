@@ -123,5 +123,7 @@ public class AutomationPhase0RulesTests
         Assert.Equal(176, (int)PushTypeEnum.PushPaymentFailed);
         Assert.Equal(177, (int)PushTypeEnum.PushUnpaidReserve);
         Assert.Equal(178, (int)PushTypeEnum.PushAbandonedCartSecond);
+        Assert.Equal(179, (int)PushTypeEnum.PushShipmentReadyNow);
+        Assert.Equal(180, (int)PushTypeEnum.PushShipmentReadyUrgent);
     }
 }

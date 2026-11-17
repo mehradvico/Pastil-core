@@ -59,7 +59,8 @@ namespace Application.Services.PermissionSrv
 
         public BaseResultDto Menu()
         {
-            var isAdmin = _currentUser.RoleEnum == RoleEnum.Admin.ToString();
+            // ادمین اصلی بدون ردیف مجوز همه‌ی منو را می‌بیند؛ نقش «مدیر» و بقیه فقط منوی مجوزهای نقش خودشان را
+            var isAdmin = _currentUser.IsSuperAdmin;
             var roleId = _currentUser.RoleId;
 
             var all = _context.Permissions
@@ -78,6 +79,13 @@ namespace Application.Services.PermissionSrv
                     Granted = isAdmin || s.Roles.Any(a => a.Id == roleId)
                 })
                 .ToList();
+
+            // «نقش‌ها»، «دسترسی‌ها»، مرچنت، کیف پول و ... فقط برای ادمین اصلی است؛ بقیه‌ی ادمین‌ها حتی اگر ردیف مجوزش را داشته باشند منویش را نمی‌بینند
+            if (!isAdmin)
+            {
+                foreach (var node in all.Where(n => Application.Common.Security.SuperAdminControllers.Contains(n.Controller)))
+                    node.Granted = false;
+            }
 
             var children = all
                 .Where(s => s.ParentId.HasValue)
@@ -153,17 +161,19 @@ namespace Application.Services.PermissionSrv
 
         /// <summary>
         /// فهرست controller/actionهای ناحیه Admin که نقش کاربر جاری به آن‌ها دسترسی دارد (برای غیرفعال‌کردن دکمه‌های افزودن/ویرایش در پنل).
-        /// ادمین کل (RoleEnum.Admin) همه‌چیز را دارد.
+        /// ادمین اصلی (SuperAdminIdentity) همه‌چیز را دارد.
         /// </summary>
         public BaseResultDto MyAdminActions()
         {
-            if (_currentUser.RoleEnum == RoleEnum.Admin.ToString())
+            if (_currentUser.IsSuperAdmin)
                 return new BaseResultDto<PermissionActionsDto>(true, new PermissionActionsDto { IsFullAccess = true, Items = new List<PermissionActionItemDto>() });
 
             var items = _context.Permissions
                 .Where(s => !s.Deleted && s.Area != null && s.Area.ToLower() == "admin" && s.Controller != null && s.Action != null
                             && s.Roles.Any(a => a.Id == _currentUser.RoleId))
                 .Select(s => new PermissionActionItemDto { Controller = s.Controller, Action = s.Action })
+                .AsEnumerable()
+                .Where(item => !Application.Common.Security.SuperAdminControllers.Contains(item.Controller))
                 .ToList();
 
             return new BaseResultDto<PermissionActionsDto>(true, new PermissionActionsDto { IsFullAccess = false, Items = items });

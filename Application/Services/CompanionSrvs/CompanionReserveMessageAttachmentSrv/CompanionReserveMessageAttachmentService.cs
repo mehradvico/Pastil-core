@@ -34,7 +34,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageAttachmentSr
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetAttachmentQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
 
@@ -59,7 +59,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageAttachmentSr
         public CompanionReserveMessageAttachmentSearchDto Search(CompanionReserveMessageAttachmentInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+            var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
             var model = GetAttachmentQuery().Where(s => !s.Deleted && !s.CompanionReserveMessage.Deleted);
 
@@ -117,7 +117,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageAttachmentSr
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 if (string.IsNullOrWhiteSpace(dto.Url))
                 {
@@ -200,7 +200,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageAttachmentSr
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = _context.CompanionReserveMessageAttachments
                     .Include(s => s.CompanionReserveMessage).ThenInclude(s => s.Attachments)

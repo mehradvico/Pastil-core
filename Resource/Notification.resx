@@ -3031,4 +3031,13 @@
   <data name="ProductImageSuggestionNotDeletable" xml:space="preserve">
     <value>Only a pending or rejected suggestion can be removed.</value>
   </data>
+  <data name="ProviderOnboardingCardInvalid" xml:space="preserve">
+    <value>Provider Onboarding Card Invalid</value>
+  </data>
+  <data name="ProviderOnboardingIbanInvalid" xml:space="preserve">
+    <value>Provider Onboarding Iban Invalid</value>
+  </data>
+  <data name="ProviderOnboardingBankRequired" xml:space="preserve">
+    <value>Provider Onboarding Bank Required</value>
+  </data>
 </root>

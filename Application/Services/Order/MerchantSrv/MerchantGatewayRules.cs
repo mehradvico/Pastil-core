@@ -13,8 +13,9 @@ namespace Application.Services.Order.MerchantSrv
         private static readonly long[] PublicBanks = { (long)MerchantEnum.zarinpal };
         private static readonly long[] MainAdminBanks = { (long)MerchantEnum.zarinpal, (long)MerchantEnum.parsian, (long)MerchantEnum.pastilTest };
 
+        // فقط «ادمین اصلی» (SuperAdminIdentity)؛ بقیه‌ی مدیرها (RoleId = 2) درگاه تستی/پارسیان نمی‌گیرند.
         public static bool IsMainAdmin(CurrentUserDto user) =>
-            user != null && user.RoleId == (long)RoleEnum.Admin;
+            user != null && user.IsSuperAdmin;
 
         public static IReadOnlyCollection<long> AllowedBankIds(CurrentUserDto user) =>
             IsMainAdmin(user) ? MainAdminBanks : PublicBanks;

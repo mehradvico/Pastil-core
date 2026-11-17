@@ -18,11 +18,13 @@ public class AreaAuthorizationTests
     private static ClaimsPrincipal User(long roleId) =>
         new(new ClaimsIdentity(new[] { new Claim("UserId", "7"), new Claim("RoleId", roleId.ToString()) }, "test"));
 
-    private static async Task<bool> RunAdminAreaAsync(ClaimsPrincipal user, bool permissionVerified)
+    private static async Task<bool> RunAdminAreaAsync(ClaimsPrincipal user, bool permissionVerified, bool superAdminVerified = false)
     {
         var http = new DefaultHttpContext();
         if (permissionVerified)
             http.Items[AdminAreaAuthorizationHandler.PermissionVerifiedItemKey] = true;
+        if (superAdminVerified)
+            http.Items[Application.Common.Security.SuperAdminIdentity.VerifiedItemKey] = true;
         var handler = new AdminAreaAuthorizationHandler(new HttpContextAccessor { HttpContext = http });
         var requirement = new AdminAreaRequirement();
         var context = new AuthorizationHandlerContext(new[] { requirement }, user, null);
@@ -32,9 +34,42 @@ public class AreaAuthorizationTests
     }
 
     [Fact]
-    public async Task Admin_role_always_passes_the_admin_area_policy()
+    public async Task Super_admin_always_passes_the_admin_area_policy_without_any_permission()
     {
-        Assert.True(await RunAdminAreaAsync(User(Admin), permissionVerified: false));
+        Assert.True(await RunAdminAreaAsync(User(Admin), permissionVerified: false, superAdminVerified: true));
+    }
+
+    [Fact]
+    public async Task Manager_role_claim_alone_no_longer_opens_the_admin_area_policy()
+    {
+        // نقش «مدیر» (RoleId = 2) بدون هویت ادمین اصلی مثل هر نقش دیگر تابع RolePermission است
+        Assert.False(await RunAdminAreaAsync(User(Admin), permissionVerified: false));
+        Assert.True(await RunAdminAreaAsync(User(Admin), permissionVerified: true));
+    }
+
+    [Fact]
+    public async Task Forged_role_claim_cannot_make_anyone_super_admin()
+    {
+        // فقط نشانه‌ی HttpContext.Items (که سرور بعد از تطبیق با دیتابیس می‌گذارد) ادمین اصلی می‌سازد، نه claim توکن
+        var handler = new SuperAdminAuthorizationHandler(new HttpContextAccessor { HttpContext = new DefaultHttpContext() });
+        var context = new AuthorizationHandlerContext(new[] { new SuperAdminRequirement() }, User(Admin), null);
+
+        await handler.HandleAsync(context);
+
+        Assert.False(context.HasSucceeded);
+    }
+
+    [Fact]
+    public async Task Verified_super_admin_passes_the_super_admin_only_policy()
+    {
+        var http = new DefaultHttpContext();
+        http.Items[Application.Common.Security.SuperAdminIdentity.VerifiedItemKey] = true;
+        var handler = new SuperAdminAuthorizationHandler(new HttpContextAccessor { HttpContext = http });
+        var context = new AuthorizationHandlerContext(new[] { new SuperAdminRequirement() }, User(Admin), null);
+
+        await handler.HandleAsync(context);
+
+        Assert.True(context.HasSucceeded);
     }
 
     [Fact]
@@ -78,11 +113,15 @@ public class AreaAuthorizationTests
     [InlineData("RolePermission")]
     [InlineData("Permission")]
     [InlineData("PermissionSync")]
-    [InlineData("User")]
     [InlineData("Merchant")]
     [InlineData("Wallet")]
     [InlineData("ServerMonitoring")]
-    public void Privilege_and_money_controllers_stay_admin_only(string controllerName)
+    [InlineData("PushDiagnostics")]
+    [InlineData("UserMemory")]
+    [InlineData("PastilMatchMessage")]
+    [InlineData("PastilMatchMessageAttachment")]
+    [InlineData("PastilMatchMessageReaction")]
+    public void Privilege_money_infra_and_confidential_controllers_are_super_admin_only(string controllerName)
     {
         var model = new ControllerModel(typeof(AreaAuthorizationTests).GetTypeInfo(), new List<object>());
         model.RouteValues["area"] = "Admin";
@@ -93,7 +132,26 @@ public class AreaAuthorizationTests
         new AdminAreaAuthorizationConvention().Apply(application);
 
         var filter = Assert.Single(model.Filters.OfType<AuthorizeFilter>());
-        Assert.Equal(PolicyNames.AdminOnly, Assert.Single(filter.AuthorizeData).Policy);
+        Assert.Equal(PolicyNames.SuperAdminOnly, Assert.Single(filter.AuthorizeData).Policy);
+    }
+
+    [Theory]
+    [InlineData("User")]
+    [InlineData("Code")]
+    [InlineData("Notice")]
+    [InlineData("Ticket")]
+    public void Other_admin_controllers_follow_role_permissions(string controllerName)
+    {
+        var model = new ControllerModel(typeof(AreaAuthorizationTests).GetTypeInfo(), new List<object>());
+        model.RouteValues["area"] = "Admin";
+        model.RouteValues["controller"] = controllerName;
+        var application = new ApplicationModel();
+        application.Controllers.Add(model);
+
+        new AdminAreaAuthorizationConvention().Apply(application);
+
+        var filter = Assert.Single(model.Filters.OfType<AuthorizeFilter>());
+        Assert.Equal(PolicyNames.AdminArea, Assert.Single(filter.AuthorizeData).Policy);
     }
 
     [Theory]

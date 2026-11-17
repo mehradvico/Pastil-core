@@ -1,6 +1,7 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Helpers;
 using Application.Common.Interface;
+using Application.Common.Security;
 using Application.Services.Accounting.RoleSrv.Iface;
 using Application.Services.Accounting.UserSrv.Iface;
 using Application.Services.Accounting.UserTokenSrv.Iface;
@@ -71,7 +72,7 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             string controller = (string)context.HttpContext.Request.RouteValues["controller"] ?? null;
             string action = (string)context.HttpContext.Request.RouteValues["action"] ?? null;
             long? tokenRoleId = long.TryParse(claimsidentity.FindFirst("RoleId")?.Value, out var parsedRoleId) ? parsedRoleId : null;
-            var userCheck = await userService.CheckUser(Token.UnsafeToString(), userLong, area, controller, action, tokenRoleId);
+            var (userCheck, isSuperAdmin) = await userService.CheckUserWithIdentityAsync(Token.UnsafeToString(), userLong, area, controller, action, tokenRoleId);
             if (!userCheck.IsSuccess)
             {
                 context.NoResult();
@@ -88,10 +89,17 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 return;
             }
 
-            // نقش غیر Admin روی ناحیه‌ی Admin فقط وقتی به اینجا می‌رسد که CheckUser مجوز RolePermission همین controller/action را تأیید کرده باشد؛
-            // policy «AdminArea» به همین نشانه (fail-closed) تکیه می‌کند.
-            if (string.Equals(area, "admin", System.StringComparison.OrdinalIgnoreCase) &&
-                tokenRoleId != (long)Application.Common.Enumerable.RoleEnum.Admin)
+            // ادمین اصلی فقط از همین‌جا (بعد از تطبیق با رکورد دیتابیس، نه فقط claim توکن) نشانه می‌گیرد؛ policyهای «AdminArea» و
+            // «SuperAdminOnly» و فیلتر Hangfire به همین نشانه (fail-closed) تکیه می‌کنند و کلاینت نمی‌تواند آن را جعل کند.
+            if (isSuperAdmin)
+            {
+                context.HttpContext.Items[SuperAdminIdentity.VerifiedItemKey] = true;
+                return;
+            }
+
+            // هر نقش دیگری (از جمله «مدیر») روی ناحیه‌ی Admin فقط وقتی به اینجا می‌رسد که CheckUser مجوز RolePermission همین
+            // controller/action را تأیید کرده باشد؛ policy «AdminArea» به همین نشانه (fail-closed) تکیه می‌کند.
+            if (string.Equals(area, "admin", System.StringComparison.OrdinalIgnoreCase))
                 context.HttpContext.Items["Pastil.AdminAreaPermissionVerified"] = true;
         }
     }

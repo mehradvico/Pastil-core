@@ -13,15 +13,12 @@ namespace Api.Authorization;
 public sealed class AdminAreaAuthorizationConvention : IApplicationModelConvention
 {
     /// <summary>
-    /// کنترلرهای Admin که هیچ‌وقت به نقش تفویض‌شده داده نمی‌شوند (ارتقای دسترسی، پول، تنظیمات سیستمی، زیرساخت). بقیه‌ی ناحیه‌ی Admin
-    /// با policy «AdminArea» (Admin یا مجوز RolePermission همان action) محافظت می‌شود.
+    /// کنترلرهای Admin که هیچ‌وقت به نقش تفویض‌شده (حتی «مدیر») داده نمی‌شوند و فقط «ادمین اصلی» (SuperAdminIdentity) به آن‌ها می‌رسد:
+    /// ارتقای دسترسی (نقش/مجوز)، پول و درگاه (کیف پول، مرچنت)، زیرساخت (مانیتورینگ، پوش‌دیاگ) و داده‌های محرمانه
+    /// (خاطرات پت‌ها و چت‌های خصوصی PastilMatch). بقیه‌ی ناحیه‌ی Admin با policy «AdminArea» (ادمین اصلی، یا مجوز RolePermission
+    /// همان action برای نقش‌های دیگر از جمله «مدیر») محافظت می‌شود.
     /// </summary>
-    public static readonly IReadOnlySet<string> AdminOnlyControllers = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-    {
-        "Role", "RolePermission", "Permission", "PermissionSync", "User",
-        "Merchant", "Wallet", "Code", "CodeGroup", "BaseDetail",
-        "ServerMonitoring", "Notice", "PushBroadcast", "PushDiagnostics", "MissingProduct", "ProductImageSuggestion"
-    };
+    public static readonly IReadOnlySet<string> SuperAdminOnlyControllers = Application.Common.Security.SuperAdminControllers.Names;
 
     private static readonly string[] MembershipAreas = { "Seller", "Companion", "Driver" };
 
@@ -35,8 +32,8 @@ public sealed class AdminAreaAuthorizationConvention : IApplicationModelConventi
                     $"Admin controller '{controller.ControllerType.FullName}' cannot allow anonymous access.");
             }
 
-            var strict = AdminOnlyControllers.Contains(ControllerName(controller));
-            controller.Filters.Add(new AuthorizeFilter(strict ? PolicyNames.AdminOnly : PolicyNames.AdminArea));
+            var superAdminOnly = SuperAdminOnlyControllers.Contains(ControllerName(controller));
+            controller.Filters.Add(new AuthorizeFilter(superAdminOnly ? PolicyNames.SuperAdminOnly : PolicyNames.AdminArea));
         }
 
         foreach (var controller in application.Controllers)

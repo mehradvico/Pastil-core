@@ -91,18 +91,24 @@ namespace Application.Services.Order.ShippingSrv
             return plain;
         }
 
-        // یادآوری «آماده تحویل به پیک»: اولی یک ساعت قبل از ساعتی که پیک باید برسد (شروع بازه − PickupLead)؛ دومی ۳۰ دقیقه به مهلت.
-        // با یک ستون (ReadyReminderSentAtUtc) هر دو مرحله جدا تشخیص داده می‌شوند: مرحله‌ی دوم فقط وقتی که زمان ارسال قبلی پیش از آستانه‌ی ۳۰ دقیقه بود.
-        public static bool ShouldSendReadyReminder(
-            DateTime slotStartUtc, DateTime readyDeadlineUtc, int pickupLeadMinutes, DateTime? lastReminderUtc, DateTime nowUtc)
+        // فاصله‌ی «موعد ارسال رسید» تا یادآوری فوری، اگر فروشنده هنوز «آماده تحویل به پیک» نزده.
+        public const int ReadyUrgentAfterMinutes = 30;
+
+        // یادآوری «آماده تحویل به پیک» به فروشنده (پیامک + پوش)، با یک ستون (ReadyReminderSentAtUtc) بدون migration:
+        //   ۱ = «موعد ارسال رسید» (anchorUtc = شروع بازه، یا اولین لحظه‌ی باز بودن فروشگاه بعد از آن)؛
+        //   ۲ = «فقط تا ساعت … وقت دارید» وقتی ۳۰ دقیقه بعد از پیام اول هنوز آماده نشده و مهلت هنوز نرسیده.
+        // فروشنده‌ای که بعد از شروع بازه (بعد از anchor + ۳۰) تأیید کرده فقط پیام اول را می‌گیرد؛ ستون یک‌بار claim می‌شود.
+        // برگشت: ۰ = چیزی نفرست.
+        public static int ReadyNudgeStage(DateTime anchorUtc, DateTime readyDeadlineUtc, DateTime? lastReminderUtc, DateTime nowUtc)
         {
-            var finalAt = readyDeadlineUtc.AddMinutes(-30);
-            var firstAt = slotStartUtc.AddMinutes(-(Math.Max(0, pickupLeadMinutes) + 60));
-            if (firstAt > finalAt)
-                firstAt = finalAt;
-            if (lastReminderUtc == null)
-                return nowUtc >= firstAt;
-            return lastReminderUtc.Value < finalAt && nowUtc >= finalAt;
+            if (nowUtc < anchorUtc)
+                return 0;
+            if (lastReminderUtc == null || lastReminderUtc.Value < anchorUtc)
+                return 1;
+            var urgentAt = lastReminderUtc.Value.AddMinutes(ReadyUrgentAfterMinutes);
+            if (lastReminderUtc.Value < anchorUtc.AddMinutes(ReadyUrgentAfterMinutes) && nowUtc >= urgentAt && urgentAt < readyDeadlineUtc)
+                return 2;
+            return 0;
         }
 
         // آخرین ساعتی که فروشنده می‌تواند کالا را به پیک بسپارد تا هنوز وقت رساندن داخل بازه باشد.

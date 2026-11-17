@@ -172,14 +172,6 @@ namespace Application.Services.Order.ShippingSrv
 
         private static string TehranHm(DateTime utc) => ShippingSlotRules.FormatTime(ShippingSlotRules.ToTehran(utc).TimeOfDay);
 
-        // یادآوری اول (یک ساعت قبل از آمدن پیک) هرگز قبل از بازشدن فروشگاه نمی‌رود: «شروع بازه» را طوری جابه‌جا می‌کند که لحظه‌ی یادآوری
-        // در ساعت کاری باشد (ShouldSendReadyReminder خودش PickupLead + ۶۰ دقیقه از آن کم می‌کند).
-        private DateTime ReminderAnchorStart(DateTime slotStartUtc, List<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)> storeHours)
-        {
-            var offset = TimeSpan.FromMinutes(Math.Max(0, _options.PickupLeadMinutes) + 60);
-            return ShippingSlotRules.NextOpenAtOrAfter(slotStartUtc - offset, storeHours) + offset;
-        }
-
         // ساعت کاری فروشگاه‌ها (برای مهلت‌های بازه‌ای). فروشگاه بدون ردیف در نتیجه نیست = همیشه باز.
         private async Task<Dictionary<long, List<(DayOfWeek Day, TimeSpan Open, TimeSpan Close)>>> LoadStoreHoursAsync(
             IReadOnlyCollection<long> storeIds, CancellationToken cancellationToken)
@@ -615,6 +607,12 @@ namespace Application.Services.Order.ShippingSrv
                 ReadyDeadlineUtc = Utc(row.Shipment.ReadyDeadlineUtc),
                 PickupDeadlineUtc = Utc(row.Shipment.PickupDeadlineUtc),
                 RequestedAtUtc = Utc(row.Shipment.RequestedAtUtc),
+                SellerConfirmedAtUtc = Utc(row.Shipment.SellerConfirmedAtUtc),
+                ReadyAtUtc = Utc(row.Shipment.ReadyAtUtc),
+                DeliveredAtUtc = Utc(row.Shipment.DeliveredAtUtc),
+                DisputeReportedAtUtc = Utc(row.Shipment.DisputeReportedAtUtc),
+                SlotStartUtc = Utc(row.Shipment.SlotStartUtc),
+                SlotEndUtc = Utc(row.Shipment.SlotEndUtc),
                 CanExtendSellerDeadline = ShipmentDeadlineRules.CanExtend(row.Shipment.Status, row.Shipment.FailureReason)
             }).ToList();
             return new BaseResultDto<List<AdminShipmentVDto>>(true, list);
@@ -781,7 +779,7 @@ namespace Application.Services.Order.ShippingSrv
             return expired;
         }
 
-        // «در حال آماده‌سازی» که «آماده تحویل به پیک» نخورده: ۳۰ دقیقه مانده به مهلت یک‌بار یادآوری؛ بعد از مهلت شکست و صف بررسی ادمین
+        // «در حال آماده‌سازی» که «آماده تحویل به پیک» نخورده: وقت شروع بازه یادآوری (پیامک+پوش) و ۳۰ دقیقه بعد یادآوری فوری؛ بعد از مهلت شکست و صف بررسی ادمین
         private async Task<int> ProcessPreparingAsync(DateTime nowUtc, CancellationToken cancellationToken)
         {
             var preparing = await _context.Shipments
@@ -808,15 +806,25 @@ namespace Application.Services.Order.ShippingSrv
                         await PushToUserAsync(PushTypeEnum.PushShipmentDelayedUser, order.UserId, order.OrderCode);
                         expired++;
                     }
-                    else if (ShippingSlotRules.ShouldSendReadyReminder(
-                                 ReminderAnchorStart(shipment.SlotStartUtc ?? deadline, hoursByStore.GetValueOrDefault(orderStore.StoreId)),
-                                 deadline, _options.PickupLeadMinutes, shipment.ReadyReminderSentAtUtc, nowUtc))
+                    else
                     {
-                        // دو مرحله: یک ساعت قبل از ساعتی که پیک باید برسد، و ۳۰ دقیقه به مهلت (هر دو با همین یک ستون)
-                        shipment.ReadyReminderSentAtUtc = nowUtc;
-                        await _context.SaveChangesAsync(cancellationToken);
-                        await PushToStoreUsersAsync(orderStore.StoreId, PushTypeEnum.PushShipmentReadyReminder,
-                            order.OrderCode, TehranHm(deadline), string.Empty);
+                        // «موعد ارسال» = شروع بازه (اگر فروشگاه آن لحظه بسته است، اولین باز بودن بعدش)؛ پیامک + پوش به فروشنده.
+                        // مرحله‌ی ۲ سی دقیقه بعد از مرحله‌ی ۱ اگر هنوز «آماده تحویل به پیک» نزده؛ هر دو با همین یک ستون.
+                        var anchor = ShippingSlotRules.NextOpenAtOrAfter(
+                            shipment.SlotStartUtc ?? deadline, hoursByStore.GetValueOrDefault(orderStore.StoreId));
+                        var stage = ShippingSlotRules.ReadyNudgeStage(anchor, deadline, shipment.ReadyReminderSentAtUtc, nowUtc);
+                        if (stage != 0)
+                        {
+                            // ابتدا علامت و ذخیره، بعد ارسال: شکست پیامک/پوش باعث تکرار هر ۵ دقیقه نمی‌شود
+                            shipment.ReadyReminderSentAtUtc = nowUtc;
+                            await _context.SaveChangesAsync(cancellationToken);
+                            await PushToStoreUsersAsync(orderStore.StoreId,
+                                stage == 1 ? PushTypeEnum.PushShipmentReadyNow : PushTypeEnum.PushShipmentReadyUrgent,
+                                order.OrderCode, TehranHm(deadline), string.Empty);
+                            await SendStoreSmsAsync(
+                                stage == 1 ? MessageTypeEnum.ProductOrderReadyNowStore : MessageTypeEnum.ProductOrderReadyUrgentStore,
+                                orderStore.StoreId, order.OrderCode, deadline, nowUtc);
+                        }
                     }
                 }
                 catch (Exception exception)

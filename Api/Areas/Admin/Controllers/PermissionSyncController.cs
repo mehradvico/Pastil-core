@@ -15,7 +15,7 @@ namespace Api.Areas.Admin.Controllers
     [Area("Admin")]
     [Route("api/[area]/[controller]")]
     [ApiController]
-    [Authorize(Policy = PolicyNames.AdminOnly)]
+    [Authorize(Policy = PolicyNames.SuperAdminOnly)]
     public class PermissionSyncController : ControllerBase
     {
         private readonly IControllerActionDiscoveryService controllerActionDiscoveryService;

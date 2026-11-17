@@ -11,7 +11,7 @@ namespace Api.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = PolicyNames.AdminOnly)]
+    [Authorize(Policy = PolicyNames.SuperAdminOnly)]
     public class BackgroundTaskController : ControllerBase
     {
         private readonly IBackgroundTask backgroundTask;

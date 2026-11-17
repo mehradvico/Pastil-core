@@ -1,7 +1,9 @@
 using Application.Common.Enumerable;
+using Application.Common.Security;
 using Application.Services.CommonSrv.PushNotificationSrv;
 using Application.Services.CommonSrv.PushNotificationSrv.Iface;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
 using System;
@@ -30,12 +32,14 @@ namespace Application.Services.ServerMonitoringAlerts
         private readonly IDataBaseContext _context;
         private readonly IFcmSender _fcmSender;
         private readonly ILogger<ServerAlertPushSender> _logger;
+        private readonly IConfiguration _configuration;
 
-        public ServerAlertPushSender(IDataBaseContext context, IFcmSender fcmSender, ILogger<ServerAlertPushSender> logger)
+        public ServerAlertPushSender(IDataBaseContext context, IFcmSender fcmSender, ILogger<ServerAlertPushSender> logger, IConfiguration configuration = null)
         {
             _context = context;
             _fcmSender = fcmSender;
             _logger = logger;
+            _configuration = configuration;
         }
 
         public async Task SendAsync(IReadOnlyList<ServerAlertMessage> messages, CancellationToken cancellationToken)
@@ -48,6 +52,14 @@ namespace Application.Services.ServerMonitoringAlerts
                 return;
             }
 
+            // مانیتورینگ زیرساخت فقط برای «ادمین اصلی» است (SuperAdminOnly)؛ بدون ادمین اصلیِ پیکربندی‌شده به هیچ‌کس هشدار نمی‌رود
+            var superAdminMobile = SuperAdminIdentity.ConfiguredMobile(_configuration);
+            if (superAdminMobile.Length == 0)
+            {
+                _logger.LogWarning("Server alert push skipped: SuperAdmin:Mobile is not configured.");
+                return;
+            }
+
             var subscriptions = await _context.PushSubscriptions
                 .AsTracking()
                 .Where(x => x.IsActive
@@ -56,7 +68,9 @@ namespace Application.Services.ServerMonitoringAlerts
                     && x.UserAgent != null
                     && x.UserAgent.StartsWith(MonitorUserAgentPrefix)
                     && x.UserId.HasValue
-                    && x.User.RoleId == (long)RoleEnum.Admin)
+                    && x.User.RoleId == (long)RoleEnum.Admin
+                    && x.User.Mobile == superAdminMobile
+                    && !x.User.Deleted && !x.User.Locked)
                 .ToListAsync(cancellationToken);
 
             if (subscriptions.Count == 0)

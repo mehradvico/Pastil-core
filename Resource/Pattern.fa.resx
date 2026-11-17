@@ -495,6 +495,12 @@
   <data name="PushShipmentReadyReminder" xml:space="preserve">
     <value>سفارش {0} باید تا ساعت {1} «آماده تحویل به پیک» شود، وگرنه لغو می‌شود.</value>
   </data>
+  <data name="PushShipmentReadyNow" xml:space="preserve">
+    <value>موعد ارسال سفارش {0} فرا رسیده است. آماده‌سازی کنید و تا ساعت {1} «آماده تحویل به پیک» را بزنید.</value>
+  </data>
+  <data name="PushShipmentReadyUrgent" xml:space="preserve">
+    <value>سفارش {0} هنوز آماده تحویل به پیک نشده. فقط تا ساعت {1} وقت دارید؛ لطفاً عجله کنید، وگرنه لغو می‌شود.</value>
+  </data>
   <data name="PushOrderAskReceived" xml:space="preserve">
     <value>آیا سفارش {0} را تحویل گرفتید؟</value>
   </data>

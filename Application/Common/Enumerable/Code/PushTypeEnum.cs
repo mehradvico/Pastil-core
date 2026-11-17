@@ -285,5 +285,9 @@ namespace Application.Common.Enumerable.Code
         PushUnpaidReserve = 177,
         /// <summary>به کاربر: یادآوری دوم سبد رها شده (۳ ساعت بعد از آخرین کالا).</summary>
         PushAbandonedCartSecond = 178,
+        /// <summary>به کاربران فروشگاه: موعد ارسال سفارش بازه‌ای رسید، آماده کنید و «آماده تحویل به پیک» را بزنید. Token1 = شماره سفارش، Token2 = مهلت (ساعت).</summary>
+        PushShipmentReadyNow = 179,
+        /// <summary>به کاربران فروشگاه: ۳۰ دقیقه بعد از موعد ارسال هنوز «آماده تحویل به پیک» نزده‌اند. Token1 = شماره سفارش، Token2 = مهلت (ساعت).</summary>
+        PushShipmentReadyUrgent = 180,
     }
 }

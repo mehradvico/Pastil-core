@@ -13,6 +13,11 @@ namespace Application.Services.Dto
         public string LastName { get; set; }
         public string FullName { get; set; }
         public long RoleId { get; set; }
+        /// <summary>
+        /// «ادمین اصلی» (Application.Common.Security.SuperAdminIdentity): توسط UserService از رکورد دیتابیس + پیکربندی سرور محاسبه می‌شود،
+        /// هرگز از ورودی کلاینت پر نمی‌شود. فقط او به همه‌ی endpointها و داده‌های محرمانه (تیکت‌ها، خاطرات، چت‌های خصوصی) دسترسی دارد.
+        /// </summary>
+        public bool IsSuperAdmin { get; set; }
         public long? PictureId { get; set; }
         public string RoleName { get; set; }
         public string RoleEnum { get; set; }

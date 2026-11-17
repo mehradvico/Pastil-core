@@ -58,9 +58,18 @@ namespace Application.Services.TicketSrv
             return await SearchAsync(dto, false, false, cancellationToken);
         }
 
+        // تیکت‌های پشتیبانی محرمانه‌اند: فقط «ادمین اصلی» (SuperAdminIdentity) همه‌ی تیکت‌ها را می‌بیند و مدیریت می‌کند.
+        // هر ادمین دیگر (از جمله نقش «مدیر») فقط تیکت‌هایی را می‌بیند که خودش مسئولشان است (AdminId = خودش).
+        private bool IsSuperAdmin => _currentUser?.IsSuperAdmin == true;
+
+        private bool CanAccessTicket(Ticket ticket) =>
+            ticket != null && Application.Services.Accounting.TicketSrv.TicketAccessRules.CanAdminAccess(IsSuperAdmin, ticket.AdminId, _currentUser?.UserId);
+
         public async Task<TicketSearchDto> SearchAdminAsync(TicketInputDto dto, CancellationToken cancellationToken = default)
         {
             dto ??= new TicketInputDto();
+            if (!IsSuperAdmin)
+                return await SearchCurrentAdminAsync(dto, cancellationToken);
             return await SearchAsync(dto, true, false, cancellationToken);
         }
 
@@ -92,6 +101,11 @@ namespace Application.Services.TicketSrv
             if (ticket == null)
             {
                 return new BaseResultDto<TicketVDto>(false, Resource.Notification.NothingFound, null);
+            }
+
+            if (!CanAccessTicket(ticket))
+            {
+                return new BaseResultDto<TicketVDto>(false, Resource.Notification.ThisTicketBlongsToAnotherAdmin, null);
             }
 
             var result = await MapTicketAsync(ticket, true, cancellationToken);
@@ -326,6 +340,11 @@ namespace Application.Services.TicketSrv
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             }
 
+            if (!CanAccessTicket(ticket))
+            {
+                return new BaseResultDto(false, Resource.Notification.ThisTicketBlongsToAnotherAdmin);
+            }
+
             var updateDate = DateTime.Now;
             ticket.StatusId = dto.StatusId;
             ticket.UpdateDate = updateDate;
@@ -349,6 +368,11 @@ namespace Application.Services.TicketSrv
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
             }
 
+            if (!CanAccessTicket(ticket))
+            {
+                return new BaseResultDto(false, Resource.Notification.ThisTicketBlongsToAnotherAdmin);
+            }
+
             ticket.ImportanceId = dto.ImportanceId;
             ticket.UpdateDate = DateTime.Now;
 
@@ -368,6 +392,12 @@ namespace Application.Services.TicketSrv
             if (ticket == null)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            }
+
+            // واگذاری تیکت: ادمین اصلی هر تیکتی را به هر کسی می‌دهد؛ ادمین دیگر فقط تیکتِ خودش را (نه بگیرد، نه از دیگری بکشد)
+            if (!CanAccessTicket(ticket))
+            {
+                return new BaseResultDto(false, Resource.Notification.ThisTicketBlongsToAnotherAdmin);
             }
 
             if (dto.AdminId.HasValue)
@@ -392,6 +422,12 @@ namespace Application.Services.TicketSrv
             if (ticketId < 1)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            }
+
+            // «گرفتن» تیکتِ آزاد یعنی دیدن تیکتِ کاربری که به این ادمین واگذار نشده؛ فقط ادمین اصلی (یا واگذاریِ او) تیکت می‌دهد
+            if (!IsSuperAdmin)
+            {
+                return new BaseResultDto(false, Resource.Notification.AccessDenied);
             }
 
             var updateDate = DateTime.Now;
@@ -428,6 +464,11 @@ namespace Application.Services.TicketSrv
             if (ticket == null)
             {
                 return new BaseResultDto(false, Resource.Notification.NothingFound);
+            }
+
+            if (!CanAccessTicket(ticket))
+            {
+                return new BaseResultDto(false, Resource.Notification.ThisTicketBlongsToAnotherAdmin);
             }
 
             ticket.Deleted = true;
@@ -476,6 +517,11 @@ namespace Application.Services.TicketSrv
             else if (!dto.AllAdminId && dto.AdminId.HasValue)
             {
                 query = query.Where(s => s.AdminId == dto.AdminId.Value);
+            }
+
+            if (dto.ExcludeCurrentAdmin && IsSuperAdmin)
+            {
+                query = query.Where(s => s.AdminId.HasValue && s.AdminId.Value != _currentUser.UserId);
             }
 
             if (dto.Status.HasValue)

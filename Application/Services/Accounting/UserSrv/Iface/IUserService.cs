@@ -16,6 +16,11 @@ namespace Application.Services.Accounting.UserSrv.Iface
         BaseResultDto UpdateSelfDto(UserDto dto);
         public UserSearchDto Search(UserInputDto searchDto);
         Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action, long? tokenRoleId = null);
+        /// <summary>
+        /// مثل CheckUser، ولی هویت «ادمین اصلی» (SuperAdminIdentity) را هم از همان رکورد کاربرِ خوانده‌شده برمی‌گرداند
+        /// تا OnTokenValidatedService بدون کوئری اضافه نشانه‌ی تأییدشده را روی درخواست بگذارد.
+        /// </summary>
+        Task<(BaseResultDto Result, bool IsSuperAdmin)> CheckUserWithIdentityAsync(string token, long userId, string area, string controller, string action, long? tokenRoleId = null);
         Task<BaseResultDto> SignIn(SignInDto user);
         Task<BaseResultDto> SignUp(SignUpDto user);
         Task<BaseResultDto> ChangePassword(ChangePasswordDto user);

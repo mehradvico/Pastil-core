@@ -43,7 +43,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetReactionQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted && !s.PastilMatchMessage.Deleted);
 
@@ -68,7 +68,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
         public PastilMatchMessageReactionSearchDto Search(PastilMatchMessageReactionInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+            var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
             var model = GetReactionQuery().Where(s => !s.Deleted && !s.PastilMatchMessage.Deleted);
 
@@ -121,7 +121,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 if (string.IsNullOrWhiteSpace(dto.Reaction))
                 {
@@ -233,7 +233,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageReactionSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = _context.PastilMatchMessageReactions.Include(s => s.ReactorProfile).ThenInclude(s => s.UserPet).FirstOrDefault(s => s.Id == id && !s.Deleted);
 

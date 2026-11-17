@@ -10,7 +10,7 @@ public class MerchantGatewayRulesTests
     [Fact]
     public void MainAdmin_GetsZarinPalAndTestGateway_EvenThoughRoleLabelIsMainAdmin()
     {
-        var mainAdmin = new CurrentUserDto { UserId = 1, RoleId = 2, RoleEnum = "main-admin" };
+        var mainAdmin = new CurrentUserDto { UserId = 1, RoleId = 2, RoleEnum = "main-admin", IsSuperAdmin = true };
 
         Assert.True(MerchantGatewayRules.IsMainAdmin(mainAdmin));
         var allowed = MerchantGatewayRules.AllowedBankIds(mainAdmin);
@@ -18,6 +18,16 @@ public class MerchantGatewayRulesTests
         Assert.Contains((long)MerchantEnum.pastilTest, allowed);
         // پایانه‌ی تستی پارسیان فقط برای مدیر اصلی
         Assert.Contains((long)MerchantEnum.parsian, allowed);
+    }
+
+    [Fact]
+    public void ManagerRole_WithoutSuperAdminIdentity_GetsOnlyZarinPal()
+    {
+        // نقش «مدیر» (RoleId = 2) بدون هویت ادمین اصلی دیگر درگاه تستی/پارسیان را نمی‌گیرد
+        var manager = new CurrentUserDto { UserId = 8, RoleId = 2, RoleEnum = "main-admin", IsSuperAdmin = false };
+
+        Assert.False(MerchantGatewayRules.IsMainAdmin(manager));
+        Assert.Equal(new[] { (long)MerchantEnum.zarinpal }, MerchantGatewayRules.AllowedBankIds(manager));
     }
 
     [Theory]

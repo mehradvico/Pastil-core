@@ -168,30 +168,41 @@ public class ShippingSlotRulesTests
     }
 
     [Fact]
-    public void Ready_reminder_goes_out_an_hour_before_the_courier_should_arrive_and_again_before_the_deadline()
+    public void Ready_nudge_goes_out_at_slot_start_and_again_thirty_minutes_later()
     {
-        var slotStart = Tehran(8, 9);
-        var deadline = ShippingSlotRules.ReadyDeadline(Tehran(8, 13), 60); // ۱۱:۳۰
-        var firstAt = Tehran(8, 7, 30);
-        var finalAt = deadline.AddMinutes(-30);
+        var anchor = Tehran(8, 13);                                         // شروع بازه‌ی ۱۳ تا ۱۷
+        var deadline = ShippingSlotRules.ReadyDeadline(Tehran(8, 17), 60);  // ۱۵:۳۰
 
-        Assert.False(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, null, firstAt.AddMinutes(-1)));
-        Assert.True(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, null, firstAt));
-        // بعد از ارسال اولی تا ۳۰ دقیقه به مهلت چیزی نمی‌رود
-        Assert.False(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, firstAt, finalAt.AddMinutes(-1)));
-        Assert.True(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, firstAt, finalAt));
-        // یادآوری دوم هم که رفت، دیگر تکرار نمی‌شود
-        Assert.False(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, finalAt, finalAt.AddMinutes(10)));
+        Assert.Equal(0, ShippingSlotRules.ReadyNudgeStage(anchor, deadline, null, anchor.AddMinutes(-1)));
+        Assert.Equal(1, ShippingSlotRules.ReadyNudgeStage(anchor, deadline, null, anchor));
+        // مرحله‌ی ۱ رفت (۱۳:۰۰)؛ تا ۳۰ دقیقه بعد چیزی نمی‌رود
+        var sentAt = anchor.AddMinutes(3);
+        Assert.Equal(0, ShippingSlotRules.ReadyNudgeStage(anchor, deadline, sentAt, sentAt.AddMinutes(29)));
+        Assert.Equal(2, ShippingSlotRules.ReadyNudgeStage(anchor, deadline, sentAt, sentAt.AddMinutes(30)));
+        // مرحله‌ی ۲ هم که رفت دیگر تکرار نمی‌شود
+        var urgentAt = sentAt.AddMinutes(30);
+        Assert.Equal(0, ShippingSlotRules.ReadyNudgeStage(anchor, deadline, urgentAt, urgentAt.AddHours(1)));
     }
 
     [Fact]
-    public void A_late_confirmation_gets_only_one_reminder()
+    public void A_seller_who_confirms_after_slot_start_gets_one_nudge_and_a_pre_slot_reminder_does_not_count()
     {
-        var slotStart = Tehran(8, 9);
-        var deadline = ShippingSlotRules.ReadyDeadline(Tehran(8, 13), 60);
-        var lateNow = deadline.AddMinutes(-10);
-        Assert.True(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, null, lateNow));
-        Assert.False(ShippingSlotRules.ShouldSendReadyReminder(slotStart, deadline, 30, lateNow, lateNow.AddMinutes(5)));
+        var anchor = Tehran(8, 13);
+        var deadline = ShippingSlotRules.ReadyDeadline(Tehran(8, 17), 60);
+        var lateNow = anchor.AddMinutes(45);
+        Assert.Equal(1, ShippingSlotRules.ReadyNudgeStage(anchor, deadline, null, lateNow));
+        Assert.Equal(0, ShippingSlotRules.ReadyNudgeStage(anchor, deadline, lateNow, lateNow.AddMinutes(40)));
+        // یادآوری قدیمیِ قبل از شروع بازه (قبل از این تغییر) جلوی پیام «موعد ارسال رسید» را نمی‌گیرد
+        Assert.Equal(1, ShippingSlotRules.ReadyNudgeStage(anchor, deadline, anchor.AddHours(-1), anchor));
+    }
+
+    [Fact]
+    public void The_urgent_nudge_is_skipped_when_it_would_land_after_the_ready_deadline()
+    {
+        var anchor = Tehran(8, 13);
+        var deadline = anchor.AddMinutes(20);
+        var sentAt = anchor;
+        Assert.Equal(0, ShippingSlotRules.ReadyNudgeStage(anchor, deadline, sentAt, sentAt.AddMinutes(31)));
     }
 
     [Fact]

@@ -47,7 +47,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetMessageQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
 
@@ -72,7 +72,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
         public CompanionReserveMessageSearchDto Search(CompanionReserveMessageInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+            var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
             var model = GetMessageQuery().Where(s => !s.Deleted);
 
@@ -150,7 +150,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 if (!Enum.IsDefined(typeof(CompanionReserveMessageTypeEnum), (int)dto.CompanionReserveMessageTypeId))
                 {
@@ -237,7 +237,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetMessageQuery().FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
 
@@ -271,7 +271,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var reserve = await GetReserveQuery().FirstOrDefaultAsync(s => s.Id == dto.CompanionReserveId);
 
@@ -363,7 +363,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = _context.CompanionReserveMessages.FirstOrDefault(s => s.Id == id && !s.Deleted);
 

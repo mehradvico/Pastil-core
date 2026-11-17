@@ -349,9 +349,11 @@ builder.Services.AddScoped<Application.Services.ServerMonitoringAlerts.IServerAl
 builder.Services.AddHostedService<Api.Services.ServerMonitoring.ServerAlertBackgroundService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, Api.Authorization.AdminAreaAuthorizationHandler>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, Api.Authorization.AreaMembershipAuthorizationHandler>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, Api.Authorization.SuperAdminAuthorizationHandler>();
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireClaim("RoleId", ((long)RoleEnum.Admin).ToString()));
+    options.AddPolicy(PolicyNames.SuperAdminOnly, policy => policy.RequireAuthenticatedUser().AddRequirements(new Api.Authorization.SuperAdminRequirement()));
     options.AddPolicy(PolicyNames.AdminArea, policy => policy.RequireAuthenticatedUser().AddRequirements(new Api.Authorization.AdminAreaRequirement()));
     foreach (var membershipArea in new[] { "Seller", "Companion", "Driver" })
         options.AddPolicy(PolicyNames.AreaMember(membershipArea), policy => policy.RequireAuthenticatedUser().AddRequirements(new Api.Authorization.AreaMembershipRequirement(membershipArea)));

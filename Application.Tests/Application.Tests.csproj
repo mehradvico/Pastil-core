@@ -25,6 +25,7 @@
     <Compile Include="..\Api\Authorization\AdminAreaAuthorizationConvention.cs" Link="Api\Authorization\AdminAreaAuthorizationConvention.cs" />
     <Compile Include="..\Api\Authorization\AdminAreaAuthorizationHandler.cs" Link="Api\Authorization\AdminAreaAuthorizationHandler.cs" />
     <Compile Include="..\Api\Authorization\AreaMembershipAuthorizationHandler.cs" Link="Api\Authorization\AreaMembershipAuthorizationHandler.cs" />
+    <Compile Include="..\Api\Authorization\SuperAdminAuthorizationHandler.cs" Link="Api\Authorization\SuperAdminAuthorizationHandler.cs" />
     <Compile Include="..\Api\Filters\ScrubAnonymousUserPiiFilter.cs" Link="Api\Filters\ScrubAnonymousUserPiiFilter.cs" />
     <Compile Include="..\Api\Hubs\CallSessionTracker.cs" Link="Api\Hubs\CallSessionTracker.cs" />
     <Compile Include="..\Api\Filter\IdempotentRequestAttribute.cs" Link="Api\Filter\IdempotentRequestAttribute.cs" />

@@ -39,6 +39,14 @@ namespace Entities.Entities
         public double DeliveryPrice { get; set; }
         public string TrackingCode { get; set; }
         public DateTime? CancelRequestDate { get; set; }
+        /// <summary>لحظه‌ی لغو سفارش (حالت «لغو شده»)؛ null برای لغوهای قدیمی که قبل از ثبت این ستون انجام شده‌اند.</summary>
+        public DateTime? CancelledDate { get; set; }
+        /// <summary>عامل لغو: 1 = ادمین، 2 = فروشگاه (OrderAdjustActor)؛ null = نامشخص (لغوهای قدیمی).</summary>
+        public int? CancelledByActor { get; set; }
+        /// <summary>اگر فروشگاه لغو کرده، شناسه‌ی آن فروشگاه.</summary>
+        public long? CancelledStoreId { get; set; }
+        /// <summary>اولین لحظه‌ای که وضعیت سفارش «در حال پردازش» شد (تأیید/آماده‌سازی توسط فروشگاه یا ادمین).</summary>
+        public DateTime? ProcessingDate { get; set; }
         public string ParentOrderId { get; set; }
         public string ChildOrderId { get; set; }
         public bool Permitted { get; set; }

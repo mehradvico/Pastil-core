@@ -43,7 +43,7 @@ namespace Api.Areas.Seller.Controllers
                 typed.Data?.ProductOrderStores == null || !typed.Data.ProductOrderStores.Any(s => s.StoreId == _currentUser.CurrentUser.StoreId))
                 return Ok(new BaseResultDto(false, Resource.Notification.AccessDenied));
 
-            var dto = await _productOrderService.ChangeStateAsync(productOrderDto);
+            var dto = await _productOrderService.ChangeStateAsync(productOrderDto, _currentUser.CurrentUser.StoreId);
             return Ok(dto);
         }
 

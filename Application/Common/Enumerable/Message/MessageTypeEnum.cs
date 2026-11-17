@@ -94,6 +94,12 @@
         // ارسال با میاره (بازه‌ای/اکسپرس): پیامک رسمی به فروشگاه برای سفارش جدید در انتظار تأیید، و یادآوری مهلت پاسخ‌گویی
         // (%token = شماره سفارش، %token2 = مهلت مثل «ساعت 10:00» یا «فردا ساعت 10:00»؛ متن‌ها: backend/Docs/MIARE_SHIPPING_SLOTS_FA.md)
         ProductOrderSlotStore,
-        ProductOrderSellerReminderStore
+        ProductOrderSellerReminderStore,
+        // سفارش بازه‌ای در حال آماده‌سازی: «موعد ارسال رسید؛ آماده کنید و تحویل پیک را بزنید» و ۳۰ دقیقه بعد «فقط تا … وقت دارید»
+        // (%token = شماره سفارش، %token2 = مهلت «آماده تحویل به پیک»؛ متن‌ها: backend/Docs/MIARE_SHIPPING_SLOTS_FA.md)
+        ProductOrderReadyNowStore,
+        ProductOrderReadyUrgentStore,
+        // تأیید درخواست ارائه‌دهندگی (پیش‌ثبت‌نام سایت) توسط ادمین؛ %token = نام متقاضی. لینک ورود به سایت داخل متن قالب است.
+        ProviderOnboardingApprovedForUser
     }
 }

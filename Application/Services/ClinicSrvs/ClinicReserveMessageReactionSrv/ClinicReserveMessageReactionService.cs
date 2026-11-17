@@ -38,7 +38,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveMessageReactionSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetReactionQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted && !s.ClinicReserveMessage.Deleted);
 
@@ -63,7 +63,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveMessageReactionSrv
         public ClinicReserveMessageReactionSearchDto Search(ClinicReserveMessageReactionInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+            var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
             var model = GetReactionQuery().Where(s => !s.Deleted && !s.ClinicReserveMessage.Deleted);
 
@@ -119,7 +119,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveMessageReactionSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 if (string.IsNullOrWhiteSpace(dto.Reaction))
                 {
@@ -186,7 +186,7 @@ namespace Application.Services.ClinicSrvs.ClinicReserveMessageReactionSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = _context.ClinicReserveMessageReactions.FirstOrDefault(s => s.Id == id && !s.Deleted);
 

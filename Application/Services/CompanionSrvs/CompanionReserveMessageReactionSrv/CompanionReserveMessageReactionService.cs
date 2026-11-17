@@ -37,7 +37,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetReactionQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted && !s.CompanionReserveMessage.Deleted);
 
@@ -62,7 +62,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
         public CompanionReserveMessageReactionSearchDto Search(CompanionReserveMessageReactionInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+            var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
             var model = GetReactionQuery().Where(s => !s.Deleted && !s.CompanionReserveMessage.Deleted);
 
@@ -120,7 +120,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 if (string.IsNullOrWhiteSpace(dto.Reaction))
                 {
@@ -187,7 +187,7 @@ namespace Application.Services.CompanionSrvs.CompanionReserveMessageReactionSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = _context.CompanionReserveMessageReactions.FirstOrDefault(s => s.Id == id && !s.Deleted);
 

@@ -111,9 +111,67 @@ namespace Application.Services.Order.ProductOrderSrv
                     foreach (var orderStore in vdto.ProductOrderStores)
                         if (!userId.HasValue || !Application.Services.Order.ShippingSrv.ShipmentLifecycleRules.IsCodeVisible(orderStore.ShipmentStatus))
                             orderStore.ShipmentDeliveryCode = null;
+                if (!userId.HasValue)
+                    await FillAdminTimelineDatesAsync(item, vdto);
                 return new BaseResultDto<ProductOrderVDto>(true, data: vdto);
             }
             return new BaseResultDto(false, val: Resource.Notification.ResourceNotFind);
+        }
+
+        // زمان «پرداخت» ستون جدا ندارد و برای لغوهای قدیمی (قبل از ستون CancelledDate) هم ردپای کیف پول خوانده می‌شود:
+        // پرداخت = ساخته‌شدن مرسوله بعد از پرداخت (دقیق‌ترین)، وگرنه پرداخت آنلاین موفق، وگرنه برداشت کیف پول؛ لغو = ثبت برگشت پول لغو.
+        private async Task FillAdminTimelineDatesAsync(ProductOrder order, ProductOrderVDto vdto)
+        {
+            try
+            {
+                if (order.IsPaid)
+                {
+                    var shipmentCreated = order.ProductOrderStores?
+                        .Where(store => store.Shipment != null)
+                        .Select(store => (DateTime?)store.Shipment.CreatedAtUtc)
+                        .OrderBy(value => value)
+                        .FirstOrDefault();
+                    if (shipmentCreated.HasValue)
+                        vdto.PaidDate = DateTime.SpecifyKind(shipmentCreated.Value, DateTimeKind.Utc);
+                    else
+                    {
+                        vdto.PaidDate = await _context.Payments.AsNoTracking()
+                            .Where(payment => payment.ProductOrderId == order.Id && payment.IsSuccess == true)
+                            .OrderBy(payment => payment.CreateDate)
+                            .Select(payment => (DateTime?)payment.CreateDate)
+                            .FirstOrDefaultAsync();
+                        vdto.PaidDate ??= await _context.Wallets.AsNoTracking()
+                            .Where(wallet => wallet.ProductOrderId == order.Id && !wallet.IsIncrease && !wallet.Deleted)
+                            .OrderBy(wallet => wallet.CreateDate)
+                            .Select(wallet => (DateTime?)wallet.CreateDate)
+                            .FirstOrDefaultAsync();
+                    }
+                }
+
+                var canceledLabel = ProductOrderStateEnum.ProductOrderState_Canceled.ToString();
+                if (order.ProductOrderState?.Label == canceledLabel)
+                {
+                    if (vdto.CancelledDate == null)
+                    {
+                        var ledger = ProductOrderAdjustmentRules.CancelRefundLedgerName(order.Id);
+                        vdto.CancelledDate = await _context.Wallets.AsNoTracking()
+                            .Where(wallet => wallet.Name == ledger && !wallet.Deleted)
+                            .OrderBy(wallet => wallet.CreateDate)
+                            .Select(wallet => (DateTime?)wallet.CreateDate)
+                            .FirstOrDefaultAsync();
+                    }
+                    if (order.CancelledStoreId.HasValue)
+                        vdto.CancelledStoreName = await _context.Stores.AsNoTracking()
+                            .Where(store => store.Id == order.CancelledStoreId.Value)
+                            .Select(store => store.Name)
+                            .FirstOrDefaultAsync();
+                }
+            }
+            catch (Exception exception)
+            {
+                // تاریخچه فقط نمایشی است؛ خطا نباید باز شدن سفارش را خراب کند
+                _logger.LogWarning(exception, "Admin timeline dates for order {OrderId} failed.", order.Id);
+            }
         }
 
         public override async Task<BaseResultDto<ProductOrderDto>> InsertAsyncDto(ProductOrderDto dto)
@@ -495,6 +553,8 @@ namespace Application.Services.Order.ProductOrderSrv
                 item.SentDate = null;
             if (dto.ProductOrderStatusId == statusProccess)
             {
+                // اولین ورود به «در حال پردازش» (تأیید/آماده‌سازی)؛ ثبت دوباره‌ی همان وضعیت زمان را عوض نمی‌کند
+                item.ProcessingDate ??= DateTime.Now;
                 await _pushNotificationService.SendPushAsync(pushType: PushTypeEnum.PushProccessOrderUser, userId: item.UserId, token1: item.User.FirstName, token2: item.Id);
             }
             // پوش «ارسال شد» عمومی حذف شد: میاره پوش کد تحویل دارد (ShipmentService) و پست پوش ندارد.
@@ -732,7 +792,17 @@ namespace Application.Services.Order.ProductOrderSrv
             return confirmed;
         }
 
-        public async Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto)
+        // زمان و عامل لغو را فقط یک‌بار (اولین لغو) ثبت می‌کند؛ byStoreId = شناسه‌ی فروشگاهِ لغوکننده، null = ادمین.
+        private static void StampCancellation(ProductOrder order, long? byStoreId)
+        {
+            if (order.CancelledDate.HasValue)
+                return;
+            order.CancelledDate = DateTime.Now;
+            order.CancelledByActor = byStoreId.HasValue ? (int)OrderAdjustActor.Store : (int)OrderAdjustActor.Admin;
+            order.CancelledStoreId = byStoreId;
+        }
+
+        public async Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto, long? byStoreId = null)
         {
             var item = await _context.ProductOrders.FirstOrDefaultAsync(s => s.Id == dto.Id);
             if (item == null)
@@ -745,10 +815,13 @@ namespace Application.Services.Order.ProductOrderSrv
             item.ProductOrderState = null;
             item.ProductOrderStateId = dto.ProductOrderStateId;
 
+            var canceledState = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
+            if (dto.ProductOrderStateId == canceledState)
+                StampCancellation(item, byStoreId);
+
             _context.ProductOrders.Update(item);
             await _context.SaveChangesAsync();
 
-            var canceledState = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
             if (dto.ProductOrderStateId == canceledState)
                 await _clubPointIntegrationService.ProductOrderReversedAsync(item.UserId, item.Id);
 
@@ -854,10 +927,12 @@ namespace Application.Services.Order.ProductOrderSrv
             {
                 item.ProductOrderStateId = productOrder.ProductOrderStateId;
                 item.AdminDescription = productOrder.AdminDescription;
+                var canceledState = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
+                if (productOrder.ProductOrderStateId == canceledState)
+                    StampCancellation(item, null);
                 _context.ProductOrders.Update(item);
                 await _context.SaveChangesAsync();
 
-                var canceledState = await _codeService.GetIdByLabelAsync(ProductOrderStateEnum.ProductOrderState_Canceled.ToString());
                 if (productOrder.ProductOrderStateId == canceledState)
                 {
                     await _clubPointIntegrationService.ProductOrderReversedAsync(item.UserId, item.Id);

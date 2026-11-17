@@ -13,6 +13,8 @@ namespace Application.Services.Accounting.TicketSrv.Dto
         public long? UserId { get; set; }
         public long? AdminId { get; set; }
         public bool AllAdminId { get; set; }
+        /// <summary>فقط برای ادمین اصلی: تیکت‌هایی که به ادمین دیگری واگذار شده (نه خودش و نه آزاد). برای بقیه‌ی ادمین‌ها نادیده گرفته می‌شود.</summary>
+        public bool ExcludeCurrentAdmin { get; set; }
         public TicketStatusEnum? Status { get; set; }
         public TicketImportanceEnum? Importance { get; set; }
         public TicketCategoryEnum? TicketCategory { get; set; }

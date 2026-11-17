@@ -42,7 +42,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetMessageQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
 
@@ -67,7 +67,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageSrv
         public CoachReserveMessageSearchDto Search(CoachReserveMessageInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+            var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
             var model = GetMessageQuery().Where(s => !s.Deleted);
 
@@ -143,7 +143,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 if (!Enum.IsDefined(typeof(CompanionReserveMessageTypeEnum), (int)dto.CoachReserveMessageTypeId))
                 {
@@ -227,7 +227,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetMessageQuery().FirstOrDefaultAsync(s => s.Id == dto.Id && !s.Deleted);
 
@@ -261,7 +261,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var reserve = await GetReserveQuery().FirstOrDefaultAsync(s => s.Id == dto.CoachReserveId);
 
@@ -353,7 +353,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = _context.CoachReserveMessages.FirstOrDefault(s => s.Id == id && !s.Deleted);
 

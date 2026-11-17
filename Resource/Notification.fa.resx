@@ -3031,4 +3031,13 @@
   <data name="ProductImageSuggestionNotDeletable" xml:space="preserve">
     <value>فقط پیشنهادِ در انتظار بررسی یا ردشده قابل حذف است.</value>
   </data>
+  <data name="ProviderOnboardingCardInvalid" xml:space="preserve">
+    <value>شماره کارت معتبر نیست؛ ۱۶ رقم را بدون فاصله وارد کنید.</value>
+  </data>
+  <data name="ProviderOnboardingIbanInvalid" xml:space="preserve">
+    <value>شماره شبا معتبر نیست؛ مثل IR و ۲۴ رقم.</value>
+  </data>
+  <data name="ProviderOnboardingBankRequired" xml:space="preserve">
+    <value>شماره کارت و شماره شبا را وارد کنید.</value>
+  </data>
 </root>

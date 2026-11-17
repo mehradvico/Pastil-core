@@ -22,7 +22,7 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
 
         // job: تأیید خودکار تحویل بعد از ۷ روز بدون پاسخ کاربر (و هشدار ۲ روز قبل)؛ تعداد سفارش‌های تأییدشده را برمی‌گرداند
         Task<int> AutoConfirmDeliveriesAsync();
-        Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto);
+        Task<BaseResultDto> ChangeStateAsync(ProductOrderDto dto, long? byStoreId = null);
         Task<BaseResultDto> ChangeTrackingCode(ProductOrderDto order);
         Task<BaseResultDto> ChangeDescriptions(ProductOrderDto order);
         Task UpdateWalletAsync(string productOrderId, bool complete);

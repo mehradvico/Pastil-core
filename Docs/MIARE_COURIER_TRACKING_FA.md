@@ -191,3 +191,12 @@ FROM ShipmentEvents e ORDER BY e.Id DESC;
 
 ## ۱۱) کدها
 `ShipmentCourierRules` (قواعد خالص + تست)، `ShipmentService` (`HandleMiareWebhookAsync`، `RecordMiareEventAsync`، `GetForOrderAsync`)، `ShipmentTrackingService` (مشتری/فروشنده)، `Api/Areas/EndUser/Controllers/ShipmentTrackingController.cs`، `Api/Areas/Seller/Controllers/ShipmentController.cs` (`Tracking`)، موجودیت‌های `Shipment`/`ShipmentEvent`، Migration `AddShipmentCourierTracking`، پنل `pages/admin/productorder/detail-[id].vue`.
+
+## زمان‌بندی سفارش در پنل ادمین (۲۰۲۶-۱۱-۱۵، پس از بخش بالا)
+
+صفحه‌ی `panel/pages/admin/productorder/detail-[id].vue` دو کارت دارد: «وضعیت لحظه‌ای سفارش» (`OrderProgress.vue`: نوبت مشتری/نماینده‌ی فروشگاه/پیک/ادمین) و «زمان‌بندی سفارش» (`OrderTimeline.vue`: تاریخ و ساعت هر مرحله).
+
+- `GET api/Admin/OrderShipment` فیلدهای `SellerConfirmedAtUtc`, `ReadyAtUtc`, `DeliveredAtUtc`, `DisputeReportedAtUtc`, `SlotStartUtc/EndUtc` را هم برمی‌گرداند.
+- `GET api/Admin/ProductOrder/{id}` (ادمین/فروشنده) علاوه بر `CreateDate/SentDate/ReceiptAskedAtUtc/UserReceivedDate`: `PaidDate` (= ساخته‌شدن مرسوله بعد از پرداخت، وگرنه پرداخت موفق/کیف پول)، `CancelledDate`، `CancelledByActor` (1 ادمین، 2 فروشگاه)، `CancelledStoreId/Name` و `ProcessingDate` (اولین «در حال پردازش» شدن) دارد.
+- ستون‌های جدید `ProductOrders`: `CancelledDate`, `CancelledByActor`, `CancelledStoreId`, `ProcessingDate` (همه nullable). Migration: `20261115180000_OrderCancelAndProcessingDates`، اسکریپت `scripts/OrderCancelAndProcessingDates.sql` (قبل از دیپلوی Api اجرا شود؛ زمان لغوهای قدیمی را از ثبت برگشت پول کیف پول پر می‌کند، عامل لغو برای آن‌ها نامشخص می‌ماند).
+- ثبت لغو: `ProductOrderAdjustmentService.CancelOrderAsync` (ادمین/فروشگاه) و مسیرهای `ChangeStateAsync`/`AnswerCancelRequestAsync` (فقط اولین لغو ثبت می‌شود).

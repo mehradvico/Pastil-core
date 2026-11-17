@@ -7,8 +7,9 @@ namespace Api.Authorization;
 public sealed class AdminAreaRequirement : IAuthorizationRequirement { }
 
 /// <summary>
-/// Admin ⇒ همیشه مجاز. نقش دیگر ⇒ فقط اگر OnTokenValidatedService در همین درخواست مجوز RolePermission آن controller/action را تأیید
-/// و PermissionVerifiedItemKey را در HttpContext.Items گذاشته باشد؛ در غیر این صورت رد (fail-closed).
+/// ادمین اصلی (SuperAdminIdentity) ⇒ همیشه مجاز. هر نقش دیگر (از جمله «مدیر») ⇒ فقط اگر OnTokenValidatedService در همین درخواست
+/// مجوز RolePermission آن controller/action را تأیید و PermissionVerifiedItemKey را در HttpContext.Items گذاشته باشد؛
+/// در غیر این صورت رد (fail-closed). claim «RoleId = Admin» دیگر به‌تنهایی چیزی را باز نمی‌کند.
 /// </summary>
 public sealed class AdminAreaAuthorizationHandler : AuthorizationHandler<AdminAreaRequirement>
 {
@@ -23,7 +24,7 @@ public sealed class AdminAreaAuthorizationHandler : AuthorizationHandler<AdminAr
         if (context.User.Identity?.IsAuthenticated != true)
             return Task.CompletedTask;
 
-        if (context.User.HasClaim("RoleId", ((long)Application.Common.Enumerable.RoleEnum.Admin).ToString()))
+        if (Application.Common.Security.SuperAdminIdentity.IsVerified(_httpContextAccessor))
         {
             context.Succeed(requirement);
             return Task.CompletedTask;

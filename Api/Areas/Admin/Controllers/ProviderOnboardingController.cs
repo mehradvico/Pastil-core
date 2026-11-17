@@ -1,5 +1,8 @@
 using Application.Common.Enumerable;
 using Application.Common.Interface;
+using Application.Common.Enumerable.Message;
+using Application.Services.Setting.MessageSenderSrv.Iface;
+using Microsoft.Extensions.Logging;
 using Entities.Entities.ProviderField;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,9 +24,12 @@ namespace Api.Areas.Admin.Controllers
     {
         private readonly IDataBaseContext _db;
         private readonly ICurrentUserHelper _currentUser;
-        public ProviderOnboardingController(IDataBaseContext db, ICurrentUserHelper currentUser)
+        private readonly IMessageSenderService _messageSender;
+        private readonly ILogger<ProviderOnboardingController> _logger;
+        public ProviderOnboardingController(IDataBaseContext db, ICurrentUserHelper currentUser,
+            IMessageSenderService messageSender, ILogger<ProviderOnboardingController> logger)
         {
-            _db = db; _currentUser = currentUser;
+            _db = db; _currentUser = currentUser; _messageSender = messageSender; _logger = logger;
         }
 
         // Identity documents are restricted to the full administrator role, in addition to Admin-area JWT checks.
@@ -50,9 +56,12 @@ namespace Api.Areas.Admin.Controllers
             var x = await _db.ProviderOnboardingApplications.AsNoTracking().Include(a => a.Documents).Include(a => a.Events)
                 .FirstOrDefaultAsync(a => a.Id == id);
             if (x == null) return NotFound();
-            return Ok(new { isSuccess = true, data = new { x.Id, x.UserId, x.ProviderId, x.Kind, x.RoleLabel, x.Status,
+            var applicant = await _db.Users.AsNoTracking().Where(u => u.Id == x.UserId)
+                .Select(u => new { u.FirstName, u.LastName, u.Mobile }).FirstOrDefaultAsync();
+            var userName = $"{applicant?.FirstName} {applicant?.LastName}".Trim();
+            return Ok(new { isSuccess = true, data = new { x.Id, x.UserId, userName, userMobile = applicant?.Mobile, x.ProviderId, x.Kind, x.RoleLabel, x.Status,
                 x.FirstName, x.LastName, x.NationalCode, x.BirthDate, x.ApplicantType, x.CompanyName,
-                x.CompanyNationalId, x.City, x.BusinessName, x.BusinessAddress, x.BusinessPhone,
+                x.CompanyNationalId, x.CardNumber, x.Iban, x.City, x.BusinessName, x.BusinessAddress, x.BusinessPhone,
                 x.DetailsJson, x.ReviewerNote, x.SubmittedAt, x.ReviewedAt,
                 documents = x.Documents.Select(d => new { d.Id, d.Kind, d.FileName }),
                 events = x.Events.OrderByDescending(e => e.CreatedAt).Select(e => new { e.Status, e.Note, e.ActorUserId, e.CreatedAt }) } });
@@ -117,7 +126,29 @@ namespace Api.Areas.Admin.Controllers
                 Note = item.ReviewerNote, CreatedAt = DateTime.UtcNow });
             await _db.SaveChangesAsync();
             await tx.CommitAsync();
+            if (input.Status == "Approved" && item.Kind == "Provider") await SendApprovedSmsAsync(item.UserId);
             return Ok(new { isSuccess = true });
+        }
+
+        // پیامک تأیید درخواست ارائه‌دهندگی (قالب کاوه‌نگار ProviderOnboardingApprovedForUser؛ %token = نام). خطای ارسال تأیید را خراب نمی‌کند.
+        private async Task SendApprovedSmsAsync(long userId)
+        {
+            try
+            {
+                var user = await _db.Users.AsNoTracking().Where(x => x.Id == userId)
+                    .Select(x => new { x.Mobile, x.FirstName }).FirstOrDefaultAsync();
+                if (string.IsNullOrWhiteSpace(user?.Mobile))
+                {
+                    _logger.LogWarning("Provider onboarding approval SMS skipped: no mobile for user {UserId}.", userId);
+                    return;
+                }
+                var name = string.IsNullOrWhiteSpace(user.FirstName) ? "ارائه‌دهنده" : user.FirstName.Trim();
+                await _messageSender.SendMessageAsync(MessageTypeEnum.ProviderOnboardingApprovedForUser, user.Mobile, null, token1: name);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Provider onboarding approval SMS failed for user {UserId}.", userId);
+            }
         }
     }
 

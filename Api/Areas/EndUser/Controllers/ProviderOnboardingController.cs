@@ -102,12 +102,23 @@ namespace Api.Areas.EndUser.Controllers
                 || input.BusinessName?.Length > 200 || input.BusinessAddress?.Length > 500
                 || input.BusinessPhone?.Length > 30 || input.CompanyName?.Length > 200
                 || input.CompanyNationalId?.Length > 20 || input.NationalCode?.Length > 10
-                || input.BirthDate?.Length > 20)
+                || input.BirthDate?.Length > 20 || input.CardNumber?.Length > 30 || input.Iban?.Length > 40)
                 return BadRequest(new { isSuccess = false, message = "طول یکی از فیلدها بیش از حد مجاز است." });
             if (!string.IsNullOrWhiteSpace(input.DetailsJson))
             {
                 try { using var _ = JsonDocument.Parse(input.DetailsJson); }
                 catch (JsonException) { return BadRequest(new { isSuccess = false, message = "جزئیات فرم معتبر نیست." }); }
+            }
+            if (item.Kind == "Provider")
+            {
+                var card = NormalizeDigits(input.CardNumber)?.Replace(" ", "").Replace("-", "").Trim();
+                var iban = NormalizeIban(input.Iban);
+                if (!string.IsNullOrEmpty(card) && !ValidCardNumber(card))
+                    return BadRequest(new { isSuccess = false, message = Resource.Notification.ProviderOnboardingCardInvalid });
+                if (!string.IsNullOrEmpty(iban) && !ValidIban(iban))
+                    return BadRequest(new { isSuccess = false, message = Resource.Notification.ProviderOnboardingIbanInvalid });
+                item.CardNumber = string.IsNullOrEmpty(card) ? null : card;
+                item.Iban = string.IsNullOrEmpty(iban) ? null : iban;
             }
             item.FirstName = input.FirstName?.Trim(); item.LastName = input.LastName?.Trim();
             item.NationalCode = NormalizeDigits(input.NationalCode)?.Trim(); item.BirthDate = NormalizeDigits(input.BirthDate)?.Trim();
@@ -170,6 +181,8 @@ namespace Api.Areas.EndUser.Controllers
                     || (item.ApplicantType != "Natural" && item.ApplicantType != "Legal")
                     || !item.Documents.Any(x => x.Kind == "NationalFront") || !item.Documents.Any(x => x.Kind == "NationalBack"))
                     return BadRequest(new { isSuccess = false, message = "اطلاعات هویتی و دو تصویر کارت ملی را تکمیل کنید." });
+                if (!ValidCardNumber(item.CardNumber) || !ValidIban(item.Iban))
+                    return BadRequest(new { isSuccess = false, message = Resource.Notification.ProviderOnboardingBankRequired });
                 if (item.ApplicantType == "Legal" && (string.IsNullOrWhiteSpace(item.CompanyName)
                     || string.IsNullOrWhiteSpace(item.CompanyNationalId) || !item.Documents.Any(x => x.Kind == "CompanyProof")))
                     return BadRequest(new { isSuccess = false, message = "اطلاعات و مدرک شرکت را تکمیل کنید." });
@@ -210,11 +223,42 @@ namespace Api.Areas.EndUser.Controllers
             return (code[9] - '0') == (rem < 2 ? rem : 11 - rem);
         }
 
+        // کارت بانکی: ۱۶ رقم + چک‌سام Luhn
+        private static bool ValidCardNumber(string card)
+        {
+            if (card?.Length != 16 || !card.All(c => c >= '0' && c <= '9')) return false;
+            var sum = 0;
+            for (var i = 0; i < 16; i++)
+            {
+                var d = card[i] - '0';
+                if (i % 2 == 0) { d *= 2; if (d > 9) d -= 9; }
+                sum += d;
+            }
+            return sum % 10 == 0;
+        }
+
+        // شبا همیشه با پیشوند IR ذخیره می‌شود (IR + ۲۴ رقم)
+        private static string NormalizeIban(string value)
+        {
+            var v = NormalizeDigits(value)?.Replace(" ", "").Replace("-", "").Trim().ToUpperInvariant();
+            if (string.IsNullOrEmpty(v)) return null;
+            return v.StartsWith("IR") ? v : "IR" + v;
+        }
+
+        private static bool ValidIban(string iban)
+        {
+            if (iban?.Length != 26 || !iban.StartsWith("IR") || !iban.Skip(2).All(c => c >= '0' && c <= '9')) return false;
+            var rearranged = iban.Substring(4) + "1827" + iban.Substring(2, 2); // I=18, R=27
+            var rem = 0;
+            foreach (var c in rearranged) rem = (rem * 10 + (c - '0')) % 97;
+            return rem == 1;
+        }
+
         private static string NormalizeDigits(string value) => value?.Replace('۰','0').Replace('۱','1').Replace('۲','2').Replace('۳','3').Replace('۴','4').Replace('۵','5').Replace('۶','6').Replace('۷','7').Replace('۸','8').Replace('۹','9').Replace('٠','0').Replace('١','1').Replace('٢','2').Replace('٣','3').Replace('٤','4').Replace('٥','5').Replace('٦','6').Replace('٧','7').Replace('٨','8').Replace('٩','9');
 
         private static object View(ProviderOnboardingApplication x) => new { x.Id, x.Kind, x.RoleLabel, x.Status,
             x.FirstName, x.LastName, x.NationalCode, x.BirthDate, x.ApplicantType, x.CompanyName,
-            x.CompanyNationalId, x.City, x.BusinessName, x.BusinessAddress, x.BusinessPhone, x.DetailsJson,
+            x.CompanyNationalId, x.CardNumber, x.Iban, x.City, x.BusinessName, x.BusinessAddress, x.BusinessPhone, x.DetailsJson,
             x.ReviewerNote, x.CreatedAt, x.SubmittedAt,
             documents = x.Documents?.Select(d => new { d.Id, d.Kind, d.FileName }),
             events = x.Events?.OrderByDescending(e => e.CreatedAt).Select(e => new { e.Status, e.Note, e.CreatedAt }) };
@@ -231,6 +275,8 @@ namespace Api.Areas.EndUser.Controllers
         public string ApplicantType { get; set; }
         public string CompanyName { get; set; }
         public string CompanyNationalId { get; set; }
+        public string CardNumber { get; set; }
+        public string Iban { get; set; }
         public string City { get; set; }
         public string BusinessName { get; set; }
         public string BusinessAddress { get; set; }

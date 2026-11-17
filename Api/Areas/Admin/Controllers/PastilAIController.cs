@@ -50,6 +50,7 @@ namespace Api.Areas.Admin.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("conversations")]
+        [Authorize(Policy = global::Api.Authorization.PolicyNames.SuperAdminOnly)] // گفتگوی کاربران با هوش مصنوعی محرمانه است: فقط ادمین اصلی
         [ProducesResponseType(typeof(PastilAiConversationSearchDto), 200)]
         public async Task<IActionResult> Get([FromQuery] PastilAiConversationInputDto dto, CancellationToken cancellationToken) =>
             Ok(await _chatService.SearchAdminAsync(dto, cancellationToken));
@@ -61,6 +62,7 @@ namespace Api.Areas.Admin.Controllers
         /// <param name="cancellationToken">توکن لغو درخواست</param>
         /// <returns></returns>
         [HttpGet("conversations/{id:long}")]
+        [Authorize(Policy = global::Api.Authorization.PolicyNames.SuperAdminOnly)] // محرمانه: فقط ادمین اصلی
         [ProducesResponseType(typeof(BaseResultDto<PastilAiConversationDto>), 200)]
         public async Task<IActionResult> Get(long id, CancellationToken cancellationToken) =>
             Ok(await _chatService.GetAdminConversationAsync(id, cancellationToken));

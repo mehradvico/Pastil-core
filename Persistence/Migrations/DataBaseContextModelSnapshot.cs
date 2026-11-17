@@ -10609,6 +10609,15 @@ namespace Persistence.Migrations
                     b.Property<DateTime?>("CancelRequestDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("CancelledByActor")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CancelledDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("CancelledStoreId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("ChildOrderId")
                         .HasColumnType("nvarchar(max)");
 
@@ -10657,6 +10666,9 @@ namespace Persistence.Migrations
 
                     b.Property<double>("Price")
                         .HasColumnType("float");
+
+                    b.Property<DateTime?>("ProcessingDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<long>("ProductOrderStateId")
                         .HasColumnType("bigint");
@@ -11051,6 +11063,10 @@ namespace Persistence.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<string>("CardNumber")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
                     b.Property<string>("City")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -11075,6 +11091,10 @@ namespace Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Iban")
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
                     b.Property<string>("Kind")
                         .IsRequired()

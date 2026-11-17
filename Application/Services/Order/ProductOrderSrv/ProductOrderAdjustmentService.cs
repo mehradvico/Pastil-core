@@ -104,6 +104,9 @@ namespace Application.Services.Order.ProductOrderSrv
 
                     order.ProductOrderState = null;
                     order.ProductOrderStateId = canceledId;
+                    order.CancelledDate = DateTime.Now;
+                    order.CancelledByActor = (int)actor;
+                    order.CancelledStoreId = actor == OrderAdjustActor.Store ? storeId : null;
                     order.StateDescription = reason;
                     order.AdminDescription = string.IsNullOrWhiteSpace(order.AdminDescription) ? reason : $"{order.AdminDescription}\n{reason}";
                     await _context.SaveChangesAsync(cancellationToken);

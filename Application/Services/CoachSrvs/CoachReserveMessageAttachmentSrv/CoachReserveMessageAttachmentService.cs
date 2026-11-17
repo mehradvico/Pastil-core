@@ -35,7 +35,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageAttachmentSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetAttachmentQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
 
@@ -60,7 +60,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageAttachmentSrv
         public CoachReserveMessageAttachmentSearchDto Search(CoachReserveMessageAttachmentInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+            var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
             var model = GetAttachmentQuery().Where(s => !s.Deleted && !s.CoachReserveMessage.Deleted);
 
@@ -116,7 +116,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageAttachmentSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 if (string.IsNullOrWhiteSpace(dto.Url))
                 {
@@ -199,7 +199,7 @@ namespace Application.Services.CoachSrvs.CoachReserveMessageAttachmentSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = _context.CoachReserveMessageAttachments
                     .Include(s => s.CoachReserveMessage).ThenInclude(s => s.Attachments)

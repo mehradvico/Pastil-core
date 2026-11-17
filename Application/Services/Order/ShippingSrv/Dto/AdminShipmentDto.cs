@@ -22,6 +22,17 @@ namespace Application.Services.Order.ShippingSrv.Dto
         public DateTime? ReadyDeadlineUtc { get; set; }
         public DateTime? PickupDeadlineUtc { get; set; }
         public DateTime? RequestedAtUtc { get; set; }
+        // زمان‌های مراحل (برای «زمان‌بندی سفارش» در پنل)
+        /// <summary>لحظه‌ای که فروشگاه سفارش را تأیید کرد (اکسپرس: همان لحظه‌ی درخواست پیک).</summary>
+        public DateTime? SellerConfirmedAtUtc { get; set; }
+        /// <summary>لحظه‌ای که فروشگاه «آماده تحویل به پیک / درخواست پیک» زد.</summary>
+        public DateTime? ReadyAtUtc { get; set; }
+        public DateTime? DeliveredAtUtc { get; set; }
+        /// <summary>لحظه‌ای که مشتری «تحویل نگرفتم» زد و به ادمین اطلاع داده شد.</summary>
+        public DateTime? DisputeReportedAtUtc { get; set; }
+        /// <summary>بازه‌ی تحویل انتخاب‌شده‌ی مشتری (ارسال غیراکسپرس).</summary>
+        public DateTime? SlotStartUtc { get; set; }
+        public DateTime? SlotEndUtc { get; set; }
         // دکمه‌ی «تمدید مهلت فروشنده» فقط وقتی true است
         public bool CanExtendSellerDeadline { get; set; }
 

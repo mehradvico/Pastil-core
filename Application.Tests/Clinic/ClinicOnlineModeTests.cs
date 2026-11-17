@@ -54,15 +54,15 @@ public class ClinicOnlineModeTests : IClassFixture<ClinicLocalDbFixture>
 
     private sealed class FakeCurrentUser : ICurrentUserHelper
     {
-        public FakeCurrentUser(long userId, long roleId = 0) => CurrentUser = new CurrentUserDto { UserId = userId, RoleId = roleId };
+        public FakeCurrentUser(long userId, long roleId = 0, bool isSuperAdmin = false) => CurrentUser = new CurrentUserDto { UserId = userId, RoleId = roleId, IsSuperAdmin = isSuperAdmin };
         public CurrentUserDto CurrentUser { get; }
     }
 
-    private ClinicReserveMessageService NewChat(long userId, out FakeProxy<IPushNotificationService> push, long roleId = 0)
+    private ClinicReserveMessageService NewChat(long userId, out FakeProxy<IPushNotificationService> push, long roleId = 0, bool isSuperAdmin = false)
     {
         var context = _fixture.NewContext();
         push = FakeProxy<IPushNotificationService>.Create().Proxy;
-        return new ClinicReserveMessageService(context, _fixture.Mapper, new FakeCurrentUser(userId, roleId), (IPushNotificationService)(object)push);
+        return new ClinicReserveMessageService(context, _fixture.Mapper, new FakeCurrentUser(userId, roleId, isSuperAdmin), (IPushNotificationService)(object)push);
     }
 
     /// <summary>پیام‌ها به ردیف‌های Codes (نوع پیام ۱۴۰ تا ۱۴۳) JOIN می‌شوند؛ در دیتابیس تست باید وجود داشته باشند.</summary>
@@ -152,13 +152,15 @@ public class ClinicOnlineModeTests : IClassFixture<ClinicLocalDbFixture>
         var (world, reserveId) = await PaidOnlineReserveAsync();
         Assert.True((await NewChat(world.BookerId, out _).InsertAsyncDto(Text(reserveId, world.BookerId))).IsSuccess);
 
-        int Count(long userId, long roleId = 0) =>
-            NewChat(userId, out _, roleId).Search(new ClinicReserveMessageInputDto { ClinicReserveId = reserveId, PageIndex = 1, PageSize = 50 }).List.Count;
+        int Count(long userId, long roleId = 0, bool isSuperAdmin = false) =>
+            NewChat(userId, out _, roleId, isSuperAdmin).Search(new ClinicReserveMessageInputDto { ClinicReserveId = reserveId, PageIndex = 1, PageSize = 50 }).List.Count;
 
         Assert.Equal(1, Count(world.BookerId));
         Assert.Equal(1, Count(world.Seed.OwnerUserId));
         Assert.Equal(0, Count(world.Seed.OtherUserId));
-        Assert.Equal(1, Count(world.Seed.OtherUserId, (long)Application.Common.Enumerable.RoleEnum.Admin));
+        // نقش «مدیر» (RoleId = 2) بدون هویت ادمین اصلی چت رزرو را نمی‌بیند؛ فقط ادمین اصلی همه را می‌بیند
+        Assert.Equal(0, Count(world.Seed.OtherUserId, (long)Application.Common.Enumerable.RoleEnum.Admin));
+        Assert.Equal(1, Count(world.Seed.OtherUserId, (long)Application.Common.Enumerable.RoleEnum.Admin, isSuperAdmin: true));
     }
 
     private ClinicNotifier NewNotifier(out FakeProxy<IPushNotificationService> push)

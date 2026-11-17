@@ -22,6 +22,9 @@ namespace Entities.Entities.ProviderField
         public string BusinessName { get; set; }
         public string BusinessAddress { get; set; }
         public string BusinessPhone { get; set; }
+        // شماره کارت و شبای تسویه (فقط Kind=Provider). رمزشده با SensitiveDataProtector ذخیره می‌شود؛ مقدار ساده فقط در ادمین کامل دیده می‌شود.
+        public string CardNumber { get; set; }
+        public string Iban { get; set; }
         public string DetailsJson { get; set; }
         public string ReviewerNote { get; set; }
         public long? ReviewedByUserId { get; set; }

@@ -68,7 +68,7 @@ namespace Api.Areas.Admin.Controllers
         /// همگام سازی دسترسی های پنل مدیریت با کنترلرها
         /// </summary>
         [HttpPost("sync")]
-        [Authorize(Policy = PolicyNames.AdminOnly)]
+        [Authorize(Policy = PolicyNames.SuperAdminOnly)]
         public async Task<IActionResult> Synchronize(CancellationToken cancellationToken)
         {
             var xmlPath = Path.Combine(AppContext.BaseDirectory, "MehradVico.Api.xml");

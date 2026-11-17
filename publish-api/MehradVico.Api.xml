@@ -6041,7 +6041,7 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.UserController.Get(System.Int64)">
             <summary>
-             اطلاعات آیتم 
+             اطلاعات آیتم
             </summary>
             <param name="id">شناسه</param>
             <returns>
@@ -6051,22 +6051,22 @@
             <summary>
              جستجو
             </summary>
-            <returns></returns> 
+            <returns></returns>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.UserController.Post(Application.Services.Dto.UserDto)">
             <summary>
             آیتم جدید
-            </summary>  
+            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.UserController.Put(Application.Services.Dto.UserDto)">
             <summary>
-            ویرایش آیتم 
-            </summary>  
+            ویرایش آیتم
+            </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.UserController.Delete(System.Int64)">
             <summary>
-             حذف آیتم 
-            </summary>  
+             حذف آیتم
+            </summary>
         </member>
         <member name="T:Api.Areas.Admin.Controllers.UserDebtController">
             <summary>
@@ -11687,16 +11687,19 @@
             controller to remember the policy.
             </summary>
         </member>
-        <member name="F:Api.Authorization.AdminAreaAuthorizationConvention.AdminOnlyControllers">
+        <member name="F:Api.Authorization.AdminAreaAuthorizationConvention.SuperAdminOnlyControllers">
             <summary>
-            کنترلرهای Admin که هیچ‌وقت به نقش تفویض‌شده داده نمی‌شوند (ارتقای دسترسی، پول، تنظیمات سیستمی، زیرساخت). بقیه‌ی ناحیه‌ی Admin
-            با policy «AdminArea» (Admin یا مجوز RolePermission همان action) محافظت می‌شود.
+            کنترلرهای Admin که هیچ‌وقت به نقش تفویض‌شده (حتی «مدیر») داده نمی‌شوند و فقط «ادمین اصلی» (SuperAdminIdentity) به آن‌ها می‌رسد:
+            ارتقای دسترسی (نقش/مجوز)، پول و درگاه (کیف پول، مرچنت)، زیرساخت (مانیتورینگ، پوش‌دیاگ) و داده‌های محرمانه
+            (خاطرات پت‌ها و چت‌های خصوصی PastilMatch). بقیه‌ی ناحیه‌ی Admin با policy «AdminArea» (ادمین اصلی، یا مجوز RolePermission
+            همان action برای نقش‌های دیگر از جمله «مدیر») محافظت می‌شود.
             </summary>
         </member>
         <member name="T:Api.Authorization.AdminAreaAuthorizationHandler">
             <summary>
-            Admin ⇒ همیشه مجاز. نقش دیگر ⇒ فقط اگر OnTokenValidatedService در همین درخواست مجوز RolePermission آن controller/action را تأیید
-            و PermissionVerifiedItemKey را در HttpContext.Items گذاشته باشد؛ در غیر این صورت رد (fail-closed).
+            ادمین اصلی (SuperAdminIdentity) ⇒ همیشه مجاز. هر نقش دیگر (از جمله «مدیر») ⇒ فقط اگر OnTokenValidatedService در همین درخواست
+            مجوز RolePermission آن controller/action را تأیید و PermissionVerifiedItemKey را در HttpContext.Items گذاشته باشد؛
+            در غیر این صورت رد (fail-closed). claim «RoleId = Admin» دیگر به‌تنهایی چیزی را باز نمی‌کند.
             </summary>
         </member>
         <member name="M:Api.Authorization.AreaMembership.IsMember(System.String,Application.Services.Dto.CurrentUserDto)">
@@ -11710,7 +11713,16 @@
             </summary>
         </member>
         <member name="F:Api.Authorization.PolicyNames.AdminOnly">
-            <summary>فقط نقش Admin (claim RoleId). برای بخش‌های سیستمی/ارتقای دسترسی: نقش‌ها، مجوزها، کاربران، مرچنت، کیف پول، مانیتورینگ و ...</summary>
+            <summary>
+            نقش «مدیر» (claim RoleId = 2): ادمین اصلی و هر مدیر دیگر. فقط برای مسیرهای بدون controller/action (هاب SignalR، آپلود File) و
+            به‌عنوان لایه‌ی اضافه روی کنترلرهایی که policy «AdminArea» (RolePermission) هم دارند. دسترسی بیشتر از این به‌تنهایی نمی‌دهد.
+            </summary>
+        </member>
+        <member name="F:Api.Authorization.PolicyNames.SuperAdminOnly">
+            <summary>
+            فقط «ادمین اصلی» (SuperAdminIdentity، نشانه‌ی تأییدشده‌ی OnTokenValidatedService): نقش‌ها و مجوزها (ارتقای دسترسی)، مانیتورینگ،
+            کیف پول/مرچنت و داده‌های محرمانه (خاطرات پت‌ها، چت‌های خصوصی). مجوز RolePermission و نقش «مدیر» این policy را باز نمی‌کند.
+            </summary>
         </member>
         <member name="F:Api.Authorization.PolicyNames.AdminArea">
             <summary>
@@ -11754,6 +11766,12 @@
         </member>
         <member name="F:Api.Authorization.ProviderEndpointPolicy.LookupReadOnly">
             <summary>جدول‌های پایه: فقط خواندن برای کارمند؛ نوشتن (اگر endpointی داشته باشد) فقط مالک.</summary>
+        </member>
+        <member name="T:Api.Authorization.SuperAdminAuthorizationHandler">
+            <summary>
+            فقط «ادمین اصلی»: نشانه‌ی SuperAdminIdentity.VerifiedItemKey را فقط OnTokenValidatedService بعد از تطبیق با رکورد دیتابیس و
+            پیکربندی سرور روی همین درخواست می‌گذارد. هیچ claim توکن یا نقشی (حتی «مدیر») جایگزین آن نمی‌شود (fail-closed).
+            </summary>
         </member>
         <member name="T:Api.Controllers.AccountController">
             <summary>
@@ -13320,6 +13338,7 @@
             <summary>
             Hangfire's dashboard is operationally powerful (it exposes jobs and allows retries/deletes),
             so it must not rely on Hangfire's development-only local-request default.
+            فقط «ادمین اصلی» (SuperAdminIdentity): نشانه‌ی تأییدشده‌ی OnTokenValidatedService روی همین درخواست؛ نقش «مدیر» کافی نیست.
             </summary>
         </member>
         <member name="T:Api.Hubs.CallDurationRecorder">

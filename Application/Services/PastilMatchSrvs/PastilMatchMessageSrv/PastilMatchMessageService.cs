@@ -43,7 +43,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await GetMessageQuery().FirstOrDefaultAsync(s => s.Id == id && !s.Deleted);
 
@@ -68,7 +68,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
         public PastilMatchMessageSearchDto Search(PastilMatchMessageInputDto dto)
         {
             var userId = _currentUser.CurrentUser.UserId;
-            var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+            var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
             var model = GetMessageQuery().Where(s => !s.Deleted);
 
@@ -151,7 +151,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
                 }
 
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 if (!dto.SenderProfileId.HasValue)
                 {
@@ -266,7 +266,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 if (string.IsNullOrWhiteSpace(dto.Content))
                 {
@@ -315,7 +315,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await _context.PastilMatchMessages
                     .Include(s => s.PastilMatch).ThenInclude(s => s.FirstProfile).ThenInclude(s => s.UserPet)
@@ -356,7 +356,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = await _context.PastilMatchMessages
                     .Include(s => s.SenderProfile).ThenInclude(s => s.UserPet)
@@ -394,7 +394,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var pastilMatch = await GetMatchQuery().FirstOrDefaultAsync(s => s.Id == dto.PastilMatchId);
 
@@ -491,7 +491,7 @@ namespace Application.Services.PastilMatchSrvs.PastilMatchMessageSrv
             try
             {
                 var userId = _currentUser.CurrentUser.UserId;
-                var isAdmin = _currentUser.CurrentUser.RoleId == (long)RoleEnum.Admin;
+                var isAdmin = _currentUser.CurrentUser.IsSuperAdmin;
 
                 var item = _context.PastilMatchMessages.Include(s => s.SenderProfile).ThenInclude(s => s.UserPet).FirstOrDefault(s => s.Id == id && !s.Deleted);
 

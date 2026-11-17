@@ -46,6 +46,21 @@ namespace Application.Services.Order.ProductOrderSrv.Dto
         // true = کاربر همین الان می‌تواند «تحویل گرفتم/نگرفتم» را ثبت کند (پرداخت‌شده، وضعیت «ارسال‌شده»، لغو نشده، هنوز نهایی نشده)
         public bool CanConfirmDelivery { get; set; }
         public DateTime? HasCancelRequestDate { get; set; }
+        /// <summary>لحظه‌ای که وضعیت سفارش «ارسال شده» شد.</summary>
+        public DateTime? SentDate { get; set; }
+        /// <summary>لحظه‌ی پوش «آیا سفارش را تحویل گرفتید؟» به مشتری (UTC).</summary>
+        public DateTime? ReceiptAskedAtUtc { get; set; }
+        /// <summary>زمان پرداخت (فقط برای ادمین/فروشنده پر می‌شود): زمان ساخته‌شدن مرسوله بعد از پرداخت، وگرنه آخرین پرداخت موفق/برداشت کیف پول.</summary>
+        public DateTime? PaidDate { get; set; }
+        /// <summary>زمان لغو سفارش؛ برای لغوهای قدیمی بدون ثبت (فقط ادمین/فروشنده) از زمان برگشت پول لغو در کیف پول خوانده می‌شود.</summary>
+        public DateTime? CancelledDate { get; set; }
+        /// <summary>عامل لغو: 1 = ادمین، 2 = فروشگاه؛ null = نامشخص (لغوهای قدیمی).</summary>
+        public int? CancelledByActor { get; set; }
+        public long? CancelledStoreId { get; set; }
+        /// <summary>نام فروشگاه لغوکننده (فقط برای ادمین/فروشنده).</summary>
+        public string CancelledStoreName { get; set; }
+        /// <summary>اولین لحظه‌ی «در حال پردازش» شدن سفارش.</summary>
+        public DateTime? ProcessingDate { get; set; }
         public double WalletPrice { get; set; }
         public double SiteShare { get; set; }
         public double StoreShare { get; set; }

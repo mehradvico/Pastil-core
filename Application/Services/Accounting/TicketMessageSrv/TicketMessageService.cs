@@ -51,6 +51,12 @@ namespace Application.Services.TicketMessageSrv
             return await GetMessagesAsync(ticket, dto, cancellationToken);
         }
 
+        // تیکت‌های پشتیبانی محرمانه‌اند: «ادمین اصلی» همه را می‌بیند؛ هر ادمین دیگر (از جمله «مدیر») فقط تیکتی که به خودش واگذار شده
+        // (تیکت بدون مسئول را هم نمی‌بیند و با پاسخ دادن به خودش نمی‌گیرد).
+        private bool CanAccessTicketAsAdmin(Ticket ticket) =>
+            Application.Services.Accounting.TicketSrv.TicketAccessRules.CanAdminAccess(
+                _currentUser?.IsSuperAdmin == true, ticket.AdminId, _currentUser?.UserId);
+
         public async Task<BaseResultDto<TicketMessageSearchDto>> GetAdminMessagesAsync(long ticketId, TicketMessageInputDto dto, CancellationToken cancellationToken = default)
         {
             var ticket = await _context.Tickets.AsNoTracking().FirstOrDefaultAsync(s => s.Id == ticketId, cancellationToken);
@@ -60,7 +66,7 @@ namespace Application.Services.TicketMessageSrv
                 return new BaseResultDto<TicketMessageSearchDto>(false, Resource.Notification.NothingFound, null);
             }
 
-            if (ticket.AdminId.HasValue && ticket.AdminId.Value != _currentUser.UserId)
+            if (!CanAccessTicketAsAdmin(ticket))
             {
                 return new BaseResultDto<TicketMessageSearchDto>(false, Resource.Notification.ThisTicketBlongsToAnotherAdmin, null);
             }
@@ -161,7 +167,7 @@ namespace Application.Services.TicketMessageSrv
                 return new BaseResultDto<TicketItemVDto>(false, Resource.Notification.NothingFound, null);
             }
 
-            if (ticket.AdminId.HasValue && ticket.AdminId.Value != _currentUser.UserId)
+            if (!CanAccessTicketAsAdmin(ticket))
             {
                 return new BaseResultDto<TicketItemVDto>(false, Resource.Notification.ThisTicketBlongsToAnotherAdmin, null);
             }
@@ -252,9 +258,15 @@ namespace Application.Services.TicketMessageSrv
                 return new BaseResultDto<TicketSeenVDto>(false, Resource.Notification.NothingFound, null);
             }
 
-            if (ticket.AdminId.HasValue && ticket.AdminId.Value != _currentUser.UserId)
+            if (!CanAccessTicketAsAdmin(ticket))
             {
                 return new BaseResultDto<TicketSeenVDto>(false, Resource.Notification.ThisTicketBlongsToAnotherAdmin, null);
+            }
+
+            // ادمین اصلی وقتی فقط تیکتِ ادمین دیگری را مرور می‌کند، پیام‌های کاربر را «خوانده‌شده»ی آن ادمین نمی‌کند
+            if (ticket.AdminId.HasValue && ticket.AdminId.Value != _currentUser.UserId)
+            {
+                return new BaseResultDto<TicketSeenVDto>(true, new TicketSeenVDto { TicketId = ticket.Id, SeenCount = 0, SeenDate = DateTime.Now });
             }
 
             var seenDate = DateTime.Now;

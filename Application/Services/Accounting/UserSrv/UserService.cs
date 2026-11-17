@@ -5,6 +5,7 @@ using Application.Common.Enumerable.Message;
 using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
 using Application.Common.Service;
+using Application.Common.Security;
 using Application.Common.Security.Iface;
 using Application.Services.Accounting.OtpVerifySrv.Dto;
 using Application.Services.Accounting.OtpVerifySrv.Iface;
@@ -417,13 +418,15 @@ namespace Application.Services.UserSrv
             return new UserSearchDto(searchDto, query, mapper);
         }
         public async Task<BaseResultDto> CheckUser(string token, long userId, string area, string controller, string action, long? tokenRoleId = null)
-        {
+            => (await CheckUserWithIdentityAsync(token, userId, area, controller, action, tokenRoleId)).Result;
 
+        public async Task<(BaseResultDto Result, bool IsSuperAdmin)> CheckUserWithIdentityAsync(string token, long userId, string area, string controller, string action, long? tokenRoleId = null)
+        {
             var hashed = token.Tosha256Hash();
             var userToken = await _context.UserTokens.Include(s => s.User).ThenInclude(s => s.Stores.Where(a => a.Active)).Include(s => s.User).ThenInclude(s => s.Role).ThenInclude(s => s.Permissions)
                 .FirstOrDefaultAsync(x => x.UserId == userId && x.TokenHash == hashed);
             if (userToken == null)
-                return new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidToken);
+                return (new BaseResultDto(isSuccess: false, val: Resource.Notification.InvalidToken), false);
             // access token ای که همین چند ثانیه‌ی پیش با refresh جایگزین شده (Deleted) و جانشینش هنوز زنده است،
             // برای درخواست‌های موازیِ در راه هنوز معتبر می‌ماند؛ خروج (SignOut) و باطل‌سازی کل نشست‌ها جانشین را هم
             // Deleted می‌کنند، پس آن‌ها این مهلت را نمی‌گیرند. جزئیات: TokenRotationPolicy.
@@ -435,26 +438,27 @@ namespace Application.Services.UserSrv
                     t.RotatedFromTokenId == userToken.Id && !t.Deleted && t.CreateDate >= graceStart);
             }
             if (userToken.TokenExp < DateTime.UtcNow || tokenIsDeleted)
-                return new BaseResultDto(isSuccess: false, val: Resource.Notification.TokenExpired);
+                return (new BaseResultDto(isSuccess: false, val: Resource.Notification.TokenExpired), false);
             else if (userToken.User.Deleted)
-                return new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFount);
+                return (new BaseResultDto(isSuccess: false, val: Resource.Notification.UserNotFount), false);
             else if (userToken.User.Locked)
-                return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked);
+                return (new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked), false);
             // نقش داخل JWT هنگام صدور ثابت می‌شود (policy «AdminOnly» فقط همان claim را می‌خواند). ادمینی که تنزل رتبه یا نقشش عوض
             // شده تا انقضای توکن (تا ۱۰۰ دقیقه) همچنان ادمین می‌ماند؛ اگر نقش فعلی در دیتابیس با claim نمی‌خواند توکن رد می‌شود
             // و کلاینت با refresh توکنی با نقش درست می‌گیرد.
             else if (tokenRoleId.HasValue && tokenRoleId.Value != userToken.User.RoleId)
-                return new BaseResultDto(isSuccess: false, val: Resource.Notification.TokenExpired);
-            else if (userToken.User.RoleId == (long)RoleEnum.Admin)
-            {
-                return new BaseResultDto(isSuccess: true);
-            }
-            else if ((!string.IsNullOrEmpty(area)) && (area.ToLower().Equals("admin")) && !userToken.User.Role.Permissions.Any(s => !s.Deleted && s.Area.ToLower().Equals(area.ToLower()) && s.Controller.ToLower().Equals(controller.ToLower()) && s.Action.ToLower().Equals(action.ToLower())))
-                return new BaseResultDto(isSuccess: false, val: Resource.Notification.YouHaveNotPermission);
-            else
-            {
-                return new BaseResultDto(isSuccess: true);
-            }
+                return (new BaseResultDto(isSuccess: false, val: Resource.Notification.TokenExpired), false);
+
+            // ادمین اصلی (SuperAdminIdentity): بدون هیچ ردیف RolePermission به همه‌ی endpointها دسترسی دارد.
+            // نقش «مدیر» (RoleId = 2) دیگر bypass ندارد و مثل بقیه‌ی نقش‌ها تابع RolePermission است.
+            var isSuperAdmin = SuperAdminIdentity.Matches(userToken.User, configuration);
+            if (isSuperAdmin)
+                return (new BaseResultDto(isSuccess: true), true);
+
+            if ((!string.IsNullOrEmpty(area)) && (area.ToLower().Equals("admin")) && !userToken.User.Role.Permissions.Any(s => !s.Deleted && s.Area.ToLower().Equals(area.ToLower()) && s.Controller.ToLower().Equals(controller.ToLower()) && s.Action.ToLower().Equals(action.ToLower())))
+                return (new BaseResultDto(isSuccess: false, val: Resource.Notification.YouHaveNotPermission), false);
+
+            return (new BaseResultDto(isSuccess: true), false);
         }
 
         public async Task<BaseResultDto> SignIn(SignInDto user)
@@ -485,16 +489,18 @@ namespace Application.Services.UserSrv
                 _audit.Failure("SignIn", item.Id, user.Mobile, "account_locked");
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked);
             }
+            // ادمین اصلی بدون هیچ ردیف مجوزی وارد پنل می‌شود؛ نقش «مدیر» و بقیه فقط با داشتن مجوز ناحیه‌ی Admin
+            var isSuperAdmin = SuperAdminIdentity.Matches(item, configuration);
             var isPanelLogin = user.IsAdmin || user.IsSiteAdmin;
             if (isPanelLogin &&
-                item.Role.Label != RoleEnum.Admin.ToString() &&
+                !isSuperAdmin &&
                 !item.Role.Permissions.Any(permission => !permission.Deleted && permission.Area == "Admin"))
             {
                 _audit.Failure("SignIn", item.Id, user.Mobile, "panel_access_denied");
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied);
             }
             if (user.IsSiteAdmin &&
-                item.Role.Label != RoleEnum.Admin.ToString() &&
+                !isSuperAdmin &&
                 !item.Role.Permissions.Any(permission =>
                     !permission.Deleted &&
                     permission.Area == "Admin" &&
@@ -505,7 +511,15 @@ namespace Application.Services.UserSrv
             }
 
             var codeVerified = await otpVerifyService.IsVerified(new OtpVerifyVDto() { Mobile = item.Mobile, Email = item.Email, Code = user.Code });
-            if (item.TwoFactorEnabled)
+            // ادمین اصلی همیشه باید از مسیر دومرحله‌ای (OTP + رمز) وارد شود، حتی اگر در پروفایلش TwoFactorEnabled خاموش باشد
+            // (SuperAdmin:RequireTwoFactor)؛ بدون رمز تعریف‌شده اصلاً وارد نمی‌شود تا حسابش فقط با OTP قابل تصاحب نباشد.
+            var forceTwoFactor = isSuperAdmin && SuperAdminIdentity.RequireTwoFactor(configuration);
+            if (forceTwoFactor && string.IsNullOrEmpty(item.Password))
+            {
+                _audit.Failure("SignIn", item.Id, user.Mobile, "super_admin_password_not_set");
+                return new BaseResultDto(isSuccess: false, val1: Resource.Notification.PleaseEnterThePassword, val2: nameof(user.Password));
+            }
+            if (item.TwoFactorEnabled || forceTwoFactor)
             {
                 if (codeVerified.IsSuccess == false)
                 {
@@ -986,6 +1000,13 @@ namespace Application.Services.UserSrv
             var item = await _context.Users.FirstOrDefaultAsync(s =>
                         (hasMobile ? s.Mobile == dto.Mobile : s.Email == dto.Email)
                         && s.Deleted != true && s.Locked != true);
+            // «فراموشی رمز» با OTP تنها رمز را عوض می‌کند و توکن می‌دهد؛ اگر ادمین اصلی از این مسیر رد می‌شد، سیم‌کارت/OTP به‌تنهایی
+            // کنترل کامل را می‌داد و ۲FA (OTP + رمز) دور زده می‌شد. رمز ادمین اصلی فقط از مسیر تغییر رمز با رمز فعلی عوض می‌شود.
+            if (item != null && SuperAdminIdentity.IsSuperAdminMobile(item.Mobile, configuration))
+            {
+                _audit.Failure("ResetPassword", item.Id, dto.Mobile ?? dto.Email, "super_admin_blocked");
+                return new BaseResultDto(false, val: Resource.Notification.InvalidData);
+            }
             if (item != null && !await IsProviderUserAsync(item.Id))
             {
                 _audit.Failure("ResetPassword", item.Id, dto.Mobile ?? dto.Email, "not_provider");
@@ -1049,6 +1070,7 @@ namespace Application.Services.UserSrv
                 if (userToken != null)
                 {
                     var currentUser = mapper.Map<CurrentUserDto>(userToken.User);
+                    currentUser.IsSuperAdmin = SuperAdminIdentity.Matches(userToken.User, configuration);
                     currentUser.Expertise = await ResolveProfileExpertiseAsync(
                         userToken.User.Id,
                         userToken.User.Expertise);
@@ -1076,6 +1098,7 @@ namespace Application.Services.UserSrv
             if (user == null)
                 return null;
             var currentUser = mapper.Map<CurrentUserDto>(user);
+            currentUser.IsSuperAdmin = SuperAdminIdentity.Matches(user, configuration);
             currentUser.Expertise = await ResolveProfileExpertiseAsync(user.Id, user.Expertise);
             currentUser.CanSetExpertise = currentUser.CanSetExpertise || await CanHaveExpertiseAsync(user.Id);
             return currentUser;
@@ -1101,7 +1124,8 @@ namespace Application.Services.UserSrv
                 {
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked, code: (int)ResultCodeEnum.Locked);
                 }
-                else if (item.TwoFactorEnabled == false)
+                else if (item.TwoFactorEnabled == false &&
+                         !(SuperAdminIdentity.Matches(item, configuration) && SuperAdminIdentity.RequireTwoFactor(configuration)))
                 {
                     return new BaseResultDto(isSuccess: true, code: (int)ResultCodeEnum.OneFactor);
                 }
@@ -1125,7 +1149,7 @@ namespace Application.Services.UserSrv
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked, code: 4);
             }
-            if (item.Role.Label != RoleEnum.Admin.ToString() &&
+            if (!SuperAdminIdentity.Matches(item, configuration) &&
                 !item.Role.Permissions.Any(permission => !permission.Deleted && permission.Area == "Admin"))
             {
                 return new BaseResultDto(isSuccess: false, val: Resource.Notification.AccessDenied, code: 1);

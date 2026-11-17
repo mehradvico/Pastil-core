@@ -1631,6 +1631,12 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
                 entity.Property(x => x.BirthDate).HasMaxLength(512).HasConversion(
                     value => SensitiveDataProtector.Protect(value),
                     value => SensitiveDataProtector.Unprotect(value));
+                entity.Property(x => x.CardNumber).HasMaxLength(512).HasConversion(
+                    value => SensitiveDataProtector.Protect(value),
+                    value => SensitiveDataProtector.Unprotect(value));
+                entity.Property(x => x.Iban).HasMaxLength(512).HasConversion(
+                    value => SensitiveDataProtector.Protect(value),
+                    value => SensitiveDataProtector.Unprotect(value));
                 entity.Property(x => x.ApplicantType).HasMaxLength(20);
                 entity.Property(x => x.CompanyName).HasMaxLength(200);
                 entity.Property(x => x.CompanyNationalId).HasMaxLength(20);

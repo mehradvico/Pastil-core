@@ -7822,5 +7822,32 @@ namespace Resource {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Onboarding Card Invalid.
+        /// </summary>
+        public static string ProviderOnboardingCardInvalid {
+            get {
+                return ResourceManager.GetString("ProviderOnboardingCardInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Onboarding Iban Invalid.
+        /// </summary>
+        public static string ProviderOnboardingIbanInvalid {
+            get {
+                return ResourceManager.GetString("ProviderOnboardingIbanInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provider Onboarding Bank Required.
+        /// </summary>
+        public static string ProviderOnboardingBankRequired {
+            get {
+                return ResourceManager.GetString("ProviderOnboardingBankRequired", resourceCulture);
+            }
+        }
+
     }
 }
