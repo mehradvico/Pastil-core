@@ -29,6 +29,9 @@ namespace Application.Services.Content.PostSrv
 {
     public class PostService : CommonSrv<Post, PostDto>, IPostService
     {
+        private static readonly TimeZoneInfo TehranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(
+            OperatingSystem.IsWindows() ? "Iran Standard Time" : "Asia/Tehran");
+        private static DateTime TehranNow => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TehranTimeZone);
         private readonly IDataBaseContext _context;
         private readonly IMapper mapper;
         private readonly IPostHashtagService postHashtagService;
@@ -70,11 +73,11 @@ namespace Application.Services.Content.PostSrv
         private IQueryable<Post> BaseSaerch(PostInputDto searchDto)
         {
             var query = _context.Posts.Include(s => s.Category).Include(s => s.User).Include(s => s.Admin).Include(s => s.Categories).Include(s => s.Hashtags).Include(s => s.Picture).Where(s => s.ParentId == null && s.Deleted == false).IgnoreQueryFilters().AsQueryable();
-            DateTime now = DateTime.Now;
+            DateTime now = TehranNow;
 
             if (searchDto.Available == true)
             {
-                query = query.Where(s => s.Active && s.PublishDate < now && s.AdminConfirm == true);
+                query = query.Where(s => s.Active && s.PublishDate <= now && s.AdminConfirm == true);
             }
             else
             {
@@ -102,10 +105,10 @@ namespace Application.Services.Content.PostSrv
 
                 if (searchDto.Publish != null)
                 {
-                    now = DateTime.Now;
+                    now = TehranNow;
                     if (searchDto.Publish.Value)
                     {
-                        query = query.Where(s => s.PublishDate < now);
+                        query = query.Where(s => s.PublishDate <= now);
                     }
                     else
                     {
@@ -227,9 +230,9 @@ namespace Application.Services.Content.PostSrv
                     var item = mapper.Map<Post>(dto);
                     item.ParentId = item.ParentId == 0 ? null : item.ParentId;
                     item.CreateDate = DateTime.Now;
-                    if (item.PublishDate < DateTime.Now)
+                    if (item.PublishDate < TehranNow)
                     {
-                        item.PublishDate = DateTime.Now;
+                        item.PublishDate = TehranNow;
                     }
                     item.UserId = _currentUserHelper.CurrentUser.UserId;
                     await _context.Posts.AddAsync(item);
@@ -424,7 +427,8 @@ namespace Application.Services.Content.PostSrv
 
         public async Task<BaseResultDto<PostVDto>> FindAsyncVDto(long id, bool visit = true)
         {
-            var item = await _context.Posts.Include(s => s.User).Include(s => s.Picture).Include(s => s.PostFiles).Include(s => s.PostPictures).ThenInclude(s => s.Picture).Include(s => s.Hashtags).Include(s => s.Category).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).FirstOrDefaultAsync(s => s.Id == id && s.Active && s.Deleted != true && s.AdminConfirm == true && s.PublishDate < DateTime.Now);
+            var now = TehranNow;
+            var item = await _context.Posts.Include(s => s.User).Include(s => s.Picture).Include(s => s.PostFiles).Include(s => s.PostPictures).ThenInclude(s => s.Picture).Include(s => s.Hashtags).Include(s => s.Category).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).ThenInclude(s => s.Parent).FirstOrDefaultAsync(s => s.Id == id && s.Active && s.Deleted != true && s.AdminConfirm == true && s.PublishDate <= now);
             if (item != null)
             {
                 if (visit)
@@ -563,17 +567,17 @@ namespace Application.Services.Content.PostSrv
         public BaseResultDto GetSiteMap()
         {
             // فقط پست‌هایی که صفحه‌شان واقعاً عمومی است (همان شرط FindAsyncVDto): فعال، تأییدشده و زمان انتشارشان رسیده.
-            // زمان با DateTime.Now همین سرور API (Asia/Tehran) مقایسه می‌شود نه GETDATE() دیتابیس، تا اگر ساعت SQL Server
-            // منطقهٔ دیگری باشد مقالهٔ زمان‌بندی‌شده دقیقاً هم‌زمان با صفحه‌اش وارد سایت‌مپ شود (نه زودتر، نه چند ساعت دیرتر).
+            // زمان انتشار در دیتابیس به وقت تهران ذخیره می‌شود؛ ساعت سیستم سرور ممکن است UTC باشد.
+            // سایت‌مپ و صفحهٔ مقاله باید یک ساعت مبنا داشته باشند.
             // LEFT JOIN: پست بدون دسته هم صفحهٔ عمومی دارد. noindex ها در سایت‌مپ نمی‌آیند.
             // UpdateDate برای lastmod: دیرترینِ زمان انتشار و آخرین ویرایش (پستِ ویرایش‌نشده UpdateDate خالی/0001 دارد).
             const string sqlQuery = @"SELECT p.Id, p.Name, p.Slug,
                 CASE WHEN p.UpdateDate > p.PublishDate THEN p.UpdateDate ELSE p.PublishDate END AS UpdateDate,
                 c.Label AS CategoryName
                 FROM dbo.Posts p LEFT JOIN dbo.Categories c ON p.CategoryId = c.Id
-                WHERE p.Active = 1 AND p.Deleted = 0 AND p.AdminConfirm = 1 AND p.SeoNoIndex = 0 AND p.PublishDate < @Now";
+                WHERE p.Active = 1 AND p.Deleted = 0 AND p.AdminConfirm = 1 AND p.SeoNoIndex = 0 AND p.PublishDate <= @Now";
             using var connection = new SqlConnection(connectionString);
-            var posts = connection.Query<PostSiteMapDto>(sqlQuery, new { Now = DateTime.Now }).ToList();
+            var posts = connection.Query<PostSiteMapDto>(sqlQuery, new { Now = TehranNow }).ToList();
             return new BaseResultDto<List<PostSiteMapDto>>(true, posts);
         }
 

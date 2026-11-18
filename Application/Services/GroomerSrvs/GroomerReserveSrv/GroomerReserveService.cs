@@ -13,6 +13,7 @@ using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Entities.Entities.GroomerField;
+using Entities.Entities.PastilClubField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -537,6 +538,13 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             if (!rebate.IsSuccess)
                 return new BaseResultDto(false, rebate.Messages);
 
+            if (rebate.Data.TargetType == ClubRewardTargetTypeEnum.Groomer && rebate.Data.TargetId == reserve.GroomerId)
+            {
+                var grossSite = await GrossSiteShareAsync(reserve);
+                if (!VenueFundedRebateRules.CanFund(reserve.OnlineAmount, Math.Min(rebate.Data.FinalPrice, reserve.OnlineAmount), grossSite, rebate.Data.SiteFundedPercent ?? 0m))
+                    return new BaseResultDto(false, Resource.Notification.NotPossibleUseRebateCode);
+            }
+
             // پایه‌ی تخفیف همان OnlineAmount سرور است؛ تخفیف از مبلغ آنلاین کم می‌شود نه از باقی‌مانده‌ی حضوری.
             reserve.RebateId = rebate.Data.Id;
             reserve.RebatePrice = Math.Min(rebate.Data.FinalPrice, reserve.OnlineAmount);
@@ -786,12 +794,19 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             var servicePercents = await _context.GroomerServices.AsNoTracking()
                 .Where(s => items.Select(i => i.GroomerServiceId).Contains(s.Id))
                 .ToDictionaryAsync(s => s.Id, s => s.CommissionPercent);
+            var funded = VenueFundedRebateRules.IsFundedBy(reserve.Rebate, ClubRewardTargetTypeEnum.Groomer, reserve.GroomerId);
 
             if (items.Count == 0)
             {
                 // رزرو قدیمیِ بدون آیتم (نباید پیش بیاید): همان قاعده‌ی تک‌خدمتی
                 reserve.CommissionPercent = GroomerReserveRules.ResolveCommission(reserve.GroomerService.CommissionPercent, groomerPercent);
-                (reserve.ProviderShare, reserve.SiteShare) = GroomerReserveRules.Split(reserve.PaymentPrice, reserve.CommissionPercent);
+                if (funded)
+                {
+                    var grossSite = GroomerReserveRules.Split(reserve.OnlineAmount, reserve.CommissionPercent).Site;
+                    (reserve.ProviderShare, reserve.SiteShare) = VenueFundedRebateRules.Split(reserve.OnlineAmount, reserve.RebatePrice, grossSite, VenueFundedRebateRules.SitePercent(reserve.Rebate));
+                }
+                else
+                    (reserve.ProviderShare, reserve.SiteShare) = GroomerReserveRules.Split(reserve.PaymentPrice, reserve.CommissionPercent);
                 return;
             }
 
@@ -799,7 +814,9 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             if (reserve.PickupFee > 0)
                 parts.Add((reserve.PickupFee, groomerPercent));
 
-            var shares = GroomerReserveRules.AllocateCommission(reserve.PaymentPrice, parts);
+            var shares = funded
+                ? VenueFundedRebateRules.Allocate(GroomerReserveRules.AllocateCommission(reserve.OnlineAmount, parts), reserve.RebatePrice, VenueFundedRebateRules.SitePercent(reserve.Rebate))
+                : GroomerReserveRules.AllocateCommission(reserve.PaymentPrice, parts);
             for (var index = 0; index < items.Count; index++)
             {
                 items[index].CommissionPercent = parts[index].Percent;
@@ -812,6 +829,25 @@ namespace Application.Services.GroomerSrvs.GroomerReserveSrv
             reserve.CommissionPercent = reserve.PaymentPrice > 0
                 ? Math.Round((decimal)reserve.SiteShare * 100m / (decimal)reserve.PaymentPrice, 2)
                 : parts[0].Percent;
+        }
+
+        private async Task<double> GrossSiteShareAsync(GroomerReserve reserve)
+        {
+            var items = await _context.GroomerReserveItems.AsNoTracking()
+                .Where(item => item.GroomerReserveId == reserve.Id).OrderBy(item => item.Id).ToListAsync();
+            var groomerPercent = await _context.Groomers.AsNoTracking()
+                .Where(groomer => groomer.Id == reserve.GroomerId).Select(groomer => groomer.CommissionPercent).FirstAsync();
+            if (items.Count == 0)
+                return GroomerReserveRules.Split(reserve.OnlineAmount,
+                    GroomerReserveRules.ResolveCommission(reserve.GroomerService.CommissionPercent, groomerPercent)).Site;
+            var servicePercents = await _context.GroomerServices.AsNoTracking()
+                .Where(service => items.Select(item => item.GroomerServiceId).Contains(service.Id))
+                .ToDictionaryAsync(service => service.Id, service => service.CommissionPercent);
+            var parts = items.Select(item => (Weight: item.OnlineAmount,
+                Percent: GroomerReserveRules.ResolveCommission(servicePercents.GetValueOrDefault(item.GroomerServiceId), groomerPercent))).ToList();
+            if (reserve.PickupFee > 0)
+                parts.Add((reserve.PickupFee, groomerPercent));
+            return GroomerReserveRules.AllocateCommission(reserve.OnlineAmount, parts).Sum(share => share.Site);
         }
 
         private sealed record PackageInfo(

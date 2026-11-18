@@ -67,7 +67,7 @@ namespace Application.Services.Accounting.OtpVerifySrv
                         return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, messages: errors, dto);
                     }
 
-                    var admin = dto.Type == MessageTypeEnum.Otp
+                    var admin = dto.IsAdmin && dto.Type == MessageTypeEnum.Otp
                         ? await _context.Users.AsNoTracking()
                             .Include(user => user.Role).ThenInclude(role => role.Permissions)
                             .FirstOrDefaultAsync(user => !user.Deleted && !user.Locked &&
@@ -77,7 +77,9 @@ namespace Application.Services.Accounting.OtpVerifySrv
                     var adminOtp = admin != null &&
                         (admin.RoleId == (long)RoleEnum.Admin ||
                          admin.Role?.Permissions?.Any(permission => !permission.Deleted && permission.Area == "Admin") == true);
-                    var codeLength = adminOtp ? 6 : GenerateHelper.OtpLength;
+                    if (dto.IsAdmin && dto.Type == MessageTypeEnum.Otp && !adminOtp)
+                        return new BaseResultDto<OtpVerifyVDto>(false, Resource.Notification.AccessDenied, dto);
+                    var codeLength = adminOtp ? 6 : dto.Type == MessageTypeEnum.Otp ? 4 : GenerateHelper.OtpLength;
                     var messageType = adminOtp ? MessageTypeEnum.AdminOtp : dto.Type;
                     var otpMobile = adminOtp ? admin.Mobile : dto.Mobile;
                     if (adminOtp)
@@ -267,6 +269,10 @@ namespace Application.Services.Accounting.OtpVerifySrv
             dto.Mobile = await dto.Mobile.ToEnglishDigitsAsync();
             dto.Email = await dto.Email.ToEnglishDigitsAsync();
             dto.Code = await dto.Code.ToEnglishDigitsAsync();
+
+            // کد چهاررقمی وب‌اپ نباید برای ورود پنل ادمین پذیرفته شود.
+            if (dto.IsAdmin && dto.Code?.Length != 6)
+                return new BaseResultDto(false, Resource.Notification.TheCodeIsWrong, nameof(dto.Code));
 
             if (!string.IsNullOrEmpty(dto.Mobile) && !await RegixHelper.IsMobileAsync(dto.Mobile))
             {

@@ -13,6 +13,7 @@ using Application.Services.Order.RebateSrv.Iface;
 using Application.Services.ProductSrvs.WalletSrv.Dto;
 using Application.Services.ProductSrvs.WalletSrv.IFace;
 using Entities.Entities.CoachField;
+using Entities.Entities.PastilClubField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -647,6 +648,14 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             if (!rebate.IsSuccess)
                 return new BaseResultDto(false, rebate.Messages);
 
+            if (rebate.Data.TargetType == ClubRewardTargetTypeEnum.Coach && rebate.Data.TargetId == reserve.CoachId)
+            {
+                var grossSiteShare = await GrossSiteShareAsync(reserve);
+                var discount = Math.Min(rebate.Data.FinalPrice, reserve.OnlineAmount);
+                if (!VenueFundedRebateRules.CanFund(reserve.OnlineAmount, discount, grossSiteShare, rebate.Data.SiteFundedPercent ?? 0m))
+                    return new BaseResultDto(false, Resource.Notification.NotPossibleUseRebateCode);
+            }
+
             // پایه‌ی تخفیف همان OnlineAmount سرور است؛ تخفیف از مبلغ آنلاین کم می‌شود نه از باقی‌مانده‌ی حضوری.
             reserve.RebateId = rebate.Data.Id;
             reserve.RebatePrice = Math.Min(rebate.Data.FinalPrice, reserve.OnlineAmount);
@@ -904,18 +913,27 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             var servicePercents = await _context.CoachServices.AsNoTracking()
                 .Where(s => items.Select(i => i.CoachServiceId).Contains(s.Id))
                 .ToDictionaryAsync(s => s.Id, s => s.CommissionPercent);
+            var funded = VenueFundedRebateRules.IsFundedBy(reserve.Rebate, ClubRewardTargetTypeEnum.Coach, reserve.CoachId);
 
             if (items.Count == 0)
             {
                 // رزرو قدیمیِ بدون آیتم (نباید پیش بیاید): همان قاعده‌ی تک‌خدمتی
                 reserve.CommissionPercent = CoachReserveRules.ResolveCommission(reserve.CoachService.CommissionPercent, coachPercent);
-                (reserve.ProviderShare, reserve.SiteShare) = CoachReserveRules.Split(reserve.PaymentPrice, reserve.CommissionPercent);
+                if (funded)
+                {
+                    var grossSite = CoachReserveRules.Split(reserve.OnlineAmount, reserve.CommissionPercent).Site;
+                    (reserve.ProviderShare, reserve.SiteShare) = VenueFundedRebateRules.Split(reserve.OnlineAmount, reserve.RebatePrice, grossSite, VenueFundedRebateRules.SitePercent(reserve.Rebate));
+                }
+                else
+                    (reserve.ProviderShare, reserve.SiteShare) = CoachReserveRules.Split(reserve.PaymentPrice, reserve.CommissionPercent);
                 return;
             }
 
             var parts = items.Select(i => (Weight: i.OnlineAmount, Percent: CoachReserveRules.ResolveCommission(servicePercents.GetValueOrDefault(i.CoachServiceId), coachPercent))).ToList();
 
-            var shares = CoachReserveRules.AllocateCommission(reserve.PaymentPrice, parts);
+            var shares = funded
+                ? VenueFundedRebateRules.Allocate(CoachReserveRules.AllocateCommission(reserve.OnlineAmount, parts), reserve.RebatePrice, VenueFundedRebateRules.SitePercent(reserve.Rebate))
+                : CoachReserveRules.AllocateCommission(reserve.PaymentPrice, parts);
             for (var index = 0; index < items.Count; index++)
             {
                 items[index].CommissionPercent = parts[index].Percent;
@@ -928,6 +946,23 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             reserve.CommissionPercent = reserve.PaymentPrice > 0
                 ? Math.Round((decimal)reserve.SiteShare * 100m / (decimal)reserve.PaymentPrice, 2)
                 : parts[0].Percent;
+        }
+
+        private async Task<double> GrossSiteShareAsync(CoachReserve reserve)
+        {
+            var items = await _context.CoachReserveItems.AsNoTracking()
+                .Where(item => item.CoachReserveId == reserve.Id).OrderBy(item => item.Id).ToListAsync();
+            var coachPercent = await _context.Coaches.AsNoTracking()
+                .Where(coach => coach.Id == reserve.CoachId).Select(coach => coach.CommissionPercent).FirstAsync();
+            if (items.Count == 0)
+                return CoachReserveRules.Split(reserve.OnlineAmount,
+                    CoachReserveRules.ResolveCommission(reserve.CoachService.CommissionPercent, coachPercent)).Site;
+            var servicePercents = await _context.CoachServices.AsNoTracking()
+                .Where(service => items.Select(item => item.CoachServiceId).Contains(service.Id))
+                .ToDictionaryAsync(service => service.Id, service => service.CommissionPercent);
+            var parts = items.Select(item => (Weight: item.OnlineAmount,
+                Percent: CoachReserveRules.ResolveCommission(servicePercents.GetValueOrDefault(item.CoachServiceId), coachPercent))).ToList();
+            return CoachReserveRules.AllocateCommission(reserve.OnlineAmount, parts).Sum(share => share.Site);
         }
 
         /// <summary>Price/PrePaymentPrice همان قیمتِ نحوه‌ی ارائه‌ی انتخاب‌شده است (بدون mode = قیمت پایه). OfferedInMode = false یعنی بسته در این حالت ارائه نمی‌شود.</summary>

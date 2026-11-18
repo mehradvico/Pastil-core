@@ -65,7 +65,7 @@ namespace Api.Areas.Admin.Controllers
             return Ok(await RebateService.InsertForStoreAsync(rebateDto, storeId));
         }
         /// <summary>
-        /// ساخت کد تخفیف مخصوص یک نمایندگی: targetType یکی از Store, Coach, Clinic, Groomer, Pansion
+        /// ساخت کد تخفیف مخصوص فروشگاه یا مرکز: Store, Coach, Clinic, Groomer, Pansion, School
         /// </summary>
         [HttpPost("Target/{targetType}/{targetId}")]
         [ProducesResponseType(typeof(BaseResultDto<RebateDto>), 200)]

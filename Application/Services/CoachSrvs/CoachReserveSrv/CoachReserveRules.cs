@@ -202,6 +202,28 @@ namespace Application.Services.CoachSrvs.CoachReserveSrv
             return result;
         }
 
+        /// <summary>کمیسیون هر خدمت از مبلغ اصلی؛ کل تخفیف از سهم مربی بین خدمت‌ها تقسیم می‌شود.</summary>
+        public static System.Collections.Generic.List<(double Provider, double Site)> AllocateProviderFundedCommission(
+            double grossPrice, double discount, System.Collections.Generic.IReadOnlyList<(double Weight, decimal Percent)> parts)
+        {
+            var grossShares = AllocateCommission(grossPrice, parts);
+            var providerTotal = grossShares.Sum(share => share.Provider);
+            if (!Application.Common.Helpers.VenueFundedRebateRules.CanFund(grossPrice, discount, grossShares.Sum(share => share.Site)))
+                throw new ArgumentOutOfRangeException(nameof(discount));
+            var result = new System.Collections.Generic.List<(double Provider, double Site)>();
+            decimal remaining = (decimal)discount;
+            for (var index = 0; index < grossShares.Count; index++)
+            {
+                var reduction = index == grossShares.Count - 1
+                    ? remaining
+                    : providerTotal <= 0 ? 0m : Math.Min(remaining, Math.Round((decimal)discount * (decimal)grossShares[index].Provider / (decimal)providerTotal, 0, MidpointRounding.AwayFromZero));
+                reduction = Math.Min(reduction, (decimal)grossShares[index].Provider);
+                remaining -= reduction;
+                result.Add((grossShares[index].Provider - (double)reduction, grossShares[index].Site));
+            }
+            return result;
+        }
+
         /// <summary>مبلغ پرداخت آنلاین بعد از تخفیف (هرگز منفی نمی‌شود).</summary>
         public static double PaymentAfterRebate(double onlineAmount, double rebatePrice) =>
             Math.Max(0, onlineAmount - Math.Max(0, rebatePrice));

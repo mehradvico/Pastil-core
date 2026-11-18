@@ -73,6 +73,8 @@ namespace Application.Services.Order.RebateSrv
                     UserMobile = s.User == null ? null : s.User.Mobile,
                     TargetType = s.TargetType,
                     TargetId = s.TargetId,
+                    SiteFundedPercent = s.SiteFundedPercent,
+                    ProviderFundedPercent = s.ProviderFundedPercent,
                     TypeId = s.TypeId
                 }).ToList();
             return result;
@@ -90,6 +92,7 @@ namespace Application.Services.Order.RebateSrv
                 ClubRewardTargetTypeEnum.Clinic => RebateTypeLabels.ClinicReserve,
                 ClubRewardTargetTypeEnum.Groomer => RebateTypeLabels.GroomerReserve,
                 ClubRewardTargetTypeEnum.Pansion => RebateTypeLabels.PansionReserve,
+                ClubRewardTargetTypeEnum.School => RebateTypeLabels.SchoolReserve,
                 _ => null
             };
             if (typeLabel == null)
@@ -100,7 +103,9 @@ namespace Application.Services.Order.RebateSrv
                 ClubRewardTargetTypeEnum.Coach => await _context.Coaches.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted),
                 ClubRewardTargetTypeEnum.Clinic => await _context.Clinics.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted),
                 ClubRewardTargetTypeEnum.Groomer => await _context.Groomers.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted),
-                _ => await _context.Pansions.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted)
+                ClubRewardTargetTypeEnum.Pansion => await _context.Pansions.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted),
+                ClubRewardTargetTypeEnum.School => await _context.Schools.AsNoTracking().AnyAsync(s => s.Id == targetId && !s.Deleted),
+                _ => false
             };
             var typeId = await _context.Codes.AsNoTracking()
                 .Where(s => s.Label == typeLabel).Select(s => (long?)s.Id).FirstOrDefaultAsync();
@@ -114,6 +119,17 @@ namespace Application.Services.Order.RebateSrv
             dto.TargetId = targetId;
             dto.ProductId = null;
             dto.ClubRewardId = null;
+            if (targetType is ClubRewardTargetTypeEnum.Coach or ClubRewardTargetTypeEnum.Clinic or
+                ClubRewardTargetTypeEnum.Groomer or ClubRewardTargetTypeEnum.Pansion or ClubRewardTargetTypeEnum.School)
+            {
+                dto.SiteFundedPercent ??= 0m;
+                dto.ProviderFundedPercent ??= 100m;
+            }
+            else
+            {
+                dto.SiteFundedPercent = null;
+                dto.ProviderFundedPercent = null;
+            }
             return await InsertAsyncDto(dto);
         }
 
@@ -171,6 +187,8 @@ namespace Application.Services.Order.RebateSrv
                             nameof(dto.MaxUsePerUser),
                             dto);
                     }
+                    if (!VenueFundedRebateRules.ValidPercents(dto.SiteFundedPercent, dto.ProviderFundedPercent))
+                        return new BaseResultDto<RebateDto>(false, Resource.Notification.InvalidData, dto);
                     dto.CodeValue = dto.CodeValue?.Replace(" ", "").Trim().ToLower();
                     if (!CodeIsUnique(dto.CodeValue))
                     {
@@ -635,6 +653,7 @@ namespace Application.Services.Order.RebateSrv
             ClubRewardTargetTypeEnum.Clinic => typeLabel == RebateTypeLabels.ClinicReserve,
             ClubRewardTargetTypeEnum.Groomer => typeLabel == RebateTypeLabels.GroomerReserve,
             ClubRewardTargetTypeEnum.Pansion => typeLabel == RebateTypeLabels.PansionReserve,
+            ClubRewardTargetTypeEnum.School => typeLabel == RebateTypeLabels.SchoolReserve,
             ClubRewardTargetTypeEnum.Companion or ClubRewardTargetTypeEnum.CompanionPackage => typeLabel == RebateTypeLabels.CompanionReserve,
             ClubRewardTargetTypeEnum.Assistance => typeLabel is RebateTypeLabels.CoachReserve or RebateTypeLabels.ClinicReserve or RebateTypeLabels.GroomerReserve or RebateTypeLabels.CompanionReserve,
             ClubRewardTargetTypeEnum.PastilAIPlan => typeLabel == RebateTypeLabels.PastilAI,
@@ -700,6 +719,9 @@ namespace Application.Services.Order.RebateSrv
             var targets = TargetsOf(rebate);
             if (targets == null || targets.Count == 0 || targets.Any(item => item.TargetType == ClubRewardTargetTypeEnum.Global))
                 return true;
+            if (typeLabel == RebateTypeLabels.SchoolReserve)
+                return targetId.HasValue && targets.Any(target =>
+                    target.TargetType == ClubRewardTargetTypeEnum.School && target.TargetId == targetId);
             if (typeLabel != RebateTypeLabels.PastilAI)
                 return true;
             return typeLabel == RebateTypeLabels.PastilAI && targetId.HasValue &&

@@ -4950,7 +4950,7 @@
         </member>
         <member name="M:Api.Areas.Admin.Controllers.RebateController.PostForTarget(Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum,System.Int64,Application.Services.Order.RebateSrv.Dto.RebateDto)">
             <summary>
-            ساخت کد تخفیف مخصوص یک نمایندگی: targetType یکی از Store, Coach, Clinic, Groomer, Pansion
+            ساخت کد تخفیف مخصوص فروشگاه یا مرکز: Store, Coach, Clinic, Groomer, Pansion, School
             </summary>
         </member>
         <member name="M:Api.Areas.Admin.Controllers.RebateController.PutActive(System.Int64,System.Boolean)">
@@ -7794,6 +7794,9 @@
         </member>
         <member name="M:Api.Areas.Companion.Controllers.ProviderUserRoleController.Delete(System.Int64)">
             <summary>حذف نقش (نقشی که به کارمندی داده شده حذف نمی‌شود)</summary>
+        </member>
+        <member name="T:Api.Areas.Companion.Controllers.RebateController">
+            <summary>کدهای تخفیف اختصاصی مرکزهای متعلق به نمایندهٔ جاری.</summary>
         </member>
         <member name="T:Api.Areas.Companion.Controllers.SchoolActiveController">
             <summary>

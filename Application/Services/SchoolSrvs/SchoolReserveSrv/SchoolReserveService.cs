@@ -14,6 +14,7 @@ using Application.Services.SchoolSrvs.SchoolReserveSrv.Dto;
 using Application.Services.SchoolSrvs.SchoolReserveSrv.Iface;
 using AutoMapper;
 using Entities.Entities.SchoolField;
+using Entities.Entities.PastilClubField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -310,9 +311,12 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
                 if (reserve.SchoolCourse != null)
                 {
                     var commissionPercent = Application.Common.Helpers.VenueCommission.Resolve(reserve.SchoolCourse.CommissionPercent, reserve.SchoolCourse.School?.CommissionPercent ?? 0);
-                    var siteShare = (double)((decimal)reserve.PaymentPrice * commissionPercent / 100m);
-                    reserve.SiteShare = siteShare;
-                    reserve.CompanionShare = reserve.PaymentPrice - siteShare;
+                    var funded = VenueFundedRebateRules.IsFundedBy(reserve.Rebate, ClubRewardTargetTypeEnum.School, reserve.SchoolCourse.SchoolId);
+                    var commissionBase = funded ? reserve.Price : reserve.PaymentPrice;
+                    var siteShare = (double)((decimal)commissionBase * commissionPercent / 100m);
+                    (reserve.CompanionShare, reserve.SiteShare) = funded
+                        ? VenueFundedRebateRules.Split(reserve.Price, reserve.RebatePrice, siteShare, VenueFundedRebateRules.SitePercent(reserve.Rebate))
+                        : (reserve.PaymentPrice - siteShare, siteShare);
                 }
 
                 await _context.SaveChangesAsync();
@@ -347,9 +351,22 @@ namespace Application.Services.SchoolSrvs.SchoolReserveSrv
 
             // پایه‌ی تخفیف همان Price سرور (قیمت دوره) است، نه PaymentPrice + RebatePrice
             var originalPrice = item.Price;
-            var rebate = _rebateService.GetRebateByCodeAsync(originalPrice, item.BookerId, RebateTypeLabels.SchoolReserve, dto.RebateCode);
+            var schoolId = await _context.SchoolCourses.AsNoTracking()
+                .Where(course => course.Id == item.SchoolCourseId).Select(course => course.SchoolId).FirstAsync();
+            var rebate = _rebateService.GetRebateByCodeAsync(originalPrice, item.BookerId, RebateTypeLabels.SchoolReserve, dto.RebateCode, schoolId);
             if (rebate.IsSuccess)
             {
+                if (rebate.Data.TargetType == ClubRewardTargetTypeEnum.School && rebate.Data.TargetId == schoolId)
+                {
+                    var commission = await _context.SchoolCourses.AsNoTracking()
+                        .Where(course => course.Id == item.SchoolCourseId)
+                        .Select(course => new { course.CommissionPercent, SchoolCommission = course.School.CommissionPercent })
+                        .FirstAsync();
+                    var percent = VenueCommission.Resolve(commission.CommissionPercent, commission.SchoolCommission);
+                    var siteShare = (double)((decimal)originalPrice * percent / 100m);
+                    if (!VenueFundedRebateRules.CanFund(originalPrice, rebate.Data.FinalPrice, siteShare, rebate.Data.SiteFundedPercent ?? 0m))
+                        return new BaseResultDto(false, Resource.Notification.NotPossibleUseRebateCode);
+                }
                 item.RebateId = rebate.Data.Id;
                 item.RebatePrice = rebate.Data.FinalPrice;
                 item.PaymentPrice = originalPrice - item.RebatePrice;

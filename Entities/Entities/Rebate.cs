@@ -1,6 +1,7 @@
 ﻿using Entities.Entities.CommonField;
 using Entities.Entities.Security;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Entities.Entities
 {
@@ -21,9 +22,14 @@ namespace Entities.Entities
         public int MaxUsePerUser { get; set; }
         public long? ProductId { get; set; }
         public long? ClubRewardId { get; set; }
-        // محدودیت کد به یک ارائه‌دهنده (Store=فروشگاه، Coach=مربی، Clinic، Groomer، Pansion، Companion). null = همه
+        // محدودیت کد به یک ارائه‌دهنده (Store، Coach، Clinic، Groomer، Pansion، School). null = همه
         public PastilClubField.ClubRewardTargetTypeEnum? TargetType { get; set; }
         public long? TargetId { get; set; }
+        // null در کدهای قدیمی یعنی ۰٪ پاستیل و ۱۰۰٪ مرکز برای کد اختصاصی مرکز.
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal? SiteFundedPercent { get; set; }
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal? ProviderFundedPercent { get; set; }
         public User User { get; set; }
         public Product Product { get; set; }
         public Code Type { get; set; }

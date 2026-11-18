@@ -16,7 +16,7 @@ namespace Application.Services.Order.RebateSrv.Iface
         BaseSearchDto<RebateListVDto> SearchByTarget(RebateInputDto input);
         /// <summary>ساخت کد تخفیف سبد خرید که فقط برای همین فروشگاه معتبر است (نوع و هدف سمت سرور ست می‌شود).</summary>
         Task<BaseResultDto<RebateDto>> InsertForStoreAsync(RebateDto dto, long storeId);
-        /// <summary>ساخت کد مخصوص یک نمایندگی (Store/Coach/Clinic/Groomer/Pansion)؛ نوع کد از روی هدف تعیین می‌شود.</summary>
+        /// <summary>ساخت کد مخصوص فروشگاه یا پنج نوع مرکز خدماتی؛ نوع کد از روی هدف تعیین می‌شود.</summary>
         Task<BaseResultDto<RebateDto>> InsertForTargetAsync(RebateDto dto, Entities.Entities.PastilClubField.ClubRewardTargetTypeEnum targetType, long targetId);
         /// <summary>فعال/غیرفعال کردن کد؛ با storeId فقط کدِ همان فروشگاه.</summary>
         Task<BaseResultDto> SetActiveAsync(long id, bool active, long? storeId = null);

@@ -24,6 +24,7 @@ using Application.Services.Setting.NoticeSrv.Iface;
 using AutoMapper;
 using Entities.Entities;
 using Entities.Entities.PansionField;
+using Entities.Entities.PastilClubField;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Persistence.Interface;
@@ -623,33 +624,19 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             if (item == null || item.Pansion == null)
                 return Task.CompletedTask;
 
-            decimal total = (decimal)item.PaymentPrice;
-
-            decimal hourlyPercent = VenueCommission.Resolve(item.Pansion.HourlyCommissionPercent, item.Pansion.CommissionPercent);
-            decimal dailyPercent = VenueCommission.Resolve(item.Pansion.DailyCommissionPercent, item.Pansion.CommissionPercent);
-
-            var hasHour = item.HourCount > 0;
-            var hasDay = item.DayCount > 0;
-
-            decimal sharePercent;
-
-            if (hasHour && !hasDay)
-            {
-                sharePercent = hourlyPercent;
-            }
-            else
-            {
-                sharePercent = dailyPercent;
-            }
-
-            decimal siteShare = (total * sharePercent) / 100m;
-            decimal companionShare = total - siteShare;
-
-            item.CompanionShare = (double)companionShare;
-            item.SiteShare = (double)siteShare;
+            var funded = VenueFundedRebateRules.IsFundedBy(item.Rebate, ClubRewardTargetTypeEnum.Pansion, item.PansionId);
+            var commissionBase = funded ? item.Price : item.PaymentPrice;
+            var siteShare = (double)((decimal)commissionBase * PansionCommissionPercent(item, item.Pansion) / 100m);
+            (item.CompanionShare, item.SiteShare) = funded
+                ? VenueFundedRebateRules.Split(item.Price, item.RebatePrice, siteShare, VenueFundedRebateRules.SitePercent(item.Rebate))
+                : (item.PaymentPrice - siteShare, siteShare);
 
             return Task.CompletedTask;
         }
+        private static decimal PansionCommissionPercent(PansionReserve reserve, Pansion pansion) =>
+            reserve.HourCount > 0 && reserve.DayCount == 0
+                ? VenueCommission.Resolve(pansion.HourlyCommissionPercent, pansion.CommissionPercent)
+                : VenueCommission.Resolve(pansion.DailyCommissionPercent, pansion.CommissionPercent);
         public async Task<BaseResultDto> UpdatePansionReserveCancelDto(PansionReserveCancelDto dto)
         {
             var model = await _context.PansionReserves.FirstOrDefaultAsync(s => s.Id == dto.Id && s.IsReserved);
@@ -784,6 +771,13 @@ namespace Application.Services.PansionSrvs.PansionReserveSrv
             var rebate = _rebateService.GetRebateByCodeAsync(item, dto.RebateCode);
             if (rebate.IsSuccess)
             {
+                if (rebate.Data.TargetType == ClubRewardTargetTypeEnum.Pansion && rebate.Data.TargetId == item.PansionId)
+                {
+                    var pansion = await _context.Pansions.AsNoTracking().FirstAsync(s => s.Id == item.PansionId);
+                    var siteShare = (double)((decimal)originalPrice * PansionCommissionPercent(item, pansion) / 100m);
+                    if (!VenueFundedRebateRules.CanFund(originalPrice, rebate.Data.FinalPrice, siteShare, rebate.Data.SiteFundedPercent ?? 0m))
+                        return new BaseResultDto(false, Resource.Notification.NotPossibleUseRebateCode);
+                }
                 item.Rebate = null;
                 item.RebateId = rebate.Data.Id;
                 item.RebatePrice = rebate.Data.FinalPrice;

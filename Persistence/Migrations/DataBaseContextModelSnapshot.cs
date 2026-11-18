@@ -11816,11 +11816,17 @@ namespace Persistence.Migrations
                     b.Property<double>("PriceValue")
                         .HasColumnType("float");
 
+                    b.Property<decimal?>("ProviderFundedPercent")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<long?>("ProductId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("StartDatetime")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("SiteFundedPercent")
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<long?>("TargetId")
                         .HasColumnType("bigint");
@@ -11852,7 +11858,10 @@ namespace Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Rebate");
+                    b.ToTable("Rebate", t =>
+                        {
+                            t.HasCheckConstraint("CK_Rebate_FundingPercent", "(SiteFundedPercent IS NULL AND ProviderFundedPercent IS NULL) OR (SiteFundedPercent IS NOT NULL AND ProviderFundedPercent IS NOT NULL AND SiteFundedPercent BETWEEN 0 AND 100 AND ProviderFundedPercent BETWEEN 0 AND 100 AND SiteFundedPercent + ProviderFundedPercent = 100)");
+                        });
                 });
 
             modelBuilder.Entity("Entities.Entities.Reminder", b =>

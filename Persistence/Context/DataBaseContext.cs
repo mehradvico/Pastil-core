@@ -300,6 +300,7 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
         public DbSet<ShippingQuote> ShippingQuotes { get; set; }
         public DbSet<ShippingSlot> ShippingSlots { get; set; }
         public DbSet<StoreWorkingHour> StoreWorkingHours { get; set; }
+        public DbSet<StoreClosedDate> StoreClosedDates { get; set; }
         public DbSet<Shipment> Shipments { get; set; }
         public DbSet<ShipmentEvent> ShipmentEvents { get; set; }
         public DbSet<DeliveryDistance> DeliveryDistances { get; set; }
@@ -2017,6 +2018,15 @@ IF @lockResult < 0 THROW 51000, 'Could not acquire application lock.', 1;", canc
             {
                 entity.Property(item => item.DayOfWeek).HasConversion<int>();
                 entity.HasIndex(item => new { item.StoreId, item.DayOfWeek }).IsUnique();
+                entity.HasOne(item => item.Store)
+                    .WithMany()
+                    .HasForeignKey(item => item.StoreId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+            modelBuilder.Entity<StoreClosedDate>(entity =>
+            {
+                entity.Property(item => item.Date).HasColumnType("date");
+                entity.HasIndex(item => new { item.StoreId, item.Date }).IsUnique();
                 entity.HasOne(item => item.Store)
                     .WithMany()
                     .HasForeignKey(item => item.StoreId)
