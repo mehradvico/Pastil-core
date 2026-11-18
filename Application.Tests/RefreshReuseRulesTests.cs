@@ -19,7 +19,11 @@ public class RefreshReuseRulesTests
         => Assert.Equal(RefreshReuseOutcome.Reissue, RefreshReuseRules.Classify(true, true, true));
 
     [Fact]
-    public void A_rotated_token_reused_after_the_grace_period_is_theft()
+    public void A_panel_token_reused_from_the_same_device_after_grace_ends_only_that_request()
+        => Assert.Equal(RefreshReuseOutcome.SessionEnded, RefreshReuseRules.Classify(true, false, true, isPanelSession: true));
+
+    [Fact]
+    public void A_non_panel_token_reused_after_grace_is_theft()
         => Assert.Equal(RefreshReuseOutcome.TheftRevokeAll, RefreshReuseRules.Classify(true, false, true));
 
     [Fact]

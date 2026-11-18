@@ -1,6 +1,8 @@
 ﻿using Application.Common.Dto.Result;
 using Application.Common.Helpers;
 using Application.Common.Helpers.Iface;
+using Application.Common.Enumerable;
+using Application.Common.Enumerable.Message;
 using Application.Services.Accounting.OtpVerifySrv.Dto;
 using Application.Services.Accounting.OtpVerifySrv.Iface;
 using Application.Services.Setting.MessageSenderSrv.Iface;
@@ -65,8 +67,29 @@ namespace Application.Services.Accounting.OtpVerifySrv
                         return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, messages: errors, dto);
                     }
 
+                    var admin = dto.Type == MessageTypeEnum.Otp
+                        ? await _context.Users.AsNoTracking()
+                            .Include(user => user.Role).ThenInclude(role => role.Permissions)
+                            .FirstOrDefaultAsync(user => !user.Deleted && !user.Locked &&
+                                ((!string.IsNullOrEmpty(dto.Mobile) && user.Mobile == dto.Mobile) ||
+                                 (!string.IsNullOrEmpty(dto.Email) && user.Email == dto.Email)))
+                        : null;
+                    var adminOtp = admin != null &&
+                        (admin.RoleId == (long)RoleEnum.Admin ||
+                         admin.Role?.Permissions?.Any(permission => !permission.Deleted && permission.Area == "Admin") == true);
+                    var codeLength = adminOtp ? 6 : GenerateHelper.OtpLength;
+                    var messageType = adminOtp ? MessageTypeEnum.AdminOtp : dto.Type;
+                    var otpMobile = adminOtp ? admin.Mobile : dto.Mobile;
+                    if (adminOtp)
+                    {
+                        // ورود با ایمیل هم کد پنل را به موبایلِ ثبت‌شده‌ی همان حساب می‌فرستد.
+                        if (string.IsNullOrWhiteSpace(otpMobile) ||
+                            !await _context.SmsSettings.AnyAsync(setting => setting.SmsType.Label == nameof(MessageTypeEnum.AdminOtp)))
+                            return new BaseResultDto<OtpVerifyVDto>(false, Resource.Notification.SettingsAreNotComplete, dto);
+                    }
+
                     // محدودیت هر گیرنده: ۱ کد در ۲ دقیقه و ۵ کد در ساعت (OtpSendRules)
-                    var sendDecision = OtpSendRules.TryRegisterSend(_cache, string.IsNullOrEmpty(dto.Mobile) ? dto.Email : dto.Mobile, DateTime.Now);
+                    var sendDecision = OtpSendRules.TryRegisterSend(_cache, string.IsNullOrEmpty(otpMobile) ? dto.Email : otpMobile, DateTime.Now);
                     if (!sendDecision.Allowed)
                     {
                         var message = sendDecision.Reason == OtpSendRules.BlockReason.TooSoon
@@ -76,8 +99,8 @@ namespace Application.Services.Accounting.OtpVerifySrv
                         return new BaseResultDto<OtpVerifyVDto>(isSuccess: false, messages: errors, dto);
                     }
 
-                    var item = await _context.OtpVerifies.FirstOrDefaultAsync(s => (string.IsNullOrEmpty(dto.Mobile) == false && s.Mobile == dto.Mobile) || (string.IsNullOrEmpty(dto.Email) == false && s.Email == dto.Email));
-                    var newCode = GenerateHelper.RandomDigit(GenerateHelper.OtpLength);
+                    var item = await _context.OtpVerifies.FirstOrDefaultAsync(s => (string.IsNullOrEmpty(otpMobile) == false && s.Mobile == otpMobile) || (string.IsNullOrEmpty(dto.Email) == false && s.Email == dto.Email));
+                    var newCode = GenerateHelper.RandomDigit(codeLength);
 
                     if (item != null)
                     {
@@ -106,7 +129,7 @@ namespace Application.Services.Accounting.OtpVerifySrv
                     else
                     {
                         item = new OtpVerify();
-                        item.Mobile = dto.Mobile;
+                        item.Mobile = otpMobile;
                         item.Email = dto.Email;
                         item.Code = newCode;
                         item.TryCount = 0;
@@ -116,8 +139,8 @@ namespace Application.Services.Accounting.OtpVerifySrv
                         await _context.SaveChangesAsync();
                     }
                     //dto.Code = newCode;
-                    await _messageSenderService.SendMessageAsync(messageType: dto.Type, mobileReceptor: dto.Mobile, emailReceptor: dto.Email, token1: newCode);
-                    dto.CodeLength = GenerateHelper.OtpLength;
+                    await _messageSenderService.SendMessageAsync(messageType: messageType, mobileReceptor: otpMobile, emailReceptor: adminOtp ? null : dto.Email, token1: newCode);
+                    dto.CodeLength = codeLength;
                     return new BaseResultDto<OtpVerifyVDto>(isSuccess: true, dto);
                 }
             }

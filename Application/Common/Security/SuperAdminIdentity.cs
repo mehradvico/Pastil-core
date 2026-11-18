@@ -7,13 +7,13 @@ using System.Linq;
 namespace Application.Common.Security
 {
     /// <summary>
-    /// «ادمین اصلی»: تنها یک نفر (مهراد حسینی) که بدون هیچ مجوز RolePermission‌ای به همه‌ی endpointهای ناحیه‌ی Admin و به
+    /// «ادمین اصلی»: کاربران صریحاً پیکربندی‌شده که بدون هیچ مجوز RolePermission‌ای به همه‌ی endpointهای ناحیه‌ی Admin و به
     /// داده‌های محرمانه (همه‌ی تیکت‌ها، خاطرات پت‌ها، چت‌های خصوصی PastilMatch / PastilAI / رزروها) دسترسی دارد.
     /// بقیه‌ی ادمین‌ها نقش «مدیر» (RoleId = 2) هستند و مثل هر نقش دیگر تابع RolePermission‌اند.
     ///
-    /// هویت ادمین اصلی در دیتابیس ذخیره نمی‌شود (نه ستون، نه نقش جدا): با پیکربندی سرور (SuperAdmin:Mobile) سنجیده می‌شود،
+    /// هویت ادمین اصلی در دیتابیس ذخیره نمی‌شود (نه ستون، نه نقش جدا): با پیکربندی سرور سنجیده می‌شود،
     /// پس هیچ باگ mass-assignment یا ویرایش پنل نمی‌تواند کسی را به ادمین اصلی تبدیل کند. شرط‌ها (همه با هم):
-    ///   ۱) موبایل کاربر == SuperAdmin:Mobile،  ۲) نقشش «مدیر» (RoleId = 2) است،  ۳) حذف/قفل نشده.
+    ///   ۱) موبایل کاربر در SuperAdmin:Mobile یا SuperAdmin:AdditionalMobiles،  ۲) نقشش «مدیر» (RoleId = 2) است،  ۳) حذف/قفل نشده.
     /// اگر پیکربندی خالی باشد ادمین اصلی وجود ندارد (fail-closed).
     /// </summary>
     public static class SuperAdminIdentity
@@ -22,6 +22,7 @@ namespace Application.Common.Security
         public const string VerifiedItemKey = "Pastil.SuperAdminVerified";
 
         public const string MobileConfigKey = "SuperAdmin:Mobile";
+        public const string AdditionalMobilesConfigKey = "SuperAdmin:AdditionalMobiles";
         public const string RequireTwoFactorConfigKey = "SuperAdmin:RequireTwoFactor";
 
         /// <summary>۰۹۱۲… / +98912… / ۹۸۹۱۲… و ارقام فارسی → ۰۹۱۲…</summary>
@@ -44,10 +45,18 @@ namespace Application.Common.Security
         public static string ConfiguredMobile(IConfiguration configuration) =>
             NormalizeMobile(configuration?[MobileConfigKey]);
 
+        public static string[] ConfiguredMobiles(IConfiguration configuration) =>
+            new[] { ConfiguredMobile(configuration) }
+                .Concat(configuration?[AdditionalMobilesConfigKey]?.Split(',') ?? System.Array.Empty<string>())
+                .Select(NormalizeMobile)
+                .Where(mobile => mobile.Length == 11 && mobile.StartsWith("09") && mobile.All(char.IsDigit))
+                .Distinct()
+                .ToArray();
+
         public static bool IsSuperAdminMobile(string mobile, IConfiguration configuration)
         {
-            var configured = ConfiguredMobile(configuration);
-            return configured.Length > 0 && NormalizeMobile(mobile) == configured;
+            var normalized = NormalizeMobile(mobile);
+            return normalized.Length > 0 && ConfiguredMobiles(configuration).Contains(normalized);
         }
 
         /// <summary>آیا این رکورد کاربر همان ادمین اصلی است؟ (ورود، توکن و هر بررسی دسترسی از همین یک تابع می‌گذرد)</summary>

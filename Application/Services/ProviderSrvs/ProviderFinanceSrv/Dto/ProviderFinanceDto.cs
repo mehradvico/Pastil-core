@@ -134,6 +134,13 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv.Dto
         public decimal CommissionPercent { get; set; }
         public double SiteShare { get; set; }
         public double ProviderShare { get; set; }
+        // فقط Type=Order: ریز سهم پاستیل، با همان قرارداد FinanceStore.
+        public double? GoodsPrice { get; set; }
+        public double? DeliveryPrice { get; set; }
+        public double? CommissionAmount { get; set; }
+        public double? NetCommissionAmount { get; set; }
+        public double? PastilFundedAmount { get; set; }
+        public bool AccountingReviewRequired { get; set; }
         public string StatusLabel { get; set; }
         /// <summary>فقط سفارش فروشگاه: مشتری «تحویل نگرفتم» زده.</summary>
         public bool NotReceived { get; set; }

@@ -157,7 +157,7 @@ Cart.paymentPrice = max(0, Cart.price - Cart.rebatePrice
 
 ## ۸. تقسیم درآمد؛ جدا از قیمت مشتری
 
-- سفارش کالا: برای هر `ProductOrderStore`، درصد `Store.commissionPercent` روی `store.paymentPrice` محاسبه می‌شود؛ سهم سایت = مبلغ × درصد و بقیه سهم فروشگاه. در محاسبهٔ فعلی `store.paymentPrice` شامل هزینهٔ ارسال پیش‌پرداخت نیز هست؛ این نکته برای تسویه مهم است.
+- سفارش کالا (اصلاح ۲۰۲۶-۱۱-۱۸): مبنای کمیسیون = `store.paymentPrice − store.deliveryPrice + F` (تخفیف محصول با هزینه پاستیل). سهم فروشگاه = مبنا × (۱ − درصد کمیسیون)؛ سهم پاستیل = کمیسیون کالا − F + **کل ارسال پیش‌پرداخت**. ارسال پس‌کرایه درآمد پاستیل نیست. قرارداد دقیق: `STORE_SHIPPING_ACCOUNTING_PROVIDER_APP_FA.md`.
 - رزرو پانسیون/مهد: سهم سایت از `PansionReserve.paymentPrice` با `dailyCommissionPercent` یا `hourlyCommissionPercent` متناسب با نوع رزرو؛ باقی‌مانده سهم نماینده.
 - دورهٔ مدرسه: سهم سایت از `SchoolReserve.paymentPrice × SchoolCourse.commissionPercent/100`؛ باقی‌مانده نماینده.
 - خدمت نماینده: سهم سایت از `CompanionReserve.paymentPrice × CompanionAssistance.commissionPercent/100`؛ باقی‌مانده نماینده. بدهی اپراتوری جریان جداگانه دارد.

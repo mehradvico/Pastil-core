@@ -98,7 +98,7 @@ namespace Api.Areas.Admin.Controllers
                 {
                     // حساب ادمین اصلی را هیچ ادمین دیگری ویرایش نمی‌کند؛ خودش هم از این مسیر نقش، شماره‌ی موبایل و قفل حسابش را
                     // نمی‌تواند عوض کند (شماره فقط با OTP از changeMobile، تا یک نشست ربوده‌شده حساب را از دست مالک خارج نکند).
-                    if (!ActorIsSuperAdmin)
+                    if (!ActorIsSuperAdmin || _currentUser.CurrentUser.UserId != existing.Id)
                         return Ok(Denied());
                     userDto.RoleId = existing.RoleId;
                     userDto.Mobile = existing.Mobile;

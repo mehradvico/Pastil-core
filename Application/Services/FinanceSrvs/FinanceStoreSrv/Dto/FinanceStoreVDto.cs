@@ -12,6 +12,11 @@ namespace Application.Services.FinanceSrvs.FinanceStoreSrv.Dto
         public int ProductOrderCount { get; set; }
         public double TotalStoreShare { get; set; }
         public double TotalSiteShare { get; set; }
+        public double TotalGoodsPrice { get; set; }
+        public double TotalDeliveryPrice { get; set; }
+        public double TotalCommissionAmount { get; set; }
+        public double TotalNetCommissionAmount { get; set; }
+        public int AccountingReviewRequiredCount { get; set; }
         public double TotalPastilFundedAmount { get; set; }
         // شمار سفارش‌هایی که مشتری «تحویل نگرفتم» زده (پیش از تسویه بررسی شوند) / «تحویل گرفتم» (یا تأیید خودکار) زده
         public int NotReceivedCount { get; set; }

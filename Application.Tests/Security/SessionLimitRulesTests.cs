@@ -21,4 +21,14 @@ public class SessionLimitRulesTests
     {
         Assert.Equal(expected, SessionLimitRules.SessionsToKeepOnSignIn(configured, isPanelLogin, isPartner));
     }
+
+    [Theory]
+    [InlineData(null, true, false)]
+    [InlineData(null, false, false)]
+    [InlineData("1", true, true)]
+    [InlineData("10", false, true)]
+    public void Admin_keeps_two_existing_sessions_across_panel_and_client(string configured, bool isPanelLogin, bool isPartner)
+    {
+        Assert.Equal(2, SessionLimitRules.SessionsToKeepOnSignIn(configured, isPanelLogin, isPartner, isAdminAccount: true));
+    }
 }

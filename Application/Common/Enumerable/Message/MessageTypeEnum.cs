@@ -100,6 +100,8 @@
         ProductOrderReadyNowStore,
         ProductOrderReadyUrgentStore,
         // تأیید درخواست ارائه‌دهندگی (پیش‌ثبت‌نام سایت) توسط ادمین؛ %token = نام متقاضی. لینک ورود به سایت داخل متن قالب است.
-        ProviderOnboardingApprovedForUser
+        ProviderOnboardingApprovedForUser,
+        // OTP شش‌رقمی پنل ادمین؛ مقدارهای قبلی enum نباید جابه‌جا شوند.
+        AdminOtp
     }
 }

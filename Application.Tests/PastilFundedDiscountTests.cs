@@ -301,15 +301,14 @@ public class PastilFundedDiscountTests : IClassFixture<ClinicLocalDbFixture>
     }
 
     [Fact]
-    public void Delivery_never_enters_the_discount_math_it_only_adds_its_own_commission_term()
+    public void Delivery_belongs_entirely_to_pastil_and_does_not_change_store_share()
     {
         var items = new List<ProductOrderItem> { new() { Count = 1, PastilDiscountUnit = 68_000 } };
         Assert.Equal(68_000m, ProductOrderCommissionRules.PastilFunded(items));      // تخفیف فقط از آیتم‌های محصول است، نه ارسال
 
         var (storeNoShip, siteNoShip) = ProductOrderCommissionRules.Split(782_000m, 68_000m, 8m);
-        var (storeShip, siteShip) = ProductOrderCommissionRules.Split(782_000m + 50_000m, 68_000m, 8m);
-        // هزینه‌ی ارسال فقط همان رفتار قبلیِ کمیسیون (۸٪ پاستیل، ۹۲٪ فروشگاه) را اضافه می‌کند؛ سهم تخفیفِ محصول عوض نمی‌شود
-        Assert.Equal(50_000m * 0.92m, storeShip - storeNoShip);
-        Assert.Equal(50_000m * 0.08m, siteShip - siteNoShip);
+        var (storeShip, siteShip) = ProductOrderCommissionRules.Split(782_000m + 50_000m, 68_000m, 8m, 50_000m);
+        Assert.Equal(storeNoShip, storeShip);
+        Assert.Equal(50_000m, siteShip - siteNoShip);
     }
 }

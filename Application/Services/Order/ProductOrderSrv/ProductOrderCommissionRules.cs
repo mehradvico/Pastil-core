@@ -6,18 +6,11 @@ using System.Linq;
 namespace Application.Services.Order.ProductOrderSrv
 {
     /// <summary>
-    /// حسابداری سهم فروشگاه/پاستیل در سفارش کالا با تخفیفِ دو‌لایه.
-    /// <para>
-    /// تخفیف محصول دو لایه دارد و کاملاً مستقل‌اند: اول تخفیف فروشگاه (هر درصدی؛ هزینه‌اش با فروشگاه) روی قیمت پایه،
-    /// بعد تخفیف سهم پاستیل (≤ درصد کمیسیون؛ هزینه‌اش با پاستیل) روی «قیمتِ بعد از تخفیف فروشگاه».
-    /// </para>
-    /// <para>
-    /// payment = آنچه مشتری برای این فروشگاه پرداخته (بعد از هر دو تخفیف، با هزینه‌ی ارسال)؛ F = جمع تخفیفِ سهم پاستیل.
-    /// سهم فروشگاه = (payment + F) × (۱ − کمیسیون٪) — یعنی تخفیفِ پاستیل روی مبنای کمیسیون فروشگاه اثر نمی‌گذارد.
-    /// سهم پاستیل = payment − سهم فروشگاه = کمیسیون٪ × (payment + F) − F؛ چون تخفیفِ پاستیل ≤ کمیسیون و روی همان مبنا اعمال می‌شود هیچ‌وقت منفی نمی‌شود.
-    /// بدون تخفیفِ پاستیل (F = ۰) دقیقاً همان رفتار قبلی است. اگر F برابر کمیسیون باشد سهم خالص پاستیل صفر می‌شود («تخفیف به‌جای کمیسیون»).
-    /// کد تخفیف (Rebate) و تخفیف ارسال باشگاه کاملاً هزینه‌ی پاستیل‌اند و از قبل روی مبنای فروشگاه اثر نمی‌گذارند.
-    /// </para>
+    /// کمیسیون فقط روی کالا، پس از بازگرداندن تخفیف تأمین‌شده توسط پاستیل محاسبه می‌شود.
+    /// کل DeliveryPrice متعلق به پاستیل است؛ ارسال پس‌کرایه در DeliveryPrice صفر است.
+    /// payment مبلغ ProductOrderStore پیش از کد تخفیف/مزیت ارسال باشگاه است.
+    /// سهم فروشگاه = (payment − delivery + funded) × (۱ − کمیسیون٪).
+    /// سهم پاستیل = payment − سهم فروشگاه = کمیسیون کالا + ارسال − funded.
     /// </summary>
     public static class ProductOrderCommissionRules
     {
@@ -27,9 +20,9 @@ namespace Application.Services.Order.ProductOrderSrv
                 .Where(item => !item.Deleted && item.Count > 0 && item.PastilDiscountUnit > 0)
                 .Sum(item => (decimal)item.PastilDiscountUnit * item.Count);
 
-        public static (decimal Store, decimal Site) Split(decimal payment, decimal pastilFunded, decimal commissionPercent)
+        public static (decimal Store, decimal Site) Split(decimal payment, decimal pastilFunded, decimal commissionPercent, decimal deliveryPrice = 0m)
         {
-            var baseAmount = payment + pastilFunded;
+            var baseAmount = payment - deliveryPrice + pastilFunded;
             var store = baseAmount * (100m - commissionPercent) / 100m;
             return (store, payment - store);
         }
@@ -42,7 +35,7 @@ namespace Application.Services.Order.ProductOrderSrv
             decimal totalStore = 0m, totalSite = 0m, totalFunded = 0m;
             foreach (var store in stores ?? Enumerable.Empty<ProductOrderStore>())
             {
-                if (store.Store == null)
+                if (store.Deleted || store.Store == null)
                     continue;
                 var percent = store.Store.CommissionPercent;
                 if (percent < 0 || percent > 100)
@@ -51,7 +44,7 @@ namespace Application.Services.Order.ProductOrderSrv
                 var payment = (decimal)store.PaymentPrice;
                 if (payment <= 0 && funded <= 0)
                     continue;
-                var (storeShare, siteShare) = Split(payment, funded, percent);
+                var (storeShare, siteShare) = Split(payment, funded, percent, (decimal)store.DeliveryPrice);
                 totalStore += storeShare;
                 totalSite += siteShare;
                 totalFunded += funded;

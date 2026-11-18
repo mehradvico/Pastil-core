@@ -513,7 +513,10 @@ namespace Application.Services.UserSrv
             var codeVerified = await otpVerifyService.IsVerified(new OtpVerifyVDto() { Mobile = item.Mobile, Email = item.Email, Code = user.Code });
             // ادمین اصلی همیشه باید از مسیر دومرحله‌ای (OTP + رمز) وارد شود، حتی اگر در پروفایلش TwoFactorEnabled خاموش باشد
             // (SuperAdmin:RequireTwoFactor)؛ بدون رمز تعریف‌شده اصلاً وارد نمی‌شود تا حسابش فقط با OTP قابل تصاحب نباشد.
-            var forceTwoFactor = isSuperAdmin && SuperAdminIdentity.RequireTwoFactor(configuration);
+            var forceTwoFactor = isSuperAdmin
+                ? SuperAdminIdentity.RequireTwoFactor(configuration)
+                : isPanelLogin && (item.RoleId == (long)RoleEnum.Admin ||
+                    item.Role.Permissions.Any(permission => !permission.Deleted && permission.Area == "Admin"));
             if (forceTwoFactor && string.IsNullOrEmpty(item.Password))
             {
                 _audit.Failure("SignIn", item.Id, user.Mobile, "super_admin_password_not_set");
@@ -1125,7 +1128,10 @@ namespace Application.Services.UserSrv
                     return new BaseResultDto(isSuccess: false, val: Resource.Notification.TheUserAccountIsBlocked, code: (int)ResultCodeEnum.Locked);
                 }
                 else if (item.TwoFactorEnabled == false &&
-                         !(SuperAdminIdentity.Matches(item, configuration) && SuperAdminIdentity.RequireTwoFactor(configuration)))
+                         !(SuperAdminIdentity.Matches(item, configuration) && SuperAdminIdentity.RequireTwoFactor(configuration)) &&
+                         !(user.IsAdmin && (item.RoleId == (long)RoleEnum.Admin ||
+                             await _context.Roles.AnyAsync(role => role.Id == item.RoleId &&
+                                 role.Permissions.Any(permission => !permission.Deleted && permission.Area == "Admin")))))
                 {
                     return new BaseResultDto(isSuccess: true, code: (int)ResultCodeEnum.OneFactor);
                 }

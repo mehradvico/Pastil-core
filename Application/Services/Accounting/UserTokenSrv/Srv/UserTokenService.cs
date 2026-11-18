@@ -160,14 +160,15 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                 var outcome = RefreshReuseRules.Classify(
                     wasRotated,
                     wasRotatedWithinGracePeriod,
-                    PanelSessionDevice.Matches(rotatedAway.DeviceName, refreshToken.DeviceId));
+                    PanelSessionDevice.Matches(rotatedAway.DeviceName, refreshToken.DeviceId),
+                    PanelSessionDevice.IsPanelSession(rotatedAway.DeviceName));
 
-                // ردیف Deleted بدون جانشین = نشستی که با خروج یا ورودِ دستگاه دیگر بسته شده، نه رفرش‌توکن rotate‌شده. این «سرقت» نیست؛
-                // قبلاً همین حالت کل نشست‌های کاربر (از جمله نشست تازه‌ی دستگاه دوم) را هم می‌کُشت. فقط همین درخواست رد می‌شود.
+                // توکن قدیمیِ همان دستگاه ممکن است از تب خوابیده برسد؛ مانند نشست بسته‌شده
+                // فقط همان درخواست را رد کن تا نشست معتبرِ تب دیگر باطل نشود.
                 if (outcome == RefreshReuseOutcome.SessionEnded)
                 {
                     await transaction.RollbackAsync();
-                    _audit.Failure("RefreshToken", rotatedAway.UserId, detail: "session_already_ended_no_successor");
+                    _audit.Failure("RefreshToken", rotatedAway.UserId, detail: wasRotated ? "stale_panel_token_same_device" : "session_already_ended_no_successor");
                     return new BaseResultDto(false, val: Resource.Notification.SessionEndedSignInAgain);
                 }
 
@@ -190,8 +191,7 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                     }
                 }
 
-                // بیرون از بازه‌ی Grace Period — همان رفتار قبلی: احتمال سرقت واقعی جدی
-                // گرفته می‌شود، پس تمام سشن‌های فعال کاربر نابود می‌شوند.
+                // استفاده‌ی مجدد از دستگاه دیگر، یا کلاینت بدون شناسه‌ی دستگاه، احتمال سرقت است.
                 await _context.UserTokens
                     .Where(x => x.UserId == rotatedAway.UserId && !x.Deleted)
                     .ExecuteUpdateAsync(setters => setters
@@ -339,21 +339,25 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
             await using var transaction = await _context.BeginTransactionAsync(
                 IsolationLevel.Serializable);
 
-            // ورود عادی (وب‌اپ/اپ) قبلاً «همه‌ی» نشست‌های کاربر را می‌کشت؛ یعنی ادمینی که با همان حساب در وب‌اپ یا
-            // اپ موبایل وارد می‌شد، نشست پنلش می‌پرید. حالا ورود فقط نشست‌های هم‌نوع را می‌بندد (پنل ↔ پنل، غیرپنل ↔ غیرپنل).
+            // ادمین در پنل و کلاینت عادی مجموعاً سه نشست دارد. سایر کاربران همچنان فقط نشست‌های هم‌نوع را می‌بندند.
             // مسیرهای حساس (ریست رمز، تغییر موبایل...) همچنان revokeOnlySameClientKind=false و همه را می‌بندند.
             var revocable = _context.UserTokens.Where(x => x.UserId == user.Id && !x.Deleted);
             if (revokeOnlySameClientKind)
             {
-                revocable = isAdmin
-                    ? revocable.Where(x => x.DeviceName != null && x.DeviceName.StartsWith(PanelSessionDevice.Prefix))
-                    : revocable.Where(x => x.DeviceName == null || !x.DeviceName.StartsWith(PanelSessionDevice.Prefix));
+                // نقش‌های تفویض‌شده‌ی دارای دسترسی Admin نیز حساب ادمین محسوب می‌شوند.
+                var isAdminAccount = user.RoleId == (long)RoleEnum.Admin ||
+                    (user.Role?.Permissions?.Any(p => !p.Deleted && p.Area == "Admin") == true);
+                if (!isAdminAccount)
+                    revocable = isAdmin
+                        ? revocable.Where(x => x.DeviceName != null && x.DeviceName.StartsWith(PanelSessionDevice.Prefix))
+                        : revocable.Where(x => x.DeviceName == null || !x.DeviceName.StartsWith(PanelSessionDevice.Prefix));
 
-                // چندنشستی نماینده (SessionLimitRules): تازه‌ترین نشست‌های زنده می‌مانند، بقیه بسته می‌شوند
+                // تازه‌ترین نشست‌های زنده می‌مانند؛ برای ادمین شمارش پنل و کلاینت مشترک است.
                 var keep = SessionLimitRules.SessionsToKeepOnSignIn(
                     configuration[SessionLimitRules.ConfigKey],
                     isAdmin,
-                    !isAdmin && await IsPartnerAsync(user.Id));
+                    !isAdminAccount && !isAdmin && await IsPartnerAsync(user.Id),
+                    isAdminAccount);
                 if (keep > 0)
                 {
                     var now = DateTime.UtcNow;
@@ -367,7 +371,8 @@ namespace Application.Services.Accounting.UserTokenSrv.Srv
                     if (keptIds.Count > 0)
                     {
                         revocable = revocable.Where(x => !keptIds.Contains(x.Id));
-                        _audit.Success("SignIn.CompanionOwnerMultiSession", user.Id, detail: "kept=" + keptIds.Count);
+                        _audit.Success(isAdminAccount ? "SignIn.AdminMultiSession" : "SignIn.CompanionOwnerMultiSession",
+                            user.Id, detail: "kept=" + keptIds.Count);
                     }
                 }
             }

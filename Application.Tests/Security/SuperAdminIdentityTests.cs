@@ -10,11 +10,13 @@ namespace Application.Tests.Security;
 public class SuperAdminIdentityTests
 {
     private const string Mobile = "09339750767";
+    private const string AdditionalMobile = "09126274628";
 
-    private static IConfiguration Config(string mobile = Mobile, string? requireTwoFactor = null)
+    private static IConfiguration Config(string mobile = Mobile, string? requireTwoFactor = null, string? additionalMobiles = null)
     {
         var values = new Dictionary<string, string?> { ["SuperAdmin:Mobile"] = mobile };
         if (requireTwoFactor != null) values["SuperAdmin:RequireTwoFactor"] = requireTwoFactor;
+        if (additionalMobiles != null) values["SuperAdmin:AdditionalMobiles"] = additionalMobiles;
         return new ConfigurationBuilder().AddInMemoryCollection(values).Build();
     }
 
@@ -25,6 +27,25 @@ public class SuperAdminIdentityTests
     public void Matches_the_configured_active_admin_role_user()
     {
         Assert.True(SuperAdminIdentity.Matches(Admin(), Config()));
+    }
+
+    [Fact]
+    public void Both_configured_admins_match_without_dropping_the_original()
+    {
+        var config = Config(additionalMobiles: AdditionalMobile);
+        Assert.True(SuperAdminIdentity.Matches(Admin(Mobile), config));
+        Assert.True(SuperAdminIdentity.Matches(Admin(AdditionalMobile), config));
+        Assert.Equal(2, SuperAdminIdentity.ConfiguredMobiles(config).Length);
+        Assert.False(SuperAdminIdentity.Matches(Admin("09120000000"), config));
+        Assert.False(SuperAdminIdentity.Matches(Admin(AdditionalMobile, roleId: (long)RoleEnum.Customer), config));
+        Assert.False(SuperAdminIdentity.Matches(Admin(AdditionalMobile, locked: true), config));
+    }
+
+    [Fact]
+    public void Additional_mobiles_are_normalized_deduplicated_and_invalid_entries_ignored()
+    {
+        var config = Config(additionalMobiles: " +989126274628, 09126274628, invalid, 09339750767 ");
+        Assert.Equal(new[] { Mobile, AdditionalMobile }, SuperAdminIdentity.ConfiguredMobiles(config));
     }
 
     [Theory]

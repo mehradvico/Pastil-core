@@ -53,15 +53,15 @@ namespace Application.Services.ServerMonitoringAlerts
             }
 
             // مانیتورینگ زیرساخت فقط برای «ادمین اصلی» است (SuperAdminOnly)؛ بدون ادمین اصلیِ پیکربندی‌شده به هیچ‌کس هشدار نمی‌رود
-            var superAdminMobile = SuperAdminIdentity.ConfiguredMobile(_configuration);
-            if (superAdminMobile.Length == 0)
+            if (SuperAdminIdentity.ConfiguredMobiles(_configuration).Length == 0)
             {
-                _logger.LogWarning("Server alert push skipped: SuperAdmin:Mobile is not configured.");
+                _logger.LogWarning("Server alert push skipped: no SuperAdmin mobile is configured.");
                 return;
             }
 
             var subscriptions = await _context.PushSubscriptions
                 .AsTracking()
+                .Include(x => x.User)
                 .Where(x => x.IsActive
                     && x.Provider == (long)PushProviderEnum.Fcm
                     && x.FcmToken != null
@@ -69,9 +69,11 @@ namespace Application.Services.ServerMonitoringAlerts
                     && x.UserAgent.StartsWith(MonitorUserAgentPrefix)
                     && x.UserId.HasValue
                     && x.User.RoleId == (long)RoleEnum.Admin
-                    && x.User.Mobile == superAdminMobile
                     && !x.User.Deleted && !x.User.Locked)
                 .ToListAsync(cancellationToken);
+            subscriptions = subscriptions
+                .Where(x => SuperAdminIdentity.Matches(x.User, _configuration))
+                .ToList();
 
             if (subscriptions.Count == 0)
             {

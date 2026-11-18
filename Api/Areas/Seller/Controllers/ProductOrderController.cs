@@ -58,7 +58,7 @@ namespace Api.Areas.Seller.Controllers
         public IActionResult Get([FromQuery] ProductOrderInputDto dto)
         {
             dto.StoreId = _currentUser.CurrentUser.StoreId;
-            var productOrders = productOrderService.Search(dto);
+            var productOrders = productOrderService.Search(dto, paidOnly: true);
             return Ok(productOrders);
         }
 

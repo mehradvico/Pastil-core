@@ -260,12 +260,15 @@ namespace Application.Services.Order.ProductOrderSrv
             }
         }
 
-        public ProductOrderSearchDto Search(ProductOrderInputDto baseSearchDto)
+        public ProductOrderSearchDto Search(ProductOrderInputDto baseSearchDto, bool paidOnly = false)
         {
             var query = _context.ProductOrders.Include(s => s.Rebate).Include(s => s.Address).Include(s => s.DeliveryType).Include(s => s.PaymentType)
                 .Include(s => s.User).Include(s => s.ProductOrderState).Include(s => s.ProductOrderStatus).Include(s => s.PaymentType)
                 .Include(s => s.ProductOrderStores).ThenInclude(s => s.ProductOrderItems)
                 .Include(s => s.ProductOrderStores).ThenInclude(s => s.Delivery).Where(s => s.Deleted == false).AsQueryable();
+
+            if (paidOnly)
+                query = query.Where(s => s.IsPaid);
 
             if (baseSearchDto.UserId.HasValue)
             {

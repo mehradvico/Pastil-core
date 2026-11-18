@@ -11,7 +11,7 @@ namespace Application.Services.Order.ProductOrderSrv.Iface
 {
     public interface IProductOrderService : ICommonSrv<ProductOrder, ProductOrderDto>
     {
-        ProductOrderSearchDto Search(ProductOrderInputDto baseSearchDto);
+        ProductOrderSearchDto Search(ProductOrderInputDto baseSearchDto, bool paidOnly = false);
         Task<BaseResultDto> ProductPaymentCallback(string productOrderId, bool fromWallet = false);
         Task<BaseResultDto> FindAsyncVDto(string id, long? userId = null);
         // allowMiareOverride: فقط ادمین (کنترلر Admin) می‌تواند وضعیت «ارسال» سفارش میاره را دستی بزند؛ فروشنده نه.

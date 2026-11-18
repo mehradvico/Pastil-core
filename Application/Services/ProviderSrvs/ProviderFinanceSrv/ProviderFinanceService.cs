@@ -770,6 +770,12 @@ namespace Application.Services.ProviderSrvs.ProviderFinanceSrv
                         CommissionPercent = o.CommissionPercent,
                         SiteShare = o.SiteShare,
                         ProviderShare = o.StoreShare,
+                        GoodsPrice = o.GoodsPrice,
+                        DeliveryPrice = o.DeliveryPrice,
+                        CommissionAmount = o.CommissionAmount,
+                        NetCommissionAmount = o.NetCommissionAmount,
+                        PastilFundedAmount = o.PastilFundedAmount,
+                        AccountingReviewRequired = o.AccountingReviewRequired,
                         StatusLabel = o.StatusLabel,
                         NotReceived = o.UserReceived == false,
                     });
